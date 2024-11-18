@@ -4,16 +4,11 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 
-import { IoMenu } from "react-icons/io5";
-import { Button } from "../ui/button";
-
 // const navigation = [
 //   { name: "FAQ", href: "#" },
 // ];
 
 export const Header = () => {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
   return (
     <>
       <header className="bg-white">
@@ -45,7 +40,7 @@ export const Header = () => {
             ))}
           </div> */}
 
-          <div className="flex lg:hidden">
+          {/* <div className="flex lg:hidden">
             <Button
               type="button"
               onClick={() => setMobileMenuOpen(true)}
@@ -54,7 +49,7 @@ export const Header = () => {
               <span className="sr-only">Open main menu</span>
               <IoMenu aria-hidden="true" className="size-6" />
             </Button>
-          </div>
+          </div> */}
         </nav>
         {/* <Dialog
           open={mobileMenuOpen}

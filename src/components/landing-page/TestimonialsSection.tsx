@@ -2,66 +2,74 @@ import { cn } from "@/lib/utils";
 import Image from "next/image";
 
 const featuredTestimonial = {
-  body: "Integer id nunc sit semper purus. Bibendum at lacus ut arcu blandit montes vitae auctor libero. Hac condimentum dignissim nibh vulputate ut nunc. Amet nibh orci mi venenatis blandit vel et proin. Non hendrerit in vel ac diam.",
+  body: "Hola Monse, buenas tardes. ¿Cómo estás? Subí hoy mi foto a IG. Creo que el próximo lunes ya comienzo de nuevo con el ejercicio 🥴. No era dengue lo que tenía, sino fiebre tifoidea 🙃, por andar comiendo en la calle 😆. Me gustó mucho volver a comer verduras y llevar una alimentación saludable en casa, no sabes cuánto me ayudó 🫶🏻. Muchas gracias por invitarme al reto y, sobre todo, muchas gracias por ayudarme a cambiar mis hábitos para sentirme mejor. 🙏",
   author: {
-    name: "Brenna Goyette",
-    handle: "brennagoyette",
+    name: "Carolina",
     imageUrl:
-      "https://images.unsplash.com/photo-1550525811-e5869dd03032?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=1024&h=1024&q=80",
-    logoUrl: "https://tailwindui.com/plus/img/logos/savvycal-logo-gray-900.svg",
+      "https://res.cloudinary.com/dwibt7nyu/image/upload/v1731971061/carolina_qgozyl.webp",
+    logoUrl: "https://res.cloudinary.com/dwibt7nyu/image/upload/v1726956022/H_Negro_ja7utg.svg",
   },
 };
+
 const testimonials = [
   [
     [
       {
-        body: "Laborum quis quam. Dolorum et ut quod quia. Voluptas numquam delectus nihil. Aut enim doloremque et ipsam.",
+        body: "¡Es una experiencia increíble, más momentos como estos! Gracias por compartir sus mejores momentos y logros. Son una gran familia; les mando un mega abrazo 🫂 súper fuerte. ¡Vamos por más metas, amig@s!",
         author: {
-          name: "Leslie Alexander",
-          handle: "lesliealexander",
+          name: "Armando",
           imageUrl:
-            "https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
+            "https://res.cloudinary.com/dwibt7nyu/image/upload/v1731971061/armando_pn3rh2.webp",
         },
       },
-      // More testimonials...
-    ],
-    [
       {
-        body: "Aut reprehenderit voluptatem eum asperiores beatae id. Iure molestiae ipsam ut officia rem nulla blanditiis.",
+        body: "¡Muchas gracias por sus felicitaciones! Qué bonito grupo hemos construido. Sigamos así para que cada vez sea más fácil lograr nuestros hábitos 💪💥😉🤩👏",
         author: {
-          name: "Lindsay Walton",
-          handle: "lindsaywalton",
+          name: "Cristina",
           imageUrl:
-            "https://images.unsplash.com/photo-1517841905240-472988babdf9?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
+            "https://res.cloudinary.com/dwibt7nyu/image/upload/v1731971060/cristina_gdddy0.webp",
         },
       },
-      // More testimonials...
     ],
+    // [
+    //   {
+    //     body: "Hola Monse buenas tardes como estás? ... Subí hoy mi foto a lg !! Yo creo que él próximo lunes ya comienzo de nuevo con el ejercicio ... No era dengue lo que tenía si no Fiebre tifoidea por andar comiendo en la calle !!! Me gustó mucho comenzar de nuevo a comer verduras y saludable en casa, no sabes cómo me ayudó Muchas gracias por invitarme al reto y sobre todo muchas gracias por permitirme cambiarlo por no sentirme al 100",
+    //     author: {
+    //       name: "Carolina",
+    //       imageUrl:
+    //         "https://images.unsplash.com/photo-1517841905240-472988babdf9?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
+    //     },
+    //   },
+    // ],
   ],
   [
+    // [
+    //   {
+    //     body: "Voluptas quos itaque ipsam in voluptatem est. Iste eos blanditiis repudiandae. Earum deserunt enim molestiae ipsum perferendis recusandae saepe corrupti.",
+    //     author: {
+    //       name: "Tom Cook",
+    //       imageUrl:
+    //         "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
+    //     },
+    //   },
+    // ],
     [
       {
-        body: "Voluptas quos itaque ipsam in voluptatem est. Iste eos blanditiis repudiandae. Earum deserunt enim molestiae ipsum perferendis recusandae saepe corrupti.",
+        body: "Vamos por un día más, gracias a Dios. Día #9, ¡con todo, compañero @Santiago, sin parar! 🫡🏃‍♂️",
         author: {
-          name: "Tom Cook",
-          handle: "tomcook",
+          name: "Santiago",
           imageUrl:
-            "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
+            "https://res.cloudinary.com/dwibt7nyu/image/upload/v1731971061/santiago_iaiewi.webp",
         },
       },
-      // More testimonials...
-    ],
-    [
       {
-        body: "Molestias ea earum quos nostrum doloremque sed. Quaerat quasi aut velit incidunt excepturi rerum voluptatem minus harum.",
+        body: "Quiero compartirles algo. Yo elegí ejercicio y, junto a mi compañera, que es muy linda, estamos poniendo nuestro mayor esfuerzo. Ahí vamos, haciendo acuerdos y logrando nuestras metas. Estoy muy contenta, y se siente bonito que alguien te anime. Gracias, @Karla Perez. Vamos con todo, sé que sí lo vamos a lograr. Gracias por este grupo. Me puse sensible… jajaja.",
         author: {
-          name: "Leonard Krasner",
-          handle: "leonardkrasner",
+          name: "Fernanda",
           imageUrl:
-            "https://images.unsplash.com/photo-1519345182560-3f2917c472ef?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
+            "https://res.cloudinary.com/dwibt7nyu/image/upload/v1731971393/fernanda_i28tnq.tiff",
         },
       },
-      // More testimonials...
     ],
   ],
 ];
@@ -85,21 +93,24 @@ export const TestimonialsSection = () => {
                 <p>{`“${featuredTestimonial.body}”`}</p>
               </blockquote>
               <figcaption className="flex flex-wrap items-center gap-x-4 gap-y-4 border-t border-gray-900/10 px-6 py-4 sm:flex-nowrap">
-                <img
+                <Image
                   alt=""
                   src={featuredTestimonial.author.imageUrl}
                   className="size-10 flex-none rounded-full bg-gray-50"
+                  width={40}
+                  height={40}
                 />
                 <div className="flex-auto">
                   <div className="font-semibold">
                     {featuredTestimonial.author.name}
                   </div>
-                  <div className="text-gray-600">{`@${featuredTestimonial.author.handle}`}</div>
                 </div>
-                <img
+                <Image
                   alt=""
                   src={featuredTestimonial.author.logoUrl}
                   className="h-10 w-auto flex-none"
+                  width={40}
+                  height={40}
                 />
               </figcaption>
             </figure>
@@ -122,23 +133,24 @@ export const TestimonialsSection = () => {
                   >
                     {column.map((testimonial) => (
                       <figure
-                        key={testimonial.author.handle}
+                        key={testimonial.author.name}
                         className="rounded-2xl bg-white p-6 shadow-lg ring-1 ring-gray-900/5"
                       >
                         <blockquote className="text-gray-900">
                           <p>{`“${testimonial.body}”`}</p>
                         </blockquote>
                         <figcaption className="mt-6 flex items-center gap-x-4">
-                          <img
+                          <Image
                             alt=""
                             src={testimonial.author.imageUrl}
-                            className="size-10 rounded-full bg-gray-50"
+                            className="size-10 rounded-full object-cover bg-gray-50"
+                            width={40}
+                            height={40}
                           />
                           <div>
                             <div className="font-semibold">
                               {testimonial.author.name}
                             </div>
-                            <div className="text-gray-600">{`@${testimonial.author.handle}`}</div>
                           </div>
                         </figcaption>
                       </figure>

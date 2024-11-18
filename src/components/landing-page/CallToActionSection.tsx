@@ -4,7 +4,7 @@ export const CallToActionSection = () => {
   return (
     <>
       <div className="bg-white">
-        <div className="mt-10 px-6 py-24 sm:px-6 sm:py-32 lg:px-8">
+        <div className="mt-10 px-6 py-32 sm:px-6 sm:py-40 lg:px-8">
           <div className="mx-auto max-w-2xl text-center">
             <h2 className="text-balance text-4xl font-semibold tracking-tight text-gray-900 sm:text-5xl">
               Cambia tu vida, comienza hoy

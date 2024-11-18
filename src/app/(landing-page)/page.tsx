@@ -12,7 +12,7 @@ const Home = () => {
       <HeroSection />
       <FeatureSection />
       <BentoGridSection />
-      {/* <TestimonialsSection /> */}
+      <TestimonialsSection />
       <CallToActionSection />
     </>
   );

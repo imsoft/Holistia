@@ -16,17 +16,17 @@ const navigation = {
   social: [
     {
       name: "Facebook",
-      href: "#",
+      href: "https://www.facebook.com/profile.php?id=100095104907206",
       icon: FaFacebook,
     },
     {
       name: "Instagram",
-      href: "#",
+      href: "https://www.instagram.com/holistia_io/",
       icon: FaInstagram,
     },
     {
       name: "Linkedin",
-      href: "#",
+      href: "https://www.linkedin.com/company/holistia-io",
       icon: FaLinkedin,
     },
     {
@@ -36,17 +36,17 @@ const navigation = {
     },
     {
       name: "Threads",
-      href: "#",
+      href: "https://www.threads.net/@holistia_io",
       icon: FaThreads,
     },
     {
       name: "Tiktok",
-      href: "#",
+      href: "https://www.tiktok.com/@holistia.io",
       icon: FaTiktok,
     },
     {
       name: "YouTube",
-      href: "#",
+      href: "https://www.youtube.com/@Holistia_io",
       icon: FaYoutube,
     },
   ],

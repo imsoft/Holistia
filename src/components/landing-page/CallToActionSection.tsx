@@ -15,12 +15,15 @@ export const CallToActionSection = () => {
             </p>
             <div className="mt-10 flex items-center justify-center gap-x-6">
               <Link
-                href="#"
+                href="https://wa.me/+523339550061?text=Hola,%20me%20interesa%20saber%20sobre%20Holistia%20🧘‍♀️"
                 className="rounded-md bg-blue-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
               >
                 Comienza hoy
               </Link>
-              <Link href="#" className="text-sm/6 font-semibold text-gray-900">
+              <Link
+                href="https://www.instagram.com/holistia_io/"
+                className="text-sm/6 font-semibold text-gray-900"
+              >
                 Conoce Más <span aria-hidden="true">→</span>
               </Link>
             </div>

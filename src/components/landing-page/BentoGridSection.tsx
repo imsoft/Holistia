@@ -39,6 +39,7 @@ export const BentoGridSection = () => {
               </div>
               <div className="pointer-events-none absolute inset-px rounded-lg shadow ring-1 ring-black/5 lg:rounded-l-[2rem]"></div>
             </div>
+
             <div className="relative max-lg:row-start-1">
               <div className="absolute inset-px rounded-lg bg-white max-lg:rounded-t-[2rem]"></div>
               <div className="relative flex h-full flex-col overflow-hidden rounded-[calc(theme(borderRadius.lg)+1px)] max-lg:rounded-t-[calc(2rem+1px)]">
@@ -51,9 +52,10 @@ export const BentoGridSection = () => {
                     Celebra cada logro.
                   </p>
                 </div>
-                <div className="flex flex-1 items-center justify-center max-lg:py-6 lg:pt-10">
+                <div className="flex flex-1 items-center justify-center max-lg:-pb-1 max-lg:pt-7 lg:pt-10">
                   <Image
-                    className="w-full max-lg:max-w-xs"
+                    // className="w-full max-lg:max-w-xs"
+                    className="object-cover object-center pt-6 w-full h-auto max-lg:rounded-lg"
                     src="https://res.cloudinary.com/dwibt7nyu/image/upload/v1731953199/bento-grid-2_viqeaa.webp"
                     alt=""
                     width={800}
@@ -63,6 +65,7 @@ export const BentoGridSection = () => {
               </div>
               <div className="pointer-events-none absolute inset-px rounded-lg shadow ring-1 ring-black/5 max-lg:rounded-t-[2rem]"></div>
             </div>
+            
             <div className="relative max-lg:row-start-3 lg:col-start-2 lg:row-start-2">
               <div className="absolute inset-px rounded-lg bg-white"></div>
               <div className="relative flex h-full flex-col overflow-hidden rounded-[calc(theme(borderRadius.lg)+1px)]">

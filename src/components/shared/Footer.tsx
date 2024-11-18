@@ -71,7 +71,7 @@ export const Footer = () => {
               </Link>
             ))}
           </nav> */}
-          <div className="mt-16 flex justify-center gap-x-10">
+          <div className="mt-16 flex justify-center gap-x-8">
             {navigation.social.map((item) => (
               <Link
                 key={item.name}

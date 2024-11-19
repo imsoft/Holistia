@@ -31,7 +31,7 @@ const navigation = {
     },
     {
       name: "Pinterest",
-      href: "#",
+      href: "https://mx.pinterest.com/holistiaio/",
       icon: FaPinterest,
     },
     {
@@ -46,7 +46,7 @@ const navigation = {
     },
     {
       name: "YouTube",
-      href: "https://www.youtube.com/@Holistia_io",
+      href: "https://www.youtube.com/@holistiaio",
       icon: FaYoutube,
     },
   ],

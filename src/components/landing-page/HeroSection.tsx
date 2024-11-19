@@ -14,11 +14,9 @@ export const HeroSection = () => {
                     Holistia: tu aliado en el camino al bienestar
                   </h1>
                   <p className="mt-8 text-pretty text-lg font-medium text-gray-500 sm:max-w-md sm:text-xl/8 lg:max-w-none">
-                    Únete a una comunidad que te inspira y te acompaña. Con
-                    Holistia, da pasos hacia una mejor versión de ti mismo
-                    mientras compartes el camino con personas que comparten tus
-                    sueños. ¡Descubre cómo puedes transformar tu rutina en
-                    logros reales!
+                    El cambio verdadero ocurre cuando encuentras el apoyo que te
+                    inspira a transformar tus hábitos y te impulsa a tomar el
+                    control de tu bienestar.
                   </p>
                   <div className="mt-10 flex items-center gap-x-6">
                     <Link

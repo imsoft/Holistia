@@ -15,7 +15,7 @@ const testimonials = [
   [
     [
       {
-        body: "¡Es una experiencia increíble, más momentos como estos! Gracias por compartir sus mejores momentos y logros. Son una gran familia; les mando un mega abrazo 🫂 súper fuerte. ¡Vamos por más metas, amig@s!",
+        body: "Vamos por un día más, gracias a Dios. Día #9, ¡con todo, compañero @Santiago, sin parar! 🫡🏃‍♂️",
         author: {
           name: "Armando",
           imageUrl:
@@ -23,11 +23,11 @@ const testimonials = [
         },
       },
       {
-        body: "¡Muchas gracias por sus felicitaciones! Qué bonito grupo hemos construido. Sigamos así para que cada vez sea más fácil lograr nuestros hábitos 💪💥😉🤩👏",
+        body: "Quiero compartirles algo. Yo elegí ejercicio y, junto a mi compañera, que es muy linda, estamos poniendo nuestro mayor esfuerzo. Ahí vamos, haciendo acuerdos y logrando nuestras metas. Estoy muy contenta, y se siente bonito que alguien te anime. Gracias, @Karla Perez. Vamos con todo, sé que sí lo vamos a lograr. Gracias por este grupo. Me puse sensible… jajaja.",
         author: {
-          name: "Cristina",
+          name: "Fernanda",
           imageUrl:
-            "https://res.cloudinary.com/dwibt7nyu/image/upload/v1731971060/cristina_gdddy0.webp",
+            "https://res.cloudinary.com/dwibt7nyu/image/upload/v1731971393/fernanda_i28tnq.tiff",
         },
       },
     ],
@@ -55,7 +55,7 @@ const testimonials = [
     // ],
     [
       {
-        body: "Vamos por un día más, gracias a Dios. Día #9, ¡con todo, compañero @Santiago, sin parar! 🫡🏃‍♂️",
+        body: "¡Es una experiencia increíble, más momentos como estos! Gracias por compartir sus mejores momentos y logros. Son una gran familia; les mando un mega abrazo 🫂 súper fuerte. ¡Vamos por más metas, amig@s!",
         author: {
           name: "Santiago",
           imageUrl:
@@ -63,11 +63,11 @@ const testimonials = [
         },
       },
       {
-        body: "Quiero compartirles algo. Yo elegí ejercicio y, junto a mi compañera, que es muy linda, estamos poniendo nuestro mayor esfuerzo. Ahí vamos, haciendo acuerdos y logrando nuestras metas. Estoy muy contenta, y se siente bonito que alguien te anime. Gracias, @Karla Perez. Vamos con todo, sé que sí lo vamos a lograr. Gracias por este grupo. Me puse sensible… jajaja.",
+        body: "¡Muchas gracias por sus felicitaciones! Qué bonito grupo hemos construido. Sigamos así para que cada vez sea más fácil lograr nuestros hábitos 💪💥😉🤩👏",
         author: {
-          name: "Fernanda",
+          name: "Cristina",
           imageUrl:
-            "https://res.cloudinary.com/dwibt7nyu/image/upload/v1731971393/fernanda_i28tnq.tiff",
+            "https://res.cloudinary.com/dwibt7nyu/image/upload/v1731971060/cristina_gdddy0.webp",
         },
       },
     ],

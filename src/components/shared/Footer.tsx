@@ -85,7 +85,7 @@ export const Footer = () => {
             ))}
           </div>
           <p className="mt-10 text-center text-sm/6 text-gray-600">
-            &copy; 2024 Holistia, Inc. All rights reserved.
+            &copy; 2024 Holistia, Inc. Todos los derechos reservados.
           </p>
         </div>
       </footer>

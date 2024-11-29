@@ -1,0 +1,104 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ENUMS
+enum UserRole {
+  ADMIN
+  PROFESSIONAL
+  USER
+}
+
+enum TherapyType {
+  TRADITIONAL
+  ALTERNATIVE
+  BOTH
+}
+
+enum ConsultationFormat {
+  IN_PERSON
+  ONLINE
+  BOTH
+}
+
+enum LocationType {
+  HOUSE
+  OFFICE
+  BUILDING
+}
+
+// MODELS
+model Contact {
+  id           String   @id @unique @default(uuid())
+  clerkId      String   @unique
+  facebookUrl  String?  @map("facebook_url")
+  instagramUrl String?  @map("instagram_url")
+  tiktokUrl    String?  @map("tiktok_url")
+  threadsUrl   String?  @map("threads_url")
+  youtubeUrl   String?  @map("youtube_url")
+  xUrl         String?  @map("x_url")
+  linkedinUrl  String?  @map("linkedin_url")
+  phoneNumber  String?  @map("phone_number")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+}
+
+model Location {
+  id            String        @id @unique @default(uuid())
+  clerkId       String        @unique
+  state         String?
+  city          String?
+  address       String?
+  outerNumber   String?       @map("outer_number")
+  innerNumber   String?       @map("inner_number")
+  neighborhood  String?
+  locationType  LocationType?
+  postalCode    String?       @map("postal_code")
+  googleMapsUrl String?       @map("google_maps_url")
+  createdAt     DateTime      @default(now()) @map("created_at")
+  updatedAt     DateTime      @updatedAt @map("updated_at")
+}
+
+model Professional {
+  id                              String       @id @default(uuid())
+  clerkId                         String       @unique
+  specialty                       String?
+  focusAreas                      String?      @map("focus_areas")
+  aspect                          String?
+  therapyType                     TherapyType?
+  languages                       String?
+  qualification                   Int?
+  clinicalQuestionnaireAttachment String?      @map("clinical_questionnaire_attachment")
+  approved                        Boolean?     @default(false)
+  createdAt                       DateTime     @default(now()) @map("created_at")
+  updatedAt                       DateTime     @updatedAt
+
+  sessionDetails ProfessionalSessionDetail?
+}
+
+model ProfessionalSessionDetail {
+  id                 String              @id @default(uuid())
+  clerkId            String              @unique
+  professionalId     String              @unique
+  price              Float?
+  sessionDuration    String?
+  openingHours       String?
+  closingHours       String?
+  consultationFormat ConsultationFormat?
+  consultoryImages   String[]
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+
+  professional Professional @relation(fields: [professionalId], references: [id], onDelete: Cascade)
+}

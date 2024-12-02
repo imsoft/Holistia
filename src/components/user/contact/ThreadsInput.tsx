@@ -16,6 +16,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Contact } from "@prisma/client";
 import { useToast } from "@/hooks";
 import { setContactInfo } from "@/actions";
+import { FiEdit } from "react-icons/fi";
 
 interface ThreadsInputProps {
   id: string;
@@ -121,8 +122,13 @@ export const ThreadsInput = ({ id, initialData }: ThreadsInputProps) => {
             )}
 
             {!isEditing && (
-              <Button type="button" onClick={toggleEdit}>
-                Actualizar
+              <Button
+                className="gap-2 text-white"
+                type="button"
+                onClick={toggleEdit}
+              >
+                <FiEdit />
+                Editar
               </Button>
             )}
           </dd>

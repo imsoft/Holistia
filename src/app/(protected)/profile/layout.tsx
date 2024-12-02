@@ -78,8 +78,8 @@ export default function SettingsLayout({
                     href={item.href}
                     className={cn(
                       item.href === pathname
-                        ? "bg-gray-50 text-blue-600"
-                        : "text-gray-700 hover:bg-gray-50 hover:text-blue-600",
+                        ? "bg-gray-50 text-holistia-600"
+                        : "text-gray-700 hover:bg-gray-50 hover:text-holistia-600",
                       "group flex gap-x-3 rounded-md py-2 pl-2 pr-3 text-sm font-semibold leading-6"
                     )}
                   >
@@ -87,8 +87,8 @@ export default function SettingsLayout({
                       aria-hidden="true"
                       className={cn(
                         item.href === pathname
-                          ? "text-blue-600"
-                          : "text-gray-400 group-hover:text-blue-600",
+                          ? "text-holistia-600"
+                          : "text-gray-400 group-hover:text-holistia-600",
                         "h-6 w-6 shrink-0"
                       )}
                     />

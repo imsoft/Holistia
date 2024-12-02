@@ -36,8 +36,8 @@ export const CategoryBox = ({
   return (
     <div
       onClick={handleClick}
-      className={`flex flex-col items-center justify-center gap-2 p-3 border-b-2 hover:text-blue-800 transition cursor-pointer
-        ${selected ? "border-b-blue-800" : "border-transparent"} 
+      className={`flex flex-col items-center justify-center gap-2 p-3 border-b-2 hover:text-holistia-800 transition cursor-pointer
+        ${selected ? "border-b-holistia-800" : "border-transparent"} 
         ${selected ? "text-neutral-800" : "text-neutral-500"} 
         `}
     >

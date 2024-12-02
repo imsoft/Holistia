@@ -188,7 +188,7 @@ export const ConsultoryImageInput = ({
                                 <FormControl>
                                   <label
                                     htmlFor="file-upload"
-                                    className="relative cursor-pointer rounded-md bg-white font-semibold text-blue-600 focus-within:outline-none focus-within:ring-2 focus-within:ring-blue-600 focus-within:ring-offset-2 hover:text-blue-500"
+                                    className="relative cursor-pointer rounded-md bg-white font-semibold text-holistia-600 focus-within:outline-none focus-within:ring-2 focus-within:ring-holistia-600 focus-within:ring-offset-2 hover:text-holistia-500"
                                   >
                                     <span>Subir imagenes</span>
                                     <Input
@@ -299,7 +299,7 @@ export const ConsultoryImageInput = ({
             )}
 
             {!isEditing && (
-              <Button className="gap-2" type="button" onClick={toggleEdit}>
+              <Button className="gap-2 text-white" type="button" onClick={toggleEdit}>
                 <FiEdit />
                 Editar
               </Button>

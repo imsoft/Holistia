@@ -16,6 +16,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Contact } from "@prisma/client";
 import { useToast } from "@/hooks";
 import { setContactInfo } from "@/actions";
+import { FiEdit } from "react-icons/fi";
 
 interface PhoneNumberInputProps {
   id: string;
@@ -28,7 +29,10 @@ const formSchema = z.object({
   }),
 });
 
-export const PhoneNumberInput = ({ id, initialData }: PhoneNumberInputProps) => {
+export const PhoneNumberInput = ({
+  id,
+  initialData,
+}: PhoneNumberInputProps) => {
   const { toast } = useToast();
   const [isEditing, setisEditing] = useState(false);
   const [currentData, setCurrentData] = useState(initialData);
@@ -122,8 +126,13 @@ export const PhoneNumberInput = ({ id, initialData }: PhoneNumberInputProps) => 
             )}
 
             {!isEditing && (
-              <Button type="button" onClick={toggleEdit}>
-                Actualizar
+              <Button
+                className="gap-2 text-white"
+                type="button"
+                onClick={toggleEdit}
+              >
+                <FiEdit />
+                Editar
               </Button>
             )}
           </dd>

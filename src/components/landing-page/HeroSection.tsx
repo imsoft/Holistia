@@ -21,7 +21,7 @@ export const HeroSection = () => {
                   <div className="mt-10 flex items-center gap-x-6">
                     <Link
                       href="https://wa.me/+523339550061?text=Hola,%20me%20interesa%20saber%20sobre%20Holistia%20🧘‍♀️"
-                      className="rounded-md bg-blue-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
+                      className="rounded-md bg-holistia-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-holistia-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-holistia-600"
                     >
                       Empieza Ahora
                     </Link>

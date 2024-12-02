@@ -35,7 +35,7 @@ const RequestProfessionalPage = () => {
       <Button
         onClick={handleRequest}
         disabled={isPending}
-        className={`mt-4 rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-500 ${
+        className={`mt-4 rounded bg-holistia-600 px-4 py-2 text-white hover:bg-holistia-500 ${
           isPending ? "opacity-50" : ""
         }`}
       >

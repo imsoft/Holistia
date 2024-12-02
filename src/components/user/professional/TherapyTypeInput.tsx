@@ -163,7 +163,7 @@ export const TherapyTypeInput = ({
             )}
 
             {!isEditing && (
-              <Button className="gap-2" type="button" onClick={toggleEdit}>
+              <Button className="gap-2 text-white" type="button" onClick={toggleEdit}>
                 <FiEdit />
                 Editar
               </Button>

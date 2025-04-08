@@ -41,7 +41,7 @@ function Header() {
       <div className="container mx-auto px-4 py-4 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2 z-10">
           <Image
-            src="/images/holistia-logo.png"
+            src="/holistia-blanco.png"
             alt="Holistia"
             width={120}
             height={40}
@@ -146,7 +146,7 @@ function HeroSection() {
           {/* Main image */}
           <div className="relative rounded-2xl overflow-hidden border border-white/10 shadow-2xl shadow-[#AC89FF]/10">
             <Image
-              src="/images/wellness-image.png"
+              src="https://images.unsplash.com/photo-1595118709609-575ef33e3d4e?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
               alt="Holistia wellness platform"
               width={1200}
               height={600}
@@ -353,7 +353,7 @@ function CommunitySection() {
                 <div className="space-y-4">
                   <div className="rounded-2xl overflow-hidden border border-white/10 aspect-square">
                     <Image
-                      src="/placeholder.svg?height=400&width=400"
+                      src="https://images.unsplash.com/photo-1556760544-74068565f05c?q=80&w=2929&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
                       alt="Community member"
                       width={400}
                       height={400}
@@ -362,7 +362,7 @@ function CommunitySection() {
                   </div>
                   <div className="rounded-2xl overflow-hidden border border-white/10 aspect-video">
                     <Image
-                      src="/placeholder.svg?height=300&width=400"
+                      src="https://images.unsplash.com/photo-1483137140003-ae073b395549?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
                       alt="Wellness activity"
                       width={400}
                       height={300}
@@ -373,7 +373,7 @@ function CommunitySection() {
                 <div className="space-y-4 pt-10">
                   <div className="rounded-2xl overflow-hidden border border-white/10 aspect-video">
                     <Image
-                      src="/placeholder.svg?height=300&width=400"
+                      src="https://images.unsplash.com/photo-1619968987472-4d1b2784592e?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
                       alt="Group session"
                       width={400}
                       height={300}
@@ -382,7 +382,7 @@ function CommunitySection() {
                   </div>
                   <div className="rounded-2xl overflow-hidden border border-white/10 aspect-square">
                     <Image
-                      src="/placeholder.svg?height=400&width=400"
+                      src="https://images.unsplash.com/photo-1515377905703-c4788e51af15?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
                       alt="Meditation class"
                       width={400}
                       height={400}
@@ -591,7 +591,7 @@ function Footer() {
           <div className="space-y-4">
             <Link href="/" className="inline-block">
               <Image
-                src="/images/holistia-logo.png"
+                src="/holistia-blanco.png"
                 alt="Holistia"
                 width={120}
                 height={40}

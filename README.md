@@ -1,36 +1,27 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🌿 Holistia
 
-## Getting Started
+**Holistia** es un ecosistema digital diseñado para conectar a las personas con profesionales especializados en bienestar integral: terapias alternativas, nutrición, mindfulness, entrenamiento físico y más. Nuestro objetivo es hacer accesible y personalizado el camino hacia una vida más equilibrada y saludable.
 
-First, run the development server:
+---
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## 💡 ¿Qué es Holistia?
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Holistia busca unir tecnología y bienestar para facilitar el acceso a servicios integrales de salud y desarrollo personal. Es un lugar donde podrás:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- Conectar con expertos en áreas como nutrición, meditación, fitness y terapias alternativas.
+- Reservar sesiones personalizadas según tus necesidades y horarios.
+- Acceder a contenidos y herramientas de crecimiento personal.
+- Ser parte de una comunidad consciente y en constante evolución.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+---
 
-## Learn More
+## ✨ Características clave
 
-To learn more about Next.js, take a look at the following resources:
+- Plataforma amigable y centrada en el usuario
+- Buscador de profesionales certificados
+- Reservas en línea y gestión de citas
+- Contenido exclusivo: artículos, videos, guías y recursos descargables
+- Comunidad y foros para compartir experiencias
+- Panel de administración para especialistas
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---

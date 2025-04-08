@@ -528,7 +528,7 @@ function CtaSection() {
                 <input
                   type="email"
                   placeholder="Tu correo electrónico"
-                  className="flex-1 bg-transparent px-4 py-2 h-[42px] text-white placeholder:text-white/50 focus:outline-none"
+                  className="flex-1 bg-transparent px-4 py-2 h-[30px] text-white placeholder:text-white/50 focus:outline-none"
                 />
                 <Button className="bg-gradient-to-r from-[#AFF344] to-[#AC89FF] hover:from-[#AC89FF] hover:to-[#AFF344] text-[#0D0D0D] font-medium transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-[#AFF344]/20 relative overflow-hidden group sm:w-auto w-full">
                   <span className="relative z-10">Registrarse</span>

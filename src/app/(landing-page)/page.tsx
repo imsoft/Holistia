@@ -265,13 +265,13 @@ function FeatureCard({
   title,
   description,
   gradient,
-  hoverGradient,
+  // hoverGradient,
 }: {
   icon: React.ReactNode;
   title: string;
   description: string;
   gradient: string;
-  hoverGradient: string;
+  hoverGradient?: string;
 }) {
   return (
     <div

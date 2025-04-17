@@ -11,7 +11,6 @@ import {
   Twitter,
   Facebook,
   Linkedin,
-  Menu,
   ChevronRight,
 } from "lucide-react";
 

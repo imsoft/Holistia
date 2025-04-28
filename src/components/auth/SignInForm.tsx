@@ -1,28 +1,41 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import Link from "next/link"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
-import * as z from "zod"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Eye, EyeOff, Sparkles, LogIn } from "lucide-react"
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
+import { useState } from "react";
+import Link from "next/link";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Eye, EyeOff, Sparkles, LogIn } from "lucide-react";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { supabase } from "@/lib/supabaseClient";
+import { useRouter } from "next/navigation";
 
 // Definir el esquema de validación con Zod
 const signInSchema = z.object({
   email: z.string().email({ message: "Correo electrónico inválido" }),
   password: z.string().min(1, { message: "La contraseña es requerida" }),
   rememberMe: z.boolean().optional(),
-})
+});
 
 // Tipo derivado del esquema
-type SignInFormValues = z.infer<typeof signInSchema>
+type SignInFormValues = z.infer<typeof signInSchema>;
 
 export const SignInForm = () => {
-  const [showPassword, setShowPassword] = useState(false)
+  const router = useRouter();
+  const [showPassword, setShowPassword] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+  const [unconfirmedEmail, setUnconfirmedEmail] = useState<string | null>(null);
+  const [resentSuccess, setResentSuccess] = useState(false);
 
   // Configurar useForm con el resolver de Zod
   const form = useForm<SignInFormValues>({
@@ -32,19 +45,71 @@ export const SignInForm = () => {
       password: "",
       rememberMe: false,
     },
-  })
+  });
 
   // Función para manejar el envío del formulario
-  function onSubmit(data: SignInFormValues) {
-    // Aquí iría la lógica para enviar el formulario
-    console.log("Inicio de sesión:", data)
-    // Mostrar mensaje de éxito o redireccionar
+  async function onSubmit(data: SignInFormValues) {
+    setFormError(null);
+    setUnconfirmedEmail(null);
+    setResentSuccess(false);
+
+    const { email, password } = data;
+
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) {
+        if (error.message === "Email not confirmed") {
+          setFormError(
+            "Debes confirmar tu correo electrónico antes de iniciar sesión."
+          );
+          setUnconfirmedEmail(email);
+        } else {
+          setFormError("Hubo un error al iniciar sesión. Verifica tus datos.");
+        }
+
+        // Aquí ya NO usas console.error (opcional)
+        return;
+      }
+
+      router.push("/explore");
+    } catch (err) {
+      setFormError("Ocurrió un error inesperado. Intenta de nuevo.");
+    }
   }
 
-  const handleGoogleSignIn = () => {
-    // Aquí iría la lógica para iniciar sesión con Google
-    console.log("Iniciando sesión con Google")
-  }
+  const handleResendConfirmation = async () => {
+    if (!unconfirmedEmail) return;
+
+    const { error } = await supabase.auth.resend({
+      type: "signup",
+      email: unconfirmedEmail,
+    });
+
+    if (error) {
+      setFormError(
+        "Error al reenviar el correo. Inténtalo de nuevo más tarde."
+      );
+      console.error("Error reenviando confirmación:", error.message);
+      return;
+    }
+
+    setResentSuccess(true);
+  };
+
+  const handleGoogleSignIn = async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`,
+      },
+    });
+
+    if (error) console.error("Error con Google:", error.message);
+  };
 
   return (
     <div className="min-h-screen bg-[#0D0D0D] text-white flex flex-col">
@@ -92,9 +157,13 @@ export const SignInForm = () => {
               <span>Bienvenido a Holistia</span>
             </div>
 
-            <h1 className="text-3xl font-bold mb-2 animated-gradient-text">Iniciar sesión</h1>
+            <h1 className="text-3xl font-bold mb-2 animated-gradient-text">
+              Iniciar sesión
+            </h1>
 
-            <p className="text-white/70">Continúa tu viaje hacia el bienestar integral</p>
+            <p className="text-white/70">
+              Continúa tu viaje hacia el bienestar integral
+            </p>
           </div>
 
           <div className="bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10 p-6 shadow-xl">
@@ -103,7 +172,12 @@ export const SignInForm = () => {
               onClick={handleGoogleSignIn}
               className="w-full flex items-center justify-center gap-2 bg-white hover:bg-gray-100 text-gray-800 font-medium py-2 px-4 rounded-md border border-gray-300 transition-colors duration-300 mb-6"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                width="20"
+                height="20"
+              >
                 <path
                   fill="#4285F4"
                   d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -137,13 +211,18 @@ export const SignInForm = () => {
             </div>
 
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+              <form
+                onSubmit={form.handleSubmit(onSubmit)}
+                className="space-y-5"
+              >
                 <FormField
                   control={form.control}
                   name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-white/90">Correo electrónico</FormLabel>
+                      <FormLabel className="text-white/90">
+                        Correo electrónico
+                      </FormLabel>
                       <FormControl>
                         <Input
                           placeholder="tu@email.com"
@@ -162,8 +241,13 @@ export const SignInForm = () => {
                   render={({ field }) => (
                     <FormItem>
                       <div className="flex items-center justify-between">
-                        <FormLabel className="text-white/90">Contraseña</FormLabel>
-                        <Link href="/forgot-password" className="text-xs text-[#AC89FF] hover:underline">
+                        <FormLabel className="text-white/90">
+                          Contraseña
+                        </FormLabel>
+                        <Link
+                          href="/forgot-password"
+                          className="text-xs text-[#AC89FF] hover:underline"
+                        >
                           ¿Olvidaste tu contraseña?
                         </Link>
                       </div>
@@ -180,7 +264,11 @@ export const SignInForm = () => {
                             onClick={() => setShowPassword(!showPassword)}
                             className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white/50 hover:text-white"
                           >
-                            {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                            {showPassword ? (
+                              <EyeOff className="h-4 w-4" />
+                            ) : (
+                              <Eye className="h-4 w-4" />
+                            )}
                           </button>
                         </div>
                       </FormControl>
@@ -202,7 +290,9 @@ export const SignInForm = () => {
                         />
                       </FormControl>
                       <div className="space-y-1 leading-none">
-                        <FormLabel className="text-sm font-medium text-white/80">Recordar mi sesión</FormLabel>
+                        <FormLabel className="text-sm font-medium text-white/80">
+                          Recordar mi sesión
+                        </FormLabel>
                       </div>
                     </FormItem>
                   )}
@@ -218,13 +308,40 @@ export const SignInForm = () => {
                   </span>
                   <span className="absolute inset-0 bg-gradient-to-r from-[#AC89FF]/0 via-white/20 to-[#AC89FF]/0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-in-out"></span>
                 </Button>
+                {formError && (
+                  <div className="text-red-400 text-sm text-center mt-2">
+                    {formError}
+
+                    {unconfirmedEmail && (
+                      <div className="mt-2">
+                        <Button
+                          onClick={handleResendConfirmation}
+                          variant="ghost"
+                          className="text-sm text-[#AC89FF] hover:underline cursor-pointer"
+                        >
+                          Reenviar correo de confirmación
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {resentSuccess && (
+                  <p className="text-green-400 text-sm text-center mt-2">
+                    ✉️ Correo de confirmación reenviado. Revisa tu bandeja de
+                    entrada.
+                  </p>
+                )}
               </form>
             </Form>
 
             <div className="mt-6 pt-6 border-t border-white/10 text-center">
               <p className="text-white/70 text-sm">
                 ¿No tienes una cuenta?{" "}
-                <Link href="/signup" className="text-[#AC89FF] hover:underline font-medium">
+                <Link
+                  href="/signup"
+                  className="text-[#AC89FF] hover:underline font-medium"
+                >
                   Regístrate
                 </Link>
               </p>
@@ -233,11 +350,12 @@ export const SignInForm = () => {
 
           <div className="mt-8 text-center">
             <p className="text-xs text-white/50">
-              &copy; {new Date().getFullYear()} Holistia. Todos los derechos reservados.
+              &copy; {new Date().getFullYear()} Holistia. Todos los derechos
+              reservados.
             </p>
           </div>
         </div>
       </div>
     </div>
-  )
-}
+  );
+};

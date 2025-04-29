@@ -71,12 +71,12 @@ export const SignInForm = () => {
           setFormError("Hubo un error al iniciar sesión. Verifica tus datos.");
         }
 
-        // Aquí ya NO usas console.error (opcional)
         return;
       }
 
       router.push("/explore");
     } catch (err) {
+      console.error("Error al iniciar sesión:", err);
       setFormError("Ocurrió un error inesperado. Intenta de nuevo.");
     }
   }

@@ -236,8 +236,8 @@ export const ProfessionalProfile = () => {
   const timeSlots = generateTimeSlots();
 
   // Generar fechas para el selector de días
-  const generateDates = () => {
-    const dates = [];
+  const generateDates = (): Date[] => {
+    const dates: Date[] = [];
     for (let i = 0; i < 7; i++) {
       dates.push(addDays(new Date(), i));
     }

@@ -1,62 +1,110 @@
-"use client";
-
+import { UserProfilePage } from "@/components/profile/user-profile-page";
+import { getCurrentUser, getUserPreferences } from "@/services/profile-service";
 import { supabase } from "@/lib/supabaseClient";
-import { UserProfile } from "@/components/user-profile";
-import { Loader } from "lucide-react";
-import { useEffect, useState } from "react";
+import {
+  SupabaseFavoriteCenterResponse,
+  SupabaseFavoriteProfessionalResponse,
+} from "@/types/database.types";
 
-export default function ProfilePage() {
-  const [userProfile, setUserProfile] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+export default async function ProfilePage() {
+  const user = await getCurrentUser();
 
-  useEffect(() => {
-    const getUserData = async () => {
-      setLoading(true);
-
-      const {
-        data: { user },
-        error: authError,
-      } = await supabase.auth.getUser();
-
-      if (authError || !user) {
-        console.error("No se pudo obtener el usuario");
-        setLoading(false);
-        return;
-      }
-
-      const { data: profile, error: profileError } = await supabase
-        .from("users")
-        .select("*")
-        .eq("id", user.id)
-        .single();
-
-      if (profileError) {
-        console.error("Error cargando perfil:", profileError);
-      } else {
-        setUserProfile(profile);
-      }
-
-      setLoading(false);
-    };
-
-    getUserData();
-  }, []);
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-screen text-white">
-        <Loader className="animate-spin mr-2" /> Cargando perfil...
-      </div>
-    );
+  if (!user) {
+    return null;
   }
 
-  if (!userProfile) {
-    return (
-      <div className="text-center text-white py-20">
-        <p>No se encontró el perfil.</p>
-      </div>
-    );
-  }
+  const [
+    appointmentsResult,
+    favoriteProfessionalsResult,
+    favoriteCentersResult,
+  ] = await Promise.all([
+    supabase
+      .from("appointments")
+      .select(
+        `
+        id, date, time, status,
+        services:service_id(name, description, duration, price),
+        professionals:professional_id(id, name, specialty, image_url),
+        wellness_centers:center_id(id, name, type, logo_url)
+      `
+      )
+      .eq("user_id", user.id)
+      .order("date", { ascending: true }),
 
-  return <UserProfile user={userProfile} />;
+    supabase
+      .from("favorite_professionals")
+      .select(
+        `
+        user_id,
+        professional_id,
+        created_at,
+        professionals:professional_id(id, name, specialty, image_url, location, rating)
+      `
+      )
+      .eq("user_id", user.id),
+
+    supabase
+      .from("favorite_centers")
+      .select(
+        `
+        user_id,
+        center_id,
+        created_at,
+        wellness_centers:center_id(id, name, type, logo_url, location, rating)
+      `
+      )
+      .eq("user_id", user.id),
+  ]);
+
+  const preferences = await getUserPreferences(user.id);
+
+  // 🔵 Transformamos citas correctamente
+  const appointments = (appointmentsResult.data || []).map((appt) => ({
+    id: appt.id,
+    date: appt.date,
+    time: appt.time,
+    status: appt.status,
+    services: Array.isArray(appt.services) ? appt.services[0] : appt.services,
+    professionals: Array.isArray(appt.professionals)
+      ? appt.professionals[0]
+      : appt.professionals,
+    wellness_centers: Array.isArray(appt.wellness_centers)
+      ? appt.wellness_centers[0]
+      : appt.wellness_centers,
+  }));
+
+  // 🔵 Directamente casteamos
+  const favoriteProfessionals: SupabaseFavoriteProfessionalResponse = {
+    data: (favoriteProfessionalsResult.data || []).map((fav) => ({
+      user_id: fav.user_id,
+      professional_id: fav.professional_id,
+      created_at: fav.created_at,
+      professionals: Array.isArray(fav.professionals)
+        ? fav.professionals[0]
+        : fav.professionals,
+    })),
+    error: favoriteProfessionalsResult.error || null,
+  };
+
+  const favoriteCenters: SupabaseFavoriteCenterResponse = {
+    data: (favoriteCentersResult.data || []).map((fav) => ({
+      user_id: fav.user_id,
+      center_id: fav.center_id,
+      created_at: fav.created_at,
+      wellness_centers: Array.isArray(fav.wellness_centers)
+        ? fav.wellness_centers[0]
+        : fav.wellness_centers,
+    })),
+    error: favoriteCentersResult.error || null,
+  };
+
+  return (
+    <UserProfilePage
+      user={user}
+      appointments={appointments}
+      favoriteProfessionals={[favoriteProfessionals]}
+      favoriteCenters={[favoriteCenters]}
+      preferences={preferences}
+    />
+  );
 }

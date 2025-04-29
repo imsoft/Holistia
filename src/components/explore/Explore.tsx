@@ -1,47 +1,63 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import Link from "next/link"
-import Image from "next/image"
-import { Search, MapPin, Star, Filter, ChevronDown, Sparkles, Heart, Calendar, ArrowRight } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { useState } from "react";
+import Link from "next/link";
+import Image from "next/image";
+import {
+  Search,
+  MapPin,
+  Star,
+  Filter,
+  ChevronDown,
+  Sparkles,
+  Heart,
+  Calendar,
+  ArrowRight,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 // Tipos para los datos
 type Professional = {
-  id: string
-  name: string
-  specialty: string
-  rating: number
-  location: string
-  description: string
-  image: string
-  tags: string[]
-  availability: string
-  price: string
-}
+  id: string;
+  name: string;
+  specialty: string;
+  rating: number;
+  location: string;
+  description: string;
+  image: string;
+  tags: string[];
+  availability: string;
+  price: string;
+};
 
 type Center = {
-  id: string
-  name: string
-  type: string
-  rating: number
-  location: string
-  services: string[]
-  image: string
-  tags: string[]
-  price: string
-}
+  id: string;
+  name: string;
+  type: string;
+  rating: number;
+  location: string;
+  services: string[];
+  image: string;
+  tags: string[];
+  price: string;
+};
 
 export const Explore = () => {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [activeTab, setActiveTab] = useState("professionals")
-  const [searchQuery, setSearchQuery] = useState("")
-  const [selectedCategory, setSelectedCategory] = useState("all")
+  const [activeTab, setActiveTab] = useState("professionals");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("all");
+
+  console.log("Active Tab:", activeTab);
 
   // Datos de ejemplo para profesionales
   const professionals: Professional[] = [
@@ -51,7 +67,8 @@ export const Explore = () => {
       specialty: "Nutricionista Holística",
       rating: 4.9,
       location: "Ciudad de México",
-      description: "Especialista en nutrición integrativa y medicina funcional con enfoque en bienestar digestivo.",
+      description:
+        "Especialista en nutrición integrativa y medicina funcional con enfoque en bienestar digestivo.",
       image: "/placeholder.svg?height=400&width=400",
       tags: ["Nutrición", "Medicina Funcional", "Bienestar Digestivo"],
       availability: "Disponible hoy",
@@ -63,7 +80,8 @@ export const Explore = () => {
       specialty: "Instructor de Yoga",
       rating: 4.8,
       location: "Guadalajara",
-      description: "Maestro certificado en Hatha y Vinyasa Yoga con 10 años de experiencia en mindfulness.",
+      description:
+        "Maestro certificado en Hatha y Vinyasa Yoga con 10 años de experiencia en mindfulness.",
       image: "/placeholder.svg?height=400&width=400",
       tags: ["Yoga", "Meditación", "Mindfulness"],
       availability: "Disponible mañana",
@@ -75,7 +93,8 @@ export const Explore = () => {
       specialty: "Terapeuta Holística",
       rating: 4.7,
       location: "Monterrey",
-      description: "Especialista en terapias alternativas, aromaterapia y sanación energética.",
+      description:
+        "Especialista en terapias alternativas, aromaterapia y sanación energética.",
       image: "/placeholder.svg?height=400&width=400",
       tags: ["Terapia", "Aromaterapia", "Sanación"],
       availability: "Disponible en 2 días",
@@ -87,7 +106,8 @@ export const Explore = () => {
       specialty: "Acupunturista",
       rating: 4.9,
       location: "Ciudad de México",
-      description: "Doctor en medicina tradicional china especializado en acupuntura y moxibustión.",
+      description:
+        "Doctor en medicina tradicional china especializado en acupuntura y moxibustión.",
       image: "/placeholder.svg?height=400&width=400",
       tags: ["Acupuntura", "Medicina China", "Dolor Crónico"],
       availability: "Disponible hoy",
@@ -99,7 +119,8 @@ export const Explore = () => {
       specialty: "Coach de Bienestar",
       rating: 4.6,
       location: "Puebla",
-      description: "Coach certificada en bienestar integral y desarrollo personal con enfoque en hábitos saludables.",
+      description:
+        "Coach certificada en bienestar integral y desarrollo personal con enfoque en hábitos saludables.",
       image: "/placeholder.svg?height=400&width=400",
       tags: ["Coaching", "Hábitos", "Desarrollo Personal"],
       availability: "Disponible mañana",
@@ -111,13 +132,14 @@ export const Explore = () => {
       specialty: "Quiropráctico",
       rating: 4.8,
       location: "Querétaro",
-      description: "Especialista en ajustes vertebrales y tratamiento de dolores musculoesqueléticos.",
+      description:
+        "Especialista en ajustes vertebrales y tratamiento de dolores musculoesqueléticos.",
       image: "/placeholder.svg?height=400&width=400",
       tags: ["Quiropráctica", "Dolor de Espalda", "Postura"],
       availability: "Disponible en 3 días",
       price: "Desde $850 MXN",
     },
-  ]
+  ];
 
   // Datos de ejemplo para centros wellness
   const centers: Center[] = [
@@ -160,12 +182,16 @@ export const Explore = () => {
       type: "Centro de Retiros",
       rating: 4.9,
       location: "Valle de Bravo",
-      services: ["Retiros de Silencio", "Meditación", "Alimentación Consciente"],
+      services: [
+        "Retiros de Silencio",
+        "Meditación",
+        "Alimentación Consciente",
+      ],
       image: "/placeholder.svg?height=500&width=800",
       tags: ["Retiros", "Meditación", "Naturaleza"],
       price: "Desde $1,200 MXN",
     },
-  ]
+  ];
 
   // Categorías para filtrar
   const categories = [
@@ -176,7 +202,7 @@ export const Explore = () => {
     { id: "meditation", name: "Meditación" },
     { id: "massage", name: "Masajes" },
     { id: "acupuncture", name: "Acupuntura" },
-  ]
+  ];
 
   // Filtrar profesionales por búsqueda y categoría
   const filteredProfessionals = professionals.filter((pro) => {
@@ -185,13 +211,18 @@ export const Explore = () => {
       pro.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       pro.specialty.toLowerCase().includes(searchQuery.toLowerCase()) ||
       pro.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      pro.tags.some((tag) => tag.toLowerCase().includes(searchQuery.toLowerCase()))
+      pro.tags.some((tag) =>
+        tag.toLowerCase().includes(searchQuery.toLowerCase())
+      );
 
     const matchesCategory =
-      selectedCategory === "all" || pro.tags.some((tag) => tag.toLowerCase().includes(selectedCategory.toLowerCase()))
+      selectedCategory === "all" ||
+      pro.tags.some((tag) =>
+        tag.toLowerCase().includes(selectedCategory.toLowerCase())
+      );
 
-    return matchesSearch && matchesCategory
-  })
+    return matchesSearch && matchesCategory;
+  });
 
   // Filtrar centros por búsqueda y categoría
   const filteredCenters = centers.filter((center) => {
@@ -200,14 +231,18 @@ export const Explore = () => {
       center.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       center.type.toLowerCase().includes(searchQuery.toLowerCase()) ||
       center.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      center.tags.some((tag) => tag.toLowerCase().includes(searchQuery.toLowerCase()))
+      center.tags.some((tag) =>
+        tag.toLowerCase().includes(searchQuery.toLowerCase())
+      );
 
     const matchesCategory =
       selectedCategory === "all" ||
-      center.tags.some((tag) => tag.toLowerCase().includes(selectedCategory.toLowerCase()))
+      center.tags.some((tag) =>
+        tag.toLowerCase().includes(selectedCategory.toLowerCase())
+      );
 
-    return matchesSearch && matchesCategory
-  })
+    return matchesSearch && matchesCategory;
+  });
 
   return (
     <div className="min-h-screen bg-[#0D0D0D] text-white">
@@ -240,14 +275,15 @@ export const Explore = () => {
             background-position: 200% center;
           }
         }
-        
+
         .card-hover {
           transition: all 0.3s ease;
         }
-        
+
         .card-hover:hover {
           transform: translateY(-8px);
-          box-shadow: 0 20px 25px -5px rgba(172, 137, 255, 0.1), 0 10px 10px -5px rgba(131, 199, 253, 0.1);
+          box-shadow: 0 20px 25px -5px rgba(172, 137, 255, 0.1),
+            0 10px 10px -5px rgba(131, 199, 253, 0.1);
         }
       `}</style>
 
@@ -264,34 +300,61 @@ export const Explore = () => {
               Holistia
             </Link>
             <nav className="hidden md:flex items-center space-x-6">
-              <Link href="/explore" className="text-white hover:text-[#AC89FF] transition-colors">
+              <Link
+                href="/explore"
+                className="text-white hover:text-[#AC89FF] transition-colors"
+              >
                 Explorar
               </Link>
-              <Link href="/appointments" className="text-white/70 hover:text-white transition-colors">
+              <Link
+                href="/appointments"
+                className="text-white/70 hover:text-white transition-colors"
+              >
                 Mis Citas
               </Link>
-              <Link href="/messages" className="text-white/70 hover:text-white transition-colors">
+              <Link
+                href="/messages"
+                className="text-white/70 hover:text-white transition-colors"
+              >
                 Mensajes
               </Link>
-              <Link href="/favorites" className="text-white/70 hover:text-white transition-colors">
+              <Link
+                href="/favorites"
+                className="text-white/70 hover:text-white transition-colors"
+              >
                 Favoritos
               </Link>
             </nav>
           </div>
           <div className="flex items-center space-x-4">
-            <Button variant="ghost" className="text-white/70 hover:text-white hover:bg-white/10">
+            <Button
+              variant="ghost"
+              className="text-white/70 hover:text-white hover:bg-white/10"
+            >
               <Bell className="h-5 w-5" />
             </Button>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+                <Button
+                  variant="ghost"
+                  className="relative h-10 w-10 rounded-full"
+                >
                   <Avatar className="h-10 w-10 border border-white/20">
-                    <AvatarImage src="/placeholder.svg?height=40&width=40" alt="@usuario" />
-                    <AvatarFallback className="bg-[#AC89FF]/20 text-[#AC89FF]">US</AvatarFallback>
+                    <AvatarImage
+                      src="/placeholder.svg?height=40&width=40"
+                      alt="@usuario"
+                    />
+                    <AvatarFallback className="bg-[#AC89FF]/20 text-[#AC89FF]">
+                      US
+                    </AvatarFallback>
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56 bg-[#1A1A1A] border-white/10 text-white" align="end" forceMount>
+              <DropdownMenuContent
+                className="w-56 bg-[#1A1A1A] border-white/10 text-white"
+                align="end"
+                forceMount
+              >
                 <DropdownMenuItem className="hover:bg-white/5">
                   <Link href="/profile" className="flex items-center w-full">
                     Mi Perfil
@@ -318,29 +381,48 @@ export const Explore = () => {
         <section className="mb-12">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
             <div>
-              <h1 className="text-3xl md:text-4xl font-bold mb-2">Explora el bienestar</h1>
+              <h1 className="text-3xl md:text-4xl font-bold mb-2">
+                Explora el bienestar
+              </h1>
               <p className="text-white/70 max-w-2xl">
-                Descubre profesionales y centros especializados en bienestar integral para tu mente, cuerpo y espíritu.
+                Descubre profesionales y centros especializados en bienestar
+                integral para tu mente, cuerpo y espíritu.
               </p>
             </div>
             <div className="mt-4 md:mt-0 flex items-center space-x-2">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" className="border-white/20 bg-white/5 hover:bg-white/10">
+                  <Button
+                    variant="outline"
+                    className="border-white/20 bg-white/5 hover:bg-white/10"
+                  >
                     <Filter className="h-4 w-4 mr-2" />
                     Filtros
                     <ChevronDown className="h-4 w-4 ml-2" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="w-56 bg-[#1A1A1A] border-white/10 text-white">
-                  <DropdownMenuItem className="hover:bg-white/5">Más valorados</DropdownMenuItem>
-                  <DropdownMenuItem className="hover:bg-white/5">Precio: Menor a Mayor</DropdownMenuItem>
-                  <DropdownMenuItem className="hover:bg-white/5">Precio: Mayor a Menor</DropdownMenuItem>
-                  <DropdownMenuItem className="hover:bg-white/5">Disponibilidad Hoy</DropdownMenuItem>
-                  <DropdownMenuItem className="hover:bg-white/5">Más cercanos</DropdownMenuItem>
+                  <DropdownMenuItem className="hover:bg-white/5">
+                    Más valorados
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="hover:bg-white/5">
+                    Precio: Menor a Mayor
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="hover:bg-white/5">
+                    Precio: Mayor a Menor
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="hover:bg-white/5">
+                    Disponibilidad Hoy
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="hover:bg-white/5">
+                    Más cercanos
+                  </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
-              <Button variant="outline" className="border-white/20 bg-white/5 hover:bg-white/10">
+              <Button
+                variant="outline"
+                className="border-white/20 bg-white/5 hover:bg-white/10"
+              >
                 <MapPin className="h-4 w-4 mr-2" />
                 Ubicación
               </Button>
@@ -382,7 +464,11 @@ export const Explore = () => {
         </section>
 
         {/* Tabs for Professionals and Centers */}
-        <Tabs defaultValue="professionals" className="mb-12" onValueChange={setActiveTab}>
+        <Tabs
+          defaultValue="professionals"
+          className="mb-12"
+          onValueChange={setActiveTab}
+        >
           <TabsList className="bg-white/5 border border-white/10 p-1 rounded-lg mb-8">
             <TabsTrigger
               value="professionals"
@@ -421,12 +507,21 @@ export const Explore = () => {
                     <div className="p-5">
                       <div className="flex justify-between items-start mb-2">
                         <div>
-                          <h3 className="font-bold text-lg">{professional.name}</h3>
-                          <p className="text-[#AC89FF]">{professional.specialty}</p>
+                          <h3 className="font-bold text-lg">
+                            {professional.name}
+                          </h3>
+                          <p className="text-[#AC89FF]">
+                            {professional.specialty}
+                          </p>
                         </div>
                         <div className="flex items-center bg-white/10 px-2 py-1 rounded-md">
-                          <Star className="h-3.5 w-3.5 text-yellow-400 mr-1" fill="#FBBF24" />
-                          <span className="text-sm font-medium">{professional.rating}</span>
+                          <Star
+                            className="h-3.5 w-3.5 text-yellow-400 mr-1"
+                            fill="#FBBF24"
+                          />
+                          <span className="text-sm font-medium">
+                            {professional.rating}
+                          </span>
                         </div>
                       </div>
 
@@ -435,11 +530,16 @@ export const Explore = () => {
                         <span>{professional.location}</span>
                       </div>
 
-                      <p className="text-white/80 text-sm mb-4 line-clamp-2">{professional.description}</p>
+                      <p className="text-white/80 text-sm mb-4 line-clamp-2">
+                        {professional.description}
+                      </p>
 
                       <div className="flex flex-wrap gap-1 mb-4">
                         {professional.tags.map((tag, index) => (
-                          <span key={index} className="text-xs bg-white/10 text-white/80 px-2 py-1 rounded-full">
+                          <span
+                            key={index}
+                            className="text-xs bg-white/10 text-white/80 px-2 py-1 rounded-full"
+                          >
                             {tag}
                           </span>
                         ))}
@@ -448,17 +548,26 @@ export const Explore = () => {
                       <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center text-sm">
                           <Calendar className="h-3.5 w-3.5 mr-1 text-[#AFF344]" />
-                          <span className="text-[#AFF344]">{professional.availability}</span>
+                          <span className="text-[#AFF344]">
+                            {professional.availability}
+                          </span>
                         </div>
-                        <div className="text-sm text-white/80">{professional.price}</div>
+                        <div className="text-sm text-white/80">
+                          {professional.price}
+                        </div>
                       </div>
 
                       <div className="flex gap-2">
                         <Button className="flex-1 bg-gradient-to-r from-[#AC89FF] to-[#83C7FD] hover:from-[#83C7FD] hover:to-[#AC89FF] text-white transition-all duration-300 relative overflow-hidden group">
-                          <span className="relative z-10 flex items-center">Agendar cita</span>
+                          <span className="relative z-10 flex items-center">
+                            Agendar cita
+                          </span>
                           <span className="absolute inset-0 bg-gradient-to-r from-[#AC89FF]/0 via-white/20 to-[#AC89FF]/0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-in-out"></span>
                         </Button>
-                        <Button variant="outline" className="border-white/20 bg-white/5 hover:bg-white/10">
+                        <Button
+                          variant="outline"
+                          className="border-white/20 bg-white/5 hover:bg-white/10"
+                        >
                           Ver perfil
                         </Button>
                       </div>
@@ -471,9 +580,12 @@ export const Explore = () => {
                 <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-white/5 mb-4">
                   <Search className="h-8 w-8 text-white/50" />
                 </div>
-                <h3 className="text-xl font-medium mb-2">No se encontraron resultados</h3>
+                <h3 className="text-xl font-medium mb-2">
+                  No se encontraron resultados
+                </h3>
                 <p className="text-white/70 max-w-md mx-auto">
-                  No encontramos profesionales que coincidan con tu búsqueda. Intenta con otros términos o filtros.
+                  No encontramos profesionales que coincidan con tu búsqueda.
+                  Intenta con otros términos o filtros.
                 </p>
               </div>
             )}
@@ -489,17 +601,29 @@ export const Explore = () => {
                     className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden card-hover"
                   >
                     <div className="relative h-56 overflow-hidden">
-                      <Image src={center.image || "/placeholder.svg"} alt={center.name} fill className="object-cover" />
+                      <Image
+                        src={center.image || "/placeholder.svg"}
+                        alt={center.name}
+                        fill
+                        className="object-cover"
+                      />
                       <button className="absolute top-3 right-3 p-2 bg-black/30 backdrop-blur-sm rounded-full hover:bg-black/50 transition-colors">
                         <Heart className="h-5 w-5 text-white" />
                       </button>
                       <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
-                        <h3 className="font-bold text-xl text-white">{center.name}</h3>
+                        <h3 className="font-bold text-xl text-white">
+                          {center.name}
+                        </h3>
                         <div className="flex items-center justify-between">
                           <p className="text-white/90">{center.type}</p>
                           <div className="flex items-center bg-white/10 px-2 py-1 rounded-md">
-                            <Star className="h-3.5 w-3.5 text-yellow-400 mr-1" fill="#FBBF24" />
-                            <span className="text-sm font-medium">{center.rating}</span>
+                            <Star
+                              className="h-3.5 w-3.5 text-yellow-400 mr-1"
+                              fill="#FBBF24"
+                            />
+                            <span className="text-sm font-medium">
+                              {center.rating}
+                            </span>
                           </div>
                         </div>
                       </div>
@@ -511,10 +635,15 @@ export const Explore = () => {
                       </div>
 
                       <div className="mb-4">
-                        <h4 className="text-sm text-white/70 mb-2">Servicios destacados:</h4>
+                        <h4 className="text-sm text-white/70 mb-2">
+                          Servicios destacados:
+                        </h4>
                         <div className="flex flex-wrap gap-2">
                           {center.services.map((service, index) => (
-                            <Badge key={index} className="bg-white/10 hover:bg-white/20 text-white border-none">
+                            <Badge
+                              key={index}
+                              className="bg-white/10 hover:bg-white/20 text-white border-none"
+                            >
                               {service}
                             </Badge>
                           ))}
@@ -524,12 +653,17 @@ export const Explore = () => {
                       <div className="flex items-center justify-between mb-4">
                         <div className="flex flex-wrap gap-1">
                           {center.tags.map((tag, index) => (
-                            <span key={index} className="text-xs bg-[#AC89FF]/20 text-[#AC89FF] px-2 py-1 rounded-full">
+                            <span
+                              key={index}
+                              className="text-xs bg-[#AC89FF]/20 text-[#AC89FF] px-2 py-1 rounded-full"
+                            >
                               {tag}
                             </span>
                           ))}
                         </div>
-                        <div className="text-sm text-white/80">{center.price}</div>
+                        <div className="text-sm text-white/80">
+                          {center.price}
+                        </div>
                       </div>
 
                       <Button className="w-full bg-gradient-to-r from-[#AC89FF] to-[#83C7FD] hover:from-[#83C7FD] hover:to-[#AC89FF] text-white transition-all duration-300 relative overflow-hidden group">
@@ -548,9 +682,12 @@ export const Explore = () => {
                 <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-white/5 mb-4">
                   <Search className="h-8 w-8 text-white/50" />
                 </div>
-                <h3 className="text-xl font-medium mb-2">No se encontraron resultados</h3>
+                <h3 className="text-xl font-medium mb-2">
+                  No se encontraron resultados
+                </h3>
                 <p className="text-white/70 max-w-md mx-auto">
-                  No encontramos centros wellness que coincidan con tu búsqueda. Intenta con otros términos o filtros.
+                  No encontramos centros wellness que coincidan con tu búsqueda.
+                  Intenta con otros términos o filtros.
                 </p>
               </div>
             )}
@@ -561,7 +698,10 @@ export const Explore = () => {
         <section className="mb-12">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-bold">Destacados para ti</h2>
-            <Button variant="link" className="text-[#AC89FF] hover:text-[#83C7FD]">
+            <Button
+              variant="link"
+              className="text-[#AC89FF] hover:text-[#83C7FD]"
+            >
               Ver todos
               <ArrowRight className="ml-1 h-4 w-4" />
             </Button>
@@ -572,19 +712,27 @@ export const Explore = () => {
               <div className="bg-gradient-to-r from-[#AC89FF] to-[#83C7FD] rounded-full p-2 mr-3">
                 <Sparkles className="h-5 w-5 text-white" />
               </div>
-              <h3 className="text-xl font-bold">Recomendaciones personalizadas</h3>
+              <h3 className="text-xl font-bold">
+                Recomendaciones personalizadas
+              </h3>
             </div>
 
             <p className="text-white/70 mb-6">
-              Basado en tus preferencias y búsquedas anteriores, hemos seleccionado estos profesionales y centros que
-              podrían interesarte.
+              Basado en tus preferencias y búsquedas anteriores, hemos
+              seleccionado estos profesionales y centros que podrían
+              interesarte.
             </p>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="bg-white/5 rounded-xl p-4 flex items-center">
                 <Avatar className="h-12 w-12 mr-3 border border-white/10">
-                  <AvatarImage src="/placeholder.svg?height=48&width=48" alt="Dr. Martínez" />
-                  <AvatarFallback className="bg-[#AC89FF]/20 text-[#AC89FF]">DM</AvatarFallback>
+                  <AvatarImage
+                    src="/placeholder.svg?height=48&width=48"
+                    alt="Dr. Martínez"
+                  />
+                  <AvatarFallback className="bg-[#AC89FF]/20 text-[#AC89FF]">
+                    DM
+                  </AvatarFallback>
                 </Avatar>
                 <div>
                   <h4 className="font-medium">Dr. Martínez</h4>
@@ -594,8 +742,13 @@ export const Explore = () => {
 
               <div className="bg-white/5 rounded-xl p-4 flex items-center">
                 <Avatar className="h-12 w-12 mr-3 border border-white/10">
-                  <AvatarImage src="/placeholder.svg?height=48&width=48" alt="Harmony Center" />
-                  <AvatarFallback className="bg-[#83C7FD]/20 text-[#83C7FD]">HC</AvatarFallback>
+                  <AvatarImage
+                    src="/placeholder.svg?height=48&width=48"
+                    alt="Harmony Center"
+                  />
+                  <AvatarFallback className="bg-[#83C7FD]/20 text-[#83C7FD]">
+                    HC
+                  </AvatarFallback>
                 </Avatar>
                 <div>
                   <h4 className="font-medium">Harmony Center</h4>
@@ -605,8 +758,13 @@ export const Explore = () => {
 
               <div className="bg-white/5 rounded-xl p-4 flex items-center">
                 <Avatar className="h-12 w-12 mr-3 border border-white/10">
-                  <AvatarImage src="/placeholder.svg?height=48&width=48" alt="Mtra. Sánchez" />
-                  <AvatarFallback className="bg-[#AFF344]/20 text-[#AFF344]">MS</AvatarFallback>
+                  <AvatarImage
+                    src="/placeholder.svg?height=48&width=48"
+                    alt="Mtra. Sánchez"
+                  />
+                  <AvatarFallback className="bg-[#AFF344]/20 text-[#AFF344]">
+                    MS
+                  </AvatarFallback>
                 </Avatar>
                 <div>
                   <h4 className="font-medium">Mtra. Sánchez</h4>
@@ -620,7 +778,10 @@ export const Explore = () => {
         {/* Pagination */}
         <div className="flex justify-center mt-12">
           <div className="flex items-center space-x-2">
-            <Button variant="outline" className="border-white/20 bg-white/5 hover:bg-white/10 w-10 p-0">
+            <Button
+              variant="outline"
+              className="border-white/20 bg-white/5 hover:bg-white/10 w-10 p-0"
+            >
               &lt;
             </Button>
             <Button
@@ -629,13 +790,22 @@ export const Explore = () => {
             >
               1
             </Button>
-            <Button variant="outline" className="border-white/20 bg-white/5 hover:bg-white/10 w-10 p-0">
+            <Button
+              variant="outline"
+              className="border-white/20 bg-white/5 hover:bg-white/10 w-10 p-0"
+            >
               2
             </Button>
-            <Button variant="outline" className="border-white/20 bg-white/5 hover:bg-white/10 w-10 p-0">
+            <Button
+              variant="outline"
+              className="border-white/20 bg-white/5 hover:bg-white/10 w-10 p-0"
+            >
               3
             </Button>
-            <Button variant="outline" className="border-white/20 bg-white/5 hover:bg-white/10 w-10 p-0">
+            <Button
+              variant="outline"
+              className="border-white/20 bg-white/5 hover:bg-white/10 w-10 p-0"
+            >
               &gt;
             </Button>
           </div>
@@ -647,34 +817,51 @@ export const Explore = () => {
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="mb-6 md:mb-0">
-              <h2 className="text-xl font-bold animated-gradient-text mb-2">Holistia</h2>
-              <p className="text-white/70 text-sm">Conectando el bienestar integral</p>
+              <h2 className="text-xl font-bold animated-gradient-text mb-2">
+                Holistia
+              </h2>
+              <p className="text-white/70 text-sm">
+                Conectando el bienestar integral
+              </p>
             </div>
             <div className="flex space-x-6">
-              <Link href="/about" className="text-white/70 hover:text-white text-sm">
+              <Link
+                href="/about"
+                className="text-white/70 hover:text-white text-sm"
+              >
                 Sobre nosotros
               </Link>
-              <Link href="/contact" className="text-white/70 hover:text-white text-sm">
+              <Link
+                href="/contact"
+                className="text-white/70 hover:text-white text-sm"
+              >
                 Contacto
               </Link>
-              <Link href="/privacy" className="text-white/70 hover:text-white text-sm">
+              <Link
+                href="/privacy"
+                className="text-white/70 hover:text-white text-sm"
+              >
                 Privacidad
               </Link>
-              <Link href="/terms" className="text-white/70 hover:text-white text-sm">
+              <Link
+                href="/terms"
+                className="text-white/70 hover:text-white text-sm"
+              >
                 Términos
               </Link>
             </div>
           </div>
           <div className="mt-8 pt-6 border-t border-white/10 text-center">
             <p className="text-xs text-white/50">
-              &copy; {new Date().getFullYear()} Holistia. Todos los derechos reservados.
+              &copy; {new Date().getFullYear()} Holistia. Todos los derechos
+              reservados.
             </p>
           </div>
         </div>
       </footer>
     </div>
-  )
-}
+  );
+};
 
 const Bell = (props: React.SVGProps<SVGSVGElement>) => {
   return (
@@ -693,5 +880,5 @@ const Bell = (props: React.SVGProps<SVGSVGElement>) => {
       <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
       <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
     </svg>
-  )
-}
+  );
+};

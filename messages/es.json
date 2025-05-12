@@ -1,0 +1,70 @@
+{
+  "header": {
+    "link1": "Características",
+    "link2": "Comunidad",
+    "link3": "Testimonios"
+  },
+  "HeroSection": {
+    "helpMessage": "Descubre una nueva forma de bienestar",
+    "tittle": "Conecta con tu bienestar integral",
+    "parragraf": "Holistia es un ecosistema digital que conecta a quienes buscan mejorar su calidad de vida con profesionales especializados en terapias alternativas, nutrición, mindfulness y entrenamiento físico.",
+    "startBtn": "Comenzar ahora",
+    "foundMoreBtn": "Conocer más",
+    "professionals": "Profesionales",
+    "Specialties": "Especialidades",
+    "activeUsers": "Usuarios activos",
+    "sessionsHeld": "Sesiones realizadas"
+  },
+  "FeaturesSection": {
+    "helpMessage": "Características principales",
+    "tittle": "Un ecosistema completo para tu bienestar",
+    "parragraf": "Holistia va más allá de la conexión entre usuarios y especialistas: fomentamos comunidad, aprendizaje y experiencias compartidas.",
+    "card1Title": "Salud mental",
+    "card1Description": "Conecta con profesionales especializados en terapias alternativas y mindfulness para cuidar tu bienestar emocional.",
+    "card2Title": "Bienestar físico",
+    "card2Description": "Encuentra entrenadores personales, nutricionistas y especialistas en medicina alternativa para tu salud física.",
+    "card3Title": "Comunidad activa",
+    "card3Description": "'Forma parte de grupos con intereses similares, participa en eventos y comparte experiencias con otros usuarios.",
+    "card4Title": "Contenido personalizado",
+    "card4Description": "Recibe recomendaciones de contenido educativo y prácticas adaptadas a tus necesidades e intereses.",
+    "card5Title": "Agenda inteligente",
+    "card5Description": "Programa sesiones con profesionales, recibe recordatorios y gestiona tu calendario de bienestar.",
+    "card6Title": "Seguimiento de progreso",
+    "card6Description": "Visualiza tu evolución, establece metas y celebra tus logros en tu camino hacia el bienestar integral."
+  },
+  "CommunitySection": {
+    "helpMessage": "Comunidad",
+    "tittle": "Profesionales y redes de networking",
+    "parragraf": "En Holistia, creemos que el bienestar es un viaje compartido. Nuestra comunidad está formada por personas como tú, buscando balance y crecimiento personal.",
+    "list1": "Conecta con mentores y compañeros en tu área",
+    "list2": "Participa en desafíos grupales para mantener la motivación",
+    "list3": "Comparte tus logros y celebra los de otros",
+    "JoinBtn": "Unirse a la comunidad",
+    "helpMessage2": "Comunidad activa",
+    "helpMessage2Description": "+10,000 miembros"
+  },
+  "TestimonialsSection": {
+    "helpMessage": "Testimonios",
+    "tittle": "Lo que nuestra comunidad dice",
+    "parragraf": " Descubre cómo Holistia ha transformado la vida de nuestros usuarios a través de conexiones significativas y experiencias de bienestar.",
+    "Testimonial1Role": "Miembro desde 2023",
+    "Testimonial1Quote": "Holistia me ha ayudado a encontrar un grupo de personas que comparten mi pasión por el yoga y la meditación. Ahora tengo amigos con quienes practicar y compartir experiencias.",
+    "Testimonial2Role": "Miembro desde 2022",
+    "Testimonial2Quote": "Los grupos de apoyo en Holistia fueron fundamentales en mi proceso de adoptar hábitos más saludables. La motivación que recibo de la comunidad es invaluable.",
+    "Testimonial3Role": "Miembro desde 2023",
+    "Testimonial3Quote": "Gracias a Holistia encontré un mentor que me ha guiado en mi práctica de mindfulness. La plataforma hace que sea fácil conectar con personas que tienen conocimientos para compartir."
+  },
+  "CtaSection": {
+    "tittle": "Comienza tu viaje de bienestar hoy",
+    "parragraf": "Únete a miles de personas que están transformando su bienestar a través de Holistia.",
+    "registerBtn": "Registrarse",
+    "feature1": "Comunidad activa",
+    "feature2": "Bienestar integral",
+    "feature3": "Profesionales verificados",
+    "feature4": "Experiencias personalizadas"
+  },
+  "LocaleSwitcher": {
+    "label": "Change language",
+    "locale": "{locale, select, es {🇲🇽 Español} en {🇺🇸 Inglés} other {Unknown}}"
+  }
+}

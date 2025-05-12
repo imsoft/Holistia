@@ -1,0 +1,70 @@
+{
+  "header": {
+    "link1": "Characteristics",
+    "link2": "Community",
+    "link3": "Testimonials"
+  },
+  "HeroSection": {
+    "helpMessage": "Discover a new form of well-being",
+    "tittle": "Connect with your comprehensive well-being",
+    "parragraf": "Holistia is a digital ecosystem that connects those seeking to improve their quality of life with professionals specializing in alternative therapies, nutrition, mindfulness, and fitness training.",
+    "startBtn": "Start now",
+    "foundMoreBtn": "Learn more",
+    "professionals": "professionals",
+    "Specialties": "Specialties",
+    "activeUsers": "Active users",
+    "sessionsHeld": "Sessions held"
+  },
+  "FeaturesSection": {
+    "helpMessage": "Main features",
+    "tittle": "A complete ecosystem for your well-being",
+    "parragraf": "Holistia goes beyond connecting users and specialists: we foster community, learning, and shared experiences.",
+    "card1Title": "Mental health",
+    "card1Description": "Connect with professionals specializing in alternative therapies and mindfulness to take care of your emotional well-being.",
+    "card2Title": "Physical well-being",
+    "card2Description": "Find personal trainers, nutritionists, and alternative medicine specialists for your physical health.",
+    "card3Title": "Active community",
+    "card3Description": "Join groups with similar interests, participate in events, and share experiences with other users.",
+    "card4Title": "Custom content",
+    "card4Description": "Receive recommendations for educational content and practices tailored to your needs and interests.",
+    "card5Title": "smart schedule",
+    "card5Description": "Schedule sessions with professionals, receive reminders, and manage your wellness calendar.",
+    "card6Title": "Progress Tracking",
+    "card6Description": "Visualize your progress, set goals, and celebrate your achievements on your path to holistic well-being."
+  },
+  "CommunitySection": {
+    "helpMessage": "Community",
+    "tittle": "Professionals and networking networks",
+    "parragraf": "At Holistia, we believe that wellness is a shared journey. Our community is made up of people like you, seeking balance and personal growth.",
+    "list1": "Connect with mentors and peers in your field",
+    "list2": "Participate in group challenges to stay motivated",
+    "list3": "Share your achievements and celebrate those of otherss",
+    "JoinBtn": "Join the community",
+    "helpMessage2": "Active community",
+    "helpMessage2Description": "+10,000 members"
+  },
+  "TestimonialsSection": {
+    "helpMessage": "Testimonials",
+    "tittle": "What our community says",
+    "parragraf": "Discover how Holistia has transformed our users' lives through meaningful connections and wellness experiences.",
+    "Testimonial1Role": "Member since 2023",
+    "Testimonial1Quote": "Holistia has helped me find a group of people who share my passion for yoga and meditation. Now I have friends to practice with and share experiences with.",
+    "Testimonial2Role": "Member since 2022",
+    "Testimonial2Quote": "The support groups at Holistia were instrumental in my journey toward adopting healthier habits. The motivation I receive from the community is invaluable.",
+    "Testimonial3Role": "Member since 2023",
+    "Testimonial3Quote": "Thanks to Holistia, I found a mentor who has guided me in my mindfulness practice. The platform makes it easy to connect with people who have knowledge to share."
+  },
+  "CtaSection": {
+    "tittle": "Start your wellness journey today",
+    "parragraf": "Join thousands of people transforming their well-being through Holistia.",
+    "registerBtn": "Register now",
+    "feature1": "Active community",
+    "feature2": "Comprehensive well-being",
+    "feature3": "Verified professionals",
+    "feature4": "Personalized experiences"
+  },
+  "LocaleSwitcher": {
+    "label": "Change language",
+    "locale": "{locale, select, es {🇲🇽 Spanish} en {🇺🇸 English} other {Unknown}}" 
+  }
+}

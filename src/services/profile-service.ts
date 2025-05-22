@@ -1,3 +1,4 @@
+'use server'
 import type { User } from "@supabase/supabase-js";
 import type {
   Appointment,
@@ -6,10 +7,10 @@ import type {
   Profile,
   UserPreference,
 } from "@/types/database.types";
-import { createServerClientWithCookies } from "@/lib/supabaseServer";
+import { createClient } from "@/lib/supabaseServer";
 
 export async function getCurrentUser(): Promise<User | null> {
-  const serverClient = await createServerClientWithCookies();
+  const serverClient = await createClient();
 
   const {
     data: { user },
@@ -24,7 +25,7 @@ export async function getUserProfile(userId: string): Promise<{
   favoriteCenters: Partial<FavoriteCenterResponse>[];
   preferences: Partial<UserPreference> | null;
 }> {
-  const serverClient = await createServerClientWithCookies();
+  const serverClient = await createClient();
 
   // Get user
   const {
@@ -143,7 +144,7 @@ export async function updateUserProfile(
   success: boolean;
   error?: string;
 }> {
-  const serverClient = await createServerClientWithCookies();
+  const serverClient = await createClient();
 
   const { error } = await serverClient.from("user_preferences").upsert({
     user_id: userId,
@@ -163,7 +164,7 @@ export async function updateUserProfile(
 }
 
 export async function getUserPreferences(userId: string) {
-  const serverClient = await createServerClientWithCookies();
+  const serverClient = await createClient();
 
   const { data, error } = await serverClient
     .from("user_preferences")
@@ -183,7 +184,7 @@ export async function updateUserPreferences(
   userId: string,
   preferences: Partial<UserPreference>
 ) {
-  const serverClient = await createServerClientWithCookies();
+  const serverClient = await createClient();
 
   const { data, error } = await serverClient
     .from("user_preferences")
@@ -201,7 +202,7 @@ export async function updateUserPreferences(
 }
 
 export async function createUserProfile(profile: Profile) {
-  const serverClient = await createServerClientWithCookies();
+  const serverClient = await createClient();
 
   const { data, error } = await serverClient
     .from("profiles")

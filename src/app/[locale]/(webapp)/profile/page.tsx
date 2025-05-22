@@ -1,10 +1,10 @@
-import { UserProfilePage } from "@/components/profile/user-profile-page";
-import { getCurrentUser, getUserPreferences } from "@/services/profile-service";
-import { supabase } from "@/lib/supabaseClient";
+import { UserProfilePage } from '@/components/profile/user-profile-page';
+import { getCurrentUser, getUserPreferences } from '@/services/profile-service';
+import { supabase } from '@/lib/supabaseClient';
 import {
   SupabaseFavoriteCenterResponse,
   SupabaseFavoriteProfessionalResponse,
-} from "@/types/database.types";
+} from '@/types/database.types';
 
 export default async function ProfilePage() {
   const user = await getCurrentUser();
@@ -12,14 +12,13 @@ export default async function ProfilePage() {
   if (!user) {
     return null;
   }
-
   const [
     appointmentsResult,
     favoriteProfessionalsResult,
     favoriteCentersResult,
   ] = await Promise.all([
     supabase
-      .from("appointments")
+      .from('appointments')
       .select(
         `
         id, date, time, status,
@@ -28,11 +27,11 @@ export default async function ProfilePage() {
         wellness_centers:center_id(id, name, type, logo_url)
       `
       )
-      .eq("user_id", user.id)
-      .order("date", { ascending: true }),
+      .eq('user_id', user.id)
+      .order('date', { ascending: true }),
 
     supabase
-      .from("favorite_professionals")
+      .from('favorite_professionals')
       .select(
         `
         user_id,
@@ -41,10 +40,10 @@ export default async function ProfilePage() {
         professionals:professional_id(id, name, specialty, image_url, location, rating)
       `
       )
-      .eq("user_id", user.id),
+      .eq('user_id', user.id),
 
     supabase
-      .from("favorite_centers")
+      .from('favorite_centers')
       .select(
         `
         user_id,
@@ -53,10 +52,10 @@ export default async function ProfilePage() {
         wellness_centers:center_id(id, name, type, logo_url, location, rating)
       `
       )
-      .eq("user_id", user.id),
+      .eq('user_id', user.id),
   ]);
 
-  const preferences = await getUserPreferences(user.id);
+  //const preferences = await getUserPreferences(user.id);
 
   // 🔵 Transformamos citas correctamente
   const appointments = (appointmentsResult.data || []).map((appt) => ({
@@ -104,7 +103,7 @@ export default async function ProfilePage() {
       appointments={appointments}
       favoriteProfessionals={[favoriteProfessionals]}
       favoriteCenters={[favoriteCenters]}
-      preferences={preferences}
+     // preferences={preferences}
     />
   );
 }

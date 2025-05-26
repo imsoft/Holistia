@@ -31,7 +31,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Card, CardContent } from "../ui/card";
+import { Card, CardContent } from "../../ui/card";
 
 // Tipos para los datos
 type ProfessionalProfile = {

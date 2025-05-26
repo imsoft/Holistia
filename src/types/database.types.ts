@@ -4,6 +4,12 @@
  */
 
 // Tipos de usuario y perfil
+export type Users  = {
+  id: string;
+  name: string;
+  email: string;
+};
+
 export interface User {
   id: string;
   email?: string;
@@ -159,7 +165,7 @@ export type Appointment = {
   center_id: string | null;
   date: string;
   time: string;
-  status: "upcoming" | "completed" | "cancelled";
+  status: 'upcoming' | 'completed' | 'cancelled';
   created_at: string;
   updated_at: string;
   services?: AppointmentService;
@@ -321,7 +327,7 @@ export type Notification = {
   user_id: string;
   title: string;
   message: string;
-  type: "appointment" | "system" | "message";
+  type: 'appointment' | 'system' | 'message';
   read: boolean;
   created_at: string;
 };

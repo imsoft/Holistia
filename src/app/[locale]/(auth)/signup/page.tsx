@@ -1,11 +1,15 @@
-import { SignUpForm } from "@/components/auth/SignUpForm";
+import { SignUpForm } from '@/components/auth/SignUpForm';
+import { getCurrentUser } from '@/services/profile-service';
+import { redirect } from 'next/navigation';
 
-const SignUpPage = () => {
+export default async function SignUpPage() {
+  const user = await getCurrentUser();
+  if (user) {
+    redirect('/');
+  }
   return (
     <>
       <SignUpForm />
     </>
   );
-};
-
-export default SignUpPage;
+}

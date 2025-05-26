@@ -4,6 +4,7 @@ import type {
   Appointment,
   FavoriteCenterResponse,
   FavoriteProfessionalResponse,
+  Profile,
   // Profile,
   UserPreference,
 } from '@/types/database.types';
@@ -138,32 +139,6 @@ export async function getUserProfile(userId: string): Promise<{
   };
 }
 
-export async function updateUserProfile(
-  userId: string,
-  data: Partial<UserPreference>
-): Promise<{
-  success: boolean;
-  error?: string;
-}> {
-  const serverClient = await createClient();
-
-  const { error } = await serverClient.from('user_preferences').upsert({
-    user_id: userId,
-    ...data,
-  });
-
-  if (error) {
-    return {
-      success: false,
-      error: error.message,
-    };
-  }
-
-  return {
-    success: true,
-  };
-}
-
 export async function getUserPreferences(userId: string) {
   const serverClient = await createClient();
 
@@ -201,36 +176,79 @@ export async function updateUserPreferences(
 
   return data;
 }
-
-export async function createUserProfile(profile: Profile) {
+export async function updateUserProfile(
+  userId: string,
+  data: Partial<Profile>
+): Promise<{
+  success: boolean;
+  error?: string;
+}> {
   const serverClient = await createClient();
 
-  const { data, error } = await serverClient
-    .from('profiles')
-    .insert(profile)
+  const { error } = await serverClient.from('profile').upsert(
+    {
+      user_id: userId,
+      ...data,
+    },
+    { onConflict: 'user_id' }
+  );
+
+  if (error) {
+    return {
+      success: false,
+      error: error.message,
+    };
+  }
+
+  return {
+    success: true,
+  };
+}
+
+type ActionResult = {
+  success: boolean;
+  message?: string;
+};
+
+export async function createUserProfile(
+  profile: Profile
+): Promise<ActionResult> {
+  const serverClient = await createClient();
+  const { error } = await serverClient
+    .from('profile')
+    .insert({
+      user_id: profile.user_id,
+      full_name: profile.full_name,
+      avatar_url: profile.avatar_url,
+      phone: profile.phone,
+      location: profile.location,
+      bio: profile.bio,
+      cover_image: profile.cover_image,
+      created_at: profile.created_at,
+      updated_at: profile.updated_at,
+    })
     .select()
     .single();
 
   if (error) {
-    console.error(error);
-    return null;
+    return {
+      success: false,
+      message: error.message,
+    };
   }
-
-  return data;
+  return {
+    success: true,
+    message: 'Perfil creado correctamente',
+  };
 }
-type Profile = {
-  id: string;
-  id_user: string | null;
-  full_name: string | null;
-};
 
 export async function getProfileHeader(
   userId: string
 ): Promise<Profile | null> {
   const { data, error } = await supabase
-    .from('profiles')
+    .from('profile')
     .select('*')
-    .eq('id_user', userId)
+    .eq('user_id', userId)
     .single();
 
   if (error) {

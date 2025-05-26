@@ -1,4 +1,4 @@
-import { ProfessionalForm } from "@/components/professionals/professional-form";
+import { ProfessionalForm } from "@/components/webapp/professionals/professional-form";
 
 export default function NewProfessionalPage() {
   return (

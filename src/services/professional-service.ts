@@ -1,10 +1,10 @@
-import { supabase } from "@/lib/supabaseClient";
+import { supabase } from '@/lib/supabaseClient';
 import type {
   Profile,
   UserPreference,
   User,
   Professional,
-} from "@/types/database.types";
+} from '@/types/database.types';
 
 export async function getCurrentUser(): Promise<User | null> {
   const {
@@ -15,13 +15,13 @@ export async function getCurrentUser(): Promise<User | null> {
 
 export async function getUserProfile(userId: string): Promise<Profile | null> {
   const { data, error } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("id", userId)
+    .from('profiles')
+    .select('*')
+    .eq('id', userId)
     .single();
 
   if (error) {
-    console.error("Error fetching profile:", error);
+    console.error('Error fetching profile:', error);
     return null;
   }
 
@@ -33,14 +33,14 @@ export async function updateUserProfile(
   profileData: Partial<Profile>
 ): Promise<Profile> {
   const { data, error } = await supabase
-    .from("profiles")
+    .from('profiles')
     .update(profileData)
-    .eq("id", userId)
+    .eq('id', userId)
     .select()
     .single();
 
   if (error) {
-    console.error("Error updating profile:", error);
+    console.error('Error updating profile:', error);
     throw error;
   }
 
@@ -51,13 +51,13 @@ export async function createUserProfile(
   profileData: Partial<Profile>
 ): Promise<Profile> {
   const { data, error } = await supabase
-    .from("profiles")
+    .from('profiles')
     .insert(profileData)
     .select()
     .single();
 
   if (error) {
-    console.error("Error creating profile:", error);
+    console.error('Error creating profile:', error);
     throw error;
   }
 
@@ -68,14 +68,14 @@ export async function getUserPreferences(
   userId: string
 ): Promise<UserPreference | null> {
   const { data, error } = await supabase
-    .from("user_preferences")
-    .select("*")
-    .eq("user_id", userId)
+    .from('user_preferences')
+    .select('*')
+    .eq('user_id', userId)
     .single();
 
-  if (error && error.code !== "PGRST116") {
+  if (error && error.code !== 'PGRST116') {
     // No data found is not an error
-    console.error("Error fetching preferences:", error);
+    console.error('Error fetching preferences:', error);
     return null;
   }
 
@@ -87,13 +87,13 @@ export async function updateUserPreferences(
   preferences: Partial<UserPreference>
 ): Promise<UserPreference> {
   const { data, error } = await supabase
-    .from("user_preferences")
+    .from('user_preferences')
     .upsert({ user_id: userId, ...preferences })
     .select()
     .single();
 
   if (error) {
-    console.error("Error updating preferences:", error);
+    console.error('Error updating preferences:', error);
     throw error;
   }
 
@@ -102,13 +102,13 @@ export async function updateUserPreferences(
 
 export async function getProfessionals(limit: number = 20, offset: number = 0) {
   const { data, error } = await supabase
-    .from("professional_profiles")
-    .select("*")
+    .from('professional_profiles')
+    .select('*')
     .range(offset, offset + limit - 1)
-    .order("created_at", { ascending: false });
+    .order('created_at', { ascending: false });
 
   if (error) {
-    console.error("Error fetching professionals:", error);
+    console.error('Error fetching professionals:', error);
     return [];
   }
 
@@ -117,13 +117,13 @@ export async function getProfessionals(limit: number = 20, offset: number = 0) {
 
 export async function getProfessional(id: string) {
   const { data, error } = await supabase
-    .from("professional_profiles")
-    .select("*")
-    .eq("id", id)
+    .from('professional_profiles')
+    .select('*')
+    .eq('id', id)
     .single();
 
   if (error) {
-    console.error("Error fetching professional:", error);
+    console.error('Error fetching professional:', error);
     return null;
   }
 
@@ -132,13 +132,13 @@ export async function getProfessional(id: string) {
 
 export async function getProfessionalContact(id: string) {
   const { data, error } = await supabase
-    .from("professional_contacts")
-    .select("*")
-    .eq("professional_id", id)
+    .from('professional_contacts')
+    .select('*')
+    .eq('professional_id', id)
     .single();
 
   if (error) {
-    console.error("Error fetching professional contact:", error);
+    console.error('Error fetching professional contact:', error);
     return null;
   }
 
@@ -147,12 +147,12 @@ export async function getProfessionalContact(id: string) {
 
 export async function getProfessionalServices(id: string) {
   const { data, error } = await supabase
-    .from("services")
-    .select("*")
-    .eq("professional_id", id);
+    .from('services')
+    .select('*')
+    .eq('professional_id', id);
 
   if (error) {
-    console.error("Error fetching professional services:", error);
+    console.error('Error fetching professional services:', error);
     return [];
   }
 
@@ -161,13 +161,13 @@ export async function getProfessionalServices(id: string) {
 
 export async function createProfessional(professional: Partial<Professional>) {
   const { data, error } = await supabase
-    .from("professional_profiles")
+    .from('professional_profiles')
     .insert(professional)
     .select()
     .single();
 
   if (error) {
-    console.error("Error creating professional:", error);
+    console.error('Error creating professional:', error);
     throw error;
   }
 
@@ -179,14 +179,14 @@ export async function updateProfessional(
   updates: Partial<Professional>
 ) {
   const { data, error } = await supabase
-    .from("professional_profiles")
+    .from('professional_profiles')
     .update(updates)
-    .eq("id", id)
+    .eq('id', id)
     .select()
     .single();
 
   if (error) {
-    console.error("Error updating professional:", error);
+    console.error('Error updating professional:', error);
     throw error;
   }
 
@@ -200,18 +200,16 @@ export async function uploadProfessionalImage(
   const filePath = `professionals/${professionalId}/profile-${Date.now()}`;
 
   const { data, error } = await supabase.storage
-    .from("professional_images")
+    .from('professional_images')
     .upload(filePath, file);
 
-  console.log("Data:", data);
-
   if (error) {
-    console.error("Error uploading profile image:", error);
+    console.error('Error uploading profile image:', error);
     throw error;
   }
 
   const { data: publicUrlData } = supabase.storage
-    .from("professional_images")
+    .from('professional_images')
     .getPublicUrl(filePath);
 
   return publicUrlData.publicUrl || null;
@@ -224,18 +222,16 @@ export async function uploadProfessionalCoverImage(
   const filePath = `professionals/${professionalId}/cover-${Date.now()}`;
 
   const { data, error } = await supabase.storage
-    .from("professional_images")
+    .from('professional_images')
     .upload(filePath, file);
 
-  console.log("Data:", data);
-
   if (error) {
-    console.error("Error uploading cover image:", error);
+    console.error('Error uploading cover image:', error);
     throw error;
   }
 
   const { data: publicUrlData } = supabase.storage
-    .from("professional_images")
+    .from('professional_images')
     .getPublicUrl(filePath);
 
   return publicUrlData.publicUrl || null;

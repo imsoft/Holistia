@@ -1,4 +1,4 @@
-import { UserProfilePage } from '@/components/profile/user-profile-page';
+import { UserProfilePage } from '@/components/webapp/profile/user-profile-page';
 import { getCurrentUser, getUserPreferences } from '@/services/profile-service';
 import { supabase } from '@/lib/supabaseClient';
 import {
@@ -10,7 +10,7 @@ export default async function ProfilePage() {
   const user = await getCurrentUser();
 
   if (!user) {
-    return null;
+    return <h1>no hay usuario</h1>;
   }
   const [
     appointmentsResult,
@@ -55,7 +55,7 @@ export default async function ProfilePage() {
       .eq('user_id', user.id),
   ]);
 
-  //const preferences = await getUserPreferences(user.id);
+  const preferences = await getUserPreferences(user.id);
 
   // 🔵 Transformamos citas correctamente
   const appointments = (appointmentsResult.data || []).map((appt) => ({
@@ -103,7 +103,7 @@ export default async function ProfilePage() {
       appointments={appointments}
       favoriteProfessionals={[favoriteProfessionals]}
       favoriteCenters={[favoriteCenters]}
-     // preferences={preferences}
+      preferences={preferences}
     />
   );
 }

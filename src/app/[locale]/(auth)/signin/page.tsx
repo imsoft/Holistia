@@ -1,11 +1,15 @@
-import { SignInForm } from "@/components/auth/SignInForm";
+import { SignInForm } from '@/components/auth/SignInForm';
+import { getCurrentUser } from '@/services/profile-service';
+import { redirect } from 'next/navigation';
 
-const SignInPage = () => {
+export default async function SignInPage() {
+  const user = await getCurrentUser();
+  if (user) {
+    redirect('/');
+  }
   return (
     <>
       <SignInForm />
     </>
   );
-};
-
-export default SignInPage;
+}

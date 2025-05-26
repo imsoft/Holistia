@@ -1,34 +1,21 @@
 import Link from 'next/link';
 import Image from 'next/image';
-import {
-  Instagram,
-  Twitter,
-  Facebook,
-  Linkedin,
-} from 'lucide-react';
+import { Instagram, Twitter, Facebook, Linkedin } from 'lucide-react';
 export default function Footer() {
   return (
-    <footer className='py-12 md:py-16 relative overflow-hidden'>
+    <footer className='border-t border-white/10 mt-16 py-8'>
       <div className='container mx-auto px-4'>
-        <div className='grid md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12'>
-          <div className='space-y-4'>
-            <Link
-              href='/'
-              className='inline-block'
-            >
-              <Image
-                src='/holistia-blanco.png'
-                alt='Holistia'
-                width={120}
-                height={40}
-                className='h-8 w-auto'
-              />
-            </Link>
-            <p className='text-sm text-white/70'>
-              Holistia es un ecosistema digital que conecta a quienes buscan
-              mejorar su calidad de vida con profesionales especializados.
+        <div className='container mx-auto px-6 flex flex-col md:flex-row md:justify-between md:items-start gap-8'>
+          <div className='md:w-1/3 text-center md:text-left'>
+            <h2 className='text-xl font-bold animated-gradient-text mb-2'>
+              Holistia
+            </h2>
+            <p className='text-white/70 text-sm'>
+              Conectando el bienestar integral
             </p>
-            <div className='flex gap-4'>
+          </div>
+          <div className='md:w-1/3 text-center md:text-left'>
+            <div className='flex justify-center md:justify-start space-x-6'>
               <Link
                 href='#'
                 className='h-10 w-10 rounded-full flex items-center justify-center bg-white/5 hover:bg-gradient-to-r hover:from-[#AC89FF] hover:to-[#83C7FD] transition-all duration-300 hover:scale-110 group'
@@ -59,136 +46,41 @@ export default function Footer() {
               </Link>
             </div>
           </div>
+          <div className='md:w-1/3 text-center md:text-left'>
+            <div className='flex space-x-6'>
+              {/*   <Link
+                href='/about'
+                className='text-white/70 hover:text-white text-sm'
+              >
+                Sobre nosotros
+              </Link>*/}
 
-          {/* <div>
-            <h3 className="font-medium text-white mb-4">Plataforma</h3>
-            <ul className="space-y-2">
-              <li>
-                <Link
-                  href="#"
-                  className="text-sm text-white/70 hover:text-[#AC89FF] transition-colors relative group inline-block"
-                >
-                  Características
-                  <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-[#AC89FF] to-[#83C7FD] group-hover:w-full transition-all duration-300"></span>
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="#"
-                  className="text-sm text-white/70 hover:text-[#AC89FF] transition-colors relative group inline-block"
-                >
-                  Comunidad
-                  <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-[#AC89FF] to-[#83C7FD] group-hover:w-full transition-all duration-300"></span>
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="#"
-                  className="text-sm text-white/70 hover:text-[#AC89FF] transition-colors relative group inline-block"
-                >
-                  Profesionales
-                  <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-[#AC89FF] to-[#83C7FD] group-hover:w-full transition-all duration-300"></span>
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="#"
-                  className="text-sm text-white/70 hover:text-[#AC89FF] transition-colors relative group inline-block"
-                >
-                  Eventos
-                  <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-[#AC89FF] to-[#83C7FD] group-hover:w-full transition-all duration-300"></span>
-                </Link>
-              </li>
-            </ul>
+              <Link
+                href='/contact'
+                className='text-white/70 hover:text-white text-sm'
+              >
+                Contacto
+              </Link>
+              <Link
+                href='/privacy'
+                className='text-white/70 hover:text-white text-sm'
+              >
+                Privacidad
+              </Link>
+              <Link
+                href='/terms'
+                className='text-white/70 hover:text-white text-sm'
+              >
+                Términos
+              </Link>
+            </div>
           </div>
-
-          <div>
-            <h3 className="font-medium text-white mb-4">Empresa</h3>
-            <ul className="space-y-2">
-              <li>
-                <Link
-                  href="#"
-                  className="text-sm text-white/70 hover:text-[#AC89FF] transition-colors relative group inline-block"
-                >
-                  Sobre nosotros
-                  <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-[#AC89FF] to-[#83C7FD] group-hover:w-full transition-all duration-300"></span>
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="#"
-                  className="text-sm text-white/70 hover:text-[#AC89FF] transition-colors relative group inline-block"
-                >
-                  Blog
-                  <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-[#AC89FF] to-[#83C7FD] group-hover:w-full transition-all duration-300"></span>
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="#"
-                  className="text-sm text-white/70 hover:text-[#AC89FF] transition-colors relative group inline-block"
-                >
-                  Carreras
-                  <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-[#AC89FF] to-[#83C7FD] group-hover:w-full transition-all duration-300"></span>
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="#"
-                  className="text-sm text-white/70 hover:text-[#AC89FF] transition-colors relative group inline-block"
-                >
-                  Contacto
-                  <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-[#AC89FF] to-[#83C7FD] group-hover:w-full transition-all duration-300"></span>
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          <div>
-            <h3 className="font-medium text-white mb-4">Legal</h3>
-            <ul className="space-y-2">
-              <li>
-                <Link
-                  href="#"
-                  className="text-sm text-white/70 hover:text-[#AC89FF] transition-colors relative group inline-block"
-                >
-                  Términos de servicio
-                  <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-[#AC89FF] to-[#83C7FD] group-hover:w-full transition-all duration-300"></span>
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="#"
-                  className="text-sm text-white/70 hover:text-[#AC89FF] transition-colors relative group inline-block"
-                >
-                  Política de privacidad
-                  <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-[#AC89FF] to-[#83C7FD] group-hover:w-full transition-all duration-300"></span>
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="#"
-                  className="text-sm text-white/70 hover:text-[#AC89FF] transition-colors relative group inline-block"
-                >
-                  Cookies
-                  <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-[#AC89FF] to-[#83C7FD] group-hover:w-full transition-all duration-300"></span>
-                </Link>
-              </li>
-            </ul>
-          </div> */}
         </div>
-
-        <div className='mt-12 pt-6 border-t border-white/10 flex flex-col md:flex-row justify-between items-center'>
-          <p className='text-sm text-white/50'>
+        <div className='mt-8 pt-6 border-t border-white/10 text-center'>
+          <p className='text-xs text-white/50'>
             &copy; {new Date().getFullYear()} Holistia. Todos los derechos
             reservados.
           </p>
-          <div className='mt-4 md:mt-0'>
-            <p className='text-sm text-white/50'>
-              Diseñado con <span className='text-[#AFF344]'>♥</span> para tu
-              bienestar
-            </p>
-          </div>
         </div>
       </div>
     </footer>

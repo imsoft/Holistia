@@ -1,11 +1,24 @@
-import { Explore } from "@/components/explore/Explore";
+import { Explore } from '@/components/webapp/explore/Explore';
+import { getCurrentUser } from '@/services/profile-service';
+import { redirect } from 'next/navigation';
 
-const ExplorePage = () => {
+type Users = {
+  id: string;
+  email: string;
+};
+export default async function ExplorePage() {
+  const res = await getCurrentUser();
+
+  if (!res) {
+    redirect('/');
+  }
+  const user: Users = {
+    id: res.id,
+    email: res.email!,
+  };
   return (
     <>
-      <Explore />
+      <Explore data={user} />
     </>
   );
-};
-
-export default ExplorePage;
+}

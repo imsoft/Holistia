@@ -1,13 +1,14 @@
-'use server'
-import type { User } from "@supabase/supabase-js";
+'use server';
+import type { User } from '@supabase/supabase-js';
 import type {
   Appointment,
   FavoriteCenterResponse,
   FavoriteProfessionalResponse,
-  Profile,
+  // Profile,
   UserPreference,
-} from "@/types/database.types";
-import { createClient } from "@/lib/supabaseServer";
+} from '@/types/database.types';
+import { createClient } from '@/lib/supabaseServer';
+import { supabase } from '@/lib/supabaseClient';
 
 export async function getCurrentUser(): Promise<User | null> {
   const serverClient = await createClient();
@@ -34,13 +35,13 @@ export async function getUserProfile(userId: string): Promise<{
 
   // Get appointments
   const { data: appointments } = await serverClient
-    .from("appointments")
-    .select("*")
-    .eq("user_id", userId);
+    .from('appointments')
+    .select('*')
+    .eq('user_id', userId);
 
   // Get favorite professionals
   const { data: favoriteProfessionals } = await serverClient
-    .from("favorite_professionals")
+    .from('favorite_professionals')
     .select(
       `
       id,
@@ -58,11 +59,11 @@ export async function getUserProfile(userId: string): Promise<{
       )
     `
     )
-    .eq("user_id", userId);
+    .eq('user_id', userId);
 
   // Get favorite wellness centers
   const { data: favoriteCenters } = await serverClient
-    .from("favorite_wellness_centers")
+    .from('favorite_wellness_centers')
     .select(
       `
     id,
@@ -81,13 +82,13 @@ export async function getUserProfile(userId: string): Promise<{
     )
   `
     )
-    .eq("user_id", userId);
+    .eq('user_id', userId);
 
   // Get user preferences
   const { data: preferences } = await serverClient
-    .from("user_preferences")
-    .select("*")
-    .eq("user_id", userId)
+    .from('user_preferences')
+    .select('*')
+    .eq('user_id', userId)
     .single();
 
   return {
@@ -125,7 +126,7 @@ export async function getUserProfile(userId: string): Promise<{
         wellness_centers: {
           id: wellnessCenter?.id,
           name: wellnessCenter?.name,
-          type: wellnessCenter?.type || "", // recuerda traer 'type' en tu select
+          type: wellnessCenter?.type || '', // recuerda traer 'type' en tu select
           logo_url: wellnessCenter?.profile_image || null,
           location: wellnessCenter?.location || null,
           rating: wellnessCenter?.rating || null,
@@ -146,7 +147,7 @@ export async function updateUserProfile(
 }> {
   const serverClient = await createClient();
 
-  const { error } = await serverClient.from("user_preferences").upsert({
+  const { error } = await serverClient.from('user_preferences').upsert({
     user_id: userId,
     ...data,
   });
@@ -167,9 +168,9 @@ export async function getUserPreferences(userId: string) {
   const serverClient = await createClient();
 
   const { data, error } = await serverClient
-    .from("user_preferences")
-    .select("*")
-    .eq("user_id", userId)
+    .from('user_preferences')
+    .select('*')
+    .eq('user_id', userId)
     .single();
 
   if (error) {
@@ -187,9 +188,9 @@ export async function updateUserPreferences(
   const serverClient = await createClient();
 
   const { data, error } = await serverClient
-    .from("user_preferences")
+    .from('user_preferences')
     .update(preferences)
-    .eq("user_id", userId)
+    .eq('user_id', userId)
     .select()
     .single();
 
@@ -205,13 +206,35 @@ export async function createUserProfile(profile: Profile) {
   const serverClient = await createClient();
 
   const { data, error } = await serverClient
-    .from("profiles")
+    .from('profiles')
     .insert(profile)
     .select()
     .single();
 
   if (error) {
     console.error(error);
+    return null;
+  }
+
+  return data;
+}
+type Profile = {
+  id: string;
+  id_user: string | null;
+  full_name: string | null;
+};
+
+export async function getProfileHeader(
+  userId: string
+): Promise<Profile | null> {
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id_user', userId)
+    .single();
+
+  if (error) {
+    console.error('Error fetching profile:', error);
     return null;
   }
 

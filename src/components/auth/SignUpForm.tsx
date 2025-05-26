@@ -106,10 +106,11 @@ export const SignUpForm = () => {
         }
       `}</style>
 
-      {/* Gradient blobs */}
+      {/* Gradient blobs *
       <div className='absolute top-20 right-0 w-[500px] h-[500px] bg-[#AC89FF]/10 rounded-full blur-[100px] -z-10'></div>
       <div className='absolute bottom-0 left-0 w-[400px] h-[400px] bg-[#83C7FD]/10 rounded-full blur-[100px] -z-10'></div>
       <div className='absolute top-1/2 left-1/4 w-[600px] h-[600px] bg-[#AFF344]/5 rounded-full blur-[120px] -z-10'></div>
+      /** */}
 
       <div className='container mx-auto px-4 py-12 flex flex-1 items-center justify-center'>
         <div className='w-full max-w-md'>
@@ -309,7 +310,7 @@ export const SignUpForm = () => {
               <p className='text-white/70 text-sm'>
                 ¿Ya tienes una cuenta?{' '}
                 <Link
-                  href='/login'
+                  href='/signin'
                   className='text-[#AC89FF] hover:underline font-medium'
                 >
                   Iniciar sesión

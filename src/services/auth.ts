@@ -4,12 +4,16 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabaseServer';
 import { headers } from 'next/headers';
-
+import { User } from '@/types/database.types';
+type SignInFormValues = {
+  email: string;
+  password: string;
+};
 // ACTION FROM LOGIN --> SIGNIN
-export async function signIn(user: any) {
+export async function signIn(credentials: SignInFormValues) {
   const supabase = await createClient();
 
-  const { error } = await supabase.auth.signInWithPassword(user);
+  const { error } = await supabase.auth.signInWithPassword(credentials);
 
   if (error) {
     return {
@@ -21,22 +25,22 @@ export async function signIn(user: any) {
   return { status: 'success' };
 }
 
-// ACTION FROM LOGIN --> SIGNUP
-export async function signUp(user: any) {
-  const supabase = await createClient();
+type SignUpFormValues = {
+  name: string;
+  email: string;
+  password: string;
+};
 
-  const credentials = {
-    username: user.name,
-    email: user.email,
-    password: user.password,
-  };
+// ACTION FROM LOGIN --> SIGNUP
+export async function signUp(credentials: SignUpFormValues) {
+  const supabase = await createClient();
 
   const { error, data } = await supabase.auth.signUp({
     email: credentials.email,
     password: credentials.password,
     options: {
       data: {
-        username: credentials.username,
+        username: credentials.name,
       },
     },
   });
@@ -57,7 +61,7 @@ export async function signUp(user: any) {
         {
           id: data.user.id,
           role: 'user',
-          name: user.name,
+          name: credentials.name,
         },
       ]);
       return { status: 'success', user: data.user };
@@ -94,8 +98,25 @@ export async function signOut() {
 
   const { error } = await supabase.auth.signOut();
   if (error) {
-    console.log(error);
+    return error;
   }
+  /*
   revalidatePath('/', 'layout');
-  redirect('/');
+  redirect('/signin');*/
+}
+export async function getCurrentUser(): Promise<{
+  user: User | null;
+  error: Error | null;
+}> {
+  const serverClient = await createClient();
+
+  const {
+    data: { user },
+    error,
+  } = await serverClient.auth.getUser();
+
+  return {
+    user: user,
+    error,
+  };
 }

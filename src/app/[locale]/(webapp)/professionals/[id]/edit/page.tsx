@@ -1,4 +1,4 @@
-import { ProfessionalForm } from "@/components/professionals/professional-form";
+import { ProfessionalForm } from "@/components/webapp/professionals/professional-form";
 import { professionalService } from "@/services/professional-service";
 import { notFound } from "next/navigation";
 

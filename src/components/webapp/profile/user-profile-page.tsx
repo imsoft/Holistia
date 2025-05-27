@@ -58,6 +58,7 @@ import type {
   SupabaseFavoriteCenterResponse,
 } from '@/types/database.types';
 import { supabase } from '@/lib/supabaseClient';
+import { signOut } from '@/services/auth';
 
 type FavoritesState = {
   professionals: Array<{
@@ -415,16 +416,15 @@ export const UserProfilePage = ({
       toast.error('No se pudo actualizar las preferencias');
     }
   };
-
-  const handleSignOut = async () => {
-    try {
-      await supabase.auth.signOut();
-      router.push('/login');
-    } catch (error) {
-      console.error('Error signing out:', error);
+  async function handleSignOut() {
+    const error = await signOut();
+    if (error) {
       toast.error('No se pudo cerrar la sesión');
+    } else {
+      toast.success('sesión cerrada correctamente');
+      router.push('/');
     }
-  };
+  }
 
   if (isLoading && !user) {
     return (

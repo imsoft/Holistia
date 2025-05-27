@@ -54,21 +54,25 @@ export default function Footer() {
               >
                 Sobre nosotros
               </Link>*/}
-
+              {/* /contact */}
               <Link
-                href='/contact'
+                href=''
                 className='text-white/70 hover:text-white text-sm'
               >
                 Contacto
               </Link>
               <Link
-                href='/privacy'
+                href='/aviso-de-privacidad'
+                target='_blank'
+                rel='noopener noreferrer'
                 className='text-white/70 hover:text-white text-sm'
               >
                 Privacidad
               </Link>
               <Link
-                href='/terms'
+                href='/terminos-y-condiciones'
+                target='_blank'
+                rel='noopener noreferrer'
                 className='text-white/70 hover:text-white text-sm'
               >
                 Términos

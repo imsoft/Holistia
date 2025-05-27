@@ -27,6 +27,9 @@ const signUpSchema = z.object({
   password: z
     .string()
     .min(8, { message: 'La contraseña debe tener al menos 8 caracteres' }),
+  acceptPrivacy: z.literal(true, {
+    errorMap: () => ({ message: 'Debes aceptar la politica de privacidad' }),
+  }),
   acceptTerms: z.literal(true, {
     errorMap: () => ({ message: 'Debes aceptar los términos y condiciones' }),
   }),
@@ -280,10 +283,41 @@ export const SignUpForm = () => {
                         <FormLabel className='text-sm font-medium text-white/80'>
                           Acepto los{' '}
                           <Link
-                            href='#'
+                            href='/terminos-y-condiciones'
+                            target='_blank'
+                            rel='noopener noreferrer'
                             className='text-[#AC89FF] hover:underline'
                           >
                             términos y condiciones
+                          </Link>
+                        </FormLabel>
+                        <FormMessage className='text-red-500 text-xs' />
+                      </div>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name='acceptPrivacy'
+                  render={({ field }) => (
+                    <FormItem className='flex flex-row items-start space-x-2 pt-2'>
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                          className='bg-white/10 border-white/20 data-[state=checked]:bg-[#AC89FF] data-[state=checked]:border-[#AC89FF]'
+                        />
+                      </FormControl>
+                      <div className='space-y-1 leading-none'>
+                        <FormLabel className='text-sm font-medium text-white/80'>
+                          Acepto la{' '}
+                          <Link
+                            href='/aviso-de-privacidad'
+                            target='_blank'
+                            rel='noopener noreferrer'
+                            className='text-[#AC89FF] hover:underline'
+                          >
+                            politica de privacidad
                           </Link>
                         </FormLabel>
                         <FormMessage className='text-red-500 text-xs' />

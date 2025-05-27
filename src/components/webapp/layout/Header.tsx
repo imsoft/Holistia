@@ -10,6 +10,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import Link from 'next/link';
+import { toast } from 'sonner';
+import router from 'next/router';
 
 type HeaderProps = {
   user: User | null;
@@ -18,7 +20,10 @@ type HeaderProps = {
 async function handleSignOut() {
   const error = await signOut();
   if (error) {
-    console.log(error + 'al cerrrar session');
+    toast.error('No se pudo cerrar la sesión');
+  } else {
+    toast.success('sesión cerrada correctamente');
+    router.push('/');
   }
 }
 

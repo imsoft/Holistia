@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabaseServer';
-import { headers } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 import { User } from '@/types/database.types';
 type SignInFormValues = {
   email: string;
@@ -97,8 +97,18 @@ export async function signOut() {
   const supabase = await createClient();
 
   const { error } = await supabase.auth.signOut();
+  const cookieStore = await cookies();
   if (error) {
     return error;
+  } else {
+    cookieStore.set('sb-hdwyugqswocsfhzsrdxj-auth-token', '', {
+      path: '/',
+      maxAge: 0,
+    });
+    cookieStore.set('sb-refresh-token', '', {
+      path: '/',
+      maxAge: 0,
+    });
   }
   /*
   revalidatePath('/', 'layout');

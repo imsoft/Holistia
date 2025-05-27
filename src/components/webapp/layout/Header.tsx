@@ -1,9 +1,7 @@
 'use client';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { supabase } from '@/lib/supabaseClient';
 import { signOut } from '@/services/auth';
-import { getCurrentUser, getProfileHeader } from '@/services/profile-service';
 import { Profile, User } from '@/types/database.types';
 import {
   DropdownMenu,
@@ -12,16 +10,16 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import Link from 'next/link';
-import router from 'next/router';
-import { useEffect, useState } from 'react';
 
 type HeaderProps = {
   user: User | null;
   profile: Profile | null;
 };
 async function handleSignOut() {
-  const result = await signOut();
-  console.log(' cerrrar session');
+  const error = await signOut();
+  if (error) {
+    console.log(error + 'al cerrrar session');
+  }
 }
 
 export default function Header({ user, profile }: HeaderProps) {

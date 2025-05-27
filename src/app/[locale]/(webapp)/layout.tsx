@@ -4,7 +4,6 @@ import Header from '../../../components/webapp/layout/Header';
 import { getProfileHeader } from '@/services/profile-service';
 import { Profile, User } from '@/types/database.types';
 import { redirect } from 'next/navigation';
-import router from 'next/router';
 import { useEffect, useState } from 'react';
 
 export default function LandingPageLayout({

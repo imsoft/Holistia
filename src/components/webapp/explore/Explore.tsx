@@ -25,7 +25,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { signOut } from '@/services/auth';
+
 // Tipos para los datos
 type Professional = {
   id: string;
@@ -52,7 +52,7 @@ type Center = {
   price: string;
 };
 
-export const Explore = ({ data: user }) => {
+export const Explore = () => {
   const [activeTab, setActiveTab] = useState('professionals');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
@@ -783,5 +783,3 @@ export const Explore = ({ data: user }) => {
     </div>
   );
 };
-
-

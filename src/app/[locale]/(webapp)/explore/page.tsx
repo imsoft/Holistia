@@ -12,13 +12,13 @@ export default async function ExplorePage() {
   if (!res) {
     redirect('/');
   }
-  const user: Users = {
+  /*const user: Users = {
     id: res.id,
     email: res.email!,
-  };
+  };*/
   return (
     <>
-      <Explore data={user} />
+      <Explore } />
     </>
   );
 }

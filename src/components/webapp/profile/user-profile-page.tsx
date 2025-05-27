@@ -13,7 +13,6 @@ import {
   Settings,
   Calendar,
   Heart,
-  Bell,
   LogOut,
   Edit,
   Camera,

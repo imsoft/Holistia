@@ -88,7 +88,7 @@ export const SignInForm = () => {
   };
 
   const handleGoogleSignIn = async () => {
-    const error = await signInWithGoogle();
+    await signInWithGoogle();
   };
 
   return (

@@ -4,7 +4,6 @@ import Link from 'next/link';
 import Image from 'next/image';
 import LocaleSwitcher from '../ui/LocaleSwitcher';
 import { useState } from 'react';
-import { getCurrentUser } from '@/services/auth';
 import { User } from '@/types/database.types';
 
 type Props = {

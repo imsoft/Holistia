@@ -1,10 +1,8 @@
 'use client';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { supabase } from '@/lib/supabaseClient';
 import { signOut } from '@/services/auth';
-import { getCurrentUser, getProfileHeader } from '@/services/profile-service';
-import { User } from '@/types/database.types';
+import { Profile, User } from '@/types/database.types';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,20 +10,21 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import Link from 'next/link';
+import { toast } from 'sonner';
 import router from 'next/router';
-import { useEffect, useState } from 'react';
-type Profile = {
-  id: string;
-  id_user: string | null;
-  full_name: string | null;
-};
+
 type HeaderProps = {
   user: User | null;
   profile: Profile | null;
 };
 async function handleSignOut() {
-  const result = await signOut();
-  console.log(' cerrrar session');
+  const error = await signOut();
+  if (error) {
+    toast.error('No se pudo cerrar la sesión');
+  } else {
+    toast.success('sesión cerrada correctamente');
+    router.push('/');
+  }
 }
 
 export default function Header({ user, profile }: HeaderProps) {
@@ -48,19 +47,22 @@ export default function Header({ user, profile }: HeaderProps) {
                 Explorar
               </Link>
               <Link
-                href='/appointments'
+                //href='/appointments'
+                href='#'
                 className='text-white/70 hover:text-white transition-colors'
               >
                 Mis Citas
               </Link>
               <Link
-                href='/messages'
+                // href='/messages'
+                href='#'
                 className='text-white/70 hover:text-white transition-colors'
               >
                 Mensajes
               </Link>
               <Link
-                href='/favorites'
+                //href='/favorites'
+                href='#'
                 className='text-white/70 hover:text-white transition-colors'
               >
                 Favoritos
@@ -113,7 +115,8 @@ export default function Header({ user, profile }: HeaderProps) {
                 </DropdownMenuItem>
                 <DropdownMenuItem className='hover:bg-white/5'>
                   <Link
-                    href='/settings'
+                    // href='/settings'
+                    href='#'
                     className='flex items-center w-full'
                   >
                     Configuración

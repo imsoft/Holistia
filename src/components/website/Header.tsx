@@ -4,7 +4,6 @@ import Link from 'next/link';
 import Image from 'next/image';
 import LocaleSwitcher from '../ui/LocaleSwitcher';
 import { useState } from 'react';
-import { getCurrentUser } from '@/services/auth';
 import { User } from '@/types/database.types';
 
 type Props = {
@@ -48,14 +47,14 @@ export default function Header({ user }: Props) {
                 href='/signin'
                 className='whitespace-nowrap text-md font-medium text-white/80 hover:text-[#AC89FF] transition-colors relative group'
               >
-                🔑 Iniciar sesión
+                {t('signin')}
                 <span className='absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-[#AC89FF] to-[#83C7FD] group-hover:w-full transition-all duration-300'></span>
               </Link>
               <Link
                 href='/signup'
                 className='text-md font-medium text-white/80 hover:text-[#AC89FF] transition-colors relative group'
               >
-                🏠 Registrarse
+                {t('signup')}
                 <span className='absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-[#AC89FF] to-[#83C7FD] group-hover:w-full transition-all duration-300'></span>
               </Link>
               <LocaleSwitcher />
@@ -85,7 +84,7 @@ export default function Header({ user }: Props) {
                 href='/explore'
                 className='whitespace-nowrap text-md font-medium text-white/80 hover:text-[#AC89FF] transition-colors relative group'
               >
-                ✔ Ir al explore
+                {t('explore')}
                 <span className='absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-[#AC89FF] to-[#83C7FD] group-hover:w-full transition-all duration-300'></span>
               </Link>
               <LocaleSwitcher />
@@ -143,14 +142,14 @@ export default function Header({ user }: Props) {
                 href='signin'
                 className='whitespace-nowrap text-md font-medium text-white/80 hover:text-[#AC89FF] transition-colors relative group'
               >
-                🔑 Iniciar sesión
+                {t('signin')}
                 <span className='absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-[#AC89FF] to-[#83C7FD] group-hover:w-full transition-all duration-300'></span>
               </Link>
               <Link
                 href='/signup'
                 className='text-md font-medium text-white/80 hover:text-[#AC89FF] transition-colors relative group'
               >
-                🏠 Registrarse
+                {t('signup')}
                 <span className='absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-[#AC89FF] to-[#83C7FD] group-hover:w-full transition-all duration-300'></span>
               </Link>
               <LocaleSwitcher />
@@ -161,7 +160,7 @@ export default function Header({ user }: Props) {
                 href='/explore'
                 className='whitespace-nowrap text-md font-medium text-white/80 hover:text-[#AC89FF] transition-colors relative group'
               >
-                ✔ Ir al explore
+                {t('explore')}
                 <span className='absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-[#AC89FF] to-[#83C7FD] group-hover:w-full transition-all duration-300'></span>
               </Link>
               <LocaleSwitcher />

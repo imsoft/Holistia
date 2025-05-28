@@ -4,7 +4,7 @@
  */
 
 // Tipos de usuario y perfil
-export type Users  = {
+export type Users = {
   id: string;
   name: string;
   email: string;
@@ -27,7 +27,8 @@ export interface User {
 }
 
 export type Profile = {
-  id: string;
+  id: string | null;
+  user_id: string;
   full_name: string | null;
   avatar_url: string | null;
   phone: string | null;

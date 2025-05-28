@@ -62,11 +62,11 @@ export default function HeroSection() {
           {/* Main image */}
           <div className='relative rounded-2xl overflow-hidden border border-white/10 shadow-2xl shadow-[#AC89FF]/10'>
             <Image
-              src='https://images.unsplash.com/photo-1595118709609-575ef33e3d4e?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'
+              src='/picture8.jpeg'
               alt='Holistia wellness platform'
               width={1200}
               height={600}
-              className='w-full h-auto object-cover'
+              className='w-full  h-[600px] object-cover object-[center_40%]'
               priority
             />
 
@@ -74,19 +74,19 @@ export default function HeroSection() {
             <div className='absolute inset-0 bg-gradient-to-t from-[#0D0D0D] to-transparent flex items-end'>
               <div className='w-full p-6 md:p-8 grid grid-cols-2 md:grid-cols-4 gap-4'>
                 <div className='bg-white/10 backdrop-blur-md rounded-lg p-4'>
-                  <p className='text-[#AFF344] text-3xl font-bold'>1000+</p>
+                  <p className='text-[#AFF344] text-3xl font-bold'>+50</p>
                   <p className='text-white/70 text-sm'>{t('professionals')}</p>
                 </div>
                 <div className='bg-white/10 backdrop-blur-md rounded-lg p-4'>
-                  <p className='text-[#AC89FF] text-3xl font-bold'>15+</p>
+                  <p className='text-[#AC89FF] text-3xl font-bold'>+15</p>
                   <p className='text-white/70 text-sm'>{t('Specialties')}</p>
                 </div>
                 <div className='bg-white/10 backdrop-blur-md rounded-lg p-4'>
-                  <p className='text-[#83C7FD] text-3xl font-bold'>10K+</p>
+                  <p className='text-[#83C7FD] text-3xl font-bold'>+400</p>
                   <p className='text-white/70 text-sm'>{t('activeUsers')}</p>
                 </div>
                 <div className='bg-white/10 backdrop-blur-md rounded-lg p-4'>
-                  <p className='text-[#FF9900] text-3xl font-bold'>5K+</p>
+                  <p className='text-[#FF9900] text-3xl font-bold'>+500</p>
                   <p className='text-white/70 text-sm'>{t('sessionsHeld')}</p>
                 </div>
               </div>

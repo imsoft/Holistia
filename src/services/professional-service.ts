@@ -199,7 +199,7 @@ export async function uploadProfessionalImage(
 ) {
   const filePath = `professionals/${professionalId}/profile-${Date.now()}`;
 
-  const { data, error } = await supabase.storage
+  const { error } = await supabase.storage
     .from('professional_images')
     .upload(filePath, file);
 
@@ -221,7 +221,7 @@ export async function uploadProfessionalCoverImage(
 ) {
   const filePath = `professionals/${professionalId}/cover-${Date.now()}`;
 
-  const { data, error } = await supabase.storage
+  const { error } = await supabase.storage
     .from('professional_images')
     .upload(filePath, file);
 

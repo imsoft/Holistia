@@ -69,7 +69,7 @@ export default function CommunitySection() {
                 <div className='space-y-4'>
                   <div className='rounded-2xl overflow-hidden border border-white/10 aspect-square'>
                     <Image
-                      src='https://images.unsplash.com/photo-1556760544-74068565f05c?q=80&w=2929&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'
+                      src='/picture1.jpeg'
                       alt='Community member'
                       width={400}
                       height={400}
@@ -78,18 +78,18 @@ export default function CommunitySection() {
                   </div>
                   <div className='rounded-2xl overflow-hidden border border-white/10 aspect-video'>
                     <Image
-                      src='https://images.unsplash.com/photo-1483137140003-ae073b395549?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'
+                      src='/picture5.jpeg'
                       alt='Wellness activity'
                       width={400}
                       height={300}
-                      className='w-full h-full object-cover'
+                      className='w-full h-full object-cover object-[center_65%]'
                     />
                   </div>
                 </div>
                 <div className='space-y-4 pt-10'>
                   <div className='rounded-2xl overflow-hidden border border-white/10 aspect-video'>
                     <Image
-                      src='https://images.unsplash.com/photo-1619968987472-4d1b2784592e?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'
+                      src='/picture3.jpeg'
                       alt='Group session'
                       width={400}
                       height={300}
@@ -98,7 +98,7 @@ export default function CommunitySection() {
                   </div>
                   <div className='rounded-2xl overflow-hidden border border-white/10 aspect-square'>
                     <Image
-                      src='https://images.unsplash.com/photo-1515377905703-c4788e51af15?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'
+                      src='/picture4.jpeg'
                       alt='Meditation class'
                       width={400}
                       height={400}

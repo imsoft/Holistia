@@ -2,9 +2,8 @@
 import { getCurrentUser } from '@/services/auth';
 import Header from '../../../components/webapp/layout/Header';
 import { getProfileHeader } from '@/services/profile-service';
-import { User } from '@/types/database.types';
+import { Profile, User } from '@/types/database.types';
 import { redirect } from 'next/navigation';
-import router from 'next/router';
 import { useEffect, useState } from 'react';
 
 export default function LandingPageLayout({
@@ -12,11 +11,6 @@ export default function LandingPageLayout({
 }: {
   children: React.ReactNode;
 }) {
-  type Profile = {
-    id: string;
-    id_user: string | null;
-    full_name: string | null;
-  };
   const [profile, setProfiles] = useState<Profile | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -30,8 +24,8 @@ export default function LandingPageLayout({
         const profile = await getProfileHeader(user.id);
         if (profile) {
           setProfiles(profile);
-          setUser(user);
         }
+        setUser(user);
       }
       setLoading(false);
     };

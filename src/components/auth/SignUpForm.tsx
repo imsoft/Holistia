@@ -317,7 +317,7 @@ export const SignUpForm = () => {
                             rel='noopener noreferrer'
                             className='text-[#AC89FF] hover:underline'
                           >
-                            politica de privacidad
+                            política de privacidad
                           </Link>
                         </FormLabel>
                         <FormMessage className='text-red-500 text-xs' />

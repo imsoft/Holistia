@@ -2,7 +2,10 @@
   "header": {
     "link1": "Características",
     "link2": "Comunidad",
-    "link3": "Testimonios"
+    "link3": "Testimonios",
+    "signin": "🔑 Iniciar sesión",
+    "signup": "🏠 Registrarse",
+    "explore": "✔ Ir al explore"
   },
   "HeroSection": {
     "helpMessage": "Descubre una nueva forma de bienestar",
@@ -20,11 +23,11 @@
     "tittle": "Un ecosistema completo para tu bienestar",
     "parragraf": "Holistia va más allá de la conexión entre usuarios y especialistas: fomentamos comunidad, aprendizaje y experiencias compartidas.",
     "card1Title": "Salud mental",
-    "card1Description": "Conecta con profesionales especializados en terapias alternativas y mindfulness para cuidar tu bienestar emocional.",
+    "card1Description": "Conecta con terapeutas y psicólogos que te acompañan hacia mayor claridad, calma y estabilidad emocional.",
     "card2Title": "Bienestar físico",
     "card2Description": "Encuentra entrenadores personales, nutricionistas y especialistas en medicina alternativa para tu salud física.",
     "card3Title": "Comunidad activa",
-    "card3Description": "'Forma parte de grupos con intereses similares, participa en eventos y comparte experiencias con otros usuarios.",
+    "card3Description": "Forma parte de grupos con intereses similares, participa en eventos y comparte experiencias con otros usuarios.",
     "card4Title": "Contenido personalizado",
     "card4Description": "Recibe recomendaciones de contenido educativo y prácticas adaptadas a tus necesidades e intereses.",
     "card5Title": "Agenda inteligente",
@@ -66,5 +69,13 @@
   "LocaleSwitcher": {
     "label": "Change language",
     "locale": "{locale, select, es {🇲🇽 Español} en {🇺🇸 Inglés} other {Unknown}}"
+  },
+  "Footer": {
+    "title": "Holistia",
+    "description": " Conectando el bienestar integral",
+    "contatc": "Contacto",
+    "privacy": "Privacidad",
+    "terms": "Términos",
+    "fin" : "Holistia. Todos los derechos reservados."
   }
 }

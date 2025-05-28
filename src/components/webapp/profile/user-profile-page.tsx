@@ -26,6 +26,8 @@ import {
   Save,
   X,
   Loader2,
+  EyeOff,
+  Eye,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -59,6 +61,26 @@ import type {
 } from '@/types/database.types';
 import { supabase } from '@/lib/supabaseClient';
 import { signOut } from '@/services/auth';
+import { z } from 'zod';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormMessage,
+} from '@/components/ui/form';
+
+import { ChangePassword } from '../../../services/auth';
+
+// Definir el esquema de validación con Zod
+const changePassword = z.object({
+  password: z.string().min(1, { message: 'La contraseña es requerida' }),
+});
+
+// Tipo derivado del esquema
+type ChangePasswordValues = z.infer<typeof changePassword>;
 
 type FavoritesState = {
   professionals: Array<{
@@ -114,7 +136,11 @@ export const UserProfilePage = ({
   preferences: initialPreferences = null,
 }: UserProfilePageProps) => {
   const router = useRouter();
-
+  // change password
+  const [showInput, setShowInput] = useState(false);
+  const [message, setMessage] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  // others thinks
   const [isLoading, setIsLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [user, setUser] = useState<User | null>(initialUser);
@@ -131,6 +157,14 @@ export const UserProfilePage = ({
   });
   const [activeTab, setActiveTab] = useState('profile');
   console.log('activeTab', activeTab);
+
+  // Configurar useForm con el resolver de Zod
+  const form = useForm<ChangePasswordValues>({
+    resolver: zodResolver(changePassword),
+    defaultValues: {
+      password: '',
+    },
+  });
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -296,6 +330,20 @@ export const UserProfilePage = ({
     initialFavoriteCenters,
     initialPreferences,
   ]);
+  async function handleChangePassword(credentials: ChangePasswordValues) {
+    setIsLoading(true);
+    setMessage('');
+    const { error } = await ChangePassword(credentials);
+
+    if (error) {
+      setMessage('❌ Error: ' + error.message);
+    } else {
+      setMessage('✅ Contraseña cambiada exitosamente.');
+    }
+
+    setIsLoading(false);
+    setShowInput(false);
+  }
 
   const handleEditProfile = () => {
     setIsEditing(true);
@@ -1257,79 +1305,167 @@ export const UserProfilePage = ({
                     </div>
                   </CardContent>
                 </Card>
-
                 <Card className='bg-white/5 border-white/10 text-white'>
                   <CardHeader>
                     <CardTitle>Seguridad</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className='space-y-4'>
-                      <div className='flex items-center justify-between'>
-                        <div className='flex items-center'>
-                          <div className='h-10 w-10 rounded-full bg-[#AC89FF]/20 flex items-center justify-center mr-4'>
-                            <Lock className='h-5 w-5 text-[#AC89FF]' />
+                    {!showInput && (
+                      <div className='space-y-4'>
+                        <div className='flex items-center justify-between'>
+                          <div className='flex items-center'>
+                            <div className='h-10 w-10 rounded-full bg-[#AC89FF]/20 flex items-center justify-center mr-4'>
+                              <Lock className='h-5 w-5 text-[#AC89FF]' />
+                            </div>
+                            <div>
+                              <h4 className='font-medium'>
+                                Cambiar contraseña
+                              </h4>
+                              <p className='text-sm text-white/70'>
+                                Actualiza tu contraseña de acceso
+                              </p>
+                            </div>
                           </div>
-                          <div>
-                            <h4 className='font-medium'>Cambiar contraseña</h4>
-                            <p className='text-sm text-white/70'>
-                              Actualiza tu contraseña de acceso
-                            </p>
+                          <Button
+                            variant='outline'
+                            className='border-white/20 bg-white/5 hover:bg-white/10'
+                            onClick={() => setShowInput(true)}
+                          >
+                            Cambiar
+                          </Button>
+                        </div>
+                        <Separator className='bg-white/10' />
+                        <div className='flex items-center justify-between'>
+                          <div className='flex items-center'>
+                            <div className='h-10 w-10 rounded-full bg-[#83C7FD]/20 flex items-center justify-center mr-4'>
+                              <Shield className='h-5 w-5 text-[#83C7FD]' />
+                            </div>
+                            <div>
+                              <h4 className='font-medium'>
+                                Verificación en dos pasos
+                              </h4>
+                              <p className='text-sm text-white/70'>
+                                Añade una capa extra de seguridad
+                              </p>
+                            </div>
+                          </div>
+                          <Button
+                            variant='outline'
+                            className='border-white/20 bg-white/5 hover:bg-white/10'
+                          >
+                            Configurar
+                          </Button>
+                        </div>
+                        <Separator className='bg-white/10' />
+                        <div className='flex items-center justify-between'>
+                          <div className='flex items-center'>
+                            <div className='h-10 w-10 rounded-full bg-red-500/10 flex items-center justify-center mr-4'>
+                              <LogOut className='h-5 w-5 text-red-400' />
+                            </div>
+                            <div>
+                              <h4 className='font-medium text-red-400'>
+                                Cerrar sesión
+                              </h4>
+                              <p className='text-sm text-white/70'>
+                                Salir de tu cuenta
+                              </p>
+                            </div>
+                          </div>
+                          <Button
+                            variant='outline'
+                            className='border-red-500/30 text-red-400 hover:bg-red-500/10'
+                            onClick={handleSignOut}
+                          >
+                            Cerrar sesión
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                    {showInput && (
+                      <div className='space-y-4'>
+                        <div className='flex flex-col md:flex-row md:items-start md:justify-between w-full space-y-4 md:space-y-0 md:space-x-6'>
+                          {/* 🧾 Texto a la izquierda */}
+                          <div className='flex items-center md:items-start'>
+                            <div className='h-10 w-10 rounded-full bg-[#AC89FF]/20 flex items-center justify-center mr-4'>
+                              <Lock className='h-5 w-5 text-[#AC89FF]' />
+                            </div>
+                            <div>
+                              <h4 className='font-medium'>
+                                Cambiar contraseña
+                              </h4>
+                              <p className='text-sm text-white/70'>
+                                Actualiza tu contraseña de acceso
+                              </p>
+                            </div>
+                          </div>
+
+                          {/* 🔐 Formulario + botones dentro del mismo bloque */}
+                          <div className='bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10 p-6 shadow-xl w-full max-w-md'>
+                            <Form {...form}>
+                              <form
+                                onSubmit={form.handleSubmit(
+                                  handleChangePassword
+                                )}
+                                className='space-y-5'
+                              >
+                                <FormField
+                                  control={form.control}
+                                  name='password'
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormControl>
+                                        <div className='relative'>
+                                          <Input
+                                            type={
+                                              showPassword ? 'text' : 'password'
+                                            }
+                                            placeholder='Tu nueva contraseña'
+                                            className='bg-white/10 border-white/20 focus:border-[#AC89FF] text-white placeholder:text-white/50 pr-10'
+                                            {...field}
+                                          />
+                                          <button
+                                            type='button'
+                                            onClick={() =>
+                                              setShowPassword(!showPassword)
+                                            }
+                                            className='absolute right-3 top-1/2 transform -translate-y-1/2 text-white/50 hover:text-white'
+                                          >
+                                            {showPassword ? (
+                                              <EyeOff className='h-4 w-4' />
+                                            ) : (
+                                              <Eye className='h-4 w-4' />
+                                            )}
+                                          </button>
+                                        </div>
+                                      </FormControl>
+                                      <FormMessage className='text-red-500 text-xs' />
+                                    </FormItem>
+                                  )}
+                                />
+
+                                {/* ✅ Botones dentro del mismo bloque */}
+                                <div className='flex justify-end space-x-4'>
+                                  <Button
+                                    type='submit'
+                                    disabled={isLoading}
+                                  >
+                                    {isLoading ? 'Cambiando...' : 'Guardar'}
+                                  </Button>
+                                  <Button
+                                    variant='ghost'
+                                    onClick={() => setShowInput(false)}
+                                  >
+                                    Cancelar
+                                  </Button>
+                                </div>
+                              </form>
+                            </Form>
                           </div>
                         </div>
-                        <Button
-                          variant='outline'
-                          className='border-white/20 bg-white/5 hover:bg-white/10'
-                        >
-                          Cambiar
-                        </Button>
                       </div>
-                      <Separator className='bg-white/10' />
-                      <div className='flex items-center justify-between'>
-                        <div className='flex items-center'>
-                          <div className='h-10 w-10 rounded-full bg-[#83C7FD]/20 flex items-center justify-center mr-4'>
-                            <Shield className='h-5 w-5 text-[#83C7FD]' />
-                          </div>
-                          <div>
-                            <h4 className='font-medium'>
-                              Verificación en dos pasos
-                            </h4>
-                            <p className='text-sm text-white/70'>
-                              Añade una capa extra de seguridad
-                            </p>
-                          </div>
-                        </div>
-                        <Button
-                          variant='outline'
-                          className='border-white/20 bg-white/5 hover:bg-white/10'
-                        >
-                          Configurar
-                        </Button>
-                      </div>
-                      <Separator className='bg-white/10' />
-                      <div className='flex items-center justify-between'>
-                        <div className='flex items-center'>
-                          <div className='h-10 w-10 rounded-full bg-red-500/10 flex items-center justify-center mr-4'>
-                            <LogOut className='h-5 w-5 text-red-400' />
-                          </div>
-                          <div>
-                            <h4 className='font-medium text-red-400'>
-                              Cerrar sesión
-                            </h4>
-                            <p className='text-sm text-white/70'>
-                              Salir de tu cuenta
-                            </p>
-                          </div>
-                        </div>
-                        <Button
-                          variant='outline'
-                          className='border-red-500/30 text-red-400 hover:bg-red-500/10'
-                          onClick={handleSignOut}
-                        >
-                          Cerrar sesión
-                        </Button>
-                      </div>
-                    </div>
+                    )}
                   </CardContent>
+                  {message && <p className='text-sm'>{message}</p>}
                 </Card>
               </TabsContent>
             </Tabs>

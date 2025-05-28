@@ -9,6 +9,9 @@ type SignInFormValues = {
   email: string;
   password: string;
 };
+type ChangePassword = {
+  password: string;
+};
 // ACTION FROM LOGIN --> SIGNIN
 export async function signIn(credentials: SignInFormValues) {
   const supabase = await createClient();
@@ -129,4 +132,14 @@ export async function getCurrentUser(): Promise<{
     user: user,
     error,
   };
+}
+
+export async function ChangePassword(credentials: ChangePassword) {
+  const supabase = await createClient();
+  const { password } = credentials;
+  const error = await supabase.auth.updateUser({
+    password: password,
+  });
+
+  return error;
 }

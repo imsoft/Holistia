@@ -2,7 +2,10 @@
   "header": {
     "link1": "Characteristics",
     "link2": "Community",
-    "link3": "Testimonials"
+    "link3": "Testimonials",
+    "signin": "🔑 Sign In",
+    "signup": "🏠 Sign Up",
+    "explore": "✔ Go to explore"
   },
   "HeroSection": {
     "helpMessage": "Discover a new form of well-being",
@@ -20,7 +23,7 @@
     "tittle": "A complete ecosystem for your well-being",
     "parragraf": "Holistia goes beyond connecting users and specialists: we foster community, learning, and shared experiences.",
     "card1Title": "Mental health",
-    "card1Description": "Connect with professionals specializing in alternative therapies and mindfulness to take care of your emotional well-being.",
+    "card1Description": "Connect with therapists and psychologists who will guide you toward greater clarity, calm, and emotional stability.",
     "card2Title": "Physical well-being",
     "card2Description": "Find personal trainers, nutritionists, and alternative medicine specialists for your physical health.",
     "card3Title": "Active community",
@@ -65,6 +68,14 @@
   },
   "LocaleSwitcher": {
     "label": "Change language",
-    "locale": "{locale, select, es {🇲🇽 Spanish} en {🇺🇸 English} other {Unknown}}" 
+    "locale": "{locale, select, es {🇲🇽 Spanish} en {🇺🇸 English} other {Unknown}}"
+  },
+  "Footer": {
+    "title": "Holistia",
+    "description": "Connecting comprehensive well-being",
+    "contatc": "Contact",
+    "privacy": "Privacy",
+    "terms": "Terms",
+    "fin": "Holistia. All rights reserved."
   }
 }

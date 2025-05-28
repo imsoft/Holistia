@@ -34,13 +34,17 @@ export const ForgotPassword = () => {
       email: '',
     },
   });
+  const redirectUrl =
+    process.env.NODE_ENV === 'production'
+      ? 'https://tudominio.com/reset-password'
+      : 'http://localhost:3000/reset-password';
 
   // Función para manejar el envío del formulario
   async function onSubmit(data: SignInFormValues) {
     setFormError(null);
     const { email } = data;
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/reset-password`,
+      redirectTo: redirectUrl,
     });
     if (error) setFormError(`Error: ${error.message}`);
     else setFormError('Revisa tu correo para continuar.');

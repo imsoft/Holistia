@@ -44,7 +44,7 @@ export const ForgotPassword = () => {
     setFormError(null);
     const { email } = data;
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: redirectUrl,
+      redirectTo: `https://www.holistia.ioS/reset-password`,
     });
     if (error) setFormError(`Error: ${error.message}`);
     else setFormError('Revisa tu correo para continuar.');

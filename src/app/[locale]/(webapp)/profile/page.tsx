@@ -1,5 +1,9 @@
 import { UserProfilePage } from '@/components/webapp/profile/user-profile-page';
-import { getCurrentUser, getUserPreferences } from '@/services/profile-service';
+import {
+  getCurrentUser,
+  getProfileHeader,
+  getUserPreferences,
+} from '@/services/profile-service';
 import { supabase } from '@/lib/supabaseClient';
 import {
   SupabaseFavoriteCenterResponse,
@@ -10,7 +14,7 @@ export default async function ProfilePage() {
   const user = await getCurrentUser();
 
   if (!user) {
-    return <h1>no hay usuario</h1>;
+    return null;
   }
   const [
     appointmentsResult,
@@ -56,6 +60,7 @@ export default async function ProfilePage() {
   ]);
 
   const preferences = await getUserPreferences(user.id);
+  const profile = await getProfileHeader(user.id);
 
   // 🔵 Transformamos citas correctamente
   const appointments = (appointmentsResult.data || []).map((appt) => ({
@@ -104,6 +109,7 @@ export default async function ProfilePage() {
       favoriteProfessionals={[favoriteProfessionals]}
       favoriteCenters={[favoriteCenters]}
       preferences={preferences}
+      profile={profile}
     />
   );
 }

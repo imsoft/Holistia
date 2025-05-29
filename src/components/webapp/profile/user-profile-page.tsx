@@ -42,11 +42,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import {
   getCurrentUser,
-  getUserProfile,
   updateUserProfile,
   getUserPreferences,
   updateUserPreferences,
   createUserProfile,
+  getProfileHeader,
 } from '@/services/profile-service';
 import type {
   Profile,
@@ -107,6 +107,7 @@ interface UserProfilePageProps {
   favoriteProfessionals: SupabaseFavoriteProfessionalResponse[] | null;
   favoriteCenters: SupabaseFavoriteCenterResponse[] | null;
   preferences: Partial<UserPreference> | null;
+  profile: Profile | null;
 }
 
 // Función segura para formatear fechas en el componente
@@ -134,6 +135,7 @@ export const UserProfilePage = ({
   favoriteProfessionals: initialFavoriteProfessionals = [],
   favoriteCenters: initialFavoriteCenters = [],
   preferences: initialPreferences = null,
+  profile: initialProfile = null,
 }: UserProfilePageProps) => {
   const router = useRouter();
   // change password
@@ -180,20 +182,22 @@ export const UserProfilePage = ({
         setUser(currentUser);
 
         // Fetch profile data
-        const userProfile = await getUserProfile(currentUser.id);
+        const userProfile = await getProfileHeader(currentUser.id);
+        if (userProfile) {
+        }
         setProfile({
           id: null,
           user_id: currentUser.id,
-          full_name: userProfile.user?.user_metadata.full_name || '',
-          avatar_url: userProfile.user?.user_metadata.avatar_url || '',
+          full_name: userProfile?.full_name || '',
+          avatar_url: userProfile?.avatar_url || '',
           phone: '',
           location: '',
           bio: '',
           cover_image: '',
-          created_at: userProfile.user?.created_at || new Date().toISOString(),
+          created_at: userProfile?.created_at || new Date().toISOString(),
           updated_at: new Date().toISOString(),
         });
-
+        /* */
         // Fetch user preferences
         const userPrefs = await getUserPreferences(currentUser.id);
         setPreferences(userPrefs);
@@ -274,23 +278,6 @@ export const UserProfilePage = ({
                 }
             ) || [],
         });
-
-        // Initialize form with profile data
-        if (userProfile) {
-          setProfile({
-            id: null,
-            user_id: currentUser.id,
-            full_name: userProfile.user?.user_metadata?.full_name || '',
-            avatar_url: userProfile.user?.user_metadata?.avatar_url || '',
-            phone: '', // 👈 (Aquí pones campos vacíos si no hay)
-            location: '',
-            bio: '',
-            cover_image: '',
-            created_at:
-              userProfile.user?.created_at || new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-          });
-        }
       } catch (error) {
         console.error('Error fetching user data:', error);
         toast.error('No se pudo cargar la información del perfil');
@@ -298,7 +285,6 @@ export const UserProfilePage = ({
         setIsLoading(false);
       }
     };
-
     if (!initialUser) {
       fetchUserData();
     } else {
@@ -306,6 +292,7 @@ export const UserProfilePage = ({
       setUser(initialUser);
       setAppointments(initialAppointments);
       setPreferences(initialPreferences as UserPreference | null);
+      setProfile(initialProfile);
 
       // Transform favorites from props
       if (initialFavoriteProfessionals && initialFavoriteCenters) {
@@ -319,7 +306,6 @@ export const UserProfilePage = ({
           ),
         });
       }
-
       setIsLoading(false);
     }
   }, [
@@ -329,6 +315,7 @@ export const UserProfilePage = ({
     initialFavoriteProfessionals,
     initialFavoriteCenters,
     initialPreferences,
+    initialProfile,
   ]);
   async function handleChangePassword(credentials: ChangePasswordValues) {
     setIsLoading(true);

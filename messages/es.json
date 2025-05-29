@@ -10,7 +10,7 @@
   "HeroSection": {
     "helpMessage": "Descubre una nueva forma de bienestar",
     "tittle": "Conecta con tu bienestar integral",
-    "parragraf": "Holistia es un ecosistema digital que conecta a quienes buscan mejorar su calidad de vida con profesionales especializados en terapias alternativas, nutrición, mindfulness y entrenamiento físico.",
+    "parragraf": "Holistia es un ecosistema de bienestar 360°. Conectamos cuerpo, mente y emociones a través de herramientas tecnológicas inteligentes, contenido por expertos y acompañamiento personalizado.",
     "startBtn": "Comenzar ahora",
     "foundMoreBtn": "Conocer más",
     "professionals": "Profesionales",
@@ -76,6 +76,6 @@
     "contatc": "Contacto",
     "privacy": "Privacidad",
     "terms": "Términos",
-    "fin" : "Holistia. Todos los derechos reservados."
+    "fin": "Holistia. Todos los derechos reservados."
   }
 }

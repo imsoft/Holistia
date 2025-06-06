@@ -12,6 +12,8 @@ import {
 import Link from 'next/link';
 import { toast } from 'sonner';
 import router from 'next/router';
+import { useEffect, useState } from 'react';
+import { usePathname } from 'next/navigation';
 
 type HeaderProps = {
   user: User | null;
@@ -28,6 +30,14 @@ async function handleSignOut() {
 }
 
 export default function Header({ user, profile }: HeaderProps) {
+  const pathname = usePathname();
+
+  // Cierra el menú al cambiar la ruta
+  useEffect(() => {
+    setOpen(false);
+  }, [pathname]);
+
+  const [open, setOpen] = useState(false);
   return (
     <>
       <header className='border-b border-white/10 backdrop-blur-sm bg-[#0D0D0D]/80 sticky top-0 z-50'>
@@ -76,7 +86,10 @@ export default function Header({ user, profile }: HeaderProps) {
             >
               <Bell className='h-5 w-5' />
             </Button>
-            <DropdownMenu>
+            <DropdownMenu
+              open={open}
+              onOpenChange={setOpen}
+            >
               <DropdownMenuTrigger asChild>
                 <Button
                   variant='ghost'
@@ -108,6 +121,7 @@ export default function Header({ user, profile }: HeaderProps) {
                 <DropdownMenuItem className='hover:bg-white/5'>
                   <Link
                     href='/profile'
+                    onClick={() => setOpen(false)}
                     className='flex items-center w-full'
                   >
                     Mi Perfil
@@ -117,6 +131,7 @@ export default function Header({ user, profile }: HeaderProps) {
                   <Link
                     // href='/settings'
                     href='#'
+                    onClick={() => setOpen(false)}
                     className='flex items-center w-full'
                   >
                     Configuración

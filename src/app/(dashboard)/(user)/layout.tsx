@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
@@ -9,7 +10,6 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import {
   Sheet,
@@ -122,9 +122,11 @@ export default function UserLayout({
                   <Button variant="ghost" className="relative flex max-w-xs items-center rounded-full ml-3">
                     <span className="absolute -inset-1.5" />
                     <span className="sr-only">Abrir menú de usuario</span>
-                    <img
+                    <Image
                       alt=""
                       src={user.imageUrl}
+                      width={32}
+                      height={32}
                       className="h-8 w-8 rounded-full object-cover border-2 border-green-200"
                     />
                     <div className="ml-3 hidden lg:block text-left">
@@ -209,9 +211,11 @@ export default function UserLayout({
                     <div className="border-t border-border pt-4">
                       <div className="flex items-center px-4 mb-4">
                         <div className="shrink-0">
-                          <img
+                          <Image
                             alt=""
                             src={user.imageUrl}
+                            width={40}
+                            height={40}
                             className="h-10 w-10 rounded-full object-cover border-2 border-green-200"
                           />
                         </div>

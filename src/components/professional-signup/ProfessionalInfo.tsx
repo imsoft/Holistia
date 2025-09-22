@@ -13,7 +13,7 @@ interface FormData {
   city: string;
   state: string;
   zipCode: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 interface ProfessionalInfoProps {

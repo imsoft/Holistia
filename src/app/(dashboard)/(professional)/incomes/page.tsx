@@ -4,8 +4,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { 
   DollarSign,
-  TrendingUp,
-  TrendingDown,
   Calendar,
   Users,
   BarChart3,
@@ -77,9 +75,6 @@ const IncomesPage = () => {
     return growth >= 0 ? "text-green-600" : "text-red-600";
   };
 
-  const getGrowthIcon = (growth: number) => {
-    return growth >= 0 ? TrendingUp : TrendingDown;
-  };
 
   return (
     <div className="space-y-8">

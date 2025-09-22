@@ -8,10 +8,8 @@ import {
   Calendar,
   Settings,
   Plus,
-  Edit,
   CheckCircle,
-  XCircle,
-  AlertCircle
+  XCircle
 } from "lucide-react";
 
 // Datos de ejemplo para horarios

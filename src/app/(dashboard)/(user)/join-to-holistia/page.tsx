@@ -61,7 +61,7 @@ const UneteAHolistiaPage = () => {
   const [currentStep, setCurrentStep] = useState(0);
   
   // Inicializar formData con valores por defecto para evitar el error de controlled/uncontrolled
-  const [formData, setFormData] = useState<any>({
+  const [formData, setFormData] = useState<any>({ // eslint-disable-line @typescript-eslint/no-explicit-any
     firstName: "",
     lastName: "",
     email: "",
@@ -118,14 +118,16 @@ const UneteAHolistiaPage = () => {
         return !!(
           formData.specialty &&
           formData.services && 
+          Array.isArray(formData.services) &&
           formData.services.length > 0
         );
       case 3: // Disponibilidad
         return !!(
           formData.consultationTypes && 
+          Array.isArray(formData.consultationTypes) &&
           formData.consultationTypes.length > 0 &&
           formData.availability &&
-          Object.values(formData.availability).some((day: any) => day.available)
+          Object.values(formData.availability).some((day: any) => day.available) // eslint-disable-line @typescript-eslint/no-explicit-any
         );
       case 4: // Documentos
         return !!(

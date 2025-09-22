@@ -1,6 +1,5 @@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -31,7 +30,7 @@ interface FormData {
     sunday: Availability;
   };
   timeSlots: string[];
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 interface ProfessionalAvailabilityProps {
@@ -66,12 +65,12 @@ const timeSlotOptions = [
 ];
 
 const ProfessionalAvailability = ({ formData, setFormData, errors }: ProfessionalAvailabilityProps) => {
-  const handleInputChange = (field: string, value: string | string[]) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
-  };
+  // const handleInputChange = (field: string, value: string | string[]) => {
+  //   setFormData(prev => ({
+  //     ...prev,
+  //     [field]: value
+  //   }));
+  // };
 
   const updateAvailability = (day: string, field: keyof Availability, value: string | boolean) => {
     setFormData(prev => ({

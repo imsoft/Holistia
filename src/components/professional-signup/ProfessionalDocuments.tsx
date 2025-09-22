@@ -19,7 +19,7 @@ interface FormData {
   degreeDocument: File | null;
   idDocument: File | null;
   cvDocument: File | null;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 interface ProfessionalDocumentsProps {
@@ -123,7 +123,7 @@ const ProfessionalDocuments = ({ formData, setFormData, errors }: ProfessionalDo
         <CardContent className="space-y-6">
           {documentTypes.map((doc) => {
             const Icon = doc.icon;
-            const file = formData[doc.key];
+            const file = formData[doc.key] as File | null;
             const fileStatus = getFileStatus(doc.key);
             const StatusIcon = fileStatus.icon;
             
@@ -174,9 +174,9 @@ const ProfessionalDocuments = ({ formData, setFormData, errors }: ProfessionalDo
                       <div className="flex items-center gap-3">
                         <FileImage className="h-5 w-5 text-primary" />
                         <div>
-                          <p className="font-medium">{file.name}</p>
+                          <p className="font-medium">{file?.name || 'Archivo'}</p>
                           <p className="text-sm text-muted-foreground">
-                            {formatFileSize(file.size)}
+                            {file?.size ? formatFileSize(file.size) : 'Tamaño desconocido'}
                           </p>
                         </div>
                       </div>

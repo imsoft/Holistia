@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Star, MapPin, Clock, Phone, Heart } from "lucide-react";
+import Image from "next/image";
 
 const mockFavorites = [
   {
@@ -91,9 +92,11 @@ const UserFavoritesPage = () => {
           <Card key={professional.id} className="hover:shadow-lg transition-shadow">
             <CardHeader className="pb-3">
               <div className="flex items-start gap-4">
-                <img
+                <Image
                   src={professional.image}
                   alt={professional.name}
+                  width={64}
+                  height={64}
                   className="w-16 h-16 rounded-full object-cover"
                 />
                 <div className="flex-1">

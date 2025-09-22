@@ -1,5 +1,5 @@
 import { Badge } from "@/components/ui/badge";
-import { Calendar } from "lucide-react";
+import { Calendar, LucideIcon } from "lucide-react";
 import HistoryCard from "./HistoryCard";
 
 interface Appointment {
@@ -26,7 +26,7 @@ interface HistoryDateGroupProps {
   onReschedule: (id: number) => void;
   onCancel: (id: number) => void;
   onRate: (id: number) => void;
-  getStatusIcon: (status: string) => any;
+  getStatusIcon: (status: string) => LucideIcon;
   getStatusColor: (status: string) => string;
   getStatusText: (status: string) => string;
   formatDate: (dateString: string) => string;

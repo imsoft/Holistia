@@ -29,7 +29,7 @@ interface FormData {
   subSpecialties: string[];
   services: Service[];
   languages: string[];
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 interface ProfessionalServicesProps {
@@ -180,7 +180,7 @@ const ProfessionalServices = ({ formData, setFormData, errors }: ProfessionalSer
         <CardContent className="space-y-4">
           {formData.services.length === 0 ? (
             <p className="text-muted-foreground text-center py-4">
-              No hay servicios agregados. Haz clic en "Agregar Servicio" para incluir uno.
+              No hay servicios agregados. Haz clic en &quot;Agregar Servicio&quot; para incluir uno.
             </p>
           ) : (
             formData.services.map((service, index) => (

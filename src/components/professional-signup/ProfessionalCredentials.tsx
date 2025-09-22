@@ -18,7 +18,7 @@ interface FormData {
   university: string;
   graduationYear: string;
   certifications: Certification[];
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 interface ProfessionalCredentialsProps {
@@ -165,7 +165,7 @@ const ProfessionalCredentials = ({ formData, setFormData, errors }: Professional
         <CardContent className="space-y-4">
           {formData.certifications.length === 0 ? (
             <p className="text-muted-foreground text-center py-4">
-              No hay certificaciones agregadas. Haz clic en "Agregar" para incluir una.
+              No hay certificaciones agregadas. Haz clic en &quot;Agregar&quot; para incluir una.
             </p>
           ) : (
             formData.certifications.map((cert, index) => (

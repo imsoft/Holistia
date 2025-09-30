@@ -1,0 +1,459 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { useParams } from "next/navigation";
+import {
+  UserCheck,
+  Search,
+  Filter,
+  Eye,
+  Phone,
+  Mail,
+  MapPin,
+  Calendar,
+  Shield,
+  ShieldCheck,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { SidebarTrigger } from "@/components/ui/sidebar";
+import Image from "next/image";
+import { createClient } from "@/utils/supabase/client";
+
+// Interfaces para los datos dinámicos
+interface Professional {
+  id: string;
+  user_id: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone?: string;
+  profession: string;
+  specializations: string[];
+  city: string;
+  state: string;
+  profile_photo?: string;
+  status: 'active' | 'inactive' | 'suspended';
+  submitted_at: string;
+  reviewed_at?: string;
+  patients?: number;
+}
+
+export default function AdminProfessionals() {
+  const [professionals, setProfessionals] = useState<Professional[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [verificationFilter, setVerificationFilter] = useState("all");
+  const [statsData, setStatsData] = useState({
+    totalThisMonth: 0,
+    lastMonth: 0,
+    totalPatients: 0
+  });
+  const params = useParams();
+  const supabase = createClient();
+
+  // Obtener profesionales de la base de datos
+  useEffect(() => {
+    const fetchProfessionals = async () => {
+      try {
+        setLoading(true);
+
+        // Fechas para comparaciones
+        const now = new Date();
+        const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+        const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+        const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
+
+        // Obtener profesionales aprobados de la base de datos y datos comparativos
+        const [
+          { data: professionalsData, error: professionalsError },
+          { data: lastMonthProfessionals, error: lastMonthError }
+        ] = await Promise.all([
+          supabase
+            .from('professional_applications')
+            .select('*')
+            .eq('status', 'approved')
+            .order('reviewed_at', { ascending: false }),
+          supabase
+            .from('professional_applications')
+            .select('*')
+            .eq('status', 'approved')
+            .gte('reviewed_at', lastMonthStart.toISOString())
+            .lte('reviewed_at', lastMonthEnd.toISOString())
+        ]);
+
+        if (professionalsError) {
+          console.error('Error fetching professionals:', professionalsError);
+          return;
+        }
+
+        // Transformar datos y obtener número de pacientes para cada profesional
+        const transformedProfessionals: Professional[] = await Promise.all(
+          professionalsData.map(async (prof) => {
+            // Obtener número de citas únicas de pacientes para este profesional
+            const { count: patientsCount } = await supabase
+              .from('appointments')
+              .select('patient_id', { count: 'exact', head: true })
+              .eq('professional_id', prof.id);
+
+            // Determinar el estado basado en la fecha de revisión
+            const reviewedAt = prof.reviewed_at ? new Date(prof.reviewed_at) : new Date(prof.submitted_at);
+            const thirtyDaysAgo = new Date();
+            thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+            
+            let status: 'active' | 'inactive' | 'suspended' = 'active';
+            if (reviewedAt < thirtyDaysAgo) {
+              status = 'inactive';
+            }
+
+            return {
+              id: prof.id,
+              user_id: prof.user_id,
+              first_name: prof.first_name,
+              last_name: prof.last_name,
+              email: prof.email,
+              phone: prof.phone,
+              profession: prof.profession,
+              specializations: prof.specializations,
+              city: prof.city,
+              state: prof.state,
+              profile_photo: prof.profile_photo,
+              status,
+              submitted_at: prof.submitted_at,
+              reviewed_at: prof.reviewed_at,
+              patients: patientsCount || 0,
+            };
+          })
+        );
+
+        setProfessionals(transformedProfessionals);
+
+        // Calcular estadísticas para el dashboard
+        const thisMonthProfessionals = professionalsData?.filter(prof => {
+          const reviewedAt = prof.reviewed_at ? new Date(prof.reviewed_at) : new Date(prof.submitted_at);
+          return reviewedAt >= currentMonthStart;
+        }).length || 0;
+
+        const totalPatients = transformedProfessionals.reduce((acc, prof) => acc + (prof.patients || 0), 0);
+
+        setStatsData({
+          totalThisMonth: thisMonthProfessionals,
+          lastMonth: lastMonthProfessionals?.length || 0,
+          totalPatients
+        });
+
+      } catch (error) {
+        console.error('Error fetching professionals:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProfessionals();
+  }, [supabase]);
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "active":
+        return "bg-green-100 text-green-800";
+      case "inactive":
+        return "bg-red-100 text-red-800";
+      case "suspended":
+        return "bg-yellow-100 text-yellow-800";
+      default:
+        return "bg-gray-100 text-gray-800";
+    }
+  };
+
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case "active":
+        return "Activo";
+      case "inactive":
+        return "Inactivo";
+      case "suspended":
+        return "Suspendido";
+      default:
+        return status;
+    }
+  };
+
+  // Función para calcular porcentaje de cambio
+  const calculatePercentageChange = (current: number, previous: number): string => {
+    if (previous === 0) return current > 0 ? "+100%" : "0%";
+    const change = ((current - previous) / previous) * 100;
+    const sign = change >= 0 ? "+" : "";
+    return `${sign}${Math.round(change)}%`;
+  };
+
+  const filteredProfessionals = professionals.filter((professional) => {
+    const fullName = `${professional.first_name} ${professional.last_name}`;
+    const matchesSearch = fullName
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase()) ||
+      professional.profession
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase()) ||
+      professional.email
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase());
+    const matchesStatus = statusFilter === "all" || professional.status === statusFilter;
+    const matchesVerification = verificationFilter === "all" || 
+      (verificationFilter === "verified" && professional.reviewed_at) ||
+      (verificationFilter === "unverified" && !professional.reviewed_at);
+
+    return matchesSearch && matchesStatus && matchesVerification;
+  });
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-2 text-sm text-muted-foreground">Cargando profesionales...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <div className="border-b border-border bg-card">
+        <div className="flex h-16 items-center justify-between px-6">
+          <div className="flex items-center gap-4">
+            <SidebarTrigger />
+            <div>
+              <h1 className="text-2xl font-bold text-foreground">Profesionales</h1>
+              <p className="text-sm text-muted-foreground">
+                Gestiona todos los profesionales de la plataforma
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <Button variant="outline">
+              <Shield className="h-4 w-4 mr-2" />
+              Verificar Documentos
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="p-6 space-y-6">
+        {/* Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-6 pt-6">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Total Profesionales
+              </CardTitle>
+              <UserCheck className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent className="px-6 pb-6">
+              <div className="text-2xl font-bold text-foreground">
+                {professionals.length}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {calculatePercentageChange(statsData.totalThisMonth, statsData.lastMonth)} vs mes anterior
+              </p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-6 pt-6">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Activos
+              </CardTitle>
+              <ShieldCheck className="h-4 w-4 text-green-600" />
+            </CardHeader>
+            <CardContent className="px-6 pb-6">
+              <div className="text-2xl font-bold text-foreground">
+                {professionals.filter(p => p.status === "active").length}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {professionals.length > 0 ? Math.round((professionals.filter(p => p.status === "active").length / professionals.length) * 100) : 0}% del total
+              </p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-6 pt-6">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Verificados
+              </CardTitle>
+              <Shield className="h-4 w-4 text-blue-600" />
+            </CardHeader>
+            <CardContent className="px-6 pb-6">
+              <div className="text-2xl font-bold text-foreground">
+                {professionals.filter(p => p.reviewed_at).length}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {professionals.length > 0 ? Math.round((professionals.filter(p => p.reviewed_at).length / professionals.length) * 100) : 0}% del total
+              </p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-6 pt-6">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Total Pacientes
+              </CardTitle>
+              <UserCheck className="h-4 w-4 text-blue-600" />
+            </CardHeader>
+            <CardContent className="px-6 pb-6">
+              <div className="text-2xl font-bold text-foreground">
+                {statsData.totalPatients}
+              </div>
+              <p className="text-xs text-muted-foreground">En toda la plataforma</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Filters */}
+        <Card>
+          <CardHeader className="px-6 pt-6">
+            <CardTitle className="flex items-center gap-2">
+              <Filter className="h-5 w-5" />
+              Filtros
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="px-6 pb-6">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Buscar profesional..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10 w-full"
+                />
+              </div>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Estado" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos los estados</SelectItem>
+                  <SelectItem value="active">Activo</SelectItem>
+                  <SelectItem value="inactive">Inactivo</SelectItem>
+                  <SelectItem value="suspended">Suspendido</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={verificationFilter} onValueChange={setVerificationFilter}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Verificación" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos</SelectItem>
+                  <SelectItem value="verified">Verificados</SelectItem>
+                  <SelectItem value="unverified">No verificados</SelectItem>
+                </SelectContent>
+              </Select>
+              <Button variant="outline" className="w-full">
+                <Calendar className="h-4 w-4 mr-2" />
+                Exportar Lista
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Professionals List */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredProfessionals.map((professional) => (
+            <Card key={professional.id} className="hover:shadow-md transition-shadow">
+              <CardContent className="px-6 py-6">
+                <div className="flex items-start gap-4 mb-4">
+                  <div className="relative">
+                    <Image
+                      src={professional.profile_photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(`${professional.first_name} ${professional.last_name}`)}&background=random`}
+                      alt={`${professional.first_name} ${professional.last_name}`}
+                      width={60}
+                      height={60}
+                      className="h-15 w-15 rounded-full object-cover border-2 border-border"
+                    />
+                    {professional.reviewed_at && (
+                      <div className="absolute -bottom-1 -right-1 h-5 w-5 rounded-full bg-green-500 border-2 border-background flex items-center justify-center">
+                        <ShieldCheck className="h-3 w-3 text-white" />
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <h3 className="text-lg font-semibold text-foreground">
+                        {professional.first_name} {professional.last_name}
+                      </h3>
+                      <Badge className={getStatusColor(professional.status)}>
+                        {getStatusText(professional.status)}
+                      </Badge>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      {professional.profession}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      {professional.specializations.slice(0, 2).join(', ')}
+                      {professional.specializations.length > 2 && ` +${professional.specializations.length - 2} más`}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="space-y-3 mb-4">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Phone className="h-4 w-4" />
+                    <span>{professional.phone}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Mail className="h-4 w-4" />
+                    <span className="truncate">{professional.email}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <MapPin className="h-4 w-4" />
+                    <span>{professional.city}, {professional.state}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <UserCheck className="h-4 w-4" />
+                    <span>{professional.patients || 0} pacientes</span>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <Button variant="outline" size="sm" className="flex-1">
+                    <Eye className="h-4 w-4 mr-2" />
+                    Ver Perfil
+                  </Button>
+                  {!professional.reviewed_at && (
+                    <Button size="sm">
+                      <Shield className="h-4 w-4 mr-2" />
+                      Verificar
+                    </Button>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        {filteredProfessionals.length === 0 && (
+          <Card>
+            <CardContent className="px-8 py-12 text-center">
+              <UserCheck className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-foreground mb-2">
+                No se encontraron profesionales
+              </h3>
+              <p className="text-muted-foreground">
+                No hay profesionales que coincidan con los filtros seleccionados.
+              </p>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+    </div>
+  );
+}

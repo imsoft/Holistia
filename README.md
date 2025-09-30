@@ -34,3 +34,13 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+# Hacer Admins
+UPDATE auth.users 
+SET raw_user_meta_data = raw_user_meta_data || '{"user_type": "admin"}'::jsonb
+WHERE email = 'holistia.io@gmail.com';
+
+# Ver si funciono lo de hacer admins
+SELECT email, raw_user_meta_data->>'user_type' as user_type 
+FROM auth.users 
+WHERE email = 'holistia.io@gmail.com';

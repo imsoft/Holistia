@@ -66,6 +66,18 @@ export default function ProfessionalGalleryPage() {
       setLoading(true);
       setError(null);
 
+      // Primero verificar si el usuario está autenticado
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      
+      if (authError || !user) {
+        throw new Error('Debes estar autenticado para acceder a esta página');
+      }
+
+      // Verificar si el usuario está intentando acceder a su propio perfil
+      if (user.id !== professionalId) {
+        throw new Error('Solo puedes acceder a tu propia galería de imágenes');
+      }
+
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
@@ -73,8 +85,20 @@ export default function ProfessionalGalleryPage() {
         .maybeSingle();
 
       if (error) {
-        console.error('Supabase error:', error);
-        throw new Error('Error al conectar con la base de datos');
+        console.error('Supabase error details:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        });
+        
+        if (error.code === '42501') {
+          throw new Error('No tienes permisos para acceder a este perfil');
+        } else if (error.code === 'PGRST301') {
+          throw new Error('No se encontró el perfil solicitado');
+        } else {
+          throw new Error(`Error de base de datos: ${error.message || 'Error desconocido'}`);
+        }
       }
 
       if (!data) {
@@ -119,8 +143,20 @@ export default function ProfessionalGalleryPage() {
         .eq('id', professionalId);
 
       if (error) {
-        console.error('Supabase update error:', error);
-        throw new Error('Error al conectar con la base de datos');
+        console.error('Supabase update error details:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        });
+        
+        if (error.code === '42501') {
+          throw new Error('No tienes permisos para actualizar este perfil');
+        } else if (error.code === 'PGRST301') {
+          throw new Error('No se encontró el perfil para actualizar');
+        } else {
+          throw new Error(`Error al actualizar: ${error.message || 'Error desconocido'}`);
+        }
       }
 
       setProfessional(prev => prev ? { ...prev, avatar_url: avatarUrl || undefined } : null);
@@ -152,15 +188,39 @@ export default function ProfessionalGalleryPage() {
   if (error && !professional) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-foreground mb-2">Error</h1>
+        <div className="text-center max-w-md">
+          <h1 className="text-2xl font-bold text-foreground mb-2">Error de Acceso</h1>
           <p className="text-muted-foreground mb-4">{error}</p>
-          <Link href={`/professional/${professionalId}/dashboard`}>
-            <Button variant="outline">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Volver al Dashboard
-            </Button>
-          </Link>
+          
+          {error.includes('Solo puedes acceder a tu propia galería') && (
+            <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <p className="text-sm text-yellow-800">
+                <strong>Nota:</strong> Solo puedes gestionar la galería de tu propio perfil profesional. 
+                Asegúrate de estar logueado con la cuenta correcta.
+              </p>
+            </div>
+          )}
+          
+          {error.includes('Debes estar autenticado') && (
+            <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <p className="text-sm text-blue-800">
+                <strong>Acción requerida:</strong> Por favor inicia sesión para acceder a esta página.
+              </p>
+            </div>
+          )}
+          
+          <div className="flex gap-2 justify-center">
+            <Link href="/login">
+              <Button variant="default">
+                Iniciar Sesión
+              </Button>
+            </Link>
+            <Link href="/">
+              <Button variant="outline">
+                Ir al Inicio
+              </Button>
+            </Link>
+          </div>
         </div>
       </div>
     );

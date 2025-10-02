@@ -13,10 +13,10 @@ import Image from "next/image";
 import Link from "next/link";
 
 const navigation = [
-  { name: "Product", href: "#" },
-  { name: "Features", href: "#" },
-  { name: "Marketplace", href: "#" },
-  { name: "Company", href: "#" },
+  { name: "Inicio", href: "/" },
+  { name: "Blog", href: "/blog" },
+  { name: "Servicios", href: "#" },
+  { name: "Contacto", href: "#" },
 ];
 
 export const Navbar = () => {
@@ -29,7 +29,7 @@ export const Navbar = () => {
         className="flex items-center justify-between p-6 lg:px-8"
       >
         <div className="flex lg:flex-1">
-          <Link href="#" className="-m-1.5 p-1.5">
+          <Link href="/" className="-m-1.5 p-1.5">
             <span className="sr-only">Holistia</span>
             <Image
               alt="Holistia Logo"
@@ -54,7 +54,7 @@ export const Navbar = () => {
             <SheetContent side="right" className="w-full sm:max-w-sm p-0">
               <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
               <div className="flex items-center justify-between p-6 pb-4">
-                <Link href="#" className="-m-1.5 p-1.5">
+                <Link href="/" className="-m-1.5 p-1.5">
                   <span className="sr-only">Holistia</span>
                   <Image
                     alt="Holistia Logo"

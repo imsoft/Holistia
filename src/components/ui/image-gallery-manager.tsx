@@ -119,6 +119,9 @@ export default function ImageGalleryManager({
         fileInputRef.current.value = '';
       }
 
+      // Cerrar el dialog
+      setIsDialogOpen(false);
+
     } catch (error) {
       console.error('Error uploading image:', error);
       const errorMessage = error instanceof Error ? error.message : 'Error al subir la imagen. Inténtalo de nuevo.';

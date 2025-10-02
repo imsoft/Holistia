@@ -8,6 +8,7 @@ import {
   UserPlus,
   LogOut,
   Home,
+  FileText,
 } from "lucide-react";
 import {
   Sidebar,
@@ -97,6 +98,11 @@ export function AdminSidebar() {
       title: "Dashboard",
       url: `/admin/${userId}/dashboard`,
       icon: Home,
+    },
+    {
+      title: "Blog",
+      url: `/admin/${userId}/blog`,
+      icon: FileText,
     },
     {
       title: "Profesionales",

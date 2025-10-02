@@ -11,8 +11,6 @@ import {
   Users,
   Heart,
   Calendar,
-  ChevronLeft,
-  ChevronRight,
   Share2,
   Award,
   CheckCircle,
@@ -20,6 +18,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import MapboxMap from "@/components/ui/mapbox-map";
+import ProfessionalGallery from "@/components/ui/professional-gallery";
 import { createClient } from "@/utils/supabase/client";
 import {
   Dialog,
@@ -82,7 +81,6 @@ export default function ProfessionalProfilePage() {
   const [isFavorite, setIsFavorite] = useState(false);
   const [favoriteLoading, setFavoriteLoading] = useState(false);
   const [bookingLoading, setBookingLoading] = useState(false);
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const [isErrorModalOpen, setIsErrorModalOpen] = useState(false);
@@ -263,19 +261,6 @@ export default function ProfessionalProfilePage() {
     }
   };
 
-  const nextImage = () => {
-    if (!professional) return;
-    setCurrentImageIndex((prev) =>
-      prev === professional.gallery.length - 1 ? 0 : prev + 1
-    );
-  };
-
-  const prevImage = () => {
-    if (!professional) return;
-    setCurrentImageIndex((prev) =>
-      prev === 0 ? professional.gallery.length - 1 : prev - 1
-    );
-  };
 
   // Función para compartir el perfil del profesional
   const handleShare = async () => {
@@ -549,56 +534,10 @@ export default function ProfessionalProfilePage() {
           {/* Columna principal */}
           <div className="lg:col-span-2 space-y-10">
             {/* Galería de imágenes */}
-            {professional.gallery && professional.gallery.length > 0 && (
-              <div>
-                <div className="relative">
-                  <div className="relative h-96 rounded-xl overflow-hidden shadow-lg">
-                    <Image
-                      src={professional.gallery[currentImageIndex] || professional.profile_photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(`${professional.first_name} ${professional.last_name}`)}&background=random`}
-                      alt={`Galería ${currentImageIndex + 1}`}
-                      fill
-                      className="object-cover"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
-                    {professional.gallery.length > 1 && (
-                      <>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white border-0"
-                          onClick={prevImage}
-                        >
-                          <ChevronLeft className="h-5 w-5" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white border-0"
-                          onClick={nextImage}
-                        >
-                          <ChevronRight className="h-5 w-5" />
-                        </Button>
-                      </>
-                    )}
-                  </div>
-                  {professional.gallery.length > 1 && (
-                    <div className="flex justify-center gap-2 mt-6">
-                      {professional.gallery.map((_, index) => (
-                        <button
-                          key={index}
-                          className={`w-3 h-3 rounded-full transition-all ${
-                            index === currentImageIndex
-                              ? "bg-primary scale-110"
-                              : "bg-muted hover:bg-muted-foreground/50"
-                          }`}
-                          onClick={() => setCurrentImageIndex(index)}
-                        />
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
+            <ProfessionalGallery
+              images={professional.gallery || []}
+              professionalName={`${professional.first_name} ${professional.last_name}`}
+            />
 
             {/* Biografía */}
             {professional.biography && (

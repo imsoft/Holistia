@@ -17,6 +17,7 @@ import {
   AlertCircle,
   Edit,
   Eye,
+  Image,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,6 +27,7 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { createClient } from "@/utils/supabase/client";
+import ImageGalleryManager from "@/components/ui/image-gallery-manager";
 
 const therapyTypes = [
   "Terapia Cognitivo-Conductual",
@@ -77,7 +79,7 @@ export default function BecomeProfessionalPage() {
   const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [, setCurrentUser] = useState<{ id: string; email: string } | null>(null);
+  const [currentUser, setCurrentUser] = useState<{ id: string; email: string } | null>(null);
   const [existingApplication, setExistingApplication] = useState<{
     id: string;
     status: string;
@@ -229,7 +231,7 @@ export default function BecomeProfessionalPage() {
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const totalSteps = 5;
+  const totalSteps = 6;
 
   // Función para obtener información del estado de la aplicación
   const getApplicationStatusInfo = (status: string) => {
@@ -300,6 +302,10 @@ export default function BecomeProfessionalPage() {
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: "" }));
     }
+  };
+
+  const handleGalleryUpdate = (images: string[]) => {
+    setFormData(prev => ({ ...prev, gallery: images }));
   };
 
   const handleSpecializationToggle = (specialization: string) => {
@@ -834,6 +840,47 @@ export default function BecomeProfessionalPage() {
         );
 
       case 5:
+        return (
+          <div className="space-y-6">
+            <div className="text-center mb-8">
+              <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                {/* eslint-disable-next-line jsx-a11y/alt-text */}
+                <Image className="h-8 w-8 text-primary" />
+              </div>
+              <h2 className="text-2xl font-bold text-foreground mb-2">Galería de Imágenes</h2>
+              <p className="text-muted-foreground">Muestra tu espacio de trabajo (opcional)</p>
+            </div>
+
+            <div className="space-y-6">
+              <ImageGalleryManager
+                professionalId={currentUser?.id || ''}
+                currentImages={formData.gallery}
+                onImagesUpdate={handleGalleryUpdate}
+                maxImages={5}
+                maxSizeMB={2}
+              />
+              
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div className="flex items-start gap-3">
+                  <div className="w-5 h-5 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <span className="text-blue-600 text-xs font-bold">i</span>
+                  </div>
+                  <div className="text-sm text-blue-800">
+                    <p className="font-medium mb-1">¿Por qué agregar imágenes?</p>
+                    <ul className="space-y-1 text-blue-700">
+                      <li>• Muestra tu espacio de consulta profesional</li>
+                      <li>• Genera confianza en tus pacientes</li>
+                      <li>• Destaca tu ambiente de trabajo</li>
+                      <li>• Máximo 5 imágenes de 2MB cada una</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+
+      case 6:
         return (
           <div className="space-y-6">
             <div className="text-center mb-8">

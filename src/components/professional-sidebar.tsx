@@ -9,6 +9,7 @@ import {
   LogOut,
   User,
   Home,
+  Image as ImageIcon,
 } from "lucide-react";
 import {
   Sidebar,
@@ -57,6 +58,11 @@ const getNavItems = (id: string): { mainNavItems: ProfessionalNavItem[] } => ({
       title: "Pacientes",
       url: `/professional/${id}/patients`,
       icon: Users,
+    },
+    {
+      title: "Galería",
+      url: `/professional/${id}/gallery`,
+      icon: ImageIcon,
     },
   ],
 });

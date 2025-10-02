@@ -68,12 +68,12 @@ export default function ImageGalleryManager({
     try {
       // Generar nombre único para la imagen
       const fileExt = file.name.split('.').pop();
-      const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
-      const filePath = `professional/${professionalId}/gallery/${fileName}`;
+      const fileName = `gallery-${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+      const filePath = `${professionalId}/${fileName}`;
 
       // Subir imagen a Supabase Storage
       const { error: uploadError } = await supabase.storage
-        .from('professional-gallery')
+        .from('avatars')
         .upload(filePath, file, {
           cacheControl: '3600',
           upsert: false
@@ -92,7 +92,7 @@ export default function ImageGalleryManager({
 
       // Obtener URL pública de la imagen
       const { data: { publicUrl } } = supabase.storage
-        .from('professional-gallery')
+        .from('avatars')
         .getPublicUrl(filePath);
 
       // Actualizar la lista de imágenes
@@ -118,11 +118,11 @@ export default function ImageGalleryManager({
       // Extraer el path del archivo de la URL
       const urlParts = imageUrl.split('/');
       const fileName = urlParts[urlParts.length - 1];
-      const filePath = `professional/${professionalId}/gallery/${fileName}`;
+      const filePath = `${professionalId}/${fileName}`;
 
       // Eliminar de Supabase Storage
       const { error: deleteError } = await supabase.storage
-        .from('professional-gallery')
+        .from('avatars')
         .remove([filePath]);
 
       if (deleteError) {

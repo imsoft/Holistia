@@ -170,10 +170,13 @@ export default function BecomeProfessionalPage() {
                 experience: app.experience || '',
                 certifications: app.certifications || [],
                 services: app.services || [],
-                address: app.address || '',
+                street: app.address ? app.address.split(' ')[0] || '' : '',
+                number: app.address ? app.address.split(' ')[1] || '' : '',
+                neighborhood: '',
                 city: app.city || '',
                 state: app.state || '',
                 country: app.country || 'México',
+                postalCode: '',
                 biography: app.biography || '',
                 profile_photo: app.profile_photo || '',
                 gallery: app.gallery || [],
@@ -221,10 +224,13 @@ export default function BecomeProfessionalPage() {
     }>,
     
     // Información de ubicación
-    address: "",
+    street: "",
+    number: "",
+    neighborhood: "",
     city: "",
     state: "",
     country: "México",
+    postalCode: "",
     
     // Información adicional
     biography: "",
@@ -426,7 +432,8 @@ export default function BecomeProfessionalPage() {
         });
         break;
       case 4:
-        if (!formData.address) newErrors.address = "La dirección es requerida";
+        if (!formData.street) newErrors.street = "La calle es requerida";
+        if (!formData.number) newErrors.number = "El número es requerido";
         if (!formData.city) newErrors.city = "La ciudad es requerida";
         if (!formData.state) newErrors.state = "El estado es requerido";
         break;
@@ -478,7 +485,7 @@ export default function BecomeProfessionalPage() {
         experience: formData.experience,
         certifications: formData.certifications,
         services: formData.services,
-        address: formData.address,
+        address: `${formData.street} ${formData.number}${formData.neighborhood ? `, ${formData.neighborhood}` : ''}${formData.postalCode ? `, CP ${formData.postalCode}` : ''}`,
         city: formData.city,
         state: formData.state,
         country: formData.country,
@@ -928,16 +935,69 @@ export default function BecomeProfessionalPage() {
             </div>
 
             <div className="space-y-6">
-              <div className="space-y-3">
-                <Label htmlFor="address">Dirección *</Label>
-                <Input
-                  id="address"
-                  value={formData.address}
-                  onChange={(e) => handleInputChange("address", e.target.value)}
-                  placeholder="Ej: Av. Insurgentes Sur 123, Roma Norte"
-                  className={errors.address ? "border-red-500" : ""}
-                />
-                {errors.address && <p className="text-red-500 text-sm mt-1">{errors.address}</p>}
+              {/* Instrucciones para la dirección */}
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div className="flex items-start gap-3">
+                  <div className="w-5 h-5 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <span className="text-blue-600 text-xs font-bold">i</span>
+                  </div>
+                  <div className="text-sm text-blue-800">
+                    <p className="font-medium mb-1">Instrucciones para la dirección:</p>
+                    <ul className="space-y-1 text-blue-700">
+                      <li>• <strong>Calle:</strong> Nombre de la calle (ej: Cipriano Campos Alatorre)</li>
+                      <li>• <strong>Número:</strong> Número exterior (ej: 752)</li>
+                      <li>• <strong>Colonia:</strong> Nombre de la colonia (ej: Roma Norte)</li>
+                      <li>• <strong>Código Postal:</strong> CP para mayor precisión (opcional pero recomendado)</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              {/* Campos de dirección */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-3">
+                  <Label htmlFor="street">Calle *</Label>
+                  <Input
+                    id="street"
+                    value={formData.street}
+                    onChange={(e) => handleInputChange("street", e.target.value)}
+                    placeholder="Ej: Cipriano Campos Alatorre"
+                    className={errors.street ? "border-red-500" : ""}
+                  />
+                  {errors.street && <p className="text-red-500 text-sm mt-1">{errors.street}</p>}
+                </div>
+
+                <div className="space-y-3">
+                  <Label htmlFor="number">Número *</Label>
+                  <Input
+                    id="number"
+                    value={formData.number}
+                    onChange={(e) => handleInputChange("number", e.target.value)}
+                    placeholder="Ej: 752"
+                    className={errors.number ? "border-red-500" : ""}
+                  />
+                  {errors.number && <p className="text-red-500 text-sm mt-1">{errors.number}</p>}
+                </div>
+
+                <div className="space-y-3">
+                  <Label htmlFor="neighborhood">Colonia</Label>
+                  <Input
+                    id="neighborhood"
+                    value={formData.neighborhood}
+                    onChange={(e) => handleInputChange("neighborhood", e.target.value)}
+                    placeholder="Ej: Roma Norte (opcional)"
+                  />
+                </div>
+
+                <div className="space-y-3">
+                  <Label htmlFor="postalCode">Código Postal</Label>
+                  <Input
+                    id="postalCode"
+                    value={formData.postalCode}
+                    onChange={(e) => handleInputChange("postalCode", e.target.value)}
+                    placeholder="Ej: 06700 (opcional pero recomendado)"
+                  />
+                </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -975,6 +1035,26 @@ export default function BecomeProfessionalPage() {
                   />
                 </div>
               </div>
+
+              {/* Vista previa de la dirección completa */}
+              {formData.street && formData.number && (
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                  <div className="flex items-start gap-3">
+                    <div className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <span className="text-green-600 text-xs font-bold">✓</span>
+                    </div>
+                    <div className="text-sm text-green-800">
+                      <p className="font-medium mb-1">Dirección completa:</p>
+                      <p className="text-green-700">
+                        {formData.street} {formData.number}
+                        {formData.neighborhood && `, ${formData.neighborhood}`}
+                        {formData.postalCode && `, CP ${formData.postalCode}`}
+                        {`, ${formData.city}, ${formData.state}`}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         );

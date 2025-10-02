@@ -12,6 +12,7 @@ export interface Professional {
   specializations?: string[];
   experience?: string;
   certifications?: string[];
+  wellness_areas?: string[];
   services?: Array<{
     name: string;
     description: string;
@@ -37,6 +38,7 @@ export interface Professional {
     twitter?: string;
   };
   therapyTypes?: string[];
+  wellnessAreas?: string[];
   costs?: {
     presencial: number;
     online: number;

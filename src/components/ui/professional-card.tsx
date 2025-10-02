@@ -137,6 +137,25 @@ export const ProfessionalCard = ({ professional, userId }: ProfessionalCardProps
             </div>
           )}
 
+          {/* Wellness Areas */}
+          {professional.wellnessAreas && professional.wellnessAreas.length > 0 && (
+            <div>
+              <p className="text-xs text-muted-foreground mb-1">Áreas de bienestar:</p>
+              <div className="flex flex-wrap gap-1">
+                {professional.wellnessAreas.slice(0, 2).map((area) => (
+                  <span key={area} className="text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded-full border border-blue-200">
+                    {area}
+                  </span>
+                ))}
+                {professional.wellnessAreas.length > 2 && (
+                  <span className="text-xs text-muted-foreground">
+                    +{professional.wellnessAreas.length - 2} más
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* Service Description */}
           {professional.serviceDescription && (
             <p className="text-sm text-muted-foreground line-clamp-2">

@@ -19,6 +19,7 @@ interface Professional {
   specializations: string[];
   experience: string;
   certifications: string[];
+  wellness_areas: string[];
   services: Array<{
     name: string;
     description: string;
@@ -193,6 +194,35 @@ const HomeUserPage = () => {
       });
     }
 
+    // Filtrar por categorías de bienestar
+    if (filters.category && filters.category.length > 0 && !filters.category.includes('all')) {
+      filtered = filtered.filter(professional => {
+        // Mapear categorías de filtro a áreas de bienestar
+        const categoryMap: Record<string, string[]> = {
+          'professionals': ['Salud mental'], // Todos los profesionales son de salud mental por defecto
+          'centers': [], // Para centros (futuro)
+          'events': [], // Para eventos (futuro)
+          'challenges': [], // Para retos (futuro)
+          'restaurants': ['Alimentación'],
+          'food-market': ['Alimentación']
+        };
+        
+        return filters.category.some(category => {
+          const mappedAreas = categoryMap[category] || [];
+          
+          // Si es 'professionals', mostrar todos los profesionales de salud mental
+          if (category === 'professionals') {
+            return true; // Todos los profesionales en la tabla son de salud mental
+          }
+          
+          // Para otras categorías, verificar si el profesional tiene esas áreas de bienestar
+          return mappedAreas.length > 0 && 
+            professional.wellness_areas && 
+            professional.wellness_areas.some(area => mappedAreas.includes(area));
+        });
+      });
+    }
+
     // Filtrar por disponibilidad (availability) - por ahora solo mostrar todos si no hay filtro específico
     if (filters.availability && filters.availability.length > 0 && !filters.availability.includes('any')) {
       // Por ahora, si hay filtro de disponibilidad, mantenemos todos los profesionales
@@ -297,6 +327,7 @@ const HomeUserPage = () => {
                       },
                       profession: professional.profession,
                       therapyTypes: professional.specializations,
+                      wellnessAreas: professional.wellness_areas || [],
                       costs: {
                         presencial: professional.services.find(s => s.presencialCost)?.presencialCost 
                           ? parseInt(professional.services.find(s => s.presencialCost)?.presencialCost || '0')

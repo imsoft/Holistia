@@ -76,6 +76,14 @@ const certifications = [
   "Certificación en Terapia de Autismo",
 ];
 
+const wellnessAreas = [
+  "Salud mental",
+  "Espiritualidad", 
+  "Actividad física",
+  "Social",
+  "Alimentación",
+];
+
 export default function BecomeProfessionalPage() {
   const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(true);
@@ -169,6 +177,7 @@ export default function BecomeProfessionalPage() {
                 specializations: app.specializations || [],
                 experience: app.experience || '',
                 certifications: app.certifications || [],
+                wellnessAreas: app.wellness_areas || [],
                 services: app.services || [],
                 street: app.address ? app.address.split(' ')[0] || '' : '',
                 number: app.address ? app.address.split(' ')[1] || '' : '',
@@ -210,6 +219,9 @@ export default function BecomeProfessionalPage() {
     specializations: [] as string[],
     experience: "",
     certifications: [] as string[],
+    
+    // Áreas de bienestar
+    wellnessAreas: [] as string[],
     
     // Campos para opciones personalizadas
     otherSpecializations: "",
@@ -336,6 +348,15 @@ export default function BecomeProfessionalPage() {
       certifications: prev.certifications.includes(certification)
         ? prev.certifications.filter(c => c !== certification)
         : [...prev.certifications, certification]
+    }));
+  };
+
+  const handleWellnessAreaToggle = (area: string) => {
+    setFormData(prev => ({
+      ...prev,
+      wellnessAreas: prev.wellnessAreas.includes(area)
+        ? prev.wellnessAreas.filter(a => a !== area)
+        : [...prev.wellnessAreas, area]
     }));
   };
 
@@ -484,6 +505,7 @@ export default function BecomeProfessionalPage() {
         specializations: formData.specializations,
         experience: formData.experience,
         certifications: formData.certifications,
+        wellness_areas: formData.wellnessAreas,
         services: formData.services,
         address: `${formData.street} ${formData.number}${formData.neighborhood ? `, ${formData.neighborhood}` : ''}${formData.postalCode ? `, CP ${formData.postalCode}` : ''}`,
         city: formData.city,
@@ -811,6 +833,57 @@ export default function BecomeProfessionalPage() {
                     <Plus className="h-4 w-4" />
                   </Button>
                 </div>
+              </div>
+
+              {/* Áreas de Bienestar */}
+              <div className="space-y-3">
+                <Label>Áreas de Bienestar</Label>
+                
+                {/* Mostrar áreas seleccionadas */}
+                {formData.wellnessAreas.length > 0 && (
+                  <div className="mb-4">
+                    <p className="text-sm font-medium text-muted-foreground mb-2">Áreas seleccionadas:</p>
+                    <div className="flex flex-wrap gap-2">
+                      {formData.wellnessAreas.map((area) => (
+                        <div
+                          key={area}
+                          className="flex items-center gap-2 bg-primary/10 text-primary px-3 py-2 rounded-full text-sm"
+                        >
+                          <span>{area}</span>
+                          <button
+                            type="button"
+                            onClick={() => handleWellnessAreaToggle(area)}
+                            className="hover:bg-primary/20 rounded-full p-1"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                {/* Opciones predefinidas */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {wellnessAreas.map((area) => (
+                    <Button
+                      key={area}
+                      type="button"
+                      onClick={() => handleWellnessAreaToggle(area)}
+                      className={`p-3 text-left rounded-lg border-2 transition-all ${
+                        formData.wellnessAreas.includes(area)
+                          ? "border-primary bg-primary/10 text-primary"
+                          : "bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200 hover:border-primary/50"
+                      }`}
+                    >
+                      <span className="text-sm font-medium">{area}</span>
+                    </Button>
+                  ))}
+                </div>
+                
+                <p className="text-xs text-muted-foreground">
+                  Selecciona las áreas de bienestar en las que puedes ayudar a tus pacientes.
+                </p>
               </div>
             </div>
           </div>

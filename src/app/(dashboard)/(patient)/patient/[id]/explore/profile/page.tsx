@@ -10,6 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import Link from "next/link";
 
 interface ProfessionalApplication {
   id: string;
@@ -617,12 +618,12 @@ const ProfilePage = () => {
                     <p className="text-sm text-muted-foreground text-center mb-4 max-w-md">
                       Únete a nuestra plataforma como profesional de salud mental y ayuda a más personas a mejorar su bienestar.
                     </p>
-                    <a
+                    <Link
                       href={`/patient/${userId}/explore/become-professional`}
                       className="inline-flex items-center px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
                     >
                       Enviar solicitud
-                    </a>
+                    </Link>
                   </CardContent>
                 </Card>
               </div>

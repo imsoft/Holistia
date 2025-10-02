@@ -28,6 +28,7 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { createClient } from "@/utils/supabase/client";
 import ImageGalleryManager from "@/components/ui/image-gallery-manager";
+import Link from "next/link";
 
 const therapyTypes = [
   "Terapia Cognitivo-Conductual",
@@ -178,6 +179,8 @@ export default function BecomeProfessionalPage() {
                 gallery: app.gallery || [],
                 acceptTerms: app.terms_accepted || false,
                 acceptPrivacy: app.privacy_accepted || false,
+                otherSpecializations: '',
+                otherCertifications: '',
               }));
             }
           }
@@ -204,6 +207,10 @@ export default function BecomeProfessionalPage() {
     specializations: [] as string[],
     experience: "",
     certifications: [] as string[],
+    
+    // Campos para opciones personalizadas
+    otherSpecializations: "",
+    otherCertifications: "",
     
     // Información de servicios
     services: [] as Array<{
@@ -323,6 +330,46 @@ export default function BecomeProfessionalPage() {
       certifications: prev.certifications.includes(certification)
         ? prev.certifications.filter(c => c !== certification)
         : [...prev.certifications, certification]
+    }));
+  };
+
+  const handleAddCustomSpecialization = () => {
+    if (formData.otherSpecializations.trim()) {
+      const customSpecialization = formData.otherSpecializations.trim();
+      if (!formData.specializations.includes(customSpecialization)) {
+        setFormData(prev => ({
+          ...prev,
+          specializations: [...prev.specializations, customSpecialization],
+          otherSpecializations: ""
+        }));
+      }
+    }
+  };
+
+  const handleAddCustomCertification = () => {
+    if (formData.otherCertifications.trim()) {
+      const customCertification = formData.otherCertifications.trim();
+      if (!formData.certifications.includes(customCertification)) {
+        setFormData(prev => ({
+          ...prev,
+          certifications: [...prev.certifications, customCertification],
+          otherCertifications: ""
+        }));
+      }
+    }
+  };
+
+  const handleRemoveSpecialization = (specialization: string) => {
+    setFormData(prev => ({
+      ...prev,
+      specializations: prev.specializations.filter(s => s !== specialization)
+    }));
+  };
+
+  const handleRemoveCertification = (certification: string) => {
+    setFormData(prev => ({
+      ...prev,
+      certifications: prev.certifications.filter(c => c !== certification)
     }));
   };
 
@@ -616,10 +663,37 @@ export default function BecomeProfessionalPage() {
 
               <div className="space-y-3">
                 <Label>Especializaciones *</Label>
+                
+                {/* Mostrar especializaciones seleccionadas */}
+                {formData.specializations.length > 0 && (
+                  <div className="mb-4">
+                    <p className="text-sm font-medium text-muted-foreground mb-2">Especializaciones seleccionadas:</p>
+                    <div className="flex flex-wrap gap-2">
+                      {formData.specializations.map((spec) => (
+                        <div
+                          key={spec}
+                          className="flex items-center gap-2 bg-primary/10 text-primary px-3 py-2 rounded-full text-sm"
+                        >
+                          <span>{spec}</span>
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveSpecialization(spec)}
+                            className="hover:bg-primary/20 rounded-full p-1"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                {/* Opciones predefinidas */}
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                   {therapyTypes.map((therapy) => (
                     <Button
                       key={therapy}
+                      type="button"
                       onClick={() => handleSpecializationToggle(therapy)}
                       className={`p-3 text-left rounded-lg border-2 transition-all ${
                         formData.specializations.includes(therapy)
@@ -631,6 +705,26 @@ export default function BecomeProfessionalPage() {
                     </Button>
                   ))}
                 </div>
+                
+                {/* Input para especialización personalizada */}
+                <div className="flex gap-2 mt-4">
+                  <Input
+                    placeholder="Otra especialización..."
+                    value={formData.otherSpecializations}
+                    onChange={(e) => setFormData(prev => ({ ...prev, otherSpecializations: e.target.value }))}
+                    onKeyPress={(e) => e.key === 'Enter' && handleAddCustomSpecialization()}
+                    className="flex-1"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleAddCustomSpecialization}
+                    disabled={!formData.otherSpecializations.trim()}
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
+                
                 {errors.specializations && <p className="text-red-500 text-sm mt-1">{errors.specializations}</p>}
               </div>
 
@@ -649,10 +743,37 @@ export default function BecomeProfessionalPage() {
 
               <div className="space-y-3">
                 <Label>Certificaciones y Educación</Label>
+                
+                {/* Mostrar certificaciones seleccionadas */}
+                {formData.certifications.length > 0 && (
+                  <div className="mb-4">
+                    <p className="text-sm font-medium text-muted-foreground mb-2">Certificaciones seleccionadas:</p>
+                    <div className="flex flex-wrap gap-2">
+                      {formData.certifications.map((cert) => (
+                        <div
+                          key={cert}
+                          className="flex items-center gap-2 bg-primary/10 text-primary px-3 py-2 rounded-full text-sm"
+                        >
+                          <span>{cert}</span>
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveCertification(cert)}
+                            className="hover:bg-primary/20 rounded-full p-1"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                {/* Opciones predefinidas */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {certifications.map((cert) => (
                     <Button
                       key={cert}
+                      type="button"
                       onClick={() => handleCertificationToggle(cert)}
                       className={`p-3 text-left rounded-lg border-2 transition-all ${
                         formData.certifications.includes(cert)
@@ -663,6 +784,25 @@ export default function BecomeProfessionalPage() {
                       <span className="text-sm font-medium">{cert}</span>
                     </Button>
                   ))}
+                </div>
+                
+                {/* Input para certificación personalizada */}
+                <div className="flex gap-2 mt-4">
+                  <Input
+                    placeholder="Otra certificación o educación..."
+                    value={formData.otherCertifications}
+                    onChange={(e) => setFormData(prev => ({ ...prev, otherCertifications: e.target.value }))}
+                    onKeyPress={(e) => e.key === 'Enter' && handleAddCustomCertification()}
+                    className="flex-1"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleAddCustomCertification}
+                    disabled={!formData.otherCertifications.trim()}
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
                 </div>
               </div>
             </div>
@@ -917,9 +1057,9 @@ export default function BecomeProfessionalPage() {
                   <div>
                     <Label htmlFor="acceptTerms" className="text-sm">
                       Acepto los{" "}
-                      <a href="#" className="text-primary hover:underline">
+                      <Link href="#" className="text-primary hover:underline">
                         términos y condiciones
-                      </a>{" "}
+                      </Link>{" "}
                       de Holistia *
                     </Label>
                     {errors.acceptTerms && <p className="text-red-500 text-sm mt-1">{errors.acceptTerms}</p>}
@@ -937,9 +1077,9 @@ export default function BecomeProfessionalPage() {
                   <div>
                     <Label htmlFor="acceptPrivacy" className="text-sm">
                       Acepto la{" "}
-                      <a href="#" className="text-primary hover:underline">
+                      <Link href="#" className="text-primary hover:underline">
                         política de privacidad
-                      </a>{" "}
+                      </Link>{" "}
                       y el manejo de mis datos *
                     </Label>
                     {errors.acceptPrivacy && <p className="text-red-500 text-sm mt-1">{errors.acceptPrivacy}</p>}

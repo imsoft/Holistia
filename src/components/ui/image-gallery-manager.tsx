@@ -86,9 +86,9 @@ export default function ImageGalleryManager({
 
       console.log('Uploading to path:', filePath);
 
-      // Subir imagen a Supabase Storage (usando bucket avatars que tiene políticas completas)
+      // Subir imagen a Supabase Storage (usando bucket professional-gallery)
       const { error: uploadError } = await supabase.storage
-        .from('avatars')
+        .from('professional-gallery')
         .upload(filePath, file, {
           cacheControl: '3600',
           upsert: false
@@ -107,7 +107,7 @@ export default function ImageGalleryManager({
 
       // Obtener URL pública de la imagen
       const { data: { publicUrl } } = supabase.storage
-        .from('avatars')
+        .from('professional-gallery')
         .getPublicUrl(filePath);
 
       // Actualizar la lista de imágenes
@@ -137,7 +137,7 @@ export default function ImageGalleryManager({
 
       // Eliminar de Supabase Storage
       const { error: deleteError } = await supabase.storage
-        .from('avatars')
+        .from('professional-gallery')
         .remove([filePath]);
 
       if (deleteError) {

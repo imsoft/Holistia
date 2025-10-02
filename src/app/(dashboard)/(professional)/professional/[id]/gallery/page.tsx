@@ -291,27 +291,27 @@ export default function ProfessionalGalleryPage() {
 
         {/* Información del profesional */}
         <Card className="mb-8">
-          <CardHeader>
-            <CardTitle>Información del Profesional</CardTitle>
+          <CardHeader className="pb-4">
+            <CardTitle className="text-xl">Información del Profesional</CardTitle>
             <CardDescription>
               Datos básicos de tu perfil profesional
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
+          <CardContent className="pt-2">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
                 <p className="text-sm font-medium text-muted-foreground">Nombre</p>
                 <p className="text-lg font-semibold">
                   {professional.first_name} {professional.last_name}
                 </p>
               </div>
-              <div>
+              <div className="space-y-2">
                 <p className="text-sm font-medium text-muted-foreground">Profesión</p>
                 <p className="text-lg font-semibold">{professional.profession}</p>
               </div>
-              <div>
+              <div className="space-y-2">
                 <p className="text-sm font-medium text-muted-foreground">Estado</p>
-                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium ${
                   professional.status === 'approved' 
                     ? 'bg-green-100 text-green-800' 
                     : professional.status === 'pending'
@@ -325,7 +325,7 @@ export default function ProfessionalGalleryPage() {
                    professional.status === 'under_review' ? 'En revisión' : 'Rechazado'}
                 </span>
               </div>
-              <div>
+              <div className="space-y-2">
                 <p className="text-sm font-medium text-muted-foreground">Ubicación</p>
                 <p className="text-lg font-semibold">
                   {professional.city}, {professional.state}
@@ -337,13 +337,13 @@ export default function ProfessionalGalleryPage() {
 
         {/* Gestión de galería */}
         <Card>
-          <CardHeader>
-            <CardTitle>Galería de Imágenes</CardTitle>
+          <CardHeader className="pb-4">
+            <CardTitle className="text-xl">Galería de Imágenes</CardTitle>
             <CardDescription>
               Sube hasta 5 imágenes de tu espacio de trabajo. Cada imagen debe ser menor a 2MB.
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-2">
             <ImageGalleryManager
               professionalId={professional.user_id}
               currentImages={galleryImages}
@@ -356,29 +356,59 @@ export default function ProfessionalGalleryPage() {
 
         {/* Consejos */}
         <Card className="mt-8">
-          <CardHeader>
-            <CardTitle>Consejos para tus imágenes</CardTitle>
+          <CardHeader className="pb-4">
+            <CardTitle className="text-xl">Consejos para tus imágenes</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <h4 className="font-semibold text-foreground mb-2">✅ Imágenes recomendadas:</h4>
-                <ul className="space-y-1 text-sm text-muted-foreground">
-                  <li>• Espacio de consulta limpio y organizado</li>
-                  <li>• Sala de espera cómoda</li>
-                  <li>• Equipamiento profesional</li>
-                  <li>• Certificados y diplomas</li>
-                  <li>• Ambiente acogedor y profesional</li>
+          <CardContent className="pt-2">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="space-y-3">
+                <h4 className="font-semibold text-foreground mb-3 text-lg">✅ Imágenes recomendadas:</h4>
+                <ul className="space-y-2 text-sm text-muted-foreground">
+                  <li className="flex items-start gap-2">
+                    <span className="text-green-600 mt-0.5">•</span>
+                    <span>Espacio de consulta limpio y organizado</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-green-600 mt-0.5">•</span>
+                    <span>Sala de espera cómoda</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-green-600 mt-0.5">•</span>
+                    <span>Equipamiento profesional</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-green-600 mt-0.5">•</span>
+                    <span>Certificados y diplomas</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-green-600 mt-0.5">•</span>
+                    <span>Ambiente acogedor y profesional</span>
+                  </li>
                 </ul>
               </div>
-              <div>
-                <h4 className="font-semibold text-foreground mb-2">❌ Evita:</h4>
-                <ul className="space-y-1 text-sm text-muted-foreground">
-                  <li>• Imágenes borrosas o de baja calidad</li>
-                  <li>• Espacios desordenados</li>
-                  <li>• Información personal visible</li>
-                  <li>• Imágenes no relacionadas con tu práctica</li>
-                  <li>• Archivos muy pesados</li>
+              <div className="space-y-3">
+                <h4 className="font-semibold text-foreground mb-3 text-lg">❌ Evita:</h4>
+                <ul className="space-y-2 text-sm text-muted-foreground">
+                  <li className="flex items-start gap-2">
+                    <span className="text-red-600 mt-0.5">•</span>
+                    <span>Imágenes borrosas o de baja calidad</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-red-600 mt-0.5">•</span>
+                    <span>Espacios desordenados</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-red-600 mt-0.5">•</span>
+                    <span>Información personal visible</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-red-600 mt-0.5">•</span>
+                    <span>Imágenes no relacionadas con tu práctica</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-red-600 mt-0.5">•</span>
+                    <span>Archivos muy pesados</span>
+                  </li>
                 </ul>
               </div>
             </div>

@@ -87,6 +87,12 @@ export default function ProfessionalGalleryPage() {
 
       console.log('Debug: All professional_applications data:', allData);
       console.log('Debug: All professional_applications error:', allError);
+      
+      // Mostrar los IDs disponibles
+      if (allData && allData.length > 0) {
+        console.log('Debug: Available IDs in professional_applications:', allData.map(p => p.id));
+        console.log('Debug: Available user_ids in professional_applications:', allData.map(p => p.user_id));
+      }
 
       const { data, error } = await supabase
         .from('professional_applications')

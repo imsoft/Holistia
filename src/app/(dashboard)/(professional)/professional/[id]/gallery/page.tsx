@@ -77,7 +77,7 @@ export default function ProfessionalGalleryPage() {
         throw new Error('Solo puedes acceder a tu propia galería de imágenes');
       }
 
-      console.log('Debug: Querying professional_applications for ID:', professionalId);
+      console.log('Debug: Querying professional_applications for user_id:', professionalId);
 
       // Primero verificar si la tabla existe y qué datos tiene
       const { data: allData, error: allError } = await supabase
@@ -97,7 +97,7 @@ export default function ProfessionalGalleryPage() {
       const { data, error } = await supabase
         .from('professional_applications')
         .select('*')
-        .eq('id', professionalId)
+        .eq('user_id', professionalId)
         .maybeSingle();
 
       console.log('Debug: Query result - data:', data);
@@ -151,7 +151,7 @@ export default function ProfessionalGalleryPage() {
           gallery: newImages,
           updated_at: new Date().toISOString()
         })
-        .eq('id', professionalId);
+        .eq('user_id', professionalId);
 
       if (error) {
         console.error('Supabase update error details:', {

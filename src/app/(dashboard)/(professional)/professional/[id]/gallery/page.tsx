@@ -79,6 +79,15 @@ export default function ProfessionalGalleryPage() {
 
       console.log('Debug: Querying professional_applications for ID:', professionalId);
 
+      // Primero verificar si la tabla existe y qué datos tiene
+      const { data: allData, error: allError } = await supabase
+        .from('professional_applications')
+        .select('id, user_id, first_name, last_name, email')
+        .limit(5);
+
+      console.log('Debug: All professional_applications data:', allData);
+      console.log('Debug: All professional_applications error:', allError);
+
       const { data, error } = await supabase
         .from('professional_applications')
         .select('*')

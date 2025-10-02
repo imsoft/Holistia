@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { 
   Save, 
   X, 
+  Plus,
   Edit3, 
   CheckCircle, 
   AlertCircle,
@@ -133,6 +134,10 @@ export default function ProfessionalProfileEditor({
     country: "México",
   });
 
+  // Estados para campos personalizados
+  const [customSpecialization, setCustomSpecialization] = useState("");
+  const [customCertification, setCustomCertification] = useState("");
+
   useEffect(() => {
     const fetchProfessionalData = async () => {
       try {
@@ -219,6 +224,25 @@ export default function ProfessionalProfileEditor({
       setSuccess('Perfil actualizado correctamente');
       setEditingField(null);
       
+      // Actualizar el estado local con los nuevos datos
+      setProfessionalData(prev => prev ? {
+        ...prev,
+        first_name: formData.first_name,
+        last_name: formData.last_name,
+        email: formData.email,
+        phone: formData.phone,
+        profession: formData.profession,
+        specializations: formData.specializations,
+        experience: formData.experience,
+        certifications: formData.certifications,
+        wellness_areas: formData.wellness_areas,
+        biography: formData.biography,
+        address: formData.address,
+        city: formData.city,
+        state: formData.state,
+        country: formData.country,
+      } : null);
+      
       // Notificar al componente padre
       if (onProfileUpdate) {
         onProfileUpdate();
@@ -260,6 +284,26 @@ export default function ProfessionalProfileEditor({
         ? prev.wellness_areas.filter(a => a !== area)
         : [...prev.wellness_areas, area]
     }));
+  };
+
+  const handleAddCustomSpecialization = () => {
+    if (customSpecialization.trim() && !formData.specializations.includes(customSpecialization.trim())) {
+      setFormData(prev => ({
+        ...prev,
+        specializations: [...prev.specializations, customSpecialization.trim()]
+      }));
+      setCustomSpecialization("");
+    }
+  };
+
+  const handleAddCustomCertification = () => {
+    if (customCertification.trim() && !formData.certifications.includes(customCertification.trim())) {
+      setFormData(prev => ({
+        ...prev,
+        certifications: [...prev.certifications, customCertification.trim()]
+      }));
+      setCustomCertification("");
+    }
   };
 
   const startEditing = (field: string) => {
@@ -543,6 +587,26 @@ export default function ProfessionalProfileEditor({
                     </button>
                   ))}
                 </div>
+                
+                {/* Input para especialización personalizada */}
+                <div className="flex gap-2 mt-3">
+                  <Input
+                    placeholder="Otra especialización..."
+                    value={customSpecialization}
+                    onChange={(e) => setCustomSpecialization(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && handleAddCustomSpecialization()}
+                    className="flex-1"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleAddCustomSpecialization}
+                    disabled={!customSpecialization.trim()}
+                    size="sm"
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
             ) : (
               <div 
@@ -590,6 +654,26 @@ export default function ProfessionalProfileEditor({
                       {cert}
                     </button>
                   ))}
+                </div>
+                
+                {/* Input para certificación personalizada */}
+                <div className="flex gap-2 mt-3">
+                  <Input
+                    placeholder="Otra certificación o educación..."
+                    value={customCertification}
+                    onChange={(e) => setCustomCertification(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && handleAddCustomCertification()}
+                    className="flex-1"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleAddCustomCertification}
+                    disabled={!customCertification.trim()}
+                    size="sm"
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
                 </div>
               </div>
             ) : (

@@ -11,24 +11,29 @@ import Link from "next/link";
 
 interface Professional {
   id: string;
+  user_id: string;
+  first_name: string;
+  last_name: string;
   email: string;
-  full_name?: string;
-  nombre?: string;
-  apellidos?: string;
-  telefono?: string;
-  direccion?: string;
-  ciudad?: string;
-  estado?: string;
-  codigo_postal?: string;
-  fecha_nacimiento?: string;
-  especialidad?: string;
-  cedula_profesional?: string;
-  biografia?: string;
-  avatar_url?: string;
-  role: 'professional' | 'owner' | 'admin';
-  verificado?: boolean;
-  activo?: boolean;
-  gallery?: string[];
+  phone?: string;
+  profession: string;
+  specializations: string[];
+  experience: string;
+  certifications: string[];
+  services: Array<{
+    name: string;
+    description: string;
+    presencialCost: string;
+    onlineCost: string;
+  }>;
+  address: string;
+  city: string;
+  state: string;
+  country: string;
+  biography?: string;
+  profile_photo?: string;
+  gallery: string[];
+  status: 'pending' | 'under_review' | 'approved' | 'rejected';
   created_at: string;
   updated_at: string;
 }
@@ -67,7 +72,7 @@ export default function ProfessionalGalleryPage() {
       }
 
       const { data, error } = await supabase
-        .from('profiles')
+        .from('professional_applications')
         .select('*')
         .eq('id', professionalId)
         .maybeSingle();
@@ -115,7 +120,7 @@ export default function ProfessionalGalleryPage() {
       setSuccess(null);
 
       const { error } = await supabase
-        .from('profiles')
+        .from('professional_applications')
         .update({ 
           gallery: newImages,
           updated_at: new Date().toISOString()
@@ -271,27 +276,33 @@ export default function ProfessionalGalleryPage() {
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Nombre</p>
                 <p className="text-lg font-semibold">
-                  {professional.nombre || professional.full_name || 'Sin nombre'} {professional.apellidos || ''}
+                  {professional.first_name} {professional.last_name}
                 </p>
               </div>
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Especialidad</p>
-                <p className="text-lg font-semibold">{professional.especialidad || 'Sin especialidad'}</p>
+                <p className="text-sm font-medium text-muted-foreground">Profesión</p>
+                <p className="text-lg font-semibold">{professional.profession}</p>
               </div>
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Estado</p>
                 <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                  professional.verificado 
+                  professional.status === 'approved' 
                     ? 'bg-green-100 text-green-800' 
-                    : 'bg-yellow-100 text-yellow-800'
+                    : professional.status === 'pending'
+                    ? 'bg-yellow-100 text-yellow-800'
+                    : professional.status === 'under_review'
+                    ? 'bg-blue-100 text-blue-800'
+                    : 'bg-red-100 text-red-800'
                 }`}>
-                  {professional.verificado ? 'Verificado' : 'Pendiente'}
+                  {professional.status === 'approved' ? 'Aprobado' : 
+                   professional.status === 'pending' ? 'Pendiente' : 
+                   professional.status === 'under_review' ? 'En revisión' : 'Rechazado'}
                 </span>
               </div>
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Ubicación</p>
                 <p className="text-lg font-semibold">
-                  {professional.ciudad || 'Sin ciudad'}, {professional.estado || 'Sin estado'}
+                  {professional.city}, {professional.state}
                 </p>
               </div>
             </div>
@@ -308,7 +319,7 @@ export default function ProfessionalGalleryPage() {
           </CardHeader>
           <CardContent>
             <ImageGalleryManager
-              professionalId={professional.id}
+              professionalId={professional.user_id}
               currentImages={galleryImages}
               onImagesUpdate={handleImagesUpdate}
               maxImages={5}

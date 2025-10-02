@@ -11,23 +11,29 @@ import Link from "next/link";
 
 interface Professional {
   id: string;
+  user_id: string;
+  first_name: string;
+  last_name: string;
   email: string;
-  full_name: string;
-  nombre: string;
-  apellidos: string;
-  telefono?: string;
-  especialidad?: string;
-  direccion?: string;
-  ciudad?: string;
-  estado?: string;
-  codigo_postal?: string;
-  fecha_nacimiento?: string;
-  cedula_profesional?: string;
-  biografia?: string;
-  avatar_url?: string;
-  role: 'professional' | 'owner' | 'admin';
-  verificado: boolean;
-  activo: boolean;
+  phone?: string;
+  profession: string;
+  specializations: string[];
+  experience: string;
+  certifications: string[];
+  services: Array<{
+    name: string;
+    description: string;
+    presencialCost: string;
+    onlineCost: string;
+  }>;
+  address: string;
+  city: string;
+  state: string;
+  country: string;
+  biography?: string;
+  profile_photo?: string;
+  gallery: string[];
+  status: 'pending' | 'under_review' | 'approved' | 'rejected';
   created_at: string;
   updated_at: string;
 }
@@ -47,19 +53,6 @@ export default function ProfessionalGalleryPage() {
     fetchProfessional();
   }, [professionalId]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const loadGalleryFromStorage = () => {
-    const galleryKey = `professional_gallery_${professionalId}`;
-    const storedGallery = localStorage.getItem(galleryKey);
-    if (storedGallery) {
-      try {
-        const images = JSON.parse(storedGallery);
-        setGalleryImages(images);
-      } catch (error) {
-        console.error('Error parsing gallery from localStorage:', error);
-        setGalleryImages([]);
-      }
-    }
-  };
 
   const fetchProfessional = async () => {
     try {
@@ -79,7 +72,7 @@ export default function ProfessionalGalleryPage() {
       }
 
       const { data, error } = await supabase
-        .from('profiles')
+        .from('professional_applications')
         .select('*')
         .eq('id', professionalId)
         .maybeSingle();
@@ -107,8 +100,8 @@ export default function ProfessionalGalleryPage() {
 
       setProfessional(data);
       
-      // Cargar la galería desde localStorage
-      loadGalleryFromStorage();
+      // Cargar la galería desde la base de datos
+      setGalleryImages(data.gallery || []);
     } catch (err) {
       console.error('Error fetching professional:', err);
       const errorMessage = err instanceof Error ? err.message : 'Error al cargar la información del profesional';
@@ -126,18 +119,10 @@ export default function ProfessionalGalleryPage() {
       setError(null);
       setSuccess(null);
 
-      // Almacenar las imágenes en localStorage como solución temporal
-      // hasta que se pueda agregar un campo gallery a la tabla profiles
-      const galleryKey = `professional_gallery_${professionalId}`;
-      localStorage.setItem(galleryKey, JSON.stringify(newImages));
-
-      // Actualizar el avatar_url con la primera imagen si existe
-      const avatarUrl = newImages.length > 0 ? newImages[0] : null;
-
       const { error } = await supabase
-        .from('profiles')
+        .from('professional_applications')
         .update({ 
-          avatar_url: avatarUrl,
+          gallery: newImages,
           updated_at: new Date().toISOString()
         })
         .eq('id', professionalId);
@@ -159,8 +144,7 @@ export default function ProfessionalGalleryPage() {
         }
       }
 
-      setProfessional(prev => prev ? { ...prev, avatar_url: avatarUrl || undefined } : null);
-      setGalleryImages(newImages);
+      setProfessional(prev => prev ? { ...prev, gallery: newImages } : null);
       setSuccess('Galería actualizada correctamente');
       
       // Limpiar mensaje de éxito después de 3 segundos
@@ -292,29 +276,33 @@ export default function ProfessionalGalleryPage() {
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Nombre</p>
                 <p className="text-lg font-semibold">
-                  {professional.nombre} {professional.apellidos}
+                  {professional.first_name} {professional.last_name}
                 </p>
               </div>
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Especialidad</p>
-                <p className="text-lg font-semibold">{professional.especialidad || 'No especificada'}</p>
+                <p className="text-sm font-medium text-muted-foreground">Profesión</p>
+                <p className="text-lg font-semibold">{professional.profession}</p>
               </div>
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Estado</p>
                 <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                  professional.verificado 
+                  professional.status === 'approved' 
                     ? 'bg-green-100 text-green-800' 
-                    : 'bg-yellow-100 text-yellow-800'
+                    : professional.status === 'pending'
+                    ? 'bg-yellow-100 text-yellow-800'
+                    : professional.status === 'under_review'
+                    ? 'bg-blue-100 text-blue-800'
+                    : 'bg-red-100 text-red-800'
                 }`}>
-                  {professional.verificado ? 'Verificado' : 'Pendiente de verificación'}
+                  {professional.status === 'approved' ? 'Aprobado' : 
+                   professional.status === 'pending' ? 'Pendiente' : 
+                   professional.status === 'under_review' ? 'En revisión' : 'Rechazado'}
                 </span>
               </div>
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Ubicación</p>
                 <p className="text-lg font-semibold">
-                  {professional.ciudad && professional.estado 
-                    ? `${professional.ciudad}, ${professional.estado}` 
-                    : 'No especificada'}
+                  {professional.city}, {professional.state}
                 </p>
               </div>
             </div>
@@ -331,7 +319,7 @@ export default function ProfessionalGalleryPage() {
           </CardHeader>
           <CardContent>
             <ImageGalleryManager
-              professionalId={professional.id}
+              professionalId={professional.user_id}
               currentImages={galleryImages}
               onImagesUpdate={handleImagesUpdate}
               maxImages={5}

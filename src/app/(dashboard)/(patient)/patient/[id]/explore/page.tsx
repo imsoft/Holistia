@@ -108,60 +108,96 @@ const HomeUserPage = () => {
     
     let filtered = [...professionals];
 
-    // Filtrar por especializaciones
-    if (filters.specializations && filters.specializations.length > 0) {
+    // Filtrar por especialidad (specialty)
+    if (filters.specialty && filters.specialty.length > 0 && !filters.specialty.includes('all')) {
       filtered = filtered.filter(professional =>
-        professional.specializations.some(spec =>
-          filters.specializations.includes(spec)
-        )
+        professional.specializations.some(spec => {
+          // Mapear los valores de filtro a las especializaciones reales
+          const specialtyMap: Record<string, string> = {
+            'cognitive': 'Terapia Cognitivo-Conductual',
+            'psychiatric': 'Medicina Psiquiátrica',
+            'child': 'Psicología Infantil',
+            'sports': 'Psicología del Deporte',
+            'couple': 'Terapia de Pareja',
+            'neuropsychology': 'Neuropsicología',
+            'anxiety': 'Terapia de Ansiedad',
+            'depression': 'Terapia de Depresión',
+            'family': 'Terapia Familiar',
+            'ludic': 'Terapia Lúdica'
+          };
+          
+          return filters.specialty.some(filterValue => {
+            const mappedSpecialty = specialtyMap[filterValue];
+            return mappedSpecialty ? spec.includes(mappedSpecialty) : false;
+          });
+        })
       );
     }
 
-    // Filtrar por tipo de servicio
-    if (filters.serviceType && filters.serviceType.length > 0) {
+    // Filtrar por modalidad (service-type)
+    if (filters['service-type'] && filters['service-type'].length > 0 && !filters['service-type'].includes('any')) {
       filtered = filtered.filter(professional => {
-        // Determinar el tipo de servicio basado en los servicios
         const hasPresencial = professional.services.some(s => s.presencialCost && s.presencialCost !== '');
         const hasOnline = professional.services.some(s => s.onlineCost && s.onlineCost !== '');
         
-        let serviceType = 'online';
-        if (hasPresencial && hasOnline) {
-          serviceType = 'both';
-        } else if (hasPresencial) {
-          serviceType = 'in-person';
-        }
-
-        return filters.serviceType.includes(serviceType);
+        return filters['service-type'].some(type => {
+          if (type === 'presencial') return hasPresencial;
+          if (type === 'online') return hasOnline;
+          if (type === 'ambos') return hasPresencial && hasOnline;
+          return false;
+        });
       });
     }
 
     // Filtrar por ubicación
-    if (filters.location && filters.location.length > 0) {
-      filtered = filtered.filter(professional =>
-        filters.location.some(loc => 
-          professional.city.toLowerCase().includes(loc.toLowerCase()) ||
-          professional.state.toLowerCase().includes(loc.toLowerCase())
-        )
-      );
+    if (filters.location && filters.location.length > 0 && !filters.location.includes('any')) {
+      filtered = filtered.filter(professional => {
+        return filters.location.some(loc => {
+          const cityLower = professional.city.toLowerCase();
+          const stateLower = professional.state.toLowerCase();
+          
+          // Mapear valores de filtro a ubicaciones reales
+          const locationMap: Record<string, string[]> = {
+            'cdmx': ['ciudad de méxico', 'mexico city', 'cdmx', 'distrito federal'],
+            'guadalajara': ['guadalajara'],
+            'monterrey': ['monterrey'],
+            'puebla': ['puebla'],
+            'tijuana': ['tijuana'],
+            'cancun': ['cancún', 'cancun']
+          };
+          
+          const mappedLocations = locationMap[loc] || [loc];
+          return mappedLocations.some(mappedLoc => 
+            cityLower.includes(mappedLoc.toLowerCase()) || 
+            stateLower.includes(mappedLoc.toLowerCase())
+          );
+        });
+      });
     }
 
     // Filtrar por rango de precios
-    if (filters.priceRange && filters.priceRange.length > 0) {
+    if (filters.price && filters.price.length > 0 && !filters.price.includes('any')) {
       filtered = filtered.filter(professional => {
-        return filters.priceRange.some(range => {
-          const [min, max] = range.split('-').map(Number);
-          return professional.services.some(service => {
-            const presencialPrice = parseInt(service.presencialCost) || 0;
-            const onlinePrice = parseInt(service.onlineCost) || 0;
-            const minPrice = Math.min(presencialPrice || Infinity, onlinePrice || Infinity);
-            
-            if (max === undefined) {
-              return minPrice >= min; // Solo precio mínimo
-            }
-            return minPrice >= min && minPrice <= max;
-          });
+        return filters.price.some(priceRange => {
+          const minPrice = professional.services.reduce((min, service) => {
+            const presencialPrice = parseInt(service.presencialCost) || Infinity;
+            const onlinePrice = parseInt(service.onlineCost) || Infinity;
+            return Math.min(min, presencialPrice, onlinePrice);
+          }, Infinity);
+          
+          if (priceRange === 'budget') return minPrice < 1500;
+          if (priceRange === 'mid-range') return minPrice >= 1500 && minPrice <= 2000;
+          if (priceRange === 'premium') return minPrice > 2000;
+          return false;
         });
       });
+    }
+
+    // Filtrar por disponibilidad (availability) - por ahora solo mostrar todos si no hay filtro específico
+    if (filters.availability && filters.availability.length > 0 && !filters.availability.includes('any')) {
+      // Por ahora, si hay filtro de disponibilidad, mantenemos todos los profesionales
+      // En el futuro se puede implementar lógica más compleja basada en citas disponibles
+      filtered = filtered.filter(() => true);
     }
 
     setFilteredProfessionals(filtered);
@@ -211,15 +247,18 @@ const HomeUserPage = () => {
 
           {/* Main content */}
           <div className="lg:col-span-2 xl:col-span-3">
-            {/* Results counter */}
-            {!loading && professionals.length > 0 && (
-              <div className="mb-6">
-                <p className="text-sm text-muted-foreground">
-                  Mostrando {filteredProfessionals.length} de {professionals.length} profesionales
-                  {filteredProfessionals.length !== professionals.length && ' (filtrados)'}
-                </p>
-              </div>
-            )}
+            {/* Resultados */}
+            <div className="mb-6">
+              <p className="text-sm text-muted-foreground">
+                {loading ? 'Cargando...' : `${filteredProfessionals.length} profesional${filteredProfessionals.length !== 1 ? 'es' : ''} encontrado${filteredProfessionals.length !== 1 ? 's' : ''}`}
+                {!loading && filteredProfessionals.length !== professionals.length && (
+                  <span className="text-primary ml-1">
+                    (de {professionals.length} total)
+                  </span>
+                )}
+              </p>
+            </div>
+
             {loading ? (
               <div className="flex items-center justify-center py-12">
                 <div className="text-center">

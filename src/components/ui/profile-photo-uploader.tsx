@@ -128,7 +128,7 @@ export default function ProfilePhotoUploader({
   };
 
   return (
-    <Card>
+    <Card className="p-4">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Camera className="h-5 w-5" />

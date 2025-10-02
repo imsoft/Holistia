@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Plus } from "lucide-react";
+import { Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 
@@ -107,6 +107,14 @@ export const Filters = ({ onFilterChange }: FiltersProps) => {
     onFilterChange?.(newFilters);
   };
 
+  const clearAllFilters = () => {
+    const emptyFilters: Record<string, string[]> = {};
+    setSelectedFilters(emptyFilters);
+    onFilterChange?.(emptyFilters);
+  };
+
+  const hasActiveFilters = Object.values(selectedFilters).some(filters => filters.length > 0);
+
   const FilterSection = ({ section }: { section: typeof filters[0] }) => (
     <div className="py-8 first:pt-0 last:pb-0">
       <fieldset>
@@ -169,6 +177,17 @@ export const Filters = ({ onFilterChange }: FiltersProps) => {
           <SheetTitle className="sr-only">Filtros de búsqueda</SheetTitle>
           <div className="flex items-center justify-between mb-8">
             <h2 className="text-lg font-medium text-foreground">Filtros</h2>
+            {hasActiveFilters && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={clearAllFilters}
+                className="text-xs text-muted-foreground hover:text-foreground"
+              >
+                <X className="h-3 w-3 mr-1" />
+                Limpiar
+              </Button>
+            )}
           </div>
           <form className="divide-y divide-border">
             {filters.map((section) => (
@@ -180,7 +199,20 @@ export const Filters = ({ onFilterChange }: FiltersProps) => {
 
       {/* Desktop filters */}
       <div className="hidden lg:block">
-        <h2 className="sr-only">Filtros</h2>
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-lg font-medium text-foreground">Filtros</h2>
+          {hasActiveFilters && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={clearAllFilters}
+              className="text-xs text-muted-foreground hover:text-foreground"
+            >
+              <X className="h-3 w-3 mr-1" />
+              Limpiar
+            </Button>
+          )}
+        </div>
         <form className="divide-y divide-border">
           {filters.map((section) => (
             <FilterSection key={section.id} section={section} />

@@ -72,15 +72,22 @@ export default function ImageGalleryManager({
       const filePath = `professional/${professionalId}/gallery/${fileName}`;
 
       // Subir imagen a Supabase Storage
-      const { error } = await supabase.storage
+      const { error: uploadError } = await supabase.storage
         .from('professional-gallery')
         .upload(filePath, file, {
           cacheControl: '3600',
           upsert: false
         });
 
-      if (error) {
-        throw error;
+      if (uploadError) {
+        console.error('Storage upload error:', uploadError);
+        if (uploadError.message.includes('File size')) {
+          throw new Error('El archivo es demasiado grande');
+        } else if (uploadError.message.includes('quota')) {
+          throw new Error('Se ha alcanzado el límite de almacenamiento');
+        } else {
+          throw new Error('Error al subir la imagen al servidor');
+        }
       }
 
       // Obtener URL pública de la imagen
@@ -99,7 +106,8 @@ export default function ImageGalleryManager({
 
     } catch (error) {
       console.error('Error uploading image:', error);
-      setUploadError('Error al subir la imagen. Inténtalo de nuevo.');
+      const errorMessage = error instanceof Error ? error.message : 'Error al subir la imagen. Inténtalo de nuevo.';
+      setUploadError(errorMessage);
     } finally {
       setIsUploading(false);
     }
@@ -113,13 +121,17 @@ export default function ImageGalleryManager({
       const filePath = `professional/${professionalId}/gallery/${fileName}`;
 
       // Eliminar de Supabase Storage
-      const { error } = await supabase.storage
+      const { error: deleteError } = await supabase.storage
         .from('professional-gallery')
         .remove([filePath]);
 
-      if (error) {
-        console.error('Error deleting image:', error);
-        return;
+      if (deleteError) {
+        console.error('Storage delete error:', deleteError);
+        if (deleteError.message.includes('not found')) {
+          console.warn('Image file not found in storage, removing from gallery anyway');
+        } else {
+          throw new Error('Error al eliminar la imagen del servidor');
+        }
       }
 
       // Actualizar la lista de imágenes
@@ -128,6 +140,9 @@ export default function ImageGalleryManager({
 
     } catch (error) {
       console.error('Error deleting image:', error);
+      // Mostrar un mensaje de error temporal al usuario
+      setUploadError(error instanceof Error ? error.message : 'Error al eliminar la imagen');
+      setTimeout(() => setUploadError(null), 3000);
     }
   };
 

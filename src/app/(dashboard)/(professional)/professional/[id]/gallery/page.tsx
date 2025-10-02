@@ -61,10 +61,11 @@ export default function ProfessionalGalleryPage() {
         .from('professional_applications')
         .select('*')
         .eq('id', professionalId)
-        .single();
+        .maybeSingle();
 
       if (error) {
-        throw error;
+        console.error('Supabase error:', error);
+        throw new Error('Error al conectar con la base de datos');
       }
 
       if (!data) {
@@ -74,7 +75,8 @@ export default function ProfessionalGalleryPage() {
       setProfessional(data);
     } catch (err) {
       console.error('Error fetching professional:', err);
-      setError('Error al cargar la información del profesional');
+      const errorMessage = err instanceof Error ? err.message : 'Error al cargar la información del profesional';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -97,7 +99,8 @@ export default function ProfessionalGalleryPage() {
         .eq('id', professionalId);
 
       if (error) {
-        throw error;
+        console.error('Supabase update error:', error);
+        throw new Error('Error al conectar con la base de datos');
       }
 
       setProfessional(prev => prev ? { ...prev, gallery: newImages } : null);
@@ -107,7 +110,8 @@ export default function ProfessionalGalleryPage() {
       setTimeout(() => setSuccess(null), 3000);
     } catch (err) {
       console.error('Error updating gallery:', err);
-      setError('Error al actualizar la galería');
+      const errorMessage = err instanceof Error ? err.message : 'Error al actualizar la galería';
+      setError(errorMessage);
     } finally {
       setSaving(false);
     }

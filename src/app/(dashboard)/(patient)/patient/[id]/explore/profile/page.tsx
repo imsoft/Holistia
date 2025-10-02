@@ -395,7 +395,7 @@ const ProfilePage = () => {
               </div>
               <div className="flex-1">
                 <Button
-                  className="font-semibold text-primary hover:text-primary/80"
+                  className="font-semibold bg-ring text-white hover:text-white"
                   onClick={handlePhotoChange}
                 >
                   Cambiar foto

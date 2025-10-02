@@ -1270,18 +1270,6 @@ export default function BecomeProfessionalPage() {
           </>
         )}
 
-        {/* Botón para crear nueva solicitud si no existe ninguna */}
-        {!existingApplication && (
-          <div className="text-center mt-8">
-            <Button
-              onClick={() => setIsEditing(true)}
-              className="bg-primary hover:bg-primary/90"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Crear Nueva Solicitud
-            </Button>
-          </div>
-        )}
 
         {/* Benefits Section */}
         <div className="mt-16">

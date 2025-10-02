@@ -171,6 +171,7 @@ export default function ProfessionalGalleryPage() {
       }
 
       setProfessional(prev => prev ? { ...prev, gallery: newImages } : null);
+      setGalleryImages(newImages);
       setSuccess('Galería actualizada correctamente');
       
       // Limpiar mensaje de éxito después de 3 segundos
@@ -290,7 +291,7 @@ export default function ProfessionalGalleryPage() {
         )}
 
         {/* Información del profesional */}
-        <Card className="mb-8">
+        <Card className="mb-8 p-4">
           <CardHeader className="pb-4">
             <CardTitle className="text-xl">Información del Profesional</CardTitle>
             <CardDescription>
@@ -336,7 +337,7 @@ export default function ProfessionalGalleryPage() {
         </Card>
 
         {/* Gestión de galería */}
-        <Card>
+        <Card className="mb-8 p-4">
           <CardHeader className="pb-4">
             <CardTitle className="text-xl">Galería de Imágenes</CardTitle>
             <CardDescription>
@@ -355,7 +356,7 @@ export default function ProfessionalGalleryPage() {
         </Card>
 
         {/* Consejos */}
-        <Card className="mt-8">
+        <Card className="mt-8 p-4">
           <CardHeader className="pb-4">
             <CardTitle className="text-xl">Consejos para tus imágenes</CardTitle>
           </CardHeader>

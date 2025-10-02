@@ -698,7 +698,7 @@ export default function BecomeProfessionalPage() {
                       className={`p-3 text-left rounded-lg border-2 transition-all ${
                         formData.specializations.includes(therapy)
                           ? "border-primary bg-primary/10 text-primary"
-                          : "border-border hover:border-primary/50 bg-background"
+                          : "bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200 hover:border-primary/50"
                       }`}
                     >
                       <span className="text-sm font-medium">{therapy}</span>
@@ -778,7 +778,7 @@ export default function BecomeProfessionalPage() {
                       className={`p-3 text-left rounded-lg border-2 transition-all ${
                         formData.certifications.includes(cert)
                           ? "border-primary bg-primary/10 text-primary"
-                          : "border-border hover:border-primary/50 bg-background"
+                          : "bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200 hover:border-primary/50"
                       }`}
                     >
                       <span className="text-sm font-medium">{cert}</span>

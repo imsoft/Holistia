@@ -95,8 +95,8 @@ export const ProfessionalCard = ({ professional, userId }: ProfessionalCardProps
       <Card className="group overflow-hidden hover:shadow-xl hover:-translate-y-2 transition-all duration-300 border-border cursor-pointer">
       <div className="relative">
         <Image
-          src={professional.profilePhoto || professional.avatar || "/placeholder-avatar.jpg"}
-          alt={professional.name}
+          src={professional.profile_photo || professional.profilePhoto || professional.avatar || "/placeholder-avatar.jpg"}
+          alt={professional.name || `${professional.first_name || ''} ${professional.last_name || ''}`.trim()}
           width={400}
           height={300}
           className="w-full h-48 object-cover"
@@ -116,7 +116,7 @@ export const ProfessionalCard = ({ professional, userId }: ProfessionalCardProps
           {/* Header */}
           <div>
             <h3 className="text-lg font-semibold text-foreground group-hover:text-primary transition-colors">
-              {professional.name}
+              {professional.name || `${professional.first_name || ''} ${professional.last_name || ''}`.trim()}
             </h3>
             <p className="text-sm text-muted-foreground">{professional.profession}</p>
           </div>
@@ -149,9 +149,11 @@ export const ProfessionalCard = ({ professional, userId }: ProfessionalCardProps
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <MapPin className="h-3 w-3" />
               <span>
-                {typeof professional.location === 'string' 
-                  ? professional.location 
-                  : `${professional.location.city}, ${professional.location.state}`
+                {professional.location 
+                  ? (typeof professional.location === 'string' 
+                      ? professional.location 
+                      : `${professional.location.city}, ${professional.location.state}`)
+                  : `${professional.city || ''}, ${professional.state || ''}`.replace(/^,\s*|,\s*$/g, '')
                 }
               </span>
             </div>

@@ -1,8 +1,34 @@
 export interface Professional {
   id: string;
-  slug: string;
-  name: string;
+  slug?: string;
+  name?: string;
+  // Campos de la base de datos professional_applications
+  user_id?: string;
+  first_name?: string;
+  last_name?: string;
   email: string;
+  phone?: string;
+  profession: string;
+  specializations?: string[];
+  experience?: string;
+  certifications?: string[];
+  services?: Array<{
+    name: string;
+    description: string;
+    presencialCost?: string | number;
+    onlineCost?: string | number;
+  }>;
+  address?: string;
+  city?: string;
+  state?: string;
+  country?: string;
+  biography?: string;
+  profile_photo?: string;
+  gallery?: string[];
+  status?: "pending" | "under_review" | "approved" | "rejected";
+  created_at?: string;
+  updated_at?: string;
+  // Campos adicionales para compatibilidad
   whatsapp?: string;
   socialMedia?: {
     instagram?: string;
@@ -10,14 +36,13 @@ export interface Professional {
     linkedin?: string;
     twitter?: string;
   };
-  profession: string;
   therapyTypes?: string[];
   costs?: {
     presencial: number;
     online: number;
   };
   serviceType?: "in-person" | "online" | "both";
-  location: string | {
+  location?: string | {
     city: string;
     state: string;
     country: string;
@@ -25,25 +50,14 @@ export interface Professional {
   };
   bookingOption?: boolean;
   serviceDescription?: string;
-  biography?: string;
   profilePhoto?: string;
-  gallery?: string[];
-  // Campos adicionales para compatibilidad
-  phone?: string;
   specialization?: string;
   patients?: number;
-  status?: "active" | "inactive" | "suspended";
   verified?: boolean;
   joinDate?: string;
   avatar?: string;
   bio?: string;
   website?: string;
-  services?: Array<{
-    name: string;
-    description: string;
-    presencialCost?: number;
-    onlineCost?: number;
-  }>;
   workingDays?: string[];
   workingHours?: {
     start: string;

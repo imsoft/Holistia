@@ -7,7 +7,6 @@ import {
   Search,
   Filter,
   Eye,
-  MessageSquare,
   Calendar,
   Phone,
   Mail,
@@ -29,6 +28,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import Image from "next/image";
 import { Patient } from "@/types";
@@ -50,6 +56,9 @@ export default function ProfessionalPatients() {
     active: 0,
     sessionsThisMonth: 0
   });
+  const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
+  const [isScheduleDialogOpen, setIsScheduleDialogOpen] = useState(false);
 
   useEffect(() => {
     const fetchPatients = async () => {
@@ -88,17 +97,8 @@ export default function ProfessionalPatients() {
         // Obtener IDs únicos de pacientes
         const uniquePatientIds = [...new Set(appointments.map(apt => apt.patient_id))];
 
-        // Obtener información de los pacientes
-        const { data: { users }, error: usersError } = await supabase.auth.admin.listUsers();
-
-        if (usersError || !users) {
-          console.error('Error obteniendo usuarios:', usersError);
-          return;
-        }
-
-        // Procesar datos de pacientes
+        // Procesar datos de pacientes usando solo información de las citas
         const patientsData: Patient[] = uniquePatientIds.map(patientId => {
-          const user = users.find(u => u.id === patientId);
           const patientAppointments = appointments.filter(apt => apt.patient_id === patientId);
           
           // Calcular última y próxima sesión
@@ -116,29 +116,28 @@ export default function ProfessionalPatients() {
           const therapyTypes = patientAppointments.map(apt => apt.appointment_type);
           const therapyType = therapyTypes.length > 0 ? (therapyTypes[0] === 'presencial' ? 'Terapia Presencial' : 'Terapia Online') : 'No especificado';
 
-          const firstName = user?.user_metadata?.first_name || '';
-          const lastName = user?.user_metadata?.last_name || '';
-          const fullName = `${firstName} ${lastName}`.trim() || user?.email?.split('@')[0] || 'Paciente';
+          // Generar nombre basado en el ID del paciente (temporal)
+          const patientName = `Paciente ${patientId.slice(0, 8)}`;
 
           return {
             id: patientId,
-            name: fullName,
-            email: user?.email || '',
-            phone: user?.user_metadata?.phone || user?.phone || 'No disponible',
-            location: user?.user_metadata?.city || 'No especificado',
+            name: patientName,
+            email: 'No disponible',
+            phone: 'No disponible',
+            location: 'No especificado',
             type: 'patient' as const,
             joinDate: patientAppointments[patientAppointments.length - 1]?.appointment_date || '',
-            lastLogin: user?.last_sign_in_at || '',
+            lastLogin: '',
             appointments: patientAppointments.length,
-            age: user?.user_metadata?.age || 0,
-            gender: user?.user_metadata?.gender || 'No especificado',
+            age: 0,
+            gender: 'No especificado',
             status: status as 'active' | 'inactive' | 'suspended',
             lastSession,
             nextSession,
             totalSessions: patientAppointments.filter(apt => apt.status === 'completed').length,
             therapyType,
-            avatar: user?.user_metadata?.avatar_url || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&q=80',
-            notes: user?.user_metadata?.notes || undefined,
+            avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&q=80',
+            notes: undefined,
           };
         });
 
@@ -181,6 +180,25 @@ export default function ProfessionalPatients() {
       default:
         return status;
     }
+  };
+
+  // Función para ver el perfil del paciente
+  const handleViewProfile = (patient: Patient) => {
+    setSelectedPatient(patient);
+    setIsViewDialogOpen(true);
+  };
+
+  // Función para agendar una nueva cita
+  const handleScheduleAppointment = (patient: Patient) => {
+    setSelectedPatient(patient);
+    setIsScheduleDialogOpen(true);
+  };
+
+  // Función para mostrar todos los pacientes (limpiar filtros)
+  const handleViewAllPatients = () => {
+    setSearchTerm("");
+    setStatusFilter("all");
+    setTherapyFilter("all");
   };
 
   const filteredPatients = patients.filter((patient) => {
@@ -311,7 +329,11 @@ export default function ProfessionalPatients() {
                   </SelectItem>
                 </SelectContent>
               </Select>
-              <Button variant="outline" className="w-full">
+              <Button 
+                variant="outline" 
+                className="w-full"
+                onClick={handleViewAllPatients}
+              >
                 <Users className="h-4 w-4 mr-2" />
                 Ver Todos
               </Button>
@@ -392,14 +414,20 @@ export default function ProfessionalPatients() {
                 )}
 
                 <div className="flex items-center gap-2">
-                  <Button variant="outline" size="sm" className="flex-1">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="flex-1"
+                    onClick={() => handleViewProfile(patient)}
+                  >
                     <Eye className="h-4 w-4 mr-2" />
                     Ver Perfil
                   </Button>
-                  <Button variant="outline" size="sm">
-                    <MessageSquare className="h-4 w-4" />
-                  </Button>
-                  <Button variant="outline" size="sm">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => handleScheduleAppointment(patient)}
+                  >
                     <Calendar className="h-4 w-4" />
                   </Button>
                 </div>
@@ -423,6 +451,148 @@ export default function ProfessionalPatients() {
           </Card>
         )}
       </div>
+
+      {/* Modal para ver perfil del paciente */}
+      <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Perfil del Paciente</DialogTitle>
+            <DialogDescription>
+              Información completa del paciente seleccionado
+            </DialogDescription>
+          </DialogHeader>
+          
+          {selectedPatient && (
+            <div className="space-y-6">
+              {/* Información personal */}
+              <div className="bg-muted/50 rounded-lg p-4">
+                <h3 className="text-lg font-semibold mb-3">Información Personal</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="flex items-center gap-2">
+                    <User className="h-4 w-4 text-muted-foreground" />
+                    <span className="font-medium">Nombre:</span>
+                    <span>{selectedPatient.name}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">Edad:</span>
+                    <span>{selectedPatient.age} años</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">Género:</span>
+                    <span>{selectedPatient.gender}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">Estado:</span>
+                    <span className={`px-2 py-1 rounded-full text-xs ${
+                      selectedPatient.status === 'active' 
+                        ? 'bg-green-100 text-green-800' 
+                        : selectedPatient.status === 'inactive'
+                        ? 'bg-yellow-100 text-yellow-800'
+                        : 'bg-red-100 text-red-800'
+                    }`}>
+                      {getStatusText(selectedPatient.status)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Información de contacto */}
+              <div className="bg-muted/50 rounded-lg p-4">
+                <h3 className="text-lg font-semibold mb-3">Información de Contacto</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="flex items-center gap-2">
+                    <Mail className="h-4 w-4 text-muted-foreground" />
+                    <span className="font-medium">Email:</span>
+                    <span>{selectedPatient.email}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Phone className="h-4 w-4 text-muted-foreground" />
+                    <span className="font-medium">Teléfono:</span>
+                    <span>{selectedPatient.phone}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">Ubicación:</span>
+                    <span>{selectedPatient.location}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Información de terapia */}
+              <div className="bg-muted/50 rounded-lg p-4">
+                <h3 className="text-lg font-semibold mb-3">Información de Terapia</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4 text-muted-foreground" />
+                    <span className="font-medium">Total de sesiones:</span>
+                    <span>{selectedPatient.totalSessions}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">Tipo de terapia:</span>
+                    <span>{selectedPatient.therapyType}</span>
+                  </div>
+                  {selectedPatient.lastSession && (
+                    <div className="flex items-center gap-2">
+                      <Clock className="h-4 w-4 text-muted-foreground" />
+                      <span className="font-medium">Última sesión:</span>
+                      <span>{new Date(selectedPatient.lastSession).toLocaleDateString('es-ES')}</span>
+                    </div>
+                  )}
+                  {selectedPatient.nextSession && (
+                    <div className="flex items-center gap-2">
+                      <Calendar className="h-4 w-4 text-muted-foreground" />
+                      <span className="font-medium">Próxima sesión:</span>
+                      <span>{new Date(selectedPatient.nextSession).toLocaleDateString('es-ES')}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Notas */}
+              {selectedPatient.notes && (
+                <div className="bg-muted/50 rounded-lg p-4">
+                  <h3 className="text-lg font-semibold mb-3">Notas</h3>
+                  <p className="text-muted-foreground">{selectedPatient.notes}</p>
+                </div>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal para agendar nueva cita */}
+      <Dialog open={isScheduleDialogOpen} onOpenChange={setIsScheduleDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Agendar Nueva Cita</DialogTitle>
+            <DialogDescription>
+              Programar una nueva cita con {selectedPatient?.name}
+            </DialogDescription>
+          </DialogHeader>
+          
+          {selectedPatient && (
+            <div className="space-y-4">
+              <div className="bg-muted/50 rounded-lg p-4">
+                <h4 className="font-medium mb-2">Paciente:</h4>
+                <p className="text-sm text-muted-foreground">{selectedPatient.name}</p>
+              </div>
+              
+              <div className="text-center py-8">
+                <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-semibold mb-2">Funcionalidad en desarrollo</h3>
+                <p className="text-muted-foreground mb-4">
+                  El formulario para agendar citas estará disponible próximamente.
+                </p>
+                <Button 
+                  variant="outline" 
+                  onClick={() => setIsScheduleDialogOpen(false)}
+                >
+                  Cerrar
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

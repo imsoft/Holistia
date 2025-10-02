@@ -10,7 +10,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 
 interface ProfessionalApplication {
   id: string;
@@ -386,21 +385,20 @@ const ProfilePage = () => {
                   className="h-20 w-20 rounded-full object-cover border-2 border-border"
                   style={{ aspectRatio: '1/1' }}
                 />
-                <button 
+                <Button 
                   className="absolute -bottom-1 -right-1 p-1.5 bg-primary text-primary-foreground rounded-full hover:bg-primary/90 transition-colors shadow-sm"
                   onClick={handlePhotoChange}
                 >
                   <Edit3 className="h-3 w-3" />
-                </button>
+                </Button>
               </div>
               <div className="flex-1">
-                <button
-                  type="button"
+                <Button
                   className="font-semibold text-primary hover:text-primary/80"
                   onClick={handlePhotoChange}
                 >
                   Cambiar foto
-                </button>
+                </Button>
                 <p className="text-sm text-muted-foreground mt-1">
                   Haz clic para seleccionar una imagen. JPG, GIF o PNG. Máximo 2MB.
                 </p>

@@ -19,7 +19,7 @@ import { GoogleButton } from "@/components/ui/google-button";
 import { useForm } from "react-hook-form";
 import { login } from "@/actions/auth/actions";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+// import { useRouter } from "next/navigation";
 
 const formSchema = z.object({
   email: z.email("Ingresa un correo electrónico válido"),
@@ -29,7 +29,7 @@ const formSchema = z.object({
 const LoginPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const router = useRouter();
+  // const router = useRouter();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -54,7 +54,7 @@ const LoginPage = () => {
         setError(result.error);
       }
       // Si no hay error, la acción redirige automáticamente
-    } catch (err) {
+    } catch {
       setError("Ocurrió un error inesperado. Por favor, intenta de nuevo.");
     } finally {
       setIsLoading(false);

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
+// import { useParams } from "next/navigation";
 import {
   Users,
   Search,
@@ -26,6 +26,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import Image from "next/image";
 import { createClient } from "@/utils/supabase/client";
@@ -56,7 +63,9 @@ export default function AdminUsers() {
     lastMonth: 0,
     totalAppointments: 0
   });
-  const params = useParams();
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
   const supabase = createClient();
 
   // Obtener usuarios de la base de datos
@@ -74,7 +83,7 @@ export default function AdminUsers() {
         // Obtener usuarios desde professional_applications y datos comparativos
         const [
           { data: professionalUsers, error: professionalError },
-          { data: lastMonthUsers, error: lastMonthError }
+          { data: lastMonthUsers }
         ] = await Promise.all([
           supabase
             .from('professional_applications')
@@ -209,6 +218,85 @@ export default function AdminUsers() {
     }
   };
 
+  // Función para exportar la lista de usuarios
+  const handleExportUsers = () => {
+    const csvContent = [
+      ['Nombre', 'Email', 'Teléfono', 'Tipo', 'Estado', 'Fecha de Registro', 'Último Login', 'Citas'],
+      ...filteredUsers.map(user => [
+        user.name,
+        user.email,
+        user.phone || 'N/A',
+        getTypeText(user.type),
+        getStatusText(user.status),
+        new Date(user.joinDate).toLocaleDateString('es-ES'),
+        new Date(user.lastLogin).toLocaleDateString('es-ES'),
+        user.appointments.toString()
+      ])
+    ].map(row => row.join(',')).join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `usuarios_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  // Función para ver el perfil del usuario
+  const handleViewProfile = (user: User) => {
+    setSelectedUser(user);
+    setIsViewDialogOpen(true);
+  };
+
+  // Función para suspender un usuario
+  const handleSuspendUser = async (userId: string) => {
+    try {
+      setActionLoading(userId);
+      
+      // Aquí actualizarías el estado del usuario en la base de datos
+      // Por ahora solo actualizamos el estado local
+      setUsers(prev => 
+        prev.map(user => 
+          user.id === userId 
+            ? { ...user, status: 'suspended' as const }
+            : user
+        )
+      );
+      
+      console.log('Usuario suspendido:', userId);
+    } catch (error) {
+      console.error('Error al suspender usuario:', error);
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  // Función para reactivar un usuario
+  const handleReactivateUser = async (userId: string) => {
+    try {
+      setActionLoading(userId);
+      
+      // Aquí actualizarías el estado del usuario en la base de datos
+      // Por ahora solo actualizamos el estado local
+      setUsers(prev => 
+        prev.map(user => 
+          user.id === userId 
+            ? { ...user, status: 'active' as const }
+            : user
+        )
+      );
+      
+      console.log('Usuario reactivado:', userId);
+    } catch (error) {
+      console.error('Error al reactivar usuario:', error);
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
   // Función para calcular porcentaje de cambio
   const calculatePercentageChange = (current: number, previous: number): string => {
     if (previous === 0) return current > 0 ? "+100%" : "0%";
@@ -256,7 +344,10 @@ export default function AdminUsers() {
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <Button variant="outline">
+            <Button 
+              variant="outline"
+              onClick={handleExportUsers}
+            >
               <Shield className="h-4 w-4 mr-2" />
               Exportar Lista
             </Button>
@@ -389,7 +480,11 @@ export default function AdminUsers() {
                   <SelectItem value="admin">Administrador</SelectItem>
                 </SelectContent>
               </Select>
-              <Button variant="outline" className="w-full">
+              <Button 
+                variant="outline" 
+                className="w-full"
+                onClick={handleExportUsers}
+              >
                 <Calendar className="h-4 w-4 mr-2" />
                 Exportar Lista
               </Button>
@@ -456,20 +551,35 @@ export default function AdminUsers() {
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <Button variant="outline" size="sm" className="flex-1">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="flex-1"
+                    onClick={() => handleViewProfile(user)}
+                  >
                     <Eye className="h-4 w-4 mr-2" />
                     Ver Perfil
                   </Button>
                   {user.status === "suspended" && (
-                    <Button size="sm" variant="outline">
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => handleReactivateUser(user.id)}
+                      disabled={actionLoading === user.id}
+                    >
                       <UserCheck className="h-4 w-4 mr-2" />
-                      Reactivar
+                      {actionLoading === user.id ? 'Reactivando...' : 'Reactivar'}
                     </Button>
                   )}
                   {user.status === "active" && (
-                    <Button size="sm" variant="destructive">
+                    <Button 
+                      size="sm" 
+                      variant="destructive"
+                      onClick={() => handleSuspendUser(user.id)}
+                      disabled={actionLoading === user.id}
+                    >
                       <UserX className="h-4 w-4 mr-2" />
-                      Suspender
+                      {actionLoading === user.id ? 'Suspendiendo...' : 'Suspender'}
                     </Button>
                   )}
                 </div>
@@ -492,6 +602,88 @@ export default function AdminUsers() {
           </Card>
         )}
       </div>
+
+      {/* Modal para ver perfil del usuario */}
+      <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Perfil del Usuario</DialogTitle>
+            <DialogDescription>
+              Información completa del usuario seleccionado
+            </DialogDescription>
+          </DialogHeader>
+          
+          {selectedUser && (
+            <div className="space-y-6">
+              {/* Información personal */}
+              <div className="bg-muted/50 rounded-lg p-4">
+                <h3 className="text-lg font-semibold mb-3">Información Personal</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="flex items-center gap-2">
+                    <Users className="h-4 w-4 text-muted-foreground" />
+                    <span className="font-medium">Nombre:</span>
+                    <span>{selectedUser.name}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">Tipo:</span>
+                    <Badge className={getTypeColor(selectedUser.type)}>
+                      {getTypeText(selectedUser.type)}
+                    </Badge>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">Estado:</span>
+                    <Badge className={getStatusColor(selectedUser.status)}>
+                      {getStatusText(selectedUser.status)}
+                    </Badge>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">Citas:</span>
+                    <span>{selectedUser.appointments}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Información de contacto */}
+              <div className="bg-muted/50 rounded-lg p-4">
+                <h3 className="text-lg font-semibold mb-3">Información de Contacto</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="flex items-center gap-2">
+                    <Mail className="h-4 w-4 text-muted-foreground" />
+                    <span className="font-medium">Email:</span>
+                    <span>{selectedUser.email}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Phone className="h-4 w-4 text-muted-foreground" />
+                    <span className="font-medium">Teléfono:</span>
+                    <span>{selectedUser.phone || 'No disponible'}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <MapPin className="h-4 w-4 text-muted-foreground" />
+                    <span className="font-medium">Ubicación:</span>
+                    <span>{selectedUser.location || 'No especificada'}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Información de actividad */}
+              <div className="bg-muted/50 rounded-lg p-4">
+                <h3 className="text-lg font-semibold mb-3">Información de Actividad</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4 text-muted-foreground" />
+                    <span className="font-medium">Fecha de registro:</span>
+                    <span>{new Date(selectedUser.joinDate).toLocaleDateString('es-ES')}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">Último acceso:</span>
+                    <span>{new Date(selectedUser.lastLogin).toLocaleDateString('es-ES')}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

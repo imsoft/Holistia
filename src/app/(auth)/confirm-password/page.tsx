@@ -52,7 +52,7 @@ const ConfirmPasswordPage = () => {
         setError(result.error);
       }
       // Si no hay error, la acción redirige automáticamente al dashboard
-    } catch (err) {
+    } catch {
       setError("Ocurrió un error inesperado. Por favor, intenta de nuevo.");
     } finally {
       setIsLoading(false);

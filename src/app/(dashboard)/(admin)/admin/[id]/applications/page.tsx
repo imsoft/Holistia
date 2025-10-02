@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
+// import { useParams } from "next/navigation";
 import {
   User,
   MapPin,
@@ -12,12 +12,22 @@ import {
   Calendar,
   Phone,
   Mail,
+  Search,
+  Download,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Dialog,
   DialogContent,
@@ -26,6 +36,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { createClient } from "@/utils/supabase/client";
+import Image from "next/image";
 
 interface ProfessionalApplication {
   id: string;
@@ -38,7 +49,7 @@ interface ProfessionalApplication {
   specializations: string[];
   experience: string;
   certifications: string[];
-  services: any;
+  services: Record<string, unknown>;
   address: string;
   city: string;
   state: string;
@@ -60,11 +71,11 @@ interface ProfessionalApplication {
 export default function ApplicationsPage() {
   const [applications, setApplications] = useState<ProfessionalApplication[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedApplication, setSelectedApplication] = useState<ProfessionalApplication | null>(null);
   const [reviewNotes, setReviewNotes] = useState("");
   const [updating, setUpdating] = useState(false);
   const [userId, setUserId] = useState<string>("");
-  const params = useParams();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
   const supabase = createClient();
 
   const getStatusBadge = (status: string) => {
@@ -208,6 +219,52 @@ export default function ApplicationsPage() {
     }
   };
 
+  // Función para exportar las solicitudes
+  const handleExportApplications = () => {
+    const csvContent = [
+      ['Nombre', 'Email', 'Teléfono', 'Profesión', 'Especialidades', 'Ciudad', 'Estado', 'Estado de Solicitud', 'Fecha de Envío', 'Fecha de Revisión', 'Notas de Revisión'],
+      ...filteredApplications.map(application => [
+        `${application.first_name} ${application.last_name}`,
+        application.email,
+        application.phone || 'N/A',
+        application.profession,
+        application.specializations.join('; '),
+        application.city,
+        application.state,
+        application.status === 'approved' ? 'Aprobado' : 
+        application.status === 'pending' ? 'Pendiente' :
+        application.status === 'under_review' ? 'En Revisión' : 'Rechazado',
+        new Date(application.submitted_at).toLocaleDateString('es-ES'),
+        application.reviewed_at ? new Date(application.reviewed_at).toLocaleDateString('es-ES') : 'No revisado',
+        application.review_notes || 'Sin notas'
+      ])
+    ].map(row => row.join(',')).join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `solicitudes_profesionales_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  // Filtrar aplicaciones basado en búsqueda y filtros
+  const filteredApplications = applications.filter((application) => {
+    const fullName = `${application.first_name} ${application.last_name}`;
+    const matchesSearch = fullName
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase()) ||
+      application.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      application.profession.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesStatus = statusFilter === "all" || application.status === statusFilter;
+    
+    return matchesSearch && matchesStatus;
+  });
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -223,38 +280,94 @@ export default function ApplicationsPage() {
     <div className="min-h-screen bg-background">
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-2">Solicitudes de Profesionales</h1>
-          <p className="text-muted-foreground">
-            Revisa y gestiona las solicitudes de profesionales de salud mental
-            {applications.length > 0 && (
-              <span className="ml-2 text-primary font-medium">
-                ({applications.length} solicitud{applications.length !== 1 ? 'es' : ''} encontrada{applications.length !== 1 ? 's' : ''})
-              </span>
-            )}
-          </p>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+            <div>
+              <h1 className="text-3xl font-bold text-foreground mb-2">Solicitudes de Profesionales</h1>
+              <p className="text-muted-foreground">
+                Revisa y gestiona las solicitudes de profesionales de salud mental
+                {filteredApplications.length > 0 && (
+                  <span className="ml-2 text-primary font-medium">
+                    ({filteredApplications.length} solicitud{filteredApplications.length !== 1 ? 'es' : ''} encontrada{filteredApplications.length !== 1 ? 's' : ''})
+                  </span>
+                )}
+              </p>
+            </div>
+            <Button 
+              variant="outline"
+              onClick={handleExportApplications}
+              className="flex items-center gap-2"
+            >
+              <Download className="h-4 w-4" />
+              Exportar Lista
+            </Button>
+          </div>
+
+          {/* Filtros y búsqueda */}
+          <Card>
+            <CardContent className="p-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Buscar por nombre, email o profesión..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Filtrar por estado" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos los estados</SelectItem>
+                    <SelectItem value="pending">Pendientes</SelectItem>
+                    <SelectItem value="under_review">En Revisión</SelectItem>
+                    <SelectItem value="approved">Aprobadas</SelectItem>
+                    <SelectItem value="rejected">Rechazadas</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Button 
+                  variant="outline" 
+                  className="w-full"
+                  onClick={handleExportApplications}
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  Exportar Lista
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
       </div>
 
         <div className="grid gap-6">
-          {applications.length === 0 ? (
+          {filteredApplications.length === 0 ? (
           <Card>
               <CardContent className="flex flex-col items-center justify-center py-12">
                 <FileText className="h-12 w-12 text-muted-foreground mb-4" />
-                <h3 className="text-lg font-semibold text-foreground mb-2">No hay solicitudes</h3>
+                <h3 className="text-lg font-semibold text-foreground mb-2">
+                  {applications.length === 0 ? 'No hay solicitudes' : 'No se encontraron resultados'}
+                </h3>
                 <p className="text-muted-foreground text-center">
-                  No se han encontrado solicitudes de profesionales en este momento.
+                  {applications.length === 0 
+                    ? 'No se han encontrado solicitudes de profesionales en este momento.'
+                    : 'Intenta ajustar los filtros de búsqueda para encontrar lo que buscas.'
+                  }
                 </p>
             </CardContent>
           </Card>
           ) : (
-            applications.map((application) => (
+            filteredApplications.map((application) => (
               <Card key={application.id} className="hover:shadow-md transition-shadow p-6">
                 <CardHeader className="pb-6 px-0 pt-0">
                   <div className="flex items-start justify-between">
                     <div className="flex items-center space-x-4">
                       {application.profile_photo && application.profile_photo.trim() !== '' ? (
-                        <img 
+                        <Image 
                           src={application.profile_photo} 
                           alt={`${application.first_name} ${application.last_name}`}
+                          width={48}
+                          height={48}
                           className="w-12 h-12 rounded-full object-cover border-2 border-border"
                           onError={(e) => {
                             // Si la imagen falla al cargar, ocultar y mostrar el placeholder

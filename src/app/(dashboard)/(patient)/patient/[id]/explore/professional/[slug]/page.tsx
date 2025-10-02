@@ -277,6 +277,31 @@ export default function ProfessionalProfilePage() {
     );
   };
 
+  // Función para compartir el perfil del profesional
+  const handleShare = async () => {
+    if (!professional) return;
+
+    const shareData = {
+      title: `${professional.first_name} ${professional.last_name} - ${professional.profession}`,
+      text: `Conoce a ${professional.first_name} ${professional.last_name}, especialista en ${professional.specializations.join(', ')}. ${professional.biography || ''}`,
+      url: window.location.href,
+    };
+
+    try {
+      if (navigator.share && navigator.canShare(shareData)) {
+        await navigator.share(shareData);
+      } else {
+        // Fallback: copiar URL al portapapeles
+        await navigator.clipboard.writeText(window.location.href);
+        alert('Enlace copiado al portapapeles');
+      }
+    } catch (error) {
+      console.error('Error al compartir:', error);
+      // Fallback adicional: mostrar modal con opciones de compartir
+      alert('Enlace copiado al portapapeles');
+    }
+  };
+
   // Generar fechas disponibles (próximos 30 días) - simplificado
   const getAvailableDates = () => {
     const dates = [];
@@ -377,7 +402,7 @@ export default function ProfessionalProfilePage() {
         : parseFloat(service.onlineCost || '0');
       
       // Crear la cita en la base de datos
-      const { data: newAppointment, error } = await supabase
+      const { error } = await supabase
         .from('appointments')
         .insert({
           patient_id: currentUser.id,
@@ -508,7 +533,12 @@ export default function ProfessionalProfilePage() {
                   className={`h-4 w-4 ${isFavorite ? "fill-current" : ""}`}
                 />
               </Button>
-              <Button variant="outline" size="icon" className="h-10 w-10">
+              <Button 
+                variant="outline" 
+                size="icon" 
+                className="h-10 w-10"
+                onClick={handleShare}
+              >
                 <Share2 className="h-4 w-4" />
               </Button>
             </div>

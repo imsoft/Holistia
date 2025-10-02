@@ -77,8 +77,30 @@ export default function BecomeProfessionalPage() {
   const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [currentUser, setCurrentUser] = useState<any>(null);
-  const [existingApplication, setExistingApplication] = useState<any>(null);
+  const [, setCurrentUser] = useState<{ id: string; email: string } | null>(null);
+  const [existingApplication, setExistingApplication] = useState<{
+    id: string;
+    status: string;
+    first_name: string;
+    last_name: string;
+    email: string;
+    profession: string;
+    specializations: string[];
+    experience: string;
+    certifications: string[];
+    services: Record<string, unknown>;
+    address: string;
+    city: string;
+    state: string;
+    country: string;
+    biography?: string;
+    profile_photo?: string;
+    gallery?: string[];
+    created_at: string;
+    review_notes?: string;
+    reviewed_at?: string;
+    reviewed_by?: string;
+  } | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const params = useParams();
   const supabase = createClient();
@@ -104,10 +126,8 @@ export default function BecomeProfessionalPage() {
           const userMetadata = userData.user.user_metadata || {};
           
           const userInfo = {
-            firstName: userMetadata.first_name || '',
-            lastName: userMetadata.last_name || '',
-            email: userData.user.email || '',
-            phone: userMetadata.phone || ''
+            id: userData.user.id,
+            email: userData.user.email || ''
           };
 
           setCurrentUser(userInfo);
@@ -116,10 +136,10 @@ export default function BecomeProfessionalPage() {
           // Solo pre-llenar campos que tengan información
           setFormData(prev => ({
             ...prev,
-            firstName: userInfo.firstName || prev.firstName,
-            lastName: userInfo.lastName || prev.lastName,
+            firstName: userMetadata.first_name || prev.firstName,
+            lastName: userMetadata.last_name || prev.lastName,
             email: userInfo.email || prev.email,
-            phone: userInfo.phone || prev.phone,
+            phone: userMetadata.phone || prev.phone,
           }));
 
           // Verificar si ya existe una aplicación
@@ -592,9 +612,8 @@ export default function BecomeProfessionalPage() {
                 <Label>Especializaciones *</Label>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                   {therapyTypes.map((therapy) => (
-                    <button
+                    <Button
                       key={therapy}
-                      type="button"
                       onClick={() => handleSpecializationToggle(therapy)}
                       className={`p-3 text-left rounded-lg border-2 transition-all ${
                         formData.specializations.includes(therapy)
@@ -603,7 +622,7 @@ export default function BecomeProfessionalPage() {
                       }`}
                     >
                       <span className="text-sm font-medium">{therapy}</span>
-                    </button>
+                    </Button>
                   ))}
                 </div>
                 {errors.specializations && <p className="text-red-500 text-sm mt-1">{errors.specializations}</p>}
@@ -626,9 +645,8 @@ export default function BecomeProfessionalPage() {
                 <Label>Certificaciones y Educación</Label>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {certifications.map((cert) => (
-                    <button
+                    <Button
                       key={cert}
-                      type="button"
                       onClick={() => handleCertificationToggle(cert)}
                       className={`p-3 text-left rounded-lg border-2 transition-all ${
                         formData.certifications.includes(cert)
@@ -637,7 +655,7 @@ export default function BecomeProfessionalPage() {
                       }`}
                     >
                       <span className="text-sm font-medium">{cert}</span>
-                    </button>
+                    </Button>
                   ))}
                 </div>
               </div>
@@ -660,7 +678,6 @@ export default function BecomeProfessionalPage() {
               <div className="flex justify-between items-center">
                 <Label>Servicios *</Label>
                 <Button
-                  type="button"
                   variant="outline"
                   size="sm"
                   onClick={handleAddService}
@@ -679,7 +696,6 @@ export default function BecomeProfessionalPage() {
                     <h3 className="text-lg font-semibold text-foreground">Servicio {index + 1}</h3>
                     {formData.services.length > 1 && (
                       <Button
-                        type="button"
                         variant="outline"
                         size="sm"
                         onClick={() => handleRemoveService(index)}

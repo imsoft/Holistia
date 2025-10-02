@@ -67,7 +67,7 @@ const RegisterPage = () => {
         setSuccess(true);
         // No necesitamos redirección aquí porque la acción ya redirige
       }
-    } catch (err) {
+    } catch {
       setError("Ocurrió un error inesperado. Por favor, intenta de nuevo.");
     } finally {
       setIsLoading(false);

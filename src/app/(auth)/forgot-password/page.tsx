@@ -50,7 +50,7 @@ const ForgotPasswordPage = () => {
       } else {
         setSuccess(true);
       }
-    } catch (err) {
+    } catch {
       setError("Ocurrió un error inesperado. Por favor, intenta de nuevo.");
     } finally {
       setIsLoading(false);

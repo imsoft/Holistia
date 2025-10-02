@@ -1,12 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { usePathname, useParams, useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   Users,
   UserCheck,
   UserPlus,
-  Settings,
   LogOut,
   Home,
 } from "lucide-react";
@@ -46,7 +45,6 @@ export function AdminSidebar() {
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState<string>("");
   const pathname = usePathname();
-  const params = useParams();
   const router = useRouter();
   const supabase = createClient();
 

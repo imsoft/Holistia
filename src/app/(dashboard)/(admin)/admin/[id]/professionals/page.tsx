@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
+// import { useParams } from "next/navigation";
 import {
   UserCheck,
   Search,
@@ -25,6 +25,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import Image from "next/image";
 import { createClient } from "@/utils/supabase/client";
@@ -59,7 +66,10 @@ export default function AdminProfessionals() {
     lastMonth: 0,
     totalPatients: 0
   });
-  const params = useParams();
+  const [selectedProfessional, setSelectedProfessional] = useState<Professional | null>(null);
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
+  const [isVerifyDialogOpen, setIsVerifyDialogOpen] = useState(false);
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
   const supabase = createClient();
 
   // Obtener profesionales de la base de datos
@@ -77,7 +87,7 @@ export default function AdminProfessionals() {
         // Obtener profesionales aprobados de la base de datos y datos comparativos
         const [
           { data: professionalsData, error: professionalsError },
-          { data: lastMonthProfessionals, error: lastMonthError }
+          { data: lastMonthProfessionals }
         ] = await Promise.all([
           supabase
             .from('professional_applications')
@@ -196,6 +206,77 @@ export default function AdminProfessionals() {
     return `${sign}${Math.round(change)}%`;
   };
 
+  // Función para verificar documentos pendientes
+  const handleVerifyDocuments = () => {
+    // Filtrar profesionales que no han sido verificados
+    const unverifiedProfessionals = professionals.filter(p => !p.reviewed_at);
+    if (unverifiedProfessionals.length === 0) {
+      alert('No hay documentos pendientes de verificación');
+      return;
+    }
+    alert(`Hay ${unverifiedProfessionals.length} profesionales con documentos pendientes de verificación`);
+  };
+
+  // Función para exportar la lista de profesionales
+  const handleExportProfessionals = () => {
+    const csvContent = [
+      ['Nombre', 'Email', 'Teléfono', 'Profesión', 'Especialidades', 'Ciudad', 'Estado', 'Estado', 'Fecha de Registro', 'Fecha de Verificación', 'Pacientes'],
+      ...filteredProfessionals.map(professional => [
+        `${professional.first_name} ${professional.last_name}`,
+        professional.email,
+        professional.phone || 'N/A',
+        professional.profession,
+        professional.specializations.join('; '),
+        professional.city,
+        professional.state,
+        professional.status === 'active' ? 'Activo' : professional.status === 'inactive' ? 'Inactivo' : 'Suspendido',
+        new Date(professional.submitted_at).toLocaleDateString('es-ES'),
+        professional.reviewed_at ? new Date(professional.reviewed_at).toLocaleDateString('es-ES') : 'No verificado',
+        (professional.patients || 0).toString()
+      ])
+    ].map(row => row.join(',')).join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `profesionales_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  // Función para ver el perfil del profesional
+  const handleViewProfile = (professional: Professional) => {
+    setSelectedProfessional(professional);
+    setIsViewDialogOpen(true);
+  };
+
+  // Función para verificar un profesional
+  const handleVerifyProfessional = async (professionalId: string) => {
+    try {
+      setActionLoading(professionalId);
+      
+      // Aquí actualizarías el estado del profesional en la base de datos
+      // Por ahora solo actualizamos el estado local
+      setProfessionals(prev => 
+        prev.map(prof => 
+          prof.id === professionalId 
+            ? { ...prof, reviewed_at: new Date().toISOString() }
+            : prof
+        )
+      );
+      
+      console.log('Profesional verificado:', professionalId);
+      setIsVerifyDialogOpen(false);
+    } catch (error) {
+      console.error('Error al verificar profesional:', error);
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
   const filteredProfessionals = professionals.filter((professional) => {
     const fullName = `${professional.first_name} ${professional.last_name}`;
     const matchesSearch = fullName
@@ -241,7 +322,10 @@ export default function AdminProfessionals() {
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <Button variant="outline">
+            <Button 
+              variant="outline"
+              onClick={handleVerifyDocuments}
+            >
               <Shield className="h-4 w-4 mr-2" />
               Verificar Documentos
             </Button>
@@ -357,7 +441,11 @@ export default function AdminProfessionals() {
                   <SelectItem value="unverified">No verificados</SelectItem>
                 </SelectContent>
               </Select>
-              <Button variant="outline" className="w-full">
+              <Button 
+                variant="outline" 
+                className="w-full"
+                onClick={handleExportProfessionals}
+              >
                 <Calendar className="h-4 w-4 mr-2" />
                 Exportar Lista
               </Button>
@@ -424,14 +512,26 @@ export default function AdminProfessionals() {
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <Button variant="outline" size="sm" className="flex-1">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="flex-1"
+                    onClick={() => handleViewProfile(professional)}
+                  >
                     <Eye className="h-4 w-4 mr-2" />
                     Ver Perfil
                   </Button>
                   {!professional.reviewed_at && (
-                    <Button size="sm">
+                    <Button 
+                      size="sm"
+                      onClick={() => {
+                        setSelectedProfessional(professional);
+                        setIsVerifyDialogOpen(true);
+                      }}
+                      disabled={actionLoading === professional.id}
+                    >
                       <Shield className="h-4 w-4 mr-2" />
-                      Verificar
+                      {actionLoading === professional.id ? 'Verificando...' : 'Verificar'}
                     </Button>
                   )}
                 </div>
@@ -454,6 +554,140 @@ export default function AdminProfessionals() {
           </Card>
         )}
       </div>
+
+      {/* Modal para ver perfil del profesional */}
+      <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Perfil del Profesional</DialogTitle>
+            <DialogDescription>
+              Información completa del profesional seleccionado
+            </DialogDescription>
+          </DialogHeader>
+          
+          {selectedProfessional && (
+            <div className="space-y-6">
+              {/* Información personal */}
+              <div className="bg-muted/50 rounded-lg p-4">
+                <h3 className="text-lg font-semibold mb-3">Información Personal</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="flex items-center gap-2">
+                    <UserCheck className="h-4 w-4 text-muted-foreground" />
+                    <span className="font-medium">Nombre:</span>
+                    <span>{selectedProfessional.first_name} {selectedProfessional.last_name}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">Profesión:</span>
+                    <span>{selectedProfessional.profession}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">Estado:</span>
+                    <Badge className={getStatusColor(selectedProfessional.status)}>
+                      {getStatusText(selectedProfessional.status)}
+                    </Badge>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">Pacientes:</span>
+                    <span>{selectedProfessional.patients || 0}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Información de contacto */}
+              <div className="bg-muted/50 rounded-lg p-4">
+                <h3 className="text-lg font-semibold mb-3">Información de Contacto</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="flex items-center gap-2">
+                    <Mail className="h-4 w-4 text-muted-foreground" />
+                    <span className="font-medium">Email:</span>
+                    <span>{selectedProfessional.email}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Phone className="h-4 w-4 text-muted-foreground" />
+                    <span className="font-medium">Teléfono:</span>
+                    <span>{selectedProfessional.phone || 'No disponible'}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <MapPin className="h-4 w-4 text-muted-foreground" />
+                    <span className="font-medium">Ubicación:</span>
+                    <span>{selectedProfessional.city}, {selectedProfessional.state}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Especialidades */}
+              <div className="bg-muted/50 rounded-lg p-4">
+                <h3 className="text-lg font-semibold mb-3">Especialidades</h3>
+                <div className="flex flex-wrap gap-2">
+                  {selectedProfessional.specializations.map((specialization, index) => (
+                    <Badge key={index} variant="secondary">
+                      {specialization}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+
+              {/* Información de verificación */}
+              <div className="bg-muted/50 rounded-lg p-4">
+                <h3 className="text-lg font-semibold mb-3">Información de Verificación</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4 text-muted-foreground" />
+                    <span className="font-medium">Fecha de registro:</span>
+                    <span>{new Date(selectedProfessional.submitted_at).toLocaleDateString('es-ES')}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Shield className="h-4 w-4 text-muted-foreground" />
+                    <span className="font-medium">Verificado:</span>
+                    <span>{selectedProfessional.reviewed_at ? new Date(selectedProfessional.reviewed_at).toLocaleDateString('es-ES') : 'No verificado'}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal para verificar profesional */}
+      <Dialog open={isVerifyDialogOpen} onOpenChange={setIsVerifyDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Verificar Profesional</DialogTitle>
+            <DialogDescription>
+              ¿Estás seguro de que quieres verificar a {selectedProfessional?.first_name} {selectedProfessional?.last_name}?
+            </DialogDescription>
+          </DialogHeader>
+          
+          {selectedProfessional && (
+            <div className="space-y-4">
+              <div className="bg-muted/50 rounded-lg p-4">
+                <h4 className="font-medium mb-2">Profesional:</h4>
+                <p className="text-sm text-muted-foreground">
+                  {selectedProfessional.first_name} {selectedProfessional.last_name}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  {selectedProfessional.profession}
+                </p>
+              </div>
+              
+              <div className="flex justify-end gap-3 pt-4">
+                <Button 
+                  variant="outline" 
+                  onClick={() => setIsVerifyDialogOpen(false)}
+                >
+                  Cancelar
+                </Button>
+                <Button 
+                  onClick={() => handleVerifyProfessional(selectedProfessional.id)}
+                  disabled={actionLoading === selectedProfessional.id}
+                >
+                  {actionLoading === selectedProfessional.id ? 'Verificando...' : 'Verificar'}
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

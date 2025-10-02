@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
+// import { useParams } from "next/navigation";
 import {
   Users,
   UserCheck,
@@ -23,7 +23,7 @@ interface DashboardStats {
   title: string;
   value: string;
   change: string;
-  icon: any;
+  icon: React.ComponentType<{ className?: string }>;
   color: string;
   bgColor: string;
 }
@@ -56,7 +56,6 @@ export default function AdminDashboard() {
   const [recentActivities, setRecentActivities] = useState<RecentActivity[]>([]);
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState<string>("");
-  const params = useParams();
   const supabase = createClient();
 
   // Obtener el ID del usuario autenticado
@@ -185,7 +184,7 @@ export default function AdminDashboard() {
         const activities: RecentActivity[] = [];
         
         // Agregar actividad por cada solicitud reciente
-        applications?.slice(0, 3).forEach((app, index) => {
+        applications?.slice(0, 3).forEach((app) => {
           const timeAgo = getTimeAgo(app.submitted_at);
           activities.push({
             id: `app-${app.id}`,

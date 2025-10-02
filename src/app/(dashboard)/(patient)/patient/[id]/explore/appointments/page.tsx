@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -84,6 +84,7 @@ export default function AppointmentsPage() {
   const [error, setError] = useState<string | null>(null);
   const [cancelling, setCancelling] = useState<string | null>(null);
   const params = useParams();
+  const router = useRouter();
   const supabase = createClient();
   
   const userId = params.id as string;
@@ -234,6 +235,11 @@ export default function AppointmentsPage() {
     } finally {
       setCancelling(null);
     }
+  };
+
+  // Función para navegar a la página de explorar profesionales
+  const handleNewAppointment = () => {
+    router.push(`/patient/${userId}/explore`);
   };
 
   const formatPrice = (price: number) => {
@@ -467,7 +473,11 @@ export default function AppointmentsPage() {
                             </div>
                           </Link>
                           <div className="flex gap-2">
-                            <Button variant="outline" size="sm">
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={handleNewAppointment}
+                            >
                               <Calendar className="h-4 w-4 mr-2" />
                               Nueva cita
                             </Button>

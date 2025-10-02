@@ -28,6 +28,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Appointment } from "@/types";
 import { createClient } from "@/utils/supabase/client";
@@ -44,6 +51,8 @@ export default function ProfessionalAppointments() {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
   const [availableDates, setAvailableDates] = useState<string[]>([]);
+  const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
 
   useEffect(() => {
     const fetchAppointments = async () => {
@@ -89,37 +98,27 @@ export default function ProfessionalAppointments() {
           const uniqueDates = [...new Set(appointmentsData?.map(apt => apt.appointment_date) || [])];
           setAvailableDates(uniqueDates);
 
-          // Obtener información de los pacientes
+          // Formatear citas sin información de pacientes (temporal)
           if (appointmentsData && appointmentsData.length > 0) {
-            const patientIds = [...new Set(appointmentsData.map(apt => apt.patient_id))];
+            const formattedAppointments: Appointment[] = appointmentsData.map(apt => {
+              return {
+                id: apt.id,
+                patient: {
+                  name: `Paciente ${apt.patient_id.slice(0, 8)}`,
+                  email: 'No disponible',
+                  phone: 'No disponible',
+                },
+                date: apt.appointment_date,
+                time: apt.appointment_time.substring(0, 5),
+                duration: apt.duration_minutes,
+                type: apt.appointment_type === 'presencial' ? 'Presencial' : 'Online',
+                status: apt.status as "confirmed" | "pending" | "cancelled" | "completed",
+                location: apt.location || (apt.appointment_type === 'online' ? 'Online' : 'Sin especificar'),
+                notes: apt.notes || undefined,
+              };
+            });
             
-            const { data: { users }, error: usersError } = await supabase.auth.admin.listUsers();
-            
-            if (!usersError && users) {
-              const formattedAppointments: Appointment[] = appointmentsData.map(apt => {
-                const patient = users.find(u => u.id === apt.patient_id);
-                const firstName = patient?.user_metadata?.first_name || '';
-                const lastName = patient?.user_metadata?.last_name || '';
-                
-                return {
-                  id: apt.id,
-                  patient: {
-                    name: `${firstName} ${lastName}`.trim() || patient?.email?.split('@')[0] || 'Paciente',
-                    email: patient?.email || '',
-                    phone: patient?.user_metadata?.phone || patient?.phone || 'No disponible',
-                  },
-                  date: apt.appointment_date,
-                  time: apt.appointment_time.substring(0, 5),
-                  duration: apt.duration_minutes,
-                  type: apt.appointment_type === 'presencial' ? 'Presencial' : 'Online',
-                  status: apt.status as "confirmed" | "pending" | "cancelled" | "completed",
-                  location: apt.location || (apt.appointment_type === 'online' ? 'Online' : 'Sin especificar'),
-                  notes: apt.notes || undefined,
-                };
-              });
-              
-              setAppointments(formattedAppointments);
-            }
+            setAppointments(formattedAppointments);
           } else {
             setAppointments([]);
           }
@@ -188,6 +187,44 @@ export default function ProfessionalAppointments() {
     
     return matchesSearch && matchesStatus && matchesDate;
   });
+
+  // Función para ver detalles de la cita
+  const handleViewAppointment = (appointment: Appointment) => {
+    setSelectedAppointment(appointment);
+    setIsViewDialogOpen(true);
+  };
+
+  // Función para confirmar una cita
+  const handleConfirmAppointment = async (appointmentId: string) => {
+    try {
+      const { error } = await supabase
+        .from('appointments')
+        .update({ status: 'confirmed' })
+        .eq('id', appointmentId);
+
+      if (error) {
+        console.error('Error confirmando cita:', error);
+        return;
+      }
+
+      // Actualizar el estado local
+      setAppointments(prev => 
+        prev.map(apt => 
+          apt.id === appointmentId 
+            ? { ...apt, status: 'confirmed' as const }
+            : apt
+        )
+      );
+    } catch (error) {
+      console.error('Error inesperado:', error);
+    }
+  };
+
+  // Función para crear nueva cita
+  const handleCreateAppointment = () => {
+    // Aquí podrías abrir un modal o navegar a una página de creación
+    console.log('Crear nueva cita');
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -341,12 +378,19 @@ export default function ProfessionalAppointments() {
                   </div>
                   
                   <div className="flex items-center gap-2">
-                    <Button variant="outline" size="sm">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => handleViewAppointment(appointment)}
+                    >
                       <Eye className="h-4 w-4 mr-2" />
                       Ver
                     </Button>
                     {appointment.status === "pending" && (
-                      <Button size="sm">
+                      <Button 
+                        size="sm"
+                        onClick={() => handleConfirmAppointment(appointment.id)}
+                      >
                         <CheckCircle className="h-4 w-4 mr-2" />
                         Confirmar
                       </Button>
@@ -366,7 +410,7 @@ export default function ProfessionalAppointments() {
               <p className="text-muted-foreground mb-4">
                 No hay citas que coincidan con los filtros seleccionados.
               </p>
-              <Button>
+              <Button onClick={handleCreateAppointment}>
                 <Plus className="h-4 w-4 mr-2" />
                 Crear Nueva Cita
               </Button>
@@ -375,6 +419,96 @@ export default function ProfessionalAppointments() {
           )}
         </div>
       </div>
+
+      {/* Modal para ver detalles de la cita */}
+      <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Detalles de la Cita</DialogTitle>
+            <DialogDescription>
+              Información completa de la cita seleccionada
+            </DialogDescription>
+          </DialogHeader>
+          
+          {selectedAppointment && (
+            <div className="space-y-6">
+              {/* Información del paciente */}
+              <div className="bg-muted/50 rounded-lg p-4">
+                <h3 className="text-lg font-semibold mb-3">Información del Paciente</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="flex items-center gap-2">
+                    <User className="h-4 w-4 text-muted-foreground" />
+                    <span className="font-medium">Nombre:</span>
+                    <span>{selectedAppointment.patient.name}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Mail className="h-4 w-4 text-muted-foreground" />
+                    <span className="font-medium">Email:</span>
+                    <span>{selectedAppointment.patient.email}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Phone className="h-4 w-4 text-muted-foreground" />
+                    <span className="font-medium">Teléfono:</span>
+                    <span>{selectedAppointment.patient.phone}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Información de la cita */}
+              <div className="bg-muted/50 rounded-lg p-4">
+                <h3 className="text-lg font-semibold mb-3">Información de la Cita</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4 text-muted-foreground" />
+                    <span className="font-medium">Fecha:</span>
+                    <span>{new Date(selectedAppointment.date).toLocaleDateString('es-ES', {
+                      weekday: 'long',
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric'
+                    })}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Clock className="h-4 w-4 text-muted-foreground" />
+                    <span className="font-medium">Hora:</span>
+                    <span>{selectedAppointment.time}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">Duración:</span>
+                    <span>{selectedAppointment.duration} minutos</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">Tipo:</span>
+                    <span>{selectedAppointment.type}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <MapPin className="h-4 w-4 text-muted-foreground" />
+                    <span className="font-medium">Ubicación:</span>
+                    <span>{selectedAppointment.location}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">Estado:</span>
+                    <Badge className={getStatusColor(selectedAppointment.status)}>
+                      <div className="flex items-center gap-1">
+                        {getStatusIcon(selectedAppointment.status)}
+                        {getStatusText(selectedAppointment.status)}
+                      </div>
+                    </Badge>
+                  </div>
+                </div>
+              </div>
+
+              {/* Notas */}
+              {selectedAppointment.notes && (
+                <div className="bg-muted/50 rounded-lg p-4">
+                  <h3 className="text-lg font-semibold mb-3">Notas</h3>
+                  <p className="text-muted-foreground">{selectedAppointment.notes}</p>
+                </div>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -413,18 +413,6 @@ const HomeUserPage = () => {
 
           {/* Main content */}
           <div className="lg:col-span-2 xl:col-span-3">
-            {/* Resultados */}
-            <div className="mb-6">
-              <p className="text-sm text-muted-foreground">
-                {loading ? 'Cargando...' : `${filteredProfessionals.length} profesional${filteredProfessionals.length !== 1 ? 'es' : ''} encontrado${filteredProfessionals.length !== 1 ? 's' : ''}`}
-                {!loading && filteredProfessionals.length !== professionals.length && (
-                  <span className="text-primary ml-1">
-                    (de {professionals.length} total)
-                  </span>
-                )}
-              </p>
-            </div>
-
             {loading ? (
               <div className="flex items-center justify-center py-12">
                 <div className="text-center">

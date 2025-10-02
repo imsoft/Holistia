@@ -2,85 +2,112 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 export async function updateSession(request: NextRequest) {
-  let supabaseResponse = NextResponse.next({
-    request,
-  });
+  try {
+    let supabaseResponse = NextResponse.next({
+      request,
+    });
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll();
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) =>
-            request.cookies.set(name, value)
-          );
-          supabaseResponse = NextResponse.next({
-            request,
-          });
-          cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
-          );
-        },
-      },
+    // Verificar que las variables de entorno estén disponibles
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY) {
+      console.error('Missing Supabase environment variables');
+      return supabaseResponse;
     }
-  );
 
-  // Do not run code between createServerClient and
-  // supabase.auth.getUser(). A simple mistake could make it very hard to debug
-  // issues with users being randomly logged out.
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+      process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
+      {
+        cookies: {
+          getAll() {
+            return request.cookies.getAll();
+          },
+          setAll(cookiesToSet) {
+            cookiesToSet.forEach(({ name, value }) =>
+              request.cookies.set(name, value)
+            );
+            supabaseResponse = NextResponse.next({
+              request,
+            });
+            cookiesToSet.forEach(({ name, value, options }) =>
+              supabaseResponse.cookies.set(name, value, options)
+            );
+          },
+        },
+      }
+    );
 
-  // IMPORTANT: DO NOT REMOVE auth.getUser()
+    // Rutas públicas que no requieren autenticación
+    const publicPaths = [
+      '/',
+      '/login',
+      '/signup',
+      '/forgot-password',
+      '/confirm-password',
+      '/confirm-email',
+      '/error',
+      '/auth',
+      '/_next',
+      '/favicon.ico',
+      '/api'
+    ];
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+    const isPublicPath = publicPaths.some(path => 
+      request.nextUrl.pathname.startsWith(path)
+    );
 
-  if (
-    !user &&
-    !request.nextUrl.pathname.startsWith("/") &&
-    !request.nextUrl.pathname.startsWith("/login") &&
-    !request.nextUrl.pathname.startsWith("/signup") &&
-    !request.nextUrl.pathname.startsWith("/auth") &&
-    !request.nextUrl.pathname.startsWith("/error")
-  ) {
-    // no user, potentially respond by redirecting the user to the login page
-    const url = request.nextUrl.clone();
-    url.pathname = "/login";
-    return NextResponse.redirect(url);
-  }
+    // Si es una ruta pública, continuar sin verificar autenticación
+    if (isPublicPath) {
+      return supabaseResponse;
+    }
 
-  // Redirigir administradores a la URL correcta si están usando un ID incorrecto
-  if (user && request.nextUrl.pathname.startsWith("/admin/")) {
-    const userType = user.user_metadata?.user_type;
-    if (userType === 'admin') {
-      const pathSegments = request.nextUrl.pathname.split('/');
-      const currentAdminId = pathSegments[2]; // /admin/[id]/...
-      
-      if (currentAdminId !== user.id) {
-        // Redirigir a la URL correcta con el ID del usuario autenticado
+    // Verificar autenticación solo para rutas protegidas
+    try {
+      const {
+        data: { user },
+        error
+      } = await supabase.auth.getUser();
+
+      if (error) {
+        console.error('Auth error:', error);
+        // Si hay error de autenticación, redirigir al login
         const url = request.nextUrl.clone();
-        url.pathname = `/admin/${user.id}${pathSegments.slice(3).join('/')}`;
+        url.pathname = "/login";
         return NextResponse.redirect(url);
       }
+
+      // Si no hay usuario y no es ruta pública, redirigir al login
+      if (!user && !isPublicPath) {
+        const url = request.nextUrl.clone();
+        url.pathname = "/login";
+        return NextResponse.redirect(url);
+      }
+
+      // Redirigir administradores a la URL correcta si están usando un ID incorrecto
+      if (user && request.nextUrl.pathname.startsWith("/admin/")) {
+        const userType = user.user_metadata?.user_type;
+        if (userType === 'admin') {
+          const pathSegments = request.nextUrl.pathname.split('/');
+          const currentAdminId = pathSegments[2]; // /admin/[id]/...
+          
+          if (currentAdminId !== user.id) {
+            // Redirigir a la URL correcta con el ID del usuario autenticado
+            const url = request.nextUrl.clone();
+            url.pathname = `/admin/${user.id}${pathSegments.slice(3).join('/')}`;
+            return NextResponse.redirect(url);
+          }
+        }
+      }
+
+    } catch (authError) {
+      console.error('Authentication check failed:', authError);
+      // En caso de error, permitir continuar para evitar bucles de redirección
     }
+
+    return supabaseResponse;
+
+  } catch (error) {
+    console.error('Middleware error:', error);
+    // En caso de error crítico, devolver una respuesta básica
+    return NextResponse.next({ request });
   }
-
-  // IMPORTANT: You *must* return the supabaseResponse object as it is.
-  // If you're creating a new response object with NextResponse.next() make sure to:
-  // 1. Pass the request in it, like so:
-  //    const myNewResponse = NextResponse.next({ request })
-  // 2. Copy over the cookies, like so:
-  //    myNewResponse.cookies.setAll(supabaseResponse.cookies.getAll())
-  // 3. Change the myNewResponse object to fit your needs, but avoid changing
-  //    the cookies!
-  // 4. Finally:
-  //    return myNewResponse
-  // If this is not done, you may be causing the browser and server to go out
-  // of sync and terminate the user's session prematurely!
-
-  return supabaseResponse;
 }

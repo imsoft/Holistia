@@ -29,13 +29,13 @@ const getNavigation = (userId: string) => [
 ];
 
 // Función para generar navegación dinámica basada en el estado del usuario
-const getUserNavigation = (user: Patient, userId: string) => {
+const getUserNavigation = (user: Patient, userId: string, isProfessional: boolean = false) => {
   const baseNavigation = [
     { name: "Mi perfil", href: `/patient/${userId}/explore/profile`, icon: User },
   ];
 
   // Agregar enlace profesional basado en el estado
-  if (user.type === "professional") {
+  if (user.type === "professional" || isProfessional) {
     baseNavigation.push({
       name: "Dashboard Profesional",
       href: `/professional/${userId}/dashboard`,
@@ -105,6 +105,16 @@ export default function UserLayout({
         if (userData.user) {
           const userMetadata = userData.user.user_metadata || {};
           
+          // Verificar si el usuario es profesional (tiene aplicación aprobada)
+          const { data: professionalApp } = await supabase
+            .from('professional_applications')
+            .select('status')
+            .eq('user_id', userData.user.id)
+            .eq('status', 'approved')
+            .single();
+          
+          const isProfessional = !!professionalApp;
+          
           // Formatear datos del usuario según la interface Patient
           const formattedUser: Patient = {
             id: userData.user.id,
@@ -115,7 +125,7 @@ export default function UserLayout({
             phone: userMetadata.phone || '',
             location: userMetadata.location || '',
             status: "active",
-            type: "patient",
+            type: isProfessional ? "professional" : "patient",
             joinDate: userData.user.created_at || new Date().toISOString(),
             lastLogin: userData.user.last_sign_in_at || new Date().toISOString(),
             appointments: 0,
@@ -159,7 +169,7 @@ export default function UserLayout({
 
   // Generar navegación dinámica basada en el estado del usuario
   const navigation = getNavigation(userId);
-  const userNavigation = user ? getUserNavigation(user, userId) : [];
+  const userNavigation = user ? getUserNavigation(user, userId, user.type === "professional") : [];
 
   // Función para determinar si un item está activo
   const isActive = (href: string) => {

@@ -24,6 +24,7 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 import { DashboardStats, Appointment } from "@/types";
 import { createClient } from "@/utils/supabase/client";
 import ProfilePhotoUploader from "@/components/ui/profile-photo-uploader";
+import ProfessionalProfileEditor from "@/components/ui/professional-profile-editor";
 
 
 
@@ -40,6 +41,7 @@ export default function ProfessionalDashboard() {
   const [profilePhoto, setProfilePhoto] = useState<string>("");
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -205,7 +207,7 @@ export default function ProfessionalDashboard() {
     };
 
     fetchData();
-  }, [userId, supabase]);
+  }, [userId, supabase, refreshKey]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -246,6 +248,11 @@ export default function ProfessionalDashboard() {
   const handleViewAppointment = (appointment: Appointment) => {
     setSelectedAppointment(appointment);
     setIsViewDialogOpen(true);
+  };
+
+  // Función para refrescar datos después de actualizar el perfil
+  const handleProfileUpdate = () => {
+    setRefreshKey(prev => prev + 1);
   };
 
   return (
@@ -301,7 +308,10 @@ export default function ProfessionalDashboard() {
             />
           </div>
           <div className="lg:col-span-2">
-            {/* Aquí podrías agregar más información del perfil si es necesario */}
+            <ProfessionalProfileEditor
+              professionalId={userId}
+              onProfileUpdate={handleProfileUpdate}
+            />
           </div>
         </div>
 

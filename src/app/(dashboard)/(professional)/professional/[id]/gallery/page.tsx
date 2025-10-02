@@ -59,6 +59,8 @@ export default function ProfessionalGalleryPage() {
       setLoading(true);
       setError(null);
 
+      console.log('Debug: professionalId from URL:', professionalId);
+
       // Primero verificar si el usuario está autenticado
       const { data: { user }, error: authError } = await supabase.auth.getUser();
       
@@ -66,16 +68,25 @@ export default function ProfessionalGalleryPage() {
         throw new Error('Debes estar autenticado para acceder a esta página');
       }
 
+      console.log('Debug: authenticated user ID:', user.id);
+      console.log('Debug: professionalId from URL:', professionalId);
+      console.log('Debug: IDs match:', user.id === professionalId);
+
       // Verificar si el usuario está intentando acceder a su propio perfil
       if (user.id !== professionalId) {
         throw new Error('Solo puedes acceder a tu propia galería de imágenes');
       }
+
+      console.log('Debug: Querying professional_applications for ID:', professionalId);
 
       const { data, error } = await supabase
         .from('professional_applications')
         .select('*')
         .eq('id', professionalId)
         .maybeSingle();
+
+      console.log('Debug: Query result - data:', data);
+      console.log('Debug: Query result - error:', error);
 
       if (error) {
         console.error('Supabase error details:', {

@@ -13,6 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowLeft, Save, Trash2 } from "lucide-react";
 import Link from "next/link";
+import { BlogImageUploader } from "@/components/ui/blog-image-uploader";
 
 export default function EditBlogPostPage({ 
   params 
@@ -32,6 +33,7 @@ export default function EditBlogPostPage({
     excerpt: "",
     content: "",
     status: "draft" as "draft" | "published",
+    featured_image: "",
   });
 
   const supabase = createClient();
@@ -71,6 +73,7 @@ export default function EditBlogPostPage({
         excerpt: data.excerpt || "",
         content: data.content,
         status: data.status,
+        featured_image: data.featured_image || "",
       });
     } catch (err) {
       console.error("Error:", err);
@@ -125,6 +128,7 @@ export default function EditBlogPostPage({
         published_at: formData.status === "published" && post.status === "draft" 
           ? new Date().toISOString() 
           : post.published_at,
+        featured_image: formData.featured_image || null,
       };
 
       const { error } = await supabase
@@ -327,6 +331,13 @@ export default function EditBlogPostPage({
             </div>
           </CardContent>
         </Card>
+
+        <BlogImageUploader
+          blogPostId={params.postId}
+          onImageUploaded={(imageUrl) => setFormData(prev => ({ ...prev, featured_image: imageUrl }))}
+          currentImageUrl={formData.featured_image}
+          onImageRemoved={() => setFormData(prev => ({ ...prev, featured_image: "" }))}
+        />
 
         {error && (
           <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-lg">

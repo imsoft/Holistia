@@ -12,12 +12,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowLeft, Save } from "lucide-react";
 import Link from "next/link";
+import { BlogImageUploader } from "@/components/ui/blog-image-uploader";
 
 export default function NewBlogPostPage({ params }: { params: { id: string } }) {
   const { user } = useAuth();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [tempPostId] = useState(() => crypto.randomUUID()); // ID temporal para el storage
   
   const [formData, setFormData] = useState({
     title: "",
@@ -25,6 +27,7 @@ export default function NewBlogPostPage({ params }: { params: { id: string } }) 
     excerpt: "",
     content: "",
     status: "draft" as "draft" | "published",
+    featured_image: "",
   });
 
   const supabase = createClient();
@@ -73,6 +76,7 @@ export default function NewBlogPostPage({ params }: { params: { id: string } }) 
         status: formData.status,
         author_id: user.id,
         published_at: formData.status === "published" ? new Date().toISOString() : null,
+        featured_image: formData.featured_image || null,
       };
 
       const { data, error } = await supabase
@@ -211,6 +215,13 @@ export default function NewBlogPostPage({ params }: { params: { id: string } }) 
             </div>
           </CardContent>
         </Card>
+
+        <BlogImageUploader
+          blogPostId={tempPostId}
+          onImageUploaded={(imageUrl) => setFormData(prev => ({ ...prev, featured_image: imageUrl }))}
+          currentImageUrl={formData.featured_image}
+          onImageRemoved={() => setFormData(prev => ({ ...prev, featured_image: "" }))}
+        />
 
         {error && (
           <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-lg">

@@ -23,6 +23,7 @@ import {
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { DashboardStats, Appointment } from "@/types";
 import { createClient } from "@/utils/supabase/client";
+import ProfilePhotoUploader from "@/components/ui/profile-photo-uploader";
 
 
 
@@ -36,6 +37,7 @@ export default function ProfessionalDashboard() {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [stats, setStats] = useState<DashboardStats[]>([]);
   const [professionalName, setProfessionalName] = useState<string>("");
+  const [profilePhoto, setProfilePhoto] = useState<string>("");
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
 
@@ -45,7 +47,7 @@ export default function ProfessionalDashboard() {
         // Obtener la aplicación profesional del usuario
         const { data: professionalApp, error: profError } = await supabase
           .from('professional_applications')
-          .select('id, first_name, last_name')
+          .select('id, first_name, last_name, profile_photo')
           .eq('user_id', userId)
           .eq('status', 'approved')
           .single();
@@ -57,6 +59,7 @@ export default function ProfessionalDashboard() {
 
         if (professionalApp) {
           setProfessionalName(`${professionalApp.first_name} ${professionalApp.last_name}`);
+          setProfilePhoto(professionalApp.profile_photo || '');
           
           // Obtener citas del profesional para hoy
           const today = new Date().toISOString().split('T')[0];
@@ -285,6 +288,21 @@ export default function ProfessionalDashboard() {
               </CardContent>
             </Card>
           ))}
+        </div>
+
+        {/* Foto de Perfil */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-1">
+            <ProfilePhotoUploader
+              professionalId={userId}
+              currentPhoto={profilePhoto}
+              professionalName={professionalName}
+              onPhotoUpdate={(newPhotoUrl) => setProfilePhoto(newPhotoUrl)}
+            />
+          </div>
+          <div className="lg:col-span-2">
+            {/* Aquí podrías agregar más información del perfil si es necesario */}
+          </div>
         </div>
 
         {/* Próximas Citas */}

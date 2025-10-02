@@ -38,8 +38,8 @@ CREATE POLICY "Anyone can read published blog posts"
   TO authenticated, anon
   USING (status = 'published');
 
--- Policy: Only admins can read all posts (including drafts)
-CREATE POLICY "Admins can read all blog posts"
+-- Policy: Only owners can read all posts (including drafts)
+CREATE POLICY "Owners can read all blog posts"
   ON public.blog_posts
   FOR SELECT
   TO authenticated
@@ -47,12 +47,12 @@ CREATE POLICY "Admins can read all blog posts"
     EXISTS (
       SELECT 1 FROM public.profiles
       WHERE id = auth.uid()
-      AND role = 'admin'
+      AND role = 'owner'
     )
   );
 
--- Policy: Only admins can insert blog posts
-CREATE POLICY "Admins can create blog posts"
+-- Policy: Only owners can insert blog posts
+CREATE POLICY "Owners can create blog posts"
   ON public.blog_posts
   FOR INSERT
   TO authenticated
@@ -61,12 +61,12 @@ CREATE POLICY "Admins can create blog posts"
     AND EXISTS (
       SELECT 1 FROM public.profiles
       WHERE id = auth.uid()
-      AND role = 'admin'
+      AND role = 'owner'
     )
   );
 
--- Policy: Only admins can update blog posts
-CREATE POLICY "Admins can update blog posts"
+-- Policy: Only owners can update blog posts
+CREATE POLICY "Owners can update blog posts"
   ON public.blog_posts
   FOR UPDATE
   TO authenticated
@@ -75,7 +75,7 @@ CREATE POLICY "Admins can update blog posts"
     AND EXISTS (
       SELECT 1 FROM public.profiles
       WHERE id = auth.uid()
-      AND role = 'admin'
+      AND role = 'owner'
     )
   )
   WITH CHECK (
@@ -83,12 +83,12 @@ CREATE POLICY "Admins can update blog posts"
     AND EXISTS (
       SELECT 1 FROM public.profiles
       WHERE id = auth.uid()
-      AND role = 'admin'
+      AND role = 'owner'
     )
   );
 
--- Policy: Only admins can delete blog posts
-CREATE POLICY "Admins can delete blog posts"
+-- Policy: Only owners can delete blog posts
+CREATE POLICY "Owners can delete blog posts"
   ON public.blog_posts
   FOR DELETE
   TO authenticated
@@ -97,6 +97,6 @@ CREATE POLICY "Admins can delete blog posts"
     AND EXISTS (
       SELECT 1 FROM public.profiles
       WHERE id = auth.uid()
-      AND role = 'admin'
+      AND role = 'owner'
     )
   );

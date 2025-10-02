@@ -10,8 +10,8 @@ CREATE POLICY "Anyone can read blog images"
   TO authenticated, anon
   USING (bucket_id = 'blog-images');
 
--- Policy: Only admins can upload blog images
-CREATE POLICY "Admins can upload blog images"
+-- Policy: Only owners can upload blog images
+CREATE POLICY "Owners can upload blog images"
   ON storage.objects
   FOR INSERT
   TO authenticated
@@ -20,12 +20,12 @@ CREATE POLICY "Admins can upload blog images"
     AND EXISTS (
       SELECT 1 FROM public.profiles
       WHERE id = auth.uid()
-      AND role = 'admin'
+      AND role = 'owner'
     )
   );
 
--- Policy: Only admins can update blog images
-CREATE POLICY "Admins can update blog images"
+-- Policy: Only owners can update blog images
+CREATE POLICY "Owners can update blog images"
   ON storage.objects
   FOR UPDATE
   TO authenticated
@@ -34,7 +34,7 @@ CREATE POLICY "Admins can update blog images"
     AND EXISTS (
       SELECT 1 FROM public.profiles
       WHERE id = auth.uid()
-      AND role = 'admin'
+      AND role = 'owner'
     )
   )
   WITH CHECK (
@@ -42,12 +42,12 @@ CREATE POLICY "Admins can update blog images"
     AND EXISTS (
       SELECT 1 FROM public.profiles
       WHERE id = auth.uid()
-      AND role = 'admin'
+      AND role = 'owner'
     )
   );
 
--- Policy: Only admins can delete blog images
-CREATE POLICY "Admins can delete blog images"
+-- Policy: Only owners can delete blog images
+CREATE POLICY "Owners can delete blog images"
   ON storage.objects
   FOR DELETE
   TO authenticated
@@ -56,6 +56,6 @@ CREATE POLICY "Admins can delete blog images"
     AND EXISTS (
       SELECT 1 FROM public.profiles
       WHERE id = auth.uid()
-      AND role = 'admin'
+      AND role = 'owner'
     )
   );

@@ -217,7 +217,7 @@ export const Footer = () => {
             ))}
           </div>
           <p className="mt-8 text-sm/6 text-muted-foreground md:order-1 md:mt-0">
-            &copy; 2024 Your Company, Inc. All rights reserved.
+            &copy; {new Date().getFullYear()} Holistia. Todos los derechos reservados.
           </p>
         </div>
       </div>

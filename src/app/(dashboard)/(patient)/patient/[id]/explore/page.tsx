@@ -2,8 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
-import Link from "next/link";
-import { Brain, Sparkles, Activity, Users, Apple } from "lucide-react";
+import { Brain, Sparkles, Activity, Users, Apple, X } from "lucide-react";
 import { Filters } from "@/components/ui/filters";
 import { ProfessionalCard } from "@/components/ui/professional-card";
 import { createClient } from "@/utils/supabase/client";
@@ -41,29 +40,34 @@ interface Professional {
 
 const categories = [
   {
+    id: "professionals",
     name: "Salud mental",
     icon: Brain,
-    href: "/mental-health",
+    description: "Profesionales de salud mental",
   },
   {
+    id: "spirituality",
     name: "Espiritualidad",
     icon: Sparkles,
-    href: "/spirituality",
+    description: "Guías espirituales y terapeutas holísticos",
   },
   {
+    id: "physical-activity",
     name: "Actividad física",
     icon: Activity,
-    href: "/physical-activity",
+    description: "Entrenadores y terapeutas físicos",
   },
   {
+    id: "social",
     name: "Social",
     icon: Users,
-    href: "/social",
+    description: "Especialistas en desarrollo social",
   },
   {
+    id: "nutrition",
     name: "Alimentación",
     icon: Apple,
-    href: "/nutrition",
+    description: "Nutriólogos y especialistas en alimentación",
   },
 ];
 
@@ -73,6 +77,7 @@ const HomeUserPage = () => {
   const [professionals, setProfessionals] = useState<Professional[]>([]);
   const [filteredProfessionals, setFilteredProfessionals] = useState<Professional[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const supabase = createClient();
 
   // Obtener profesionales aprobados desde la base de datos
@@ -104,10 +109,85 @@ const HomeUserPage = () => {
     getProfessionals();
   }, [supabase]);
 
+  const handleCategoryToggle = (categoryId: string) => {
+    setSelectedCategories(prev => {
+      const newCategories = prev.includes(categoryId)
+        ? prev.filter(id => id !== categoryId)
+        : [...prev, categoryId];
+      
+      // Aplicar filtros inmediatamente cuando se selecciona una categoría
+      applyFilters(newCategories);
+      return newCategories;
+    });
+  };
+
+  const applyFilters = (categoryIds: string[]) => {
+    let filtered = [...professionals];
+
+    // Si no hay categorías seleccionadas, mostrar todos
+    if (categoryIds.length === 0) {
+      setFilteredProfessionals(filtered);
+      return;
+    }
+
+    // Filtrar por categorías seleccionadas
+    filtered = filtered.filter(professional => {
+      return categoryIds.some(categoryId => {
+        // Mapear categorías a áreas de bienestar
+        const categoryMap: Record<string, string[]> = {
+          'professionals': ['Salud mental'],
+          'spirituality': ['Espiritualidad'],
+          'physical-activity': ['Actividad física'],
+          'social': ['Social'],
+          'nutrition': ['Alimentación']
+        };
+        
+        const mappedAreas = categoryMap[categoryId] || [];
+        
+        // Si es 'professionals', mostrar todos los profesionales de salud mental
+        if (categoryId === 'professionals') {
+          return true; // Todos los profesionales en la tabla son de salud mental
+        }
+        
+        // Para otras categorías, verificar si el profesional tiene esas áreas de bienestar
+        return mappedAreas.length > 0 && 
+          professional.wellness_areas && 
+          professional.wellness_areas.some(area => mappedAreas.includes(area));
+      });
+    });
+
+    setFilteredProfessionals(filtered);
+  };
+
   const handleFilterChange = (filters: Record<string, string[]>) => {
     console.log("Filtros aplicados:", filters);
     
     let filtered = [...professionals];
+
+    // Aplicar filtros de categorías si están seleccionadas
+    if (selectedCategories.length > 0) {
+      filtered = filtered.filter(professional => {
+        return selectedCategories.some(categoryId => {
+          const categoryMap: Record<string, string[]> = {
+            'professionals': ['Salud mental'],
+            'spirituality': ['Espiritualidad'],
+            'physical-activity': ['Actividad física'],
+            'social': ['Social'],
+            'nutrition': ['Alimentación']
+          };
+          
+          const mappedAreas = categoryMap[categoryId] || [];
+          
+          if (categoryId === 'professionals') {
+            return true;
+          }
+          
+          return mappedAreas.length > 0 && 
+            professional.wellness_areas && 
+            professional.wellness_areas.some(area => mappedAreas.includes(area));
+        });
+      });
+    }
 
     // Filtrar por especialidad (specialty)
     if (filters.specialty && filters.specialty.length > 0 && !filters.specialty.includes('all')) {
@@ -251,22 +331,78 @@ const HomeUserPage = () => {
 
         {/* Categories */}
         <div className="mb-8">
+          <div className="text-center mb-6">
+            <h3 className="text-lg font-semibold text-foreground mb-2">Filtrar por categorías</h3>
+            <p className="text-sm text-muted-foreground">Selecciona una o más categorías para filtrar profesionales</p>
+          </div>
           <div className="flex flex-wrap gap-4 justify-center">
             {categories.map((category) => (
-              <Link
-                key={category.name}
-                href={category.href}
-                className="group flex flex-col items-center p-4 bg-card rounded-xl border border-border hover:border-primary/50 hover:shadow-md transition-all duration-200 min-w-[100px]"
+              <button
+                key={category.id}
+                onClick={() => handleCategoryToggle(category.id)}
+                className={`group flex flex-col items-center p-4 rounded-xl border transition-all duration-200 min-w-[120px] ${
+                  selectedCategories.includes(category.id)
+                    ? "bg-primary text-primary-foreground border-primary shadow-md"
+                    : "bg-card border-border hover:border-primary/50 hover:shadow-md"
+                }`}
               >
-                <div className="mb-2 group-hover:scale-110 transition-transform duration-200">
-                  <category.icon className="h-8 w-8 text-primary" />
+                <div className={`mb-2 transition-transform duration-200 ${
+                  selectedCategories.includes(category.id) 
+                    ? "scale-110" 
+                    : "group-hover:scale-110"
+                }`}>
+                  <category.icon className={`h-8 w-8 ${
+                    selectedCategories.includes(category.id)
+                      ? "text-primary-foreground"
+                      : "text-primary"
+                  }`} />
                 </div>
-                <span className="text-sm font-medium text-foreground group-hover:text-primary transition-colors duration-200">
+                <span className={`text-sm font-medium transition-colors duration-200 ${
+                  selectedCategories.includes(category.id)
+                    ? "text-primary-foreground"
+                    : "text-foreground group-hover:text-primary"
+                }`}>
                   {category.name}
                 </span>
-              </Link>
+                <span className={`text-xs mt-1 transition-colors duration-200 ${
+                  selectedCategories.includes(category.id)
+                    ? "text-primary-foreground/80"
+                    : "text-muted-foreground"
+                }`}>
+                  {category.description}
+                </span>
+              </button>
             ))}
           </div>
+          
+          {/* Mostrar categorías seleccionadas */}
+          {selectedCategories.length > 0 && (
+            <div className="mt-4 text-center">
+              <div className="inline-flex flex-wrap gap-2 justify-center">
+                {selectedCategories.map((categoryId) => {
+                  const category = categories.find(c => c.id === categoryId);
+                  return (
+                    <span
+                      key={categoryId}
+                      className="inline-flex items-center gap-1 px-3 py-1 bg-primary text-primary-foreground rounded-full text-sm"
+                    >
+                      {category && <category.icon className="h-3 w-3" />}
+                      {category?.name}
+                      <button
+                        onClick={() => handleCategoryToggle(categoryId)}
+                        className="ml-1 hover:bg-primary-foreground/20 rounded-full p-0.5"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </span>
+                  );
+                })}
+              </div>
+              <p className="text-xs text-muted-foreground mt-2">
+                {selectedCategories.length} categoría{selectedCategories.length !== 1 ? 's' : ''} seleccionada{selectedCategories.length !== 1 ? 's' : ''}
+              </p>
+            </div>
+          )}
         </div>
 
         <div className="lg:grid lg:grid-cols-3 lg:gap-x-8 xl:grid-cols-4">

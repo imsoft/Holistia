@@ -66,12 +66,27 @@ export default function ImageGalleryManager({
     setUploadError(null);
 
     try {
+      // Verificar autenticación antes de subir
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      
+      if (authError || !user) {
+        throw new Error('Debes estar autenticado para subir imágenes');
+      }
+
+      console.log('Debug upload:', {
+        userId: user.id,
+        professionalId,
+        match: user.id === professionalId
+      });
+
       // Generar nombre único para la imagen
       const fileExt = file.name.split('.').pop();
       const fileName = `gallery-${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
       const filePath = `${professionalId}/${fileName}`;
 
-      // Subir imagen a Supabase Storage
+      console.log('Uploading to path:', filePath);
+
+      // Subir imagen a Supabase Storage (usando bucket avatars que tiene políticas completas)
       const { error: uploadError } = await supabase.storage
         .from('avatars')
         .upload(filePath, file, {

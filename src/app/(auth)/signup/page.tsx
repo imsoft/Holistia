@@ -20,6 +20,7 @@ import { useForm } from "react-hook-form";
 import { signup } from "@/actions/auth/actions";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { normalizeName } from "@/lib/text-utils";
 
 const formSchema = z.object({
   firstName: z.string().min(2, "El nombre debe tener al menos 2 caracteres"),
@@ -50,9 +51,9 @@ const RegisterPage = () => {
 
     try {
       const formData = new FormData();
-      formData.append("firstName", values.firstName);
-      formData.append("lastName", values.lastName);
-      formData.append("email", values.email);
+      formData.append("firstName", normalizeName(values.firstName));
+      formData.append("lastName", normalizeName(values.lastName));
+      formData.append("email", values.email.toLowerCase());
       formData.append("password", values.password);
 
       const result = await signup(formData);
@@ -120,7 +121,14 @@ const RegisterPage = () => {
                       <FormItem>
                         <FormLabel>Nombre</FormLabel>
                         <FormControl>
-                          <Input type="text" {...field} />
+                          <Input 
+                            type="text" 
+                            {...field} 
+                            onChange={(e) => {
+                              const normalized = normalizeName(e.target.value);
+                              field.onChange(normalized);
+                            }}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -134,7 +142,14 @@ const RegisterPage = () => {
                       <FormItem>
                         <FormLabel>Apellido</FormLabel>
                         <FormControl>
-                          <Input type="text" {...field} />
+                          <Input 
+                            type="text" 
+                            {...field} 
+                            onChange={(e) => {
+                              const normalized = normalizeName(e.target.value);
+                              field.onChange(normalized);
+                            }}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -152,6 +167,10 @@ const RegisterPage = () => {
                         <Input
                           type="email"
                           {...field}
+                          onChange={(e) => {
+                            const normalized = e.target.value.toLowerCase();
+                            field.onChange(normalized);
+                          }}
                         />
                       </FormControl>
                       <FormMessage />

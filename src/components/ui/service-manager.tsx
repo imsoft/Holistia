@@ -38,6 +38,7 @@ import {
 import { Service, ServiceFormData } from "@/types/service";
 import { createClient } from "@/utils/supabase/client";
 import { toast } from "sonner";
+import { toTitleCase } from "@/lib/text-utils";
 
 interface ServiceManagerProps {
   professionalId: string;
@@ -277,7 +278,7 @@ export function ServiceManager({ professionalId, userId }: ServiceManagerProps) 
                     id="name"
                     value={formData.name}
                     onChange={(e) =>
-                      setFormData({ ...formData, name: e.target.value })
+                      setFormData({ ...formData, name: toTitleCase(e.target.value) })
                     }
                     placeholder="Ej: Consulta de Psicología"
                     required

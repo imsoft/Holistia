@@ -26,6 +26,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { createClient } from "@/utils/supabase/client";
 import Link from "next/link";
+import { normalizeName, normalizeProfession, normalizeAddress, normalizeLocation } from "@/lib/text-utils";
 
 interface Service {
   name: string;
@@ -149,7 +150,38 @@ export default function BecomeProfessionalPage() {
   }, [userId, supabase]);
 
   const handleInputChange = (field: string, value: string | boolean) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
+    let normalizedValue = value;
+    
+    // Aplicar normalización según el tipo de campo
+    if (typeof value === 'string') {
+      switch (field) {
+        case 'first_name':
+        case 'last_name':
+          normalizedValue = normalizeName(value);
+          break;
+        case 'email':
+          normalizedValue = value.toLowerCase();
+          break;
+        case 'profession':
+          normalizedValue = normalizeProfession(value);
+          break;
+        case 'address':
+          normalizedValue = normalizeAddress(value);
+          break;
+        case 'city':
+        case 'state':
+        case 'country':
+          normalizedValue = normalizeLocation(value);
+          break;
+        case 'biography':
+          normalizedValue = value; // Mantener como está para biografías
+          break;
+        default:
+          normalizedValue = value;
+      }
+    }
+    
+    setFormData((prev) => ({ ...prev, [field]: normalizedValue }));
     if (errors[field]) {
       setErrors((prev) => ({ ...prev, [field]: "" }));
     }

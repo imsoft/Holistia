@@ -102,22 +102,23 @@ export const Footer = () => {
         <div className="mx-auto max-w-2xl text-center">
           <hgroup>
             <h2 className="text-base/7 font-semibold text-primary">
-              Get started
+              Comienza tu bienestar
             </h2>
             <p className="mt-2 text-4xl font-semibold tracking-tight text-balance text-foreground sm:text-5xl">
-              Boost your productivity. Start using our app today.
+              Mejora tu salud integral. Conecta con profesionales hoy.
             </p>
           </hgroup>
           <p className="mx-auto mt-6 max-w-xl text-lg/8 text-pretty text-muted-foreground">
-            Incididunt sint fugiat pariatur cupidatat consectetur sit cillum
-            anim id veniam aliqua proident excepteur commodo do ea.
+            Únete a miles de personas que han transformado su bienestar con Holistia. 
+            Encuentra el profesional de la salud perfecto para ti y comienza tu 
+            camino hacia una vida más saludable y equilibrada.
           </p>
           <div className="mt-8 flex justify-center">
             <Link
-              href="#"
+              href="/signup"
               className="rounded-md bg-primary px-3.5 py-2.5 text-sm font-semibold text-primary-foreground shadow-xs hover:bg-primary/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
             >
-              Get started
+              Comenzar ahora
             </Link>
           </div>
         </div>

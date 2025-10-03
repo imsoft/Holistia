@@ -3,6 +3,7 @@
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
+import { Heading } from '@tiptap/extension-heading';
 import { Button } from '@/components/ui/button';
 import { 
   Bold, 
@@ -36,7 +37,12 @@ export function RichTextEditor({
 
   const editor = useEditor({
     extensions: [
-      StarterKit,
+      StarterKit.configure({
+        heading: false, // Disable default heading to use custom one
+      }),
+      Heading.configure({
+        levels: [1, 2, 3],
+      }),
       Placeholder.configure({
         placeholder,
       }),

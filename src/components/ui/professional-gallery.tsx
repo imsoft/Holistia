@@ -154,13 +154,13 @@ export default function ProfessionalGallery({
               )}
 
               {/* Imagen principal */}
-              <div className="relative w-full h-[70vh] flex items-center justify-center px-2">
+              <div className="relative w-full h-[70vh] flex items-center justify-center px-2 overflow-hidden">
                 <Image
                   src={images[selectedImageIndex]}
                   alt={`${professionalName} - Imagen ${selectedImageIndex + 1}`}
                   width={2000}
                   height={1400}
-                  className="max-w-none max-h-full w-auto h-auto object-contain"
+                  className="max-w-full max-h-full w-full h-full object-contain"
                   priority
                 />
               </div>

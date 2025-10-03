@@ -92,7 +92,7 @@ export default function PaymentButton({
           <span className="font-medium">${serviceAmount.toLocaleString('es-MX', { minimumFractionDigits: 2 })}</span>
         </div>
         <div className="flex justify-between text-sm">
-          <span className="text-muted-foreground">Comisión de reserva (15%):</span>
+          <span className="text-muted-foreground">Apartado (15%):</span>
           <span className="font-semibold text-primary">${commissionAmount.toLocaleString('es-MX', { minimumFractionDigits: 2 })}</span>
         </div>
         <div className="pt-2 border-t border-border">

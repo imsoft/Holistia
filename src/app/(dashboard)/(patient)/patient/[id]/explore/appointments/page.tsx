@@ -109,11 +109,20 @@ export default function AppointmentsPage() {
 
         console.log('Authenticated user:', user.id, 'Looking for userId:', userId);
 
+        // Verificar que el usuario autenticado coincida con el parámetro de la URL
+        if (user.id !== userId) {
+          console.error('User ID mismatch. Authenticated:', user.id, 'URL param:', userId);
+          setError('No tienes permisos para ver estas citas.');
+          return;
+        }
+
+        console.log('✅ User ID matches, proceeding to fetch appointments...');
+
         // Consulta a la tabla appointments
         const { data: appointmentsData, error } = await supabase
           .from('appointments')
           .select('*')
-          .eq('patient_id', userId)
+          .eq('patient_id', user.id)  // Usar el ID del usuario autenticado, no el parámetro
           .order('appointment_date', { ascending: true })
           .order('appointment_time', { ascending: true });
 
@@ -199,11 +208,18 @@ export default function AppointmentsPage() {
       
       console.log('Cancelling appointment:', appointmentId);
       
+      // Obtener el usuario autenticado para verificar permisos
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        alert('Usuario no autenticado.');
+        return;
+      }
+
       const { error } = await supabase
         .from('appointments')
         .update({ status: 'cancelled' })
         .eq('id', appointmentId)
-        .eq('patient_id', userId);
+        .eq('patient_id', user.id);
 
       if (error) {
         console.error('Error cancelling appointment:', {

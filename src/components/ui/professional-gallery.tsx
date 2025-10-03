@@ -110,7 +110,7 @@ export default function ProfessionalGallery({
       {/* Modal de imagen ampliada */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent 
-          className="max-w-4xl max-h-[90vh] p-0 bg-black/95 border-none"
+          className="max-w-7xl max-h-[95vh] p-0 bg-black/95 border-none"
           onKeyDown={handleKeyDown}
         >
           <DialogHeader className="sr-only">
@@ -154,12 +154,12 @@ export default function ProfessionalGallery({
               )}
 
               {/* Imagen principal */}
-              <div className="relative w-full h-[70vh] flex items-center justify-center">
+              <div className="relative w-full h-[80vh] flex items-center justify-center">
                 <Image
                   src={images[selectedImageIndex]}
                   alt={`${professionalName} - Imagen ${selectedImageIndex + 1}`}
-                  width={800}
-                  height={600}
+                  width={1200}
+                  height={900}
                   className="max-w-full max-h-full object-contain"
                   priority
                 />

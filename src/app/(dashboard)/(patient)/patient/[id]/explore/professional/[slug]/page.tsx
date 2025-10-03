@@ -30,6 +30,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import PaymentButton from "@/components/ui/payment-button";
 import {
   Select,
   SelectContent,
@@ -90,6 +91,8 @@ export default function ProfessionalProfilePage() {
     time: string;
     professional: string;
     cost: number;
+    appointmentId: string;
+    professionalId: string;
   } | null>(null);
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedTime, setSelectedTime] = useState("");
@@ -387,7 +390,7 @@ export default function ProfessionalProfilePage() {
         : parseFloat(service.onlineCost || '0');
       
       // Crear la cita en la base de datos
-      const { error } = await supabase
+      const { data: newAppointment, error } = await supabase
         .from('appointments')
         .insert({
           patient_id: currentUser.id,
@@ -419,12 +422,14 @@ export default function ProfessionalProfilePage() {
         return;
       }
       
-      // Preparar datos para el modal de éxito
+      // Preparar datos para el modal de éxito (ahora incluye appointmentId)
       setSuccessData({
         date: selectedDate,
         time: selectedTime,
         professional: `${professional.first_name} ${professional.last_name}`,
-        cost: cost
+        cost: cost,
+        appointmentId: newAppointment.id,
+        professionalId: professional.id
       });
       
       // Resetear formulario
@@ -997,11 +1002,31 @@ export default function ProfessionalProfilePage() {
                 </div>
               </div>
               
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <p className="text-sm text-blue-800 text-center">
-                  📧 Te enviaremos un correo de confirmación y el profesional revisará tu solicitud pronto.
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                <p className="text-sm text-blue-800 text-center mb-2">
+                  💳 <strong>Paso final:</strong> Paga la comisión de reserva para confirmar tu cita
+                </p>
+                <p className="text-xs text-blue-700 text-center">
+                  El monto total de la consulta lo pagarás directamente al profesional.
                 </p>
               </div>
+
+              {/* Payment Button */}
+              <PaymentButton
+                appointmentId={successData.appointmentId}
+                serviceAmount={successData.cost}
+                professionalId={successData.professionalId}
+                description={`Consulta con ${successData.professional}`}
+                onSuccess={() => {
+                  alert('¡Pago exitoso! Tu cita ha sido confirmada.');
+                  window.location.href = `/patient/${patientId}/explore/appointments`;
+                }}
+                onError={(error) => {
+                  setErrorMessage(`Error en el pago: ${error}`);
+                  setIsErrorModalOpen(true);
+                  setIsSuccessModalOpen(false);
+                }}
+              />
             </div>
           )}
           
@@ -1010,15 +1035,7 @@ export default function ProfessionalProfilePage() {
               variant="outline"
               onClick={() => setIsSuccessModalOpen(false)}
             >
-              Cerrar
-            </Button>
-            <Button
-              onClick={() => {
-                setIsSuccessModalOpen(false);
-                window.location.href = `/patient/${patientId}/explore/appointments`;
-              }}
-            >
-              Ver Mis Citas
+              Cancelar
             </Button>
           </div>
         </DialogContent>

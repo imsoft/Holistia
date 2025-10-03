@@ -15,8 +15,8 @@ import Link from "next/link";
 const navigation = [
   { name: "Inicio", href: "/" },
   { name: "Blog", href: "/blog" },
-  { name: "Servicios", href: "#" },
-  { name: "Contacto", href: "#" },
+  { name: "Historia", href: "/history" },
+  { name: "Contacto", href: "/contact" },
 ];
 
 export const Navbar = () => {

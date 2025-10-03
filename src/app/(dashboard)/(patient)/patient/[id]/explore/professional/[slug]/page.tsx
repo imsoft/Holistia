@@ -15,6 +15,7 @@ import {
   Award,
   CheckCircle,
   XCircle,
+  CreditCard,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import MapboxMap from "@/components/ui/mapbox-map";
@@ -91,8 +92,15 @@ export default function ProfessionalProfilePage() {
     time: string;
     professional: string;
     cost: number;
-    appointmentId: string;
+  } | null>(null);
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const [paymentData, setPaymentData] = useState<{
+    date: string;
+    time: string;
+    service: string;
+    cost: number;
     professionalId: string;
+    professionalName: string;
   } | null>(null);
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedTime, setSelectedTime] = useState("");
@@ -119,9 +127,14 @@ export default function ProfessionalProfilePage() {
         // Obtener usuario actual
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
+          // Obtener nombre completo del usuario
+          const firstName = user.user_metadata?.first_name || '';
+          const lastName = user.user_metadata?.last_name || '';
+          const fullName = `${firstName} ${lastName}`.trim();
+          
           const userData: CurrentUser = {
             id: user.id,
-            name: `${user.user_metadata?.first_name || ''} ${user.user_metadata?.last_name || ''}`.trim(),
+            name: fullName || user.email?.split('@')[0] || 'Usuario',
             email: user.email || '',
             phone: user.user_metadata?.phone || ''
           };
@@ -389,65 +402,23 @@ export default function ProfessionalProfilePage() {
         ? parseFloat(service.presencialCost || '0')
         : parseFloat(service.onlineCost || '0');
       
-      // Crear la cita en la base de datos
-      const { data: newAppointment, error } = await supabase
-        .from('appointments')
-        .insert({
-          patient_id: currentUser.id,
-          professional_id: professional.id,
-          appointment_date: selectedDate,
-          appointment_time: selectedTime,
-          duration_minutes: 50,
-          appointment_type: selectedService,
-          status: 'pending',
-          cost: cost,
-          location: selectedService === 'online' ? 'Consulta en línea' : professional.address,
-          notes: appointmentForm.notes || null
-        })
-        .select()
-        .single();
-
-      if (error) {
-        console.error('Error creating appointment:', error);
-        
-        // Mensajes de error más específicos
-        if (error.code === '23503') {
-          setErrorMessage("Error: El profesional o usuario no es válido.");
-        } else if (error.code === '42501') {
-          setErrorMessage("No tienes permisos para crear citas. Por favor, verifica tu sesión.");
-        } else {
-          setErrorMessage(`Error al crear la cita: ${error.message}`);
-        }
-        setIsErrorModalOpen(true);
-        return;
-      }
-      
-      // Preparar datos para el modal de éxito (ahora incluye appointmentId)
-      setSuccessData({
+      // NO crear la cita todavía - primero preparar datos para el pago
+      setPaymentData({
         date: selectedDate,
         time: selectedTime,
-        professional: `${professional.first_name} ${professional.last_name}`,
+        service: selectedService,
         cost: cost,
-        appointmentId: newAppointment.id,
-        professionalId: professional.id
+        professionalId: professional.id,
+        professionalName: `${professional.first_name} ${professional.last_name}`
       });
       
-      // Resetear formulario
-      setSelectedDate("");
-      setSelectedTime("");
-      setSelectedService("");
-      setAppointmentForm(prev => ({ 
-        ...prev,
-        notes: "" 
-      }));
+      // Cerrar modal de booking y abrir modal de pago
       setIsBookingModalOpen(false);
-      
-      // Mostrar modal de éxito
-      setIsSuccessModalOpen(true);
+      setIsPaymentModalOpen(true);
       
     } catch (error) {
-      console.error('Error creating appointment:', error);
-      setErrorMessage("Error inesperado al crear la cita. Por favor, inténtalo de nuevo.");
+      console.error('Error preparing payment:', error);
+      setErrorMessage("Error inesperado. Por favor, inténtalo de nuevo.");
       setIsErrorModalOpen(true);
     } finally {
       setBookingLoading(false);
@@ -652,7 +623,7 @@ export default function ProfessionalProfilePage() {
                       const hasOnline = service.onlineCost && service.onlineCost !== '';
                       
                       return (
-                        <div key={index}>
+                        <div key={index} className="flex flex-col gap-2">
                           {hasPresencial && (
                             <div className="flex justify-between items-center p-3 rounded-xl bg-gradient-to-r from-primary/5 to-primary/10 border border-primary/20">
                               <div className="flex items-center gap-2">
@@ -719,7 +690,7 @@ export default function ProfessionalProfilePage() {
                     >
                       <DialogHeader>
                         <DialogTitle className="text-2xl font-bold text-foreground">
-                          Reservar cita con {professional.first_name} {professional.last_name}
+                          Reservar cita con {professional?.first_name} {professional?.last_name}
                         </DialogTitle>
                       </DialogHeader>
                         
@@ -944,21 +915,21 @@ export default function ProfessionalProfilePage() {
         </div>
       </div>
 
-      {/* Modal de Éxito */}
-      <Dialog open={isSuccessModalOpen} onOpenChange={setIsSuccessModalOpen}>
+      {/* Modal de Pago */}
+      <Dialog open={isPaymentModalOpen} onOpenChange={setIsPaymentModalOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <div className="flex items-center justify-center mb-4">
-              <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center">
-                <CheckCircle className="h-10 w-10 text-green-600" />
+              <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
+                <CreditCard className="h-10 w-10 text-primary" />
               </div>
             </div>
             <DialogTitle className="text-center text-2xl">
-              ¡Cita Reservada Exitosamente!
+              Confirmar Reserva
             </DialogTitle>
           </DialogHeader>
           
-          {successData && (
+          {paymentData && (
             <div className="space-y-4 py-4">
               <div className="bg-gradient-to-r from-primary/5 to-primary/10 rounded-lg p-4 space-y-3 border border-primary/20">
                 <div className="flex items-center justify-between">
@@ -967,7 +938,7 @@ export default function ProfessionalProfilePage() {
                     Fecha:
                   </span>
                   <span className="text-foreground font-semibold">
-                    {new Date(successData.date).toLocaleDateString('es-ES', {
+                    {new Date(paymentData.date).toLocaleDateString('es-ES', {
                       weekday: 'long',
                       year: 'numeric',
                       month: 'long',
@@ -981,7 +952,7 @@ export default function ProfessionalProfilePage() {
                     <Clock className="h-4 w-4" />
                     Hora:
                   </span>
-                  <span className="text-foreground font-semibold">{successData.time}</span>
+                  <span className="text-foreground font-semibold">{paymentData.time}</span>
                 </div>
                 
                 <div className="flex items-center justify-between">
@@ -989,7 +960,7 @@ export default function ProfessionalProfilePage() {
                     <Users className="h-4 w-4" />
                     Profesional:
                   </span>
-                  <span className="text-foreground font-semibold">{successData.professional}</span>
+                  <span className="text-foreground font-semibold">{paymentData.professionalName}</span>
                 </div>
                 
                 <div className="flex items-center justify-between pt-3 border-t border-primary/20">
@@ -997,14 +968,14 @@ export default function ProfessionalProfilePage() {
                     💰 Costo:
                   </span>
                   <span className="text-foreground font-bold text-lg">
-                    ${successData.cost.toLocaleString('es-MX')}
+                    ${paymentData.cost.toLocaleString('es-MX')}
                   </span>
                 </div>
               </div>
               
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
                 <p className="text-sm text-blue-800 text-center mb-2">
-                  💳 <strong>Paso final:</strong> Paga la comisión de reserva para confirmar tu cita
+                  💳 <strong>Pago de comisión:</strong> Para confirmar tu cita, paga la comisión de reserva
                 </p>
                 <p className="text-xs text-blue-700 text-center">
                   El monto total de la consulta lo pagarás directamente al profesional.
@@ -1013,18 +984,27 @@ export default function ProfessionalProfilePage() {
 
               {/* Payment Button */}
               <PaymentButton
-                appointmentId={successData.appointmentId}
-                serviceAmount={successData.cost}
-                professionalId={successData.professionalId}
-                description={`Consulta con ${successData.professional}`}
+                serviceAmount={paymentData.cost}
+                professionalId={paymentData.professionalId}
+                appointmentDate={paymentData.date}
+                appointmentTime={paymentData.time}
+                appointmentType={paymentData.service}
+                notes={appointmentForm.notes}
+                description={`Consulta con ${paymentData.professionalName}`}
                 onSuccess={() => {
-                  alert('¡Pago exitoso! Tu cita ha sido confirmada.');
-                  window.location.href = `/patient/${patientId}/explore/appointments`;
+                  setIsPaymentModalOpen(false);
+                  setSuccessData({
+                    date: paymentData.date,
+                    time: paymentData.time,
+                    professional: paymentData.professionalName,
+                    cost: paymentData.cost
+                  });
+                  setIsSuccessModalOpen(true);
                 }}
                 onError={(error) => {
                   setErrorMessage(`Error en el pago: ${error}`);
                   setIsErrorModalOpen(true);
-                  setIsSuccessModalOpen(false);
+                  setIsPaymentModalOpen(false);
                 }}
               />
             </div>
@@ -1033,9 +1013,49 @@ export default function ProfessionalProfilePage() {
           <div className="flex justify-end gap-3 pt-4">
             <Button
               variant="outline"
-              onClick={() => setIsSuccessModalOpen(false)}
+              onClick={() => setIsPaymentModalOpen(false)}
             >
               Cancelar
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal de Éxito Final (después del pago) */}
+      <Dialog open={isSuccessModalOpen} onOpenChange={setIsSuccessModalOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <div className="flex items-center justify-center mb-4">
+              <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center">
+                <CheckCircle className="h-10 w-10 text-green-600" />
+              </div>
+            </div>
+            <DialogTitle className="text-center text-2xl">
+              ¡Cita Confirmada!
+            </DialogTitle>
+          </DialogHeader>
+          
+          {successData && (
+            <div className="space-y-4 py-4">
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                <p className="text-sm text-green-800 text-center mb-2">
+                  ✅ <strong>Pago exitoso</strong>
+                </p>
+                <p className="text-xs text-green-700 text-center">
+                  Tu cita ha sido confirmada y el profesional ha sido notificado.
+                </p>
+              </div>
+            </div>
+          )}
+          
+          <div className="flex justify-end gap-3 pt-4">
+            <Button
+              onClick={() => {
+                setIsSuccessModalOpen(false);
+                window.location.href = `/patient/${patientId}/explore/appointments`;
+              }}
+            >
+              Ver Mis Citas
             </Button>
           </div>
         </DialogContent>

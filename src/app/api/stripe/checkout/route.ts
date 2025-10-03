@@ -18,12 +18,30 @@ export async function POST(request: NextRequest) {
 
     // Parse request body
     const body = await request.json();
-    const { appointment_id, service_amount, professional_id, description } = body;
+    const { 
+      appointment_id, 
+      service_amount, 
+      professional_id, 
+      description,
+      // Nuevos campos para crear la cita
+      appointment_date,
+      appointment_time,
+      appointment_type,
+      notes
+    } = body;
 
     // Validate required fields
-    if (!appointment_id || !service_amount || !professional_id) {
+    if (!service_amount || !professional_id) {
       return NextResponse.json(
         { error: 'Faltan campos requeridos' },
+        { status: 400 }
+      );
+    }
+    
+    // Si no hay appointment_id, necesitamos los datos para crear la cita
+    if (!appointment_id && (!appointment_date || !appointment_time || !appointment_type)) {
+      return NextResponse.json(
+        { error: 'Faltan datos de la cita para crear la reserva' },
         { status: 400 }
       );
     }
@@ -36,26 +54,55 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Verify appointment exists and belongs to user
-    const { data: appointment, error: appointmentError } = await supabase
-      .from('appointments')
-      .select('*')
-      .eq('id', appointment_id)
-      .eq('patient_id', user.id)
-      .single();
+    let appointmentId = appointment_id;
+    
+    // Si no hay appointment_id, crear la cita primero
+    if (!appointmentId) {
+      // Determinar ubicación basada en el tipo de cita
+      const { data: professionalData } = await supabase
+        .from('professional_applications')
+        .select('address, city, state')
+        .eq('id', professional_id)
+        .single();
+      
+      const location = appointment_type === 'online' 
+        ? 'Consulta en línea' 
+        : professionalData?.address || 'Por definir';
+      
+      // Crear la cita
+      const { data: newAppointment, error: createError } = await supabase
+        .from('appointments')
+        .insert({
+          patient_id: user.id,
+          professional_id: professional_id,
+          appointment_date: appointment_date,
+          appointment_time: appointment_time,
+          duration_minutes: 50,
+          appointment_type: appointment_type,
+          status: 'pending',
+          cost: service_amount,
+          location: location,
+          notes: notes || null
+        })
+        .select()
+        .single();
 
-    if (appointmentError || !appointment) {
-      return NextResponse.json(
-        { error: 'Cita no encontrada' },
-        { status: 404 }
-      );
+      if (createError || !newAppointment) {
+        console.error('Error creating appointment:', createError);
+        return NextResponse.json(
+          { error: 'Error al crear la cita' },
+          { status: 500 }
+        );
+      }
+      
+      appointmentId = newAppointment.id;
     }
 
     // Check if appointment already has a payment
     const { data: existingPayment } = await supabase
       .from('payments')
       .select('*')
-      .eq('appointment_id', appointment_id)
+      .eq('appointment_id', appointmentId)
       .eq('status', 'succeeded')
       .single();
 
@@ -87,7 +134,7 @@ export async function POST(request: NextRequest) {
     const { data: payment, error: paymentError } = await supabase
       .from('payments')
       .insert({
-        appointment_id,
+        appointment_id: appointmentId,
         service_amount,
         amount: commissionAmount,
         commission_percentage: 15,
@@ -127,7 +174,7 @@ export async function POST(request: NextRequest) {
         },
       ],
       metadata: {
-        appointment_id,
+        appointment_id: appointmentId,
         payment_id: payment.id,
         patient_id: user.id,
         professional_id,

@@ -5,10 +5,15 @@ import { Button } from "@/components/ui/button";
 import { CreditCard, Loader2 } from "lucide-react";
 
 interface PaymentButtonProps {
-  appointmentId: string;
+  appointmentId?: string;
   serviceAmount: number;
   professionalId: string;
   description?: string;
+  // Nuevos campos opcionales para crear la cita
+  appointmentDate?: string;
+  appointmentTime?: string;
+  appointmentType?: string;
+  notes?: string;
   onSuccess?: () => void;
   onError?: (error: string) => void;
   className?: string;
@@ -20,6 +25,10 @@ export default function PaymentButton({
   serviceAmount,
   professionalId,
   description,
+  appointmentDate,
+  appointmentTime,
+  appointmentType,
+  notes,
   onSuccess,
   onError,
   className,
@@ -42,6 +51,10 @@ export default function PaymentButton({
           service_amount: serviceAmount,
           professional_id: professionalId,
           description,
+          appointment_date: appointmentDate,
+          appointment_time: appointmentTime,
+          appointment_type: appointmentType,
+          notes,
         }),
       });
 

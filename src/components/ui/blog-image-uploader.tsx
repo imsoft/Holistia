@@ -152,7 +152,7 @@ export function BlogImageUploader({
   };
 
   return (
-    <Card>
+    <Card className="p-4">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <ImageIcon className="w-5 h-5" />

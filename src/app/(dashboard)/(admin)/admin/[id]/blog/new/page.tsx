@@ -10,9 +10,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Save } from "lucide-react";
+import { ArrowLeft, Save, AlertCircle, CheckCircle } from "lucide-react";
 import Link from "next/link";
 import { BlogImageUploader } from "@/components/ui/blog-image-uploader";
+import { RichTextEditor } from "@/components/ui/rich-text-editor";
+import { generateUniqueSlug, isValidSlug } from "@/lib/slug-utils";
 
 export default function NewBlogPostPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -21,6 +23,10 @@ export default function NewBlogPostPage({ params }: { params: Promise<{ id: stri
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [tempPostId] = useState(() => crypto.randomUUID()); // ID temporal para el storage
+  const [slugValidation, setSlugValidation] = useState<{
+    isValid: boolean;
+    message: string;
+  }>({ isValid: true, message: "" });
   
   const [formData, setFormData] = useState({
     title: "",
@@ -33,23 +39,27 @@ export default function NewBlogPostPage({ params }: { params: Promise<{ id: stri
 
   const supabase = createClient();
 
-  const generateSlug = (title: string) => {
-    return title
-      .toLowerCase()
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "") // Remove accents
-      .replace(/[^a-z0-9\s-]/g, "") // Remove special characters
-      .replace(/\s+/g, "-") // Replace spaces with hyphens
-      .replace(/-+/g, "-") // Replace multiple hyphens with single
-      .trim();
-  };
 
   const handleTitleChange = (title: string) => {
+    const newSlug = title
+      .toLowerCase()
+      .trim()
+      .replace(/[^\w\s-]/g, '')
+      .replace(/[\s_-]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+    
     setFormData(prev => ({
       ...prev,
       title,
-      slug: prev.slug || generateSlug(title)
+      slug: newSlug
     }));
+    
+    // Validar el slug
+    const isValid = isValidSlug(newSlug);
+    setSlugValidation({
+      isValid,
+      message: isValid ? "Slug válido" : "El slug debe tener entre 3-50 caracteres y solo letras, números y guiones"
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -69,9 +79,19 @@ export default function NewBlogPostPage({ params }: { params: Promise<{ id: stri
       setLoading(true);
       setError(null);
 
+      // Generar un slug único
+      const baseSlug = formData.slug.trim() || formData.title
+        .toLowerCase()
+        .trim()
+        .replace(/[^\w\s-]/g, '')
+        .replace(/[\s_-]+/g, '-')
+        .replace(/^-+|-+$/g, '');
+      
+      const uniqueSlug = await generateUniqueSlug(baseSlug, null, supabase);
+
       const postData = {
         title: formData.title.trim(),
-        slug: formData.slug.trim() || generateSlug(formData.title),
+        slug: uniqueSlug,
         excerpt: formData.excerpt.trim() || null,
         content: formData.content.trim(),
         status: formData.status,
@@ -131,12 +151,12 @@ export default function NewBlogPostPage({ params }: { params: Promise<{ id: stri
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        <Card>
+        <Card className="p-4">
           <CardHeader>
             <CardTitle>Información del Post</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
+          <CardContent className="space-y-6">
+            <div className="space-y-2">
               <Label htmlFor="title">Título *</Label>
               <Input
                 id="title"
@@ -147,21 +167,38 @@ export default function NewBlogPostPage({ params }: { params: Promise<{ id: stri
               />
             </div>
 
-            <div>
+            <div className="space-y-2">
               <Label htmlFor="slug">Slug *</Label>
-              <Input
-                id="slug"
-                value={formData.slug}
-                onChange={(e) => setFormData(prev => ({ ...prev, slug: e.target.value }))}
-                placeholder="url-del-post"
-                required
-              />
-              <p className="text-sm text-muted-foreground mt-1">
+              <div className="relative">
+                <Input
+                  id="slug"
+                  value={formData.slug}
+                  onChange={(e) => setFormData(prev => ({ ...prev, slug: e.target.value }))}
+                  placeholder="url-del-post"
+                  required
+                  className={slugValidation.isValid ? "" : "border-destructive"}
+                />
+                {formData.slug && (
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                    {slugValidation.isValid ? (
+                      <CheckCircle className="h-4 w-4 text-green-500" />
+                    ) : (
+                      <AlertCircle className="h-4 w-4 text-destructive" />
+                    )}
+                  </div>
+                )}
+              </div>
+              <p className="text-sm text-muted-foreground">
                 Se genera automáticamente desde el título. URL: /blog/{formData.slug}
               </p>
+              {formData.slug && (
+                <p className={`text-xs ${slugValidation.isValid ? "text-green-600" : "text-destructive"}`}>
+                  {slugValidation.message}
+                </p>
+              )}
             </div>
 
-            <div>
+            <div className="space-y-2">
               <Label htmlFor="excerpt">Resumen</Label>
               <Textarea
                 id="excerpt"
@@ -170,12 +207,12 @@ export default function NewBlogPostPage({ params }: { params: Promise<{ id: stri
                 placeholder="Breve descripción del post..."
                 rows={3}
               />
-              <p className="text-sm text-muted-foreground mt-1">
+              <p className="text-sm text-muted-foreground">
                 Aparecerá en la lista de posts y en las redes sociales
               </p>
             </div>
 
-            <div>
+            <div className="space-y-2">
               <Label htmlFor="status">Estado</Label>
               <Select
                 value={formData.status}
@@ -195,23 +232,20 @@ export default function NewBlogPostPage({ params }: { params: Promise<{ id: stri
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="p-4">
           <CardHeader>
             <CardTitle>Contenido</CardTitle>
           </CardHeader>
           <CardContent>
-            <div>
+            <div className="space-y-2">
               <Label htmlFor="content">Contenido del Post *</Label>
-              <Textarea
-                id="content"
-                value={formData.content}
-                onChange={(e) => setFormData(prev => ({ ...prev, content: e.target.value }))}
+              <RichTextEditor
+                content={formData.content}
+                onChange={(content) => setFormData(prev => ({ ...prev, content }))}
                 placeholder="Escribe aquí el contenido de tu post..."
-                rows={15}
-                required
               />
-              <p className="text-sm text-muted-foreground mt-1">
-                Puedes usar Markdown básico para formatear el texto
+              <p className="text-sm text-muted-foreground">
+                Usa la barra de herramientas para formatear el texto
               </p>
             </div>
           </CardContent>

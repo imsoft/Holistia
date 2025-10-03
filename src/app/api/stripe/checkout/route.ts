@@ -4,20 +4,25 @@ import { createClient } from '@/utils/supabase/server';
 
 export async function POST(request: NextRequest) {
   try {
+    console.log('🚀 Starting checkout session creation...');
     const supabase = await createClient();
 
     // Verify user is authenticated
     const { data: { user }, error: authError } = await supabase.auth.getUser();
 
     if (authError || !user) {
+      console.error('❌ Authentication error:', authError);
       return NextResponse.json(
         { error: 'No autenticado' },
         { status: 401 }
       );
     }
 
+    console.log('✅ User authenticated:', user.id);
+
     // Parse request body
     const body = await request.json();
+    console.log('📝 Request body:', body);
     const { 
       appointment_id, 
       service_amount, 
@@ -58,6 +63,8 @@ export async function POST(request: NextRequest) {
     
     // Si no hay appointment_id, crear la cita primero
     if (!appointmentId) {
+      console.log('🔄 Creating new appointment...');
+      
       // Determinar ubicación basada en el tipo de cita
       const { data: professionalData } = await supabase
         .from('professional_applications')
@@ -69,32 +76,39 @@ export async function POST(request: NextRequest) {
         ? 'Consulta en línea' 
         : professionalData?.address || 'Por definir';
       
+      console.log('📍 Location determined:', location);
+      
       // Crear la cita
+      const appointmentData = {
+        patient_id: user.id,
+        professional_id: professional_id,
+        appointment_date: appointment_date,
+        appointment_time: appointment_time,
+        duration_minutes: 50,
+        appointment_type: appointment_type,
+        status: 'pending',
+        cost: service_amount,
+        location: location,
+        notes: notes || null
+      };
+      
+      console.log('💾 Inserting appointment:', appointmentData);
+      
       const { data: newAppointment, error: createError } = await supabase
         .from('appointments')
-        .insert({
-          patient_id: user.id,
-          professional_id: professional_id,
-          appointment_date: appointment_date,
-          appointment_time: appointment_time,
-          duration_minutes: 50,
-          appointment_type: appointment_type,
-          status: 'pending',
-          cost: service_amount,
-          location: location,
-          notes: notes || null
-        })
+        .insert(appointmentData)
         .select()
         .single();
 
       if (createError || !newAppointment) {
-        console.error('Error creating appointment:', createError);
+        console.error('❌ Error creating appointment:', createError);
         return NextResponse.json(
-          { error: 'Error al crear la cita' },
+          { error: `Error al crear la cita: ${createError?.message || 'Unknown error'}` },
           { status: 500 }
         );
       }
       
+      console.log('✅ Appointment created:', newAppointment.id);
       appointmentId = newAppointment.id;
     }
 
@@ -201,9 +215,17 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Error creating checkout session:', error);
+    console.error('❌ Error creating checkout session:', error);
+    console.error('❌ Error details:', {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+      name: error instanceof Error ? error.name : undefined
+    });
     return NextResponse.json(
-      { error: 'Error al crear sesión de pago' },
+      { 
+        error: 'Error al crear sesión de pago',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      },
       { status: 500 }
     );
   }

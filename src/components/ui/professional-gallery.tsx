@@ -154,7 +154,7 @@ export default function ProfessionalGallery({
               )}
 
               {/* Imagen principal */}
-              <div className="relative w-full h-[70vh] flex items-center justify-center px-2 overflow-hidden">
+              <div className="relative w-full h-[50vh] flex items-center justify-center px-2 overflow-hidden">
                 <Image
                   src={images[selectedImageIndex]}
                   alt={`${professionalName} - Imagen ${selectedImageIndex + 1}`}

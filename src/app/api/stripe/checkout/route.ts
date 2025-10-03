@@ -1,0 +1,164 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { stripe, calculateCommission, formatAmountForStripe } from '@/lib/stripe';
+import { createClient } from '@/utils/supabase/server';
+
+export async function POST(request: NextRequest) {
+  try {
+    const supabase = await createClient();
+
+    // Verify user is authenticated
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return NextResponse.json(
+        { error: 'No autenticado' },
+        { status: 401 }
+      );
+    }
+
+    // Parse request body
+    const body = await request.json();
+    const { appointment_id, service_amount, professional_id, description } = body;
+
+    // Validate required fields
+    if (!appointment_id || !service_amount || !professional_id) {
+      return NextResponse.json(
+        { error: 'Faltan campos requeridos' },
+        { status: 400 }
+      );
+    }
+
+    // Validate service amount
+    if (typeof service_amount !== 'number' || service_amount <= 0) {
+      return NextResponse.json(
+        { error: 'Monto de servicio inválido' },
+        { status: 400 }
+      );
+    }
+
+    // Verify appointment exists and belongs to user
+    const { data: appointment, error: appointmentError } = await supabase
+      .from('appointments')
+      .select('*')
+      .eq('id', appointment_id)
+      .eq('patient_id', user.id)
+      .single();
+
+    if (appointmentError || !appointment) {
+      return NextResponse.json(
+        { error: 'Cita no encontrada' },
+        { status: 404 }
+      );
+    }
+
+    // Check if appointment already has a payment
+    const { data: existingPayment } = await supabase
+      .from('payments')
+      .select('*')
+      .eq('appointment_id', appointment_id)
+      .eq('status', 'succeeded')
+      .single();
+
+    if (existingPayment) {
+      return NextResponse.json(
+        { error: 'Esta cita ya tiene un pago confirmado' },
+        { status: 400 }
+      );
+    }
+
+    // Get professional information
+    const { data: professional, error: professionalError } = await supabase
+      .from('professional_applications')
+      .select('first_name, last_name, profession')
+      .eq('id', professional_id)
+      .single();
+
+    if (professionalError || !professional) {
+      return NextResponse.json(
+        { error: 'Profesional no encontrado' },
+        { status: 404 }
+      );
+    }
+
+    // Calculate commission (15%)
+    const commissionAmount = calculateCommission(service_amount, 15);
+
+    // Create payment record in database
+    const { data: payment, error: paymentError } = await supabase
+      .from('payments')
+      .insert({
+        appointment_id,
+        service_amount,
+        amount: commissionAmount,
+        commission_percentage: 15,
+        currency: 'mxn',
+        status: 'pending',
+        patient_id: user.id,
+        professional_id,
+        description: description || `Reserva de consulta con ${professional.first_name} ${professional.last_name}`,
+      })
+      .select()
+      .single();
+
+    if (paymentError || !payment) {
+      console.error('Error creating payment record:', paymentError);
+      return NextResponse.json(
+        { error: 'Error al crear registro de pago' },
+        { status: 500 }
+      );
+    }
+
+    // Create Stripe Checkout Session
+    const checkoutSession = await stripe.checkout.sessions.create({
+      mode: 'payment',
+      payment_method_types: ['card'],
+      line_items: [
+        {
+          price_data: {
+            currency: 'mxn',
+            unit_amount: formatAmountForStripe(commissionAmount),
+            product_data: {
+              name: 'Reserva de Consulta - Holistia',
+              description: `${professional.profession}: ${professional.first_name} ${professional.last_name}`,
+              images: ['https://via.placeholder.com/300x200?text=Holistia'], // Replace with your logo
+            },
+          },
+          quantity: 1,
+        },
+      ],
+      metadata: {
+        appointment_id,
+        payment_id: payment.id,
+        patient_id: user.id,
+        professional_id,
+        service_amount: service_amount.toString(),
+        commission_amount: commissionAmount.toString(),
+      },
+      success_url: `${process.env.NEXT_PUBLIC_SITE_URL || request.nextUrl.origin}/patient/${user.id}/explore/appointments?payment=success&session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL || request.nextUrl.origin}/patient/${user.id}/explore/appointments?payment=cancelled`,
+      customer_email: user.email,
+    });
+
+    // Update payment record with Stripe session ID
+    await supabase
+      .from('payments')
+      .update({
+        stripe_checkout_session_id: checkoutSession.id,
+        status: 'processing',
+      })
+      .eq('id', payment.id);
+
+    return NextResponse.json({
+      sessionId: checkoutSession.id,
+      url: checkoutSession.url,
+    });
+
+  } catch (error) {
+    console.error('Error creating checkout session:', error);
+    return NextResponse.json(
+      { error: 'Error al crear sesión de pago' },
+      { status: 500 }
+    );
+  }
+}
+

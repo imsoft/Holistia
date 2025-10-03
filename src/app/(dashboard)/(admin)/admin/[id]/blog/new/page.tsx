@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, use } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { createClient } from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
@@ -14,7 +14,8 @@ import { ArrowLeft, Save } from "lucide-react";
 import Link from "next/link";
 import { BlogImageUploader } from "@/components/ui/blog-image-uploader";
 
-export default function NewBlogPostPage({ params }: { params: { id: string } }) {
+export default function NewBlogPostPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
   const { user } = useAuth();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -96,7 +97,7 @@ export default function NewBlogPostPage({ params }: { params: { id: string } }) 
       }
 
       // Redirect to edit page for the new post
-      router.push(`/admin/${params.id}/blog/${data.id}`);
+      router.push(`/admin/${id}/blog/${data.id}`);
     } catch (err) {
       console.error("Error:", err);
       setError("Error inesperado al crear el post");
@@ -117,7 +118,7 @@ export default function NewBlogPostPage({ params }: { params: { id: string } }) 
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       <div className="mb-6">
         <Button variant="ghost" asChild className="mb-4">
-          <Link href={`/admin/${params.id}/blog`}>
+          <Link href={`/admin/${id}/blog`}>
             <ArrowLeft className="w-4 h-4 mr-2" />
             Volver al Blog
           </Link>
@@ -242,7 +243,7 @@ export default function NewBlogPostPage({ params }: { params: { id: string } }) 
           </Button>
           
           <Button type="button" variant="outline" asChild>
-            <Link href={`/admin/${params.id}/blog`}>
+            <Link href={`/admin/${id}/blog`}>
               Cancelar
             </Link>
           </Button>

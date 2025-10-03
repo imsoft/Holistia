@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, use } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { createClient } from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
@@ -18,8 +18,9 @@ import { BlogImageUploader } from "@/components/ui/blog-image-uploader";
 export default function EditBlogPostPage({ 
   params 
 }: { 
-  params: { id: string; postId: string } 
+  params: Promise<{ id: string; postId: string }> 
 }) {
+  const { id, postId } = use(params);
   const { user } = useAuth();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -39,10 +40,10 @@ export default function EditBlogPostPage({
   const supabase = createClient();
 
   useEffect(() => {
-    if (user && params.postId) {
+    if (user && postId) {
       fetchPost();
     }
-  }, [user, params.postId]);
+  }, [user, postId]);
 
   const fetchPost = async () => {
     try {
@@ -52,7 +53,7 @@ export default function EditBlogPostPage({
       const { data, error } = await supabase
         .from("blog_posts")
         .select("*")
-        .eq("id", params.postId)
+        .eq("id", postId)
         .single();
 
       if (error) {
@@ -134,7 +135,7 @@ export default function EditBlogPostPage({
       const { error } = await supabase
         .from("blog_posts")
         .update(updateData)
-        .eq("id", params.postId);
+        .eq("id", postId);
 
       if (error) {
         console.error("Error updating post:", error);
@@ -167,7 +168,7 @@ export default function EditBlogPostPage({
       const { error } = await supabase
         .from("blog_posts")
         .delete()
-        .eq("id", params.postId);
+        .eq("id", postId);
 
       if (error) {
         console.error("Error deleting post:", error);
@@ -175,7 +176,7 @@ export default function EditBlogPostPage({
         return;
       }
 
-      router.push(`/admin/${params.id}/blog`);
+      router.push(`/admin/${id}/blog`);
     } catch (err) {
       console.error("Error:", err);
       alert("Error inesperado al eliminar el post");
@@ -214,7 +215,7 @@ export default function EditBlogPostPage({
         <div className="text-center">
           <h1 className="text-2xl font-bold mb-4">Post no encontrado</h1>
           <Button asChild>
-            <Link href={`/admin/${params.id}/blog`}>
+            <Link href={`/admin/${id}/blog`}>
               Volver al Blog
             </Link>
           </Button>
@@ -227,7 +228,7 @@ export default function EditBlogPostPage({
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       <div className="mb-6">
         <Button variant="ghost" asChild className="mb-4">
-          <Link href={`/admin/${params.id}/blog`}>
+          <Link href={`/admin/${id}/blog`}>
             <ArrowLeft className="w-4 h-4 mr-2" />
             Volver al Blog
           </Link>
@@ -333,7 +334,7 @@ export default function EditBlogPostPage({
         </Card>
 
         <BlogImageUploader
-          blogPostId={params.postId}
+          blogPostId={postId}
           onImageUploaded={(imageUrl) => setFormData(prev => ({ ...prev, featured_image: imageUrl }))}
           currentImageUrl={formData.featured_image}
           onImageRemoved={() => setFormData(prev => ({ ...prev, featured_image: "" }))}
@@ -358,7 +359,7 @@ export default function EditBlogPostPage({
           </Button>
           
           <Button type="button" variant="outline" asChild>
-            <Link href={`/admin/${params.id}/blog`}>
+            <Link href={`/admin/${id}/blog`}>
               Cancelar
             </Link>
           </Button>

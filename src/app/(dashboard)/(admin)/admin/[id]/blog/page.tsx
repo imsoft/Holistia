@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, use } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { createClient } from "@/utils/supabase/client";
 import { BlogPost } from "@/types/blog";
@@ -17,7 +17,8 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 
-export default function AdminBlogPage({ params }: { params: { id: string } }) {
+export default function AdminBlogPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
   const { user } = useAuth();
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
@@ -108,7 +109,7 @@ export default function AdminBlogPage({ params }: { params: { id: string } }) {
           </p>
         </div>
         <Button asChild>
-          <Link href={`/admin/${params.id}/blog/new`}>
+          <Link href={`/admin/${id}/blog/new`}>
             <Plus className="w-4 h-4 mr-2" />
             Nuevo Post
           </Link>
@@ -145,7 +146,7 @@ export default function AdminBlogPage({ params }: { params: { id: string } }) {
               Comienza creando tu primer post del blog para Holistia
             </p>
             <Button asChild>
-              <Link href={`/admin/${params.id}/blog/new`}>
+              <Link href={`/admin/${id}/blog/new`}>
                 <Plus className="w-4 h-4 mr-2" />
                 Crear Primer Post
               </Link>
@@ -195,7 +196,7 @@ export default function AdminBlogPage({ params }: { params: { id: string } }) {
                       asChild
                       className="flex-1"
                     >
-                      <Link href={`/admin/${params.id}/blog/${post.id}`}>
+                      <Link href={`/admin/${id}/blog/${post.id}`}>
                         <Edit className="w-4 h-4 mr-2" />
                         Editar
                       </Link>

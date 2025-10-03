@@ -685,24 +685,24 @@ export default function ProfessionalProfilePage() {
                       </Button>
                     </DialogTrigger>
                     <DialogContent 
-                      className="max-h-[95vh] overflow-y-auto" 
-                      style={{ width: '95vw', maxWidth: 'none' }}
+                      className="max-h-[90vh] overflow-y-auto" 
+                      style={{ width: '90vw', maxWidth: '1200px' }}
                     >
-                      <DialogHeader>
-                        <DialogTitle className="text-2xl font-bold text-foreground">
+                      <DialogHeader className="pb-4">
+                        <DialogTitle className="text-xl font-bold text-foreground">
                           Reservar cita con {professional?.first_name} {professional?.last_name}
                         </DialogTitle>
                       </DialogHeader>
                         
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 py-8">
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 py-4">
                           {/* Selección de fecha y hora */}
-                          <div className="space-y-8">
-                            <h3 className="text-xl font-semibold text-foreground">Selecciona fecha y hora</h3>
+                          <div className="space-y-4">
+                            <h3 className="text-lg font-semibold text-foreground">Fecha y hora</h3>
                             
                             {/* Fechas disponibles */}
                             <div>
-                              <Label className="text-base font-medium text-foreground">Fecha disponible</Label>
-                              <div className="grid grid-cols-2 gap-3 mt-3 max-h-64 overflow-y-auto">
+                              <Label className="text-sm font-medium text-foreground">Fecha</Label>
+                              <div className="grid grid-cols-2 gap-2 mt-2 max-h-48 overflow-y-auto">
                                 {getAvailableDates().map((dateOption) => (
                                   <button
                                     key={dateOption.date}
@@ -710,7 +710,7 @@ export default function ProfessionalProfilePage() {
                                       setSelectedDate(dateOption.date);
                                       setSelectedTime(""); // Reset time when date changes
                                     }}
-                                    className={`p-4 text-left rounded-lg border-2 transition-all ${
+                                    className={`p-3 text-left rounded-lg border-2 transition-all ${
                                       selectedDate === dateOption.date
                                         ? "border-primary bg-primary/10 text-primary"
                                         : "border-border hover:border-primary/50 bg-background"
@@ -728,13 +728,13 @@ export default function ProfessionalProfilePage() {
                             {/* Horarios disponibles */}
                             {selectedDate && (
                               <div>
-                                <Label className="text-base font-medium text-foreground">Horario disponible</Label>
-                                <div className="grid grid-cols-4 gap-3 mt-3 max-h-64 overflow-y-auto">
+                                <Label className="text-sm font-medium text-foreground">Horario</Label>
+                                <div className="grid grid-cols-5 gap-2 mt-2 max-h-40 overflow-y-auto">
                                   {getAvailableTimes(selectedDate).map((timeOption) => (
                                     <button
                                       key={timeOption.time}
                                       onClick={() => setSelectedTime(timeOption.time)}
-                                      className={`p-4 text-center rounded-lg border-2 transition-all ${
+                                      className={`p-2 text-center rounded-lg border-2 transition-all ${
                                         selectedTime === timeOption.time
                                           ? "border-primary bg-primary/10 text-primary"
                                           : "border-border hover:border-primary/50 bg-background"
@@ -749,8 +749,8 @@ export default function ProfessionalProfilePage() {
                           </div>
 
                           {/* Formulario de información */}
-                          <div className="space-y-8">
-                            <h3 className="text-xl font-semibold text-foreground">Información de contacto</h3>
+                          <div className="space-y-4">
+                            <h3 className="text-lg font-semibold text-foreground">Información</h3>
                             
                             {/* Tipo de servicio */}
                             <div>
@@ -758,7 +758,7 @@ export default function ProfessionalProfilePage() {
                                 Tipo de servicio
                               </Label>
                               <Select value={selectedService} onValueChange={setSelectedService}>
-                                <SelectTrigger className="mt-1">
+                                <SelectTrigger className="mt-1 h-10">
                                   <SelectValue placeholder="Selecciona el tipo de servicio" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -786,65 +786,67 @@ export default function ProfessionalProfilePage() {
                             </div>
 
                             {/* Campos del formulario */}
-                            <div className="space-y-6">
-                              <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                                <p className="text-sm text-blue-700">
-                                  ℹ️ Los datos de contacto se obtienen de tu perfil de usuario y no se pueden modificar aquí.
+                            <div className="space-y-3">
+                              <div className="p-2 bg-blue-50 border border-blue-200 rounded-lg">
+                                <p className="text-xs text-blue-700">
+                                  ℹ️ Los datos se obtienen de tu perfil
                                 </p>
                               </div>
                               
-                              <div>
-                                <Label htmlFor="name" className="text-sm font-medium text-foreground">
-                                  Nombre completo
-                                </Label>
-                                <Input
-                                  id="name"
-                                  value={appointmentForm.name}
-                                  readOnly
-                                  className="mt-1 bg-muted/50 cursor-not-allowed"
-                                  placeholder="Tu nombre completo"
-                                />
-                              </div>
+                              <div className="grid grid-cols-1 gap-2">
+                                <div>
+                                  <Label htmlFor="name" className="text-xs font-medium text-foreground">
+                                    Nombre
+                                  </Label>
+                                  <Input
+                                    id="name"
+                                    value={appointmentForm.name}
+                                    readOnly
+                                    className="mt-1 h-8 bg-muted/50 cursor-not-allowed text-sm"
+                                    placeholder="Tu nombre completo"
+                                  />
+                                </div>
 
-                              <div>
-                                <Label htmlFor="email" className="text-sm font-medium text-foreground">
-                                  Correo electrónico
-                                </Label>
-                                <Input
-                                  id="email"
-                                  type="email"
-                                  value={appointmentForm.email}
-                                  readOnly
-                                  className="mt-1 bg-muted/50 cursor-not-allowed"
-                                />
-                              </div>
+                                <div>
+                                  <Label htmlFor="email" className="text-xs font-medium text-foreground">
+                                    Email
+                                  </Label>
+                                  <Input
+                                    id="email"
+                                    type="email"
+                                    value={appointmentForm.email}
+                                    readOnly
+                                    className="mt-1 h-8 bg-muted/50 cursor-not-allowed text-sm"
+                                  />
+                                </div>
 
-                              <div>
-                                <Label htmlFor="phone" className="text-sm font-medium text-foreground">
-                                  Teléfono
-                                </Label>
-                                <Input
-                                  id="phone"
-                                  type="tel"
-                                  value={appointmentForm.phone}
-                                  readOnly
-                                  className="mt-1 bg-muted/50 cursor-not-allowed"
-                                  placeholder="+52 55 1234 5678"
-                                />
-                              </div>
+                                <div>
+                                  <Label htmlFor="phone" className="text-xs font-medium text-foreground">
+                                    Teléfono
+                                  </Label>
+                                  <Input
+                                    id="phone"
+                                    type="tel"
+                                    value={appointmentForm.phone}
+                                    readOnly
+                                    className="mt-1 h-8 bg-muted/50 cursor-not-allowed text-sm"
+                                    placeholder="+52 55 1234 5678"
+                                  />
+                                </div>
 
-                              <div>
-                                <Label htmlFor="notes" className="text-sm font-medium text-foreground">
-                                  Notas adicionales (opcional)
-                                </Label>
-                                <Textarea
-                                  id="notes"
-                                  value={appointmentForm.notes}
-                                  onChange={(e) => setAppointmentForm(prev => ({ ...prev, notes: e.target.value }))}
-                                  className="mt-1"
-                                  placeholder="Cuéntanos sobre tu consulta..."
-                                  rows={3}
-                                />
+                                <div>
+                                  <Label htmlFor="notes" className="text-xs font-medium text-foreground">
+                                    Notas (opcional)
+                                  </Label>
+                                  <Textarea
+                                    id="notes"
+                                    value={appointmentForm.notes}
+                                    onChange={(e) => setAppointmentForm(prev => ({ ...prev, notes: e.target.value }))}
+                                    className="mt-1 text-sm"
+                                    placeholder="Cuéntanos sobre tu consulta..."
+                                    rows={2}
+                                  />
+                                </div>
                               </div>
                             </div>
                           </div>
@@ -852,9 +854,9 @@ export default function ProfessionalProfilePage() {
 
                         {/* Resumen de la cita */}
                         {(selectedDate || selectedTime || selectedService) && (
-                          <div className="border-t border-border pt-6">
-                            <h4 className="text-lg font-semibold text-foreground mb-4">Resumen de tu cita</h4>
-                            <div className="bg-muted/50 rounded-lg p-6 space-y-3">
+                          <div className="border-t border-border pt-4">
+                            <h4 className="text-base font-semibold text-foreground mb-3">Resumen</h4>
+                            <div className="bg-muted/50 rounded-lg p-4 space-y-2">
                               {selectedDate && (
                                 <div className="flex justify-between">
                                   <span className="text-muted-foreground">Fecha:</span>
@@ -892,14 +894,16 @@ export default function ProfessionalProfilePage() {
                         )}
 
                         {/* Botones de acción */}
-                        <div className="flex justify-end gap-4 pt-8 border-t border-border">
+                        <div className="flex justify-end gap-3 pt-4 border-t border-border">
                           <Button
                             variant="outline"
+                            size="sm"
                             onClick={() => setIsBookingModalOpen(false)}
                           >
                             Cancelar
                           </Button>
                           <Button
+                            size="sm"
                             onClick={handleBookingSubmit}
                             disabled={!selectedDate || !selectedTime || !selectedService || bookingLoading}
                           >

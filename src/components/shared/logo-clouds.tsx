@@ -31,27 +31,57 @@ export const LogoClouds = () => {
           </div>
           <div className="mx-auto grid w-full max-w-xl grid-cols-2 items-center gap-y-12 sm:gap-y-14 lg:mx-0 lg:max-w-none lg:pl-8">
             <div className="flex items-center justify-center">
-              <div className="text-2xl font-bold text-foreground">Psicología</div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-foreground mb-2">Psicología</div>
+                <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
+                  <span className="text-2xl">🧠</span>
+                </div>
+              </div>
             </div>
 
             <div className="flex items-center justify-center">
-              <div className="text-2xl font-bold text-foreground">Terapia</div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-foreground mb-2">Terapia</div>
+                <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
+                  <span className="text-2xl">💬</span>
+                </div>
+              </div>
             </div>
 
             <div className="flex items-center justify-center">
-              <div className="text-2xl font-bold text-foreground">Nutrición</div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-foreground mb-2">Nutrición</div>
+                <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
+                  <span className="text-2xl">🥗</span>
+                </div>
+              </div>
             </div>
 
             <div className="flex items-center justify-center">
-              <div className="text-2xl font-bold text-foreground">Medicina</div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-foreground mb-2">Medicina</div>
+                <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
+                  <span className="text-2xl">⚕️</span>
+                </div>
+              </div>
             </div>
 
             <div className="flex items-center justify-center">
-              <div className="text-2xl font-bold text-foreground">Bienestar</div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-foreground mb-2">Bienestar</div>
+                <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
+                  <span className="text-2xl">🧘</span>
+                </div>
+              </div>
             </div>
 
             <div className="flex items-center justify-center">
-              <div className="text-2xl font-bold text-foreground">Salud Mental</div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-foreground mb-2">Salud Mental</div>
+                <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
+                  <span className="text-2xl">❤️</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>

@@ -2,82 +2,82 @@ import Image from "next/image";
 
 const testimonials = [
   {
-    body: "Laborum quis quam. Dolorum et ut quod quia. Voluptas numquam delectus nihil. Aut enim doloremque et ipsam.",
+    body: "Holistia cambió completamente mi perspectiva sobre el cuidado de la salud. Encontré una psicóloga increíble que me ayudó a superar mi ansiedad. La plataforma es muy fácil de usar y los profesionales son de primera calidad.",
     author: {
-      name: "Leslie Alexander",
-      handle: "lesliealexander",
+      name: "María González",
+      handle: "maria_gonzalez",
       imageUrl:
         "https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
     },
   },
   {
-    body: "Anim sit consequat culpa commodo eu do nisi commodo ut aute aliqua. Laborum esse duis tempor consectetur officia mollit fugiat. Exercitation qui elit minim minim quis fugiat ex.",
+    body: "Como profesional de la salud, Holistia me ha permitido llegar a más pacientes y ofrecer mis servicios de manera más eficiente. La plataforma es intuitiva y el sistema de pagos funciona perfectamente.",
     author: {
-      name: "Michael Foster",
-      handle: "michaelfoster",
+      name: "Dr. Carlos Mendoza",
+      handle: "dr_carlos_mendoza",
       imageUrl:
         "https://images.unsplash.com/photo-1519244703995-f4e0f30006d5?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
     },
   },
   {
-    body: "Consequatur ut atque. Itaque nostrum molestiae id veniam eos cumque.",
+    body: "La terapia online a través de Holistia fue exactamente lo que necesitaba. Pude tener sesiones desde la comodidad de mi hogar y mi terapeuta fue muy profesional y empática.",
     author: {
-      name: "Dries Vincent",
-      handle: "driesvincent",
+      name: "Ana Rodríguez",
+      handle: "ana_rodriguez",
       imageUrl:
         "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
     },
   },
   {
-    body: "Excepteur consectetur deserunt id incididunt veniam mollit officia sint qui aute duis sit cillum. Reprehenderit fugiat amet aliqua in commodo minim sunt laborum.",
+    body: "El proceso de reserva de citas es súper sencillo. En pocos minutos pude agendar mi consulta y el profesional llegó puntual. La experiencia fue excelente desde el inicio hasta el final.",
     author: {
-      name: "Lindsay Walton",
-      handle: "lindsaywalton",
+      name: "Roberto Silva",
+      handle: "roberto_silva",
       imageUrl:
         "https://images.unsplash.com/photo-1517841905240-472988babdf9?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
     },
   },
   {
-    body: "Distinctio facere aliquam est qui atque sint molestias ad. Fuga consequuntur asperiores voluptatum ipsum.",
+    body: "Holistia me ayudó a encontrar el apoyo que necesitaba durante un momento difícil. La variedad de profesionales disponibles y la facilidad para conectarme con ellos fue increíble.",
     author: {
-      name: "Courtney Henry",
-      handle: "courtneyhenry",
+      name: "Laura Martínez",
+      handle: "laura_martinez",
       imageUrl:
         "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
     },
   },
   {
-    body: "Nam nesciunt dolorem dolor asperiores sint. Incidunt molestiae quis deleniti vitae ut in earum delectus iusto.",
+    body: "Como terapeuta, Holistia me ha permitido expandir mi práctica y ayudar a más personas. La plataforma es confiable y el soporte técnico siempre está disponible cuando lo necesito.",
     author: {
-      name: "Tom Cook",
-      handle: "tomcook",
+      name: "Lic. Patricia López",
+      handle: "lic_patricia_lopez",
       imageUrl:
         "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
     },
   },
   {
-    body: "Voluptas quos itaque ipsam in voluptatem est. Iste eos blanditiis repudiandae. Earum deserunt enim molestiae ipsum perferendis.",
+    body: "La privacidad y seguridad de mis datos personales fue una de las cosas que más me convenció de usar Holistia. Además, los profesionales están muy bien seleccionados y certificados.",
     author: {
-      name: "Whitney Francis",
-      handle: "whitneyfrancis",
+      name: "Fernando Herrera",
+      handle: "fernando_herrera",
       imageUrl:
         "https://images.unsplash.com/photo-1517365830460-955ce3ccd263?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
     },
   },
   {
-    body: "Aliquid dolore praesentium ratione. Cumque ea officia repellendus laboriosam. Vitae quod id explicabo non sunt.",
+    body: "Holistia me conectó con un nutricionista que transformó completamente mi relación con la comida. El seguimiento y la atención personalizada fueron excepcionales.",
     author: {
-      name: "Leonard Krasner",
-      handle: "leonardkrasner",
+      name: "Sofía Ramírez",
+      handle: "sofia_ramirez",
       imageUrl:
         "https://images.unsplash.com/photo-1519345182560-3f2917c472ef?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
     },
   },
   {
-    body: "Molestias ea earum quos nostrum doloremque sed. Quaerat quasi aut velit incidunt excepturi rerum voluptatem minus harum.",
+    body: "La flexibilidad de horarios y la posibilidad de tener consultas virtuales o presenciales según mi conveniencia es lo que más me gusta de Holistia. Siempre encuentro un horario que se adapta a mi agenda.",
     author: {
-      name: "Floyd Miles",
-      handle: "floydmiles",
+      name: "Miguel Torres",
+      handle: "miguel_torres",
       imageUrl:
         "https://images.unsplash.com/photo-1463453091185-61582044d556?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
     },
@@ -90,10 +90,10 @@ export const TestimonialsSection = () => {
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="mx-auto max-w-2xl text-center">
           <h2 className="text-base/7 font-semibold text-primary">
-            Testimonials
+            Testimonios
           </h2>
           <p className="mt-2 text-4xl font-semibold tracking-tight text-balance text-foreground sm:text-5xl">
-            We have worked with thousands of amazing people
+            Miles de personas han transformado su bienestar con Holistia
           </p>
         </div>
         <div className="mx-auto mt-16 flow-root max-w-2xl sm:mt-20 lg:mx-0 lg:max-w-none">

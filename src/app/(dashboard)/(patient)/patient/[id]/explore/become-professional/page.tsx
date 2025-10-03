@@ -52,7 +52,6 @@ export default function BecomeProfessionalPage() {
     profession: string;
     specializations: string[];
     experience: string;
-    certifications: string[];
     services: Service[];
     address: string;
     city: string;
@@ -72,7 +71,6 @@ export default function BecomeProfessionalPage() {
     profession: "",
     specializations: [] as string[],
     experience: "",
-    certifications: [] as string[],
     services: [{ name: "", description: "", price: "", duration: "" }] as Service[],
     address: "",
     city: "",
@@ -85,7 +83,6 @@ export default function BecomeProfessionalPage() {
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [specializationInput, setSpecializationInput] = useState("");
-  const [certificationInput, setCertificationInput] = useState("");
   const params = useParams();
   const userId = params.id as string;
 
@@ -129,7 +126,6 @@ export default function BecomeProfessionalPage() {
             profession: existingApp.profession || "",
             specializations: existingApp.specializations || [],
             experience: existingApp.experience || "",
-            certifications: existingApp.certifications || [],
             services: existingApp.services || [
               { name: "", description: "", price: "", duration: "" },
             ],
@@ -181,8 +177,6 @@ export default function BecomeProfessionalPage() {
             "Al menos una especialización es requerida";
         if (!formData.experience.trim())
           newErrors.experience = "Los años de experiencia son requeridos";
-        if (formData.certifications.length === 0)
-          newErrors.certifications = "Al menos una certificación es requerida";
         break;
       case 3:
         if (!formData.address.trim())
@@ -226,7 +220,6 @@ export default function BecomeProfessionalPage() {
         profession: formData.profession,
         specializations: formData.specializations,
         experience: formData.experience,
-        certifications: formData.certifications,
         services: formData.services,
         address: formData.address,
         city: formData.city,
@@ -415,46 +408,29 @@ export default function BecomeProfessionalPage() {
             </div>
 
             <div className="space-y-3">
-              <Label>Certificaciones y Educación</Label>
-              <Input
-                placeholder="Ej: Licenciatura en Psicología, Certificación en Terapia Cognitivo-Conductual..."
-                value={certificationInput}
-                onChange={(e) => setCertificationInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ',') {
-                    e.preventDefault();
-                    if (certificationInput.trim()) {
-                      setFormData((prev) => ({
-                        ...prev,
-                        certifications: [...prev.certifications, certificationInput.trim()]
-                      }));
-                      setCertificationInput('');
-                    }
-                  }
-                }}
-              />
-              <p className="text-xs text-muted-foreground">
-                Presiona Enter o escribe una coma para agregar. Ejemplos: Licenciatura en Psicología, Maestría en Terapia Familiar
-              </p>
-              {formData.certifications.length > 0 && (
-                <div className="flex flex-wrap gap-2 mt-2">
-                  {formData.certifications.map((cert, index) => (
-                    <Badge
-                      key={index}
-                      variant="secondary"
-                      className="cursor-pointer hover:bg-red-100"
-                      onClick={() => {
-                        setFormData((prev) => ({
-                          ...prev,
-                          certifications: prev.certifications.filter((_, i) => i !== index)
-                        }));
-                      }}
-                    >
-                      {cert} ×
-                    </Badge>
-                  ))}
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div className="flex items-start gap-3">
+                  <div className="flex-shrink-0">
+                    <svg className="w-5 h-5 text-blue-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-medium text-blue-900 mb-1">
+                      Certificaciones y Educación
+                    </h4>
+                    <p className="text-sm text-blue-700 mb-2">
+                      Para verificar tu formación profesional, por favor envía tus certificaciones y títulos a:
+                    </p>
+                    <div className="bg-white border border-blue-200 rounded px-3 py-2 inline-block">
+                      <span className="text-sm font-mono text-blue-800">hola@holistia.io</span>
+                    </div>
+                    <p className="text-xs text-blue-600 mt-2">
+                      Incluye en el asunto: &quot;Certificaciones - [Tu nombre]&quot;
+                    </p>
+                  </div>
                 </div>
-              )}
+              </div>
             </div>
           </div>
         );
@@ -722,18 +698,6 @@ export default function BecomeProfessionalPage() {
                         </div>
                       )}
 
-                      {existingApplication.certifications.length > 0 && (
-                        <div className="space-y-3">
-                          <p className="text-sm font-semibold text-foreground">Certificaciones</p>
-                          <div className="flex flex-wrap gap-3">
-                            {existingApplication.certifications.map((cert, index) => (
-                              <Badge key={index} variant="secondary" className="text-sm px-3 py-1">
-                                {cert}
-                              </Badge>
-                            ))}
-                          </div>
-                        </div>
-                      )}
 
                       {existingApplication.wellness_areas && existingApplication.wellness_areas.length > 0 && (
                         <div className="space-y-3">

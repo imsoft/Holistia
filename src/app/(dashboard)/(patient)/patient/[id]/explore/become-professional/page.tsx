@@ -26,6 +26,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { createClient } from "@/utils/supabase/client";
 import Link from "next/link";
+import Image from "next/image";
 import { normalizeName, normalizeProfession, normalizeAddress, normalizeLocation } from "@/lib/text-utils";
 
 interface Service {
@@ -84,6 +85,7 @@ export default function BecomeProfessionalPage() {
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [specializationInput, setSpecializationInput] = useState("");
+  const [userProfilePhoto, setUserProfilePhoto] = useState<string | null>(null);
   const params = useParams();
   const userId = params.id as string;
 
@@ -103,6 +105,11 @@ export default function BecomeProfessionalPage() {
         }
 
         setCurrentUser({ id: user.id, email: user.email || "" });
+        
+        // Obtener foto de perfil del usuario
+        const profilePhoto = user.user_metadata?.avatar_url;
+        setUserProfilePhoto(profilePhoto || null);
+        
         setFormData((prev) => ({
           ...prev,
           email: user.email || "",
@@ -243,6 +250,10 @@ export default function BecomeProfessionalPage() {
 
     setSubmitting(true);
     try {
+      // Obtener la foto de perfil del usuario actual
+      const { data: { user } } = await supabase.auth.getUser();
+      const userProfilePhoto = user?.user_metadata?.avatar_url;
+
       const applicationData = {
         user_id: currentUser.id,
         first_name: formData.first_name,
@@ -258,6 +269,7 @@ export default function BecomeProfessionalPage() {
         state: formData.state,
         country: formData.country,
         biography: formData.biography,
+        profile_photo: userProfilePhoto, // Copiar foto de perfil del usuario
         terms_accepted: formData.terms_accepted,
         privacy_accepted: formData.privacy_accepted,
         status: "pending",
@@ -293,6 +305,29 @@ export default function BecomeProfessionalPage() {
       case 1:
         return (
           <div className="space-y-6">
+            {/* Foto de perfil actual */}
+            {userProfilePhoto && (
+              <div className="flex items-center gap-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <div className="relative">
+                  <Image
+                    src={userProfilePhoto}
+                    alt="Foto de perfil actual"
+                    width={60}
+                    height={60}
+                    className="w-15 h-15 rounded-full object-cover border-2 border-blue-300"
+                  />
+                </div>
+                <div>
+                  <h4 className="text-sm font-medium text-blue-900">
+                    Foto de perfil actual
+                  </h4>
+                  <p className="text-xs text-blue-700">
+                    Esta será tu foto de perfil como profesional
+                  </p>
+                </div>
+              </div>
+            )}
+            
             <div className="space-y-3">
               <Label htmlFor="first_name">Nombre *</Label>
               <Input

@@ -51,18 +51,29 @@ export default function ProfessionalServicesPage() {
           await supabase
             .from("professional_applications")
             .select("id, first_name, last_name, profession, status")
-            .eq("id", professionalId)
             .eq("user_id", user.id)
             .single();
 
         if (professionalError) {
           console.error("Error fetching professional:", professionalError);
+          console.error("User ID:", user.id);
+          console.error("Professional ID from URL:", professionalId);
+          
+          // Si no existe la aplicación profesional, mostrar mensaje apropiado
+          if (professionalError.code === 'PGRST116') {
+            console.log("No professional application found for user");
+            // No redirigir, mostrar mensaje de que necesita aplicar primero
+            setProfessional(null);
+            return;
+          }
+          
           router.push("/");
           return;
         }
 
         if (!professionalData) {
-          router.push("/");
+          console.log("No professional data found for user:", user.id);
+          setProfessional(null);
           return;
         }
 
@@ -89,7 +100,7 @@ export default function ProfessionalServicesPage() {
     );
   }
 
-  if (!professional || !currentUser) {
+  if (!currentUser) {
     return (
       <div className="container mx-auto px-4 py-8">
         <Card>
@@ -102,6 +113,26 @@ export default function ProfessionalServicesPage() {
             <Button onClick={() => router.push("/")}>
               <ArrowLeft className="w-4 h-4 mr-2" />
               Volver al inicio
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (!professional) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center py-12">
+            <Package className="w-12 h-12 text-muted-foreground mb-4" />
+            <h3 className="text-lg font-semibold mb-2">Aplicación profesional requerida</h3>
+            <p className="text-muted-foreground text-center mb-4">
+              Necesitas tener una aplicación profesional aprobada para gestionar servicios
+            </p>
+            <Button onClick={() => router.push("/patient/" + currentUser.id + "/explore/become-professional")}>
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Aplicar como profesional
             </Button>
           </CardContent>
         </Card>

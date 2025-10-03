@@ -66,13 +66,13 @@ export function BlogImageUploader({
       const fileName = `imagen.${fileExt}`;
       const filePath = `${blogPostId}/${fileName}`;
 
-      // Subir archivo a Supabase Storage
-      const { error: uploadError } = await supabase.storage
-        .from('blog-images')
-        .upload(filePath, file, {
-          cacheControl: '3600',
-          upsert: true // Permite sobrescribir si existe
-        });
+             // Subir archivo a Supabase Storage
+             const { error: uploadError } = await supabase.storage
+               .from('consultorios')
+               .upload(filePath, file, {
+                 cacheControl: '3600',
+                 upsert: true // Permite sobrescribir si existe
+               });
 
       if (uploadError) {
         console.error('Error uploading image:', uploadError);
@@ -82,7 +82,7 @@ export function BlogImageUploader({
 
       // Obtener URL pública de la imagen
       const { data: urlData } = supabase.storage
-        .from('blog-images')
+        .from('consultorios')
         .getPublicUrl(filePath);
 
       if (urlData?.publicUrl) {
@@ -118,7 +118,7 @@ export function BlogImageUploader({
 
       // Eliminar archivo del storage
       const { error } = await supabase.storage
-        .from('blog-images')
+        .from('consultorios')
         .remove([filePath]);
 
       if (error) {

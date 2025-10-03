@@ -17,6 +17,7 @@ import {
   Heading3
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useEffect, useState } from 'react';
 
 interface RichTextEditorProps {
   content: string;
@@ -31,6 +32,8 @@ export function RichTextEditor({
   placeholder = "Escribe aquí el contenido de tu post...",
   className 
 }: RichTextEditorProps) {
+  const [isMounted, setIsMounted] = useState(false);
+
   const editor = useEditor({
     extensions: [
       StarterKit,
@@ -50,10 +53,29 @@ export function RichTextEditor({
         ),
       },
     },
+    immediatelyRender: false,
   });
 
-  if (!editor) {
-    return null;
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  if (!editor || !isMounted) {
+    return (
+      <div className="border rounded-lg overflow-hidden">
+        <div className="flex items-center gap-1 p-2 border-b bg-muted/50">
+          <div className="flex items-center gap-1">
+            <div className="h-8 w-8 bg-muted rounded animate-pulse"></div>
+            <div className="h-8 w-8 bg-muted rounded animate-pulse"></div>
+            <div className="h-8 w-8 bg-muted rounded animate-pulse"></div>
+          </div>
+        </div>
+        <div className="min-h-[400px] p-4 bg-muted/20 animate-pulse">
+          <div className="h-4 bg-muted rounded w-3/4 mb-2"></div>
+          <div className="h-4 bg-muted rounded w-1/2"></div>
+        </div>
+      </div>
+    );
   }
 
   const ToolbarButton = ({ 

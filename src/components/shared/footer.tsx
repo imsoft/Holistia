@@ -119,8 +119,8 @@ export const Footer = () => {
         <div className="mt-24 border-t border-border pt-12 xl:grid xl:grid-cols-3 xl:gap-8">
           <Image
             alt="Holistia"
-            src="/logos/holistia-white.png"
-            className="h-9"
+            src="/logos/holistia-black.png"
+            className="h-10 w-auto"
             width={36}
             height={36}
           />

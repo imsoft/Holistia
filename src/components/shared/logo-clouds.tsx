@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 
 export const LogoClouds = () => {
@@ -30,59 +31,53 @@ export const LogoClouds = () => {
             </div>
           </div>
           <div className="mx-auto grid w-full max-w-xl grid-cols-2 items-center gap-y-12 sm:gap-y-14 lg:mx-0 lg:max-w-none lg:pl-8">
-            <div className="flex items-center justify-center">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-foreground mb-2">Psicología</div>
-                <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
-                  <span className="text-2xl">🧠</span>
-                </div>
-              </div>
-            </div>
+            <Image
+              alt="Psicología"
+              src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=200&h=100&fit=crop&crop=center"
+              width={105}
+              height={48}
+              className="max-h-12 w-full object-contain object-left"
+            />
 
-            <div className="flex items-center justify-center">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-foreground mb-2">Terapia</div>
-                <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
-                  <span className="text-2xl">💬</span>
-                </div>
-              </div>
-            </div>
+            <Image
+              alt="Terapia"
+              src="https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=200&h=100&fit=crop&crop=center"
+              width={104}
+              height={48}
+              className="max-h-12 w-full object-contain object-left"
+            />
 
-            <div className="flex items-center justify-center">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-foreground mb-2">Nutrición</div>
-                <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
-                  <span className="text-2xl">🥗</span>
-                </div>
-              </div>
-            </div>
+            <Image
+              alt="Nutrición"
+              src="https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=200&h=100&fit=crop&crop=center"
+              width={140}
+              height={48}
+              className="max-h-12 w-full object-contain object-left"
+            />
 
-            <div className="flex items-center justify-center">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-foreground mb-2">Medicina</div>
-                <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
-                  <span className="text-2xl">⚕️</span>
-                </div>
-              </div>
-            </div>
+            <Image
+              alt="Medicina"
+              src="https://images.unsplash.com/photo-1576091160399-112ba8d25d1f?w=200&h=100&fit=crop&crop=center"
+              width={136}
+              height={48}
+              className="max-h-12 w-full object-contain object-left"
+            />
 
-            <div className="flex items-center justify-center">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-foreground mb-2">Bienestar</div>
-                <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
-                  <span className="text-2xl">🧘</span>
-                </div>
-              </div>
-            </div>
+            <Image
+              alt="Bienestar"
+              src="https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=200&h=100&fit=crop&crop=center"
+              width={158}
+              height={48}
+              className="max-h-12 w-full object-contain object-left"
+            />
 
-            <div className="flex items-center justify-center">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-foreground mb-2">Salud Mental</div>
-                <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
-                  <span className="text-2xl">❤️</span>
-                </div>
-              </div>
-            </div>
+            <Image
+              alt="Salud Mental"
+              src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=200&h=100&fit=crop&crop=center"
+              width={147}
+              height={48}
+              className="max-h-12 w-full object-contain object-left"
+            />
           </div>
         </div>
       </div>

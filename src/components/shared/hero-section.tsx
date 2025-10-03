@@ -9,7 +9,6 @@ export const HeroSection = () => {
 
       <main>
         <div className="relative isolate">
-         
           <div
             aria-hidden="true"
             className="absolute top-0 right-0 left-1/2 z-[9999] -ml-24 transform-gpu overflow-hidden blur-3xl lg:ml-24 xl:ml-48"
@@ -27,26 +26,27 @@ export const HeroSection = () => {
               <div className="mx-auto max-w-2xl gap-x-14 lg:mx-0 lg:flex lg:max-w-none lg:items-center">
                 <div className="relative w-full lg:max-w-xl lg:shrink-0 xl:max-w-2xl">
                   <h1 className="text-5xl font-semibold tracking-tight text-pretty text-foreground sm:text-7xl">
-                    We&apos;re changing the way people connect
+                    Transformando la forma en la que eliges cuidarte
                   </h1>
                   <p className="mt-8 text-lg font-medium text-pretty text-muted-foreground sm:max-w-md sm:text-xl/8 lg:max-w-none">
-                    Anim aute id magna aliqua ad ad non deserunt sunt. Qui irure
-                    qui lorem cupidatat commodo. Elit sunt amet fugiat veniam
-                    occaecat fugiat aliqua. Anim aute id magna aliqua ad ad non
-                    deserunt sunt.
+                    Holistia reúne lo mejor del wellness en un espacio exclusivo
+                    y holístico: profesionales validados, experiencias únicas y
+                    comunidades que inspiran, complementadas con terapias
+                    alternativas que atienden cada aspecto de tu vida a tu
+                    propio ritmo.
                   </p>
                   <div className="mt-10 flex items-center gap-x-6">
                     <Link
-                      href="#"
+                      href="/signup"
                       className="rounded-md bg-primary px-3.5 py-2.5 text-sm font-semibold text-primary-foreground shadow-xs hover:bg-primary/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
                     >
-                      Get started
+                      Registrate
                     </Link>
                     <Link
-                      href="#"
+                      href="/blog"
                       className="text-sm/6 font-semibold text-foreground"
                     >
-                      Live demo <span aria-hidden="true">→</span>
+                      Blog <span aria-hidden="true">→</span>
                     </Link>
                   </div>
                 </div>

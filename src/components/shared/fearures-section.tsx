@@ -1,48 +1,48 @@
 import {
-  RefreshCw,
-  CloudUpload,
-  Settings,
-  Lock,
-  Server,
-  ShieldCheck,
+  Users,
+  Calendar,
+  Shield,
+  Heart,
+  MessageCircle,
+  CreditCard,
 } from "lucide-react";
 
 const features = [
   {
-    name: "Push to Deploy",
+    name: "Profesionales Certificados",
     description:
-      "Ac tincidunt sapien vehicula erat auctor pellentesque rhoncus. Et magna sit morbi lobortis.",
-    icon: CloudUpload,
+      "Conecta con terapeutas, psicólogos y profesionales de la salud verificados y certificados para tu bienestar integral.",
+    icon: Users,
   },
   {
-    name: "SSL Certificates",
+    name: "Citas Fáciles",
     description:
-      "Ac tincidunt sapien vehicula erat auctor pellentesque rhoncus. Et magna sit morbi lobortis.",
-    icon: Lock,
+      "Reserva tu cita en línea de manera rápida y segura. Agenda consultas presenciales o virtuales según tu preferencia.",
+    icon: Calendar,
   },
   {
-    name: "Simple Queues",
+    name: "Privacidad Garantizada",
     description:
-      "Ac tincidunt sapien vehicula erat auctor pellentesque rhoncus. Et magna sit morbi lobortis.",
-    icon: RefreshCw,
+      "Tu información personal y de salud está protegida con los más altos estándares de seguridad y confidencialidad.",
+    icon: Shield,
   },
   {
-    name: "Advanced Security",
+    name: "Salud Integral",
     description:
-      "Ac tincidunt sapien vehicula erat auctor pellentesque rhoncus. Et magna sit morbi lobortis.",
-    icon: ShieldCheck,
+      "Accede a una amplia gama de servicios de salud mental, física y emocional en un solo lugar.",
+    icon: Heart,
   },
   {
-    name: "Powerful API",
+    name: "Soporte 24/7",
     description:
-      "Ac tincidunt sapien vehicula erat auctor pellentesque rhoncus. Et magna sit morbi lobortis.",
-    icon: Settings,
+      "Recibe atención y soporte cuando lo necesites. Nuestro equipo está disponible para resolver tus dudas.",
+    icon: MessageCircle,
   },
   {
-    name: "Database Backups",
+    name: "Pagos Seguros",
     description:
-      "Ac tincidunt sapien vehicula erat auctor pellentesque rhoncus. Et magna sit morbi lobortis.",
-    icon: Server,
+      "Realiza pagos seguros con Stripe. Reserva tu cita con comodidad y transparencia en los precios.",
+    icon: CreditCard,
   },
 ];
 
@@ -50,14 +50,14 @@ export const FeaturesSection = () => {
   return (
     <div className="relative bg-background py-24 sm:py-32 lg:py-40">
       <div className="mx-auto max-w-md px-6 text-center sm:max-w-3xl lg:max-w-7xl lg:px-8">
-        <h2 className="text-lg font-semibold text-primary">Deploy faster</h2>
+        <h2 className="text-lg font-semibold text-primary">Tu bienestar es nuestra prioridad</h2>
         <p className="mt-2 text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-          Everything you need to deploy your app
+          Todo lo que necesitas para cuidar tu salud integral
         </p>
         <p className="mx-auto mt-5 max-w-prose text-xl text-muted-foreground">
-          Phasellus lorem quam molestie id quisque diam aenean nulla in.
-          Accumsan in quis quis nunc, ullamcorper malesuada. Eleifend
-          condimentum id viverra nulla.
+          Conectamos pacientes con profesionales de la salud certificados para brindarte 
+          una experiencia completa de bienestar. Desde terapia psicológica hasta consultas 
+          médicas, todo en una plataforma segura y confiable.
         </p>
         <div className="mt-20">
           <div className="grid grid-cols-1 gap-12 sm:grid-cols-2 lg:grid-cols-3">

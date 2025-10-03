@@ -118,8 +118,8 @@ export const Footer = () => {
         </div>
         <div className="mt-24 border-t border-border pt-12 xl:grid xl:grid-cols-3 xl:gap-8">
           <Image
-            alt="Company name"
-            src="https://tailwindcss.com/plus-assets/img/logos/mark.svg?color=indigo&shade=600"
+            alt="Holistia"
+            src="/logos/holistia-white.png"
             className="h-9"
             width={36}
             height={36}

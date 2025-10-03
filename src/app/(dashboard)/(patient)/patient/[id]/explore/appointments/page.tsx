@@ -111,8 +111,10 @@ export default function AppointmentsPage() {
 
         // Verificar que el usuario autenticado coincida con el parámetro de la URL
         if (user.id !== userId) {
-          console.error('User ID mismatch. Authenticated:', user.id, 'URL param:', userId);
-          setError('No tienes permisos para ver estas citas.');
+          console.log('User ID mismatch. Authenticated:', user.id, 'URL param:', userId);
+          console.log('Redirecting to correct user URL...');
+          // Redirigir a la URL correcta del usuario autenticado
+          router.replace(`/patient/${user.id}/explore/appointments`);
           return;
         }
 
@@ -200,7 +202,7 @@ export default function AppointmentsPage() {
       setError('ID de usuario no válido.');
       setLoading(false);
     }
-  }, [userId, supabase]);
+  }, [userId, supabase, router]);
 
   const handleCancelAppointment = async (appointmentId: string) => {
     try {

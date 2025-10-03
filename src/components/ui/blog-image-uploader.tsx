@@ -68,7 +68,7 @@ export function BlogImageUploader({
 
              // Subir archivo a Supabase Storage
              const { error: uploadError } = await supabase.storage
-               .from('consultorios')
+               .from('blog-images')
                .upload(filePath, file, {
                  cacheControl: '3600',
                  upsert: true // Permite sobrescribir si existe
@@ -82,7 +82,7 @@ export function BlogImageUploader({
 
       // Obtener URL pública de la imagen
       const { data: urlData } = supabase.storage
-        .from('consultorios')
+        .from('blog-images')
         .getPublicUrl(filePath);
 
       if (urlData?.publicUrl) {

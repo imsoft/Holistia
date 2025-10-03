@@ -6,7 +6,7 @@ import { createClient } from "@/utils/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import ImageGalleryManager from "@/components/ui/image-gallery-manager";
-import { ArrowLeft, Image as ImageIcon } from "lucide-react";
+import { Image as ImageIcon } from "lucide-react";
 import Link from "next/link";
 
 interface Professional {

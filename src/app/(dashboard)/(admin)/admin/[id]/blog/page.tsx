@@ -30,7 +30,7 @@ export default function AdminBlogPage({ params }: { params: Promise<{ id: string
     if (user) {
       fetchPosts();
     }
-  }, [user]);
+  }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const fetchPosts = async () => {
     try {
@@ -125,7 +125,7 @@ export default function AdminBlogPage({ params }: { params: Promise<{ id: string
       {loading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {[...Array(6)].map((_, i) => (
-            <Card key={i} className="animate-pulse">
+            <Card key={i} className="animate-pulse p-4">
               <CardHeader>
                 <div className="h-4 bg-muted rounded w-3/4"></div>
                 <div className="h-3 bg-muted rounded w-1/2"></div>
@@ -138,7 +138,7 @@ export default function AdminBlogPage({ params }: { params: Promise<{ id: string
           ))}
         </div>
       ) : posts.length === 0 ? (
-        <Card>
+        <Card className="p-4">
           <CardContent className="flex flex-col items-center justify-center py-12">
             <FileText className="w-12 h-12 text-muted-foreground mb-4" />
             <h3 className="text-lg font-semibold mb-2">No hay posts aún</h3>
@@ -156,7 +156,7 @@ export default function AdminBlogPage({ params }: { params: Promise<{ id: string
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {posts.map((post) => (
-            <Card key={post.id} className="hover:shadow-lg transition-shadow">
+            <Card key={post.id} className="hover:shadow-lg transition-shadow p-4">
               <CardHeader>
                 <div className="flex items-start justify-between">
                   <CardTitle className="text-lg line-clamp-2">

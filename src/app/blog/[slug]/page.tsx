@@ -1,32 +1,34 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, use } from "react";
 import { createClient } from "@/utils/supabase/client";
 import { BlogPost } from "@/types/blog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { 
-  Calendar, 
-  Clock, 
-  ArrowLeft,
-  Share2
-} from "lucide-react";
+import { Calendar, Clock, Share2 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
+import { Navbar } from "@/components/shared/navbar";
+import { Footer } from "@/components/shared/footer";
 
-export default function BlogPostPage({ params }: { params: { slug: string } }) {
+export default function BlogPostPage({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const { slug } = use(params);
   const [post, setPost] = useState<BlogPost | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [relatedPosts, setRelatedPosts] = useState<BlogPost[]>([]);
-  
+
   const supabase = createClient();
 
   useEffect(() => {
-    if (params.slug) {
+    if (slug) {
       fetchPost();
     }
-  }, [params.slug]);
+  }, [slug]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const fetchPost = async () => {
     try {
@@ -37,7 +39,7 @@ export default function BlogPostPage({ params }: { params: { slug: string } }) {
       const { data: postData, error: postError } = await supabase
         .from("blog_posts")
         .select("*")
-        .eq("slug", params.slug)
+        .eq("slug", slug)
         .eq("status", "published")
         .single();
 
@@ -138,16 +140,8 @@ export default function BlogPostPage({ params }: { params: { slug: string } }) {
             El artículo que buscas no existe o no está disponible
           </p>
           <div className="space-x-4">
-            <Button asChild>
-              <Link href="/blog">
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Volver al Blog
-              </Link>
-            </Button>
             <Button variant="outline" asChild>
-              <Link href="/">
-                Ir al Inicio
-              </Link>
+              <Link href="/">Ir al Inicio</Link>
             </Button>
           </div>
         </div>
@@ -157,18 +151,9 @@ export default function BlogPostPage({ params }: { params: { slug: string } }) {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Navigation */}
-      <div className="border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-4">
-          <Button variant="ghost" asChild>
-            <Link href="/blog">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Volver al Blog
-            </Link>
-          </Button>
-        </div>
+      <div className="pb-12">
+        <Navbar />
       </div>
-
       {/* Article Header */}
       <article className="container mx-auto px-4 py-12">
         <div className="max-w-4xl mx-auto">
@@ -177,7 +162,7 @@ export default function BlogPostPage({ params }: { params: { slug: string } }) {
             <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-6 leading-tight">
               {post.title}
             </h1>
-            
+
             <div className="flex flex-wrap items-center gap-6 text-sm text-muted-foreground mb-6">
               <div className="flex items-center">
                 <Calendar className="w-4 h-4 mr-2" />
@@ -220,17 +205,21 @@ export default function BlogPostPage({ params }: { params: { slug: string } }) {
 
           {/* Article Content */}
           <div className="prose prose-lg max-w-none">
-            <div className="whitespace-pre-wrap text-foreground leading-relaxed">
-              {post.content}
-            </div>
+            <div
+              className="text-foreground leading-relaxed"
+              dangerouslySetInnerHTML={{ __html: post.content }}
+            />
           </div>
 
           {/* Share Section */}
           <div className="mt-12 pt-8 border-t border-border">
             <div className="text-center">
-              <h3 className="text-lg font-semibold mb-4">¿Te gustó este artículo?</h3>
+              <h3 className="text-lg font-semibold mb-4">
+                ¿Te gustó este artículo?
+              </h3>
               <p className="text-muted-foreground mb-6">
-                Compártelo con otros y ayúdanos a difundir el conocimiento sobre bienestar
+                Compártelo con otros y ayúdanos a difundir el conocimiento sobre
+                bienestar
               </p>
               <Button onClick={handleShare} className="mr-4">
                 <Share2 className="w-4 h-4 mr-2" />
@@ -251,7 +240,10 @@ export default function BlogPostPage({ params }: { params: { slug: string } }) {
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {relatedPosts.map((relatedPost) => (
-                  <Card key={relatedPost.id} className="hover:shadow-lg transition-shadow">
+                  <Card
+                    key={relatedPost.id}
+                    className="hover:shadow-lg transition-shadow"
+                  >
                     <CardContent className="p-6">
                       <h3 className="font-semibold text-lg mb-2 line-clamp-2">
                         {relatedPost.title}
@@ -279,6 +271,7 @@ export default function BlogPostPage({ params }: { params: { slug: string } }) {
           </div>
         </section>
       )}
+      <Footer />
     </div>
   );
 }

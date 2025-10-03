@@ -49,7 +49,7 @@ export default function EditBlogPostPage({
     if (user && postId) {
       fetchPost();
     }
-  }, [user, postId]);
+  }, [user, postId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const fetchPost = async () => {
     try {
@@ -270,7 +270,7 @@ export default function EditBlogPostPage({
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        <Card>
+        <Card className="p-4">
           <CardHeader>
             <CardTitle>Información del Post</CardTitle>
           </CardHeader>
@@ -348,7 +348,7 @@ export default function EditBlogPostPage({
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="p-4">
           <CardHeader>
             <CardTitle>Contenido</CardTitle>
           </CardHeader>

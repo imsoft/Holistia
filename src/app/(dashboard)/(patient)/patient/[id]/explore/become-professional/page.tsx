@@ -79,12 +79,13 @@ export default function BecomeProfessionalPage() {
     state: "",
     country: "",
     biography: "",
-    wellnessAreas: [] as string[],
     terms_accepted: false,
     privacy_accepted: false,
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [specializationInput, setSpecializationInput] = useState("");
+  const [certificationInput, setCertificationInput] = useState("");
   const params = useParams();
   const userId = params.id as string;
 
@@ -137,7 +138,6 @@ export default function BecomeProfessionalPage() {
             state: existingApp.state || "",
             country: existingApp.country || "",
             biography: existingApp.biography || "",
-            wellnessAreas: existingApp.wellness_areas || [],
             terms_accepted: existingApp.terms_accepted || false,
             privacy_accepted: existingApp.privacy_accepted || false,
           });
@@ -233,7 +233,6 @@ export default function BecomeProfessionalPage() {
         state: formData.state,
         country: formData.country,
         biography: formData.biography,
-        wellness_areas: formData.wellnessAreas,
         terms_accepted: formData.terms_accepted,
         privacy_accepted: formData.privacy_accepted,
         status: "pending",
@@ -351,18 +350,46 @@ export default function BecomeProfessionalPage() {
 
             <div className="space-y-3">
               <Label>Especializaciones *</Label>
-              <Textarea
-                placeholder="Describe tus especializaciones y áreas de expertise (separadas por comas)..."
-                value={formData.specializations.join(", ")}
-                onChange={(e) => {
-                  const specializations = e.target.value
-                    .split(",")
-                    .map((s) => s.trim())
-                    .filter((s) => s);
-                  setFormData((prev) => ({ ...prev, specializations }));
+              <Input
+                placeholder="Ej: Psicología Clínica, Terapia Cognitivo-Conductual, Ansiedad..."
+                value={specializationInput}
+                onChange={(e) => setSpecializationInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ',') {
+                    e.preventDefault();
+                    if (specializationInput.trim()) {
+                      setFormData((prev) => ({
+                        ...prev,
+                        specializations: [...prev.specializations, specializationInput.trim()]
+                      }));
+                      setSpecializationInput('');
+                    }
+                  }
                 }}
-                className="min-h-[100px]"
+                className={errors.specializations ? "border-red-500" : ""}
               />
+              <p className="text-xs text-muted-foreground">
+                Presiona Enter o escribe una coma para agregar. Ejemplos: Psicología Clínica, Terapia de Pareja, Depresión
+              </p>
+              {formData.specializations.length > 0 && (
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {formData.specializations.map((spec, index) => (
+                    <Badge
+                      key={index}
+                      variant="secondary"
+                      className="cursor-pointer hover:bg-red-100"
+                      onClick={() => {
+                        setFormData((prev) => ({
+                          ...prev,
+                          specializations: prev.specializations.filter((_, i) => i !== index)
+                        }));
+                      }}
+                    >
+                      {spec} ×
+                    </Badge>
+                  ))}
+                </div>
+              )}
               {errors.specializations && (
                 <p className="text-red-500 text-sm mt-1">
                   {errors.specializations}
@@ -389,39 +416,45 @@ export default function BecomeProfessionalPage() {
 
             <div className="space-y-3">
               <Label>Certificaciones y Educación</Label>
-              <Textarea
-                placeholder="Lista tus certificaciones, títulos y educación (separadas por comas)..."
-                value={formData.certifications.join(", ")}
-                onChange={(e) => {
-                  const certifications = e.target.value
-                    .split(",")
-                    .map((s) => s.trim())
-                    .filter((s) => s);
-                  setFormData((prev) => ({ ...prev, certifications }));
+              <Input
+                placeholder="Ej: Licenciatura en Psicología, Certificación en Terapia Cognitivo-Conductual..."
+                value={certificationInput}
+                onChange={(e) => setCertificationInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ',') {
+                    e.preventDefault();
+                    if (certificationInput.trim()) {
+                      setFormData((prev) => ({
+                        ...prev,
+                        certifications: [...prev.certifications, certificationInput.trim()]
+                      }));
+                      setCertificationInput('');
+                    }
+                  }
                 }}
-                className="min-h-[100px]"
-              />
-            </div>
-
-            {/* Áreas de Bienestar */}
-            <div className="space-y-3">
-              <Label>Áreas de Bienestar</Label>
-              <Textarea
-                placeholder="Describe las áreas de bienestar en las que puedes ayudar (separadas por comas)..."
-                value={formData.wellnessAreas.join(", ")}
-                onChange={(e) => {
-                  const wellnessAreas = e.target.value
-                    .split(",")
-                    .map((s) => s.trim())
-                    .filter((s) => s);
-                  setFormData((prev) => ({ ...prev, wellnessAreas }));
-                }}
-                className="min-h-[80px]"
               />
               <p className="text-xs text-muted-foreground">
-                Selecciona las áreas de bienestar en las que puedes ayudar a tus
-                pacientes.
+                Presiona Enter o escribe una coma para agregar. Ejemplos: Licenciatura en Psicología, Maestría en Terapia Familiar
               </p>
+              {formData.certifications.length > 0 && (
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {formData.certifications.map((cert, index) => (
+                    <Badge
+                      key={index}
+                      variant="secondary"
+                      className="cursor-pointer hover:bg-red-100"
+                      onClick={() => {
+                        setFormData((prev) => ({
+                          ...prev,
+                          certifications: prev.certifications.filter((_, i) => i !== index)
+                        }));
+                      }}
+                    >
+                      {cert} ×
+                    </Badge>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         );

@@ -118,7 +118,7 @@ export function BlogImageUploader({
 
       // Eliminar archivo del storage
       const { error } = await supabase.storage
-        .from('consultorios')
+        .from('blog-images')
         .remove([filePath]);
 
       if (error) {

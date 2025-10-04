@@ -1,6 +1,4 @@
 import { Metadata } from "next";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
 import { Heart, Users, Shield, Lightbulb } from "lucide-react";
 
 export const metadata: Metadata = {
@@ -13,7 +11,7 @@ export default function HistoryPage() {
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
       <div className="relative bg-gradient-to-b from-primary/5 via-primary/3 to-background">
-        <div className="mx-auto max-w-4xl px-6 py-24 sm:py-32 lg:px-8">
+        <div className="mx-auto max-w-4xl px-6 pt-24 sm:pt-32 lg:px-8">
           <div className="text-center">
             <h1 className="text-5xl font-bold tracking-tight text-foreground sm:text-7xl">
               Nuestra Historia

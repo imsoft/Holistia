@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 
 export const LogoClouds = () => {
   return (
@@ -32,32 +33,68 @@ export const LogoClouds = () => {
           <div className="mx-auto grid w-full max-w-xl grid-cols-3 items-center gap-x-8 gap-y-12 sm:gap-y-14 lg:mx-0 lg:max-w-none lg:pl-8">
             {/* Vercel */}
             <div className="col-span-1 flex justify-center">
-              <div className="text-2xl font-bold text-foreground">Vercel</div>
+              <Image
+                alt="Vercel"
+                src="https://upload.wikimedia.org/wikipedia/commons/5/5e/Vercel_logo_black.svg"
+                width={120}
+                height={48}
+                className="max-h-12 w-auto object-contain filter grayscale hover:grayscale-0 transition-all duration-300"
+              />
             </div>
 
             {/* Supabase */}
             <div className="col-span-1 flex justify-center">
-              <div className="text-2xl font-bold text-primary">Supabase</div>
+              <Image
+                alt="Supabase"
+                src="https://supabase.com/images/brand/supabase-logo-wordmark--dark.svg"
+                width={120}
+                height={48}
+                className="max-h-12 w-auto object-contain filter grayscale hover:grayscale-0 transition-all duration-300"
+              />
             </div>
 
             {/* Next.js */}
             <div className="col-span-1 flex justify-center">
-              <div className="text-2xl font-bold text-foreground">Next.js</div>
+              <Image
+                alt="Next.js"
+                src="https://upload.wikimedia.org/wikipedia/commons/8/8e/Nextjs-logo.svg"
+                width={120}
+                height={48}
+                className="max-h-12 w-auto object-contain filter grayscale hover:grayscale-0 transition-all duration-300"
+              />
             </div>
 
             {/* Stripe */}
             <div className="col-span-1 flex justify-center">
-              <div className="text-2xl font-bold text-blue-600">Stripe</div>
+              <Image
+                alt="Stripe"
+                src="https://upload.wikimedia.org/wikipedia/commons/b/ba/Stripe_Logo%2C_revised_2016.svg"
+                width={120}
+                height={48}
+                className="max-h-12 w-auto object-contain filter grayscale hover:grayscale-0 transition-all duration-300"
+              />
             </div>
 
             {/* Tailwind */}
             <div className="col-span-1 flex justify-center">
-              <div className="text-2xl font-bold text-cyan-500">Tailwind</div>
+              <Image
+                alt="Tailwind CSS"
+                src="https://upload.wikimedia.org/wikipedia/commons/d/d5/Tailwind_CSS_Logo.svg"
+                width={120}
+                height={48}
+                className="max-h-12 w-auto object-contain filter grayscale hover:grayscale-0 transition-all duration-300"
+              />
             </div>
 
             {/* TypeScript */}
             <div className="col-span-1 flex justify-center">
-              <div className="text-2xl font-bold text-blue-500">TypeScript</div>
+              <Image
+                alt="TypeScript"
+                src="https://upload.wikimedia.org/wikipedia/commons/4/4c/Typescript_logo_2020.svg"
+                width={120}
+                height={48}
+                className="max-h-12 w-auto object-contain filter grayscale hover:grayscale-0 transition-all duration-300"
+              />
             </div>
           </div>
         </div>

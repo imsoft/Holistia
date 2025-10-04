@@ -1,190 +1,207 @@
 import { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Heart, Users, Shield, Lightbulb } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "Nuestra Historia - Holistia",
   description: "Conoce la historia de Holistia, cómo nació nuestra plataforma de salud integral y nuestra misión de conectar pacientes con profesionales de la salud.",
 };
 
-const milestones = [
-  {
-    year: "2023",
-    title: "El Inicio",
-    description: "Holistia nace de la visión de crear una plataforma que democratice el acceso a servicios de salud integral de calidad.",
-    image: "https://images.unsplash.com/photo-1559757175-0eb30cd8c063?w=400&h=300&fit=crop&crop=center"
-  },
-  {
-    year: "2024",
-    title: "Primeros Pasos",
-    description: "Lanzamos la plataforma con los primeros profesionales de psicología y terapia, estableciendo las bases de nuestro ecosistema de salud.",
-    image: "https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=400&h=300&fit=crop&crop=center"
-  },
-  {
-    year: "2024",
-    title: "Expansión",
-    description: "Incorporamos especialidades en nutrición, medicina preventiva y bienestar, ampliando nuestra oferta de servicios de salud integral.",
-    image: "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=400&h=300&fit=crop&crop=center"
-  },
-  {
-    year: "2025",
-    title: "Innovación",
-    description: "Implementamos tecnología avanzada para mejorar la experiencia del usuario y facilitar las conexiones entre pacientes y profesionales.",
-    image: "https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=400&h=300&fit=crop&crop=center"
-  }
-];
-
-const values = [
-  {
-    title: "Accesibilidad",
-    description: "Creemos que todos merecen acceso a servicios de salud de calidad, independientemente de su ubicación o situación económica."
-  },
-  {
-    title: "Calidad",
-    description: "Trabajamos únicamente con profesionales certificados y verificados para garantizar la mejor atención posible."
-  },
-  {
-    title: "Innovación",
-    description: "Utilizamos tecnología de vanguardia para mejorar continuamente la experiencia de nuestros usuarios."
-  },
-  {
-    title: "Compromiso",
-    description: "Estamos comprometidos con el bienestar integral de nuestros usuarios, no solo con tratar síntomas."
-  }
-];
-
 export default function HistoryPage() {
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
-      <div className="relative bg-gradient-to-b from-primary/5 to-background">
-        <div className="mx-auto max-w-7xl px-6 py-24 sm:py-32 lg:px-8">
-          <div className="mx-auto max-w-3xl text-center">
-            <h1 className="text-4xl font-bold tracking-tight text-foreground sm:text-6xl">
+      <div className="relative bg-gradient-to-b from-primary/5 via-primary/3 to-background">
+        <div className="mx-auto max-w-4xl px-6 py-24 sm:py-32 lg:px-8">
+          <div className="text-center">
+            <h1 className="text-5xl font-bold tracking-tight text-foreground sm:text-7xl">
               Nuestra Historia
             </h1>
-            <p className="mt-6 text-lg leading-8 text-muted-foreground">
-              Descubre cómo Holistia se convirtió en la plataforma líder en salud integral, 
-              conectando a miles de pacientes con profesionales de la salud certificados.
+            <p className="mt-8 text-xl leading-8 text-muted-foreground max-w-3xl mx-auto">
+              Una historia de pasión por la salud integral, innovación tecnológica y el compromiso 
+              de hacer que el bienestar sea accesible para todos.
             </p>
           </div>
         </div>
       </div>
 
-      {/* Mission Section */}
+      {/* Story Section */}
       <div className="py-24 sm:py-32">
-        <div className="mx-auto max-w-7xl px-6 lg:px-8">
-          <div className="mx-auto max-w-3xl text-center">
-            <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-              Nuestra Misión
-            </h2>
-            <p className="mt-6 text-lg leading-8 text-muted-foreground">
-              Transformar la manera en que las personas acceden y experimentan los servicios de salud, 
-              creando un ecosistema donde el bienestar integral sea accesible, personalizado y de la más alta calidad.
-            </p>
-          </div>
-        </div>
-      </div>
+        <div className="mx-auto max-w-4xl px-6 lg:px-8">
+          <div className="space-y-16">
+            
+            {/* The Beginning */}
+            <div className="prose prose-lg max-w-none">
+              <h2 className="text-3xl font-bold text-foreground mb-8 text-center">
+                El Comienzo de una Visión
+              </h2>
+              <div className="text-lg leading-8 text-muted-foreground space-y-6">
+                <p>
+                  Todo comenzó con una simple pero poderosa observación: millones de personas en México 
+                  enfrentaban barreras significativas para acceder a servicios de salud de calidad. 
+                  Ya fuera por limitaciones geográficas, económicas o simplemente por la falta de 
+                  información sobre dónde encontrar el profesional adecuado.
+                </p>
+                <p>
+                  En 2023, nuestro equipo fundador, compuesto por profesionales de la salud y 
+                  tecnólogos apasionados, se propuso una misión ambiciosa: democratizar el acceso 
+                  a la salud integral a través de la tecnología.
+                </p>
+              </div>
+            </div>
 
-      {/* Timeline Section */}
-      <div className="py-24 sm:py-32 bg-muted/30">
-        <div className="mx-auto max-w-7xl px-6 lg:px-8">
-          <div className="mx-auto max-w-3xl text-center mb-16">
-            <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-              Nuestro Camino
-            </h2>
-            <p className="mt-6 text-lg leading-8 text-muted-foreground">
-              Desde nuestros humildes comienzos hasta convertirnos en la plataforma de referencia en salud integral.
-            </p>
-          </div>
-          
-          <div className="space-y-12">
-            {milestones.map((milestone, index) => (
-              <div key={index} className={`flex flex-col lg:flex-row items-center gap-8 ${index % 2 === 1 ? 'lg:flex-row-reverse' : ''}`}>
-                <div className="flex-1">
-                  <Card>
-                    <CardContent className="p-6">
-                      <div className="text-sm font-semibold text-primary mb-2">
-                        {milestone.year}
-                      </div>
-                      <h3 className="text-2xl font-bold text-foreground mb-4">
-                        {milestone.title}
-                      </h3>
-                      <p className="text-muted-foreground leading-relaxed">
-                        {milestone.description}
-                      </p>
-                    </CardContent>
-                  </Card>
+            {/* The Vision */}
+            <div className="bg-muted/30 rounded-3xl p-8 sm:p-12">
+              <div className="text-center mb-8">
+                <Heart className="w-16 h-16 text-primary mx-auto mb-6" />
+                <h2 className="text-3xl font-bold text-foreground mb-4">
+                  Una Visión Integral
+                </h2>
+              </div>
+              <div className="text-lg leading-8 text-muted-foreground space-y-6 max-w-3xl mx-auto">
+                <p>
+                  Creemos firmemente que la salud no se trata solo de tratar enfermedades, sino de 
+                  promover el bienestar integral. Por eso, desde el primer día, nos enfocamos en 
+                  crear un ecosistema que abarcara desde la salud mental y la terapia psicológica, 
+                  hasta la nutrición y la medicina preventiva.
+                </p>
+                <p>
+                  Nuestra plataforma fue diseñada no solo para conectar pacientes con profesionales, 
+                  sino para crear relaciones duraderas basadas en la confianza, la calidad y el 
+                  compromiso mutuo con el bienestar.
+                </p>
+              </div>
+            </div>
+
+            {/* The Journey */}
+            <div className="prose prose-lg max-w-none">
+              <h2 className="text-3xl font-bold text-foreground mb-8 text-center">
+                El Camino Recorrido
+              </h2>
+              <div className="text-lg leading-8 text-muted-foreground space-y-6">
+                <p>
+                  Los primeros meses fueron de aprendizaje constante. Trabajamos mano a mano con 
+                  profesionales de la salud para entender sus necesidades, sus desafíos y sus 
+                  aspiraciones. Cada conversación, cada feedback, cada sugerencia nos ayudó a 
+                  moldear una plataforma verdaderamente útil.
+                </p>
+                <p>
+                  En 2024, lanzamos oficialmente Holistia con un grupo selecto de profesionales 
+                  especializados en psicología y terapia. La respuesta fue abrumadora: en solo 
+                  unas semanas, cientos de pacientes encontraron el apoyo que necesitaban.
+                </p>
+                <p>
+                  La expansión llegó naturalmente. Incorporamos especialistas en nutrición, 
+                  medicina preventiva y bienestar integral. Cada nueva especialidad nos permitió 
+                  ofrecer una experiencia más completa y satisfacer las necesidades diversas de 
+                  nuestros usuarios.
+                </p>
+              </div>
+            </div>
+
+            {/* Values Section */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-16">
+              <div className="space-y-8">
+                <div className="flex items-start space-x-4">
+                  <div className="flex-shrink-0">
+                    <Users className="w-8 h-8 text-primary mt-1" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-semibold text-foreground mb-2">Accesibilidad</h3>
+                    <p className="text-muted-foreground">
+                      Creemos que todos merecen acceso a servicios de salud de calidad, 
+                      independientemente de su ubicación o situación económica.
+                    </p>
+                  </div>
                 </div>
-                <div className="flex-1">
-                  <div className="relative h-64 w-full rounded-lg overflow-hidden">
-                    <Image
-                      src={milestone.image}
-                      alt={milestone.title}
-                      fill
-                      className="object-cover"
-                    />
+                
+                <div className="flex items-start space-x-4">
+                  <div className="flex-shrink-0">
+                    <Shield className="w-8 h-8 text-primary mt-1" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-semibold text-foreground mb-2">Calidad</h3>
+                    <p className="text-muted-foreground">
+                      Trabajamos únicamente con profesionales certificados y verificados 
+                      para garantizar la mejor atención posible.
+                    </p>
                   </div>
                 </div>
               </div>
-            ))}
-          </div>
-        </div>
-      </div>
+              
+              <div className="space-y-8">
+                <div className="flex items-start space-x-4">
+                  <div className="flex-shrink-0">
+                    <Lightbulb className="w-8 h-8 text-primary mt-1" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-semibold text-foreground mb-2">Innovación</h3>
+                    <p className="text-muted-foreground">
+                      Utilizamos tecnología de vanguardia para mejorar continuamente 
+                      la experiencia de nuestros usuarios.
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="flex items-start space-x-4">
+                  <div className="flex-shrink-0">
+                    <Heart className="w-8 h-8 text-primary mt-1" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-semibold text-foreground mb-2">Compromiso</h3>
+                    <p className="text-muted-foreground">
+                      Estamos comprometidos con el bienestar integral de nuestros usuarios, 
+                      no solo con tratar síntomas.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
 
-      {/* Values Section */}
-      <div className="py-24 sm:py-32">
-        <div className="mx-auto max-w-7xl px-6 lg:px-8">
-          <div className="mx-auto max-w-3xl text-center mb-16">
-            <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-              Nuestros Valores
-            </h2>
-            <p className="mt-6 text-lg leading-8 text-muted-foreground">
-              Los principios que guían cada decisión que tomamos y cada servicio que ofrecemos.
-            </p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {values.map((value, index) => (
-              <Card key={index} className="border-primary/20 hover:border-primary/40 transition-colors">
-                <CardContent className="p-6">
-                  <h3 className="text-xl font-bold text-foreground mb-4">
-                    {value.title}
-                  </h3>
-                  <p className="text-muted-foreground leading-relaxed">
-                    {value.description}
-                  </p>
-                </CardContent>
-              </Card>
-            ))}
+            {/* Future Vision */}
+            <div className="bg-gradient-to-r from-primary/5 to-primary/10 rounded-3xl p-8 sm:p-12 text-center">
+              <h2 className="text-3xl font-bold text-foreground mb-6">
+                Mirando hacia el Futuro
+              </h2>
+              <div className="text-lg leading-8 text-muted-foreground max-w-3xl mx-auto space-y-4">
+                <p>
+                  Hoy, Holistia continúa evolucionando. Estamos implementando tecnologías 
+                  avanzadas como inteligencia artificial para mejorar las recomendaciones 
+                  de profesionales y hacer que el proceso de encontrar el apoyo adecuado 
+                  sea aún más personalizado y efectivo.
+                </p>
+                <p>
+                  Nuestra visión sigue siendo la misma: crear un mundo donde el acceso a 
+                  la salud integral sea universal, donde cada persona pueda encontrar el 
+                  apoyo que necesita para vivir una vida plena y saludable.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
       {/* CTA Section */}
       <div className="py-24 sm:py-32 bg-primary/5">
-        <div className="mx-auto max-w-7xl px-6 lg:px-8">
-          <div className="mx-auto max-w-3xl text-center">
-            <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-              Únete a Nuestra Historia
-            </h2>
-            <p className="mt-6 text-lg leading-8 text-muted-foreground">
-              Sé parte de la transformación en la manera en que experimentamos la salud y el bienestar.
-            </p>
-            <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
-              <Button asChild size="lg">
-                <Link href="/signup">
-                  Comenzar Ahora
-                </Link>
-              </Button>
-              <Button variant="outline" size="lg" asChild>
-                <Link href="/contact">
-                  Contáctanos
-                </Link>
-              </Button>
-            </div>
+        <div className="mx-auto max-w-4xl px-6 lg:px-8 text-center">
+          <h2 className="text-4xl font-bold tracking-tight text-foreground mb-6">
+            Únete a Nuestra Historia
+          </h2>
+          <p className="text-xl leading-8 text-muted-foreground mb-8">
+            Sé parte de la transformación en la manera en que experimentamos la salud y el bienestar.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Button asChild size="lg" className="text-lg px-8 py-3">
+              <Link href="/signup">
+                Comenzar Ahora
+              </Link>
+            </Button>
+            <Button variant="outline" size="lg" className="text-lg px-8 py-3" asChild>
+              <Link href="/contact">
+                Contáctanos
+              </Link>
+            </Button>
           </div>
         </div>
       </div>

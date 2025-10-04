@@ -405,10 +405,10 @@ export function ServiceManager({ professionalId, userId }: ServiceManagerProps) 
           </CardContent>
         </Card>
       ) : (
-        <div className="grid gap-4">
+        <div className="grid gap-6">
           {services.map((service) => (
             <Card key={service.id} className={!service.isactive ? "opacity-60" : ""}>
-              <CardHeader>
+              <CardHeader className="pb-4">
                 <div className="flex justify-between items-start">
                   <div className="flex-1">
                     <CardTitle className="flex items-center gap-2">
@@ -459,7 +459,7 @@ export function ServiceManager({ professionalId, userId }: ServiceManagerProps) 
                   </div>
                 </div>
               </CardHeader>
-              <CardContent>
+              <CardContent className="pt-0 pb-6">
                 {service.description && (
                   <p className="text-muted-foreground mb-4">{service.description}</p>
                 )}

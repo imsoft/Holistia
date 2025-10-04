@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Save, AlertCircle, CheckCircle } from "lucide-react";
+import { Save, AlertCircle, CheckCircle } from "lucide-react";
 import Link from "next/link";
 import { BlogImageUploader } from "@/components/ui/blog-image-uploader";
 import { RichTextEditor } from "@/components/ui/rich-text-editor";
@@ -137,12 +137,6 @@ export default function NewBlogPostPage({ params }: { params: Promise<{ id: stri
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       <div className="mb-6">
-        <Button variant="ghost" asChild className="mb-4">
-          <Link href={`/admin/${id}/blog`}>
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Volver al Blog
-          </Link>
-        </Button>
         
         <h1 className="text-3xl font-bold text-foreground">Crear Nuevo Post</h1>
         <p className="text-muted-foreground mt-2">

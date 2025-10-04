@@ -175,16 +175,6 @@ const ForgotPasswordPage = () => {
               </Button>
             </form>
           </Form>
-
-          <div className="mt-6 text-center">
-            <Link
-              href="/login"
-              className="inline-flex items-center gap-2 text-sm font-semibold text-primary hover:text-primary/80"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              Volver al inicio de sesión
-            </Link>
-          </div>
         </div>
       </div>
     </div>

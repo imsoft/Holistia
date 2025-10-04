@@ -155,23 +155,11 @@ export function ProfessionalServicesDisplay({
                 </div>
               </div>
 
-              <div className="flex items-center gap-4">
-                {service.cost.presencial && (
-                  <div className="flex items-center gap-1 text-sm">
-                    <DollarSign className="w-4 h-4 text-green-600" />
-                    <span className="font-medium text-green-600">
-                      Presencial: ${service.cost.presencial}
-                    </span>
-                  </div>
-                )}
-                {service.cost.online && (
-                  <div className="flex items-center gap-1 text-sm">
-                    <DollarSign className="w-4 h-4 text-blue-600" />
-                    <span className="font-medium text-blue-600">
-                      Online: ${service.cost.online}
-                    </span>
-                  </div>
-                )}
+              <div className="flex items-center gap-1 text-sm">
+                <DollarSign className="w-4 h-4 text-green-600" />
+                <span className="font-medium text-green-600">
+                  ${service.cost}
+                </span>
               </div>
 
               {showBookingButton && onServiceSelect && (

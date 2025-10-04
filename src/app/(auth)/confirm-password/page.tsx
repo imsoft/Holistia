@@ -142,15 +142,6 @@ const ConfirmPasswordPage = () => {
               </Button>
             </form>
           </Form>
-
-          <div className="mt-6 text-center">
-            <Link
-              href="/login"
-              className="text-sm font-semibold text-primary hover:text-primary/80"
-            >
-              Volver al inicio de sesión
-            </Link>
-          </div>
         </div>
       </div>
     </div>

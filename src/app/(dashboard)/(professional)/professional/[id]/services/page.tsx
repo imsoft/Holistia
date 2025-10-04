@@ -161,14 +161,6 @@ export default function ProfessionalServicesPage() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <Button
-              variant="ghost"
-              onClick={() => router.back()}
-              className="mb-4"
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Volver
-            </Button>
             <h1 className="text-3xl font-bold text-foreground">
               Gestión de Servicios
             </h1>
@@ -177,7 +169,6 @@ export default function ProfessionalServicesPage() {
             </p>
           </div>
         </div>
-
 
         {/* Services Management */}
         {professional.status === "approved" ? (

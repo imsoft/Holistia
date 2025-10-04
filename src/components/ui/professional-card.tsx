@@ -186,18 +186,7 @@ export const ProfessionalCard = ({ professional, userId }: ProfessionalCardProps
           {professional.costs && (
             <div className="flex justify-between items-center">
               <div className="text-sm text-muted-foreground">
-                {professional.serviceType === 'in-person' && (
-                  <span>Desde {formatPrice(professional.costs.presencial)}</span>
-                )}
-                {professional.serviceType === 'online' && (
-                  <span>Desde {formatPrice(professional.costs.online)}</span>
-                )}
-                {professional.serviceType === 'both' && (
-                  <span>Desde {formatPrice(Math.min(professional.costs.presencial, professional.costs.online))}</span>
-                )}
-                {!professional.serviceType && (
-                  <span>Desde {formatPrice(professional.costs.presencial)}</span>
-                )}
+                <span>Desde {formatPrice(professional.costs.presencial || professional.costs.online)}</span>
               </div>
               {professional.bookingOption && (
                 <button className="text-xs bg-primary text-primary-foreground px-3 py-1 rounded-full hover:bg-primary/90 transition-colors">

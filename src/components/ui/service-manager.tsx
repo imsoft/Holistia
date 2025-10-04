@@ -56,8 +56,7 @@ export function ServiceManager({ professionalId, userId }: ServiceManagerProps) 
     type: "session",
     modality: "both",
     duration: 60,
-    presencialCost: undefined,
-    onlineCost: undefined,
+    cost: undefined,
   });
 
   const supabase = createClient();
@@ -92,8 +91,8 @@ export function ServiceManager({ professionalId, userId }: ServiceManagerProps) 
       return;
     }
 
-    if (!formData.presencialCost && !formData.onlineCost) {
-      toast.error("Debe especificar al menos un costo");
+    if (!formData.cost) {
+      toast.error("El costo del servicio es requerido");
       return;
     }
 
@@ -106,10 +105,7 @@ export function ServiceManager({ professionalId, userId }: ServiceManagerProps) 
         type: formData.type,
         modality: formData.modality,
         duration: formData.duration,
-        cost: {
-          presencial: formData.presencialCost,
-          online: formData.onlineCost,
-        },
+        cost: formData.cost,
         isActive: true,
       };
 
@@ -149,8 +145,7 @@ export function ServiceManager({ professionalId, userId }: ServiceManagerProps) 
       type: service.type,
       modality: service.modality,
       duration: service.duration,
-      presencialCost: service.cost.presencial,
-      onlineCost: service.cost.online,
+      cost: service.cost,
     });
     setIsDialogOpen(true);
   };
@@ -198,8 +193,7 @@ export function ServiceManager({ professionalId, userId }: ServiceManagerProps) 
       type: "session",
       modality: "both",
       duration: 60,
-      presencialCost: undefined,
-      onlineCost: undefined,
+      cost: undefined,
     });
     setEditingService(null);
   };
@@ -352,45 +346,22 @@ export function ServiceManager({ professionalId, userId }: ServiceManagerProps) 
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {(formData.modality === "presencial" || formData.modality === "both") && (
-                  <div className="space-y-2">
-                    <Label htmlFor="presencialCost">Costo Presencial (MXN)</Label>
-                    <Input
-                      id="presencialCost"
-                      type="number"
-                      value={formData.presencialCost || ""}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          presencialCost: e.target.value ? parseFloat(e.target.value) : undefined,
-                        })
-                      }
-                      placeholder="800"
-                      min="0"
-                      step="0.01"
-                    />
-                  </div>
-                )}
-                {(formData.modality === "online" || formData.modality === "both") && (
-                  <div className="space-y-2">
-                    <Label htmlFor="onlineCost">Costo En Línea (MXN)</Label>
-                    <Input
-                      id="onlineCost"
-                      type="number"
-                      value={formData.onlineCost || ""}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          onlineCost: e.target.value ? parseFloat(e.target.value) : undefined,
-                        })
-                      }
-                      placeholder="600"
-                      min="0"
-                      step="0.01"
-                    />
-                  </div>
-                )}
+              <div className="space-y-2">
+                <Label htmlFor="cost">Costo del Servicio (MXN)</Label>
+                <Input
+                  id="cost"
+                  type="number"
+                  value={formData.cost || ""}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      cost: e.target.value ? parseFloat(e.target.value) : undefined,
+                    })
+                  }
+                  placeholder="800"
+                  min="0"
+                  step="0.01"
+                />
               </div>
 
               <DialogFooter>
@@ -483,19 +454,9 @@ export function ServiceManager({ professionalId, userId }: ServiceManagerProps) 
                 {service.description && (
                   <p className="text-muted-foreground mb-4">{service.description}</p>
                 )}
-                <div className="flex gap-4">
-                  {service.cost.presencial && (
-                    <div className="flex items-center gap-1 text-sm">
-                      <DollarSign className="w-4 h-4" />
-                      <span>Presencial: ${service.cost.presencial}</span>
-                    </div>
-                  )}
-                  {service.cost.online && (
-                    <div className="flex items-center gap-1 text-sm">
-                      <DollarSign className="w-4 h-4" />
-                      <span>Online: ${service.cost.online}</span>
-                    </div>
-                  )}
+                <div className="flex items-center gap-1 text-sm">
+                  <DollarSign className="w-4 h-4" />
+                  <span>Costo: ${service.cost}</span>
                 </div>
               </CardContent>
             </Card>

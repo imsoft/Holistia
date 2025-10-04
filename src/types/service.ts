@@ -5,10 +5,7 @@ export interface Service {
   type: "session" | "program"; // Sesión individual o programa
   modality: "presencial" | "online" | "both"; // Modalidad de atención
   duration: number; // Duración en minutos
-  cost: {
-    presencial?: number;
-    online?: number;
-  };
+  cost: number; // Precio único para el servicio
   isActive: boolean;
   created_at?: string;
   updated_at?: string;
@@ -20,8 +17,7 @@ export interface ServiceFormData {
   type: "session" | "program";
   modality: "presencial" | "online" | "both";
   duration: number;
-  presencialCost?: number;
-  onlineCost?: number;
+  cost?: number; // Precio único
 }
 
 export interface ProfessionalService extends Service {

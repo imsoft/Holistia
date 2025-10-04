@@ -27,7 +27,7 @@ export default function HistoryPage() {
       </div>
 
       {/* Story Section */}
-      <div className="py-24 sm:py-32">
+      <div className="py-12 sm:py-16">
         <div className="mx-auto max-w-4xl px-6 lg:px-8">
           <div className="space-y-16">
             
@@ -182,29 +182,6 @@ export default function HistoryPage() {
         </div>
       </div>
 
-      {/* CTA Section */}
-      <div className="py-24 sm:py-32 bg-primary/5">
-        <div className="mx-auto max-w-4xl px-6 lg:px-8 text-center">
-          <h2 className="text-4xl font-bold tracking-tight text-foreground mb-6">
-            Únete a Nuestra Historia
-          </h2>
-          <p className="text-xl leading-8 text-muted-foreground mb-8">
-            Sé parte de la transformación en la manera en que experimentamos la salud y el bienestar.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button asChild size="lg" className="text-lg px-8 py-3">
-              <Link href="/signup">
-                Comenzar Ahora
-              </Link>
-            </Button>
-            <Button variant="outline" size="lg" className="text-lg px-8 py-3" asChild>
-              <Link href="/contact">
-                Contáctanos
-              </Link>
-            </Button>
-          </div>
-        </div>
-      </div>
     </div>
   );
 }

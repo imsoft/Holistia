@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import { ServiceManager } from "@/components/ui/service-manager";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/utils/supabase/client";
@@ -178,33 +178,6 @@ export default function ProfessionalServicesPage() {
           </div>
         </div>
 
-        {/* Professional Info */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-3">
-              <Package className="w-6 h-6" />
-              Información del Profesional
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <h3 className="font-semibold text-foreground">
-                  {professional.first_name} {professional.last_name}
-                </h3>
-                <p className="text-sm text-muted-foreground">
-                  {professional.profession}
-                </p>
-              </div>
-              <div className="flex items-center">
-                {getStatusBadge(professional.status)}
-              </div>
-              <div className="text-sm text-muted-foreground">
-                <p>Estado de la aplicación</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
 
         {/* Services Management */}
         {professional.status === "approved" ? (

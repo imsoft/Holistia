@@ -6,7 +6,7 @@ export interface Service {
   modality: "presencial" | "online" | "both"; // Modalidad de atención
   duration: number; // Duración en minutos
   cost: number | { presencial?: number; online?: number }; // Temporal: puede ser number o jsonb
-  isActive: boolean;
+  isactive: boolean; // Nombre del campo en la base de datos
   created_at?: string;
   updated_at?: string;
 }

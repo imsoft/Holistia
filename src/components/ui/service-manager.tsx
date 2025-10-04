@@ -106,7 +106,7 @@ export function ServiceManager({ professionalId, userId }: ServiceManagerProps) 
         modality: formData.modality,
         duration: formData.duration,
         cost: formData.cost,
-        isActive: true,
+        isactive: true,
       };
 
       if (editingService) {
@@ -183,7 +183,7 @@ export function ServiceManager({ professionalId, userId }: ServiceManagerProps) 
     try {
       const { error } = await supabase
         .from("professional_services")
-        .update({ isActive: !isActive })
+        .update({ isactive: !isActive })
         .eq("id", serviceId);
 
       if (error) throw error;
@@ -407,14 +407,14 @@ export function ServiceManager({ professionalId, userId }: ServiceManagerProps) 
       ) : (
         <div className="grid gap-4">
           {services.map((service) => (
-            <Card key={service.id} className={!service.isActive ? "opacity-60" : ""}>
+            <Card key={service.id} className={!service.isactive ? "opacity-60" : ""}>
               <CardHeader>
                 <div className="flex justify-between items-start">
                   <div className="flex-1">
                     <CardTitle className="flex items-center gap-2">
                       {getTypeIcon(service.type)}
                       {service.name}
-                      {!service.isActive && (
+                      {!service.isactive && (
                         <Badge variant="secondary">Inactivo</Badge>
                       )}
                     </CardTitle>
@@ -437,9 +437,9 @@ export function ServiceManager({ professionalId, userId }: ServiceManagerProps) 
                   </div>
                   <div className="flex items-center gap-2">
                     <Switch
-                      checked={service.isActive}
+                      checked={service.isactive}
                       onCheckedChange={() =>
-                        toggleServiceStatus(service.id!, service.isActive)
+                        toggleServiceStatus(service.id!, service.isactive)
                       }
                     />
                     <Button

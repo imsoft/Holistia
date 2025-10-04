@@ -158,7 +158,7 @@ export function ProfessionalServicesDisplay({
               <div className="flex items-center gap-1 text-sm">
                 <DollarSign className="w-4 h-4 text-green-600" />
                 <span className="font-medium text-green-600">
-                  ${service.cost}
+                  ${typeof service.cost === 'number' ? service.cost : (service.cost?.presencial || service.cost?.online || 0)}
                 </span>
               </div>
 

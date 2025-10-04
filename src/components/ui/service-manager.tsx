@@ -139,13 +139,22 @@ export function ServiceManager({ professionalId, userId }: ServiceManagerProps) 
 
   const handleEdit = (service: Service) => {
     setEditingService(service);
+    // Manejar tanto el formato nuevo (number) como el antiguo (jsonb)
+    let serviceCost: number | undefined;
+    if (typeof service.cost === 'number') {
+      serviceCost = service.cost;
+    } else if (service.cost && typeof service.cost === 'object') {
+      // Usar presencial como prioridad, luego online
+      serviceCost = service.cost.presencial || service.cost.online;
+    }
+    
     setFormData({
       name: service.name,
       description: service.description,
       type: service.type,
       modality: service.modality,
       duration: service.duration,
-      cost: service.cost,
+      cost: serviceCost,
     });
     setIsDialogOpen(true);
   };
@@ -456,7 +465,7 @@ export function ServiceManager({ professionalId, userId }: ServiceManagerProps) 
                 )}
                 <div className="flex items-center gap-1 text-sm">
                   <DollarSign className="w-4 h-4" />
-                  <span>Costo: ${service.cost}</span>
+                  <span>Costo: ${typeof service.cost === 'number' ? service.cost : (service.cost?.presencial || service.cost?.online || 0)}</span>
                 </div>
               </CardContent>
             </Card>

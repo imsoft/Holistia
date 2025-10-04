@@ -1,31 +1,35 @@
--- Actualizar tabla professional_services para usar un solo campo de costo
--- en lugar de presencial_cost y online_cost separados
+-- Actualizar tabla professional_services para usar costo único en lugar de jsonb
+-- La tabla ya existe con cost como jsonb, necesitamos convertirlo a NUMERIC
 
--- Agregar nueva columna cost
-ALTER TABLE professional_services ADD COLUMN IF NOT EXISTS cost NUMERIC(10, 2);
+-- Crear columna temporal para el costo único
+ALTER TABLE professional_services ADD COLUMN IF NOT EXISTS cost_temp NUMERIC(10, 2);
 
--- Migrar datos existentes (si los hay)
--- Si hay datos en presencial_cost, usarlo como costo base
+-- Migrar datos existentes desde el jsonb
+-- Si el jsonb tiene estructura {presencial: X, online: Y}, usar presencial como base
 UPDATE professional_services 
-SET cost = presencial_cost 
-WHERE cost IS NULL AND presencial_cost IS NOT NULL;
+SET cost_temp = COALESCE(
+  (cost->>'presencial')::NUMERIC,
+  (cost->>'online')::NUMERIC,
+  0
+)
+WHERE cost IS NOT NULL AND cost != '{}'::jsonb;
 
--- Si no hay presencial_cost pero sí online_cost, usar online_cost
+-- Si el jsonb tiene un valor directo, usarlo
 UPDATE professional_services 
-SET cost = online_cost 
-WHERE cost IS NULL AND online_cost IS NOT NULL;
+SET cost_temp = COALESCE(
+  (cost->>'cost')::NUMERIC,
+  cost_temp
+)
+WHERE cost IS NOT NULL AND cost != '{}'::jsonb;
 
--- Si hay ambos, usar el promedio (o presencial como prioridad)
-UPDATE professional_services 
-SET cost = presencial_cost 
-WHERE cost IS NULL AND presencial_cost IS NOT NULL AND online_cost IS NOT NULL;
+-- Eliminar la columna jsonb antigua
+ALTER TABLE professional_services DROP COLUMN IF EXISTS cost;
+
+-- Renombrar la columna temporal
+ALTER TABLE professional_services RENAME COLUMN cost_temp TO cost;
 
 -- Hacer el campo cost requerido
 ALTER TABLE professional_services ALTER COLUMN cost SET NOT NULL;
-
--- Eliminar las columnas antiguas
-ALTER TABLE professional_services DROP COLUMN IF EXISTS presencial_cost;
-ALTER TABLE professional_services DROP COLUMN IF EXISTS online_cost;
 
 -- Actualizar comentarios
 COMMENT ON COLUMN professional_services.cost IS 'Costo único del servicio en MXN';

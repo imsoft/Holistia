@@ -5,7 +5,7 @@ export interface Service {
   type: "session" | "program"; // Sesión individual o programa
   modality: "presencial" | "online" | "both"; // Modalidad de atención
   duration: number; // Duración en minutos
-  cost: number; // Precio único para el servicio
+  cost: number | { presencial?: number; online?: number }; // Temporal: puede ser number o jsonb
   isActive: boolean;
   created_at?: string;
   updated_at?: string;

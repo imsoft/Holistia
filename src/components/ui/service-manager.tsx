@@ -391,7 +391,7 @@ export function ServiceManager({ professionalId, userId }: ServiceManagerProps) 
       </div>
 
       {services.length === 0 ? (
-        <Card>
+        <Card className="p-4">
           <CardContent className="flex flex-col items-center justify-center py-12">
             <Package className="w-12 h-12 text-muted-foreground mb-4" />
             <h3 className="text-lg font-semibold mb-2">No tienes servicios</h3>
@@ -407,7 +407,7 @@ export function ServiceManager({ professionalId, userId }: ServiceManagerProps) 
       ) : (
         <div className="grid gap-6">
           {services.map((service) => (
-            <Card key={service.id} className={!service.isactive ? "opacity-60" : ""}>
+            <Card key={service.id} className={!service.isactive ? "opacity-60 p-4" : "p-4"}>
               <CardHeader className="pb-4">
                 <div className="flex justify-between items-start">
                   <div className="flex-1">
@@ -459,7 +459,7 @@ export function ServiceManager({ professionalId, userId }: ServiceManagerProps) 
                   </div>
                 </div>
               </CardHeader>
-              <CardContent className="pt-0 pb-6">
+              <CardContent className="p-4">
                 {service.description && (
                   <p className="text-muted-foreground mb-4">{service.description}</p>
                 )}

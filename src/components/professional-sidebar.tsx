@@ -11,6 +11,7 @@ import {
   Home,
   Image as ImageIcon,
   Package,
+  Clock,
 } from "lucide-react";
 import {
   Sidebar,
@@ -54,6 +55,11 @@ const getNavItems = (id: string): { mainNavItems: ProfessionalNavItem[] } => ({
       title: "Servicios",
       url: `/professional/${id}/services`,
       icon: Package,
+    },
+    {
+      title: "Disponibilidad",
+      url: `/professional/${id}/availability`,
+      icon: Clock,
     },
     {
       title: "Citas",

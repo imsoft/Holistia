@@ -240,10 +240,10 @@ const HomeUserPage = () => {
     ) {
       filtered = filtered.filter((professional) => {
         const hasPresencial = professional.services.some(
-          (s) => s.presencialCost && s.presencialCost !== ""
+          (s) => s.presencialCost && s.presencialCost !== "" && parseInt(s.presencialCost) > 0
         );
         const hasOnline = professional.services.some(
-          (s) => s.onlineCost && s.onlineCost !== ""
+          (s) => s.onlineCost && s.onlineCost !== "" && parseInt(s.onlineCost) > 0
         );
 
         return filters["service-type"].some((type) => {
@@ -263,8 +263,8 @@ const HomeUserPage = () => {
     ) {
       filtered = filtered.filter((professional) => {
         return filters.location.some((loc) => {
-          const cityLower = professional.city.toLowerCase();
-          const stateLower = professional.state.toLowerCase();
+          const cityLower = professional.city?.toLowerCase() || "";
+          const stateLower = professional.state?.toLowerCase() || "";
 
           // Mapear valores de filtro a ubicaciones reales
           const locationMap: Record<string, string[]> = {
@@ -300,54 +300,16 @@ const HomeUserPage = () => {
       filtered = filtered.filter((professional) => {
         return filters.price.some((priceRange) => {
           const minPrice = professional.services.reduce((min, service) => {
-            const presencialPrice =
-              parseInt(service.presencialCost) || Infinity;
-            const onlinePrice = parseInt(service.onlineCost) || Infinity;
-            return Math.min(min, presencialPrice, onlinePrice);
+            const presencialPrice = parseInt(service.presencialCost) || 0;
+            const onlinePrice = parseInt(service.onlineCost) || 0;
+            const validPrices = [presencialPrice, onlinePrice].filter(price => price > 0);
+            return validPrices.length > 0 ? Math.min(...validPrices) : Infinity;
           }, Infinity);
 
           if (priceRange === "budget") return minPrice < 1500;
-          if (priceRange === "mid-range")
-            return minPrice >= 1500 && minPrice <= 2000;
+          if (priceRange === "mid-range") return minPrice >= 1500 && minPrice <= 2000;
           if (priceRange === "premium") return minPrice > 2000;
           return false;
-        });
-      });
-    }
-
-    // Filtrar por categorías de bienestar
-    if (
-      filters.category &&
-      filters.category.length > 0 &&
-      !filters.category.includes("all")
-    ) {
-      filtered = filtered.filter((professional) => {
-        // Mapear categorías de filtro a áreas de bienestar
-        const categoryMap: Record<string, string[]> = {
-          professionals: ["Salud mental"], // Todos los profesionales son de salud mental por defecto
-          centers: [], // Para centros (futuro)
-          events: [], // Para eventos (futuro)
-          challenges: [], // Para retos (futuro)
-          restaurants: ["Alimentación"],
-          "food-market": ["Alimentación"],
-        };
-
-        return filters.category.some((category) => {
-          const mappedAreas = categoryMap[category] || [];
-
-          // Si es 'professionals', mostrar todos los profesionales de salud mental
-          if (category === "professionals") {
-            return true; // Todos los profesionales en la tabla son de salud mental
-          }
-
-          // Para otras categorías, verificar si el profesional tiene esas áreas de bienestar
-          return (
-            mappedAreas.length > 0 &&
-            professional.wellness_areas &&
-            professional.wellness_areas.some((area) =>
-              mappedAreas.includes(area)
-            )
-          );
         });
       });
     }
@@ -395,29 +357,29 @@ const HomeUserPage = () => {
           </div>
           <div className="flex gap-4 justify-center overflow-x-auto pb-2">
             {categories.map((category) => (
-              <Button
+              <div
                 key={category.id}
                 onClick={() => handleCategoryToggle(category.id)}
-                className={`group flex flex-col items-center p-4 rounded-xl border transition-all duration-200 min-w-[140px] flex-shrink-0 ${
+                className={`group flex flex-col items-center p-4 rounded-xl border transition-all duration-200 min-w-[140px] flex-shrink-0 cursor-pointer ${
                   selectedCategories.includes(category.id)
-                    ? "bg-primary text-primary-foreground border-primary shadow-md"
-                    : "bg-primary text-primary-foreground border-primary/20 hover:border-primary hover:shadow-md"
+                    ? "bg-white text-primary border-primary shadow-md"
+                    : "bg-primary text-white border-primary/20 hover:border-primary hover:shadow-md"
                 }`}
               >
                 <div className="mb-2">
-                  {category.id === "professionals" && <Brain className="h-6 w-6 text-primary-foreground" />}
-                  {category.id === "spirituality" && <Sparkles className="h-6 w-6 text-primary-foreground" />}
-                  {category.id === "physical-activity" && <Activity className="h-6 w-6 text-primary-foreground" />}
-                  {category.id === "social" && <Users className="h-6 w-6 text-primary-foreground" />}
-                  {category.id === "nutrition" && <Apple className="h-6 w-6 text-primary-foreground" />}
+                  {category.id === "professionals" && <Brain className={`h-6 w-6 ${selectedCategories.includes(category.id) ? "text-primary" : "text-white"}`} />}
+                  {category.id === "spirituality" && <Sparkles className={`h-6 w-6 ${selectedCategories.includes(category.id) ? "text-primary" : "text-white"}`} />}
+                  {category.id === "physical-activity" && <Activity className={`h-6 w-6 ${selectedCategories.includes(category.id) ? "text-primary" : "text-white"}`} />}
+                  {category.id === "social" && <Users className={`h-6 w-6 ${selectedCategories.includes(category.id) ? "text-primary" : "text-white"}`} />}
+                  {category.id === "nutrition" && <Apple className={`h-6 w-6 ${selectedCategories.includes(category.id) ? "text-primary" : "text-white"}`} />}
                 </div>
-                <span className="text-sm font-medium text-center text-primary-foreground">
+                <span className={`text-base font-medium text-center ${selectedCategories.includes(category.id) ? "text-primary" : "text-white"}`}>
                   {category.name}
                 </span>
-                <span className="text-xs mt-1 text-center leading-tight text-primary-foreground/80">
+                <span className={`text-xs mt-1 text-center leading-tight ${selectedCategories.includes(category.id) ? "text-primary/80" : "text-white/80"}`}>
                   {category.description}
                 </span>
-              </Button>
+              </div>
             ))}
           </div>
 

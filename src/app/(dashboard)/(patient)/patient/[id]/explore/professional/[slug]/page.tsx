@@ -16,6 +16,8 @@ import {
   CheckCircle,
   XCircle,
   CreditCard,
+  Copy,
+  Mail,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import MapboxMap from "@/components/ui/mapbox-map";
@@ -86,6 +88,7 @@ export default function ProfessionalProfilePage() {
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const [isErrorModalOpen, setIsErrorModalOpen] = useState(false);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [successData, setSuccessData] = useState<{
     date: string;
@@ -105,6 +108,8 @@ export default function ProfessionalProfilePage() {
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedTime, setSelectedTime] = useState("");
   const [selectedService, setSelectedService] = useState("");
+  const [availableTimes, setAvailableTimes] = useState<Array<{time: string, display: string, fullDateTime: string, status: 'available' | 'occupied' | 'blocked'}>>([]);
+  const [loadingTimes, setLoadingTimes] = useState(false);
   const [appointmentForm, setAppointmentForm] = useState({
     name: "",
     email: "",
@@ -162,6 +167,26 @@ export default function ProfessionalProfilePage() {
           return;
         }
 
+        // Obtener servicios del profesional desde la tabla professional_services
+        const { data: servicesData, error: servicesError } = await supabase
+          .from('professional_services')
+          .select('*')
+          .eq('professional_id', professionalId)
+          .eq('isactive', true)
+          .order('created_at', { ascending: true });
+
+        if (servicesError) {
+          console.error('Error fetching services:', servicesError);
+        }
+
+        // Convertir servicios de la nueva estructura a la estructura esperada
+        const convertedServices = (servicesData || []).map(service => ({
+          name: service.name,
+          description: service.description || '',
+          presencialCost: service.modality === 'presencial' || service.modality === 'both' ? service.cost.toString() : '',
+          onlineCost: service.modality === 'online' || service.modality === 'both' ? service.cost.toString() : ''
+        }));
+
         // Intentar obtener el avatar del perfil del usuario
         const { data: profileData } = await supabase
           .from('profiles')
@@ -174,7 +199,8 @@ export default function ProfessionalProfilePage() {
         
         setProfessional({
           ...professionalData,
-          profile_photo: finalProfilePhoto
+          profile_photo: finalProfilePhoto,
+          services: convertedServices
         });
 
         // Verificar si es favorito
@@ -277,6 +303,31 @@ export default function ProfessionalProfilePage() {
     }
   };
 
+  const getExperienceDescription = (experience: string) => {
+    // Extraer años de experiencia del texto
+    const yearsMatch = experience.match(/(\d+)/);
+    if (!yearsMatch) return experience;
+    
+    const years = parseInt(yearsMatch[1]);
+    const experienceWithYears = experience.replace(/(\d+)/, `$1 años`);
+    
+    if (years < 1) {
+      return `${experienceWithYears} - Recién graduado, con formación académica sólida y pasión por ayudar a sus pacientes.`;
+    } else if (years >= 1 && years < 3) {
+      return `${experienceWithYears} - Profesional en desarrollo con experiencia inicial y compromiso con el crecimiento continuo.`;
+    } else if (years >= 3 && years < 5) {
+      return `${experienceWithYears} - Experiencia consolidada en el campo, con habilidades desarrolladas y enfoque en resultados.`;
+    } else if (years >= 5 && years < 10) {
+      return `${experienceWithYears} - Experiencia sólida y amplia, reconocido por su profesionalismo y resultados consistentes.`;
+    } else if (years >= 10 && years < 15) {
+      return `${experienceWithYears} - Experto con una década de experiencia, líder en su especialidad y mentor de otros profesionales.`;
+    } else if (years >= 15 && years < 20) {
+      return `${experienceWithYears} - Profesional senior con amplia trayectoria, reconocido por su expertise y contribuciones al campo.`;
+    } else {
+      return `${experienceWithYears} - Maestro en su especialidad con décadas de experiencia, referente y autoridad en el área.`;
+    }
+  };
+
 
   // Función para compartir el perfil del profesional
   const handleShare = async () => {
@@ -292,14 +343,57 @@ export default function ProfessionalProfilePage() {
       if (navigator.share && navigator.canShare(shareData)) {
         await navigator.share(shareData);
       } else {
-        // Fallback: copiar URL al portapapeles
-        await navigator.clipboard.writeText(window.location.href);
-        alert('Enlace copiado al portapapeles');
+        // Fallback: mostrar modal con opciones de compartir
+        setIsShareModalOpen(true);
       }
     } catch (error) {
-      console.error('Error al compartir:', error);
-      // Fallback adicional: mostrar modal con opciones de compartir
-      alert('Enlace copiado al portapapeles');
+      // Solo mostrar modal si no es un error de cancelación
+      if (error instanceof Error && error.name !== 'AbortError') {
+        console.error('Error al compartir:', error);
+      }
+      // Siempre mostrar modal como fallback
+      setIsShareModalOpen(true);
+    }
+  };
+
+  // Función para compartir en redes sociales específicas
+  const shareToSocial = (platform: string) => {
+    if (!professional) return;
+
+    const shareText = `Conoce a ${professional.first_name} ${professional.last_name}, especialista en ${professional.specializations.join(', ')}`;
+    const url = window.location.href;
+    
+    let shareUrl = '';
+    
+    switch (platform) {
+      case 'whatsapp':
+        shareUrl = `https://wa.me/?text=${encodeURIComponent(`${shareText} ${url}`)}`;
+        break;
+      case 'facebook':
+        shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}&quote=${encodeURIComponent(shareText)}`;
+        break;
+      case 'twitter':
+        shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(url)}`;
+        break;
+      case 'linkedin':
+        shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}&summary=${encodeURIComponent(shareText)}`;
+        break;
+      case 'telegram':
+        shareUrl = `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(shareText)}`;
+        break;
+      case 'email':
+        shareUrl = `mailto:?subject=${encodeURIComponent(`${professional.first_name} ${professional.last_name} - ${professional.profession}`)}&body=${encodeURIComponent(`${shareText}\n\n${url}`)}`;
+        break;
+      case 'copy':
+        navigator.clipboard.writeText(url);
+        alert('Enlace copiado al portapapeles');
+        setIsShareModalOpen(false);
+        return;
+    }
+    
+    if (shareUrl) {
+      window.open(shareUrl, '_blank', 'width=600,height=400');
+      setIsShareModalOpen(false);
     }
   };
 
@@ -328,26 +422,112 @@ export default function ProfessionalProfilePage() {
     return dates;
   };
 
-  // Generar horarios disponibles para una fecha específica - simplificado
-  const getAvailableTimes = (date: string) => {
-    const times = [];
-    const startHour = 9;
-    const endHour = 18;
-    const sessionDuration = 50;
-    const breakTime = 10;
-    
-    for (let hour = startHour; hour < endHour; hour++) {
-      for (let minute = 0; minute < 60; minute += sessionDuration + breakTime) {
-        const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
-        
-        times.push({
-          time: timeString,
-          display: timeString,
-          fullDateTime: `${date}T${timeString}`
-        });
+  // Generar horarios disponibles para una fecha específica - con colchón de 30 minutos
+  const getAvailableTimes = async (date: string) => {
+    try {
+      setLoadingTimes(true);
+      
+      // Obtener citas existentes para esta fecha y profesional
+      const { data: existingAppointments, error } = await supabase
+        .from('appointments')
+        .select('appointment_time, appointment_type')
+        .eq('professional_id', professional?.id)
+        .eq('appointment_date', date)
+        .eq('status', 'confirmed'); // Solo citas confirmadas
+
+      if (error) {
+        console.error('Error fetching appointments:', error);
       }
+
+      // Crear array de horarios bloqueados (cita + 30 min de colchón)
+      const blockedTimes = new Set();
+      const occupiedTimes = new Set(); // Para mostrar como ocupados
+      
+      if (existingAppointments) {
+        console.log('📅 Citas existentes encontradas:', existingAppointments);
+        
+        existingAppointments.forEach(appointment => {
+          const [startHour, startMinute] = appointment.appointment_time.split(':').map(Number);
+          
+          // Asumir duración de 50 minutos por cita
+          const sessionDuration = 50;
+          const bufferTime = 30; // Colchón de 30 minutos
+          
+          console.log(`🕐 Procesando cita: ${startHour}:${startMinute.toString().padStart(2, '0')}`);
+          
+          // Marcar como ocupado el horario de la cita
+          const occupiedTimeString = `${startHour.toString().padStart(2, '0')}:${startMinute.toString().padStart(2, '0')}`;
+          occupiedTimes.add(occupiedTimeString);
+          console.log(`❌ Marcando como ocupado: ${occupiedTimeString}`);
+          
+          // Calcular el tiempo de finalización (inicio + duración + colchón)
+          const totalMinutes = startHour * 60 + startMinute + sessionDuration + bufferTime;
+          const endHour = Math.floor(totalMinutes / 60);
+          const endMinute = totalMinutes % 60;
+          
+          console.log(`⏰ Tiempo de finalización (con colchón): ${endHour}:${endMinute.toString().padStart(2, '0')}`);
+          
+          // Bloquear todos los horarios desde el inicio hasta el final (incluyendo colchón)
+          const startTimeMinutes = startHour * 60 + startMinute;
+          const endTimeMinutes = endHour * 60 + endMinute;
+          
+          // Bloquear todos los horarios que caigan dentro del rango
+          for (let minutes = startTimeMinutes; minutes < endTimeMinutes; minutes += 60) {
+            const blockHour = Math.floor(minutes / 60);
+            const blockMinute = minutes % 60;
+            const timeString = `${blockHour.toString().padStart(2, '0')}:${blockMinute.toString().padStart(2, '0')}`;
+            blockedTimes.add(timeString);
+            console.log(`🚫 Bloqueando horario: ${timeString}`);
+          }
+        });
+        
+        console.log('🔒 Horarios bloqueados:', Array.from(blockedTimes));
+        console.log('📋 Horarios ocupados:', Array.from(occupiedTimes));
+      }
+
+      const times = [];
+      const startHour = 9;
+      const endHour = 18;
+      const sessionDuration = 50;
+      const breakTime = 10;
+      
+      for (let hour = startHour; hour < endHour; hour++) {
+        for (let minute = 0; minute < 60; minute += sessionDuration + breakTime) {
+          const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+          
+          // Determinar el estado del horario
+          let status: 'available' | 'occupied' | 'blocked' = 'available';
+          if (blockedTimes.has(timeString)) {
+            status = 'blocked';
+          } else if (occupiedTimes.has(timeString)) {
+            status = 'occupied';
+          }
+          
+          times.push({
+            time: timeString,
+            display: timeString,
+            fullDateTime: `${date}T${timeString}`,
+            status: status
+          });
+        }
+      }
+      
+      setAvailableTimes(times);
+      return times;
+    } catch (error) {
+      console.error('Error generating available times:', error);
+      setAvailableTimes([]);
+      return [];
+    } finally {
+      setLoadingTimes(false);
     }
-    return times;
+  };
+
+  // Función para manejar el cambio de fecha
+  const handleDateChange = async (date: string) => {
+    setSelectedDate(date);
+    setSelectedTime(""); // Reset time when date changes
+    await getAvailableTimes(date);
   };
 
   const handleBookingSubmit = async () => {
@@ -385,11 +565,9 @@ export default function ProfessionalProfilePage() {
         return;
       }
       
-      // Determinar el costo basado en el tipo de servicio
-      const service = professional.services.find(s => 
-        (selectedService === 'presencial' && s.presencialCost && s.presencialCost !== '') ||
-        (selectedService === 'online' && s.onlineCost && s.onlineCost !== '')
-      );
+      // Determinar el costo basado en el tipo de servicio seleccionado
+      const [serviceName, serviceModality] = selectedService.split('-');
+      const service = professional.services.find(s => s.name === serviceName);
       
       if (!service) {
         setErrorMessage("El servicio seleccionado no está disponible.");
@@ -398,7 +576,7 @@ export default function ProfessionalProfilePage() {
         return;
       }
       
-      const cost = selectedService === 'presencial' 
+      const cost = serviceModality === 'presencial' 
         ? parseFloat(service.presencialCost || '0')
         : parseFloat(service.onlineCost || '0');
       
@@ -527,24 +705,55 @@ export default function ProfessionalProfilePage() {
               </div>
             )}
 
-            {/* Especialidades */}
-            {professional.specializations && professional.specializations.length > 0 && (
+            {/* Servicios */}
+            {professional.services && professional.services.length > 0 && professional.services.some(service => 
+              (service.presencialCost && service.presencialCost !== '') || 
+              (service.onlineCost && service.onlineCost !== '')
+            ) && (
               <div>
                 <h2 className="text-xl font-bold text-foreground mb-6">
-                  Especialidades
+                  Servicios
                 </h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {professional.specializations.map((specialization, index) => (
+                <div className="space-y-4">
+                  {professional.services.filter(service => 
+                    (service.presencialCost && service.presencialCost !== '') || 
+                    (service.onlineCost && service.onlineCost !== '')
+                  ).map((service, index) => (
                     <div
                       key={index}
-                      className="flex items-center gap-3 p-4 rounded-xl bg-gradient-to-r from-primary/5 to-primary/10 border border-primary/20 hover:border-primary/30 transition-all"
+                      className="p-4 rounded-xl bg-gradient-to-r from-primary/5 to-primary/10 border border-primary/20 hover:border-primary/30 transition-all"
                     >
-                      <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
-                        <CheckCircle className="h-5 w-5 text-primary" />
+                      <div className="flex items-start gap-3">
+                        <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0 mt-1">
+                          <CheckCircle className="h-5 w-5 text-primary" />
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="text-foreground font-semibold text-lg mb-2">
+                            {service.name}
+                          </h3>
+                          <p className="text-muted-foreground leading-relaxed">
+                            {service.description}
+                          </p>
+                          <div className="flex gap-4 mt-3">
+                            {service.presencialCost && service.presencialCost !== '' && (
+                              <div className="flex items-center gap-2 px-3 py-1 bg-primary/10 rounded-full">
+                                <Users className="h-4 w-4 text-primary" />
+                                <span className="text-sm text-primary font-medium">
+                                  Presencial: {formatPrice(parseInt(service.presencialCost))}
+                                </span>
+                              </div>
+                            )}
+                            {service.onlineCost && service.onlineCost !== '' && (
+                              <div className="flex items-center gap-2 px-3 py-1 bg-primary/10 rounded-full">
+                                <Monitor className="h-4 w-4 text-primary" />
+                                <span className="text-sm text-primary font-medium">
+                                  En línea: {formatPrice(parseInt(service.onlineCost))}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
                       </div>
-                      <span className="text-foreground font-medium">
-                        {specialization}
-                      </span>
                     </div>
                   ))}
                 </div>
@@ -612,66 +821,68 @@ export default function ProfessionalProfilePage() {
             {/* Información de contacto y reserva */}
             <div className="sticky top-8">
               <div className="space-y-6">
-                {/* Precios */}
-                <div>
-                  <h3 className="text-lg font-bold text-foreground mb-4">
-                    Precios por sesión
-                  </h3>
-                  <div className="space-y-3">
-                    {professional.services.map((service, index) => {
-                      const hasPresencial = service.presencialCost && service.presencialCost !== '';
-                      const hasOnline = service.onlineCost && service.onlineCost !== '';
-                      
-                      return (
-                        <div key={index} className="flex flex-col gap-2">
-                          {hasPresencial && (
-                            <div className="flex justify-between items-center p-3 rounded-xl bg-gradient-to-r from-primary/5 to-primary/10 border border-primary/20">
-                              <div className="flex items-center gap-2">
-                                <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
-                                  <Users className="h-4 w-4 text-primary" />
-                                </div>
-                                <span className="text-foreground font-medium">
-                                  Presencial
-                                </span>
+                {/* Resumen de precios */}
+                {(() => {
+                  // Calcular precios mínimos
+                  const allPrices: number[] = [];
+                  professional.services.forEach(service => {
+                    if (service.presencialCost && service.presencialCost !== '') {
+                      allPrices.push(parseInt(service.presencialCost));
+                    }
+                    if (service.onlineCost && service.onlineCost !== '') {
+                      allPrices.push(parseInt(service.onlineCost));
+                    }
+                  });
+                  
+                  if (allPrices.length === 0) return null;
+                  
+                  return (
+                    <div>
+                      <h3 className="text-lg font-bold text-foreground mb-4">
+                        Precios desde
+                      </h3>
+                      <div className="space-y-3">
+                        {(() => {
+                          const minPrice = Math.min(...allPrices);
+                          const maxPrice = Math.max(...allPrices);
+                          
+                          return (
+                            <div className="text-center p-4 rounded-xl bg-gradient-to-r from-primary/5 to-primary/10 border border-primary/20">
+                              <div className="text-2xl font-bold text-primary mb-1">
+                                {formatPrice(minPrice)}
                               </div>
-                              <span className="font-bold text-foreground">
-                                {formatPrice(parseInt(service.presencialCost))}
-                              </span>
-                            </div>
-                          )}
-                          {hasOnline && (
-                            <div className="flex justify-between items-center p-3 rounded-xl bg-gradient-to-r from-primary/5 to-primary/10 border border-primary/20">
-                              <div className="flex items-center gap-2">
-                                <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
-                                  <Monitor className="h-4 w-4 text-primary" />
+                              {minPrice !== maxPrice && (
+                                <div className="text-sm text-muted-foreground">
+                                  hasta {formatPrice(maxPrice)}
                                 </div>
-                                <span className="text-foreground font-medium">
-                                  En línea
-                                </span>
+                              )}
+                              <div className="text-xs text-muted-foreground mt-2">
+                                por sesión
                               </div>
-                              <span className="font-bold text-foreground">
-                                {formatPrice(parseInt(service.onlineCost))}
-                              </span>
                             </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
+                          );
+                        })()}
+                      </div>
+                    </div>
+                  );
+                })()}
 
                 {/* Experiencia */}
                 <div>
                   <h3 className="text-lg font-bold text-foreground mb-4">
                     Experiencia
                   </h3>
-                  <div className="flex items-center gap-3 p-3 rounded-xl bg-gradient-to-r from-primary/5 to-primary/10 border border-primary/20">
-                    <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
-                      <Clock className="h-4 w-4 text-primary" />
+                  <div className="p-5 rounded-xl bg-gradient-to-r from-primary/5 to-primary/10 border border-primary/20">
+                    <div className="flex items-start gap-4">
+                      <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0 mt-1">
+                        <Clock className="h-5 w-5 text-primary" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-foreground text-base leading-relaxed font-medium">
+                          {getExperienceDescription(professional.experience)}
+                        </p>
+                      </div>
                     </div>
-                    <span className="text-foreground font-semibold">
-                      {professional.experience}
-                    </span>
                   </div>
                 </div>
 
@@ -706,10 +917,7 @@ export default function ProfessionalProfilePage() {
                                 {getAvailableDates().map((dateOption) => (
                                   <button
                                     key={dateOption.date}
-                                    onClick={() => {
-                                      setSelectedDate(dateOption.date);
-                                      setSelectedTime(""); // Reset time when date changes
-                                    }}
+                                    onClick={() => handleDateChange(dateOption.date)}
                                     className={`p-3 text-left rounded-lg border-2 transition-all ${
                                       selectedDate === dateOption.date
                                         ? "border-primary bg-primary/10 text-primary"
@@ -729,21 +937,58 @@ export default function ProfessionalProfilePage() {
                             {selectedDate && (
                               <div>
                                 <Label className="text-sm font-medium text-foreground">Horario</Label>
-                                <div className="grid grid-cols-5 gap-2 mt-2 max-h-40 overflow-y-auto">
-                                  {getAvailableTimes(selectedDate).map((timeOption) => (
-                                    <button
-                                      key={timeOption.time}
-                                      onClick={() => setSelectedTime(timeOption.time)}
-                                      className={`p-2 text-center rounded-lg border-2 transition-all ${
-                                        selectedTime === timeOption.time
-                                          ? "border-primary bg-primary/10 text-primary"
-                                          : "border-border hover:border-primary/50 bg-background"
-                                      }`}
-                                    >
-                                      <div className="text-sm font-medium">{timeOption.display}</div>
-                                    </button>
-                                  ))}
-                                </div>
+                                {loadingTimes ? (
+                                  <div className="flex items-center justify-center py-8">
+                                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+                                    <span className="ml-2 text-sm text-muted-foreground">Cargando horarios...</span>
+                                  </div>
+                                ) : (
+                                  <div className="grid grid-cols-5 gap-2 mt-2 max-h-40 overflow-y-auto">
+                                    {availableTimes.map((timeOption) => {
+                                      const isAvailable = timeOption.status === 'available';
+                                      const isOccupied = timeOption.status === 'occupied';
+                                      const isBlocked = timeOption.status === 'blocked';
+                                      
+                                      return (
+                                        <button
+                                          key={timeOption.time}
+                                          onClick={() => isAvailable ? setSelectedTime(timeOption.time) : null}
+                                          disabled={!isAvailable}
+                                          className={`p-2 text-center rounded-lg border-2 transition-all relative ${
+                                            selectedTime === timeOption.time
+                                              ? "border-primary bg-primary/10 text-primary"
+                                              : isAvailable
+                                              ? "border-border hover:border-primary/50 bg-background hover:bg-primary/5"
+                                              : isOccupied
+                                              ? "border-red-200 bg-red-50 text-red-600 cursor-not-allowed"
+                                              : "border-gray-200 bg-gray-50 text-gray-400 cursor-not-allowed"
+                                          }`}
+                                        >
+                                          <div className={`text-sm font-medium ${
+                                            isOccupied ? "line-through" : ""
+                                          }`}>
+                                            {timeOption.display}
+                                          </div>
+                                          {isOccupied && (
+                                            <div className="text-xs text-red-500 mt-1">
+                                              Ocupado
+                                            </div>
+                                          )}
+                                          {isBlocked && (
+                                            <div className="text-xs text-gray-500 mt-1">
+                                              No disponible
+                                            </div>
+                                          )}
+                                        </button>
+                                      );
+                                    })}
+                                    {availableTimes.length === 0 && (
+                                      <div className="col-span-5 text-center py-4 text-sm text-muted-foreground">
+                                        No hay horarios disponibles para esta fecha
+                                      </div>
+                                    )}
+                                  </div>
+                                )}
                               </div>
                             )}
                           </div>
@@ -769,13 +1014,13 @@ export default function ProfessionalProfilePage() {
                                     return (
                                       <div key={index}>
                                         {hasPresencial && (
-                                          <SelectItem value="presencial">
-                                            Presencial - {formatPrice(parseInt(service.presencialCost))}
+                                          <SelectItem value={`${service.name}-presencial`}>
+                                            {service.name} - Presencial - {formatPrice(parseInt(service.presencialCost))}
                                           </SelectItem>
                                         )}
                                         {hasOnline && (
-                                          <SelectItem value="online">
-                                            En línea - {formatPrice(parseInt(service.onlineCost))}
+                                          <SelectItem value={`${service.name}-online`}>
+                                            {service.name} - En línea - {formatPrice(parseInt(service.onlineCost))}
                                           </SelectItem>
                                         )}
                                       </div>
@@ -875,16 +1120,14 @@ export default function ProfessionalProfilePage() {
                                 <div className="flex justify-between">
                                   <span className="text-muted-foreground">Servicio:</span>
                                   <span className="text-foreground font-medium">
-                                    {selectedService === 'presencial' ? 'Presencial' : 'En línea'} - 
                                     {(() => {
-                                      const service = professional.services.find(s => 
-                                        (selectedService === 'presencial' && s.presencialCost) ||
-                                        (selectedService === 'online' && s.onlineCost)
-                                      );
-                                      const cost = selectedService === 'presencial' 
+                                      const [serviceName, serviceModality] = selectedService.split('-');
+                                      const service = professional.services.find(s => s.name === serviceName);
+                                      const modalityText = serviceModality === 'presencial' ? 'Presencial' : 'En línea';
+                                      const cost = serviceModality === 'presencial' 
                                         ? parseInt(service?.presencialCost || '0')
                                         : parseInt(service?.onlineCost || '0');
-                                      return formatPrice(cost);
+                                      return `${serviceName} - ${modalityText} - ${formatPrice(cost)}`;
                                     })()}
                                   </span>
                                 </div>
@@ -992,7 +1235,11 @@ export default function ProfessionalProfilePage() {
                 professionalId={paymentData.professionalId}
                 appointmentDate={paymentData.date}
                 appointmentTime={paymentData.time}
-                appointmentType={paymentData.service}
+                appointmentType={(() => {
+                  const modality = paymentData.service.split('-')[1];
+                  // Asegurar que solo se envíen valores válidos para appointment_type
+                  return modality === 'online' ? 'online' : 'presencial';
+                })()}
                 notes={appointmentForm.notes}
                 description={`Consulta con ${paymentData.professionalName}`}
                 onSuccess={() => {
@@ -1092,6 +1339,117 @@ export default function ProfessionalProfilePage() {
               onClick={() => setIsErrorModalOpen(false)}
             >
               Entendido
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal de Compartir */}
+      <Dialog open={isShareModalOpen} onOpenChange={setIsShareModalOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-center text-xl">
+              Compartir perfil
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="py-6">
+            <div className="flex flex-wrap justify-center gap-6">
+              {/* WhatsApp */}
+              <button
+                className="group flex flex-col items-center gap-3 p-4 rounded-full hover:bg-green-50 transition-colors duration-200"
+                onClick={() => shareToSocial('whatsapp')}
+              >
+                <div className="w-14 h-14 bg-green-500 rounded-full flex items-center justify-center shadow-lg group-hover:shadow-xl group-hover:scale-105 transition-all duration-200">
+                  <svg className="w-7 h-7 text-white" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.885 3.488"/>
+                  </svg>
+                </div>
+                <span className="text-xs font-medium text-gray-700">WhatsApp</span>
+              </button>
+
+              {/* Facebook */}
+              <button
+                className="group flex flex-col items-center gap-3 p-4 rounded-full hover:bg-blue-50 transition-colors duration-200"
+                onClick={() => shareToSocial('facebook')}
+              >
+                <div className="w-14 h-14 bg-blue-600 rounded-full flex items-center justify-center shadow-lg group-hover:shadow-xl group-hover:scale-105 transition-all duration-200">
+                  <svg className="w-7 h-7 text-white" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                  </svg>
+                </div>
+                <span className="text-xs font-medium text-gray-700">Facebook</span>
+              </button>
+
+              {/* Twitter */}
+              <button
+                className="group flex flex-col items-center gap-3 p-4 rounded-full hover:bg-sky-50 transition-colors duration-200"
+                onClick={() => shareToSocial('twitter')}
+              >
+                <div className="w-14 h-14 bg-sky-500 rounded-full flex items-center justify-center shadow-lg group-hover:shadow-xl group-hover:scale-105 transition-all duration-200">
+                  <svg className="w-7 h-7 text-white" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/>
+                  </svg>
+                </div>
+                <span className="text-xs font-medium text-gray-700">Twitter</span>
+              </button>
+
+              {/* LinkedIn */}
+              <button
+                className="group flex flex-col items-center gap-3 p-4 rounded-full hover:bg-blue-50 transition-colors duration-200"
+                onClick={() => shareToSocial('linkedin')}
+              >
+                <div className="w-14 h-14 bg-blue-700 rounded-full flex items-center justify-center shadow-lg group-hover:shadow-xl group-hover:scale-105 transition-all duration-200">
+                  <svg className="w-7 h-7 text-white" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+                  </svg>
+                </div>
+                <span className="text-xs font-medium text-gray-700">LinkedIn</span>
+              </button>
+
+              {/* Telegram */}
+              <button
+                className="group flex flex-col items-center gap-3 p-4 rounded-full hover:bg-blue-50 transition-colors duration-200"
+                onClick={() => shareToSocial('telegram')}
+              >
+                <div className="w-14 h-14 bg-blue-500 rounded-full flex items-center justify-center shadow-lg group-hover:shadow-xl group-hover:scale-105 transition-all duration-200">
+                  <svg className="w-7 h-7 text-white" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/>
+                  </svg>
+                </div>
+                <span className="text-xs font-medium text-gray-700">Telegram</span>
+              </button>
+
+              {/* Email */}
+              <button
+                className="group flex flex-col items-center gap-3 p-4 rounded-full hover:bg-gray-50 transition-colors duration-200"
+                onClick={() => shareToSocial('email')}
+              >
+                <div className="w-14 h-14 bg-gray-600 rounded-full flex items-center justify-center shadow-lg group-hover:shadow-xl group-hover:scale-105 transition-all duration-200">
+                  <Mail className="w-7 h-7 text-white" />
+                </div>
+                <span className="text-xs font-medium text-gray-700">Email</span>
+              </button>
+
+              {/* Copiar enlace */}
+              <button
+                className="group flex flex-col items-center gap-3 p-4 rounded-full hover:bg-purple-50 transition-colors duration-200"
+                onClick={() => shareToSocial('copy')}
+              >
+                <div className="w-14 h-14 bg-purple-600 rounded-full flex items-center justify-center shadow-lg group-hover:shadow-xl group-hover:scale-105 transition-all duration-200">
+                  <Copy className="w-7 h-7 text-white" />
+                </div>
+                <span className="text-xs font-medium text-gray-700">Copiar</span>
+              </button>
+            </div>
+          </div>
+          
+          <div className="flex justify-end pt-4">
+            <Button
+              variant="outline"
+              onClick={() => setIsShareModalOpen(false)}
+            >
+              Cancelar
             </Button>
           </div>
         </DialogContent>

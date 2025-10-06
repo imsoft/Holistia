@@ -245,7 +245,7 @@ export default function ImageGalleryManager({
                 <Button
                   variant="destructive"
                   size="sm"
-                  className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                  className="absolute top-2 right-2 opacity-80 hover:opacity-100 transition-opacity shadow-lg"
                   onClick={() => handleDeleteImage(imageUrl, index)}
                 >
                   <Trash2 className="h-3 w-3" />

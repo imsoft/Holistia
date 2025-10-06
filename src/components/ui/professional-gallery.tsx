@@ -70,9 +70,6 @@ export default function ProfessionalGallery({
       <div className={`space-y-4 ${className}`}>
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-bold text-foreground">Galería</h2>
-          <p className="text-sm text-muted-foreground">
-            {images.length} imagen{images.length !== 1 ? 'es' : ''}
-          </p>
         </div>
 
         {/* Grid de imágenes */}

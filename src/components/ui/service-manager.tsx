@@ -100,7 +100,7 @@ export function ServiceManager({ professionalId, userId }: ServiceManagerProps) 
       const serviceData = {
         professional_id: professionalId,
         user_id: userId,
-        name: formData.name.trim(),
+        name: toTitleCase(formData.name.trim()),
         description: formData.description.trim(),
         type: formData.type,
         modality: formData.modality,
@@ -281,7 +281,7 @@ export function ServiceManager({ professionalId, userId }: ServiceManagerProps) 
                     id="name"
                     value={formData.name}
                     onChange={(e) =>
-                      setFormData({ ...formData, name: toTitleCase(e.target.value) })
+                      setFormData({ ...formData, name: e.target.value })
                     }
                     placeholder="Ej: Consulta de Psicología"
                     required

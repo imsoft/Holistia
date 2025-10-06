@@ -79,17 +79,28 @@ export default function BecomeProfessionalPage() {
     state: "",
     country: "",
     biography: "",
+    wellness_areas: [] as string[],
     terms_accepted: false,
     privacy_accepted: false,
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [specializationInput, setSpecializationInput] = useState("");
+  const [wellnessAreaInput, setWellnessAreaInput] = useState("");
   const [userProfilePhoto, setUserProfilePhoto] = useState<string | null>(null);
   const params = useParams();
   const userId = params.id as string;
 
   const supabase = createClient();
+
+  // Opciones de áreas de bienestar que coinciden con las categorías del filtro
+  const wellnessAreaOptions = [
+    "Salud mental",
+    "Espiritualidad", 
+    "Actividad física",
+    "Social",
+    "Alimentación"
+  ];
 
   useEffect(() => {
     const getUserData = async () => {
@@ -142,6 +153,7 @@ export default function BecomeProfessionalPage() {
             state: existingApp.state || "",
             country: existingApp.country || "",
             biography: existingApp.biography || "",
+            wellness_areas: existingApp.wellness_areas || [],
             terms_accepted: existingApp.terms_accepted || false,
             privacy_accepted: existingApp.privacy_accepted || false,
           });
@@ -214,6 +226,9 @@ export default function BecomeProfessionalPage() {
         if (formData.specializations.length === 0)
           newErrors.specializations =
             "Al menos una especialización es requerida";
+        if (formData.wellness_areas.length === 0)
+          newErrors.wellness_areas =
+            "Al menos un área de bienestar es requerida";
         if (!formData.experience.trim())
           newErrors.experience = "Los años de experiencia son requeridos";
         break;
@@ -269,6 +284,7 @@ export default function BecomeProfessionalPage() {
         state: formData.state,
         country: formData.country,
         biography: formData.biography,
+        wellness_areas: formData.wellness_areas,
         profile_photo: userProfilePhoto, // Copiar foto de perfil del usuario
         terms_accepted: formData.terms_accepted,
         privacy_accepted: formData.privacy_accepted,
@@ -453,6 +469,43 @@ export default function BecomeProfessionalPage() {
               {errors.specializations && (
                 <p className="text-red-500 text-sm mt-1">
                   {errors.specializations}
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-3">
+              <Label>Áreas de bienestar *</Label>
+              <p className="text-xs text-muted-foreground mb-2">
+                Selecciona las áreas de bienestar en las que te especializas:
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {wellnessAreaOptions.map((area) => (
+                  <label key={area} className="flex items-center space-x-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={formData.wellness_areas.includes(area)}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setFormData((prev) => ({
+                            ...prev,
+                            wellness_areas: [...prev.wellness_areas, area]
+                          }));
+                        } else {
+                          setFormData((prev) => ({
+                            ...prev,
+                            wellness_areas: prev.wellness_areas.filter(a => a !== area)
+                          }));
+                        }
+                      }}
+                      className="rounded border-gray-300"
+                    />
+                    <span className="text-sm text-foreground">{area}</span>
+                  </label>
+                ))}
+              </div>
+              {errors.wellness_areas && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.wellness_areas}
                 </p>
               )}
             </div>

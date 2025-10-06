@@ -20,23 +20,6 @@ const filters = [
     ],
   },
   {
-    id: "specialty",
-    name: "Especialidad",
-    options: [
-      { value: "all", label: "Todas las especialidades" },
-      { value: "cognitive", label: "Terapia Cognitivo-Conductual" },
-      { value: "psychiatric", label: "Medicina Psiquiátrica" },
-      { value: "child", label: "Psicología Infantil" },
-      { value: "sports", label: "Psicología del Deporte" },
-      { value: "couple", label: "Terapia de Pareja" },
-      { value: "neuropsychology", label: "Neuropsicología" },
-      { value: "anxiety", label: "Terapia de Ansiedad" },
-      { value: "depression", label: "Terapia de Depresión" },
-      { value: "family", label: "Terapia Familiar" },
-      { value: "ludic", label: "Terapia Lúdica" },
-    ],
-  },
-  {
     id: "service-type",
     name: "Modalidad",
     options: [

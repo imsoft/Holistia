@@ -373,20 +373,7 @@ const HomeUserPage = () => {
           <div className="px-6 py-6 sm:py-12 lg:px-8">
             <div className="mx-auto max-w-4xl text-center">
               <h2 className="text-4xl font-semibold tracking-tight text-balance text-foreground sm:text-5xl">
-                <GradientText
-                  colors={[
-                    "#40ffaa",
-                    "#4079ff",
-                    "#40ffaa",
-                    "#4079ff",
-                    "#40ffaa",
-                  ]}
-                  animationSpeed={3}
-                  showBorder={false}
-                  className="custom-class"
-                >
-                  Profesionales de Salud
-                </GradientText>
+                Profesionales de Salud
               </h2>
               <p className="mx-auto mt-6 max-w-2xl text-lg/8 text-pretty text-muted-foreground">
                 Encuentra el profesional adecuado para tu bienestar mental y
@@ -414,7 +401,7 @@ const HomeUserPage = () => {
                 className={`group flex flex-col items-center p-4 rounded-xl border transition-all duration-200 min-w-[120px] ${
                   selectedCategories.includes(category.id)
                     ? "bg-primary text-primary-foreground border-primary shadow-md"
-                    : "bg-primary text-primary-foreground border-primary/20 hover:border-primary hover:shadow-md"
+                    : "bg-card text-foreground border-border hover:border-primary hover:shadow-md"
                 }`}
               >
                 <div
@@ -424,12 +411,24 @@ const HomeUserPage = () => {
                       : "group-hover:scale-110"
                   }`}
                 >
-                  <category.icon className="h-8 w-8 text-primary-foreground" />
+                  <category.icon className={`h-8 w-8 ${
+                    selectedCategories.includes(category.id)
+                      ? "text-primary-foreground"
+                      : "text-primary"
+                  }`} />
                 </div>
-                <span className="text-sm font-medium transition-colors duration-200 text-primary-foreground">
+                <span className={`text-sm font-medium transition-colors duration-200 ${
+                  selectedCategories.includes(category.id)
+                    ? "text-primary-foreground"
+                    : "text-foreground group-hover:text-primary"
+                }`}>
                   {category.name}
                 </span>
-                <span className="text-xs mt-1 transition-colors duration-200 text-primary-foreground/80">
+                <span className={`text-xs mt-1 transition-colors duration-200 ${
+                  selectedCategories.includes(category.id)
+                    ? "text-primary-foreground/80"
+                    : "text-muted-foreground"
+                }`}>
                   {category.description}
                 </span>
               </Button>

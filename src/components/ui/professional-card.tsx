@@ -92,7 +92,7 @@ export const ProfessionalCard = ({ professional, userId }: ProfessionalCardProps
 
   return (
     <Link href={professionalRoute}>
-      <Card className="group overflow-hidden hover:shadow-xl hover:-translate-y-2 transition-all duration-300 border-border cursor-pointer">
+      <Card className="group overflow-hidden hover:shadow-xl hover:-translate-y-2 transition-all duration-300 border-border cursor-pointer h-full flex flex-col">
       <div className="relative">
         <Image
           src={professional.profile_photo || professional.profilePhoto || professional.avatar || "/placeholder-avatar.jpg"}
@@ -111,14 +111,16 @@ export const ProfessionalCard = ({ professional, userId }: ProfessionalCardProps
         </button>
       </div>
       
-      <CardContent className="p-4">
-        <div className="space-y-3">
-          {/* Header */}
+      <CardContent className="p-4 flex flex-col flex-grow">
+        <div className="space-y-3 flex flex-col flex-grow">
+          {/* Header - Intercambiado: Especialidad arriba, Nombre abajo */}
           <div>
             <h3 className="text-lg font-semibold text-foreground group-hover:text-primary transition-colors">
-              {professional.name || `${professional.first_name || ''} ${professional.last_name || ''}`.trim()}
+              {professional.profession}
             </h3>
-            <p className="text-sm text-muted-foreground">{professional.profession}</p>
+            <p className="text-sm text-muted-foreground">
+              {professional.name || `${professional.first_name || ''} ${professional.last_name || ''}`.trim()}
+            </p>
           </div>
 
           {/* Therapy Types */}
@@ -158,13 +160,13 @@ export const ProfessionalCard = ({ professional, userId }: ProfessionalCardProps
 
           {/* Service Description */}
           {professional.serviceDescription && (
-            <p className="text-sm text-muted-foreground line-clamp-2">
+            <p className="text-sm text-muted-foreground line-clamp-2 flex-grow">
               {professional.serviceDescription}
             </p>
           )}
 
           {/* Location and Service Type */}
-          <div className="space-y-1">
+          <div className="space-y-1 mt-auto">
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <MapPin className="h-3 w-3" />
               <span>
@@ -184,7 +186,7 @@ export const ProfessionalCard = ({ professional, userId }: ProfessionalCardProps
 
           {/* Price */}
           {professional.costs && (
-            <div className="flex justify-between items-center">
+            <div className="flex justify-between items-center mt-2">
               <div className="text-sm text-muted-foreground">
                 <span>Desde {formatPrice(professional.costs.presencial || professional.costs.online)}</span>
               </div>

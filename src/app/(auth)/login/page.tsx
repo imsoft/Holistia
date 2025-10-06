@@ -19,6 +19,7 @@ import { GoogleButton } from "@/components/ui/google-button";
 import { useForm } from "react-hook-form";
 import { login } from "@/actions/auth/actions";
 import { useState } from "react";
+import { toast } from "sonner";
 // import { useRouter } from "next/navigation";
 
 const formSchema = z.object({
@@ -51,12 +52,18 @@ const LoginPage = () => {
       const result = await login(formData);
       
       if (result?.error) {
+        // Mostrar error en toast en lugar de en la UI
+        toast.error(result.error);
         setError(result.error);
+        setIsLoading(false);
       }
       // Si no hay error, la acción redirige automáticamente
-    } catch {
-      setError("Ocurrió un error inesperado. Por favor, intenta de nuevo.");
-    } finally {
+      // No llamamos setIsLoading(false) aquí para mantener el estado de carga
+    } catch (error) {
+      console.error("Error inesperado en login:", error);
+      const errorMessage = "Ocurrió un error inesperado. Por favor, intenta de nuevo.";
+      toast.error(errorMessage);
+      setError(errorMessage);
       setIsLoading(false);
     }
   };

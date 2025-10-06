@@ -21,6 +21,7 @@ import { signup } from "@/actions/auth/actions";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { normalizeName } from "@/lib/text-utils";
+import { toast } from "sonner";
 
 const formSchema = z.object({
   firstName: z.string().min(2, "El nombre debe tener al menos 2 caracteres"),
@@ -59,18 +60,26 @@ const RegisterPage = () => {
       const result = await signup(formData);
 
       if (result?.error) {
+        toast.error(result.error);
         setError(result.error);
+        setIsLoading(false);
       } else if (result?.needsConfirmation) {
+        toast.success("¡Cuenta creada! Por favor confirma tu email.");
         setSuccess(true);
+        setIsLoading(false);
         router.push("/confirm-email");
       } else if (result?.success) {
         // Usuario registrado exitosamente (ya confirmado)
+        toast.success("¡Cuenta creada exitosamente!");
         setSuccess(true);
         // No necesitamos redirección aquí porque la acción ya redirige
+        // No llamamos setIsLoading(false) aquí para mantener el estado de carga
       }
-    } catch {
-      setError("Ocurrió un error inesperado. Por favor, intenta de nuevo.");
-    } finally {
+    } catch (error) {
+      console.error("Error inesperado en registro:", error);
+      const errorMessage = "Ocurrió un error inesperado. Por favor, intenta de nuevo.";
+      toast.error(errorMessage);
+      setError(errorMessage);
       setIsLoading(false);
     }
   };

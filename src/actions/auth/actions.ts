@@ -36,18 +36,31 @@ export async function login(formData: FormData) {
         redirect(`/professional/${result.user.id}/dashboard`);
       } else {
         // Verificar si el usuario tiene una aplicación profesional aprobada
-        const { data: application } = await supabase
-          .from('professional_applications')
-          .select('id, status')
-          .eq('user_id', result.user.id)
-          .eq('status', 'approved')
-          .single();
+        try {
+          const { data: application, error: appError } = await supabase
+            .from('professional_applications')
+            .select('id, status')
+            .eq('user_id', result.user.id)
+            .eq('status', 'approved')
+            .single();
 
-        if (application) {
-          // Si tiene una aplicación aprobada, redirigir al dashboard de profesionales
-          redirect(`/professional/${result.user.id}/dashboard`);
-        } else {
-          // Por defecto, redirigir al dashboard del paciente
+          if (appError && appError.code !== 'PGRST116') {
+            // PGRST116 = no rows found, que es normal
+            console.error('Error consultando professional_applications:', appError);
+            // Si hay error en la consulta, redirigir al dashboard del paciente por defecto
+            redirect(`/patient/${result.user.id}/explore`);
+          }
+
+          if (application) {
+            // Si tiene una aplicación aprobada, redirigir al dashboard de profesionales
+            redirect(`/professional/${result.user.id}/dashboard`);
+          } else {
+            // Por defecto, redirigir al dashboard del paciente
+            redirect(`/patient/${result.user.id}/explore`);
+          }
+        } catch (queryError) {
+          console.error('Error inesperado consultando professional_applications:', queryError);
+          // En caso de error, redirigir al dashboard del paciente por defecto
           redirect(`/patient/${result.user.id}/explore`);
         }
       }
@@ -101,18 +114,31 @@ export async function signup(formData: FormData) {
         redirect(`/professional/${result.user.id}/dashboard`);
       } else {
         // Verificar si el usuario tiene una aplicación profesional aprobada
-        const { data: application } = await supabase
-          .from('professional_applications')
-          .select('id, status')
-          .eq('user_id', result.user.id)
-          .eq('status', 'approved')
-          .single();
+        try {
+          const { data: application, error: appError } = await supabase
+            .from('professional_applications')
+            .select('id, status')
+            .eq('user_id', result.user.id)
+            .eq('status', 'approved')
+            .single();
 
-        if (application) {
-          // Si tiene una aplicación aprobada, redirigir al dashboard de profesionales
-          redirect(`/professional/${result.user.id}/dashboard`);
-        } else {
-          // Por defecto, redirigir al dashboard del paciente
+          if (appError && appError.code !== 'PGRST116') {
+            // PGRST116 = no rows found, que es normal
+            console.error('Error consultando professional_applications:', appError);
+            // Si hay error en la consulta, redirigir al dashboard del paciente por defecto
+            redirect(`/patient/${result.user.id}/explore`);
+          }
+
+          if (application) {
+            // Si tiene una aplicación aprobada, redirigir al dashboard de profesionales
+            redirect(`/professional/${result.user.id}/dashboard`);
+          } else {
+            // Por defecto, redirigir al dashboard del paciente
+            redirect(`/patient/${result.user.id}/explore`);
+          }
+        } catch (queryError) {
+          console.error('Error inesperado consultando professional_applications:', queryError);
+          // En caso de error, redirigir al dashboard del paciente por defecto
           redirect(`/patient/${result.user.id}/explore`);
         }
       }

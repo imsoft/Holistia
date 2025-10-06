@@ -7,6 +7,7 @@ import { Filters } from "@/components/ui/filters";
 import { ProfessionalCard } from "@/components/ui/professional-card";
 import { createClient } from "@/utils/supabase/client";
 import { Button } from "@/components/ui/button";
+import GradientText from "@/components/ui/gradient-text";
 
 interface Professional {
   id: string;
@@ -33,11 +34,10 @@ interface Professional {
   biography?: string;
   profile_photo?: string;
   gallery: string[];
-  status: 'pending' | 'under_review' | 'approved' | 'rejected';
+  status: "pending" | "under_review" | "approved" | "rejected";
   created_at: string;
   updated_at: string;
 }
-
 
 const categories = [
   {
@@ -76,7 +76,9 @@ const HomeUserPage = () => {
   const params = useParams();
   const userId = params.id as string;
   const [professionals, setProfessionals] = useState<Professional[]>([]);
-  const [filteredProfessionals, setFilteredProfessionals] = useState<Professional[]>([]);
+  const [filteredProfessionals, setFilteredProfessionals] = useState<
+    Professional[]
+  >([]);
   const [loading, setLoading] = useState(true);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const supabase = createClient();
@@ -86,22 +88,22 @@ const HomeUserPage = () => {
     const getProfessionals = async () => {
       try {
         setLoading(true);
-        
+
         const { data, error } = await supabase
-          .from('professional_applications')
-          .select('*')
-          .eq('status', 'approved')
-          .order('created_at', { ascending: false });
+          .from("professional_applications")
+          .select("*")
+          .eq("status", "approved")
+          .order("created_at", { ascending: false });
 
         if (error) {
-          console.error('Error fetching professionals:', error);
+          console.error("Error fetching professionals:", error);
           return;
         }
 
         setProfessionals(data || []);
         setFilteredProfessionals(data || []);
       } catch (error) {
-        console.error('Error fetching professionals:', error);
+        console.error("Error fetching professionals:", error);
       } finally {
         setLoading(false);
       }
@@ -111,7 +113,7 @@ const HomeUserPage = () => {
   }, [supabase]);
 
   const handleCategoryToggle = (categoryId: string) => {
-    setSelectedCategories(prev => {
+    setSelectedCategories((prev) => {
       // Si la categoría ya está seleccionada, la deseleccionamos
       if (prev.includes(categoryId)) {
         const newCategories: string[] = [];
@@ -136,28 +138,30 @@ const HomeUserPage = () => {
     }
 
     // Filtrar por categorías seleccionadas
-    filtered = filtered.filter(professional => {
-      return categoryIds.some(categoryId => {
+    filtered = filtered.filter((professional) => {
+      return categoryIds.some((categoryId) => {
         // Mapear categorías a áreas de bienestar
         const categoryMap: Record<string, string[]> = {
-          'professionals': ['Salud mental'],
-          'spirituality': ['Espiritualidad'],
-          'physical-activity': ['Actividad física'],
-          'social': ['Social'],
-          'nutrition': ['Alimentación']
+          professionals: ["Salud mental"],
+          spirituality: ["Espiritualidad"],
+          "physical-activity": ["Actividad física"],
+          social: ["Social"],
+          nutrition: ["Alimentación"],
         };
-        
+
         const mappedAreas = categoryMap[categoryId] || [];
-        
+
         // Si es 'professionals', mostrar todos los profesionales de salud mental
-        if (categoryId === 'professionals') {
+        if (categoryId === "professionals") {
           return true; // Todos los profesionales en la tabla son de salud mental
         }
-        
+
         // Para otras categorías, verificar si el profesional tiene esas áreas de bienestar
-        return mappedAreas.length > 0 && 
-          professional.wellness_areas && 
-          professional.wellness_areas.some(area => mappedAreas.includes(area));
+        return (
+          mappedAreas.length > 0 &&
+          professional.wellness_areas &&
+          professional.wellness_areas.some((area) => mappedAreas.includes(area))
+        );
       });
     });
 
@@ -166,53 +170,61 @@ const HomeUserPage = () => {
 
   const handleFilterChange = (filters: Record<string, string[]>) => {
     console.log("Filtros aplicados:", filters);
-    
+
     let filtered = [...professionals];
 
     // Aplicar filtros de categorías si están seleccionadas
     if (selectedCategories.length > 0) {
-      filtered = filtered.filter(professional => {
-        return selectedCategories.some(categoryId => {
+      filtered = filtered.filter((professional) => {
+        return selectedCategories.some((categoryId) => {
           const categoryMap: Record<string, string[]> = {
-            'professionals': ['Salud mental'],
-            'spirituality': ['Espiritualidad'],
-            'physical-activity': ['Actividad física'],
-            'social': ['Social'],
-            'nutrition': ['Alimentación']
+            professionals: ["Salud mental"],
+            spirituality: ["Espiritualidad"],
+            "physical-activity": ["Actividad física"],
+            social: ["Social"],
+            nutrition: ["Alimentación"],
           };
-          
+
           const mappedAreas = categoryMap[categoryId] || [];
-          
-          if (categoryId === 'professionals') {
+
+          if (categoryId === "professionals") {
             return true;
           }
-          
-          return mappedAreas.length > 0 && 
-            professional.wellness_areas && 
-            professional.wellness_areas.some(area => mappedAreas.includes(area));
+
+          return (
+            mappedAreas.length > 0 &&
+            professional.wellness_areas &&
+            professional.wellness_areas.some((area) =>
+              mappedAreas.includes(area)
+            )
+          );
         });
       });
     }
 
     // Filtrar por especialidad (specialty)
-    if (filters.specialty && filters.specialty.length > 0 && !filters.specialty.includes('all')) {
-      filtered = filtered.filter(professional =>
-        professional.specializations.some(spec => {
+    if (
+      filters.specialty &&
+      filters.specialty.length > 0 &&
+      !filters.specialty.includes("all")
+    ) {
+      filtered = filtered.filter((professional) =>
+        professional.specializations.some((spec) => {
           // Mapear los valores de filtro a las especializaciones reales
           const specialtyMap: Record<string, string> = {
-            'cognitive': 'Terapia Cognitivo-Conductual',
-            'psychiatric': 'Medicina Psiquiátrica',
-            'child': 'Psicología Infantil',
-            'sports': 'Psicología del Deporte',
-            'couple': 'Terapia de Pareja',
-            'neuropsychology': 'Neuropsicología',
-            'anxiety': 'Terapia de Ansiedad',
-            'depression': 'Terapia de Depresión',
-            'family': 'Terapia Familiar',
-            'ludic': 'Terapia Lúdica'
+            cognitive: "Terapia Cognitivo-Conductual",
+            psychiatric: "Medicina Psiquiátrica",
+            child: "Psicología Infantil",
+            sports: "Psicología del Deporte",
+            couple: "Terapia de Pareja",
+            neuropsychology: "Neuropsicología",
+            anxiety: "Terapia de Ansiedad",
+            depression: "Terapia de Depresión",
+            family: "Terapia Familiar",
+            ludic: "Terapia Lúdica",
           };
-          
-          return filters.specialty.some(filterValue => {
+
+          return filters.specialty.some((filterValue) => {
             const mappedSpecialty = specialtyMap[filterValue];
             return mappedSpecialty ? spec.includes(mappedSpecialty) : false;
           });
@@ -221,95 +233,131 @@ const HomeUserPage = () => {
     }
 
     // Filtrar por modalidad (service-type)
-    if (filters['service-type'] && filters['service-type'].length > 0 && !filters['service-type'].includes('any')) {
-      filtered = filtered.filter(professional => {
-        const hasPresencial = professional.services.some(s => s.presencialCost && s.presencialCost !== '');
-        const hasOnline = professional.services.some(s => s.onlineCost && s.onlineCost !== '');
-        
-        return filters['service-type'].some(type => {
-          if (type === 'presencial') return hasPresencial;
-          if (type === 'online') return hasOnline;
-          if (type === 'ambos') return hasPresencial && hasOnline;
+    if (
+      filters["service-type"] &&
+      filters["service-type"].length > 0 &&
+      !filters["service-type"].includes("any")
+    ) {
+      filtered = filtered.filter((professional) => {
+        const hasPresencial = professional.services.some(
+          (s) => s.presencialCost && s.presencialCost !== ""
+        );
+        const hasOnline = professional.services.some(
+          (s) => s.onlineCost && s.onlineCost !== ""
+        );
+
+        return filters["service-type"].some((type) => {
+          if (type === "presencial") return hasPresencial;
+          if (type === "online") return hasOnline;
+          if (type === "ambos") return hasPresencial && hasOnline;
           return false;
         });
       });
     }
 
     // Filtrar por ubicación
-    if (filters.location && filters.location.length > 0 && !filters.location.includes('any')) {
-      filtered = filtered.filter(professional => {
-        return filters.location.some(loc => {
+    if (
+      filters.location &&
+      filters.location.length > 0 &&
+      !filters.location.includes("any")
+    ) {
+      filtered = filtered.filter((professional) => {
+        return filters.location.some((loc) => {
           const cityLower = professional.city.toLowerCase();
           const stateLower = professional.state.toLowerCase();
-          
+
           // Mapear valores de filtro a ubicaciones reales
           const locationMap: Record<string, string[]> = {
-            'cdmx': ['ciudad de méxico', 'mexico city', 'cdmx', 'distrito federal'],
-            'guadalajara': ['guadalajara'],
-            'monterrey': ['monterrey'],
-            'puebla': ['puebla'],
-            'tijuana': ['tijuana'],
-            'cancun': ['cancún', 'cancun']
+            cdmx: [
+              "ciudad de méxico",
+              "mexico city",
+              "cdmx",
+              "distrito federal",
+            ],
+            guadalajara: ["guadalajara"],
+            monterrey: ["monterrey"],
+            puebla: ["puebla"],
+            tijuana: ["tijuana"],
+            cancun: ["cancún", "cancun"],
           };
-          
+
           const mappedLocations = locationMap[loc] || [loc];
-          return mappedLocations.some(mappedLoc => 
-            cityLower.includes(mappedLoc.toLowerCase()) || 
-            stateLower.includes(mappedLoc.toLowerCase())
+          return mappedLocations.some(
+            (mappedLoc) =>
+              cityLower.includes(mappedLoc.toLowerCase()) ||
+              stateLower.includes(mappedLoc.toLowerCase())
           );
         });
       });
     }
 
     // Filtrar por rango de precios
-    if (filters.price && filters.price.length > 0 && !filters.price.includes('any')) {
-      filtered = filtered.filter(professional => {
-        return filters.price.some(priceRange => {
+    if (
+      filters.price &&
+      filters.price.length > 0 &&
+      !filters.price.includes("any")
+    ) {
+      filtered = filtered.filter((professional) => {
+        return filters.price.some((priceRange) => {
           const minPrice = professional.services.reduce((min, service) => {
-            const presencialPrice = parseInt(service.presencialCost) || Infinity;
+            const presencialPrice =
+              parseInt(service.presencialCost) || Infinity;
             const onlinePrice = parseInt(service.onlineCost) || Infinity;
             return Math.min(min, presencialPrice, onlinePrice);
           }, Infinity);
-          
-          if (priceRange === 'budget') return minPrice < 1500;
-          if (priceRange === 'mid-range') return minPrice >= 1500 && minPrice <= 2000;
-          if (priceRange === 'premium') return minPrice > 2000;
+
+          if (priceRange === "budget") return minPrice < 1500;
+          if (priceRange === "mid-range")
+            return minPrice >= 1500 && minPrice <= 2000;
+          if (priceRange === "premium") return minPrice > 2000;
           return false;
         });
       });
     }
 
     // Filtrar por categorías de bienestar
-    if (filters.category && filters.category.length > 0 && !filters.category.includes('all')) {
-      filtered = filtered.filter(professional => {
+    if (
+      filters.category &&
+      filters.category.length > 0 &&
+      !filters.category.includes("all")
+    ) {
+      filtered = filtered.filter((professional) => {
         // Mapear categorías de filtro a áreas de bienestar
         const categoryMap: Record<string, string[]> = {
-          'professionals': ['Salud mental'], // Todos los profesionales son de salud mental por defecto
-          'centers': [], // Para centros (futuro)
-          'events': [], // Para eventos (futuro)
-          'challenges': [], // Para retos (futuro)
-          'restaurants': ['Alimentación'],
-          'food-market': ['Alimentación']
+          professionals: ["Salud mental"], // Todos los profesionales son de salud mental por defecto
+          centers: [], // Para centros (futuro)
+          events: [], // Para eventos (futuro)
+          challenges: [], // Para retos (futuro)
+          restaurants: ["Alimentación"],
+          "food-market": ["Alimentación"],
         };
-        
-        return filters.category.some(category => {
+
+        return filters.category.some((category) => {
           const mappedAreas = categoryMap[category] || [];
-          
+
           // Si es 'professionals', mostrar todos los profesionales de salud mental
-          if (category === 'professionals') {
+          if (category === "professionals") {
             return true; // Todos los profesionales en la tabla son de salud mental
           }
-          
+
           // Para otras categorías, verificar si el profesional tiene esas áreas de bienestar
-          return mappedAreas.length > 0 && 
-            professional.wellness_areas && 
-            professional.wellness_areas.some(area => mappedAreas.includes(area));
+          return (
+            mappedAreas.length > 0 &&
+            professional.wellness_areas &&
+            professional.wellness_areas.some((area) =>
+              mappedAreas.includes(area)
+            )
+          );
         });
       });
     }
 
     // Filtrar por disponibilidad (availability) - por ahora solo mostrar todos si no hay filtro específico
-    if (filters.availability && filters.availability.length > 0 && !filters.availability.includes('any')) {
+    if (
+      filters.availability &&
+      filters.availability.length > 0 &&
+      !filters.availability.includes("any")
+    ) {
       // Por ahora, si hay filtro de disponibilidad, mantenemos todos los profesionales
       // En el futuro se puede implementar lógica más compleja basada en citas disponibles
       filtered = filtered.filter(() => true);
@@ -325,10 +373,24 @@ const HomeUserPage = () => {
           <div className="px-6 py-6 sm:py-12 lg:px-8">
             <div className="mx-auto max-w-4xl text-center">
               <h2 className="text-4xl font-semibold tracking-tight text-balance text-foreground sm:text-5xl">
-                Profesionales de Salud
+                <GradientText
+                  colors={[
+                    "#40ffaa",
+                    "#4079ff",
+                    "#40ffaa",
+                    "#4079ff",
+                    "#40ffaa",
+                  ]}
+                  animationSpeed={3}
+                  showBorder={false}
+                  className="custom-class"
+                >
+                  Profesionales de Salud
+                </GradientText>
               </h2>
               <p className="mx-auto mt-6 max-w-2xl text-lg/8 text-pretty text-muted-foreground">
-                Encuentra el profesional adecuado para tu bienestar mental y emocional.
+                Encuentra el profesional adecuado para tu bienestar mental y
+                emocional.
               </p>
             </div>
           </div>
@@ -337,8 +399,12 @@ const HomeUserPage = () => {
         {/* Categories */}
         <div className="mb-8">
           <div className="text-center mb-6">
-            <h3 className="text-lg font-semibold text-foreground mb-2">Filtrar por categorías</h3>
-            <p className="text-sm text-muted-foreground">Selecciona una categoría para filtrar profesionales</p>
+            <h3 className="text-lg font-semibold text-foreground mb-2">
+              Filtrar por categorías
+            </h3>
+            <p className="text-sm text-muted-foreground">
+              Selecciona una categoría para filtrar profesionales
+            </p>
           </div>
           <div className="flex flex-wrap gap-4 justify-center">
             {categories.map((category) => (
@@ -351,11 +417,13 @@ const HomeUserPage = () => {
                     : "bg-primary text-primary-foreground border-primary/20 hover:border-primary hover:shadow-md"
                 }`}
               >
-                <div className={`mb-2 transition-transform duration-200 ${
-                  selectedCategories.includes(category.id) 
-                    ? "scale-110" 
-                    : "group-hover:scale-110"
-                }`}>
+                <div
+                  className={`mb-2 transition-transform duration-200 ${
+                    selectedCategories.includes(category.id)
+                      ? "scale-110"
+                      : "group-hover:scale-110"
+                  }`}
+                >
                   <category.icon className="h-8 w-8 text-primary-foreground" />
                 </div>
                 <span className="text-sm font-medium transition-colors duration-200 text-primary-foreground">
@@ -367,13 +435,13 @@ const HomeUserPage = () => {
               </Button>
             ))}
           </div>
-          
+
           {/* Mostrar categorías seleccionadas */}
           {selectedCategories.length > 0 && (
             <div className="mt-4 text-center">
               <div className="inline-flex flex-wrap gap-2 justify-center">
                 {selectedCategories.map((categoryId) => {
-                  const category = categories.find(c => c.id === categoryId);
+                  const category = categories.find((c) => c.id === categoryId);
                   return (
                     <span
                       key={categoryId}
@@ -391,9 +459,6 @@ const HomeUserPage = () => {
                   );
                 })}
               </div>
-              <p className="text-xs text-muted-foreground mt-2">
-                1 categoría seleccionada
-              </p>
             </div>
           )}
         </div>
@@ -410,7 +475,9 @@ const HomeUserPage = () => {
               <div className="flex items-center justify-center py-12">
                 <div className="text-center">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-                  <p className="mt-2 text-sm text-muted-foreground">Cargando profesionales...</p>
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    Cargando profesionales...
+                  </p>
                 </div>
               </div>
             ) : filteredProfessionals.length === 0 ? (
@@ -418,59 +485,77 @@ const HomeUserPage = () => {
                 <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
                   <Brain className="h-8 w-8 text-muted-foreground" />
                 </div>
-                <h3 className="text-lg font-semibold text-foreground mb-2">No se encontraron profesionales</h3>
+                <h3 className="text-lg font-semibold text-foreground mb-2">
+                  No se encontraron profesionales
+                </h3>
                 <p className="text-muted-foreground">
-                  {professionals.length === 0 
+                  {professionals.length === 0
                     ? "Aún no hay profesionales aprobados en la plataforma."
-                    : "Intenta ajustar los filtros para ver más resultados."
-                  }
+                    : "Intenta ajustar los filtros para ver más resultados."}
                 </p>
               </div>
             ) : (
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {filteredProfessionals.map((professional) => (
-                  <ProfessionalCard 
+                  <ProfessionalCard
                     key={professional.id}
-                    userId={userId} 
+                    userId={userId}
                     professional={{
                       id: professional.id,
                       slug: `${professional.first_name.toLowerCase()}-${professional.last_name.toLowerCase()}`,
                       name: `${professional.first_name} ${professional.last_name}`,
                       email: professional.email,
-                      whatsapp: professional.phone || '',
+                      whatsapp: professional.phone || "",
                       socialMedia: {
-                        instagram: '',
-                        linkedin: ''
+                        instagram: "",
+                        linkedin: "",
                       },
                       profession: professional.profession,
                       therapyTypes: professional.specializations,
                       wellnessAreas: professional.wellness_areas || [],
                       costs: {
-                        presencial: professional.services.find(s => s.presencialCost)?.presencialCost 
-                          ? parseInt(professional.services.find(s => s.presencialCost)?.presencialCost || '0')
+                        presencial: professional.services.find(
+                          (s) => s.presencialCost
+                        )?.presencialCost
+                          ? parseInt(
+                              professional.services.find(
+                                (s) => s.presencialCost
+                              )?.presencialCost || "0"
+                            )
                           : 0,
-                        online: professional.services.find(s => s.onlineCost)?.onlineCost 
-                          ? parseInt(professional.services.find(s => s.onlineCost)?.onlineCost || '0')
-                          : 0
+                        online: professional.services.find((s) => s.onlineCost)
+                          ?.onlineCost
+                          ? parseInt(
+                              professional.services.find((s) => s.onlineCost)
+                                ?.onlineCost || "0"
+                            )
+                          : 0,
                       },
                       serviceType: (() => {
-                        const hasPresencial = professional.services.some(s => s.presencialCost && s.presencialCost !== '');
-                        const hasOnline = professional.services.some(s => s.onlineCost && s.onlineCost !== '');
-                        if (hasPresencial && hasOnline) return 'both';
-                        if (hasPresencial) return 'in-person';
-                        return 'online';
+                        const hasPresencial = professional.services.some(
+                          (s) => s.presencialCost && s.presencialCost !== ""
+                        );
+                        const hasOnline = professional.services.some(
+                          (s) => s.onlineCost && s.onlineCost !== ""
+                        );
+                        if (hasPresencial && hasOnline) return "both";
+                        if (hasPresencial) return "in-person";
+                        return "online";
                       })(),
                       location: {
                         city: professional.city,
                         state: professional.state,
                         country: professional.country,
-                        address: professional.address
+                        address: professional.address,
                       },
                       bookingOption: true,
-                      serviceDescription: professional.services[0]?.description || professional.biography || '',
-                      biography: professional.biography || '',
-                      profilePhoto: professional.profile_photo || '',
-                      gallery: professional.gallery
+                      serviceDescription:
+                        professional.services[0]?.description ||
+                        professional.biography ||
+                        "",
+                      biography: professional.biography || "",
+                      profilePhoto: professional.profile_photo || "",
+                      gallery: professional.gallery,
                     }}
                   />
                 ))}

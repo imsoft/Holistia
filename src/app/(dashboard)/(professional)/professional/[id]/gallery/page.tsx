@@ -332,7 +332,7 @@ export default function ProfessionalGalleryPage() {
           <CardHeader className="pb-4">
             <CardTitle className="text-xl">Galería de Imágenes</CardTitle>
             <CardDescription>
-              Sube hasta 5 imágenes de tu espacio de trabajo. Cada imagen debe ser menor a 2MB.
+              Sube hasta 4 imágenes de tu espacio de trabajo. Cada imagen debe ser menor a 2MB.
             </CardDescription>
           </CardHeader>
           <CardContent className="pt-2">
@@ -340,7 +340,7 @@ export default function ProfessionalGalleryPage() {
               professionalId={professional.user_id}
               currentImages={galleryImages}
               onImagesUpdate={handleImagesUpdate}
-              maxImages={5}
+              maxImages={4}
               maxSizeMB={2}
             />
           </CardContent>

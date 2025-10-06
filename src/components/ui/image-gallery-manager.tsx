@@ -29,7 +29,7 @@ export default function ImageGalleryManager({
   professionalId,
   currentImages,
   onImagesUpdate,
-  maxImages = 5,
+  maxImages = 4,
   maxSizeMB = 2
 }: ImageGalleryManagerProps) {
   const [isUploading, setIsUploading] = useState(false);

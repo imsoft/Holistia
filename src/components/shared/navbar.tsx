@@ -33,7 +33,7 @@ export const Navbar = () => {
             <span className="sr-only">Holistia</span>
             <Image
               alt="Holistia Logo"
-              src="/logos/holistia-white.png"
+              src="/logos/holistia-black.png"
               width={32}
               height={32}
             />
@@ -58,7 +58,7 @@ export const Navbar = () => {
                   <span className="sr-only">Holistia</span>
                   <Image
                     alt="Holistia Logo"
-                    src="/logos/holistia-white.png"
+                    src="/logos/holistia-black.png"
                     width={32}
                     height={32}
                     style={{ width: "auto", height: "auto" }}
@@ -82,7 +82,7 @@ export const Navbar = () => {
                     href="/login"
                     className="block rounded-lg px-3 py-3 text-base font-semibold text-foreground hover:bg-accent transition-colors"
                   >
-                    Log in
+                    Iniciar sesión
                   </Link>
                 </div>
               </div>
@@ -102,7 +102,7 @@ export const Navbar = () => {
         </div>
         <div className="hidden lg:flex lg:flex-1 lg:justify-end">
           <Link href="/login" className="text-sm/6 font-semibold text-primary-foreground">
-            Log in <span aria-hidden="true">&rarr;</span>
+            Iniciar sesión <span aria-hidden="true">&rarr;</span>
           </Link>
         </div>
       </nav>

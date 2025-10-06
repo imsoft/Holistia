@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import { Brain, Sparkles, Activity, Users, Apple, X } from "lucide-react";
 import { Filters } from "@/components/ui/filters";
@@ -411,7 +411,9 @@ const HomeUserPage = () => {
                       : "group-hover:scale-110"
                   }`}
                 >
-                  <category.icon className="h-6 w-6 text-primary-foreground" />
+                  {React.createElement(category.icon, { 
+                    className: "h-6 w-6 text-primary-foreground" 
+                  })}
                 </div>
                 <span className="text-sm font-medium transition-colors duration-200 text-center text-primary-foreground">
                   {category.name}

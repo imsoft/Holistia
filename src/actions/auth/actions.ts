@@ -8,14 +8,14 @@ import { createClient } from "@/utils/supabase/server";
 export async function login(formData: FormData) {
   const supabase = await createClient();
 
-  try {
-    // type-casting here for convenience
-    // in practice, you should validate your inputs
-    const data = {
-      email: formData.get("email") as string,
-      password: formData.get("password") as string,
-    };
+  // type-casting here for convenience
+  // in practice, you should validate your inputs
+  const data = {
+    email: formData.get("email") as string,
+    password: formData.get("password") as string,
+  };
 
+  try {
     const { data: result, error } = await supabase.auth.signInWithPassword(data);
 
     if (error) {
@@ -69,6 +69,12 @@ export async function login(formData: FormData) {
     revalidatePath("/", "layout");
     return { success: true };
   } catch (error) {
+    // Verificar si es un error de redirección de Next.js
+    if (error instanceof Error && error.message.includes('NEXT_REDIRECT')) {
+      // Es una redirección, no un error real
+      throw error; // Re-lanzar para que Next.js la maneje
+    }
+    
     console.error("Error inesperado en login:", error);
     return { error: "Ocurrió un error inesperado. Por favor, intenta de nuevo." };
   }
@@ -77,19 +83,19 @@ export async function login(formData: FormData) {
 export async function signup(formData: FormData) {
   const supabase = await createClient();
 
-  try {
-    const data = {
-      email: formData.get("email") as string,
-      password: formData.get("password") as string,
-      options: {
-        data: {
-          first_name: formData.get("firstName") as string,
-          last_name: formData.get("lastName") as string,
-        },
-        emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/confirm`
-      }
-    };
+  const data = {
+    email: formData.get("email") as string,
+    password: formData.get("password") as string,
+    options: {
+      data: {
+        first_name: formData.get("firstName") as string,
+        last_name: formData.get("lastName") as string,
+      },
+      emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/confirm`
+    }
+  };
 
+  try {
     const { data: result, error } = await supabase.auth.signUp(data);
 
     if (error) {
@@ -147,6 +153,12 @@ export async function signup(formData: FormData) {
     revalidatePath("/", "layout");
     return { success: true };
   } catch (error) {
+    // Verificar si es un error de redirección de Next.js
+    if (error instanceof Error && error.message.includes('NEXT_REDIRECT')) {
+      // Es una redirección, no un error real
+      throw error; // Re-lanzar para que Next.js la maneje
+    }
+    
     console.error("Error inesperado en registro:", error);
     return { error: "Ocurrió un error inesperado. Por favor, intenta de nuevo." };
   }

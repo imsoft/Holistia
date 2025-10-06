@@ -42,6 +42,9 @@ export default function ProfessionalDashboard() {
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [workingStartTime, setWorkingStartTime] = useState<string>("09:00");
+  const [workingEndTime, setWorkingEndTime] = useState<string>("18:00");
+  const [professionalId, setProfessionalId] = useState<string>("");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -49,7 +52,7 @@ export default function ProfessionalDashboard() {
         // Obtener la aplicación profesional del usuario
         const { data: professionalApp, error: profError } = await supabase
           .from('professional_applications')
-          .select('id, first_name, last_name, profile_photo')
+          .select('id, first_name, last_name, profile_photo, working_start_time, working_end_time')
           .eq('user_id', userId)
           .eq('status', 'approved')
           .single();
@@ -62,6 +65,9 @@ export default function ProfessionalDashboard() {
         if (professionalApp) {
           setProfessionalName(`${professionalApp.first_name} ${professionalApp.last_name}`);
           setProfilePhoto(professionalApp.profile_photo || '');
+          setProfessionalId(professionalApp.id);
+          setWorkingStartTime(professionalApp.working_start_time || '09:00');
+          setWorkingEndTime(professionalApp.working_end_time || '18:00');
           
           // Obtener citas del profesional para hoy
           const today = new Date().toISOString().split('T')[0];
@@ -314,6 +320,7 @@ export default function ProfessionalDashboard() {
             />
           </div>
         </div>
+
 
         {/* Próximas Citas */}
         <Card>

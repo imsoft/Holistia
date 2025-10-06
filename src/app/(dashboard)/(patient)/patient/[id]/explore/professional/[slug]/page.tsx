@@ -427,6 +427,38 @@ export default function ProfessionalProfilePage() {
     try {
       setLoadingTimes(true);
       
+      // Obtener horarios de trabajo del profesional
+      const { data: professionalData, error: profError } = await supabase
+        .from('professional_applications')
+        .select('working_start_time, working_end_time, working_days')
+        .eq('id', professional?.id)
+        .single();
+
+      if (profError) {
+        console.error('Error fetching professional working hours:', profError);
+      }
+
+      // Usar horarios del profesional o valores por defecto
+      const startTime = professionalData?.working_start_time || '09:00';
+      const endTime = professionalData?.working_end_time || '18:00';
+      const workingDays = professionalData?.working_days || [1, 2, 3, 4, 5];
+      
+      // Verificar si la fecha seleccionada es un día de trabajo
+      const selectedDate = new Date(date);
+      const dayOfWeek = selectedDate.getDay() === 0 ? 7 : selectedDate.getDay(); // Convertir domingo de 0 a 7
+      
+      if (!workingDays.includes(dayOfWeek)) {
+        console.log(`📅 ${date} no es un día de trabajo del profesional`);
+        setAvailableTimes([]);
+        return [];
+      }
+      
+      // Convertir a números para cálculos
+      const [startHour, startMinute] = startTime.split(':').map(Number);
+      const [endHour, endMinute] = endTime.split(':').map(Number);
+      
+      console.log(`🕐 Horarios de trabajo: ${startTime} - ${endTime}`);
+      
       // Obtener citas existentes para esta fecha y profesional
       const { data: existingAppointments, error } = await supabase
         .from('appointments')
@@ -486,8 +518,6 @@ export default function ProfessionalProfilePage() {
       }
 
       const times = [];
-      const startHour = 9;
-      const endHour = 18;
       const sessionDuration = 50;
       const breakTime = 10;
       

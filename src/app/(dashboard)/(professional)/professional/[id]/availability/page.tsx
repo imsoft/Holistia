@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { User } from 'lucide-react';
 import AvailabilityBlockManager from '@/components/ui/availability-block-manager';
+import { WorkingHoursManager } from '@/components/ui/working-hours-manager';
 
 interface ProfessionalApplication {
   id: string;
@@ -22,6 +23,9 @@ export default function AvailabilityPage() {
   const [user, setUser] = useState<{ id: string } | null>(null);
   const [professional, setProfessional] = useState<ProfessionalApplication | null>(null);
   const [loading, setLoading] = useState(true);
+  const [workingStartTime, setWorkingStartTime] = useState<string>("09:00");
+  const [workingEndTime, setWorkingEndTime] = useState<string>("18:00");
+  const [workingDays, setWorkingDays] = useState<number[]>([1, 2, 3, 4, 5]);
 
   useEffect(() => {
     const getUser = async () => {
@@ -42,7 +46,7 @@ export default function AvailabilityPage() {
       try {
         const { data: professionalData, error } = await supabase
           .from('professional_applications')
-          .select('*')
+          .select('*, working_start_time, working_end_time, working_days')
           .eq('user_id', user.id)
           .single();
 
@@ -55,6 +59,9 @@ export default function AvailabilityPage() {
           }
         } else {
           setProfessional(professionalData);
+          setWorkingStartTime(professionalData.working_start_time || '09:00');
+          setWorkingEndTime(professionalData.working_end_time || '18:00');
+          setWorkingDays(professionalData.working_days || [1, 2, 3, 4, 5]);
         }
       } catch (error) {
         console.error('Error:', error);
@@ -142,10 +149,21 @@ export default function AvailabilityPage() {
   return (
     <div className="container mx-auto p-6">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold">Bloqueos de Disponibilidad</h1>
+        <h1 className="text-3xl font-bold">Disponibilidad</h1>
         <p className="text-muted-foreground">
-          Gestiona los días y horarios cuando no estés disponible para citas
+          Configura tus horarios de trabajo y gestiona cuándo no estés disponible para citas
         </p>
+      </div>
+
+      {/* Horarios de Trabajo */}
+      <div className="mb-8">
+        <WorkingHoursManager
+          professionalId={professional.id}
+          userId={user.id}
+          currentStartTime={workingStartTime}
+          currentEndTime={workingEndTime}
+          currentWorkingDays={workingDays}
+        />
       </div>
 
       <AvailabilityBlockManager professionalId={professional.id} />

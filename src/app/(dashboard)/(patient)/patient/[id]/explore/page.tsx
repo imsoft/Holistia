@@ -424,13 +424,13 @@ const HomeUserPage = () => {
                 }`}>
                   {category.name}
                 </span>
-                <span className={`text-xs mt-1 transition-colors duration-200 ${
+                <div className={`mt-2 px-2 py-1 rounded-full text-xs transition-colors duration-200 ${
                   selectedCategories.includes(category.id)
-                    ? "text-primary-foreground/80"
-                    : "text-muted-foreground"
+                    ? "bg-primary-foreground/20 text-primary-foreground"
+                    : "bg-primary/10 text-primary"
                 }`}>
                   {category.description}
-                </span>
+                </div>
               </Button>
             ))}
           </div>

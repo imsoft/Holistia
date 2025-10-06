@@ -393,12 +393,12 @@ const HomeUserPage = () => {
               Selecciona una categoría para filtrar profesionales
             </p>
           </div>
-          <div className="flex flex-wrap gap-4 justify-center">
+          <div className="flex gap-4 justify-center overflow-x-auto pb-2">
             {categories.map((category) => (
               <Button
                 key={category.id}
                 onClick={() => handleCategoryToggle(category.id)}
-                className={`group flex flex-col items-center p-4 rounded-xl border transition-all duration-200 min-w-[120px] ${
+                className={`group flex flex-col items-center p-4 rounded-xl border transition-all duration-200 min-w-[140px] flex-shrink-0 ${
                   selectedCategories.includes(category.id)
                     ? "bg-primary text-primary-foreground border-primary shadow-md"
                     : "bg-card text-foreground border-border hover:border-primary hover:shadow-md"
@@ -411,26 +411,26 @@ const HomeUserPage = () => {
                       : "group-hover:scale-110"
                   }`}
                 >
-                  <category.icon className={`h-8 w-8 ${
+                  <category.icon className={`h-6 w-6 ${
                     selectedCategories.includes(category.id)
                       ? "text-primary-foreground"
                       : "text-primary"
                   }`} />
                 </div>
-                <span className={`text-sm font-medium transition-colors duration-200 ${
+                <span className={`text-sm font-medium transition-colors duration-200 text-center ${
                   selectedCategories.includes(category.id)
                     ? "text-primary-foreground"
                     : "text-foreground group-hover:text-primary"
                 }`}>
                   {category.name}
                 </span>
-                <div className={`mt-2 px-2 py-1 rounded-full text-xs transition-colors duration-200 ${
+                <span className={`text-xs mt-1 transition-colors duration-200 text-center leading-tight ${
                   selectedCategories.includes(category.id)
-                    ? "bg-primary-foreground/20 text-primary-foreground"
-                    : "bg-primary/10 text-primary"
+                    ? "text-primary-foreground/80"
+                    : "text-muted-foreground"
                 }`}>
                   {category.description}
-                </div>
+                </span>
               </Button>
             ))}
           </div>

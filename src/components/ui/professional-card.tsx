@@ -188,7 +188,10 @@ export const ProfessionalCard = ({ professional, userId }: ProfessionalCardProps
           {professional.costs && (
             <div className="flex justify-between items-center mt-2">
               <div className="text-sm text-muted-foreground">
-                <span>Desde {formatPrice(professional.costs.presencial || professional.costs.online)}</span>
+                <span>Desde {formatPrice(Math.min(
+                  professional.costs.presencial || Infinity,
+                  professional.costs.online || Infinity
+                ))}</span>
               </div>
               {professional.bookingOption && (
                 <button className="text-xs bg-primary text-primary-foreground px-3 py-1 rounded-full hover:bg-primary/90 transition-colors">

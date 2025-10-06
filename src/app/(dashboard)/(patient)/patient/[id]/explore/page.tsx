@@ -404,21 +404,17 @@ const HomeUserPage = () => {
                     : "bg-primary text-primary-foreground border-primary/20 hover:border-primary hover:shadow-md"
                 }`}
               >
-                <div
-                  className={`mb-2 transition-transform duration-200 ${
-                    selectedCategories.includes(category.id)
-                      ? "scale-110"
-                      : "group-hover:scale-110"
-                  }`}
-                >
-                  {React.createElement(category.icon, { 
-                    className: "h-6 w-6 text-primary-foreground" 
-                  })}
+                <div className="mb-2">
+                  {category.id === "professionals" && <Brain className="h-6 w-6 text-primary-foreground" />}
+                  {category.id === "spirituality" && <Sparkles className="h-6 w-6 text-primary-foreground" />}
+                  {category.id === "physical-activity" && <Activity className="h-6 w-6 text-primary-foreground" />}
+                  {category.id === "social" && <Users className="h-6 w-6 text-primary-foreground" />}
+                  {category.id === "nutrition" && <Apple className="h-6 w-6 text-primary-foreground" />}
                 </div>
-                <span className="text-sm font-medium transition-colors duration-200 text-center text-primary-foreground">
+                <span className="text-sm font-medium text-center text-primary-foreground">
                   {category.name}
                 </span>
-                <span className="text-xs mt-1 transition-colors duration-200 text-center leading-tight text-primary-foreground/80">
+                <span className="text-xs mt-1 text-center leading-tight text-primary-foreground/80">
                   {category.description}
                 </span>
               </Button>

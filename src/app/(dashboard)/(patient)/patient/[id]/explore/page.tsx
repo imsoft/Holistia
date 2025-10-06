@@ -401,7 +401,7 @@ const HomeUserPage = () => {
                 className={`group flex flex-col items-center p-4 rounded-xl border transition-all duration-200 min-w-[140px] flex-shrink-0 ${
                   selectedCategories.includes(category.id)
                     ? "bg-primary text-primary-foreground border-primary shadow-md"
-                    : "bg-card text-foreground border-border hover:border-primary hover:shadow-md"
+                    : "bg-primary text-primary-foreground border-primary/20 hover:border-primary hover:shadow-md"
                 }`}
               >
                 <div
@@ -411,24 +411,12 @@ const HomeUserPage = () => {
                       : "group-hover:scale-110"
                   }`}
                 >
-                  <category.icon className={`h-6 w-6 ${
-                    selectedCategories.includes(category.id)
-                      ? "text-primary-foreground"
-                      : "text-primary"
-                  }`} />
+                  <category.icon className="h-6 w-6 text-primary-foreground" />
                 </div>
-                <span className={`text-sm font-medium transition-colors duration-200 text-center ${
-                  selectedCategories.includes(category.id)
-                    ? "text-primary-foreground"
-                    : "text-foreground group-hover:text-primary"
-                }`}>
+                <span className="text-sm font-medium transition-colors duration-200 text-center text-primary-foreground">
                   {category.name}
                 </span>
-                <span className={`text-xs mt-1 transition-colors duration-200 text-center leading-tight ${
-                  selectedCategories.includes(category.id)
-                    ? "text-primary-foreground/80"
-                    : "text-muted-foreground"
-                }`}>
+                <span className="text-xs mt-1 transition-colors duration-200 text-center leading-tight text-primary-foreground/80">
                   {category.description}
                 </span>
               </Button>

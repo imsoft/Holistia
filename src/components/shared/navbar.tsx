@@ -23,17 +23,17 @@ export const Navbar = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <header className="absolute inset-x-0 top-0 z-50">
+    <header className="w-full z-50">
       <nav
         aria-label="Global"
-        className="flex items-center justify-between p-6 lg:px-8"
+        className="flex items-center justify-between p-6 lg:px-8 bg-primary w-full"
       >
         <div className="flex lg:flex-1">
           <Link href="/" className="-m-1.5 p-1.5">
             <span className="sr-only">Holistia</span>
             <Image
               alt="Holistia Logo"
-              src="/logos/holistia-black.png"
+              src="/logos/holistia-white.png"
               width={32}
               height={32}
             />
@@ -45,7 +45,7 @@ export const Navbar = () => {
               <Button
                 variant="ghost"
                 size="icon"
-                className="text-muted-foreground"
+                className="text-primary-foreground"
               >
                 <span className="sr-only">Open main menu</span>
                 <Menu className="h-6 w-6" />
@@ -58,7 +58,7 @@ export const Navbar = () => {
                   <span className="sr-only">Holistia</span>
                   <Image
                     alt="Holistia Logo"
-                    src="/logos/holistia-black.png"
+                    src="/logos/holistia-white.png"
                     width={32}
                     height={32}
                     style={{ width: "auto", height: "auto" }}
@@ -94,14 +94,14 @@ export const Navbar = () => {
             <Link
               key={item.name}
               href={item.href}
-              className="text-sm/6 font-semibold text-foreground"
+              className="text-sm/6 font-semibold text-primary-foreground"
             >
               {item.name}
             </Link>
           ))}
         </div>
         <div className="hidden lg:flex lg:flex-1 lg:justify-end">
-          <Link href="/login" className="text-sm/6 font-semibold text-foreground">
+          <Link href="/login" className="text-sm/6 font-semibold text-primary-foreground">
             Log in <span aria-hidden="true">&rarr;</span>
           </Link>
         </div>

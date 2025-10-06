@@ -8,12 +8,12 @@ export const LogoClouds = () => {
         <div className="grid grid-cols-1 items-center gap-x-8 gap-y-16 lg:grid-cols-2">
           <div className="mx-auto w-full max-w-xl lg:mx-0">
             <h2 className="text-4xl font-semibold tracking-tight text-pretty text-foreground sm:text-5xl">
-              Confiado por profesionales de la salud
+              Ellos ya están transformando vidas, tú también puedes
             </h2>
             <p className="mt-6 text-lg/8 text-muted-foreground">
-              Holistia conecta a profesionales certificados con pacientes que buscan 
-              cuidado integral de su salud. Nuestra plataforma facilita el acceso a 
-              servicios de psicología, terapia, nutrición y medicina preventiva.
+              Forma parte de Holistia: conecta, colabora y transforma junto a
+              nuestra comunidad de expertos y personas que buscan crecer. Juntos
+              hacemos que cada experiencia cuente.
             </p>
             <div className="mt-8 flex items-center gap-x-6">
               <Link

@@ -25,17 +25,16 @@ export const HeroSection = () => {
             <div className="mx-auto max-w-7xl px-6 pt-36 pb-48 sm:pt-60 lg:px-8 lg:pt-32">
               <div className="mx-auto max-w-2xl gap-x-14 lg:mx-0 lg:flex lg:max-w-none lg:items-center">
                 <div className="relative w-full lg:max-w-xl lg:shrink-0 xl:max-w-2xl">
-                  <h1 className="text-5xl font-semibold tracking-tight text-pretty text-foreground sm:text-7xl">
-                    Transformando la forma en la que eliges cuidarte
+                  <h1 className="text-5xl font-semibold tracking-tight text-pretty text-foreground sm:text-7xl animate-in slide-in-from-bottom-12 fade-in duration-1200 delay-200 fill-mode-both">
+                    Conectamos a personas para transformar vidas
                   </h1>
-                  <p className="mt-8 text-lg font-medium text-pretty text-muted-foreground sm:max-w-md sm:text-xl/8 lg:max-w-none">
-                    Holistia reúne lo mejor del wellness en un espacio exclusivo
-                    y holístico: profesionales validados, experiencias únicas y
-                    comunidades que inspiran, complementadas con terapias
-                    alternativas que atienden cada aspecto de tu vida a tu
-                    propio ritmo.
+                  <p className="mt-8 text-lg font-medium text-pretty text-muted-foreground sm:max-w-md sm:text-xl/8 lg:max-w-none animate-in slide-in-from-bottom-12 fade-in duration-1200 delay-500 fill-mode-both">
+                    Sabemos que tu bienestar es integral. Por eso reunimos
+                    expertos, experiencias y comunidades en un solo espacio,
+                    para que cada paso de tu transformación sea acompañado y
+                    seguro.
                   </p>
-                  <div className="mt-10 flex items-center gap-x-6">
+                  <div className="mt-10 flex items-center gap-x-6 animate-in slide-in-from-bottom-12 fade-in duration-1200 delay-800 fill-mode-both">
                     <Link
                       href="/signup"
                       className="rounded-md bg-primary px-3.5 py-2.5 text-sm font-semibold text-primary-foreground shadow-xs hover:bg-primary/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
@@ -52,7 +51,7 @@ export const HeroSection = () => {
                 </div>
                 <div className="mt-14 flex justify-end gap-8 sm:-mt-44 sm:justify-start sm:pl-20 lg:mt-0 lg:pl-0 -mb-8">
                   <div className="ml-auto w-44 flex-none space-y-8 pt-32 sm:ml-0 sm:pt-80 lg:order-last lg:pt-36 xl:order-0 xl:pt-80">
-                    <div className="relative p-2">
+                    <div className="relative p-2 animate-in slide-in-from-bottom-12 fade-in duration-1200 delay-300 fill-mode-both">
                       <Image
                         alt=""
                         src="/hero/1.png"
@@ -64,7 +63,7 @@ export const HeroSection = () => {
                     </div>
                   </div>
                   <div className="mr-auto w-44 flex-none space-y-8 sm:mr-0 sm:pt-52 lg:pt-36">
-                    <div className="relative p-2">
+                    <div className="relative p-2 animate-in slide-in-from-bottom-12 fade-in duration-1200 delay-600 fill-mode-both">
                       <Image
                         alt=""
                         src="/hero/2.png"
@@ -74,7 +73,7 @@ export const HeroSection = () => {
                       />
                       <div className="pointer-events-none absolute inset-2 rounded-xl ring-1 ring-border/10 ring-inset" />
                     </div>
-                    <div className="relative p-2">
+                    <div className="relative p-2 animate-in slide-in-from-bottom-12 fade-in duration-1200 delay-900 fill-mode-both">
                       <Image
                         alt=""
                         src="/hero/3.png"
@@ -86,7 +85,7 @@ export const HeroSection = () => {
                     </div>
                   </div>
                   <div className="w-44 flex-none space-y-8 pt-32 sm:pt-0">
-                    <div className="relative p-2">
+                    <div className="relative p-2 animate-in slide-in-from-bottom-12 fade-in duration-1200 delay-400 fill-mode-both">
                       <Image
                         alt=""
                         src="/hero/4.png"
@@ -96,7 +95,7 @@ export const HeroSection = () => {
                       />
                       <div className="pointer-events-none absolute inset-2 rounded-xl ring-1 ring-border/10 ring-inset" />
                     </div>
-                    <div className="relative p-2">
+                    <div className="relative p-2 animate-in slide-in-from-bottom-12 fade-in duration-1200 delay-700 fill-mode-both">
                       <Image
                         alt=""
                         src="/hero/5.png"

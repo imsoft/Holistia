@@ -6,6 +6,7 @@ import { Brain, Sparkles, Activity, Users, Apple, X } from "lucide-react";
 import { Filters } from "@/components/ui/filters";
 import { ProfessionalCard } from "@/components/ui/professional-card";
 import { createClient } from "@/utils/supabase/client";
+import { Button } from "@/components/ui/button";
 
 interface Professional {
   id: string;
@@ -111,13 +112,17 @@ const HomeUserPage = () => {
 
   const handleCategoryToggle = (categoryId: string) => {
     setSelectedCategories(prev => {
-      const newCategories = prev.includes(categoryId)
-        ? prev.filter(id => id !== categoryId)
-        : [...prev, categoryId];
-      
-      // Aplicar filtros inmediatamente cuando se selecciona una categoría
-      applyFilters(newCategories);
-      return newCategories;
+      // Si la categoría ya está seleccionada, la deseleccionamos
+      if (prev.includes(categoryId)) {
+        const newCategories: string[] = [];
+        applyFilters(newCategories);
+        return newCategories;
+      } else {
+        // Solo permitir una categoría seleccionada a la vez
+        const newCategories = [categoryId];
+        applyFilters(newCategories);
+        return newCategories;
+      }
     });
   };
 
@@ -333,17 +338,17 @@ const HomeUserPage = () => {
         <div className="mb-8">
           <div className="text-center mb-6">
             <h3 className="text-lg font-semibold text-foreground mb-2">Filtrar por categorías</h3>
-            <p className="text-sm text-muted-foreground">Selecciona una o más categorías para filtrar profesionales</p>
+            <p className="text-sm text-muted-foreground">Selecciona una categoría para filtrar profesionales</p>
           </div>
           <div className="flex flex-wrap gap-4 justify-center">
             {categories.map((category) => (
-              <button
+              <Button
                 key={category.id}
                 onClick={() => handleCategoryToggle(category.id)}
                 className={`group flex flex-col items-center p-4 rounded-xl border transition-all duration-200 min-w-[120px] ${
                   selectedCategories.includes(category.id)
                     ? "bg-primary text-primary-foreground border-primary shadow-md"
-                    : "bg-card border-border hover:border-primary/50 hover:shadow-md"
+                    : "bg-primary text-primary-foreground border-primary/20 hover:border-primary hover:shadow-md"
                 }`}
               >
                 <div className={`mb-2 transition-transform duration-200 ${
@@ -351,27 +356,15 @@ const HomeUserPage = () => {
                     ? "scale-110" 
                     : "group-hover:scale-110"
                 }`}>
-                  <category.icon className={`h-8 w-8 ${
-                    selectedCategories.includes(category.id)
-                      ? "text-primary-foreground"
-                      : "text-primary"
-                  }`} />
+                  <category.icon className="h-8 w-8 text-primary-foreground" />
                 </div>
-                <span className={`text-sm font-medium transition-colors duration-200 ${
-                  selectedCategories.includes(category.id)
-                    ? "text-primary-foreground"
-                    : "text-foreground group-hover:text-primary"
-                }`}>
+                <span className="text-sm font-medium transition-colors duration-200 text-primary-foreground">
                   {category.name}
                 </span>
-                <span className={`text-xs mt-1 transition-colors duration-200 ${
-                  selectedCategories.includes(category.id)
-                    ? "text-primary-foreground/80"
-                    : "text-muted-foreground"
-                }`}>
+                <span className="text-xs mt-1 transition-colors duration-200 text-primary-foreground/80">
                   {category.description}
                 </span>
-              </button>
+              </Button>
             ))}
           </div>
           
@@ -399,7 +392,7 @@ const HomeUserPage = () => {
                 })}
               </div>
               <p className="text-xs text-muted-foreground mt-2">
-                {selectedCategories.length} categoría{selectedCategories.length !== 1 ? 's' : ''} seleccionada{selectedCategories.length !== 1 ? 's' : ''}
+                1 categoría seleccionada
               </p>
             </div>
           )}

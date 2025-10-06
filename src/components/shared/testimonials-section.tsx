@@ -28,60 +28,6 @@ const testimonials = [
         "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
     },
   },
-  {
-    body: "El proceso de reserva de citas es súper sencillo. En pocos minutos pude agendar mi consulta y el profesional llegó puntual. La experiencia fue excelente desde el inicio hasta el final.",
-    author: {
-      name: "Roberto Silva",
-      handle: "roberto_silva",
-      imageUrl:
-        "https://images.unsplash.com/photo-1517841905240-472988babdf9?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
-    },
-  },
-  {
-    body: "Holistia me ayudó a encontrar el apoyo que necesitaba durante un momento difícil. La variedad de profesionales disponibles y la facilidad para conectarme con ellos fue increíble.",
-    author: {
-      name: "Laura Martínez",
-      handle: "laura_martinez",
-      imageUrl:
-        "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
-    },
-  },
-  {
-    body: "Como terapeuta, Holistia me ha permitido expandir mi práctica y ayudar a más personas. La plataforma es confiable y el soporte técnico siempre está disponible cuando lo necesito.",
-    author: {
-      name: "Lic. Patricia López",
-      handle: "lic_patricia_lopez",
-      imageUrl:
-        "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
-    },
-  },
-  {
-    body: "La privacidad y seguridad de mis datos personales fue una de las cosas que más me convenció de usar Holistia. Además, los profesionales están muy bien seleccionados y certificados.",
-    author: {
-      name: "Fernando Herrera",
-      handle: "fernando_herrera",
-      imageUrl:
-        "https://images.unsplash.com/photo-1517365830460-955ce3ccd263?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
-    },
-  },
-  {
-    body: "Holistia me conectó con un nutricionista que transformó completamente mi relación con la comida. El seguimiento y la atención personalizada fueron excepcionales.",
-    author: {
-      name: "Sofía Ramírez",
-      handle: "sofia_ramirez",
-      imageUrl:
-        "https://images.unsplash.com/photo-1519345182560-3f2917c472ef?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
-    },
-  },
-  {
-    body: "La flexibilidad de horarios y la posibilidad de tener consultas virtuales o presenciales según mi conveniencia es lo que más me gusta de Holistia. Siempre encuentro un horario que se adapta a mi agenda.",
-    author: {
-      name: "Miguel Torres",
-      handle: "miguel_torres",
-      imageUrl:
-        "https://images.unsplash.com/photo-1463453091185-61582044d556?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
-    },
-  },
 ];
 
 export const TestimonialsSection = () => {
@@ -96,15 +42,12 @@ export const TestimonialsSection = () => {
             Miles de personas han transformado su bienestar con Holistia
           </p>
         </div>
-        <div className="mx-auto mt-16 flow-root max-w-2xl sm:mt-20 lg:mx-0 lg:max-w-none">
-          <div className="-mt-8 sm:-mx-4 sm:columns-2 sm:text-[0] lg:columns-3">
+        <div className="mx-auto mt-16 max-w-6xl sm:mt-20">
+          <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 lg:gap-6">
             {testimonials.map((testimonial) => (
-              <div
-                key={testimonial.author.handle}
-                className="pt-8 sm:inline-block sm:w-full sm:px-4"
-              >
-                <figure className="rounded-2xl bg-card p-8 text-sm/6">
-                  <blockquote className="text-card-foreground">
+              <div key={testimonial.author.handle}>
+                <figure className="rounded-2xl bg-card p-8 text-sm/6 h-full flex flex-col">
+                  <blockquote className="text-card-foreground flex-grow">
                     <p>{`"${testimonial.body}"`}</p>
                   </blockquote>
                   <figcaption className="mt-6 flex items-center gap-x-4">

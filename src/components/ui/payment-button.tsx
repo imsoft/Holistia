@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { CreditCard, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 interface PaymentButtonProps {
   appointmentId?: string;
@@ -75,7 +76,7 @@ export default function PaymentButton({
       console.error("Error processing payment:", error);
       const errorMessage = error instanceof Error ? error.message : "Error al procesar el pago";
       onError?.(errorMessage);
-      alert(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }

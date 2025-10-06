@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 // import { useParams } from "next/navigation";
+import { toast } from "sonner";
 import {
   UserCheck,
   Search,
@@ -211,10 +212,10 @@ export default function AdminProfessionals() {
     // Filtrar profesionales que no han sido verificados
     const unverifiedProfessionals = professionals.filter(p => !p.reviewed_at);
     if (unverifiedProfessionals.length === 0) {
-      alert('No hay documentos pendientes de verificación');
+      toast.error('No hay documentos pendientes de verificación');
       return;
     }
-    alert(`Hay ${unverifiedProfessionals.length} profesionales con documentos pendientes de verificación`);
+    toast.error(`Hay ${unverifiedProfessionals.length} profesionales con documentos pendientes de verificación`);
   };
 
   // Función para exportar la lista de profesionales

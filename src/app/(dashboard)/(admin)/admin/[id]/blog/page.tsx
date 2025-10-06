@@ -3,6 +3,7 @@
 import { useState, useEffect, use } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { createClient } from "@/utils/supabase/client";
+import { toast } from "sonner";
 import { BlogPost } from "@/types/blog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -70,16 +71,16 @@ export default function AdminBlogPage({ params }: { params: Promise<{ id: string
 
       if (error) {
         console.error("Error deleting post:", error);
-        alert("Error al eliminar el post");
+        toast.error("Error al eliminar el post");
         return;
       }
 
       // Refresh posts list
       fetchPosts();
-      alert("Post eliminado exitosamente");
+      toast.success("Post eliminado exitosamente");
     } catch (err) {
       console.error("Error:", err);
-      alert("Error inesperado al eliminar el post");
+      toast.error("Error inesperado al eliminar el post");
     }
   };
 

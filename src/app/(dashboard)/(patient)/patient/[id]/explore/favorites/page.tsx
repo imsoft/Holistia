@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { ProfessionalCard } from "@/components/ui/professional-card";
 import { createClient } from "@/utils/supabase/client";
@@ -148,7 +149,7 @@ const FavoritesPage = () => {
           hint: error.hint,
           code: error.code
         });
-        alert(`Error al eliminar de favoritos: ${error.message}`);
+        toast.error(`Error al eliminar de favoritos: ${error.message}`);
         return;
       }
 
@@ -160,7 +161,7 @@ const FavoritesPage = () => {
       
     } catch (error) {
       console.error('Unexpected error removing favorite:', error);
-      alert('Error inesperado al eliminar de favoritos. Por favor intenta de nuevo.');
+      toast.error('Error inesperado al eliminar de favoritos. Por favor intenta de nuevo.');
     }
   };
 

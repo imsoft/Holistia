@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import Image from "next/image";
+import { toast } from "sonner";
 import {
   MapPin,
   Clock,
@@ -386,7 +387,7 @@ export default function ProfessionalProfilePage() {
         break;
       case 'copy':
         navigator.clipboard.writeText(url);
-        alert('Enlace copiado al portapapeles');
+        toast.success('Enlace copiado al portapapeles');
         setIsShareModalOpen(false);
         return;
     }

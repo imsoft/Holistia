@@ -2,6 +2,7 @@
 
 import { useState, useEffect, use } from "react";
 import { createClient } from "@/utils/supabase/client";
+import { toast } from "sonner";
 import { BlogPost } from "@/types/blog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -102,7 +103,7 @@ export default function BlogPostPage({
       if (post) {
         try {
           await navigator.clipboard.writeText(window.location.href);
-          alert("Enlace copiado al portapapeles");
+          toast.success("Enlace copiado al portapapeles");
         } catch (err) {
           console.log("Error copying to clipboard:", err);
         }

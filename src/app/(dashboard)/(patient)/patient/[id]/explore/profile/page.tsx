@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
+import { toast } from "sonner";
 import { Edit3, Clock, CheckCircle, XCircle, AlertCircle, Save, X } from "lucide-react";
 import Image from "next/image";
 import { createClient } from "@/utils/supabase/client";
@@ -212,7 +213,7 @@ const ProfilePage = () => {
 
       if (updateError) {
         console.error("Error updating phone:", updateError);
-        alert('Error al actualizar el teléfono. Inténtalo de nuevo.');
+        toast.success('Error al actualizar el teléfono. Inténtalo de nuevo.');
         return;
       }
 
@@ -223,10 +224,10 @@ const ProfilePage = () => {
       } : null);
 
       setIsEditingPhone(false);
-      alert('Teléfono actualizado exitosamente.');
+      toast.success('Teléfono actualizado exitosamente.');
     } catch (error) {
       console.error("Error saving phone:", error);
-      alert('Error al guardar el teléfono. Inténtalo de nuevo.');
+      toast.success('Error al guardar el teléfono. Inténtalo de nuevo.');
     } finally {
       setPhoneLoading(false);
     }
@@ -247,13 +248,13 @@ const ProfilePage = () => {
 
       // Validar tipo de archivo
       if (!file.type.startsWith('image/')) {
-        alert('Por favor selecciona un archivo de imagen válido.');
+        toast.success('Por favor selecciona un archivo de imagen válido.');
         return;
       }
 
       // Validar tamaño (máximo 2MB)
       if (file.size > 2 * 1024 * 1024) {
-        alert('El archivo es demasiado grande. El tamaño máximo es 2MB.');
+        toast.success('El archivo es demasiado grande. El tamaño máximo es 2MB.');
         return;
       }
 
@@ -272,7 +273,7 @@ const ProfilePage = () => {
         const { data: { user: currentUser }, error: authError } = await supabase.auth.getUser();
         if (authError || !currentUser) {
           console.error('User not authenticated:', authError);
-          alert('Error de autenticación. Por favor, inicia sesión nuevamente.');
+          toast.success('Error de autenticación. Por favor, inicia sesión nuevamente.');
           return;
         }
         
@@ -293,7 +294,7 @@ const ProfilePage = () => {
         if (uploadError) {
           console.error("Error uploading file:", uploadError);
           console.error("Upload error details:", uploadError.message);
-          alert(`Error al subir la imagen: ${uploadError.message}`);
+          toast.success(`Error al subir la imagen: ${uploadError.message}`);
           return;
         }
 
@@ -311,7 +312,7 @@ const ProfilePage = () => {
 
         if (updateError) {
           console.error("Error updating user avatar:", updateError);
-          alert('Error al actualizar el perfil. Inténtalo de nuevo.');
+          toast.success('Error al actualizar el perfil. Inténtalo de nuevo.');
           return;
         }
 
@@ -321,10 +322,10 @@ const ProfilePage = () => {
           avatar: publicUrl,
         } : null);
 
-        alert('Foto de perfil actualizada exitosamente.');
+        toast.success('Foto de perfil actualizada exitosamente.');
       } catch (error) {
         console.error("Error saving photo:", error);
-        alert('Error al guardar la foto. Inténtalo de nuevo.');
+        toast.success('Error al guardar la foto. Inténtalo de nuevo.');
       }
     };
 

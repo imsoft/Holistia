@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
+import { toast } from "sonner";
 import {
   User,
   MapPin,
@@ -306,11 +307,11 @@ export default function BecomeProfessionalPage() {
         if (error) throw error;
       }
 
-      alert("¡Solicitud enviada exitosamente!");
+      toast.error("¡Solicitud enviada exitosamente!");
       window.location.reload();
     } catch (error) {
       console.error("Error submitting application:", error);
-      alert("Error al enviar la solicitud. Inténtalo de nuevo.");
+      toast.error("Error al enviar la solicitud. Inténtalo de nuevo.");
     } finally {
       setSubmitting(false);
     }

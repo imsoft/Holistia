@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
+import { toast } from "sonner";
 import {
   Calendar,
   Clock,
@@ -213,7 +214,7 @@ export default function AppointmentsPage() {
       // Obtener el usuario autenticado para verificar permisos
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
-        alert('Usuario no autenticado.');
+        toast.error('Usuario no autenticado.');
         return;
       }
 
@@ -230,7 +231,7 @@ export default function AppointmentsPage() {
           hint: error.hint,
           code: error.code
         });
-        alert(`Error al cancelar la cita: ${error.message}`);
+        toast.error(`Error al cancelar la cita: ${error.message}`);
         return;
       }
 
@@ -245,11 +246,11 @@ export default function AppointmentsPage() {
         )
       );
       
-      alert('Cita cancelada exitosamente.');
+      toast.success('Cita cancelada exitosamente.');
       
     } catch (error) {
       console.error('Unexpected error cancelling appointment:', error);
-      alert('Error inesperado al cancelar la cita. Por favor intenta de nuevo.');
+      toast.error('Error inesperado al cancelar la cita. Por favor intenta de nuevo.');
     } finally {
       setCancelling(null);
     }

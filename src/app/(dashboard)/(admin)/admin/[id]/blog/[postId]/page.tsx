@@ -4,6 +4,7 @@ import { useState, useEffect, use } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { createClient } from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { BlogPost } from "@/types/blog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -166,7 +167,7 @@ export default function EditBlogPostPage({
 
       // Refresh post data
       fetchPost();
-      alert("Post actualizado exitosamente");
+      toast.success("Post actualizado exitosamente");
     } catch (err) {
       console.error("Error:", err);
       setError("Error inesperado al actualizar el post");
@@ -189,14 +190,14 @@ export default function EditBlogPostPage({
 
       if (error) {
         console.error("Error deleting post:", error);
-        alert("Error al eliminar el post");
+        toast.error("Error al eliminar el post");
         return;
       }
 
       router.push(`/admin/${id}/blog`);
     } catch (err) {
       console.error("Error:", err);
-      alert("Error inesperado al eliminar el post");
+      toast.error("Error inesperado al eliminar el post");
     } finally {
       setLoading(false);
     }

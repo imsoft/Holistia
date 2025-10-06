@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 // import { useParams } from "next/navigation";
+import { toast } from "sonner";
 import {
   User,
   MapPin,
@@ -151,7 +152,7 @@ export default function ApplicationsPage() {
             hint: error.hint,
             code: error.code
           });
-          alert(`Error al cargar las solicitudes: ${error.message}`);
+          toast.error(`Error al cargar las solicitudes: ${error.message}`);
           return;
         }
 
@@ -175,7 +176,7 @@ export default function ApplicationsPage() {
       const { data: { user }, error: authError } = await supabase.auth.getUser();
       
       if (authError || !user) {
-        alert('Error de autenticación.');
+        toast.error('Error de autenticación.');
         return;
       }
 
@@ -191,7 +192,7 @@ export default function ApplicationsPage() {
 
       if (error) {
         console.error('Error updating application:', error);
-        alert('Error al actualizar la solicitud.');
+        toast.error('Error al actualizar la solicitud.');
         return;
       }
 
@@ -209,11 +210,11 @@ export default function ApplicationsPage() {
       ));
 
       setReviewNotes("");
-      alert(`Solicitud ${newStatus === 'approved' ? 'aprobada' : 'rechazada'} exitosamente.`);
+      toast.error(`Solicitud ${newStatus === 'approved' ? 'aprobada' : 'rechazada'} exitosamente.`);
       
     } catch (error) {
       console.error('Error updating application:', error);
-      alert('Error al actualizar la solicitud.');
+      toast.error('Error al actualizar la solicitud.');
     } finally {
       setUpdating(false);
     }

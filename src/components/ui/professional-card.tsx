@@ -185,12 +185,12 @@ export const ProfessionalCard = ({ professional, userId }: ProfessionalCardProps
           </div>
 
           {/* Price */}
-          {professional.costs && (
+          {professional.costs && (professional.costs.presencial > 0 || professional.costs.online > 0) && (
             <div className="flex justify-between items-center mt-2">
               <div className="text-sm text-muted-foreground">
                 <span>Desde {formatPrice(Math.min(
-                  professional.costs.presencial || Infinity,
-                  professional.costs.online || Infinity
+                  professional.costs.presencial || 0,
+                  professional.costs.online || 0
                 ))}</span>
               </div>
               {professional.bookingOption && (

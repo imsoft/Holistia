@@ -133,10 +133,6 @@ const RegisterPage = () => {
                           <Input 
                             type="text" 
                             {...field} 
-                            onChange={(e) => {
-                              const normalized = normalizeName(e.target.value);
-                              field.onChange(normalized);
-                            }}
                           />
                         </FormControl>
                         <FormMessage />
@@ -154,10 +150,6 @@ const RegisterPage = () => {
                           <Input 
                             type="text" 
                             {...field} 
-                            onChange={(e) => {
-                              const normalized = normalizeName(e.target.value);
-                              field.onChange(normalized);
-                            }}
                           />
                         </FormControl>
                         <FormMessage />

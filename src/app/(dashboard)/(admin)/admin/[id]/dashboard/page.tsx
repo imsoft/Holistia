@@ -283,21 +283,21 @@ export default function AdminDashboard() {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <div className="border-b border-border bg-card">
-        <div className="flex h-16 items-center justify-between px-6">
-          <div className="flex items-center gap-4">
+        <div className="flex flex-col sm:flex-row sm:h-16 sm:items-center justify-between px-4 sm:px-6 py-4 sm:py-0 gap-4 sm:gap-0">
+          <div className="flex items-center gap-3 sm:gap-4">
             <SidebarTrigger />
             <div>
-              <h1 className="text-2xl font-bold text-foreground">Dashboard Administrador</h1>
-              <p className="text-sm text-muted-foreground">
+              <h1 className="text-xl sm:text-2xl font-bold text-foreground">Dashboard Administrador</h1>
+              <p className="text-xs sm:text-sm text-muted-foreground">
                 Panel de control de Holistia
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-3">
-            <Button asChild>
+          <div className="flex items-center gap-2 sm:gap-3">
+            <Button asChild size="sm" className="sm:size-default w-full sm:w-auto">
               <Link href={`/admin/${userId}/applications`}>
                 <UserPlus className="h-4 w-4 mr-2" />
-                Revisar Solicitudes
+                <span className="sm:inline">Revisar Solicitudes</span>
               </Link>
             </Button>
           </div>

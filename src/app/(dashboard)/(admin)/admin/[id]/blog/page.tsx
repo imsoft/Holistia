@@ -102,14 +102,14 @@ export default function AdminBlogPage({ params }: { params: Promise<{ id: string
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Gestión del Blog</h1>
-          <p className="text-muted-foreground mt-2">
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Gestión del Blog</h1>
+          <p className="text-sm sm:text-base text-muted-foreground mt-2">
             Administra los posts del blog de Holistia
           </p>
         </div>
-        <Button asChild>
+        <Button asChild size="sm" className="sm:size-default w-full sm:w-auto">
           <Link href={`/admin/${id}/blog/new`}>
             <Plus className="w-4 h-4 mr-2" />
             Nuevo Post

@@ -283,8 +283,8 @@ export default function ApplicationsPage() {
         <div className="mb-8">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
             <div>
-              <h1 className="text-3xl font-bold text-foreground mb-2">Solicitudes de Profesionales</h1>
-              <p className="text-muted-foreground">
+              <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">Solicitudes de Profesionales</h1>
+              <p className="text-sm sm:text-base text-muted-foreground">
                 Revisa y gestiona las solicitudes de profesionales de salud mental
                 {filteredApplications.length > 0 && (
                   <span className="ml-2 text-primary font-medium">
@@ -295,8 +295,9 @@ export default function ApplicationsPage() {
             </div>
             <Button 
               variant="outline"
+              size="sm"
               onClick={handleExportApplications}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 w-full sm:w-auto sm:size-default"
             >
               <Download className="h-4 w-4" />
               Exportar Lista

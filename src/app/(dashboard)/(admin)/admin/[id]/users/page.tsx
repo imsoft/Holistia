@@ -87,10 +87,10 @@ export default function AdminUsers() {
         ] = await Promise.all([
           supabase
             .from('professional_applications')
-            .select('user_id, first_name, last_name, email, phone, status, submitted_at, reviewed_at'),
+            .select('user_id, first_name, last_name, email, phone, status, submitted_at, reviewed_at, profile_photo'),
           supabase
             .from('professional_applications')
-            .select('user_id, first_name, last_name, email, phone, status, submitted_at, reviewed_at')
+            .select('user_id, first_name, last_name, email, phone, status, submitted_at, reviewed_at, profile_photo')
             .gte('submitted_at', lastMonthStart.toISOString())
             .lte('submitted_at', lastMonthEnd.toISOString())
         ]);
@@ -109,6 +109,9 @@ export default function AdminUsers() {
               .from('appointments')
               .select('*', { count: 'exact', head: true })
               .eq('patient_id', prof.user_id);
+
+            // Usar la foto de perfil de la solicitud profesional
+            const avatarUrl = prof.profile_photo;
 
             // Determinar el estado basado en el status de la aplicación
             let status: 'active' | 'inactive' | 'suspended' = 'active';
@@ -133,7 +136,7 @@ export default function AdminUsers() {
               joinDate: prof.submitted_at,
               lastLogin: prof.reviewed_at || prof.submitted_at,
               appointments: appointmentsCount || 0,
-              avatar: undefined,
+              avatar: avatarUrl,
             };
           })
         );

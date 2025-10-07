@@ -25,6 +25,13 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { createClient } from "@/utils/supabase/client";
 import Link from "next/link";
 import Image from "next/image";
@@ -616,13 +623,19 @@ export default function BecomeProfessionalPage() {
 
             <div className="space-y-3">
               <Label htmlFor="country">País *</Label>
-              <Input
-                id="country"
+              <Select
                 value={formData.country}
-                onChange={(e) => handleInputChange("country", e.target.value)}
-                placeholder="País"
-                className={errors.country ? "border-red-500" : ""}
-              />
+                onValueChange={(value) => handleInputChange("country", value)}
+              >
+                <SelectTrigger className={`w-full ${errors.country ? "border-red-500" : ""}`}>
+                  <SelectValue placeholder="Selecciona un país" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="México">México</SelectItem>
+                  <SelectItem value="Estados Unidos">Estados Unidos</SelectItem>
+                  <SelectItem value="Canadá">Canadá</SelectItem>
+                </SelectContent>
+              </Select>
               {errors.country && (
                 <p className="text-red-500 text-sm mt-1">{errors.country}</p>
               )}

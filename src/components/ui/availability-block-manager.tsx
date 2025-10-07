@@ -17,12 +17,14 @@ import type { AvailabilityBlock, AvailabilityBlockFormData } from '@/types/avail
 
 interface AvailabilityBlockManagerProps {
   professionalId: string;
+  userId?: string;
 }
 
-export default function AvailabilityBlockManager({ professionalId }: AvailabilityBlockManagerProps) {
+export default function AvailabilityBlockManager({ professionalId, userId: propUserId }: AvailabilityBlockManagerProps) {
   const supabase = createClient();
   const [blocks, setBlocks] = useState<AvailabilityBlock[]>([]);
   const [loading, setLoading] = useState(true);
+  const [userId, setUserId] = useState<string | null>(propUserId || null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingBlock, setEditingBlock] = useState<AvailabilityBlock | null>(null);
   const [formData, setFormData] = useState<AvailabilityBlockFormData>({
@@ -35,6 +37,19 @@ export default function AvailabilityBlockManager({ professionalId }: Availabilit
     end_time: '',
     is_recurring: false,
   });
+
+  // Obtener userId si no se pasó como prop
+  useEffect(() => {
+    if (!propUserId) {
+      const getUserId = async () => {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          setUserId(user.id);
+        }
+      };
+      getUserId();
+    }
+  }, [propUserId, supabase]);
 
   const fetchBlocks = useCallback(async () => {
     try {
@@ -83,9 +98,15 @@ export default function AvailabilityBlockManager({ professionalId }: Availabilit
       }
     }
 
+    if (!userId) {
+      toast.error('Error: No se pudo obtener el ID del usuario');
+      return;
+    }
+
     try {
       const blockData = {
         professional_id: professionalId,
+        user_id: userId,
         title: formData.title.trim(),
         description: formData.description?.trim() || null,
         block_type: formData.block_type,
@@ -96,20 +117,28 @@ export default function AvailabilityBlockManager({ professionalId }: Availabilit
         is_recurring: formData.is_recurring,
       };
 
+      console.log('Datos a insertar:', blockData);
+
       if (editingBlock) {
         const { error } = await supabase
           .from('availability_blocks')
           .update(blockData)
           .eq('id', editingBlock.id);
 
-        if (error) throw error;
+        if (error) {
+          console.error('Error completo:', error);
+          throw error;
+        }
         toast.success('Bloqueo actualizado correctamente');
       } else {
         const { error } = await supabase
           .from('availability_blocks')
           .insert([blockData]);
 
-        if (error) throw error;
+        if (error) {
+          console.error('Error completo:', error);
+          throw error;
+        }
         toast.success('Bloqueo creado correctamente');
       }
 

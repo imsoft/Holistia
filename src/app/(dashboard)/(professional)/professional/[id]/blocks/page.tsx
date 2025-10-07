@@ -191,7 +191,7 @@ export default function BlocksPage() {
 
       {/* Main Content */}
       <div className="container mx-auto p-6">
-        <AvailabilityBlockManager professionalId={professional.id} />
+        <AvailabilityBlockManager professionalId={professional.id} userId={user.id} />
       </div>
     </div>
   );

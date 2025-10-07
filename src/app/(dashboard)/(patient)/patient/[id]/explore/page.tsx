@@ -89,19 +89,43 @@ const HomeUserPage = () => {
       try {
         setLoading(true);
 
-        const { data, error } = await supabase
+        const { data: professionalsData, error } = await supabase
           .from("professional_applications")
           .select("*")
           .eq("status", "approved")
-          .order("created_at", { ascending: false });
+          .order("created_at", { ascending: false});
 
         if (error) {
           console.error("Error fetching professionals:", error);
           return;
         }
 
-        setProfessionals(data || []);
-        setFilteredProfessionals(data || []);
+        // Obtener servicios para cada profesional
+        const professionalsWithServices = await Promise.all(
+          (professionalsData || []).map(async (prof) => {
+            const { data: services } = await supabase
+              .from("professional_services")
+              .select("*")
+              .eq("professional_id", prof.id)
+              .eq("isactive", true);
+
+            // Transformar servicios a la estructura esperada
+            const transformedServices = (services || []).map(service => ({
+              name: service.name,
+              description: service.description || '',
+              presencialCost: service.modality === 'presencial' || service.modality === 'both' ? service.cost.toString() : '',
+              onlineCost: service.modality === 'online' || service.modality === 'both' ? service.cost.toString() : ''
+            }));
+
+            return {
+              ...prof,
+              services: transformedServices.length > 0 ? transformedServices : prof.services || []
+            };
+          })
+        );
+
+        setProfessionals(professionalsWithServices);
+        setFilteredProfessionals(professionalsWithServices);
       } catch (error) {
         console.error("Error fetching professionals:", error);
       } finally {

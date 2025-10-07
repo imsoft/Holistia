@@ -114,7 +114,32 @@ const FavoritesPage = () => {
           }
 
           console.log('Professionals fetched successfully:', professionalsData);
-          setProfessionals(professionalsData || []);
+          
+          // Obtener servicios para cada profesional
+          const professionalsWithServices = await Promise.all(
+            (professionalsData || []).map(async (prof) => {
+              const { data: services } = await supabase
+                .from("professional_services")
+                .select("*")
+                .eq("professional_id", prof.id)
+                .eq("isactive", true);
+
+              // Transformar servicios a la estructura esperada
+              const transformedServices = (services || []).map(service => ({
+                name: service.name,
+                description: service.description || '',
+                presencialCost: service.modality === 'presencial' || service.modality === 'both' ? service.cost.toString() : '',
+                onlineCost: service.modality === 'online' || service.modality === 'both' ? service.cost.toString() : ''
+              }));
+
+              return {
+                ...prof,
+                services: transformedServices.length > 0 ? transformedServices : prof.services || []
+              };
+            })
+          );
+
+          setProfessionals(professionalsWithServices);
         }
       } catch (error) {
         console.error('Unexpected error fetching favorites:', error);

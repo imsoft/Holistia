@@ -727,7 +727,15 @@ export default function BecomeProfessionalPage() {
                   htmlFor="terms_accepted"
                   className="text-sm text-muted-foreground"
                 >
-                  Acepto los términos y condiciones de Holistia
+                  Acepto los{" "}
+                  <Link 
+                    href="/terms" 
+                    target="_blank"
+                    className="text-primary hover:underline"
+                  >
+                    términos y condiciones
+                  </Link>
+                  {" "}de Holistia
                 </label>
               </div>
 
@@ -745,7 +753,14 @@ export default function BecomeProfessionalPage() {
                   htmlFor="privacy_accepted"
                   className="text-sm text-muted-foreground"
                 >
-                  Acepto la política de privacidad
+                  Acepto la{" "}
+                  <Link 
+                    href="/privacy" 
+                    target="_blank"
+                    className="text-primary hover:underline"
+                  >
+                    política de privacidad
+                  </Link>
                 </label>
               </div>
             </div>

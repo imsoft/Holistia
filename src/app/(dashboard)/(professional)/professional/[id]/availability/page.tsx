@@ -7,7 +7,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { User } from 'lucide-react';
-import AvailabilityBlockManager from '@/components/ui/availability-block-manager';
 import { WorkingHoursManager } from '@/components/ui/working-hours-manager';
 
 interface ProfessionalApplication {
@@ -155,9 +154,9 @@ export default function AvailabilityPage() {
           <div className="flex items-center gap-3 sm:gap-4">
             <SidebarTrigger />
             <div>
-              <h1 className="text-xl sm:text-2xl font-bold text-foreground">Disponibilidad</h1>
+              <h1 className="text-xl sm:text-2xl font-bold text-foreground">Horarios de Trabajo</h1>
               <p className="text-xs sm:text-sm text-muted-foreground">
-                Configura tus horarios de trabajo y bloqueos
+                Configura tus días y horarios laborales
               </p>
             </div>
           </div>
@@ -166,9 +165,6 @@ export default function AvailabilityPage() {
 
       {/* Main Content */}
       <div className="container mx-auto p-6">
-
-      {/* Horarios de Trabajo */}
-      <div className="mb-8">
         <WorkingHoursManager
           professionalId={professional.id}
           userId={user.id}
@@ -176,9 +172,6 @@ export default function AvailabilityPage() {
           currentEndTime={workingEndTime}
           currentWorkingDays={workingDays}
         />
-      </div>
-
-      <AvailabilityBlockManager professionalId={professional.id} />
       </div>
     </div>
   );

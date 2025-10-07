@@ -12,6 +12,7 @@ import {
   Image as ImageIcon,
   Package,
   Clock,
+  CalendarX,
 } from "lucide-react";
 import {
   Sidebar,
@@ -57,9 +58,14 @@ const getNavItems = (id: string): { mainNavItems: ProfessionalNavItem[] } => ({
       icon: Package,
     },
     {
-      title: "Disponibilidad",
+      title: "Horarios",
       url: `/professional/${id}/availability`,
       icon: Clock,
+    },
+    {
+      title: "Bloqueos",
+      url: `/professional/${id}/blocks`,
+      icon: CalendarX,
     },
     {
       title: "Citas",

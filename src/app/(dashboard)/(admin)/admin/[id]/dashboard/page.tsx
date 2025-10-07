@@ -352,7 +352,7 @@ export default function AdminDashboard() {
                 {recentApplications.map((application) => (
                   <div
                     key={application.id}
-                    className="flex items-center justify-between p-4 rounded-lg border border-border hover:bg-accent/50 transition-colors"
+                    className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-lg border border-border hover:bg-accent/50 transition-colors gap-3"
                   >
                     <div className="flex-1">
                       <h4 className="font-medium text-foreground">
@@ -365,11 +365,11 @@ export default function AdminDashboard() {
                         {application.email}
                       </p>
                     </div>
-                    <div className="flex items-center gap-3">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3">
                       <Badge className={getStatusColor(application.status)}>
                         {getStatusText(application.status)}
                       </Badge>
-                      <Button variant="ghost" size="sm" asChild>
+                      <Button variant="ghost" size="sm" asChild className="w-full sm:w-auto">
                         <Link href={`/admin/${userId}/applications`}>
                           Revisar
                         </Link>

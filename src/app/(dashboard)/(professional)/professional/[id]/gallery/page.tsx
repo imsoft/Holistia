@@ -5,8 +5,8 @@ import { useParams } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { SidebarTrigger } from "@/components/ui/sidebar";
 import ImageGalleryManager from "@/components/ui/image-gallery-manager";
-import { Image as ImageIcon } from "lucide-react";
 import Link from "next/link";
 
 interface Professional {
@@ -250,23 +250,23 @@ export default function ProfessionalGalleryPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
-              <ImageIcon className="h-6 w-6 text-primary" />
-            </div>
+      {/* Header */}
+      <div className="border-b border-border bg-card">
+        <div className="flex flex-col sm:flex-row sm:h-16 sm:items-center justify-between px-4 sm:px-6 py-4 sm:py-0 gap-4 sm:gap-0">
+          <div className="flex items-center gap-3 sm:gap-4">
+            <SidebarTrigger />
             <div>
-              <h1 className="text-3xl font-bold text-foreground">
-                Galería de Imágenes
-              </h1>
-              <p className="text-muted-foreground">
+              <h1 className="text-xl sm:text-2xl font-bold text-foreground">Galería de Imágenes</h1>
+              <p className="text-xs sm:text-sm text-muted-foreground">
                 Gestiona las imágenes de tu espacio de trabajo
               </p>
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
         {/* Mensajes de estado */}
         {error && (

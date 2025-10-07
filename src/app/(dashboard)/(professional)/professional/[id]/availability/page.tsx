@@ -5,6 +5,7 @@ import { createClient } from '@/utils/supabase/client';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { SidebarTrigger } from '@/components/ui/sidebar';
 import { User } from 'lucide-react';
 import AvailabilityBlockManager from '@/components/ui/availability-block-manager';
 import { WorkingHoursManager } from '@/components/ui/working-hours-manager';
@@ -147,13 +148,24 @@ export default function AvailabilityPage() {
   }
 
   return (
-    <div className="container mx-auto p-6">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold">Disponibilidad</h1>
-        <p className="text-muted-foreground">
-          Configura tus horarios de trabajo y gestiona cuándo no estés disponible para citas
-        </p>
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <div className="border-b border-border bg-card">
+        <div className="flex flex-col sm:flex-row sm:h-16 sm:items-center justify-between px-4 sm:px-6 py-4 sm:py-0 gap-4 sm:gap-0">
+          <div className="flex items-center gap-3 sm:gap-4">
+            <SidebarTrigger />
+            <div>
+              <h1 className="text-xl sm:text-2xl font-bold text-foreground">Disponibilidad</h1>
+              <p className="text-xs sm:text-sm text-muted-foreground">
+                Configura tus horarios de trabajo y bloqueos
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
+
+      {/* Main Content */}
+      <div className="container mx-auto p-6">
 
       {/* Horarios de Trabajo */}
       <div className="mb-8">
@@ -167,6 +179,7 @@ export default function AvailabilityPage() {
       </div>
 
       <AvailabilityBlockManager professionalId={professional.id} />
+      </div>
     </div>
   );
 }

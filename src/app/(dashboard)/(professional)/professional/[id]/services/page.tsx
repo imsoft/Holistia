@@ -6,6 +6,7 @@ import { ServiceManager } from "@/components/ui/service-manager";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { SidebarTrigger } from "@/components/ui/sidebar";
 import { createClient } from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
 import {
@@ -156,19 +157,25 @@ export default function ProfessionalServicesPage() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">
-              Gestión de Servicios
-            </h1>
-            <p className="text-muted-foreground">
-              Administra los servicios que ofreces a tus pacientes
-            </p>
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <div className="border-b border-border bg-card">
+        <div className="flex flex-col sm:flex-row sm:h-16 sm:items-center justify-between px-4 sm:px-6 py-4 sm:py-0 gap-4 sm:gap-0">
+          <div className="flex items-center gap-3 sm:gap-4">
+            <SidebarTrigger />
+            <div>
+              <h1 className="text-xl sm:text-2xl font-bold text-foreground">Gestión de Servicios</h1>
+              <p className="text-xs sm:text-sm text-muted-foreground">
+                Administra los servicios que ofreces a tus pacientes
+              </p>
+            </div>
           </div>
         </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="container mx-auto px-4 py-8">
+      <div className="space-y-6">
 
         {/* Services Management */}
         {professional.status === "approved" ? (
@@ -196,6 +203,7 @@ export default function ProfessionalServicesPage() {
             </CardContent>
           </Card>
         )}
+      </div>
       </div>
     </div>
   );

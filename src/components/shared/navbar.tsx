@@ -58,7 +58,7 @@ export const Navbar = () => {
                   <span className="sr-only">Holistia</span>
                   <Image
                     alt="Holistia Logo"
-                    src="/logos/holistia-white.png"
+                    src="/logos/holistia-black.png"
                     width={32}
                     height={32}
                     style={{ width: "auto", height: "auto" }}

@@ -181,12 +181,37 @@ export default function ProfessionalProfilePage() {
         }
 
         // Convertir servicios de la nueva estructura a la estructura esperada
-        const convertedServices = (servicesData || []).map(service => ({
-          name: service.name,
-          description: service.description || '',
-          presencialCost: service.modality === 'presencial' || service.modality === 'both' ? service.cost.toString() : '',
-          onlineCost: service.modality === 'online' || service.modality === 'both' ? service.cost.toString() : ''
-        }));
+        // Agrupar servicios por nombre para combinar modalidades
+        const servicesMap = new Map();
+        
+        (servicesData || []).forEach(service => {
+          const existing = servicesMap.get(service.name);
+          
+          if (existing) {
+            // Si ya existe, actualizar costos según la modalidad
+            if (service.modality === 'presencial') {
+              existing.presencialCost = service.cost.toString();
+            } else if (service.modality === 'online') {
+              existing.onlineCost = service.cost.toString();
+            } else if (service.modality === 'both') {
+              existing.presencialCost = service.cost.toString();
+              existing.onlineCost = service.cost.toString();
+            }
+          } else {
+            // Crear nuevo servicio
+            servicesMap.set(service.name, {
+              name: service.name,
+              description: service.description || '',
+              presencialCost: (service.modality === 'presencial' || service.modality === 'both') ? service.cost.toString() : '',
+              onlineCost: (service.modality === 'online' || service.modality === 'both') ? service.cost.toString() : ''
+            });
+          }
+        });
+        
+        const convertedServices = Array.from(servicesMap.values());
+        
+        console.log('📋 Servicios encontrados:', servicesData);
+        console.log('📋 Servicios convertidos:', convertedServices);
 
         // Intentar obtener el avatar del perfil del usuario
         const { data: profileData } = await supabase

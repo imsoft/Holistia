@@ -229,7 +229,7 @@ export function ProfessionalSidebar() {
                   alt=""
                   width={40}
                   height={40}
-                  className="h-10 w-10 rounded-full object-cover border-2 border-primary/20 hover:border-primary/40 transition-colors"
+                  className="h-10 w-10 aspect-square rounded-full object-cover border-2 border-primary/20 hover:border-primary/40 transition-colors"
                 />
               </div>
             </DropdownMenuTrigger>
@@ -241,7 +241,7 @@ export function ProfessionalSidebar() {
                     alt=""
                     width={40}
                     height={40}
-                    className="h-10 w-10 rounded-full object-cover border-2 border-primary/20"
+                    className="h-10 w-10 aspect-square rounded-full object-cover border-2 border-primary/20"
                   />
                 </div>
                 <div className="flex flex-col space-y-1 leading-none min-w-0 flex-1">
@@ -290,7 +290,7 @@ export function ProfessionalSidebar() {
                     alt=""
                     width={40}
                     height={40}
-                    className="h-10 w-10 rounded-full object-cover border-2 border-primary/20"
+                    className="h-10 w-10 aspect-square rounded-full object-cover border-2 border-primary/20"
                   />
                 </div>
                 <div className="flex flex-col space-y-1 leading-none min-w-0 flex-1">

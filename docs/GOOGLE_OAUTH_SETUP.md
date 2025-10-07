@@ -34,7 +34,7 @@ Agrega estas variables a tu archivo `.env.local`:
 
 ```env
 # Google OAuth (opcional para desarrollo local)
-NEXT_PUBLIC_GOOGLE_CLIENT_ID=tu-google-client-id
+NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN=tu-google-client-id
 SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_SECRET=tu-google-client-secret
 
 # Supabase

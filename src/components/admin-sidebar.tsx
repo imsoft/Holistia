@@ -226,7 +226,7 @@ export function AdminSidebar() {
                   alt=""
                   width={40}
                   height={40}
-                  className="h-10 w-10 rounded-full object-cover border-2 border-primary/20 hover:border-primary/40 transition-colors"
+                  className="h-10 w-10 aspect-square rounded-full object-cover border-2 border-primary/20 hover:border-primary/40 transition-colors"
                 />
                 <div className="absolute -bottom-1 -right-1 h-4 w-4 rounded-full bg-green-500 border-2 border-background"></div>
               </div>
@@ -239,7 +239,7 @@ export function AdminSidebar() {
                     alt=""
                     width={40}
                     height={40}
-                    className="h-10 w-10 rounded-full object-cover border-2 border-primary/20"
+                    className="h-10 w-10 aspect-square rounded-full object-cover border-2 border-primary/20"
                   />
                   <div className="absolute -bottom-1 -right-1 h-4 w-4 rounded-full bg-green-500 border-2 border-background"></div>
                 </div>

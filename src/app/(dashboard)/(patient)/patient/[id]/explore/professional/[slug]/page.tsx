@@ -724,7 +724,7 @@ export default function ProfessionalProfilePage() {
                   alt={`${professional.first_name} ${professional.last_name}`}
                   width={120}
                   height={120}
-                  className="h-28 w-28 rounded-full object-cover shadow-lg"
+                  className="h-28 w-28 aspect-square rounded-full object-cover shadow-lg"
                 />
               </div>
               <div>

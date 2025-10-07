@@ -361,7 +361,7 @@ export default function ProfessionalPatients() {
                       alt={patient.name}
                       width={60}
                       height={60}
-                      className="h-15 w-15 rounded-full object-cover border-2 border-border"
+                      className="h-15 w-15 aspect-square rounded-full object-cover border-2 border-border"
                     />
                   </div>
                   <div className="flex-1">

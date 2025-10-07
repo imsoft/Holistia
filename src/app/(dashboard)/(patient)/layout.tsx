@@ -256,8 +256,7 @@ export default function UserLayout({
                         alt=""
                         width={40}
                         height={40}
-                        className="h-10 w-10 rounded-full object-cover shadow-sm hover:shadow-md transition-all duration-200"
-                        style={{ aspectRatio: '1/1' }}
+                        className="h-10 w-10 aspect-square rounded-full object-cover shadow-sm hover:shadow-md transition-all duration-200"
                       />
                     </div>
                   </Button>
@@ -270,8 +269,7 @@ export default function UserLayout({
                         alt=""
                         width={40}
                         height={40}
-                        className="h-10 w-10 rounded-full object-cover border-2 border-primary/20"
-                        style={{ aspectRatio: '1/1' }}
+                        className="h-10 w-10 aspect-square rounded-full object-cover border-2 border-primary/20"
                       />
                     </div>
                     <div className="flex flex-col space-y-1 leading-none">
@@ -364,8 +362,7 @@ export default function UserLayout({
                         alt=""
                         width={48}
                         height={48}
-                        className="h-12 w-12 rounded-full object-cover border-2 border-primary/20 flex-shrink-0"
-                        style={{ aspectRatio: '1/1' }}
+                        className="h-12 w-12 aspect-square rounded-full object-cover border-2 border-primary/20 flex-shrink-0"
                       />
                       <div>
                         <div className="text-base font-medium text-foreground">

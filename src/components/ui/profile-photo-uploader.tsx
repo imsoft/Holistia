@@ -148,7 +148,7 @@ export default function ProfilePhotoUploader({
                 alt={professionalName}
                 width={80}
                 height={80}
-                className="h-20 w-20 rounded-full object-cover border-2 border-border"
+                className="h-20 w-20 aspect-square rounded-full object-cover border-2 border-border"
               />
             ) : (
               <div className="h-20 w-20 rounded-full bg-muted flex items-center justify-center border-2 border-border">

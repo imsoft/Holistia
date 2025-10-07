@@ -369,7 +369,7 @@ export default function BecomeProfessionalPage() {
                     alt="Foto de perfil actual"
                     width={60}
                     height={60}
-                    className="w-15 h-15 rounded-full object-cover border-2 border-blue-300"
+                    className="w-15 h-15 aspect-square rounded-full object-cover border-2 border-blue-300"
                   />
                 </div>
                 <div>

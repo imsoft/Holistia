@@ -286,8 +286,7 @@ const ProfilePage = () => {
                   alt="Foto de perfil"
                   width={80}
                   height={80}
-                  className="h-20 w-20 rounded-full object-cover border-2 border-border"
-                  style={{ aspectRatio: '1/1' }}
+                  className="h-20 w-20 aspect-square rounded-full object-cover border-2 border-border"
                 />
                 <Button 
                   className="absolute -bottom-1 -right-1 p-1.5 bg-primary text-primary-foreground rounded-full hover:bg-primary/90 transition-colors shadow-sm"

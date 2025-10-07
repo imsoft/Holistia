@@ -378,7 +378,7 @@ export default function ApplicationsPage() {
                           alt={`${application.first_name} ${application.last_name}`}
                           width={48}
                           height={48}
-                          className="w-12 h-12 rounded-full object-cover border-2 border-border"
+                          className="w-12 h-12 aspect-square rounded-full object-cover border-2 border-border"
                           onError={(e) => {
                             // Si la imagen falla al cargar, ocultar y mostrar el placeholder
                             const target = e.target as HTMLImageElement;

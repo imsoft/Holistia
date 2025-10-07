@@ -509,7 +509,7 @@ export default function AdminUsers() {
                       alt={user.name}
                       width={60}
                       height={60}
-                      className="h-15 w-15 rounded-full object-cover border-2 border-border"
+                      className="h-15 w-15 aspect-square rounded-full object-cover border-2 border-border"
                     />
                     <div className={`absolute -bottom-1 -right-1 h-5 w-5 rounded-full border-2 border-background ${
                       user.status === "active" ? "bg-green-500" : 

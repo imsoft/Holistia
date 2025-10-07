@@ -349,7 +349,7 @@ export default function AppointmentsPage() {
                           alt={appointment.professional.full_name}
                           width={80}
                           height={80}
-                          className="h-20 w-20 rounded-full object-cover border-2 border-border"
+                          className="h-20 w-20 aspect-square rounded-full object-cover border-2 border-border"
                         />
                         <div>
                           <h3 className="text-lg font-semibold text-foreground hover:text-primary transition-colors">
@@ -459,7 +459,7 @@ export default function AppointmentsPage() {
                               alt={appointment.professional.full_name}
                               width={60}
                               height={60}
-                              className="h-15 w-15 rounded-full object-cover border-2 border-border"
+                              className="h-15 w-15 aspect-square rounded-full object-cover border-2 border-border"
                             />
                             <div className="flex-1">
                               <div className="flex items-center gap-2 mb-1">

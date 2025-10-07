@@ -468,7 +468,7 @@ export default function AdminProfessionals() {
                       alt={`${professional.first_name} ${professional.last_name}`}
                       width={60}
                       height={60}
-                      className="h-15 w-15 rounded-full object-cover border-2 border-border"
+                      className="h-15 w-15 aspect-square rounded-full object-cover border-2 border-border"
                     />
                     {professional.reviewed_at && (
                       <div className="absolute -bottom-1 -right-1 h-5 w-5 rounded-full bg-green-500 border-2 border-background flex items-center justify-center">

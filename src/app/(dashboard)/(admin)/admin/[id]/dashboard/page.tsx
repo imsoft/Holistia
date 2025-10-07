@@ -85,36 +85,39 @@ export default function AdminDashboard() {
 
         // Obtener estadísticas
         const [
-          usersResult, 
           professionalsResult, 
           pendingApplicationsResult, 
           appointmentsResult,
           lastMonthProfessionalsResult,
-          lastMonthAppointmentsResult
+          lastMonthAppointmentsResult,
+          allApplicationsResult
         ] = await Promise.all([
-          // Total de usuarios (pacientes)
-          supabase.auth.admin.listUsers(),
           // Profesionales aprobados
-          supabase.from('professional_applications').select('*').eq('status', 'approved'),
+          supabase.from('professional_applications').select('*', { count: 'exact' }).eq('status', 'approved'),
           // Solicitudes pendientes
-          supabase.from('professional_applications').select('*').eq('status', 'pending'),
+          supabase.from('professional_applications').select('*', { count: 'exact' }).eq('status', 'pending'),
           // Citas del mes actual
-          supabase.from('appointments').select('*').gte('appointment_date', currentMonthStart.toISOString()),
+          supabase.from('appointments').select('*', { count: 'exact' }).gte('appointment_date', currentMonthStart.toISOString()),
           // Profesionales aprobados el mes pasado
           supabase.from('professional_applications')
-            .select('*')
+            .select('*', { count: 'exact' })
             .eq('status', 'approved')
             .gte('reviewed_at', lastMonthStart.toISOString())
             .lte('reviewed_at', lastMonthEnd.toISOString()),
           // Citas del mes pasado
           supabase.from('appointments')
-            .select('*')
+            .select('*', { count: 'exact' })
             .gte('appointment_date', lastMonthStart.toISOString())
-            .lte('appointment_date', lastMonthEnd.toISOString())
+            .lte('appointment_date', lastMonthEnd.toISOString()),
+          // Total de solicitudes (para contar usuarios únicos)
+          supabase.from('professional_applications').select('user_id', { count: 'exact' })
         ]);
 
         // Calcular estadísticas
-        const totalUsers = usersResult.data?.users?.length || 0;
+        // Contar usuarios únicos desde las solicitudes
+        const uniqueUsers = new Set(allApplicationsResult.data?.map(app => app.user_id) || []);
+        const totalUsers = uniqueUsers.size;
+        
         const activeProfessionals = professionalsResult.data?.length || 0;
         const pendingApplications = pendingApplicationsResult.data?.length || 0;
         const monthlyAppointments = appointmentsResult.data?.length || 0;
@@ -134,9 +137,9 @@ export default function AdminDashboard() {
         // Crear array de estadísticas
         const dashboardStats: DashboardStats[] = [
           {
-            title: "Total Usuarios",
+            title: "Solicitudes de Usuarios",
             value: totalUsers.toString(),
-            change: `${totalUsers} usuarios registrados`,
+            change: `${totalUsers} usuarios han enviado solicitudes`,
             icon: Users,
             color: "text-blue-600",
             bgColor: "bg-blue-50",

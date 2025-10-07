@@ -12,6 +12,8 @@ import {
   Clock,
   AlertCircle,
   XCircle,
+  Check,
+  ChevronsUpDown,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,16 +28,23 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { createClient } from "@/utils/supabase/client";
 import Link from "next/link";
 import Image from "next/image";
 import { normalizeName, normalizeProfession, normalizeAddress, normalizeLocation } from "@/lib/text-utils";
+import { cn } from "@/lib/utils";
 
 interface Service {
   name: string;
@@ -96,6 +105,7 @@ export default function BecomeProfessionalPage() {
   const [specializationInput, setSpecializationInput] = useState("");
   const [wellnessAreaInput, setWellnessAreaInput] = useState("");
   const [userProfilePhoto, setUserProfilePhoto] = useState<string | null>(null);
+  const [openCountryCombo, setOpenCountryCombo] = useState(false);
   const params = useParams();
   const userId = params.id as string;
 
@@ -108,6 +118,13 @@ export default function BecomeProfessionalPage() {
     "Actividad física",
     "Social",
     "Alimentación"
+  ];
+
+  // Opciones de países
+  const countries = [
+    { value: "México", label: "México" },
+    { value: "Estados Unidos", label: "Estados Unidos" },
+    { value: "Canadá", label: "Canadá" },
   ];
 
   useEffect(() => {
@@ -623,19 +640,52 @@ export default function BecomeProfessionalPage() {
 
             <div className="space-y-3">
               <Label htmlFor="country">País *</Label>
-              <Select
-                value={formData.country}
-                onValueChange={(value) => handleInputChange("country", value)}
-              >
-                <SelectTrigger className={`w-full ${errors.country ? "border-red-500" : ""}`}>
-                  <SelectValue placeholder="Selecciona un país" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="México">México</SelectItem>
-                  <SelectItem value="Estados Unidos">Estados Unidos</SelectItem>
-                  <SelectItem value="Canadá">Canadá</SelectItem>
-                </SelectContent>
-              </Select>
+              <Popover open={openCountryCombo} onOpenChange={setOpenCountryCombo}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={openCountryCombo}
+                    className={cn(
+                      "w-full justify-between",
+                      errors.country && "border-red-500"
+                    )}
+                  >
+                    {formData.country
+                      ? countries.find((country) => country.value === formData.country)?.label
+                      : "Selecciona un país"}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-full p-0">
+                  <Command>
+                    <CommandInput placeholder="Buscar país..." />
+                    <CommandList>
+                      <CommandEmpty>No se encontró el país.</CommandEmpty>
+                      <CommandGroup>
+                        {countries.map((country) => (
+                          <CommandItem
+                            key={country.value}
+                            value={country.value}
+                            onSelect={(currentValue) => {
+                              handleInputChange("country", currentValue === formData.country ? "" : currentValue);
+                              setOpenCountryCombo(false);
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                formData.country === country.value ? "opacity-100" : "opacity-0"
+                              )}
+                            />
+                            {country.label}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
               {errors.country && (
                 <p className="text-red-500 text-sm mt-1">{errors.country}</p>
               )}

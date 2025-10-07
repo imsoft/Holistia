@@ -8,6 +8,7 @@ import { BlogPost } from "@/types/blog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { SidebarTrigger } from "@/components/ui/sidebar";
 import { 
   Plus, 
   Edit, 
@@ -101,21 +102,32 @@ export default function AdminBlogPage({ params }: { params: Promise<{ id: string
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-4">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Gestión del Blog</h1>
-          <p className="text-sm sm:text-base text-muted-foreground mt-2">
-            Administra los posts del blog de Holistia
-          </p>
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <div className="border-b border-border bg-card">
+        <div className="flex flex-col sm:flex-row sm:h-16 sm:items-center justify-between px-4 sm:px-6 py-4 sm:py-0 gap-4 sm:gap-0">
+          <div className="flex items-center gap-3 sm:gap-4">
+            <SidebarTrigger />
+            <div>
+              <h1 className="text-xl sm:text-2xl font-bold text-foreground">Gestión del Blog</h1>
+              <p className="text-xs sm:text-sm text-muted-foreground">
+                Administra los posts del blog de Holistia
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 sm:gap-3">
+            <Button asChild size="sm" className="sm:size-default w-full sm:w-auto">
+              <Link href={`/admin/${id}/blog/new`}>
+                <Plus className="w-4 h-4 mr-2" />
+                Nuevo Post
+              </Link>
+            </Button>
+          </div>
         </div>
-        <Button asChild size="sm" className="sm:size-default w-full sm:w-auto">
-          <Link href={`/admin/${id}/blog/new`}>
-            <Plus className="w-4 h-4 mr-2" />
-            Nuevo Post
-          </Link>
-        </Button>
       </div>
+
+      {/* Main Content */}
+      <div className="container mx-auto px-4 py-8">
 
       {error && (
         <div className="mb-6 p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
@@ -217,6 +229,7 @@ export default function AdminBlogPage({ params }: { params: Promise<{ id: string
           ))}
         </div>
       )}
+      </div>
     </div>
   );
 }

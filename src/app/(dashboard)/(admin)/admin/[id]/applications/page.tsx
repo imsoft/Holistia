@@ -22,6 +22,7 @@ import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { SidebarTrigger } from "@/components/ui/sidebar";
 import {
   Select,
   SelectContent,
@@ -279,20 +280,24 @@ export default function ApplicationsPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+      {/* Header */}
+      <div className="border-b border-border bg-card">
+        <div className="flex flex-col sm:flex-row sm:h-16 sm:items-center justify-between px-4 sm:px-6 py-4 sm:py-0 gap-4 sm:gap-0">
+          <div className="flex items-center gap-3 sm:gap-4">
+            <SidebarTrigger />
             <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">Solicitudes de Profesionales</h1>
-              <p className="text-sm sm:text-base text-muted-foreground">
-                Revisa y gestiona las solicitudes de profesionales de salud mental
+              <h1 className="text-xl sm:text-2xl font-bold text-foreground">Solicitudes de Profesionales</h1>
+              <p className="text-xs sm:text-sm text-muted-foreground">
+                Revisa y gestiona las solicitudes
                 {filteredApplications.length > 0 && (
                   <span className="ml-2 text-primary font-medium">
-                    ({filteredApplications.length} solicitud{filteredApplications.length !== 1 ? 'es' : ''} encontrada{filteredApplications.length !== 1 ? 's' : ''})
+                    ({filteredApplications.length})
                   </span>
                 )}
               </p>
             </div>
+          </div>
+          <div className="flex items-center gap-2 sm:gap-3">
             <Button 
               variant="outline"
               size="sm"
@@ -300,12 +305,16 @@ export default function ApplicationsPage() {
               className="flex items-center gap-2 w-full sm:w-auto sm:size-default"
             >
               <Download className="h-4 w-4" />
-              Exportar Lista
+              Exportar
             </Button>
           </div>
+        </div>
+      </div>
 
+      {/* Main Content */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Filtros y búsqueda */}
-          <Card>
+          <Card className="mb-8">
             <CardContent className="p-6">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="relative">
@@ -340,7 +349,6 @@ export default function ApplicationsPage() {
               </div>
             </CardContent>
           </Card>
-      </div>
 
         <div className="grid gap-6">
           {filteredApplications.length === 0 ? (

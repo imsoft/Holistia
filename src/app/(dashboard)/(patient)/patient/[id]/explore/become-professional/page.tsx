@@ -553,11 +553,14 @@ export default function BecomeProfessionalPage() {
                     <p className="text-sm text-blue-700 mb-2">
                       Para verificar tu formación profesional, por favor envía tus certificaciones y títulos a:
                     </p>
-                    <div className="bg-white border border-blue-200 rounded px-3 py-2 inline-block">
-                      <span className="text-sm font-mono text-blue-800">hola@holistia.io</span>
-                    </div>
+                    <a 
+                      href={`mailto:hola@holistia.io?subject=Certificaciones - ${formData.first_name} ${formData.last_name}&body=Hola equipo de Holistia,%0D%0A%0D%0AAdjunto mis certificaciones y títulos profesionales para verificación.%0D%0A%0D%0ANombre: ${formData.first_name} ${formData.last_name}%0D%0AProfesión: ${formData.profession || '[Por especificar]'}%0D%0AEmail: ${formData.email}%0D%0A%0D%0ASaludos cordiales`}
+                      className="bg-white border border-blue-200 rounded px-3 py-2 inline-block hover:bg-blue-50 transition-colors duration-200"
+                    >
+                      <span className="text-sm font-mono text-blue-800 hover:text-blue-900">hola@holistia.io</span>
+                    </a>
                     <p className="text-xs text-blue-600 mt-2">
-                      Incluye en el asunto: &quot;Certificaciones - [Tu nombre]&quot;
+                      Haz clic en el email para abrir tu cliente de correo con el asunto y mensaje pre-llenados
                     </p>
                   </div>
                 </div>

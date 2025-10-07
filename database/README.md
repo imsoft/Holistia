@@ -7,12 +7,21 @@ Esta carpeta contiene todos los archivos relacionados con la base de datos del p
 ```
 database/
 ├── README.md                           # Este archivo
-├── migrations/                         # Migraciones de la base de datos
+├── APLICAR_MIGRACIONES.sql            # Script completo para aplicar todas las migraciones
+├── migrations/                         # Migraciones de la base de datos (22 migraciones)
+│   ├── README.md                      # Documentación detallada de migraciones
 │   ├── 01_create_professional_applications_table.sql
 │   ├── 02_fix_auth_users_permissions.sql
-│   └── 03_complete_professional_applications_setup.sql
+│   ├── ...                           # Y muchas más
+│   └── 24_setup_complete_professional_applications.sql
 └── schemas/                           # (Futuro) Esquemas de base de datos
 ```
+
+## 📚 Documentación
+
+Para instrucciones detalladas de configuración del dashboard de admin, consulta:
+- **[docs/INSTRUCCIONES_URGENTES.md](../docs/INSTRUCCIONES_URGENTES.md)** - Configuración inicial completa
+- **[docs/INSTRUCCIONES_ADMIN_DASHBOARD.md](../docs/INSTRUCCIONES_ADMIN_DASHBOARD.md)** - Solución de problemas del dashboard
 
 ## Migraciones
 

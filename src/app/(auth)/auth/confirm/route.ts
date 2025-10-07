@@ -45,21 +45,33 @@ export async function GET(request: NextRequest) {
     // Método con code (confirmación por email)
     const supabase = await createClient()
 
-    const { error } = await supabase.auth.exchangeCodeForSession(code)
-    
-    if (error) {
-      console.error('Error intercambiando código por sesión:', error.message)
-      redirect(`/error?message=${encodeURIComponent('Error confirmando el email: ' + error.message)}`)
-    }
+    try {
+      const { error } = await supabase.auth.exchangeCodeForSession(code)
+      
+      if (error) {
+        console.error('Error intercambiando código por sesión:', error.message)
+        console.error('Error completo:', error)
+        
+        // Si el error es por falta de code_verifier, redirigir a login con mensaje
+        if (error.message.includes('code_verifier') || error.message.includes('invalid request')) {
+          redirect('/login?message=' + encodeURIComponent('Tu email ha sido confirmado. Por favor inicia sesión.'))
+        }
+        
+        redirect(`/error?message=${encodeURIComponent('Error confirmando el email: ' + error.message)}`)
+      }
 
-    // Obtener el usuario después del intercambio de código
-    const { data: { user } } = await supabase.auth.getUser()
-    
-    if (user) {
-      // Redirigir a página de éxito primero
-      redirect('/auth/confirm-success')
-    } else {
-      redirect('/login')
+      // Obtener el usuario después del intercambio de código
+      const { data: { user } } = await supabase.auth.getUser()
+      
+      if (user) {
+        // Redirigir a página de éxito primero
+        redirect('/auth/confirm-success')
+      } else {
+        redirect('/login')
+      }
+    } catch (err) {
+      console.error('Error inesperado en confirmación:', err)
+      redirect('/login?message=' + encodeURIComponent('Tu email ha sido confirmado. Por favor inicia sesión.'))
     }
   } else {
     // No hay parámetros válidos

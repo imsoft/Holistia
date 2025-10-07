@@ -5,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import Link from "next/link";
+import { Suspense } from "react";
 import {
   Form,
   FormControl,
@@ -18,19 +19,20 @@ import { PasswordInput } from "@/components/ui/password-input";
 import { GoogleButton } from "@/components/ui/google-button";
 import { useForm } from "react-hook-form";
 import { login } from "@/actions/auth/actions";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
-// import { useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 
 const formSchema = z.object({
   email: z.email("Ingresa un correo electrónico válido"),
   password: z.string().min(8, "La contraseña debe tener al menos 8 caracteres"),
 });
 
-const LoginPage = () => {
+// Componente interno que maneja los parámetros de búsqueda
+function LoginFormWithMessage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  // const router = useRouter();
+  const searchParams = useSearchParams();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -39,6 +41,14 @@ const LoginPage = () => {
       password: "",
     },
   });
+
+  // Mostrar mensaje de confirmación si viene de la verificación de email
+  useEffect(() => {
+    const message = searchParams.get('message');
+    if (message) {
+      toast.success(message);
+    }
+  }, [searchParams]);
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsLoading(true);
@@ -183,6 +193,20 @@ const LoginPage = () => {
       </div>
     </>
   );
-};
+}
 
-export default LoginPage;
+// Componente principal con Suspense
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-2 text-sm text-muted-foreground">Cargando...</p>
+        </div>
+      </div>
+    }>
+      <LoginFormWithMessage />
+    </Suspense>
+  );
+}

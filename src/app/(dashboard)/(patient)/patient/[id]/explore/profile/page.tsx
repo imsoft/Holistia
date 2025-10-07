@@ -3,29 +3,15 @@
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import { toast } from "sonner";
-import { Edit3, Clock, CheckCircle, XCircle, AlertCircle, Save, X } from "lucide-react";
+import { Edit3, Save, X } from "lucide-react";
 import Image from "next/image";
 import { createClient } from "@/utils/supabase/client";
 import { Patient } from "@/types/patient";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import Link from "next/link";
-
-interface ProfessionalApplication {
-  id: string;
-  status: 'pending' | 'under_review' | 'approved' | 'rejected';
-  submitted_at: string;
-  reviewed_at?: string;
-  review_notes?: string;
-  profession: string;
-  specializations: string[];
-}
 
 const ProfilePage = () => {
   const [profile, setProfile] = useState<Patient | null>(null);
-  const [professionalApplication, setProfessionalApplication] = useState<ProfessionalApplication | null>(null);
   const [loading, setLoading] = useState(true);
   const [isEditingPhone, setIsEditingPhone] = useState(false);
   const [phoneValue, setPhoneValue] = useState("");
@@ -101,92 +87,8 @@ const ProfilePage = () => {
       }
     };
 
-    const getProfessionalApplication = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('professional_applications')
-          .select('id, status, submitted_at, reviewed_at, review_notes, profession, specializations')
-          .eq('user_id', userId)
-          .order('submitted_at', { ascending: false })
-          .limit(1)
-          .single();
-
-        if (error && error.code !== 'PGRST116') { // PGRST116 = no rows found
-          console.error('Error fetching professional application:', error);
-          return;
-        }
-
-        if (data) {
-          setProfessionalApplication(data);
-        }
-      } catch (error) {
-        console.error('Error fetching professional application:', error);
-      }
-    };
-
     getUserData();
-    getProfessionalApplication();
   }, [userId, supabase]);
-
-  const getApplicationStatusInfo = (status: string) => {
-    switch (status) {
-      case 'pending':
-        return {
-          icon: Clock,
-          label: 'Pendiente',
-          description: 'Tu solicitud está siendo revisada',
-          color: 'text-yellow-600',
-          bgColor: 'bg-yellow-50',
-          borderColor: 'border-yellow-200'
-        };
-      case 'under_review':
-        return {
-          icon: AlertCircle,
-          label: 'En Revisión',
-          description: 'Nuestro equipo está evaluando tu solicitud',
-          color: 'text-blue-600',
-          bgColor: 'bg-blue-50',
-          borderColor: 'border-blue-200'
-        };
-      case 'approved':
-        return {
-          icon: CheckCircle,
-          label: 'Aprobada',
-          description: '¡Felicitaciones! Tu solicitud ha sido aprobada',
-          color: 'text-green-600',
-          bgColor: 'bg-green-50',
-          borderColor: 'border-green-200'
-        };
-      case 'rejected':
-        return {
-          icon: XCircle,
-          label: 'Rechazada',
-          description: 'Tu solicitud no pudo ser aprobada en esta ocasión',
-          color: 'text-red-600',
-          bgColor: 'bg-red-50',
-          borderColor: 'border-red-200'
-        };
-      default:
-        return {
-          icon: Clock,
-          label: 'Desconocido',
-          description: 'Estado no reconocido',
-          color: 'text-gray-600',
-          bgColor: 'bg-gray-50',
-          borderColor: 'border-gray-200'
-        };
-    }
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('es-ES', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
 
   const handlePhoneEdit = () => {
     setIsEditingPhone(true);
@@ -524,112 +426,6 @@ const ProfilePage = () => {
               </div>
             </dl>
           </div>
-
-          {/* Professional Application Status Section */}
-          {professionalApplication && (
-            <div>
-              <h2 className="text-base/7 font-semibold text-foreground">Solicitud de Profesional</h2>
-              <p className="mt-1 text-sm/6 text-muted-foreground">
-                Estado de tu solicitud para convertirte en profesional de salud mental.
-              </p>
-
-              <div className="mt-6">
-                <Card className={`border-2 ${getApplicationStatusInfo(professionalApplication.status).borderColor} ${getApplicationStatusInfo(professionalApplication.status).bgColor}`}>
-                  <CardHeader className="pb-6 px-8 pt-8">
-                    <div className="flex items-center gap-4">
-                      <div className={`p-3 rounded-full ${getApplicationStatusInfo(professionalApplication.status).bgColor} ${getApplicationStatusInfo(professionalApplication.status).borderColor} border`}>
-                        {(() => {
-                          const IconComponent = getApplicationStatusInfo(professionalApplication.status).icon;
-                          return <IconComponent className={`h-6 w-6 ${getApplicationStatusInfo(professionalApplication.status).color}`} />;
-                        })()}
-                      </div>
-                      <div>
-                        <CardTitle className={`text-xl ${getApplicationStatusInfo(professionalApplication.status).color} mb-2`}>
-                          {getApplicationStatusInfo(professionalApplication.status).label}
-                        </CardTitle>
-                        <CardDescription className="text-base">
-                          {getApplicationStatusInfo(professionalApplication.status).description}
-                        </CardDescription>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="pt-0 px-8 pb-8">
-                    <div className="space-y-6">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="space-y-2">
-                          <p className="text-sm font-semibold text-foreground">Profesión solicitada</p>
-                          <p className="text-base text-muted-foreground">{professionalApplication.profession}</p>
-                        </div>
-                        <div className="space-y-2">
-                          <p className="text-sm font-semibold text-foreground">Fecha de envío</p>
-                          <p className="text-base text-muted-foreground">{formatDate(professionalApplication.submitted_at)}</p>
-                        </div>
-                      </div>
-                      
-                      {professionalApplication.specializations.length > 0 && (
-                        <div className="space-y-3">
-                          <p className="text-sm font-semibold text-foreground">Especializaciones</p>
-                          <div className="flex flex-wrap gap-3">
-                            {professionalApplication.specializations.map((spec, index) => (
-                              <Badge key={index} variant="secondary" className="text-sm px-3 py-1">
-                                {spec}
-                              </Badge>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                      {professionalApplication.review_notes && (
-                        <div className="space-y-3">
-                          <p className="text-sm font-semibold text-foreground">Notas de revisión</p>
-                          <p className="text-base text-muted-foreground bg-muted/50 p-4 rounded-lg">
-                            {professionalApplication.review_notes}
-                          </p>
-                        </div>
-                      )}
-
-                      {professionalApplication.reviewed_at && (
-                        <div className="space-y-2">
-                          <p className="text-sm font-semibold text-foreground">Fecha de revisión</p>
-                          <p className="text-base text-muted-foreground">{formatDate(professionalApplication.reviewed_at)}</p>
-                        </div>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            </div>
-          )}
-
-          {/* No Application Message */}
-          {!professionalApplication && (
-            <div>
-              <h2 className="text-base/7 font-semibold text-foreground">Solicitud de Profesional</h2>
-              <p className="mt-1 text-sm/6 text-muted-foreground">
-                Aún no has enviado una solicitud para convertirte en profesional.
-              </p>
-
-              <div className="mt-6">
-                <Card className="border-dashed border-2 border-border">
-                  <CardContent className="flex flex-col items-center justify-center py-8">
-                    <div className="w-12 h-12 bg-muted rounded-full flex items-center justify-center mb-4">
-                      <Edit3 className="h-6 w-6 text-muted-foreground" />
-                    </div>
-                    <h3 className="text-lg font-semibold text-foreground mb-2">¿Quieres ser profesional?</h3>
-                    <p className="text-sm text-muted-foreground text-center mb-4 max-w-md">
-                      Únete a nuestra plataforma como profesional de salud mental y ayuda a más personas a mejorar su bienestar.
-                    </p>
-                    <Link
-                      href={`/patient/${userId}/explore/become-professional`}
-                      className="inline-flex items-center px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
-                    >
-                      Enviar solicitud
-                    </Link>
-                  </CardContent>
-                </Card>
-              </div>
-            </div>
-          )}
 
         </div>
       </main>

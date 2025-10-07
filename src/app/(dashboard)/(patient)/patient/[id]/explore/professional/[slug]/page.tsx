@@ -472,6 +472,20 @@ export default function ProfessionalProfilePage() {
         console.error('Error fetching appointments:', error);
       }
 
+      // Obtener bloqueos de disponibilidad para esta fecha
+      const { data: availabilityBlocks, error: blocksError } = await supabase
+        .from('availability_blocks')
+        .select('*')
+        .eq('professional_id', professional?.id)
+        .lte('start_date', date)
+        .or(`end_date.is.null,end_date.gte.${date}`);
+
+      if (blocksError) {
+        console.error('Error fetching availability blocks:', blocksError);
+      }
+
+      console.log('🚫 Bloqueos encontrados para', date, ':', availabilityBlocks);
+
       // Crear array de horarios bloqueados (cita + 30 min de colchón)
       const blockedTimes = new Set();
       const occupiedTimes = new Set(); // Para mostrar como ocupados
@@ -518,6 +532,46 @@ export default function ProfessionalProfilePage() {
         console.log('📋 Horarios ocupados:', Array.from(occupiedTimes));
       }
 
+      // Procesar bloqueos de disponibilidad
+      if (availabilityBlocks && availabilityBlocks.length > 0) {
+        availabilityBlocks.forEach(block => {
+          if (block.block_type === 'full_day') {
+            // Si es bloqueo de día completo, marcar todos los horarios como bloqueados
+            console.log('🚫 Día completo bloqueado:', date);
+            // Agregamos un marcador especial para indicar que todo el día está bloqueado
+            blockedTimes.add('FULL_DAY_BLOCKED');
+          } else if (block.block_type === 'time_range' && block.start_time && block.end_time) {
+            // Si es bloqueo de rango de horas, bloquear solo ese rango
+            const [blockStartHour, blockStartMinute] = block.start_time.split(':').map(Number);
+            const [blockEndHour, blockEndMinute] = block.end_time.split(':').map(Number);
+            
+            const blockStartMinutes = blockStartHour * 60 + blockStartMinute;
+            const blockEndMinutes = blockEndHour * 60 + blockEndMinute;
+            
+            console.log(`🚫 Bloqueando rango: ${block.start_time} - ${block.end_time}`);
+            
+            // Marcar todos los horarios en el rango como bloqueados
+            for (let hour = startHour; hour < endHour; hour++) {
+              for (let minute = 0; minute < 60; minute += 60) {
+                const timeMinutes = hour * 60 + minute;
+                if (timeMinutes >= blockStartMinutes && timeMinutes < blockEndMinutes) {
+                  const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+                  blockedTimes.add(timeString);
+                  console.log(`🚫 Bloqueando horario: ${timeString}`);
+                }
+              }
+            }
+          }
+        });
+      }
+
+      // Si hay un bloqueo de día completo, no generar horarios
+      if (blockedTimes.has('FULL_DAY_BLOCKED')) {
+        console.log('🚫 Día completo bloqueado, no hay horarios disponibles');
+        setAvailableTimes([]);
+        return [];
+      }
+
       const times = [];
       const sessionDuration = 50;
       const breakTime = 10;
@@ -543,6 +597,7 @@ export default function ProfessionalProfilePage() {
         }
       }
       
+      console.log('⏰ Horarios generados:', times);
       setAvailableTimes(times);
       return times;
     } catch (error) {

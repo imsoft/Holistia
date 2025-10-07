@@ -25,7 +25,7 @@ export default function GoogleMap({
         setError(null);
 
         // Verificar si hay API key
-        const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+        const apiKey = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
         if (!apiKey) {
           setError("API key de Google Maps no configurada");
           setIsLoading(false);

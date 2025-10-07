@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Confirma tu cuenta - Holistia</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f9fafb; color: #1f2937;">
+  <table role="presentation" style="width: 100%; border-collapse: collapse; background-color: #f9fafb;">
+    <tr>
+      <td style="padding: 40px 20px;">
+        <table role="presentation" style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
+          
+          <!-- Header con logo -->
+          <tr>
+            <td style="background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%); padding: 32px 40px; text-align: center;">
+              <table role="presentation" style="width: 100%;">
+                <tr>
+                  <td style="text-align: center;">
+                    <div style="background-color: rgba(255, 255, 255, 0.15); width: 80px; height: 80px; border-radius: 50%; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(10px);">
+                      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M2 17L12 22L22 17" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M2 12L12 17L22 12" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                      </svg>
+                    </div>
+                    <h1 style="color: #ffffff; font-size: 28px; font-weight: 700; margin: 0; letter-spacing: -0.5px;">Holistia</h1>
+                    <p style="color: rgba(255, 255, 255, 0.9); font-size: 14px; margin: 8px 0 0 0;">Plataforma de Salud Integral</p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          
+          <!-- Contenido principal -->
+          <tr>
+            <td style="padding: 48px 40px;">
+              <h2 style="color: #1f2937; font-size: 24px; font-weight: 700; margin: 0 0 16px 0; text-align: center;">¡Bienvenido/a a Holistia! 🎉</h2>
+              
+              <p style="color: #4b5563; font-size: 16px; line-height: 1.6; margin: 0 0 24px 0; text-align: center;">
+                Estamos emocionados de tenerte en nuestra comunidad de bienestar integral.
+              </p>
+              
+              <p style="color: #4b5563; font-size: 16px; line-height: 1.6; margin: 0 0 32px 0; text-align: center;">
+                Para comenzar a usar tu cuenta, necesitamos verificar tu correo electrónico. Haz clic en el botón de abajo:
+              </p>
+              
+              <!-- Botón de confirmación -->
+              <table role="presentation" style="width: 100%; margin: 0 0 32px 0;">
+                <tr>
+                  <td style="text-align: center;">
+                    <a href="{{ .ConfirmationURL }}" 
+                       style="display: inline-block; background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%); color: #ffffff; text-decoration: none; padding: 16px 48px; border-radius: 8px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 6px -1px rgba(139, 92, 246, 0.3), 0 2px 4px -1px rgba(139, 92, 246, 0.2); transition: all 0.3s ease;">
+                      ✓ Confirmar mi correo
+                    </a>
+                  </td>
+                </tr>
+              </table>
+              
+              <!-- Información adicional -->
+              <div style="background-color: #f3f4f6; border-left: 4px solid #8B5CF6; padding: 16px 20px; border-radius: 8px; margin: 0 0 24px 0;">
+                <p style="color: #374151; font-size: 14px; line-height: 1.5; margin: 0;">
+                  <strong style="color: #1f2937;">💡 Nota importante:</strong> Este enlace expirará en 24 horas por seguridad. Si no solicitaste esta cuenta, puedes ignorar este correo.
+                </p>
+              </div>
+              
+              <!-- Link alternativo -->
+              <p style="color: #6b7280; font-size: 14px; line-height: 1.5; margin: 0 0 8px 0; text-align: center;">
+                Si el botón no funciona, copia y pega este enlace en tu navegador:
+              </p>
+              <p style="text-align: center; margin: 0 0 32px 0;">
+                <a href="{{ .ConfirmationURL }}" style="color: #8B5CF6; font-size: 13px; word-break: break-all; text-decoration: underline;">{{ .ConfirmationURL }}</a>
+              </p>
+              
+              <!-- Separador -->
+              <div style="border-top: 1px solid #e5e7eb; margin: 32px 0;"></div>
+              
+              <!-- Siguientes pasos -->
+              <h3 style="color: #1f2937; font-size: 18px; font-weight: 600; margin: 0 0 16px 0;">¿Qué sigue?</h3>
+              
+              <table role="presentation" style="width: 100%; margin: 0 0 24px 0;">
+                <tr>
+                  <td style="padding: 12px 0; vertical-align: top; width: 40px;">
+                    <div style="width: 32px; height: 32px; background-color: #ede9fe; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                      <span style="color: #8B5CF6; font-size: 18px; font-weight: bold;">1</span>
+                    </div>
+                  </td>
+                  <td style="padding: 12px 0 12px 12px; vertical-align: top;">
+                    <p style="color: #1f2937; font-size: 15px; font-weight: 600; margin: 0 0 4px 0;">Confirma tu correo</p>
+                    <p style="color: #6b7280; font-size: 14px; line-height: 1.5; margin: 0;">Haz clic en el botón de arriba para verificar tu cuenta</p>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding: 12px 0; vertical-align: top;">
+                    <div style="width: 32px; height: 32px; background-color: #ede9fe; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                      <span style="color: #8B5CF6; font-size: 18px; font-weight: bold;">2</span>
+                    </div>
+                  </td>
+                  <td style="padding: 12px 0 12px 12px; vertical-align: top;">
+                    <p style="color: #1f2937; font-size: 15px; font-weight: 600; margin: 0 0 4px 0;">Completa tu perfil</p>
+                    <p style="color: #6b7280; font-size: 14px; line-height: 1.5; margin: 0;">Agrega tus preferencias y encuentra el profesional ideal</p>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding: 12px 0; vertical-align: top;">
+                    <div style="width: 32px; height: 32px; background-color: #ede9fe; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                      <span style="color: #8B5CF6; font-size: 18px; font-weight: bold;">3</span>
+                    </div>
+                  </td>
+                  <td style="padding: 12px 0 12px 12px; vertical-align: top;">
+                    <p style="color: #1f2937; font-size: 15px; font-weight: 600; margin: 0 0 4px 0;">Empieza tu camino</p>
+                    <p style="color: #6b7280; font-size: 14px; line-height: 1.5; margin: 0;">Agenda tu primera sesión y comienza tu transformación</p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          
+          <!-- Footer -->
+          <tr>
+            <td style="background-color: #f9fafb; padding: 32px 40px; text-align: center; border-top: 1px solid #e5e7eb;">
+              <p style="color: #6b7280; font-size: 14px; line-height: 1.6; margin: 0 0 16px 0;">
+                Este correo fue enviado por <strong style="color: #8B5CF6;">Holistia</strong>
+              </p>
+              
+              <div style="margin: 0 0 16px 0;">
+                <a href="https://www.holistia.io" style="color: #8B5CF6; text-decoration: none; margin: 0 12px; font-size: 14px;">Inicio</a>
+                <a href="https://www.holistia.io/blog" style="color: #8B5CF6; text-decoration: none; margin: 0 12px; font-size: 14px;">Blog</a>
+                <a href="https://www.holistia.io/contact" style="color: #8B5CF6; text-decoration: none; margin: 0 12px; font-size: 14px;">Contacto</a>
+              </div>
+              
+              <p style="color: #9ca3af; font-size: 12px; line-height: 1.5; margin: 16px 0 0 0;">
+                © 2025 Holistia. Todos los derechos reservados.<br>
+                Plataforma de Salud Integral
+              </p>
+              
+              <p style="color: #9ca3af; font-size: 11px; line-height: 1.4; margin: 12px 0 0 0;">
+                Si no creaste una cuenta en Holistia, puedes ignorar este correo de forma segura.
+              </p>
+            </td>
+          </tr>
+          
+        </table>
+        
+        <!-- Espaciador inferior -->
+        <div style="text-align: center; padding: 24px 0;">
+          <p style="color: #9ca3af; font-size: 12px; margin: 0;">
+            ¿Necesitas ayuda? Escríbenos a <a href="mailto:hola@holistia.io" style="color: #8B5CF6; text-decoration: none;">hola@holistia.io</a>
+          </p>
+        </div>
+        
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+

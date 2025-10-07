@@ -175,12 +175,7 @@ const HomeUserPage = () => {
 
         const mappedAreas = categoryMap[categoryId] || [];
 
-        // Si es 'professionals', mostrar todos los profesionales de salud mental
-        if (categoryId === "professionals") {
-          return true; // Todos los profesionales en la tabla son de salud mental
-        }
-
-        // Para otras categorías, verificar si el profesional tiene esas áreas de bienestar
+        // Verificar si el profesional tiene las áreas de bienestar correspondientes
         return (
           mappedAreas.length > 0 &&
           professional.wellness_areas &&
@@ -210,10 +205,6 @@ const HomeUserPage = () => {
           };
 
           const mappedAreas = categoryMap[categoryId] || [];
-
-          if (categoryId === "professionals") {
-            return true;
-          }
 
           return (
             mappedAreas.length > 0 &&

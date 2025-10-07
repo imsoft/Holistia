@@ -15,6 +15,17 @@ Plantilla para el email de confirmación de registro.
 - ✅ Footer con links útiles
 - ✅ Información de contacto
 
+### `reset-password.html`
+Plantilla para el email de restablecimiento de contraseña.
+
+**Características:**
+- ✅ Diseño consistente con confirm-signup
+- ✅ Botón de restablecimiento destacado
+- ✅ Alertas de seguridad destacadas (amarillo)
+- ✅ Consejos de seguridad para contraseñas
+- ✅ Mensaje claro sobre expiración (1 hora)
+- ✅ Información de contacto de soporte
+
 ## 🚀 Cómo Aplicar las Plantillas en Supabase
 
 ### Paso 1: Acceder a Email Templates
@@ -24,7 +35,7 @@ Plantilla para el email de confirmación de registro.
 3. Ve a **Authentication** en el menú lateral
 4. Click en **Email Templates**
 
-### Paso 2: Configurar la Plantilla de Confirmación
+### Paso 2A: Configurar la Plantilla de Confirmación de Registro
 
 1. En la pestaña **Email Templates**, selecciona **"Confirm signup"**
 2. En el campo **"Subject heading"**, pon:
@@ -35,6 +46,19 @@ Plantilla para el email de confirmación de registro.
 3. En el campo **"Message body"**, haz click en **"< > Source"** (vista de código)
 4. **Borra todo** el contenido actual
 5. **Copia y pega** el contenido completo del archivo `confirm-signup.html`
+6. Haz click en **"Save"**
+
+### Paso 2B: Configurar la Plantilla de Restablecimiento de Contraseña
+
+1. En la pestaña **Email Templates**, selecciona **"Reset Password"**
+2. En el campo **"Subject heading"**, pon:
+   ```
+   Restablecer tu contraseña - Holistia
+   ```
+
+3. En el campo **"Message body"**, haz click en **"< > Source"** (vista de código)
+4. **Borra todo** el contenido actual
+5. **Copia y pega** el contenido completo del archivo `reset-password.html`
 6. Haz click en **"Save"**
 
 ### Paso 3: Verificar la Plantilla

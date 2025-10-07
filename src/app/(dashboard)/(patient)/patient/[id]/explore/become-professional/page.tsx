@@ -122,9 +122,19 @@ export default function BecomeProfessionalPage() {
         const profilePhoto = user.user_metadata?.avatar_url;
         setUserProfilePhoto(profilePhoto || null);
         
+        // Obtener datos del usuario desde user_metadata
+        const userMetadata = user.user_metadata || {};
+        const firstName = userMetadata.first_name || "";
+        const lastName = userMetadata.last_name || "";
+        const phone = userMetadata.phone || "";
+        
+        // Pre-llenar el formulario con los datos del usuario
         setFormData((prev) => ({
           ...prev,
+          first_name: firstName,
+          last_name: lastName,
           email: user.email || "",
+          phone: phone,
         }));
 
         // Verificar si ya existe una aplicación
@@ -307,7 +317,7 @@ export default function BecomeProfessionalPage() {
         if (error) throw error;
       }
 
-      toast.error("¡Solicitud enviada exitosamente!");
+      toast.success("¡Solicitud enviada exitosamente!");
       window.location.reload();
     } catch (error) {
       console.error("Error submitting application:", error);

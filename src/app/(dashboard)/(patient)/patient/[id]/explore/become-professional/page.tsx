@@ -204,41 +204,45 @@ export default function BecomeProfessionalPage() {
   }, [userId, supabase]);
 
   const handleInputChange = (field: string, value: string | boolean) => {
-    let normalizedValue = value;
-    
-    // Aplicar normalización según el tipo de campo
-    if (typeof value === 'string') {
-      switch (field) {
-        case 'first_name':
-        case 'last_name':
-          normalizedValue = normalizeName(value);
-          break;
-        case 'email':
-          normalizedValue = value.toLowerCase();
-          break;
-        case 'profession':
-          normalizedValue = normalizeProfession(value);
-          break;
-        case 'address':
-          normalizedValue = normalizeAddress(value);
-          break;
-        case 'city':
-        case 'state':
-        case 'country':
-          normalizedValue = normalizeLocation(value);
-          break;
-        case 'biography':
-          normalizedValue = value; // Mantener como está para biografías
-          break;
-        default:
-          normalizedValue = value;
-      }
-    }
-    
-    setFormData((prev) => ({ ...prev, [field]: normalizedValue }));
+    // Para campos de texto, guardar el valor sin normalizar
+    // La normalización se aplicará en onBlur
+    setFormData((prev) => ({ ...prev, [field]: value }));
     if (errors[field]) {
       setErrors((prev) => ({ ...prev, [field]: "" }));
     }
+  };
+
+  const handleInputBlur = (field: string, value: string) => {
+    let normalizedValue = value;
+    
+    // Aplicar normalización según el tipo de campo al salir del input
+    switch (field) {
+      case 'first_name':
+      case 'last_name':
+        normalizedValue = normalizeName(value);
+        break;
+      case 'email':
+        normalizedValue = value.toLowerCase().trim();
+        break;
+      case 'profession':
+        normalizedValue = normalizeProfession(value);
+        break;
+      case 'address':
+        normalizedValue = normalizeAddress(value);
+        break;
+      case 'city':
+      case 'state':
+      case 'country':
+        normalizedValue = normalizeLocation(value);
+        break;
+      case 'biography':
+        normalizedValue = value.trim(); // Solo eliminar espacios al inicio/final
+        break;
+      default:
+        normalizedValue = value.trim();
+    }
+    
+    setFormData((prev) => ({ ...prev, [field]: normalizedValue }));
   };
 
 
@@ -387,6 +391,9 @@ export default function BecomeProfessionalPage() {
                 onChange={(e) =>
                   handleInputChange("first_name", e.target.value)
                 }
+                onBlur={(e) =>
+                  handleInputBlur("first_name", e.target.value)
+                }
                 placeholder="Tu nombre"
                 className={errors.first_name ? "border-red-500" : ""}
               />
@@ -401,6 +408,7 @@ export default function BecomeProfessionalPage() {
                 id="last_name"
                 value={formData.last_name}
                 onChange={(e) => handleInputChange("last_name", e.target.value)}
+                onBlur={(e) => handleInputBlur("last_name", e.target.value)}
                 placeholder="Tu apellido"
                 className={errors.last_name ? "border-red-500" : ""}
               />
@@ -416,6 +424,7 @@ export default function BecomeProfessionalPage() {
                 type="email"
                 value={formData.email}
                 onChange={(e) => handleInputChange("email", e.target.value)}
+                onBlur={(e) => handleInputBlur("email", e.target.value)}
                 placeholder="tu@email.com"
                 className={errors.email ? "border-red-500" : ""}
               />
@@ -450,6 +459,9 @@ export default function BecomeProfessionalPage() {
                 value={formData.profession}
                 onChange={(e) =>
                   handleInputChange("profession", e.target.value)
+                }
+                onBlur={(e) =>
+                  handleInputBlur("profession", e.target.value)
                 }
                 placeholder="Ej: Psicólogo, Terapeuta, Coach..."
                 className={errors.profession ? "border-red-500" : ""}
@@ -602,6 +614,7 @@ export default function BecomeProfessionalPage() {
                 id="address"
                 value={formData.address}
                 onChange={(e) => handleInputChange("address", e.target.value)}
+                onBlur={(e) => handleInputBlur("address", e.target.value)}
                 placeholder="Calle, número, colonia"
                 className={errors.address ? "border-red-500" : ""}
               />
@@ -616,6 +629,7 @@ export default function BecomeProfessionalPage() {
                 id="city"
                 value={formData.city}
                 onChange={(e) => handleInputChange("city", e.target.value)}
+                onBlur={(e) => handleInputBlur("city", e.target.value)}
                 placeholder="Ciudad"
                 className={errors.city ? "border-red-500" : ""}
               />
@@ -630,6 +644,7 @@ export default function BecomeProfessionalPage() {
                 id="state"
                 value={formData.state}
                 onChange={(e) => handleInputChange("state", e.target.value)}
+                onBlur={(e) => handleInputBlur("state", e.target.value)}
                 placeholder="Estado"
                 className={errors.state ? "border-red-500" : ""}
               />
@@ -702,6 +717,7 @@ export default function BecomeProfessionalPage() {
                 id="biography"
                 value={formData.biography}
                 onChange={(e) => handleInputChange("biography", e.target.value)}
+                onBlur={(e) => handleInputBlur("biography", e.target.value)}
                 placeholder="Cuéntanos sobre ti, tu experiencia y cómo puedes ayudar a tus pacientes..."
                 className={`min-h-[200px] ${
                   errors.biography ? "border-red-500" : ""

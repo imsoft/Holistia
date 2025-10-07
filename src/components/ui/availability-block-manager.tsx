@@ -402,17 +402,17 @@ export default function AvailabilityBlockManager({ professionalId, userId: propU
         <div className="grid gap-6">
           {blocks.map((block) => (
             <Card key={block.id}>
-              <CardHeader className="pb-4">
+              <CardHeader className="pb-4 pt-6">
                 <div className="flex justify-between items-start">
                   <div className="flex-1">
-                    <CardTitle className="flex items-center gap-2">
+                    <CardTitle className="flex items-center gap-2 mb-3">
                       {getBlockTypeIcon(block.block_type)}
                       {block.title}
                       {block.is_recurring && (
                         <Badge variant="secondary">Recurrente</Badge>
                       )}
                     </CardTitle>
-                    <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
+                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
                       <Badge variant="outline">
                         {getBlockTypeLabel(block.block_type)}
                       </Badge>

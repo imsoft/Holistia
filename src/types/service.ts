@@ -4,7 +4,11 @@ export interface Service {
   description: string;
   type: "session" | "program"; // Sesión individual o programa
   modality: "presencial" | "online" | "both"; // Modalidad de atención
-  duration: number; // Duración en minutos
+  duration: number; // Duración en minutos (para sesiones)
+  program_duration?: { // Duración del programa (para programas)
+    value: number;
+    unit: "meses" | "semanas" | "dias" | "horas";
+  };
   cost: number | { presencial?: number; online?: number }; // Temporal: puede ser number o jsonb
   isactive: boolean; // Nombre del campo en la base de datos
   created_at?: string;

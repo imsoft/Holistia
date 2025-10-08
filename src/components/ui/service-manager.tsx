@@ -58,6 +58,10 @@ export function ServiceManager({ professionalId, userId }: ServiceManagerProps) 
     duration: 60,
     cost: undefined,
   });
+  const [programDuration, setProgramDuration] = useState({
+    value: 1,
+    unit: "semanas" as "meses" | "semanas" | "dias" | "horas"
+  });
 
   const supabase = createClient();
 
@@ -104,7 +108,11 @@ export function ServiceManager({ professionalId, userId }: ServiceManagerProps) 
         description: formData.description.trim(),
         type: formData.type,
         modality: formData.modality,
-        duration: formData.duration,
+        duration: formData.type === "session" ? formData.duration : null,
+        program_duration: formData.type === "program" ? {
+          value: programDuration.value,
+          unit: programDuration.unit
+        } : null,
         cost: formData.cost,
         isactive: true,
       };
@@ -156,6 +164,17 @@ export function ServiceManager({ professionalId, userId }: ServiceManagerProps) 
       duration: service.duration,
       cost: serviceCost,
     });
+
+    // Si es un programa, intentar extraer la duración del programa
+    if (service.type === "program") {
+      // Por ahora, establecer valores por defecto para programas
+      // En el futuro se puede extraer de metadata o campos adicionales
+      setProgramDuration({
+        value: 1,
+        unit: "semanas"
+      });
+    }
+    
     setIsDialogOpen(true);
   };
 
@@ -203,6 +222,10 @@ export function ServiceManager({ professionalId, userId }: ServiceManagerProps) 
       modality: "both",
       duration: 60,
       cost: undefined,
+    });
+    setProgramDuration({
+      value: 1,
+      unit: "semanas"
     });
     setEditingService(null);
   };
@@ -338,21 +361,56 @@ export function ServiceManager({ professionalId, userId }: ServiceManagerProps) 
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="duration">Duración (minutos) *</Label>
-                  <Input
-                    id="duration"
-                    type="number"
-                    value={formData.duration}
-                    onChange={(e) =>
-                      setFormData({ ...formData, duration: parseInt(e.target.value) || 0 })
-                    }
-                    placeholder="60"
-                    min="15"
-                    max="480"
-                    required
-                  />
-                </div>
+                {formData.type === "session" ? (
+                  <div className="space-y-2">
+                    <Label htmlFor="duration">Duración (minutos) *</Label>
+                    <Input
+                      id="duration"
+                      type="number"
+                      value={formData.duration}
+                      onChange={(e) =>
+                        setFormData({ ...formData, duration: parseInt(e.target.value) || 0 })
+                      }
+                      placeholder="60"
+                      min="15"
+                      max="480"
+                      required
+                    />
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <Label>Duración del Programa *</Label>
+                    <div className="flex gap-2">
+                      <Input
+                        type="number"
+                        value={programDuration.value}
+                        onChange={(e) =>
+                          setProgramDuration({ ...programDuration, value: parseInt(e.target.value) || 1 })
+                        }
+                        placeholder="1"
+                        min="1"
+                        className="flex-1"
+                        required
+                      />
+                      <Select
+                        value={programDuration.unit}
+                        onValueChange={(value: "meses" | "semanas" | "dias" | "horas") =>
+                          setProgramDuration({ ...programDuration, unit: value })
+                        }
+                      >
+                        <SelectTrigger className="w-32">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="horas">Horas</SelectItem>
+                          <SelectItem value="dias">Días</SelectItem>
+                          <SelectItem value="semanas">Semanas</SelectItem>
+                          <SelectItem value="meses">Meses</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -425,7 +483,14 @@ export function ServiceManager({ professionalId, userId }: ServiceManagerProps) 
                       </div>
                       <div className="flex items-center gap-1">
                         <Clock className="w-4 h-4" />
-                        <span>{service.duration} min</span>
+                        <span>
+                          {service.type === "session" 
+                            ? `${service.duration} min` 
+                            : service.program_duration 
+                              ? `${service.program_duration.value} ${service.program_duration.unit}`
+                              : "Duración no especificada"
+                          }
+                        </span>
                       </div>
                       <div className="flex items-center gap-1">
                         {getTypeIcon(service.type)}

@@ -48,6 +48,7 @@ export function EventForm({ event, professionals, onSuccess, onCancel }: EventFo
 
   const [uploadingImages, setUploadingImages] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [tempEventId] = useState(() => `temp-${Date.now()}-${Math.random().toString(36).substring(2)}`);
 
   const supabase = createClient();
 
@@ -147,7 +148,8 @@ export function EventForm({ event, professionals, onSuccess, onCancel }: EventFo
 
         const fileExt = file.name.split('.').pop();
         const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
-        const filePath = `events/${fileName}`;
+        const eventId = event?.id || tempEventId;
+        const filePath = `${eventId}/${fileName}`;
 
         const { error: uploadError } = await supabase.storage
           .from('event-gallery')
@@ -214,11 +216,53 @@ export function EventForm({ event, professionals, onSuccess, onCancel }: EventFo
         toast.success("Evento actualizado exitosamente");
       } else {
         // Crear nuevo evento
-        const { error } = await supabase
+        const { data: newEvent, error } = await supabase
           .from("events_workshops")
-          .insert(eventData);
+          .insert(eventData)
+          .select()
+          .single();
 
         if (error) throw error;
+
+        // Si se creó un evento nuevo y hay imágenes en carpeta temporal, moverlas a la carpeta real
+        if (newEvent && formData.gallery_images.length > 0) {
+          const newEventId = newEvent.id;
+          const updatedGalleryImages: string[] = [];
+
+          for (const imageUrl of formData.gallery_images) {
+            // Extraer el nombre del archivo de la URL
+            const fileName = imageUrl.split('/').pop();
+            if (fileName) {
+              // Copiar de carpeta temporal a carpeta real
+              const { error: copyError } = await supabase.storage
+                .from('event-gallery')
+                .copy(`${tempEventId}/${fileName}`, `${newEventId}/${fileName}`);
+
+              if (!copyError) {
+                // Obtener la nueva URL pública
+                const { data } = supabase.storage
+                  .from('event-gallery')
+                  .getPublicUrl(`${newEventId}/${fileName}`);
+                
+                updatedGalleryImages.push(data.publicUrl);
+
+                // Eliminar el archivo temporal
+                await supabase.storage
+                  .from('event-gallery')
+                  .remove([`${tempEventId}/${fileName}`]);
+              }
+            }
+          }
+
+          // Actualizar el evento con las nuevas URLs de imágenes
+          if (updatedGalleryImages.length > 0) {
+            await supabase
+              .from("events_workshops")
+              .update({ gallery_images: updatedGalleryImages })
+              .eq("id", newEventId);
+          }
+        }
+
         toast.success("Evento creado exitosamente");
       }
 

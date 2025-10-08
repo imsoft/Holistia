@@ -13,7 +13,6 @@ import {
   Package,
   Clock,
   CalendarX,
-  CalendarDays,
 } from "lucide-react";
 import {
   Sidebar,
@@ -72,11 +71,6 @@ const getNavItems = (id: string): { mainNavItems: ProfessionalNavItem[] } => ({
       title: "Citas",
       url: `/professional/${id}/appointments`,
       icon: Calendar,
-    },
-    {
-      title: "Eventos",
-      url: `/professional/${id}/events`,
-      icon: CalendarDays,
     },
     {
       title: "Pacientes",

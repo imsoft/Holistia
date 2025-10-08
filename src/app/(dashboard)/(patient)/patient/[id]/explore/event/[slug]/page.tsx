@@ -46,7 +46,8 @@ const EventDetailPage = () => {
   const supabase = createClient();
 
   // Extraer ID del evento del slug
-  const eventId = slug.split('-').pop();
+  // El slug tiene formato: "nombre-del-evento--uuid-del-evento"
+  const eventId = slug.includes('--') ? slug.split('--').pop() : slug.split('-').pop();
 
   useEffect(() => {
     if (eventId) {

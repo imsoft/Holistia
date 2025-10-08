@@ -456,7 +456,7 @@ const HomeUserPage = () => {
       .replace(/[^a-z0-9\s-]/g, '')
       .replace(/\s+/g, '-')
       .trim();
-    return `${slug}-${eventId}`;
+    return `${slug}--${eventId}`;
   };
 
   return (

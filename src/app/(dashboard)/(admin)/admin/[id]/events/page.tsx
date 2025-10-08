@@ -18,8 +18,10 @@ import {
   Users, 
   Clock,
   Edit,
-  Trash2
+  Trash2,
+  Image as ImageIcon
 } from "lucide-react";
+import Image from "next/image";
 import {
   Select,
   SelectContent,
@@ -313,6 +315,25 @@ const EventsAdminPage = () => {
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {filteredEvents.map((event) => (
               <Card key={event.id} className={`py-6 ${!event.is_active ? "opacity-60" : ""}`}>
+                {/* Event Image */}
+                {event.image_url ? (
+                  <div className="relative h-48 w-full overflow-hidden rounded-t-lg">
+                    <Image
+                      src={event.image_url}
+                      alt={event.name}
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
+                ) : (
+                  <div className="h-48 w-full bg-muted rounded-t-lg flex items-center justify-center">
+                    <div className="text-center text-muted-foreground">
+                      <ImageIcon className="h-12 w-12 mx-auto mb-2" />
+                      <p className="text-sm">Sin imagen</p>
+                    </div>
+                  </div>
+                )}
+                
                 <CardHeader className="pb-4">
                   <div className="flex justify-between items-start">
                     <div className="flex-1">
@@ -326,6 +347,12 @@ const EventsAdminPage = () => {
                         </Badge>
                         {!event.is_active && (
                           <Badge variant="destructive">Inactivo</Badge>
+                        )}
+                        {event.gallery_images && event.gallery_images.length > 0 && (
+                          <Badge variant="outline" className="flex items-center gap-1">
+                            <ImageIcon className="h-3 w-3" />
+                            {event.gallery_images.length} imagen{event.gallery_images.length !== 1 ? 'es' : ''}
+                          </Badge>
                         )}
                       </div>
                     </div>

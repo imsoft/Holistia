@@ -14,6 +14,7 @@ export interface EventWorkshop {
   description?: string;
   participant_level: "principiante" | "medio" | "avanzado";
   professional_id?: string;
+  image_url?: string; // URL de la imagen principal del evento
   gallery_images: string[];
   is_active: boolean;
   created_at?: string;
@@ -36,6 +37,7 @@ export interface EventFormData {
   description: string;
   participant_level: "principiante" | "medio" | "avanzado";
   professional_id: string;
+  image_url?: string; // URL de la imagen principal del evento
   gallery_images: string[];
 }
 

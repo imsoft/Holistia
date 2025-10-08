@@ -314,9 +314,9 @@ const EventsAdminPage = () => {
         ) : (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {filteredEvents.map((event) => (
-              <Card key={event.id} className={`py-6 ${!event.is_active ? "opacity-60" : ""}`}>
+              <Card key={event.id} className={`${!event.is_active ? "opacity-60" : ""}`}>
                 {/* Event Image */}
-                {event.image_url ? (
+                {event.image_url && (
                   <div className="relative h-48 w-full overflow-hidden rounded-t-lg">
                     <Image
                       src={event.image_url}
@@ -325,16 +325,9 @@ const EventsAdminPage = () => {
                       className="object-cover"
                     />
                   </div>
-                ) : (
-                  <div className="h-48 w-full bg-muted rounded-t-lg flex items-center justify-center">
-                    <div className="text-center text-muted-foreground">
-                      <ImageIcon className="h-12 w-12 mx-auto mb-2" />
-                      <p className="text-sm">Sin imagen</p>
-                    </div>
-                  </div>
                 )}
                 
-                <CardHeader className="pb-4">
+                <CardHeader className="pb-4 pt-6">
                   <div className="flex justify-between items-start">
                     <div className="flex-1">
                       <CardTitle className="text-lg mb-2">{event.name}</CardTitle>

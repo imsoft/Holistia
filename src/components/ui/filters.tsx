@@ -4,13 +4,6 @@ import { useState } from "react";
 import { Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
 const filters = [
   {
@@ -196,65 +189,77 @@ export const Filters = ({ onFilterChange, eventFilters, onEventFilterChange }: F
                 <h3 className="text-sm font-medium text-foreground mb-4">Filtros de Eventos</h3>
                 <div className="space-y-4">
                   <div>
-                    <label className="text-xs font-medium text-muted-foreground mb-2 block">
+                    <label className="text-xs font-medium text-muted-foreground mb-3 block">
                       Categoría
                     </label>
-                    <Select
-                      value={eventFilters.category}
-                      onValueChange={(value) => onEventFilterChange('category', value)}
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Categoría" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">Todas las categorías</SelectItem>
-                        <SelectItem value="espiritualidad">Espiritualidad</SelectItem>
-                        <SelectItem value="salud_mental">Salud Mental</SelectItem>
-                        <SelectItem value="salud_fisica">Salud Física</SelectItem>
-                        <SelectItem value="alimentacion">Alimentación</SelectItem>
-                        <SelectItem value="social">Social</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <div className="space-y-2">
+                      {[
+                        { value: "all", label: "Todas las categorías" },
+                        { value: "espiritualidad", label: "Espiritualidad" },
+                        { value: "salud_mental", label: "Salud Mental" },
+                        { value: "salud_fisica", label: "Salud Física" },
+                        { value: "alimentacion", label: "Alimentación" },
+                        { value: "social", label: "Social" }
+                      ].map((option) => (
+                        <label key={option.value} className="flex items-center space-x-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={eventFilters.category === option.value}
+                            onChange={() => onEventFilterChange('category', option.value)}
+                            className="rounded border-border"
+                          />
+                          <span className="text-sm text-foreground">{option.label}</span>
+                        </label>
+                      ))}
+                    </div>
                   </div>
                   
                   <div>
-                    <label className="text-xs font-medium text-muted-foreground mb-2 block">
+                    <label className="text-xs font-medium text-muted-foreground mb-3 block">
                       Precio
                     </label>
-                    <Select
-                      value={eventFilters.price}
-                      onValueChange={(value) => onEventFilterChange('price', value)}
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Precio" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">Todos los precios</SelectItem>
-                        <SelectItem value="free">Gratuitos</SelectItem>
-                        <SelectItem value="paid">Con costo</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <div className="space-y-2">
+                      {[
+                        { value: "all", label: "Todos los precios" },
+                        { value: "free", label: "Gratuitos" },
+                        { value: "paid", label: "Con costo" }
+                      ].map((option) => (
+                        <label key={option.value} className="flex items-center space-x-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={eventFilters.price === option.value}
+                            onChange={() => onEventFilterChange('price', option.value)}
+                            className="rounded border-border"
+                          />
+                          <span className="text-sm text-foreground">{option.label}</span>
+                        </label>
+                      ))}
+                    </div>
                   </div>
                   
                   <div>
-                    <label className="text-xs font-medium text-muted-foreground mb-2 block">
+                    <label className="text-xs font-medium text-muted-foreground mb-3 block">
                       Fecha
                     </label>
-                    <Select
-                      value={eventFilters.date}
-                      onValueChange={(value) => onEventFilterChange('date', value)}
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Fecha" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">Todas las fechas</SelectItem>
-                        <SelectItem value="today">Hoy</SelectItem>
-                        <SelectItem value="tomorrow">Mañana</SelectItem>
-                        <SelectItem value="week">Esta semana</SelectItem>
-                        <SelectItem value="month">Este mes</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <div className="space-y-2">
+                      {[
+                        { value: "all", label: "Todas las fechas" },
+                        { value: "today", label: "Hoy" },
+                        { value: "tomorrow", label: "Mañana" },
+                        { value: "week", label: "Esta semana" },
+                        { value: "month", label: "Este mes" }
+                      ].map((option) => (
+                        <label key={option.value} className="flex items-center space-x-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={eventFilters.date === option.value}
+                            onChange={() => onEventFilterChange('date', option.value)}
+                            className="rounded border-border"
+                          />
+                          <span className="text-sm text-foreground">{option.label}</span>
+                        </label>
+                      ))}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -290,65 +295,77 @@ export const Filters = ({ onFilterChange, eventFilters, onEventFilterChange }: F
               <h3 className="text-sm font-medium text-foreground mb-4">Filtros de Eventos</h3>
               <div className="space-y-4">
                 <div>
-                  <label className="text-xs font-medium text-muted-foreground mb-2 block">
+                  <label className="text-xs font-medium text-muted-foreground mb-3 block">
                     Categoría
                   </label>
-                  <Select
-                    value={eventFilters.category}
-                    onValueChange={(value) => onEventFilterChange('category', value)}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Categoría" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Todas las categorías</SelectItem>
-                      <SelectItem value="espiritualidad">Espiritualidad</SelectItem>
-                      <SelectItem value="salud_mental">Salud Mental</SelectItem>
-                      <SelectItem value="salud_fisica">Salud Física</SelectItem>
-                      <SelectItem value="alimentacion">Alimentación</SelectItem>
-                      <SelectItem value="social">Social</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <div className="space-y-2">
+                    {[
+                      { value: "all", label: "Todas las categorías" },
+                      { value: "espiritualidad", label: "Espiritualidad" },
+                      { value: "salud_mental", label: "Salud Mental" },
+                      { value: "salud_fisica", label: "Salud Física" },
+                      { value: "alimentacion", label: "Alimentación" },
+                      { value: "social", label: "Social" }
+                    ].map((option) => (
+                      <label key={option.value} className="flex items-center space-x-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={eventFilters.category === option.value}
+                          onChange={() => onEventFilterChange('category', option.value)}
+                          className="rounded border-border"
+                        />
+                        <span className="text-sm text-foreground">{option.label}</span>
+                      </label>
+                    ))}
+                  </div>
                 </div>
                 
                 <div>
-                  <label className="text-xs font-medium text-muted-foreground mb-2 block">
+                  <label className="text-xs font-medium text-muted-foreground mb-3 block">
                     Precio
                   </label>
-                  <Select
-                    value={eventFilters.price}
-                    onValueChange={(value) => onEventFilterChange('price', value)}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Precio" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Todos los precios</SelectItem>
-                      <SelectItem value="free">Gratuitos</SelectItem>
-                      <SelectItem value="paid">Con costo</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <div className="space-y-2">
+                    {[
+                      { value: "all", label: "Todos los precios" },
+                      { value: "free", label: "Gratuitos" },
+                      { value: "paid", label: "Con costo" }
+                    ].map((option) => (
+                      <label key={option.value} className="flex items-center space-x-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={eventFilters.price === option.value}
+                          onChange={() => onEventFilterChange('price', option.value)}
+                          className="rounded border-border"
+                        />
+                        <span className="text-sm text-foreground">{option.label}</span>
+                      </label>
+                    ))}
+                  </div>
                 </div>
                 
                 <div>
-                  <label className="text-xs font-medium text-muted-foreground mb-2 block">
+                  <label className="text-xs font-medium text-muted-foreground mb-3 block">
                     Fecha
                   </label>
-                  <Select
-                    value={eventFilters.date}
-                    onValueChange={(value) => onEventFilterChange('date', value)}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Fecha" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Todas las fechas</SelectItem>
-                      <SelectItem value="today">Hoy</SelectItem>
-                      <SelectItem value="tomorrow">Mañana</SelectItem>
-                      <SelectItem value="week">Esta semana</SelectItem>
-                      <SelectItem value="month">Este mes</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <div className="space-y-2">
+                    {[
+                      { value: "all", label: "Todas las fechas" },
+                      { value: "today", label: "Hoy" },
+                      { value: "tomorrow", label: "Mañana" },
+                      { value: "week", label: "Esta semana" },
+                      { value: "month", label: "Este mes" }
+                    ].map((option) => (
+                      <label key={option.value} className="flex items-center space-x-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={eventFilters.date === option.value}
+                          onChange={() => onEventFilterChange('date', option.value)}
+                          className="rounded border-border"
+                        />
+                        <span className="text-sm text-foreground">{option.label}</span>
+                      </label>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>

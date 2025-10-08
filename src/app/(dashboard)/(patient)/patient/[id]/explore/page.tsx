@@ -576,20 +576,20 @@ const HomeUserPage = () => {
                   ) : (
                     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                       {filteredEvents.map((event) => (
-                        <Card key={event.id} className="hover:shadow-lg transition-shadow py-6">
+                        <Card key={event.id} className="hover:shadow-lg transition-shadow overflow-hidden">
+                          {/* Imagen del evento - abarca toda la parte superior */}
+                          {event.gallery_images && event.gallery_images.length > 0 && (
+                            <div className="relative">
+                              <Image
+                                src={event.gallery_images[0]}
+                                alt={event.name}
+                                width={400}
+                                height={192}
+                                className="w-full h-48 object-cover"
+                              />
+                            </div>
+                          )}
                           <CardHeader className="pb-4">
-                            {/* Imagen del evento */}
-                            {event.gallery_images && event.gallery_images.length > 0 && (
-                              <div className="mb-4">
-                                <Image
-                                  src={event.gallery_images[0]}
-                                  alt={event.name}
-                                  width={400}
-                                  height={192}
-                                  className="w-full h-48 object-cover rounded-lg"
-                                />
-                              </div>
-                            )}
                             <div className="flex justify-between items-start">
                               <div className="flex-1">
                                 <CardTitle className="text-lg mb-2">{event.name}</CardTitle>

@@ -187,79 +187,145 @@ export const Filters = ({ onFilterChange, eventFilters, onEventFilterChange }: F
             {eventFilters && onEventFilterChange && (
               <div className="py-6">
                 <h3 className="text-sm font-medium text-foreground mb-4">Filtros de Eventos</h3>
-                <div className="space-y-4">
+                <div className="space-y-6">
                   <div>
-                    <label className="text-xs font-medium text-muted-foreground mb-3 block">
-                      Categoría
-                    </label>
-                    <div className="space-y-2">
-                      {[
-                        { value: "all", label: "Todas las categorías" },
-                        { value: "espiritualidad", label: "Espiritualidad" },
-                        { value: "salud_mental", label: "Salud Mental" },
-                        { value: "salud_fisica", label: "Salud Física" },
-                        { value: "alimentacion", label: "Alimentación" },
-                        { value: "social", label: "Social" }
-                      ].map((option) => (
-                        <label key={option.value} className="flex items-center space-x-2 cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={eventFilters.category === option.value}
-                            onChange={() => onEventFilterChange('category', option.value)}
-                            className="rounded border-border"
-                          />
-                          <span className="text-sm text-muted-foreground">{option.label}</span>
-                        </label>
-                      ))}
-                    </div>
+                    <fieldset>
+                      <legend className="block text-sm font-medium text-foreground mb-6">
+                        Categoría
+                      </legend>
+                      <div className="space-y-4">
+                        {[
+                          { value: "all", label: "Todas las categorías" },
+                          { value: "espiritualidad", label: "Espiritualidad" },
+                          { value: "salud_mental", label: "Salud Mental" },
+                          { value: "salud_fisica", label: "Salud Física" },
+                          { value: "alimentacion", label: "Alimentación" },
+                          { value: "social", label: "Social" }
+                        ].map((option, optionIdx) => (
+                          <div key={option.value} className="flex gap-3">
+                            <div className="flex h-5 shrink-0 items-center">
+                              <div className="group grid size-4 grid-cols-1">
+                                <input
+                                  checked={eventFilters.category === option.value}
+                                  onChange={() => onEventFilterChange('category', option.value)}
+                                  id={`event-category-${optionIdx}`}
+                                  name="event-category"
+                                  type="radio"
+                                  className="col-start-1 row-start-1 appearance-none rounded-sm border border-border bg-background checked:border-primary checked:bg-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:border-border disabled:bg-muted disabled:checked:bg-muted"
+                                />
+                                <svg
+                                  fill="none"
+                                  viewBox="0 0 14 14"
+                                  className="pointer-events-none col-start-1 row-start-1 size-3.5 self-center justify-self-center stroke-primary-foreground group-has-disabled:stroke-muted-foreground"
+                                >
+                                  <circle
+                                    cx="7"
+                                    cy="7"
+                                    r="3"
+                                    className="opacity-0 group-has-checked:opacity-100"
+                                  />
+                                </svg>
+                              </div>
+                            </div>
+                            <label htmlFor={`event-category-${optionIdx}`} className="text-sm text-muted-foreground cursor-pointer">
+                              {option.label}
+                            </label>
+                          </div>
+                        ))}
+                      </div>
+                    </fieldset>
                   </div>
                   
                   <div>
-                    <label className="text-xs font-medium text-muted-foreground mb-3 block">
-                      Precio
-                    </label>
-                    <div className="space-y-2">
-                      {[
-                        { value: "all", label: "Todos los precios" },
-                        { value: "free", label: "Gratuitos" },
-                        { value: "paid", label: "Con costo" }
-                      ].map((option) => (
-                        <label key={option.value} className="flex items-center space-x-2 cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={eventFilters.price === option.value}
-                            onChange={() => onEventFilterChange('price', option.value)}
-                            className="rounded border-border"
-                          />
-                          <span className="text-sm text-muted-foreground">{option.label}</span>
-                        </label>
-                      ))}
-                    </div>
+                    <fieldset>
+                      <legend className="block text-sm font-medium text-foreground mb-6">
+                        Precio
+                      </legend>
+                      <div className="space-y-4">
+                        {[
+                          { value: "all", label: "Todos los precios" },
+                          { value: "free", label: "Gratuitos" },
+                          { value: "paid", label: "Con costo" }
+                        ].map((option, optionIdx) => (
+                          <div key={option.value} className="flex gap-3">
+                            <div className="flex h-5 shrink-0 items-center">
+                              <div className="group grid size-4 grid-cols-1">
+                                <input
+                                  checked={eventFilters.price === option.value}
+                                  onChange={() => onEventFilterChange('price', option.value)}
+                                  id={`event-price-${optionIdx}`}
+                                  name="event-price"
+                                  type="radio"
+                                  className="col-start-1 row-start-1 appearance-none rounded-sm border border-border bg-background checked:border-primary checked:bg-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:border-border disabled:bg-muted disabled:checked:bg-muted"
+                                />
+                                <svg
+                                  fill="none"
+                                  viewBox="0 0 14 14"
+                                  className="pointer-events-none col-start-1 row-start-1 size-3.5 self-center justify-self-center stroke-primary-foreground group-has-disabled:stroke-muted-foreground"
+                                >
+                                  <circle
+                                    cx="7"
+                                    cy="7"
+                                    r="3"
+                                    className="opacity-0 group-has-checked:opacity-100"
+                                  />
+                                </svg>
+                              </div>
+                            </div>
+                            <label htmlFor={`event-price-${optionIdx}`} className="text-sm text-muted-foreground cursor-pointer">
+                              {option.label}
+                            </label>
+                          </div>
+                        ))}
+                      </div>
+                    </fieldset>
                   </div>
                   
                   <div>
-                    <label className="text-xs font-medium text-muted-foreground mb-3 block">
-                      Fecha
-                    </label>
-                    <div className="space-y-2">
-                      {[
-                        { value: "all", label: "Todas las fechas" },
-                        { value: "today", label: "Hoy" },
-                        { value: "tomorrow", label: "Mañana" },
-                        { value: "week", label: "Esta semana" },
-                        { value: "month", label: "Este mes" }
-                      ].map((option) => (
-                        <label key={option.value} className="flex items-center space-x-2 cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={eventFilters.date === option.value}
-                            onChange={() => onEventFilterChange('date', option.value)}
-                            className="rounded border-border"
-                          />
-                          <span className="text-sm text-muted-foreground">{option.label}</span>
-                        </label>
-                      ))}
-                    </div>
+                    <fieldset>
+                      <legend className="block text-sm font-medium text-foreground mb-6">
+                        Fecha
+                      </legend>
+                      <div className="space-y-4">
+                        {[
+                          { value: "all", label: "Todas las fechas" },
+                          { value: "today", label: "Hoy" },
+                          { value: "tomorrow", label: "Mañana" },
+                          { value: "week", label: "Esta semana" },
+                          { value: "month", label: "Este mes" }
+                        ].map((option, optionIdx) => (
+                          <div key={option.value} className="flex gap-3">
+                            <div className="flex h-5 shrink-0 items-center">
+                              <div className="group grid size-4 grid-cols-1">
+                                <input
+                                  checked={eventFilters.date === option.value}
+                                  onChange={() => onEventFilterChange('date', option.value)}
+                                  id={`event-date-${optionIdx}`}
+                                  name="event-date"
+                                  type="radio"
+                                  className="col-start-1 row-start-1 appearance-none rounded-sm border border-border bg-background checked:border-primary checked:bg-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:border-border disabled:bg-muted disabled:checked:bg-muted"
+                                />
+                                <svg
+                                  fill="none"
+                                  viewBox="0 0 14 14"
+                                  className="pointer-events-none col-start-1 row-start-1 size-3.5 self-center justify-self-center stroke-primary-foreground group-has-disabled:stroke-muted-foreground"
+                                >
+                                  <circle
+                                    cx="7"
+                                    cy="7"
+                                    r="3"
+                                    className="opacity-0 group-has-checked:opacity-100"
+                                  />
+                                </svg>
+                              </div>
+                            </div>
+                            <label htmlFor={`event-date-${optionIdx}`} className="text-sm text-muted-foreground cursor-pointer">
+                              {option.label}
+                            </label>
+                          </div>
+                        ))}
+                      </div>
+                    </fieldset>
                   </div>
                 </div>
               </div>
@@ -314,7 +380,7 @@ export const Filters = ({ onFilterChange, eventFilters, onEventFilterChange }: F
                           onChange={() => onEventFilterChange('category', option.value)}
                           className="rounded border-border"
                         />
-                        <span className="text-sm text-foreground">{option.label}</span>
+                        <span className="text-sm text-muted-foreground">{option.label}</span>
                       </label>
                     ))}
                   </div>
@@ -337,7 +403,7 @@ export const Filters = ({ onFilterChange, eventFilters, onEventFilterChange }: F
                           onChange={() => onEventFilterChange('price', option.value)}
                           className="rounded border-border"
                         />
-                        <span className="text-sm text-foreground">{option.label}</span>
+                        <span className="text-sm text-muted-foreground">{option.label}</span>
                       </label>
                     ))}
                   </div>
@@ -362,7 +428,7 @@ export const Filters = ({ onFilterChange, eventFilters, onEventFilterChange }: F
                           onChange={() => onEventFilterChange('date', option.value)}
                           className="rounded border-border"
                         />
-                        <span className="text-sm text-foreground">{option.label}</span>
+                        <span className="text-sm text-muted-foreground">{option.label}</span>
                       </label>
                     ))}
                   </div>

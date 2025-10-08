@@ -240,7 +240,6 @@ export function AdminSidebar() {
                   height={40}
                   className="h-10 w-10 aspect-square rounded-full object-cover border-2 border-primary/20 hover:border-primary/40 transition-colors"
                 />
-                <div className="absolute -bottom-1 -right-1 h-4 w-4 rounded-full bg-green-500 border-2 border-background"></div>
               </div>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
@@ -253,7 +252,6 @@ export function AdminSidebar() {
                     height={40}
                     className="h-10 w-10 aspect-square rounded-full object-cover border-2 border-primary/20"
                   />
-                  <div className="absolute -bottom-1 -right-1 h-4 w-4 rounded-full bg-green-500 border-2 border-background"></div>
                 </div>
                 <div className="flex flex-col space-y-1 leading-none">
                   <p className="font-medium text-foreground">{admin.name}</p>

@@ -66,23 +66,9 @@ export default function EventPaymentButton({
     }
   };
 
-  // Calculate commission (25% for events)
-  const commissionAmount = Math.round(serviceAmount * 0.25 * 100) / 100;
 
   return (
     <div className="space-y-4">
-      <div className="text-center">
-        <p className="text-2xl font-bold text-primary">
-          ${commissionAmount.toFixed(2)} MXN
-        </p>
-        <p className="text-sm text-muted-foreground">
-          Comisión del 25% del costo total
-        </p>
-        <p className="text-xs text-muted-foreground mt-1">
-          Costo total del evento: ${serviceAmount.toFixed(2)} MXN
-        </p>
-      </div>
-
       <Button 
         className={`w-full ${className || ''}`}
         size="lg"

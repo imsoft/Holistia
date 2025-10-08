@@ -4,10 +4,10 @@ import React, { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import { Brain, Sparkles, Activity, Users, Apple, X, Calendar, MapPin, Clock } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 import { Filters } from "@/components/ui/filters";
 import { ProfessionalCard } from "@/components/ui/professional-card";
 import { createClient } from "@/utils/supabase/client";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { EventWorkshop } from "@/types/event";
@@ -450,6 +450,15 @@ const HomeUserPage = () => {
     return timeString.substring(0, 5); // HH:MM
   };
 
+  const generateEventSlug = (eventName: string, eventId: string) => {
+    const slug = eventName
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .trim();
+    return `${slug}-${eventId}`;
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -576,63 +585,64 @@ const HomeUserPage = () => {
                   ) : (
                     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                       {filteredEvents.map((event) => (
-                        <Card key={event.id} className="hover:shadow-lg transition-shadow overflow-hidden">
-                          {/* Imagen del evento - abarca toda la parte superior */}
-                          {event.gallery_images && event.gallery_images.length > 0 && (
-                            <div className="relative">
-                              <Image
-                                src={event.gallery_images[0]}
-                                alt={event.name}
-                                width={400}
-                                height={192}
-                                className="w-full h-48 object-cover"
-                              />
-                            </div>
-                          )}
-                          <CardHeader className="pb-4">
-                            <div className="flex justify-between items-start">
-                              <div className="flex-1">
-                                <CardTitle className="text-lg mb-2">{event.name}</CardTitle>
-                                <div className="flex flex-wrap gap-2 mb-3">
-                                  <Badge variant="secondary">
-                                    {getCategoryLabel(event.category)}
-                                  </Badge>
-                                  <Badge variant={event.is_free ? "default" : "outline"}>
-                                    {event.is_free ? "Gratuito" : `$${event.price}`}
-                                  </Badge>
+                        <Link 
+                          key={event.id} 
+                          href={`/patient/${userId}/explore/event/${generateEventSlug(event.name, event.id!)}`}
+                          className="block"
+                        >
+                          <Card className="hover:shadow-lg hover:-translate-y-2 transition-all duration-300 overflow-hidden cursor-pointer h-full flex flex-col">
+                            {/* Imagen del evento - abarca toda la parte superior */}
+                            {event.gallery_images && event.gallery_images.length > 0 && (
+                              <div className="relative">
+                                <Image
+                                  src={event.gallery_images[0]}
+                                  alt={event.name}
+                                  width={400}
+                                  height={192}
+                                  className="w-full h-48 object-cover"
+                                />
+                              </div>
+                            )}
+                            <CardHeader className="pb-4">
+                              <div className="flex justify-between items-start">
+                                <div className="flex-1">
+                                  <CardTitle className="text-lg mb-2">{event.name}</CardTitle>
+                                  <div className="flex flex-wrap gap-2 mb-3">
+                                    <Badge variant="secondary">
+                                      {getCategoryLabel(event.category)}
+                                    </Badge>
+                                    <Badge variant={event.is_free ? "default" : "outline"}>
+                                      {event.is_free ? "Gratuito" : `$${event.price}`}
+                                    </Badge>
+                                  </div>
                                 </div>
                               </div>
-                            </div>
-                          </CardHeader>
-                          <CardContent className="space-y-3">
-                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                              <Calendar className="w-4 h-4" />
-                              <span>{formatDate(event.event_date)} a las {formatTime(event.event_time)}</span>
-                            </div>
-                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                              <MapPin className="w-4 h-4" />
-                              <span className="truncate">{event.location}</span>
-                            </div>
-                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                              <Users className="w-4 h-4" />
-                              <span>Cupo: {event.max_capacity} personas</span>
-                            </div>
-                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                              <Clock className="w-4 h-4" />
-                              <span>{event.duration_hours} horas</span>
-                            </div>
-                            {event.description && (
-                              <p className="text-sm text-muted-foreground line-clamp-2">
-                                {event.description}
-                              </p>
-                            )}
-                            <div className="pt-2">
-                              <Button className="w-full">
-                                Ver Detalles
-                              </Button>
-                            </div>
-                          </CardContent>
-                        </Card>
+                            </CardHeader>
+                            <CardContent className="space-y-3 flex-1">
+                              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                <Calendar className="w-4 h-4" />
+                                <span>{formatDate(event.event_date)} a las {formatTime(event.event_time)}</span>
+                              </div>
+                              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                <MapPin className="w-4 h-4" />
+                                <span className="truncate">{event.location}</span>
+                              </div>
+                              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                <Users className="w-4 h-4" />
+                                <span>Cupo: {event.max_capacity} personas</span>
+                              </div>
+                              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                <Clock className="w-4 h-4" />
+                                <span>{event.duration_hours} horas</span>
+                              </div>
+                              {event.description && (
+                                <p className="text-sm text-muted-foreground line-clamp-2">
+                                  {event.description}
+                                </p>
+                              )}
+                            </CardContent>
+                          </Card>
+                        </Link>
                       ))}
                     </div>
                   )}

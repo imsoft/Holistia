@@ -66,14 +66,14 @@ export async function POST(request: NextRequest) {
     // Check if user already has a registration for this event
     const { data: existingRegistration } = await supabase
       .from('event_registrations')
-      .select('id')
+      .select('id, status')
       .eq('event_id', event_id)
       .eq('user_id', user.id)
       .single();
 
-    if (existingRegistration) {
+    if (existingRegistration && existingRegistration.status === 'confirmed') {
       return NextResponse.json(
-        { error: 'Ya tienes una reserva para este evento' },
+        { error: 'Ya tienes una reserva confirmada para este evento' },
         { status: 400 }
       );
     }
@@ -81,70 +81,81 @@ export async function POST(request: NextRequest) {
     // Check if there's already a successful payment for this event
     const { data: existingPayment } = await supabase
       .from('payments')
-      .select('id')
+      .select('id, status')
       .eq('event_id', event_id)
       .eq('patient_id', user.id)
-      .eq('status', 'succeeded')
       .single();
 
-    if (existingPayment) {
+    if (existingPayment && existingPayment.status === 'succeeded') {
       return NextResponse.json(
         { error: 'Ya tienes un pago confirmado para este evento' },
         { status: 400 }
       );
     }
 
-    // Create event registration first
-    const { data: registration, error: registrationError } = await supabase
-      .from('event_registrations')
-      .insert({
-        event_id,
-        user_id: user.id,
-        status: 'pending',
-        notes,
-        emergency_contact_name,
-        emergency_contact_phone,
-        special_requirements
-      })
-      .select()
-      .single();
+    // Use existing registration or create new one
+    let registration;
+    if (existingRegistration) {
+      registration = existingRegistration;
+    } else {
+      const { data: newRegistration, error: registrationError } = await supabase
+        .from('event_registrations')
+        .insert({
+          event_id,
+          user_id: user.id,
+          status: 'pending',
+          notes,
+          emergency_contact_name,
+          emergency_contact_phone,
+          special_requirements
+        })
+        .select()
+        .single();
 
-    if (registrationError || !registration) {
-      console.error('Error creating event registration:', registrationError);
-      return NextResponse.json(
-        { error: 'Error al crear registro del evento' },
-        { status: 500 }
-      );
+      if (registrationError || !newRegistration) {
+        console.error('Error creating event registration:', registrationError);
+        return NextResponse.json(
+          { error: 'Error al crear registro del evento' },
+          { status: 500 }
+        );
+      }
+      registration = newRegistration;
     }
 
     // Calculate commission (25% for events)
     const commissionAmount = calculateCommission(service_amount, 25);
 
-    // Create payment record in database
-    const { data: payment, error: paymentError } = await supabase
-      .from('payments')
-      .insert({
-        event_id,
-        event_registration_id: registration.id,
-        payment_type: 'event',
-        service_amount,
-        amount: commissionAmount,
-        commission_percentage: 25,
-        currency: 'mxn',
-        status: 'pending',
-        patient_id: user.id,
-        professional_id: event.professional_id,
-        description: `Registro al evento: ${event.name}`,
-      })
-      .select()
-      .single();
+    // Use existing payment or create new one
+    let payment;
+    if (existingPayment) {
+      payment = existingPayment;
+    } else {
+      const { data: newPayment, error: paymentError } = await supabase
+        .from('payments')
+        .insert({
+          event_id,
+          event_registration_id: registration.id,
+          payment_type: 'event',
+          service_amount,
+          amount: commissionAmount,
+          commission_percentage: 25,
+          currency: 'mxn',
+          status: 'pending',
+          patient_id: user.id,
+          professional_id: event.professional_id,
+          description: `Registro al evento: ${event.name}`,
+        })
+        .select()
+        .single();
 
-    if (paymentError || !payment) {
-      console.error('Error creating payment record:', paymentError);
-      return NextResponse.json(
-        { error: 'Error al crear registro de pago' },
-        { status: 500 }
-      );
+      if (paymentError || !newPayment) {
+        console.error('Error creating payment record:', paymentError);
+        return NextResponse.json(
+          { error: 'Error al crear registro de pago' },
+          { status: 500 }
+        );
+      }
+      payment = newPayment;
     }
 
     // Create Stripe Checkout Session

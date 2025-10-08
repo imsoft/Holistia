@@ -11,6 +11,13 @@ import GradientText from "@/components/ui/gradient-text";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { EventWorkshop } from "@/types/event";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface Professional {
   id: string;
@@ -85,7 +92,13 @@ const HomeUserPage = () => {
   const [loading, setLoading] = useState(true);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [events, setEvents] = useState<EventWorkshop[]>([]);
+  const [filteredEvents, setFilteredEvents] = useState<EventWorkshop[]>([]);
   const [showEvents, setShowEvents] = useState(false);
+  const [eventFilters, setEventFilters] = useState({
+    category: "all",
+    price: "all",
+    date: "all"
+  });
   const supabase = createClient();
 
   // Obtener profesionales aprobados y eventos desde la base de datos
@@ -151,6 +164,7 @@ const HomeUserPage = () => {
           console.error("Error fetching events:", eventsError);
         } else {
           setEvents(eventsData || []);
+          setFilteredEvents(eventsData || []);
         }
       } catch (error) {
         console.error("Error fetching professionals:", error);
@@ -369,6 +383,58 @@ const HomeUserPage = () => {
     setFilteredProfessionals(filtered);
   };
 
+  const applyEventFilters = () => {
+    let filtered = [...events];
+
+    // Filtrar por categoría
+    if (eventFilters.category !== "all") {
+      filtered = filtered.filter(event => event.category === eventFilters.category);
+    }
+
+    // Filtrar por precio
+    if (eventFilters.price !== "all") {
+      filtered = filtered.filter(event => {
+        if (eventFilters.price === "free") return event.is_free;
+        if (eventFilters.price === "paid") return !event.is_free;
+        return true;
+      });
+    }
+
+    // Filtrar por fecha
+    if (eventFilters.date !== "all") {
+      const today = new Date();
+      const tomorrow = new Date(today);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      const nextWeek = new Date(today);
+      nextWeek.setDate(nextWeek.getDate() + 7);
+      const nextMonth = new Date(today);
+      nextMonth.setMonth(nextMonth.getMonth() + 1);
+
+      filtered = filtered.filter(event => {
+        const eventDate = new Date(event.event_date);
+        switch (eventFilters.date) {
+          case "today":
+            return eventDate.toDateString() === today.toDateString();
+          case "tomorrow":
+            return eventDate.toDateString() === tomorrow.toDateString();
+          case "week":
+            return eventDate >= today && eventDate <= nextWeek;
+          case "month":
+            return eventDate >= today && eventDate <= nextMonth;
+          default:
+            return true;
+        }
+      });
+    }
+
+    setFilteredEvents(filtered);
+  };
+
+  // Aplicar filtros cuando cambien
+  useEffect(() => {
+    applyEventFilters();
+  }, [eventFilters, events]);
+
   const getCategoryLabel = (category: string) => {
     const categories = {
       espiritualidad: "Espiritualidad",
@@ -424,6 +490,57 @@ const HomeUserPage = () => {
             </div>
           </div>
         </div>
+
+        {/* Filtros para eventos */}
+        {showEvents && (
+          <div className="mb-8">
+            <div className="text-center mb-6">
+              <h3 className="text-lg font-semibold text-foreground mb-2">
+                Filtrar eventos
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                Encuentra eventos que se adapten a tus necesidades
+              </p>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Select value={eventFilters.category} onValueChange={(value) => setEventFilters(prev => ({ ...prev, category: value }))}>
+                <SelectTrigger className="w-full sm:w-48">
+                  <SelectValue placeholder="Categoría" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas las categorías</SelectItem>
+                  <SelectItem value="espiritualidad">Espiritualidad</SelectItem>
+                  <SelectItem value="salud_mental">Salud Mental</SelectItem>
+                  <SelectItem value="salud_fisica">Salud Física</SelectItem>
+                  <SelectItem value="alimentacion">Alimentación</SelectItem>
+                  <SelectItem value="social">Social</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={eventFilters.price} onValueChange={(value) => setEventFilters(prev => ({ ...prev, price: value }))}>
+                <SelectTrigger className="w-full sm:w-48">
+                  <SelectValue placeholder="Precio" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos los precios</SelectItem>
+                  <SelectItem value="free">Gratuitos</SelectItem>
+                  <SelectItem value="paid">Con costo</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={eventFilters.date} onValueChange={(value) => setEventFilters(prev => ({ ...prev, date: value }))}>
+                <SelectTrigger className="w-full sm:w-48">
+                  <SelectValue placeholder="Fecha" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas las fechas</SelectItem>
+                  <SelectItem value="today">Hoy</SelectItem>
+                  <SelectItem value="tomorrow">Mañana</SelectItem>
+                  <SelectItem value="week">Esta semana</SelectItem>
+                  <SelectItem value="month">Este mes</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        )}
 
         {/* Categories - Solo para profesionales */}
         {!showEvents && (
@@ -513,7 +630,7 @@ const HomeUserPage = () => {
               </div>
             ) : showEvents ? (
               // Mostrar eventos
-              events.length === 0 ? (
+              filteredEvents.length === 0 ? (
                 <div className="text-center py-12">
                   <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
                     <Calendar className="h-8 w-8 text-muted-foreground" />
@@ -522,12 +639,15 @@ const HomeUserPage = () => {
                     No hay eventos disponibles
                   </h3>
                   <p className="text-muted-foreground">
-                    Próximamente habrá eventos y talleres disponibles.
+                    {events.length === 0 
+                      ? "Próximamente habrá eventos y talleres disponibles."
+                      : "No se encontraron eventos que coincidan con los filtros aplicados."
+                    }
                   </p>
                 </div>
               ) : (
                 <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                  {events.map((event) => (
+                  {filteredEvents.map((event) => (
                     <Card key={event.id} className="hover:shadow-lg transition-shadow">
                       <CardHeader className="pb-4">
                         <div className="flex justify-between items-start">

@@ -177,17 +177,6 @@ const EventDetailPage = () => {
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8">
-        {/* Header con botón de regreso */}
-        <div className="mb-6">
-          <Button 
-            variant="ghost" 
-            onClick={() => router.back()}
-            className="mb-4"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Volver a eventos
-          </Button>
-        </div>
 
         <div className="grid gap-8 lg:grid-cols-3">
           {/* Contenido principal */}
@@ -206,7 +195,7 @@ const EventDetailPage = () => {
             )}
 
             {/* Información del evento */}
-            <Card>
+            <Card className="py-8">
               <CardHeader>
                 <div className="flex flex-wrap gap-2 mb-4">
                   <Badge variant="secondary">
@@ -300,7 +289,7 @@ const EventDetailPage = () => {
 
             {/* Galería de imágenes */}
             {event.gallery_images && event.gallery_images.length > 1 && (
-              <Card>
+              <Card className="py-8">
                 <CardHeader>
                   <CardTitle>Galería de imágenes</CardTitle>
                 </CardHeader>
@@ -327,7 +316,7 @@ const EventDetailPage = () => {
           <div className="space-y-6">
             {/* Información del profesional */}
             {professional && (
-              <Card>
+              <Card className="py-8">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <User className="w-5 h-5" />
@@ -377,7 +366,7 @@ const EventDetailPage = () => {
             )}
 
             {/* Registro */}
-            <Card>
+            <Card className="py-8">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <CheckCircle className="w-5 h-5" />

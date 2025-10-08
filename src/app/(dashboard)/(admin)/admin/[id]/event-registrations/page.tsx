@@ -119,14 +119,17 @@ export default function EventRegistrationsPage() {
 
         setRegistrations(registrationsWithUsers.filter(r => r.user));
 
-        // Get unique events for filter
-        const uniqueEvents = Array.from(
-          new Set(registrationsWithUsers.map(r => r.events_workshops.name))
-        ).map(name => ({
-          id: registrationsWithUsers.find(r => r.events_workshops.name === name)?.event_id || '',
-          name
-        }));
-        setEvents(uniqueEvents);
+        // Get unique events for filter - include all events, not just those with registrations
+        const { data: allEvents, error: eventsError } = await supabase
+          .from('events_workshops')
+          .select('id, name')
+          .order('name');
+
+        if (eventsError) {
+          console.error('Error fetching events:', eventsError);
+        } else {
+          setEvents(allEvents || []);
+        }
 
       } catch (error) {
         console.error('Error:', error);
@@ -247,8 +250,9 @@ export default function EventRegistrationsPage() {
   if (loading) {
     return (
       <div className="p-6">
-        <div className="flex items-center justify-center h-64">
+        <div className="flex flex-col items-center justify-center h-64 space-y-4">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          <p className="text-muted-foreground">Cargando registros de eventos...</p>
         </div>
       </div>
     );
@@ -271,7 +275,7 @@ export default function EventRegistrationsPage() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
+        <Card className="py-6">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Registros</CardTitle>
             <User className="h-4 w-4 text-muted-foreground" />
@@ -280,7 +284,7 @@ export default function EventRegistrationsPage() {
             <div className="text-2xl font-bold">{registrations.length}</div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="py-6">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Confirmados</CardTitle>
             <CheckCircle className="h-4 w-4 text-green-600" />
@@ -291,7 +295,7 @@ export default function EventRegistrationsPage() {
             </div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="py-6">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Pendientes</CardTitle>
             <Clock className="h-4 w-4 text-yellow-600" />
@@ -302,7 +306,7 @@ export default function EventRegistrationsPage() {
             </div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="py-6">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Cancelados</CardTitle>
             <XCircle className="h-4 w-4 text-red-600" />
@@ -316,7 +320,7 @@ export default function EventRegistrationsPage() {
       </div>
 
       {/* Filters */}
-      <Card>
+      <Card className="py-6">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Filter className="h-5 w-5" />
@@ -373,7 +377,7 @@ export default function EventRegistrationsPage() {
       </Card>
 
       {/* Registrations Table */}
-      <Card>
+      <Card className="py-6">
         <CardHeader>
           <CardTitle>Registros ({filteredRegistrations.length})</CardTitle>
           <CardDescription>
@@ -484,8 +488,21 @@ export default function EventRegistrationsPage() {
           </div>
           
           {filteredRegistrations.length === 0 && (
-            <div className="text-center py-8">
-              <p className="text-muted-foreground">No se encontraron registros</p>
+            <div className="text-center py-12">
+              <div className="flex flex-col items-center space-y-4">
+                <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center">
+                  <User className="h-8 w-8 text-muted-foreground" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold">No se encontraron registros</h3>
+                  <p className="text-muted-foreground">
+                    {registrations.length === 0 
+                      ? "Aún no hay registros de eventos. Los registros aparecerán aquí cuando los usuarios se inscriban a eventos."
+                      : "No hay registros que coincidan con los filtros aplicados. Intenta ajustar los filtros de búsqueda."
+                    }
+                  </p>
+                </div>
+              </div>
             </div>
           )}
         </CardContent>

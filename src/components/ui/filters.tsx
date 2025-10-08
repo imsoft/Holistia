@@ -4,6 +4,13 @@ import { useState } from "react";
 import { Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const filters = [
   {
@@ -67,9 +74,15 @@ const filters = [
 
 interface FiltersProps {
   onFilterChange?: (filters: Record<string, string[]>) => void;
+  eventFilters?: {
+    category: string;
+    price: string;
+    date: string;
+  };
+  onEventFilterChange?: (filterType: string, value: string) => void;
 }
 
-export const Filters = ({ onFilterChange }: FiltersProps) => {
+export const Filters = ({ onFilterChange, eventFilters, onEventFilterChange }: FiltersProps) => {
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [selectedFilters, setSelectedFilters] = useState<Record<string, string[]>>({});
 
@@ -176,6 +189,76 @@ export const Filters = ({ onFilterChange }: FiltersProps) => {
             {filters.map((section) => (
               <FilterSection key={section.id} section={section} />
             ))}
+            
+            {/* Filtros de Eventos - Mobile */}
+            {eventFilters && onEventFilterChange && (
+              <div className="py-6">
+                <h3 className="text-sm font-medium text-foreground mb-4">Filtros de Eventos</h3>
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-xs font-medium text-muted-foreground mb-2 block">
+                      Categoría
+                    </label>
+                    <Select
+                      value={eventFilters.category}
+                      onValueChange={(value) => onEventFilterChange('category', value)}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Categoría" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Todas las categorías</SelectItem>
+                        <SelectItem value="espiritualidad">Espiritualidad</SelectItem>
+                        <SelectItem value="salud_mental">Salud Mental</SelectItem>
+                        <SelectItem value="salud_fisica">Salud Física</SelectItem>
+                        <SelectItem value="alimentacion">Alimentación</SelectItem>
+                        <SelectItem value="social">Social</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div>
+                    <label className="text-xs font-medium text-muted-foreground mb-2 block">
+                      Precio
+                    </label>
+                    <Select
+                      value={eventFilters.price}
+                      onValueChange={(value) => onEventFilterChange('price', value)}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Precio" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Todos los precios</SelectItem>
+                        <SelectItem value="free">Gratuitos</SelectItem>
+                        <SelectItem value="paid">Con costo</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div>
+                    <label className="text-xs font-medium text-muted-foreground mb-2 block">
+                      Fecha
+                    </label>
+                    <Select
+                      value={eventFilters.date}
+                      onValueChange={(value) => onEventFilterChange('date', value)}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Fecha" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Todas las fechas</SelectItem>
+                        <SelectItem value="today">Hoy</SelectItem>
+                        <SelectItem value="tomorrow">Mañana</SelectItem>
+                        <SelectItem value="week">Esta semana</SelectItem>
+                        <SelectItem value="month">Este mes</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </div>
+            )}
           </form>
         </SheetContent>
       </Sheet>
@@ -200,6 +283,76 @@ export const Filters = ({ onFilterChange }: FiltersProps) => {
           {filters.map((section) => (
             <FilterSection key={section.id} section={section} />
           ))}
+          
+          {/* Filtros de Eventos - Desktop */}
+          {eventFilters && onEventFilterChange && (
+            <div className="py-6">
+              <h3 className="text-sm font-medium text-foreground mb-4">Filtros de Eventos</h3>
+              <div className="space-y-4">
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground mb-2 block">
+                    Categoría
+                  </label>
+                  <Select
+                    value={eventFilters.category}
+                    onValueChange={(value) => onEventFilterChange('category', value)}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Categoría" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todas las categorías</SelectItem>
+                      <SelectItem value="espiritualidad">Espiritualidad</SelectItem>
+                      <SelectItem value="salud_mental">Salud Mental</SelectItem>
+                      <SelectItem value="salud_fisica">Salud Física</SelectItem>
+                      <SelectItem value="alimentacion">Alimentación</SelectItem>
+                      <SelectItem value="social">Social</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground mb-2 block">
+                    Precio
+                  </label>
+                  <Select
+                    value={eventFilters.price}
+                    onValueChange={(value) => onEventFilterChange('price', value)}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Precio" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos los precios</SelectItem>
+                      <SelectItem value="free">Gratuitos</SelectItem>
+                      <SelectItem value="paid">Con costo</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground mb-2 block">
+                    Fecha
+                  </label>
+                  <Select
+                    value={eventFilters.date}
+                    onValueChange={(value) => onEventFilterChange('date', value)}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Fecha" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todas las fechas</SelectItem>
+                      <SelectItem value="today">Hoy</SelectItem>
+                      <SelectItem value="tomorrow">Mañana</SelectItem>
+                      <SelectItem value="week">Esta semana</SelectItem>
+                      <SelectItem value="month">Este mes</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
+          )}
         </form>
       </div>
     </>

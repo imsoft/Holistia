@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import { Brain, Sparkles, Activity, Users, Apple, X, Calendar, MapPin, Clock } from "lucide-react";
+import Image from "next/image";
 import { Filters } from "@/components/ui/filters";
 import { ProfessionalCard } from "@/components/ui/professional-card";
 import { createClient } from "@/utils/supabase/client";
@@ -10,13 +11,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { EventWorkshop } from "@/types/event";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
 interface Professional {
   id: string;
@@ -472,54 +466,6 @@ const HomeUserPage = () => {
           </div>
         </div>
 
-        {/* Filtros para eventos */}
-        <div className="mb-8">
-            <div className="text-center mb-6">
-              <h3 className="text-lg font-semibold text-foreground mb-2">
-                Filtrar eventos
-              </h3>
-              <p className="text-sm text-muted-foreground">
-                Encuentra eventos que se adapten a tus necesidades
-              </p>
-            </div>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Select value={eventFilters.category} onValueChange={(value) => setEventFilters(prev => ({ ...prev, category: value }))}>
-                <SelectTrigger className="w-full sm:w-48">
-                  <SelectValue placeholder="Categoría" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todas las categorías</SelectItem>
-                  <SelectItem value="espiritualidad">Espiritualidad</SelectItem>
-                  <SelectItem value="salud_mental">Salud Mental</SelectItem>
-                  <SelectItem value="salud_fisica">Salud Física</SelectItem>
-                  <SelectItem value="alimentacion">Alimentación</SelectItem>
-                  <SelectItem value="social">Social</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select value={eventFilters.price} onValueChange={(value) => setEventFilters(prev => ({ ...prev, price: value }))}>
-                <SelectTrigger className="w-full sm:w-48">
-                  <SelectValue placeholder="Precio" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos los precios</SelectItem>
-                  <SelectItem value="free">Gratuitos</SelectItem>
-                  <SelectItem value="paid">Con costo</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select value={eventFilters.date} onValueChange={(value) => setEventFilters(prev => ({ ...prev, date: value }))}>
-                <SelectTrigger className="w-full sm:w-48">
-                  <SelectValue placeholder="Fecha" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todas las fechas</SelectItem>
-                  <SelectItem value="today">Hoy</SelectItem>
-                  <SelectItem value="tomorrow">Mañana</SelectItem>
-                  <SelectItem value="week">Esta semana</SelectItem>
-                  <SelectItem value="month">Este mes</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
 
         {/* Categories - Para profesionales */}
         <div className="mb-8">
@@ -589,7 +535,11 @@ const HomeUserPage = () => {
         <div className="lg:grid lg:grid-cols-3 lg:gap-x-8 xl:grid-cols-4">
           {/* Sidebar with filters */}
           <aside className="lg:col-span-1">
-            <Filters onFilterChange={handleFilterChange} />
+            <Filters 
+              onFilterChange={handleFilterChange} 
+              eventFilters={eventFilters}
+              onEventFilterChange={(filterType, value) => setEventFilters(prev => ({ ...prev, [filterType]: value }))}
+            />
           </aside>
 
           {/* Main content */}
@@ -626,8 +576,20 @@ const HomeUserPage = () => {
                   ) : (
                     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                       {filteredEvents.map((event) => (
-                        <Card key={event.id} className="hover:shadow-lg transition-shadow">
+                        <Card key={event.id} className="hover:shadow-lg transition-shadow py-6">
                           <CardHeader className="pb-4">
+                            {/* Imagen del evento */}
+                            {event.gallery_images && event.gallery_images.length > 0 && (
+                              <div className="mb-4">
+                                <Image
+                                  src={event.gallery_images[0]}
+                                  alt={event.name}
+                                  width={400}
+                                  height={192}
+                                  className="w-full h-48 object-cover rounded-lg"
+                                />
+                              </div>
+                            )}
                             <div className="flex justify-between items-start">
                               <div className="flex-1">
                                 <CardTitle className="text-lg mb-2">{event.name}</CardTitle>

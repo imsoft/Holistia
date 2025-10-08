@@ -9,6 +9,7 @@ import {
   LogOut,
   Home,
   FileText,
+  Calendar,
 } from "lucide-react";
 import {
   Sidebar,
@@ -103,6 +104,11 @@ export function AdminSidebar() {
       title: "Blog",
       url: `/admin/${userId}/blog`,
       icon: FileText,
+    },
+    {
+      title: "Eventos",
+      url: `/admin/${userId}/events`,
+      icon: Calendar,
     },
     {
       title: "Profesionales",

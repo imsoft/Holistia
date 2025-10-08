@@ -312,7 +312,7 @@ const EventsAdminPage = () => {
         ) : (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {filteredEvents.map((event) => (
-              <Card key={event.id} className={`${!event.is_active ? "opacity-60" : ""}`}>
+              <Card key={event.id} className={`py-6 ${!event.is_active ? "opacity-60" : ""}`}>
                 <CardHeader className="pb-4">
                   <div className="flex justify-between items-start">
                     <div className="flex-1">

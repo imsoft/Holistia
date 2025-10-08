@@ -232,7 +232,7 @@ export function EventForm({ event, professionals, onSuccess, onCancel }: EventFo
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       {/* Información básica */}
-      <Card>
+      <Card className="p-4">
         <CardHeader>
           <CardTitle>Información Básica</CardTitle>
         </CardHeader>
@@ -298,7 +298,7 @@ export function EventForm({ event, professionals, onSuccess, onCancel }: EventFo
       </Card>
 
       {/* Precio y cupo */}
-      <Card>
+      <Card className="p-4">
         <CardHeader>
           <CardTitle>Precio y Cupo</CardTitle>
         </CardHeader>
@@ -344,7 +344,7 @@ export function EventForm({ event, professionals, onSuccess, onCancel }: EventFo
       </Card>
 
       {/* Fecha, hora y ubicación */}
-      <Card>
+      <Card className="p-4">
         <CardHeader>
           <CardTitle>Fecha, Hora y Ubicación</CardTitle>
         </CardHeader>
@@ -399,7 +399,7 @@ export function EventForm({ event, professionals, onSuccess, onCancel }: EventFo
       </Card>
 
       {/* Categoría y nivel */}
-      <Card>
+      <Card className="p-4">
         <CardHeader>
           <CardTitle>Categoría y Nivel</CardTitle>
         </CardHeader>
@@ -445,7 +445,7 @@ export function EventForm({ event, professionals, onSuccess, onCancel }: EventFo
       </Card>
 
       {/* Profesional */}
-      <Card>
+      <Card className="p-4">
         <CardHeader>
           <CardTitle>Profesional</CardTitle>
         </CardHeader>
@@ -473,7 +473,7 @@ export function EventForm({ event, professionals, onSuccess, onCancel }: EventFo
       </Card>
 
       {/* Galería de imágenes */}
-      <Card>
+      <Card className="p-4">
         <CardHeader>
           <CardTitle>Galería de Imágenes</CardTitle>
         </CardHeader>

@@ -10,6 +10,7 @@ import {
   Home,
   FileText,
   Calendar,
+  ClipboardList,
 } from "lucide-react";
 import {
   Sidebar,
@@ -109,6 +110,11 @@ export function AdminSidebar() {
       title: "Eventos",
       url: `/admin/${userId}/events`,
       icon: Calendar,
+    },
+    {
+      title: "Registros de Eventos",
+      url: `/admin/${userId}/event-registrations`,
+      icon: ClipboardList,
     },
     {
       title: "Profesionales",

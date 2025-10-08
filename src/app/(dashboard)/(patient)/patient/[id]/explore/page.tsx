@@ -2,12 +2,11 @@
 
 import React, { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
-import { Brain, Sparkles, Activity, Users, Apple, X, Calendar, MapPin, Clock, DollarSign } from "lucide-react";
+import { Brain, Sparkles, Activity, Users, Apple, X, Calendar, MapPin, Clock } from "lucide-react";
 import { Filters } from "@/components/ui/filters";
 import { ProfessionalCard } from "@/components/ui/professional-card";
 import { createClient } from "@/utils/supabase/client";
 import { Button } from "@/components/ui/button";
-import GradientText from "@/components/ui/gradient-text";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { EventWorkshop } from "@/types/event";
@@ -93,7 +92,6 @@ const HomeUserPage = () => {
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [events, setEvents] = useState<EventWorkshop[]>([]);
   const [filteredEvents, setFilteredEvents] = useState<EventWorkshop[]>([]);
-  const [showEvents, setShowEvents] = useState(false);
   const [eventFilters, setEventFilters] = useState({
     category: "all",
     price: "all",
@@ -465,35 +463,17 @@ const HomeUserPage = () => {
           <div className="px-6 py-6 sm:py-12 lg:px-8">
             <div className="mx-auto max-w-4xl text-center">
               <h2 className="text-4xl font-semibold tracking-tight text-balance text-foreground sm:text-5xl">
-                {showEvents ? "Eventos y Talleres" : "Profesionales de Salud"}
+                Profesionales de Salud
               </h2>
               <p className="mx-auto mt-6 max-w-2xl text-lg/8 text-pretty text-muted-foreground">
-                {showEvents 
-                  ? "Descubre eventos y talleres para tu crecimiento personal y bienestar."
-                  : "Encuentra el profesional adecuado para tu bienestar mental y emocional."
-                }
+                Encuentra el profesional adecuado para tu bienestar mental y emocional.
               </p>
-              <div className="mt-6 flex justify-center gap-4">
-                <Button
-                  variant={!showEvents ? "default" : "outline"}
-                  onClick={() => setShowEvents(false)}
-                >
-                  Profesionales
-                </Button>
-                <Button
-                  variant={showEvents ? "default" : "outline"}
-                  onClick={() => setShowEvents(true)}
-                >
-                  Eventos y Talleres
-                </Button>
-              </div>
             </div>
           </div>
         </div>
 
         {/* Filtros para eventos */}
-        {showEvents && (
-          <div className="mb-8">
+        <div className="mb-8">
             <div className="text-center mb-6">
               <h3 className="text-lg font-semibold text-foreground mb-2">
                 Filtrar eventos
@@ -540,11 +520,9 @@ const HomeUserPage = () => {
               </Select>
             </div>
           </div>
-        )}
 
-        {/* Categories - Solo para profesionales */}
-        {!showEvents && (
-          <div className="mb-8">
+        {/* Categories - Para profesionales */}
+        <div className="mb-8">
           <div className="text-center mb-6">
             <h3 className="text-lg font-semibold text-foreground mb-2">
               Filtrar por categorías
@@ -606,111 +584,116 @@ const HomeUserPage = () => {
               </div>
             </div>
           )}
-          </div>
-        )}
+        </div>
 
         <div className="lg:grid lg:grid-cols-3 lg:gap-x-8 xl:grid-cols-4">
-          {/* Sidebar with filters - Solo para profesionales */}
-          {!showEvents && (
-            <aside className="lg:col-span-1">
-              <Filters onFilterChange={handleFilterChange} />
-            </aside>
-          )}
+          {/* Sidebar with filters */}
+          <aside className="lg:col-span-1">
+            <Filters onFilterChange={handleFilterChange} />
+          </aside>
 
           {/* Main content */}
-          <div className={showEvents ? "w-full" : "lg:col-span-2 xl:col-span-3"}>
+          <div className="lg:col-span-2 xl:col-span-3">
             {loading ? (
               <div className="flex items-center justify-center py-12">
                 <div className="text-center">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
                   <p className="mt-2 text-sm text-muted-foreground">
-                    {showEvents ? "Cargando eventos..." : "Cargando profesionales..."}
+                    Cargando contenido...
                   </p>
                 </div>
-              </div>
-            ) : showEvents ? (
-              // Mostrar eventos
-              filteredEvents.length === 0 ? (
-                <div className="text-center py-12">
-                  <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Calendar className="h-8 w-8 text-muted-foreground" />
-                  </div>
-                  <h3 className="text-lg font-semibold text-foreground mb-2">
-                    No hay eventos disponibles
-                  </h3>
-                  <p className="text-muted-foreground">
-                    {events.length === 0 
-                      ? "Próximamente habrá eventos y talleres disponibles."
-                      : "No se encontraron eventos que coincidan con los filtros aplicados."
-                    }
-                  </p>
-                </div>
-              ) : (
-                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                  {filteredEvents.map((event) => (
-                    <Card key={event.id} className="hover:shadow-lg transition-shadow">
-                      <CardHeader className="pb-4">
-                        <div className="flex justify-between items-start">
-                          <div className="flex-1">
-                            <CardTitle className="text-lg mb-2">{event.name}</CardTitle>
-                            <div className="flex flex-wrap gap-2 mb-3">
-                              <Badge variant="secondary">
-                                {getCategoryLabel(event.category)}
-                              </Badge>
-                              <Badge variant={event.is_free ? "default" : "outline"}>
-                                {event.is_free ? "Gratuito" : `$${event.price}`}
-                              </Badge>
-                            </div>
-                          </div>
-                        </div>
-                      </CardHeader>
-                      <CardContent className="space-y-3">
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Calendar className="w-4 h-4" />
-                          <span>{formatDate(event.event_date)} a las {formatTime(event.event_time)}</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <MapPin className="w-4 h-4" />
-                          <span className="truncate">{event.location}</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Users className="w-4 h-4" />
-                          <span>Cupo: {event.max_capacity} personas</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Clock className="w-4 h-4" />
-                          <span>{event.duration_hours} horas</span>
-                        </div>
-                        {event.description && (
-                          <p className="text-sm text-muted-foreground line-clamp-2">
-                            {event.description}
-                          </p>
-                        )}
-                        <div className="pt-2">
-                          <Button className="w-full">
-                            Ver Detalles
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              )
-            ) : filteredProfessionals.length === 0 ? (
-              <div className="text-center py-12">
-                <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Brain className="h-8 w-8 text-muted-foreground" />
-                </div>
-                <h3 className="text-lg font-semibold text-foreground mb-2">
-                  No se encontraron profesionales
-                </h3>
-                <p className="text-muted-foreground">
-                  {professionals.length === 0
-                    ? "Aún no hay profesionales aprobados en la plataforma."
-                    : "Intenta ajustar los filtros para ver más resultados."}
-                </p>
               </div>
             ) : (
+              <div className="space-y-12">
+                {/* Sección de Eventos */}
+                <div>
+                  <h3 className="text-2xl font-bold text-foreground mb-6">Eventos y Talleres</h3>
+                  {filteredEvents.length === 0 ? (
+                    <div className="text-center py-12">
+                      <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
+                        <Calendar className="h-8 w-8 text-muted-foreground" />
+                      </div>
+                      <h3 className="text-lg font-semibold text-foreground mb-2">
+                        No hay eventos disponibles
+                      </h3>
+                      <p className="text-muted-foreground">
+                        {events.length === 0 
+                          ? "Próximamente habrá eventos y talleres disponibles."
+                          : "No se encontraron eventos que coincidan con los filtros aplicados."
+                        }
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                      {filteredEvents.map((event) => (
+                        <Card key={event.id} className="hover:shadow-lg transition-shadow">
+                          <CardHeader className="pb-4">
+                            <div className="flex justify-between items-start">
+                              <div className="flex-1">
+                                <CardTitle className="text-lg mb-2">{event.name}</CardTitle>
+                                <div className="flex flex-wrap gap-2 mb-3">
+                                  <Badge variant="secondary">
+                                    {getCategoryLabel(event.category)}
+                                  </Badge>
+                                  <Badge variant={event.is_free ? "default" : "outline"}>
+                                    {event.is_free ? "Gratuito" : `$${event.price}`}
+                                  </Badge>
+                                </div>
+                              </div>
+                            </div>
+                          </CardHeader>
+                          <CardContent className="space-y-3">
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <Calendar className="w-4 h-4" />
+                              <span>{formatDate(event.event_date)} a las {formatTime(event.event_time)}</span>
+                            </div>
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <MapPin className="w-4 h-4" />
+                              <span className="truncate">{event.location}</span>
+                            </div>
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <Users className="w-4 h-4" />
+                              <span>Cupo: {event.max_capacity} personas</span>
+                            </div>
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <Clock className="w-4 h-4" />
+                              <span>{event.duration_hours} horas</span>
+                            </div>
+                            {event.description && (
+                              <p className="text-sm text-muted-foreground line-clamp-2">
+                                {event.description}
+                              </p>
+                            )}
+                            <div className="pt-2">
+                              <Button className="w-full">
+                                Ver Detalles
+                              </Button>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Sección de Profesionales */}
+                <div>
+                  <h3 className="text-2xl font-bold text-foreground mb-6">Profesionales de Salud</h3>
+                  {filteredProfessionals.length === 0 ? (
+                    <div className="text-center py-12">
+                      <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
+                        <Brain className="h-8 w-8 text-muted-foreground" />
+                      </div>
+                      <h3 className="text-lg font-semibold text-foreground mb-2">
+                        No se encontraron profesionales
+                      </h3>
+                      <p className="text-muted-foreground">
+                        {professionals.length === 0
+                          ? "Aún no hay profesionales aprobados en la plataforma."
+                          : "Intenta ajustar los filtros para ver más resultados."}
+                      </p>
+                    </div>
+                  ) : (
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {filteredProfessionals.map((professional) => (
                   <ProfessionalCard
@@ -775,6 +758,9 @@ const HomeUserPage = () => {
                     }}
                   />
                 ))}
+                    </div>
+                  )}
+                </div>
               </div>
             )}
           </div>

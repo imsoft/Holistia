@@ -208,7 +208,7 @@ export const Filters = ({ onFilterChange, eventFilters, onEventFilterChange }: F
                             onChange={() => onEventFilterChange('category', option.value)}
                             className="rounded border-border"
                           />
-                          <span className="text-sm text-foreground">{option.label}</span>
+                          <span className="text-sm text-muted-foreground">{option.label}</span>
                         </label>
                       ))}
                     </div>
@@ -231,7 +231,7 @@ export const Filters = ({ onFilterChange, eventFilters, onEventFilterChange }: F
                             onChange={() => onEventFilterChange('price', option.value)}
                             className="rounded border-border"
                           />
-                          <span className="text-sm text-foreground">{option.label}</span>
+                          <span className="text-sm text-muted-foreground">{option.label}</span>
                         </label>
                       ))}
                     </div>
@@ -256,7 +256,7 @@ export const Filters = ({ onFilterChange, eventFilters, onEventFilterChange }: F
                             onChange={() => onEventFilterChange('date', option.value)}
                             className="rounded border-border"
                           />
-                          <span className="text-sm text-foreground">{option.label}</span>
+                          <span className="text-sm text-muted-foreground">{option.label}</span>
                         </label>
                       ))}
                     </div>

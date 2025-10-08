@@ -618,7 +618,7 @@ const HomeUserPage = () => {
                                 </div>
                               </div>
                             </CardHeader>
-                            <CardContent className="space-y-3 flex-1">
+                            <CardContent className="space-y-3 flex-1 pb-6">
                               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                                 <Calendar className="w-4 h-4" />
                                 <span>{formatDate(event.event_date)} a las {formatTime(event.event_time)}</span>

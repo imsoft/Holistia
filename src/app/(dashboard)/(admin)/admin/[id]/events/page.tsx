@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,12 +16,9 @@ import {
   Calendar, 
   MapPin, 
   Users, 
-  DollarSign,
   Clock,
-  Filter,
   Edit,
-  Trash2,
-  Eye
+  Trash2
 } from "lucide-react";
 import {
   Select,
@@ -54,12 +51,7 @@ const EventsAdminPage = () => {
 
   const supabase = createClient();
 
-  useEffect(() => {
-    fetchEvents();
-    fetchProfessionals();
-  }, []);
-
-  const fetchEvents = async () => {
+  const fetchEvents = useCallback(async () => {
     try {
       setLoading(true);
       const { data, error } = await supabase
@@ -75,9 +67,9 @@ const EventsAdminPage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [supabase]);
 
-  const fetchProfessionals = async () => {
+  const fetchProfessionals = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from("professional_applications")
@@ -90,7 +82,12 @@ const EventsAdminPage = () => {
     } catch (error) {
       console.error("Error fetching professionals:", error);
     }
-  };
+  }, [supabase]);
+
+  useEffect(() => {
+    fetchEvents();
+    fetchProfessionals();
+  }, [fetchEvents, fetchProfessionals]);
 
   const handleDeleteEvent = async (eventId: string) => {
     if (!confirm("¿Estás seguro de que quieres eliminar este evento?")) {

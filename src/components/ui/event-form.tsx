@@ -14,11 +14,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { EventFormData, EventWorkshop, Professional, EVENT_CATEGORIES, SESSION_TYPES, PARTICIPANT_LEVELS } from "@/types/event";
 import { createClient } from "@/utils/supabase/client";
 import { toast } from "sonner";
-import { Upload, X, Image as ImageIcon } from "lucide-react";
+import { Upload, X } from "lucide-react";
+import Image from "next/image";
 
 interface EventFormProps {
   event?: EventWorkshop | null;
@@ -116,7 +116,7 @@ export function EventForm({ event, professionals, onSuccess, onCancel }: EventFo
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleInputChange = (field: keyof EventFormData, value: any) => {
+  const handleInputChange = (field: keyof EventFormData, value: string | number | boolean | string[]) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: "" }));
@@ -408,7 +408,7 @@ export function EventForm({ event, professionals, onSuccess, onCancel }: EventFo
             <Label htmlFor="category">Categoría *</Label>
             <Select
               value={formData.category}
-              onValueChange={(value: any) => handleInputChange('category', value)}
+              onValueChange={(value: "espiritualidad" | "salud_mental" | "salud_fisica" | "alimentacion" | "social") => handleInputChange('category', value)}
             >
               <SelectTrigger>
                 <SelectValue />
@@ -511,11 +511,13 @@ export function EventForm({ event, professionals, onSuccess, onCancel }: EventFo
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {formData.gallery_images.map((image, index) => (
                 <div key={index} className="relative group">
-                  <img
-                    src={image}
-                    alt={`Imagen ${index + 1}`}
-                    className="w-full h-24 object-cover rounded-lg"
-                  />
+                    <Image
+                      src={image}
+                      alt={`Imagen ${index + 1}`}
+                      width={100}
+                      height={100}
+                      className="w-full h-24 object-cover rounded-lg"
+                    />
                   <button
                     type="button"
                     onClick={() => removeImage(index)}

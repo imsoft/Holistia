@@ -23,8 +23,8 @@ export async function sendEventConfirmationEmail(data: EventConfirmationEmailDat
     
     // Read the email template
     const templatePath = 'database/email-templates/event-payment-confirmation.html';
-    const fs = require('fs');
-    const path = require('path');
+    const fs = await import('fs');
+    const path = await import('path');
     
     let emailTemplate: string;
     try {

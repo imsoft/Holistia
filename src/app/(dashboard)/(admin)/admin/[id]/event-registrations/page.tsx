@@ -9,19 +9,16 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Search, 
   Download, 
   Filter, 
-  Calendar, 
   User, 
   CheckCircle, 
   Clock, 
   XCircle,
   Eye,
-  Mail,
-  Phone
+  Mail
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -61,8 +58,6 @@ interface EventRegistration {
 }
 
 export default function EventRegistrationsPage() {
-  const params = useParams();
-  const adminId = params.id as string;
   const supabase = createClient();
   
   const [registrations, setRegistrations] = useState<EventRegistration[]>([]);
@@ -104,7 +99,7 @@ export default function EventRegistrationsPage() {
         // Get user details for each registration
         const registrationsWithUsers = await Promise.all(
           data.map(async (registration) => {
-            const { data: userData, error: userError } = await supabase.auth.admin.getUserById(registration.user_id);
+            const { data: userData } = await supabase.auth.admin.getUserById(registration.user_id);
             
             // Get payment details
             const { data: paymentData } = await supabase

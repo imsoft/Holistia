@@ -15,8 +15,6 @@ import {
   Users, 
   ArrowLeft,
   User,
-  Phone,
-  Mail,
   Car,
   CheckCircle,
   XCircle
@@ -36,8 +34,6 @@ const EventDetailPage = () => {
     first_name: string;
     last_name: string;
     profession: string;
-    email?: string;
-    phone?: string;
     profile_photo?: string;
   } | null>(null);
   const [loading, setLoading] = useState(true);
@@ -74,7 +70,7 @@ const EventDetailPage = () => {
       if (eventData?.professional_id) {
         const { data: professionalData, error: professionalError } = await supabase
           .from("professional_applications")
-          .select("id, first_name, last_name, profession, email, phone, profile_photo")
+          .select("id, first_name, last_name, profession, profile_photo")
           .eq("id", eventData.professional_id)
           .eq("status", "approved")
           .single();
@@ -348,19 +344,6 @@ const EventDetailPage = () => {
                     </div>
                   </div>
                   
-                  {professional.phone && (
-                    <div className="flex items-center gap-2 text-sm">
-                      <Phone className="w-4 h-4" />
-                      <span>{professional.phone}</span>
-                    </div>
-                  )}
-                  
-                  {professional.email && (
-                    <div className="flex items-center gap-2 text-sm">
-                      <Mail className="w-4 h-4" />
-                      <span>{professional.email}</span>
-                    </div>
-                  )}
                 </CardContent>
               </Card>
             )}

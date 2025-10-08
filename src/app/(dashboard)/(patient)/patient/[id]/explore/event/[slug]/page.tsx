@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import { toast } from "sonner";
+import EventPaymentButton from "@/components/ui/event-payment-button";
 
 const EventDetailPage = () => {
   const params = useParams();
@@ -38,6 +39,8 @@ const EventDetailPage = () => {
   } | null>(null);
   const [loading, setLoading] = useState(true);
   const [registering, setRegistering] = useState(false);
+  const [isRegistered, setIsRegistered] = useState(false);
+  const [hasPayment, setHasPayment] = useState(false);
   
   const supabase = createClient();
 
@@ -77,6 +80,31 @@ const EventDetailPage = () => {
 
         if (!professionalError && professionalData) {
           setProfessional(professionalData);
+        }
+      }
+
+      // Verificar si el usuario ya está registrado
+      const { data: registration } = await supabase
+        .from("event_registrations")
+        .select("id, status")
+        .eq("event_id", eventId)
+        .eq("user_id", userId)
+        .single();
+
+      if (registration) {
+        setIsRegistered(true);
+        
+        // Verificar si ya tiene un pago exitoso
+        const { data: payment } = await supabase
+          .from("payments")
+          .select("id, status")
+          .eq("event_id", eventId)
+          .eq("patient_id", userId)
+          .eq("status", "succeeded")
+          .single();
+
+        if (payment) {
+          setHasPayment(true);
         }
       }
     } catch (error) {
@@ -353,31 +381,91 @@ const EventDetailPage = () => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <CheckCircle className="w-5 h-5" />
-                  Registro al evento
+                  {hasPayment ? "Registro confirmado" : "Registro al evento"}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="text-center">
-                  <p className="text-2xl font-bold text-primary">
-                    {event.is_free ? "Gratuito" : `$${event.price}`}
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    {event.is_free ? "Evento sin costo" : "Costo por persona"}
-                  </p>
-                </div>
+                {hasPayment ? (
+                  <div className="text-center space-y-4">
+                    <div className="flex items-center justify-center w-16 h-16 bg-green-100 dark:bg-green-900 rounded-full mx-auto">
+                      <CheckCircle className="w-8 h-8 text-green-600" />
+                    </div>
+                    <div>
+                      <p className="text-lg font-semibold text-green-600">¡Registro confirmado!</p>
+                      <p className="text-sm text-muted-foreground">
+                        Tu pago ha sido procesado exitosamente. Recibirás un email de confirmación con todos los detalles del evento.
+                      </p>
+                    </div>
+                  </div>
+                ) : isRegistered ? (
+                  <div className="text-center space-y-4">
+                    <div className="flex items-center justify-center w-16 h-16 bg-yellow-100 dark:bg-yellow-900 rounded-full mx-auto">
+                      <Clock className="w-8 h-8 text-yellow-600" />
+                    </div>
+                    <div>
+                      <p className="text-lg font-semibold text-yellow-600">Registro pendiente</p>
+                      <p className="text-sm text-muted-foreground">
+                        Tu registro está pendiente de pago. Completa el proceso para confirmar tu asistencia.
+                      </p>
+                    </div>
+                    {!event.is_free && (
+                      <EventPaymentButton
+                        eventId={event.id!}
+                        serviceAmount={event.price || 0}
+                        eventName={event.name}
+                        eventDate={event.event_date}
+                        onSuccess={() => {
+                          toast.success("Redirigiendo al pago...");
+                        }}
+                        onError={(error) => {
+                          toast.error(error);
+                        }}
+                      />
+                    )}
+                  </div>
+                ) : (
+                  <>
+                    <div className="text-center">
+                      <p className="text-2xl font-bold text-primary">
+                        {event.is_free ? "Gratuito" : `$${event.price}`}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        {event.is_free ? "Evento sin costo" : "Costo por persona"}
+                      </p>
+                    </div>
 
-                <Button 
-                  className="w-full" 
-                  size="lg"
-                  onClick={handleRegister}
-                  disabled={registering}
-                >
-                  {registering ? "Registrando..." : "Registrarse al evento"}
-                </Button>
+                    {event.is_free ? (
+                      <Button 
+                        className="w-full" 
+                        size="lg"
+                        onClick={handleRegister}
+                        disabled={registering}
+                      >
+                        {registering ? "Registrando..." : "Registrarse al evento"}
+                      </Button>
+                    ) : (
+                      <EventPaymentButton
+                        eventId={event.id!}
+                        serviceAmount={event.price || 0}
+                        eventName={event.name}
+                        eventDate={event.event_date}
+                        onSuccess={() => {
+                          toast.success("Redirigiendo al pago...");
+                        }}
+                        onError={(error) => {
+                          toast.error(error);
+                        }}
+                      />
+                    )}
 
-                <p className="text-xs text-muted-foreground text-center">
-                  Al registrarte, recibirás un email de confirmación con todos los detalles del evento.
-                </p>
+                    <p className="text-xs text-muted-foreground text-center">
+                      {event.is_free 
+                        ? "Al registrarte, recibirás un email de confirmación con todos los detalles del evento."
+                        : "Al registrarte, serás redirigido a Stripe para completar el pago de forma segura."
+                      }
+                    </p>
+                  </>
+                )}
               </CardContent>
             </Card>
           </div>

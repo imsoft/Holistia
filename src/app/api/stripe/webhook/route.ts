@@ -43,11 +43,13 @@ export async function POST(request: NextRequest) {
         // Get metadata from session
         const { 
           payment_id, 
-          appointment_id
+          appointment_id,
+          event_id,
+          event_registration_id
         } = session.metadata || {};
 
-        if (!payment_id || !appointment_id) {
-          console.error('Missing metadata in session');
+        if (!payment_id) {
+          console.error('Missing payment_id in session metadata');
           break;
         }
 
@@ -67,19 +69,36 @@ export async function POST(request: NextRequest) {
           break;
         }
 
-        // Update appointment status to confirmed
-        const { error: appointmentUpdateError } = await supabase
-          .from('appointments')
-          .update({
-            status: 'confirmed',
-          })
-          .eq('id', appointment_id);
+        // Handle appointment payments
+        if (appointment_id) {
+          const { error: appointmentUpdateError } = await supabase
+            .from('appointments')
+            .update({
+              status: 'confirmed',
+            })
+            .eq('id', appointment_id);
 
-        if (appointmentUpdateError) {
-          console.error('Error updating appointment:', appointmentUpdateError);
+          if (appointmentUpdateError) {
+            console.error('Error updating appointment:', appointmentUpdateError);
+          }
+          console.log('Payment and appointment updated successfully');
         }
 
-        console.log('Payment and appointment updated successfully');
+        // Handle event payments
+        if (event_registration_id) {
+          const { error: registrationUpdateError } = await supabase
+            .from('event_registrations')
+            .update({
+              status: 'confirmed',
+            })
+            .eq('id', event_registration_id);
+
+          if (registrationUpdateError) {
+            console.error('Error updating event registration:', registrationUpdateError);
+          }
+          console.log('Payment and event registration updated successfully');
+        }
+
         break;
       }
 

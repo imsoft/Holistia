@@ -524,53 +524,70 @@ export function EventForm({ event, professionals, onSuccess, onCancel }: EventFo
         <CardContent className="space-y-4">
           <div className="space-y-2">
             <Label>Imágenes del Evento (máximo 4) *</Label>
-            <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6">
-              <div className="text-center">
-                <Upload className="mx-auto h-12 w-12 text-muted-foreground" />
-                <div className="mt-4">
-                  <Label htmlFor="image-upload" className="cursor-pointer">
-                    <span className="mt-2 block text-sm font-medium text-foreground">
-                      {uploadingImages ? "Subiendo..." : "Haz clic para subir imágenes"}
-                    </span>
-                    <Input
-                      id="image-upload"
-                      type="file"
-                      multiple
-                      accept="image/*"
-                      onChange={(e) => e.target.files && handleImageUpload(e.target.files)}
-                      className="hidden"
-                      disabled={uploadingImages}
-                    />
-                  </Label>
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    PNG, JPG, GIF hasta 5MB cada una
-                  </p>
-                </div>
+            <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-8">
+              <div className="flex flex-col items-center justify-center text-center">
+                <Upload className="h-12 w-12 text-muted-foreground mb-4" />
+                <Label htmlFor="image-upload" className="cursor-pointer">
+                  <span className="block text-base font-medium text-foreground mb-2">
+                    {uploadingImages ? "Subiendo imágenes..." : "Haz clic para subir imágenes"}
+                  </span>
+                  <Input
+                    id="image-upload"
+                    type="file"
+                    multiple
+                    accept="image/*"
+                    onChange={(e) => e.target.files && handleImageUpload(e.target.files)}
+                    className="hidden"
+                    disabled={uploadingImages}
+                  />
+                </Label>
+                <p className="text-sm text-muted-foreground">
+                  PNG, JPG, GIF hasta 5MB cada una
+                </p>
               </div>
             </div>
             {errors.gallery_images && <p className="text-sm text-red-500">{errors.gallery_images}</p>}
           </div>
 
           {formData.gallery_images.length > 0 && (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {formData.gallery_images.map((image, index) => (
-                <div key={index} className="relative group">
-                    <Image
-                      src={image}
-                      alt={`Imagen ${index + 1}`}
-                      width={100}
-                      height={100}
-                      className="w-full h-24 object-cover rounded-lg"
-                    />
-                  <button
-                    type="button"
-                    onClick={() => removeImage(index)}
-                    className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                  >
-                    <X className="h-4 w-4" />
-                  </button>
-                </div>
-              ))}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <h4 className="text-sm font-medium text-foreground">
+                  Imágenes subidas ({formData.gallery_images.length}/4)
+                </h4>
+                <span className="text-xs text-muted-foreground">
+                  Haz hover sobre una imagen para eliminarla
+                </span>
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {formData.gallery_images.map((image, index) => (
+                  <div key={index} className="relative group">
+                    <div className="relative overflow-hidden rounded-lg border-2 border-muted-foreground/20 hover:border-muted-foreground/40 transition-colors">
+                      <Image
+                        src={image}
+                        alt={`Imagen ${index + 1}`}
+                        width={150}
+                        height={150}
+                        className="w-full h-32 object-cover"
+                      />
+                      {/* Overlay con botón de eliminar */}
+                      <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <button
+                          type="button"
+                          onClick={() => removeImage(index)}
+                          className="bg-red-500 hover:bg-red-600 text-white rounded-full p-2 transition-colors"
+                          title="Eliminar imagen"
+                        >
+                          <X className="h-5 w-5" />
+                        </button>
+                      </div>
+                    </div>
+                    <p className="text-xs text-muted-foreground text-center mt-1">
+                      Imagen {index + 1}
+                    </p>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
         </CardContent>

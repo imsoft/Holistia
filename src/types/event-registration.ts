@@ -14,6 +14,7 @@ export interface EventRegistration {
   emergency_contact_name?: string;
   emergency_contact_phone?: string;
   special_requirements?: string;
+  confirmation_code?: string | null;
   created_at: string;
   updated_at: string;
 }

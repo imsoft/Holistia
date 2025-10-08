@@ -1,7 +1,109 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe';
 import { createClient } from '@/utils/supabase/server';
+import { sendEventConfirmationEmailSimple } from '@/lib/email-sender';
 import Stripe from 'stripe';
+
+async function sendEventConfirmationEmail(eventRegistrationId: string, session: Stripe.Checkout.Session) {
+  try {
+    const supabase = await createClient();
+    
+    // Get event registration details with event and user info
+    const { data: registration, error: registrationError } = await supabase
+      .from('event_registrations')
+      .select(`
+        *,
+        events_workshops (
+          name,
+          event_date,
+          event_time,
+          location,
+          duration_hours,
+          category
+        )
+      `)
+      .eq('id', eventRegistrationId)
+      .single();
+
+    if (registrationError || !registration) {
+      console.error('Error fetching event registration:', registrationError);
+      return;
+    }
+
+    // Get user details
+    const { data: user, error: userError } = await supabase.auth.admin.getUserById(registration.user_id);
+    
+    if (userError || !user) {
+      console.error('Error fetching user:', userError);
+      return;
+    }
+
+    // Get payment details
+    const { data: payment, error: paymentError } = await supabase
+      .from('payments')
+      .select('*')
+      .eq('event_registration_id', eventRegistrationId)
+      .eq('status', 'succeeded')
+      .single();
+
+    if (paymentError || !payment) {
+      console.error('Error fetching payment:', paymentError);
+      return;
+    }
+
+    // Format event data
+    const event = registration.events_workshops;
+    const eventDate = new Date(event.event_date).toLocaleDateString('es-ES', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      weekday: 'long'
+    });
+    
+    const eventTime = event.event_time.substring(0, 5);
+    const paymentDate = new Date(payment.paid_at!).toLocaleDateString('es-ES');
+    
+    // Get category label
+    const categoryLabels = {
+      espiritualidad: "Espiritualidad",
+      salud_mental: "Salud Mental", 
+      salud_fisica: "Salud Física",
+      alimentacion: "Alimentación",
+      social: "Social"
+    };
+    const eventCategory = categoryLabels[event.category as keyof typeof categoryLabels] || event.category;
+
+    // Prepare email data
+    const emailData = {
+      user_name: user.user.user_metadata?.full_name || user.user.email?.split('@')[0] || 'Usuario',
+      user_email: user.user.email!,
+      confirmation_code: registration.confirmation_code!,
+      event_name: event.name,
+      event_date: eventDate,
+      event_time: eventTime,
+      event_location: event.location,
+      event_duration: event.duration_hours,
+      event_category: eventCategory,
+      payment_amount: payment.amount,
+      payment_date: paymentDate,
+      payment_method: payment.payment_method || 'Tarjeta',
+      transaction_id: payment.stripe_payment_intent_id || payment.id,
+      event_url: `${process.env.NEXT_PUBLIC_SITE_URL}/patient/${registration.user_id}/explore/event/${registration.event_id}`
+    };
+
+    // Send email
+    const result = await sendEventConfirmationEmailSimple(emailData);
+    
+    if (result.success) {
+      console.log('Event confirmation email sent successfully');
+    } else {
+      console.error('Failed to send event confirmation email:', result.error);
+    }
+    
+  } catch (error) {
+    console.error('Error in sendEventConfirmationEmail:', error);
+  }
+}
 
 export async function POST(request: NextRequest) {
   const body = await request.text();
@@ -95,8 +197,17 @@ export async function POST(request: NextRequest) {
 
           if (registrationUpdateError) {
             console.error('Error updating event registration:', registrationUpdateError);
+          } else {
+            console.log('Payment and event registration updated successfully');
+            
+            // Send confirmation email for event payments
+            try {
+              await sendEventConfirmationEmail(event_registration_id, session);
+            } catch (emailError) {
+              console.error('Error sending event confirmation email:', emailError);
+              // Don't fail the webhook if email fails
+            }
           }
-          console.log('Payment and event registration updated successfully');
         }
 
         break;

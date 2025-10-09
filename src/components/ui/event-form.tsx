@@ -300,7 +300,7 @@ export function EventForm({ event, professionals, onSuccess, onCancel }: EventFo
                 id="duration_hours"
                 type="number"
                 value={formData.duration_hours}
-                onChange={(e) => handleInputChange('duration_hours', parseInt(e.target.value) || 0)}
+                onChange={(e) => handleInputChange('duration_hours', e.target.value === '' ? 0 : parseInt(e.target.value))}
                 min="1"
                 max="24"
                 className={errors.duration_hours ? "border-red-500" : ""}
@@ -363,7 +363,7 @@ export function EventForm({ event, professionals, onSuccess, onCancel }: EventFo
                 id="price"
                 type="number"
                 value={formData.price}
-                onChange={(e) => handleInputChange('price', parseFloat(e.target.value) || 0)}
+                onChange={(e) => handleInputChange('price', e.target.value === '' ? 0 : parseFloat(e.target.value))}
                 min="0"
                 step="0.01"
                 className={errors.price ? "border-red-500" : ""}
@@ -378,7 +378,7 @@ export function EventForm({ event, professionals, onSuccess, onCancel }: EventFo
               id="max_capacity"
               type="number"
               value={formData.max_capacity}
-              onChange={(e) => handleInputChange('max_capacity', parseInt(e.target.value) || 0)}
+              onChange={(e) => handleInputChange('max_capacity', e.target.value === '' ? 0 : parseInt(e.target.value))}
               min="1"
               className={errors.max_capacity ? "border-red-500" : ""}
             />

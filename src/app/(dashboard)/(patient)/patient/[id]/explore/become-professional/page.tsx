@@ -103,6 +103,7 @@ export default function BecomeProfessionalPage() {
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [specializationInput, setSpecializationInput] = useState("");
+  const [lastEnterTime, setLastEnterTime] = useState<number | null>(null);
   const [wellnessAreaInput, setWellnessAreaInput] = useState("");
   const [userProfilePhoto, setUserProfilePhoto] = useState<string | null>(null);
   const [openCountryCombo, setOpenCountryCombo] = useState(false);
@@ -481,6 +482,18 @@ export default function BecomeProfessionalPage() {
                   if (e.key === 'Enter' || e.key === ',') {
                     e.preventDefault();
                     if (specializationInput.trim()) {
+                      // En móviles y tabletas, requerir doble Enter
+                      if (window.innerWidth <= 1024 && e.key === 'Enter') {
+                        // Verificar si es el segundo Enter consecutivo
+                        const now = Date.now();
+                        if (!lastEnterTime || now - lastEnterTime > 1000) {
+                          setLastEnterTime(now);
+                          return; // Primer Enter, no hacer nada
+                        }
+                        // Segundo Enter dentro de 1 segundo, proceder
+                        setLastEnterTime(null);
+                      }
+                      
                       setFormData((prev) => ({
                         ...prev,
                         specializations: [...prev.specializations, specializationInput.trim()]
@@ -492,7 +505,10 @@ export default function BecomeProfessionalPage() {
                 className={errors.specializations ? "border-red-500" : ""}
               />
               <p className="text-xs text-muted-foreground">
-                Presiona Enter o escribe una coma para agregar. Ejemplos: Psicología Clínica, Terapia de Pareja, Depresión
+                {window.innerWidth <= 1024 
+                  ? "Presiona Enter dos veces o escribe una coma para agregar. Ejemplos: Psicología Clínica, Terapia de Pareja, Depresión"
+                  : "Presiona Enter o escribe una coma para agregar. Ejemplos: Psicología Clínica, Terapia de Pareja, Depresión"
+                }
               </p>
               {formData.specializations.length > 0 && (
                 <div className="flex flex-wrap gap-2 mt-2">

@@ -142,7 +142,7 @@ const HomeUserPage = () => {
           .from("events_workshops")
           .select(`
             *,
-            professional_applications!inner(
+            professional_applications(
               first_name,
               last_name,
               profession
@@ -425,7 +425,7 @@ const HomeUserPage = () => {
   // Aplicar filtros cuando cambien
   useEffect(() => {
     applyEventFilters();
-  }, [eventFilters, events]);
+  }, [eventFilters, events]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const getCategoryLabel = (category: string) => {
     const categories = {

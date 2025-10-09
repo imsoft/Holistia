@@ -46,56 +46,6 @@ interface ProfessionalData {
   country: string;
 }
 
-const therapyTypes = [
-  "Terapia Cognitivo-Conductual",
-  "Terapia Psicoanalítica",
-  "Terapia Humanista",
-  "Terapia Gestalt",
-  "Terapia Familiar",
-  "Terapia de Pareja",
-  "Terapia de Grupo",
-  "Terapia Infantil",
-  "Terapia de Ansiedad",
-  "Terapia de Depresión",
-  "Terapia de Trauma",
-  "Terapia de Adicciones",
-  "Terapia de Duelo",
-  "Terapia de Autoestima",
-  "Terapia de Estrés",
-  "Terapia de Fobias",
-  "Terapia de Pánico",
-  "Terapia de TOC",
-  "Terapia de TDAH",
-  "Terapia de Asperger",
-  "Terapia de Autismo",
-  "Terapia de Dislexia",
-  "Terapia de Aprendizaje",
-  "Terapia de Comportamiento",
-];
-
-const certifications = [
-  "Licenciatura en Psicología",
-  "Maestría en Psicología Clínica",
-  "Doctorado en Psicología",
-  "Especialización en Terapia Cognitivo-Conductual",
-  "Certificación en Terapia de Ansiedad",
-  "Certificación en Terapia de Depresión",
-  "Certificación en Terapia Familiar",
-  "Certificación en Terapia de Pareja",
-  "Certificación en Terapia Infantil",
-  "Certificación en Terapia de Adicciones",
-  "Certificación en Terapia de Trauma",
-  "Certificación en Terapia de Duelo",
-  "Certificación en Terapia de Autoestima",
-  "Certificación en Terapia de Estrés",
-  "Certificación en Terapia de Fobias",
-  "Certificación en Terapia de Pánico",
-  "Certificación en Terapia de TOC",
-  "Certificación en Terapia de TDAH",
-  "Certificación en Terapia de Asperger",
-  "Certificación en Terapia de Autismo",
-];
-
 const wellnessAreas = [
   "Salud mental",
   "Espiritualidad", 
@@ -572,21 +522,6 @@ export default function ProfessionalProfileEditor({
                     </Badge>
                   ))}
                 </div>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-2 max-h-40 overflow-y-auto">
-                  {therapyTypes.map((therapy) => (
-                    <button
-                      key={therapy}
-                      onClick={() => handleSpecializationToggle(therapy)}
-                      className={`p-2 text-left text-xs rounded border transition-colors ${
-                        formData.specializations.includes(therapy)
-                          ? "border-primary bg-primary/10 text-primary"
-                          : "border-border hover:border-primary/50"
-                      }`}
-                    >
-                      {therapy}
-                    </button>
-                  ))}
-                </div>
                 
                 {/* Input para especialización personalizada */}
                 <div className="flex gap-2 mt-3">
@@ -638,21 +573,6 @@ export default function ProfessionalProfileEditor({
                         <X className="h-3 w-3" />
                       </button>
                     </Badge>
-                  ))}
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-40 overflow-y-auto">
-                  {certifications.map((cert) => (
-                    <button
-                      key={cert}
-                      onClick={() => handleCertificationToggle(cert)}
-                      className={`p-2 text-left text-xs rounded border transition-colors ${
-                        formData.certifications.includes(cert)
-                          ? "border-primary bg-primary/10 text-primary"
-                          : "border-border hover:border-primary/50"
-                      }`}
-                    >
-                      {cert}
-                    </button>
                   ))}
                 </div>
                 

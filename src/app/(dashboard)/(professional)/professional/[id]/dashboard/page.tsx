@@ -279,23 +279,23 @@ export default function ProfessionalDashboard() {
       </div>
 
       {/* Main Content */}
-      <div className="p-6 space-y-6">
+      <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {stats.map((stat) => (
             <Card key={stat.title}>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-6 pt-6">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-4 sm:px-6 pt-4 sm:pt-6">
+                <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">
                   {stat.title}
                 </CardTitle>
-                <div className={`p-2 rounded-full ${stat.bgColor}`}>
-                  <stat.icon className={`h-4 w-4 ${stat.color}`} />
+                <div className={`p-1.5 sm:p-2 rounded-full ${stat.bgColor}`}>
+                  <stat.icon className={`h-3.5 w-3.5 sm:h-4 sm:w-4 ${stat.color}`} />
                 </div>
               </CardHeader>
-              <CardContent className="px-6 pb-6">
-                <div className="text-2xl font-bold text-foreground">{stat.value}</div>
-                <p className="text-xs text-muted-foreground flex items-center gap-1">
-                  <TrendingUp className="h-3 w-3" />
+              <CardContent className="px-4 sm:px-6 pb-4 sm:pb-6">
+                <div className="text-xl sm:text-2xl font-bold text-foreground">{stat.value}</div>
+                <p className="text-[10px] sm:text-xs text-muted-foreground flex items-center gap-1">
+                  <TrendingUp className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
                   {stat.change}
                 </p>
               </CardContent>
@@ -304,7 +304,7 @@ export default function ProfessionalDashboard() {
         </div>
 
         {/* Foto de Perfil */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
           <div className="lg:col-span-1">
             <ProfilePhotoUploader
               professionalId={userId}
@@ -324,11 +324,11 @@ export default function ProfessionalDashboard() {
 
         {/* Próximas Citas */}
         <Card>
-          <CardHeader className="px-6 pt-6">
-            <div className="flex items-center justify-between">
+          <CardHeader className="px-4 sm:px-6 pt-4 sm:pt-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0">
               <div>
-                <CardTitle>Próximas Citas</CardTitle>
-                <CardDescription>
+                <CardTitle className="text-base sm:text-lg">Próximas Citas</CardTitle>
+                <CardDescription className="text-xs sm:text-sm">
                   Citas programadas para hoy
                 </CardDescription>
               </div>
@@ -336,50 +336,52 @@ export default function ProfessionalDashboard() {
                 variant="outline" 
                 size="sm"
                 onClick={handleViewAllAppointments}
+                className="w-full sm:w-auto"
               >
                 <Eye className="h-4 w-4 mr-2" />
                 Ver todas
               </Button>
             </div>
           </CardHeader>
-          <CardContent className="px-6 pb-6">
-            <div className="space-y-4">
+          <CardContent className="px-4 sm:px-6 pb-4 sm:pb-6">
+            <div className="space-y-3 sm:space-y-4">
               {loading ? (
-                <div className="text-center py-8 text-muted-foreground">Cargando citas...</div>
+                <div className="text-center py-8 text-xs sm:text-sm text-muted-foreground">Cargando citas...</div>
               ) : appointments.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">No hay citas programadas para hoy</div>
+                <div className="text-center py-8 text-xs sm:text-sm text-muted-foreground">No hay citas programadas para hoy</div>
               ) : (
                 appointments.map((appointment) => (
                 <div
                   key={appointment.id}
-                  className="flex items-center justify-between p-4 rounded-lg border border-border hover:bg-accent/50 transition-colors"
+                  className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 sm:p-4 rounded-lg border border-border hover:bg-accent/50 transition-colors gap-3 sm:gap-0"
                 >
-                  <div className="flex items-center gap-4">
-                    <div className="flex flex-col items-center">
-                      <Clock className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm font-medium text-foreground">
+                  <div className="flex items-center gap-3 sm:gap-4">
+                    <div className="flex flex-col items-center flex-shrink-0">
+                      <Clock className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
+                      <span className="text-xs sm:text-sm font-medium text-foreground">
                         {appointment.time}
                       </span>
                     </div>
-                    <div>
-                      <h4 className="font-medium text-foreground">
+                    <div className="min-w-0">
+                      <h4 className="text-sm sm:text-base font-medium text-foreground truncate">
                         {appointment.patient.name}
                       </h4>
-                      <p className="text-sm text-muted-foreground">
+                      <p className="text-xs sm:text-sm text-muted-foreground">
                         {appointment.type} • {appointment.duration} min
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <Badge className={getStatusColor(appointment.status)}>
+                  <div className="flex items-center gap-2 sm:gap-3 justify-end sm:justify-start">
+                    <Badge className={`${getStatusColor(appointment.status)} text-xs`}>
                       {getStatusText(appointment.status)}
                     </Badge>
                     <Button 
                       variant="ghost" 
                       size="sm"
                       onClick={() => handleViewAppointment(appointment)}
+                      className="h-8 w-8 p-0"
                     >
-                      <Eye className="h-4 w-4" />
+                      <Eye className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                     </Button>
                   </div>
                 </div>
@@ -393,30 +395,30 @@ export default function ProfessionalDashboard() {
 
       {/* Modal para ver detalles de la cita */}
       <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Detalles de la Cita</DialogTitle>
-            <DialogDescription>
+            <DialogTitle className="text-base sm:text-lg">Detalles de la Cita</DialogTitle>
+            <DialogDescription className="text-xs sm:text-sm">
               Información completa de la cita seleccionada
             </DialogDescription>
           </DialogHeader>
           
           {selectedAppointment && (
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
               {/* Información del paciente */}
-              <div className="bg-muted/50 rounded-lg p-4">
-                <h3 className="text-lg font-semibold mb-3">Información del Paciente</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="flex items-center gap-2">
-                    <Users className="h-4 w-4 text-muted-foreground" />
+              <div className="bg-muted/50 rounded-lg p-3 sm:p-4">
+                <h3 className="text-base sm:text-lg font-semibold mb-2 sm:mb-3">Información del Paciente</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
+                  <div className="flex items-center gap-2 text-xs sm:text-sm">
+                    <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
                     <span className="font-medium">Nombre:</span>
-                    <span>{selectedAppointment.patient.name}</span>
+                    <span className="truncate">{selectedAppointment.patient.name}</span>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 text-xs sm:text-sm">
                     <span className="font-medium">Email:</span>
-                    <span>{selectedAppointment.patient.email}</span>
+                    <span className="truncate">{selectedAppointment.patient.email}</span>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 text-xs sm:text-sm">
                     <span className="font-medium">Teléfono:</span>
                     <span>{selectedAppointment.patient.phone}</span>
                   </div>
@@ -424,39 +426,41 @@ export default function ProfessionalDashboard() {
               </div>
 
               {/* Información de la cita */}
-              <div className="bg-muted/50 rounded-lg p-4">
-                <h3 className="text-lg font-semibold mb-3">Información de la Cita</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-muted-foreground" />
-                    <span className="font-medium">Fecha:</span>
-                    <span>{new Date(selectedAppointment.date).toLocaleDateString('es-ES', {
-                      weekday: 'long',
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric'
-                    })}</span>
+              <div className="bg-muted/50 rounded-lg p-3 sm:p-4">
+                <h3 className="text-base sm:text-lg font-semibold mb-2 sm:mb-3">Información de la Cita</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
+                  <div className="flex items-start gap-2 text-xs sm:text-sm">
+                    <Calendar className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0 mt-0.5" />
+                    <div className="flex flex-col sm:flex-row sm:gap-1">
+                      <span className="font-medium">Fecha:</span>
+                      <span className="text-muted-foreground">{new Date(selectedAppointment.date).toLocaleDateString('es-ES', {
+                        weekday: 'long',
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                      })}</span>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Clock className="h-4 w-4 text-muted-foreground" />
+                  <div className="flex items-center gap-2 text-xs sm:text-sm">
+                    <Clock className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
                     <span className="font-medium">Hora:</span>
                     <span>{selectedAppointment.time}</span>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 text-xs sm:text-sm">
                     <span className="font-medium">Duración:</span>
                     <span>{selectedAppointment.duration} minutos</span>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 text-xs sm:text-sm">
                     <span className="font-medium">Tipo:</span>
                     <span>{selectedAppointment.type}</span>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 text-xs sm:text-sm">
                     <span className="font-medium">Ubicación:</span>
-                    <span>{selectedAppointment.location}</span>
+                    <span className="truncate">{selectedAppointment.location}</span>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 text-xs sm:text-sm">
                     <span className="font-medium">Estado:</span>
-                    <Badge className={getStatusColor(selectedAppointment.status)}>
+                    <Badge className={`${getStatusColor(selectedAppointment.status)} text-xs`}>
                       {getStatusText(selectedAppointment.status)}
                     </Badge>
                   </div>
@@ -465,9 +469,9 @@ export default function ProfessionalDashboard() {
 
               {/* Notas */}
               {selectedAppointment.notes && (
-                <div className="bg-muted/50 rounded-lg p-4">
-                  <h3 className="text-lg font-semibold mb-3">Notas</h3>
-                  <p className="text-muted-foreground">{selectedAppointment.notes}</p>
+                <div className="bg-muted/50 rounded-lg p-3 sm:p-4">
+                  <h3 className="text-base sm:text-lg font-semibold mb-2 sm:mb-3">Notas</h3>
+                  <p className="text-xs sm:text-sm text-muted-foreground">{selectedAppointment.notes}</p>
                 </div>
               )}
             </div>

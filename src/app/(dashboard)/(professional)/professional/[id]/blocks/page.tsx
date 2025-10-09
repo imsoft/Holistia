@@ -69,10 +69,10 @@ export default function BlocksPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center px-4">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-2 text-sm text-muted-foreground">Cargando...</p>
+          <div className="animate-spin rounded-full h-8 w-8 sm:h-10 sm:w-10 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-2 text-xs sm:text-sm text-muted-foreground">Cargando...</p>
         </div>
       </div>
     );
@@ -101,22 +101,25 @@ export default function BlocksPage() {
         </div>
 
         {/* Main Content */}
-        <div className="container mx-auto p-6">
+        <div className="container mx-auto p-4 sm:p-6">
           <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <User className="w-5 h-5" />
+            <CardHeader className="px-4 sm:px-6">
+              <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                <User className="w-4 h-4 sm:w-5 sm:h-5" />
                 Bloqueos de Disponibilidad
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="text-center py-8">
-                <User className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
-                <h3 className="text-lg font-semibold mb-2">No eres un profesional registrado</h3>
-                <p className="text-muted-foreground mb-6">
+            <CardContent className="px-4 sm:px-6">
+              <div className="text-center py-6 sm:py-8">
+                <User className="w-12 h-12 sm:w-16 sm:h-16 mx-auto text-muted-foreground mb-3 sm:mb-4" />
+                <h3 className="text-base sm:text-lg font-semibold mb-2">No eres un profesional registrado</h3>
+                <p className="text-xs sm:text-sm text-muted-foreground mb-4 sm:mb-6 max-w-md mx-auto">
                   Para gestionar bloqueos de disponibilidad, primero debes aplicar para ser un profesional.
                 </p>
-                <Button onClick={() => router.push(`/patient/${user.id}/explore/become-professional`)}>
+                <Button 
+                  onClick={() => router.push(`/patient/${user.id}/explore/become-professional`)}
+                  className="w-full sm:w-auto"
+                >
                   Convertirse en Profesional
                 </Button>
               </div>
@@ -146,22 +149,22 @@ export default function BlocksPage() {
         </div>
 
         {/* Main Content */}
-        <div className="container mx-auto p-6">
+        <div className="container mx-auto p-4 sm:p-6">
           <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <User className="w-5 h-5" />
+            <CardHeader className="px-4 sm:px-6">
+              <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                <User className="w-4 h-4 sm:w-5 sm:h-5" />
                 Bloqueos de Disponibilidad
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="text-center py-8">
-                <User className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
-                <h3 className="text-lg font-semibold mb-2">Aplicación en revisión</h3>
-                <p className="text-muted-foreground">
+            <CardContent className="px-4 sm:px-6">
+              <div className="text-center py-6 sm:py-8">
+                <User className="w-12 h-12 sm:w-16 sm:h-16 mx-auto text-muted-foreground mb-3 sm:mb-4" />
+                <h3 className="text-base sm:text-lg font-semibold mb-2">Aplicación en revisión</h3>
+                <p className="text-xs sm:text-sm text-muted-foreground max-w-md mx-auto">
                   Tu aplicación profesional está siendo revisada. Una vez aprobada, podrás gestionar tus bloqueos de disponibilidad.
                 </p>
-                <div className="mt-4 text-sm text-muted-foreground">
+                <div className="mt-3 sm:mt-4 text-xs sm:text-sm text-muted-foreground">
                   Estado actual: <span className="font-medium">{professional.status}</span>
                 </div>
               </div>
@@ -190,7 +193,7 @@ export default function BlocksPage() {
       </div>
 
       {/* Main Content */}
-      <div className="container mx-auto p-6">
+      <div className="container mx-auto p-4 sm:p-6">
         <AvailabilityBlockManager professionalId={professional.id} userId={user.id} />
       </div>
     </div>

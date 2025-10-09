@@ -11,12 +11,12 @@ export default function HistoryPage() {
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
       <div className="relative bg-gradient-to-b from-primary/5 via-primary/3 to-background">
-        <div className="mx-auto max-w-4xl px-6 pt-24 sm:pt-32 lg:px-8">
+        <div className="mx-auto max-w-4xl px-4 sm:px-6 pt-16 sm:pt-24 lg:pt-32 lg:px-8 pb-8 sm:pb-12">
           <div className="text-center">
-            <h1 className="text-5xl font-bold tracking-tight text-foreground sm:text-7xl">
+            <h1 className="text-3xl sm:text-5xl lg:text-7xl font-bold tracking-tight text-foreground">
               Nuestra Historia
             </h1>
-            <p className="mt-8 text-xl leading-8 text-muted-foreground max-w-3xl mx-auto">
+            <p className="mt-4 sm:mt-6 lg:mt-8 text-base sm:text-lg lg:text-xl leading-7 sm:leading-8 text-muted-foreground max-w-3xl mx-auto">
               Una historia de pasión por la salud integral, innovación tecnológica y el compromiso 
               de hacer que el bienestar sea accesible para todos.
             </p>
@@ -25,16 +25,16 @@ export default function HistoryPage() {
       </div>
 
       {/* Story Section */}
-      <div className="py-12 sm:py-16">
-        <div className="mx-auto max-w-4xl px-6 lg:px-8">
-          <div className="space-y-16">
+      <div className="py-8 sm:py-12 lg:py-16">
+        <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
+          <div className="space-y-10 sm:space-y-16">
             
             {/* The Beginning */}
             <div className="prose prose-lg max-w-none">
-              <h2 className="text-3xl font-bold text-foreground mb-8 text-center">
+              <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-6 sm:mb-8 text-center">
                 El Comienzo de una Visión
               </h2>
-              <div className="text-lg leading-8 text-muted-foreground space-y-6">
+              <div className="text-base sm:text-lg leading-7 sm:leading-8 text-muted-foreground space-y-4 sm:space-y-6">
                 <p>
                   Todo comenzó con una simple pero poderosa observación: millones de personas en México 
                   enfrentaban barreras significativas para acceder a servicios de salud de calidad. 
@@ -50,14 +50,14 @@ export default function HistoryPage() {
             </div>
 
             {/* The Vision */}
-            <div className="bg-muted/30 rounded-3xl p-8 sm:p-12">
-              <div className="text-center mb-8">
-                <Heart className="w-16 h-16 text-primary mx-auto mb-6" />
-                <h2 className="text-3xl font-bold text-foreground mb-4">
+            <div className="bg-muted/30 rounded-2xl sm:rounded-3xl p-6 sm:p-8 lg:p-12">
+              <div className="text-center mb-6 sm:mb-8">
+                <Heart className="w-12 h-12 sm:w-16 sm:h-16 text-primary mx-auto mb-4 sm:mb-6" />
+                <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-3 sm:mb-4">
                   Una Visión Integral
                 </h2>
               </div>
-              <div className="text-lg leading-8 text-muted-foreground space-y-6 max-w-3xl mx-auto">
+              <div className="text-base sm:text-lg leading-7 sm:leading-8 text-muted-foreground space-y-4 sm:space-y-6 max-w-3xl mx-auto">
                 <p>
                   Creemos firmemente que la salud no se trata solo de tratar enfermedades, sino de 
                   promover el bienestar integral. Por eso, desde el primer día, nos enfocamos en 
@@ -74,10 +74,10 @@ export default function HistoryPage() {
 
             {/* The Journey */}
             <div className="prose prose-lg max-w-none">
-              <h2 className="text-3xl font-bold text-foreground mb-8 text-center">
+              <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-6 sm:mb-8 text-center">
                 El Camino Recorrido
               </h2>
-              <div className="text-lg leading-8 text-muted-foreground space-y-6">
+              <div className="text-base sm:text-lg leading-7 sm:leading-8 text-muted-foreground space-y-4 sm:space-y-6">
                 <p>
                   Los primeros meses fueron de aprendizaje constante. Trabajamos mano a mano con 
                   profesionales de la salud para entender sus necesidades, sus desafíos y sus 
@@ -99,28 +99,28 @@ export default function HistoryPage() {
             </div>
 
             {/* Values Section */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-16">
-              <div className="space-y-8">
-                <div className="flex items-start space-x-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 mt-10 sm:mt-16">
+              <div className="space-y-6 sm:space-y-8">
+                <div className="flex items-start space-x-3 sm:space-x-4">
                   <div className="flex-shrink-0">
-                    <Users className="w-8 h-8 text-primary mt-1" />
+                    <Users className="w-6 h-6 sm:w-8 sm:h-8 text-primary mt-1" />
                   </div>
                   <div>
-                    <h3 className="text-xl font-semibold text-foreground mb-2">Accesibilidad</h3>
-                    <p className="text-muted-foreground">
+                    <h3 className="text-lg sm:text-xl font-semibold text-foreground mb-2">Accesibilidad</h3>
+                    <p className="text-sm sm:text-base text-muted-foreground">
                       Creemos que todos merecen acceso a servicios de salud de calidad, 
                       independientemente de su ubicación o situación económica.
                     </p>
                   </div>
                 </div>
                 
-                <div className="flex items-start space-x-4">
+                <div className="flex items-start space-x-3 sm:space-x-4">
                   <div className="flex-shrink-0">
-                    <Shield className="w-8 h-8 text-primary mt-1" />
+                    <Shield className="w-6 h-6 sm:w-8 sm:h-8 text-primary mt-1" />
                   </div>
                   <div>
-                    <h3 className="text-xl font-semibold text-foreground mb-2">Calidad</h3>
-                    <p className="text-muted-foreground">
+                    <h3 className="text-lg sm:text-xl font-semibold text-foreground mb-2">Calidad</h3>
+                    <p className="text-sm sm:text-base text-muted-foreground">
                       Trabajamos únicamente con profesionales certificados y verificados 
                       para garantizar la mejor atención posible.
                     </p>
@@ -128,27 +128,27 @@ export default function HistoryPage() {
                 </div>
               </div>
               
-              <div className="space-y-8">
-                <div className="flex items-start space-x-4">
+              <div className="space-y-6 sm:space-y-8">
+                <div className="flex items-start space-x-3 sm:space-x-4">
                   <div className="flex-shrink-0">
-                    <Lightbulb className="w-8 h-8 text-primary mt-1" />
+                    <Lightbulb className="w-6 h-6 sm:w-8 sm:h-8 text-primary mt-1" />
                   </div>
                   <div>
-                    <h3 className="text-xl font-semibold text-foreground mb-2">Innovación</h3>
-                    <p className="text-muted-foreground">
+                    <h3 className="text-lg sm:text-xl font-semibold text-foreground mb-2">Innovación</h3>
+                    <p className="text-sm sm:text-base text-muted-foreground">
                       Utilizamos tecnología de vanguardia para mejorar continuamente 
                       la experiencia de nuestros usuarios.
                     </p>
                   </div>
                 </div>
                 
-                <div className="flex items-start space-x-4">
+                <div className="flex items-start space-x-3 sm:space-x-4">
                   <div className="flex-shrink-0">
-                    <Heart className="w-8 h-8 text-primary mt-1" />
+                    <Heart className="w-6 h-6 sm:w-8 sm:h-8 text-primary mt-1" />
                   </div>
                   <div>
-                    <h3 className="text-xl font-semibold text-foreground mb-2">Compromiso</h3>
-                    <p className="text-muted-foreground">
+                    <h3 className="text-lg sm:text-xl font-semibold text-foreground mb-2">Compromiso</h3>
+                    <p className="text-sm sm:text-base text-muted-foreground">
                       Estamos comprometidos con el bienestar integral de nuestros usuarios, 
                       no solo con tratar síntomas.
                     </p>
@@ -158,11 +158,11 @@ export default function HistoryPage() {
             </div>
 
             {/* Future Vision */}
-            <div className="bg-gradient-to-r from-primary/5 to-primary/10 rounded-3xl p-8 sm:p-12 text-center">
-              <h2 className="text-3xl font-bold text-foreground mb-6">
+            <div className="bg-gradient-to-r from-primary/5 to-primary/10 rounded-2xl sm:rounded-3xl p-6 sm:p-8 lg:p-12 text-center">
+              <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-4 sm:mb-6">
                 Mirando hacia el Futuro
               </h2>
-              <div className="text-lg leading-8 text-muted-foreground max-w-3xl mx-auto space-y-4">
+              <div className="text-base sm:text-lg leading-7 sm:leading-8 text-muted-foreground max-w-3xl mx-auto space-y-4">
                 <p>
                   Hoy, Holistia continúa evolucionando. Estamos implementando tecnologías 
                   avanzadas como inteligencia artificial para mejorar las recomendaciones 

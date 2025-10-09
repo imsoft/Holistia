@@ -187,10 +187,10 @@ export default function ProfessionalGalleryPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center px-4">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-4 text-sm text-muted-foreground">Cargando galería...</p>
+          <div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-4 text-xs sm:text-sm text-muted-foreground">Cargando galería...</p>
         </div>
       </div>
     );
@@ -198,14 +198,14 @@ export default function ProfessionalGalleryPage() {
 
   if (error && !professional) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center max-w-md">
-          <h1 className="text-2xl font-bold text-foreground mb-2">Error de Acceso</h1>
-          <p className="text-muted-foreground mb-4">{error}</p>
+      <div className="min-h-screen bg-background flex items-center justify-center px-4">
+        <div className="text-center max-w-md w-full">
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground mb-2">Error de Acceso</h1>
+          <p className="text-sm sm:text-base text-muted-foreground mb-4">{error}</p>
           
           {error.includes('Solo puedes acceder a tu propia galería') && (
-            <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-              <p className="text-sm text-yellow-800">
+            <div className="mb-4 p-3 sm:p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <p className="text-xs sm:text-sm text-yellow-800 text-left">
                 <strong>Nota:</strong> Solo puedes gestionar la galería de tu propio perfil profesional. 
                 Asegúrate de estar logueado con la cuenta correcta.
               </p>
@@ -213,21 +213,21 @@ export default function ProfessionalGalleryPage() {
           )}
           
           {error.includes('Debes estar autenticado') && (
-            <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-              <p className="text-sm text-blue-800">
+            <div className="mb-4 p-3 sm:p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <p className="text-xs sm:text-sm text-blue-800 text-left">
                 <strong>Acción requerida:</strong> Por favor inicia sesión para acceder a esta página.
               </p>
             </div>
           )}
           
-          <div className="flex gap-2 justify-center">
-            <Link href="/login">
-              <Button variant="default">
+          <div className="flex flex-col sm:flex-row gap-2 justify-center">
+            <Link href="/login" className="w-full sm:w-auto">
+              <Button variant="default" className="w-full sm:w-auto">
                 Iniciar Sesión
               </Button>
             </Link>
-            <Link href="/">
-              <Button variant="outline">
+            <Link href="/" className="w-full sm:w-auto">
+              <Button variant="outline" className="w-full sm:w-auto">
                 Ir al Inicio
               </Button>
             </Link>
@@ -239,10 +239,10 @@ export default function ProfessionalGalleryPage() {
 
   if (!professional) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center px-4">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-foreground mb-2">Profesional no encontrado</h1>
-          <p className="text-muted-foreground">El profesional que buscas no está disponible.</p>
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground mb-2">Profesional no encontrado</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">El profesional que buscas no está disponible.</p>
         </div>
       </div>
     );
@@ -266,44 +266,44 @@ export default function ProfessionalGalleryPage() {
       </div>
 
       {/* Main Content */}
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
 
         {/* Mensajes de estado */}
         {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-red-600">{error}</p>
+          <div className="mb-4 sm:mb-6 p-3 sm:p-4 bg-red-50 border border-red-200 rounded-lg">
+            <p className="text-sm sm:text-base text-red-600">{error}</p>
           </div>
         )}
 
         {success && (
-          <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
-            <p className="text-green-600">{success}</p>
+          <div className="mb-4 sm:mb-6 p-3 sm:p-4 bg-green-50 border border-green-200 rounded-lg">
+            <p className="text-sm sm:text-base text-green-600">{success}</p>
           </div>
         )}
 
         {/* Información del profesional */}
-        <Card className="mb-8 p-4">
-          <CardHeader className="pb-4">
-            <CardTitle className="text-xl">Información del Profesional</CardTitle>
-            <CardDescription>
+        <Card className="mb-6 sm:mb-8 p-3 sm:p-4">
+          <CardHeader className="pb-3 sm:pb-4">
+            <CardTitle className="text-lg sm:text-xl">Información del Profesional</CardTitle>
+            <CardDescription className="text-xs sm:text-sm">
               Datos básicos de tu perfil profesional
             </CardDescription>
           </CardHeader>
           <CardContent className="pt-2">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <p className="text-sm font-medium text-muted-foreground">Nombre</p>
-                <p className="text-lg font-semibold">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+              <div className="space-y-1 sm:space-y-2">
+                <p className="text-xs sm:text-sm font-medium text-muted-foreground">Nombre</p>
+                <p className="text-base sm:text-lg font-semibold">
                   {professional.first_name} {professional.last_name}
                 </p>
               </div>
-              <div className="space-y-2">
-                <p className="text-sm font-medium text-muted-foreground">Profesión</p>
-                <p className="text-lg font-semibold">{professional.profession}</p>
+              <div className="space-y-1 sm:space-y-2">
+                <p className="text-xs sm:text-sm font-medium text-muted-foreground">Profesión</p>
+                <p className="text-base sm:text-lg font-semibold">{professional.profession}</p>
               </div>
-              <div className="space-y-2">
-                <p className="text-sm font-medium text-muted-foreground">Estado</p>
-                <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium ${
+              <div className="space-y-1 sm:space-y-2">
+                <p className="text-xs sm:text-sm font-medium text-muted-foreground">Estado</p>
+                <span className={`inline-flex items-center px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm font-medium ${
                   professional.status === 'approved' 
                     ? 'bg-green-100 text-green-800' 
                     : professional.status === 'pending'
@@ -317,9 +317,9 @@ export default function ProfessionalGalleryPage() {
                    professional.status === 'under_review' ? 'En revisión' : 'Rechazado'}
                 </span>
               </div>
-              <div className="space-y-2">
-                <p className="text-sm font-medium text-muted-foreground">Ubicación</p>
-                <p className="text-lg font-semibold">
+              <div className="space-y-1 sm:space-y-2">
+                <p className="text-xs sm:text-sm font-medium text-muted-foreground">Ubicación</p>
+                <p className="text-base sm:text-lg font-semibold">
                   {professional.city}, {professional.state}
                 </p>
               </div>
@@ -328,10 +328,10 @@ export default function ProfessionalGalleryPage() {
         </Card>
 
         {/* Gestión de galería */}
-        <Card className="mb-8 p-4">
-          <CardHeader className="pb-4">
-            <CardTitle className="text-xl">Galería de Imágenes</CardTitle>
-            <CardDescription>
+        <Card className="mb-6 sm:mb-8 p-3 sm:p-4">
+          <CardHeader className="pb-3 sm:pb-4">
+            <CardTitle className="text-lg sm:text-xl">Galería de Imágenes</CardTitle>
+            <CardDescription className="text-xs sm:text-sm">
               Sube hasta 4 imágenes de tu espacio de trabajo. Cada imagen debe ser menor a 2MB.
             </CardDescription>
           </CardHeader>
@@ -347,15 +347,15 @@ export default function ProfessionalGalleryPage() {
         </Card>
 
         {/* Consejos */}
-        <Card className="mt-8 p-4">
-          <CardHeader className="pb-4">
-            <CardTitle className="text-xl">Consejos para tus imágenes</CardTitle>
+        <Card className="mt-6 sm:mt-8 p-3 sm:p-4">
+          <CardHeader className="pb-3 sm:pb-4">
+            <CardTitle className="text-lg sm:text-xl">Consejos para tus imágenes</CardTitle>
           </CardHeader>
           <CardContent className="pt-2">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="space-y-3">
-                <h4 className="font-semibold text-foreground mb-3 text-lg">✅ Imágenes recomendadas:</h4>
-                <ul className="space-y-2 text-sm text-muted-foreground">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
+              <div className="space-y-2 sm:space-y-3">
+                <h4 className="font-semibold text-foreground mb-2 sm:mb-3 text-base sm:text-lg">✅ Imágenes recomendadas:</h4>
+                <ul className="space-y-2 text-xs sm:text-sm text-muted-foreground">
                   <li className="flex items-start gap-2">
                     <span className="text-green-600 mt-0.5">•</span>
                     <span>Espacio de consulta limpio y organizado</span>
@@ -378,9 +378,9 @@ export default function ProfessionalGalleryPage() {
                   </li>
                 </ul>
               </div>
-              <div className="space-y-3">
-                <h4 className="font-semibold text-foreground mb-3 text-lg">❌ Evita:</h4>
-                <ul className="space-y-2 text-sm text-muted-foreground">
+              <div className="space-y-2 sm:space-y-3">
+                <h4 className="font-semibold text-foreground mb-2 sm:mb-3 text-base sm:text-lg">❌ Evita:</h4>
+                <ul className="space-y-2 text-xs sm:text-sm text-muted-foreground">
                   <li className="flex items-start gap-2">
                     <span className="text-red-600 mt-0.5">•</span>
                     <span>Imágenes borrosas o de baja calidad</span>

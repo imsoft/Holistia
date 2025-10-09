@@ -75,14 +75,11 @@ export default function AvailabilityPage() {
 
   if (loading) {
     return (
-      <div className="container mx-auto p-6">
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-center">
-              <div className="text-muted-foreground">Cargando...</div>
-            </div>
-          </CardContent>
-        </Card>
+      <div className="min-h-screen bg-background flex items-center justify-center px-4">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 sm:h-10 sm:w-10 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-2 text-xs sm:text-sm text-muted-foreground">Cargando...</p>
+        </div>
       </div>
     );
   }
@@ -93,55 +90,88 @@ export default function AvailabilityPage() {
 
   if (!professional) {
     return (
-      <div className="container mx-auto p-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <User className="w-5 h-5" />
-              Bloqueos de Disponibilidad
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-center py-8">
-              <User className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
-              <h3 className="text-lg font-semibold mb-2">No eres un profesional registrado</h3>
-              <p className="text-muted-foreground mb-6">
-                Para gestionar bloqueos de disponibilidad, primero debes aplicar para ser un profesional.
-              </p>
-              <Button onClick={() => router.push(`/patient/${user.id}/explore/become-professional`)}>
-                Convertirse en Profesional
-              </Button>
+      <div className="min-h-screen bg-background">
+        <div className="border-b border-border bg-card">
+          <div className="flex flex-col sm:flex-row sm:h-16 sm:items-center justify-between px-4 sm:px-6 py-4 sm:py-0 gap-4 sm:gap-0">
+            <div className="flex items-center gap-3 sm:gap-4">
+              <SidebarTrigger />
+              <div>
+                <h1 className="text-xl sm:text-2xl font-bold text-foreground">Horarios de Trabajo</h1>
+                <p className="text-xs sm:text-sm text-muted-foreground">
+                  Configura tus días y horarios laborales
+                </p>
+              </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
+        <div className="container mx-auto p-4 sm:p-6">
+          <Card>
+            <CardHeader className="px-4 sm:px-6">
+              <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                <User className="w-4 h-4 sm:w-5 sm:h-5" />
+                Horarios de Trabajo
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="px-4 sm:px-6">
+              <div className="text-center py-6 sm:py-8">
+                <User className="w-12 h-12 sm:w-16 sm:h-16 mx-auto text-muted-foreground mb-3 sm:mb-4" />
+                <h3 className="text-base sm:text-lg font-semibold mb-2">No eres un profesional registrado</h3>
+                <p className="text-xs sm:text-sm text-muted-foreground mb-4 sm:mb-6 max-w-md mx-auto">
+                  Para gestionar horarios de trabajo, primero debes aplicar para ser un profesional.
+                </p>
+                <Button 
+                  onClick={() => router.push(`/patient/${user.id}/explore/become-professional`)}
+                  className="w-full sm:w-auto"
+                >
+                  Convertirse en Profesional
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     );
   }
 
   if (professional.status !== 'approved') {
     return (
-      <div className="container mx-auto p-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <User className="w-5 h-5" />
-              Bloqueos de Disponibilidad
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-center py-8">
-              <User className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
-              <h3 className="text-lg font-semibold mb-2">Aplicación en revisión</h3>
-              <p className="text-muted-foreground mb-6">
-                Tu aplicación como profesional está siendo revisada. 
-                Una vez aprobada, podrás gestionar tus bloqueos de disponibilidad.
-              </p>
-              <div className="text-sm text-muted-foreground">
-                Estado actual: <span className="font-medium">{professional.status}</span>
+      <div className="min-h-screen bg-background">
+        <div className="border-b border-border bg-card">
+          <div className="flex flex-col sm:flex-row sm:h-16 sm:items-center justify-between px-4 sm:px-6 py-4 sm:py-0 gap-4 sm:gap-0">
+            <div className="flex items-center gap-3 sm:gap-4">
+              <SidebarTrigger />
+              <div>
+                <h1 className="text-xl sm:text-2xl font-bold text-foreground">Horarios de Trabajo</h1>
+                <p className="text-xs sm:text-sm text-muted-foreground">
+                  Configura tus días y horarios laborales
+                </p>
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
+        <div className="container mx-auto p-4 sm:p-6">
+          <Card>
+            <CardHeader className="px-4 sm:px-6">
+              <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                <User className="w-4 h-4 sm:w-5 sm:h-5" />
+                Horarios de Trabajo
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="px-4 sm:px-6">
+              <div className="text-center py-6 sm:py-8">
+                <User className="w-12 h-12 sm:w-16 sm:h-16 mx-auto text-muted-foreground mb-3 sm:mb-4" />
+                <h3 className="text-base sm:text-lg font-semibold mb-2">Aplicación en revisión</h3>
+                <p className="text-xs sm:text-sm text-muted-foreground mb-4 sm:mb-6 max-w-md mx-auto">
+                  Tu aplicación como profesional está siendo revisada. 
+                  Una vez aprobada, podrás gestionar tus horarios de trabajo.
+                </p>
+                <div className="text-xs sm:text-sm text-muted-foreground">
+                  Estado actual: <span className="font-medium">{professional.status}</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     );
   }
@@ -164,7 +194,7 @@ export default function AvailabilityPage() {
       </div>
 
       {/* Main Content */}
-      <div className="container mx-auto p-6">
+      <div className="container mx-auto p-4 sm:p-6">
         <WorkingHoursManager
           professionalId={professional.id}
           userId={user.id}

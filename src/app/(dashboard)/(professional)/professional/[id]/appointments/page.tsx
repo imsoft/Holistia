@@ -230,12 +230,12 @@ export default function ProfessionalAppointments() {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <div className="border-b border-border bg-card">
-        <div className="flex h-16 items-center justify-between px-6">
-          <div className="flex items-center gap-4">
+        <div className="flex flex-col sm:flex-row sm:h-16 sm:items-center justify-between px-4 sm:px-6 py-4 sm:py-0 gap-3 sm:gap-0">
+          <div className="flex items-center gap-3 sm:gap-4">
             <SidebarTrigger />
             <div>
-              <h1 className="text-2xl font-bold text-foreground">Citas</h1>
-              <p className="text-sm text-muted-foreground">
+              <h1 className="text-xl sm:text-2xl font-bold text-foreground">Citas</h1>
+              <p className="text-xs sm:text-sm text-muted-foreground">
                 Gestiona tus citas y horarios
               </p>
             </div>
@@ -244,17 +244,17 @@ export default function ProfessionalAppointments() {
       </div>
 
       {/* Main Content */}
-      <div className="p-6 space-y-8">
+      <div className="p-4 sm:p-6 space-y-6 sm:space-y-8">
         {/* Filters */}
         <Card>
-          <CardHeader className="px-6 pt-6">
-            <CardTitle className="flex items-center gap-2">
-              <Filter className="h-5 w-5" />
+          <CardHeader className="px-4 sm:px-6 pt-4 sm:pt-6">
+            <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+              <Filter className="h-4 w-4 sm:h-5 sm:w-5" />
               Filtros
             </CardTitle>
           </CardHeader>
-          <CardContent className="px-6 pb-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <CardContent className="px-4 sm:px-6 pb-4 sm:pb-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -298,35 +298,35 @@ export default function ProfessionalAppointments() {
         </Card>
 
         {/* Appointments List */}
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
           {loading ? (
             <div className="text-center py-12">
-              <div className="text-muted-foreground">Cargando citas...</div>
+              <div className="text-xs sm:text-sm text-muted-foreground">Cargando citas...</div>
             </div>
           ) : filteredAppointments.length > 0 ? (
             filteredAppointments.map((appointment) => (
             <Card key={appointment.id}>
-              <CardContent className="px-6 py-6">
-                <div className="flex items-start justify-between">
-                  <div className="flex items-start gap-4">
-                    <div className="flex flex-col items-center gap-1">
+              <CardContent className="px-4 sm:px-6 py-4 sm:py-6">
+                <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
+                  <div className="flex items-start gap-3 sm:gap-4 flex-1">
+                    <div className="flex flex-col items-center gap-1 flex-shrink-0">
                       <div className="flex items-center gap-2">
-                        <Clock className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm font-medium text-foreground">
+                        <Clock className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
+                        <span className="text-xs sm:text-sm font-medium text-foreground">
                           {appointment.time}
                         </span>
                       </div>
-                      <span className="text-xs text-muted-foreground">
+                      <span className="text-[10px] sm:text-xs text-muted-foreground">
                         {appointment.duration} min
                       </span>
                     </div>
                     
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <h3 className="text-lg font-semibold text-foreground">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-3">
+                        <h3 className="text-base sm:text-lg font-semibold text-foreground truncate">
                           {appointment.patient.name}
                         </h3>
-                        <Badge className={getStatusColor(appointment.status)}>
+                        <Badge className={`${getStatusColor(appointment.status)} text-xs`}>
                           <div className="flex items-center gap-1">
                             {getStatusIcon(appointment.status)}
                             {getStatusText(appointment.status)}
@@ -334,18 +334,18 @@ export default function ProfessionalAppointments() {
                         </Badge>
                       </div>
                       
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 mb-3 sm:mb-4">
                         <div className="space-y-2">
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                            <User className="h-4 w-4" />
+                          <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
+                            <User className="h-3.5 w-3.5 sm:h-4 sm:w-4 flex-shrink-0" />
                             <span>{appointment.type}</span>
                           </div>
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                            <MapPin className="h-4 w-4" />
-                            <span>{appointment.location}</span>
+                          <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
+                            <MapPin className="h-3.5 w-3.5 sm:h-4 sm:w-4 flex-shrink-0" />
+                            <span className="truncate">{appointment.location}</span>
                           </div>
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                            <Calendar className="h-4 w-4" />
+                          <div className="flex items-start gap-2 text-xs sm:text-sm text-muted-foreground">
+                            <Calendar className="h-3.5 w-3.5 sm:h-4 sm:w-4 flex-shrink-0 mt-0.5" />
                             <span>{new Date(appointment.date).toLocaleDateString('es-ES', {
                               weekday: 'long',
                               year: 'numeric',
@@ -356,20 +356,20 @@ export default function ProfessionalAppointments() {
                         </div>
                         
                         <div className="space-y-2">
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                            <Phone className="h-4 w-4" />
+                          <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
+                            <Phone className="h-3.5 w-3.5 sm:h-4 sm:w-4 flex-shrink-0" />
                             <span>{appointment.patient.phone}</span>
                           </div>
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                            <Mail className="h-4 w-4" />
-                            <span>{appointment.patient.email}</span>
+                          <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
+                            <Mail className="h-3.5 w-3.5 sm:h-4 sm:w-4 flex-shrink-0" />
+                            <span className="truncate">{appointment.patient.email}</span>
                           </div>
                         </div>
                       </div>
                       
                       {appointment.notes && (
-                        <div className="bg-muted/50 rounded-lg p-3">
-                          <p className="text-sm text-muted-foreground">
+                        <div className="bg-muted/50 rounded-lg p-2 sm:p-3">
+                          <p className="text-xs sm:text-sm text-muted-foreground">
                             <strong>Notas:</strong> {appointment.notes}
                           </p>
                         </div>
@@ -377,22 +377,24 @@ export default function ProfessionalAppointments() {
                     </div>
                   </div>
                   
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 lg:flex-col lg:items-end">
                     <Button 
                       variant="outline" 
                       size="sm"
                       onClick={() => handleViewAppointment(appointment)}
+                      className="w-full sm:w-auto"
                     >
-                      <Eye className="h-4 w-4 mr-2" />
-                      Ver
+                      <Eye className="h-3.5 w-3.5 sm:h-4 sm:w-4 sm:mr-2" />
+                      <span className="sm:inline">Ver</span>
                     </Button>
                     {appointment.status === "pending" && (
                       <Button 
                         size="sm"
                         onClick={() => handleConfirmAppointment(appointment.id)}
+                        className="w-full sm:w-auto"
                       >
-                        <CheckCircle className="h-4 w-4 mr-2" />
-                        Confirmar
+                        <CheckCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 sm:mr-2" />
+                        <span className="sm:inline">Confirmar</span>
                       </Button>
                     )}
                   </div>
@@ -402,15 +404,15 @@ export default function ProfessionalAppointments() {
           ))
           ) : (
           <Card>
-            <CardContent className="px-8 py-12 text-center">
-              <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-foreground mb-2">
+            <CardContent className="px-4 sm:px-8 py-12 text-center">
+              <Calendar className="h-10 w-10 sm:h-12 sm:w-12 text-muted-foreground mx-auto mb-3 sm:mb-4" />
+              <h3 className="text-base sm:text-lg font-semibold text-foreground mb-2">
                 No se encontraron citas
               </h3>
-              <p className="text-muted-foreground mb-4">
+              <p className="text-xs sm:text-sm text-muted-foreground mb-4 max-w-md mx-auto">
                 No hay citas que coincidan con los filtros seleccionados.
               </p>
-              <Button onClick={handleCreateAppointment}>
+              <Button onClick={handleCreateAppointment} className="w-full sm:w-auto">
                 <Plus className="h-4 w-4 mr-2" />
                 Crear Nueva Cita
               </Button>
@@ -422,32 +424,32 @@ export default function ProfessionalAppointments() {
 
       {/* Modal para ver detalles de la cita */}
       <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Detalles de la Cita</DialogTitle>
-            <DialogDescription>
+            <DialogTitle className="text-base sm:text-lg">Detalles de la Cita</DialogTitle>
+            <DialogDescription className="text-xs sm:text-sm">
               Información completa de la cita seleccionada
             </DialogDescription>
           </DialogHeader>
           
           {selectedAppointment && (
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
               {/* Información del paciente */}
-              <div className="bg-muted/50 rounded-lg p-4">
-                <h3 className="text-lg font-semibold mb-3">Información del Paciente</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="flex items-center gap-2">
-                    <User className="h-4 w-4 text-muted-foreground" />
+              <div className="bg-muted/50 rounded-lg p-3 sm:p-4">
+                <h3 className="text-base sm:text-lg font-semibold mb-2 sm:mb-3">Información del Paciente</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
+                  <div className="flex items-center gap-2 text-xs sm:text-sm">
+                    <User className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
                     <span className="font-medium">Nombre:</span>
-                    <span>{selectedAppointment.patient.name}</span>
+                    <span className="truncate">{selectedAppointment.patient.name}</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Mail className="h-4 w-4 text-muted-foreground" />
+                  <div className="flex items-center gap-2 text-xs sm:text-sm">
+                    <Mail className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
                     <span className="font-medium">Email:</span>
-                    <span>{selectedAppointment.patient.email}</span>
+                    <span className="truncate">{selectedAppointment.patient.email}</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Phone className="h-4 w-4 text-muted-foreground" />
+                  <div className="flex items-center gap-2 text-xs sm:text-sm">
+                    <Phone className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
                     <span className="font-medium">Teléfono:</span>
                     <span>{selectedAppointment.patient.phone}</span>
                   </div>
@@ -455,40 +457,42 @@ export default function ProfessionalAppointments() {
               </div>
 
               {/* Información de la cita */}
-              <div className="bg-muted/50 rounded-lg p-4">
-                <h3 className="text-lg font-semibold mb-3">Información de la Cita</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-muted-foreground" />
-                    <span className="font-medium">Fecha:</span>
-                    <span>{new Date(selectedAppointment.date).toLocaleDateString('es-ES', {
-                      weekday: 'long',
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric'
-                    })}</span>
+              <div className="bg-muted/50 rounded-lg p-3 sm:p-4">
+                <h3 className="text-base sm:text-lg font-semibold mb-2 sm:mb-3">Información de la Cita</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
+                  <div className="flex items-start gap-2 text-xs sm:text-sm">
+                    <Calendar className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0 mt-0.5" />
+                    <div className="flex flex-col sm:flex-row sm:gap-1">
+                      <span className="font-medium">Fecha:</span>
+                      <span className="text-muted-foreground">{new Date(selectedAppointment.date).toLocaleDateString('es-ES', {
+                        weekday: 'long',
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                      })}</span>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Clock className="h-4 w-4 text-muted-foreground" />
+                  <div className="flex items-center gap-2 text-xs sm:text-sm">
+                    <Clock className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
                     <span className="font-medium">Hora:</span>
                     <span>{selectedAppointment.time}</span>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 text-xs sm:text-sm">
                     <span className="font-medium">Duración:</span>
                     <span>{selectedAppointment.duration} minutos</span>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 text-xs sm:text-sm">
                     <span className="font-medium">Tipo:</span>
                     <span>{selectedAppointment.type}</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <MapPin className="h-4 w-4 text-muted-foreground" />
+                  <div className="flex items-center gap-2 text-xs sm:text-sm">
+                    <MapPin className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
                     <span className="font-medium">Ubicación:</span>
-                    <span>{selectedAppointment.location}</span>
+                    <span className="truncate">{selectedAppointment.location}</span>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 text-xs sm:text-sm">
                     <span className="font-medium">Estado:</span>
-                    <Badge className={getStatusColor(selectedAppointment.status)}>
+                    <Badge className={`${getStatusColor(selectedAppointment.status)} text-xs`}>
                       <div className="flex items-center gap-1">
                         {getStatusIcon(selectedAppointment.status)}
                         {getStatusText(selectedAppointment.status)}
@@ -500,9 +504,9 @@ export default function ProfessionalAppointments() {
 
               {/* Notas */}
               {selectedAppointment.notes && (
-                <div className="bg-muted/50 rounded-lg p-4">
-                  <h3 className="text-lg font-semibold mb-3">Notas</h3>
-                  <p className="text-muted-foreground">{selectedAppointment.notes}</p>
+                <div className="bg-muted/50 rounded-lg p-3 sm:p-4">
+                  <h3 className="text-base sm:text-lg font-semibold mb-2 sm:mb-3">Notas</h3>
+                  <p className="text-xs sm:text-sm text-muted-foreground">{selectedAppointment.notes}</p>
                 </div>
               )}
             </div>

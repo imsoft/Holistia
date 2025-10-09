@@ -114,13 +114,13 @@ export default function BlogPostPage({
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
-        <div className="container mx-auto px-4 py-12">
+        <div className="container mx-auto px-4 sm:px-6 py-8 sm:py-12">
           <div className="max-w-4xl mx-auto">
-            <div className="animate-pulse space-y-6">
-              <div className="h-8 bg-muted rounded w-1/4"></div>
-              <div className="h-12 bg-muted rounded w-3/4"></div>
+            <div className="animate-pulse space-y-4 sm:space-y-6">
+              <div className="h-6 sm:h-8 bg-muted rounded w-1/4"></div>
+              <div className="h-10 sm:h-12 bg-muted rounded w-3/4"></div>
               <div className="h-4 bg-muted rounded w-1/2"></div>
-              <div className="space-y-4">
+              <div className="space-y-3 sm:space-y-4">
                 <div className="h-4 bg-muted rounded"></div>
                 <div className="h-4 bg-muted rounded"></div>
                 <div className="h-4 bg-muted rounded w-3/4"></div>
@@ -134,14 +134,17 @@ export default function BlogPostPage({
 
   if (error || !post) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">Artículo no encontrado</h1>
-          <p className="text-muted-foreground mb-6">
+      <div className="min-h-screen bg-background flex items-center justify-center px-4">
+        <div className="text-center max-w-md">
+          <h1 className="text-xl sm:text-2xl font-bold mb-4">Artículo no encontrado</h1>
+          <p className="text-sm sm:text-base text-muted-foreground mb-6">
             El artículo que buscas no existe o no está disponible
           </p>
-          <div className="space-x-4">
-            <Button variant="outline" asChild>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <Button variant="outline" asChild className="w-full sm:w-auto">
+              <Link href="/blog">Ver Blog</Link>
+            </Button>
+            <Button variant="outline" asChild className="w-full sm:w-auto">
               <Link href="/">Ir al Inicio</Link>
             </Button>
           </div>
@@ -156,21 +159,21 @@ export default function BlogPostPage({
         <Navbar />
       </div>
       {/* Article Header */}
-      <article className="container mx-auto px-4 py-12">
+      <article className="container mx-auto px-4 sm:px-6 py-8 sm:py-12">
         <div className="max-w-4xl mx-auto">
           {/* Title and Meta */}
-          <header className="mb-8">
-            <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-6 leading-tight">
+          <header className="mb-6 sm:mb-8">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold text-foreground mb-4 sm:mb-6 leading-tight">
               {post.title}
             </h1>
 
-            <div className="flex flex-wrap items-center gap-6 text-sm text-muted-foreground mb-6">
+            <div className="flex flex-wrap items-center gap-3 sm:gap-4 lg:gap-6 text-xs sm:text-sm text-muted-foreground mb-4 sm:mb-6">
               <div className="flex items-center">
-                <Calendar className="w-4 h-4 mr-2" />
+                <Calendar className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-2 flex-shrink-0" />
                 <span>{formatDate(post.published_at!)}</span>
               </div>
               <div className="flex items-center">
-                <Clock className="w-4 h-4 mr-2" />
+                <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-2 flex-shrink-0" />
                 <span>{getReadingTime(post.content)}</span>
               </div>
               <Button
@@ -179,13 +182,14 @@ export default function BlogPostPage({
                 onClick={handleShare}
                 className="ml-auto"
               >
-                <Share2 className="w-4 h-4 mr-2" />
-                Compartir
+                <Share2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-2" />
+                <span className="hidden sm:inline">Compartir</span>
+                <span className="sm:hidden">Compartir</span>
               </Button>
             </div>
 
             {post.excerpt && (
-              <p className="text-xl text-muted-foreground leading-relaxed mb-8">
+              <p className="text-base sm:text-lg lg:text-xl text-muted-foreground leading-relaxed mb-6 sm:mb-8">
                 {post.excerpt}
               </p>
             )}
@@ -193,7 +197,7 @@ export default function BlogPostPage({
 
           {/* Featured Image */}
           {post.featured_image && (
-            <div className="relative w-full h-64 md:h-96 mb-8 rounded-lg overflow-hidden">
+            <div className="relative w-full h-48 sm:h-64 lg:h-96 mb-6 sm:mb-8 rounded-lg overflow-hidden">
               <Image
                 src={post.featured_image}
                 alt={post.title}
@@ -213,16 +217,16 @@ export default function BlogPostPage({
           </div>
 
           {/* Share Section */}
-          <div className="mt-12 pt-8 border-t border-border">
+          <div className="mt-8 sm:mt-12 pt-6 sm:pt-8 border-t border-border">
             <div className="text-center">
-              <h3 className="text-lg font-semibold mb-4">
+              <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4">
                 ¿Te gustó este artículo?
               </h3>
-              <p className="text-muted-foreground mb-6">
+              <p className="text-sm sm:text-base text-muted-foreground mb-4 sm:mb-6 max-w-md mx-auto">
                 Compártelo con otros y ayúdanos a difundir el conocimiento sobre
                 bienestar
               </p>
-              <Button onClick={handleShare} className="mr-4">
+              <Button onClick={handleShare} className="w-full sm:w-auto">
                 <Share2 className="w-4 h-4 mr-2" />
                 Compartir Artículo
               </Button>
@@ -233,32 +237,32 @@ export default function BlogPostPage({
 
       {/* Related Posts */}
       {relatedPosts.length > 0 && (
-        <section className="bg-muted/30 py-16">
-          <div className="container mx-auto px-4">
+        <section className="bg-muted/30 py-12 sm:py-16">
+          <div className="container mx-auto px-4 sm:px-6">
             <div className="max-w-6xl mx-auto">
-              <h2 className="text-2xl font-bold text-foreground mb-8">
+              <h2 className="text-xl sm:text-2xl font-bold text-foreground mb-6 sm:mb-8">
                 Artículos Relacionados
               </h2>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {relatedPosts.map((relatedPost) => (
                   <Card
                     key={relatedPost.id}
                     className="hover:shadow-lg transition-shadow"
                   >
-                    <CardContent className="p-6">
-                      <h3 className="font-semibold text-lg mb-2 line-clamp-2">
+                    <CardContent className="p-4 sm:p-6">
+                      <h3 className="font-semibold text-base sm:text-lg mb-2 line-clamp-2">
                         {relatedPost.title}
                       </h3>
                       {relatedPost.excerpt && (
-                        <p className="text-muted-foreground text-sm mb-4 line-clamp-3">
+                        <p className="text-muted-foreground text-xs sm:text-sm mb-3 sm:mb-4 line-clamp-3">
                           {relatedPost.excerpt}
                         </p>
                       )}
-                      <div className="flex items-center justify-between">
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0">
                         <span className="text-xs text-muted-foreground">
                           {formatDate(relatedPost.published_at!)}
                         </span>
-                        <Button variant="outline" size="sm" asChild>
+                        <Button variant="outline" size="sm" asChild className="w-full sm:w-auto">
                           <Link href={`/blog/${relatedPost.slug}`}>
                             Leer más
                           </Link>

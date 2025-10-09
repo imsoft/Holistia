@@ -217,12 +217,12 @@ export default function ProfessionalPatients() {
     <div className="min-h-screen bg-background w-full">
       {/* Header */}
       <div className="border-b border-border bg-card w-full">
-        <div className="flex h-16 items-center px-6">
-          <div className="flex items-center gap-4">
+        <div className="flex flex-col sm:flex-row sm:h-16 sm:items-center px-4 sm:px-6 py-4 sm:py-0 gap-3 sm:gap-0">
+          <div className="flex items-center gap-3 sm:gap-4">
             <SidebarTrigger />
             <div>
-              <h1 className="text-2xl font-bold text-foreground">Pacientes</h1>
-              <p className="text-sm text-muted-foreground">
+              <h1 className="text-xl sm:text-2xl font-bold text-foreground">Pacientes</h1>
+              <p className="text-xs sm:text-sm text-muted-foreground">
                 Gestiona tu lista de pacientes
               </p>
             </div>
@@ -231,9 +231,9 @@ export default function ProfessionalPatients() {
       </div>
 
       {/* Main Content */}
-      <div className="p-6 space-y-8 w-full">
+      <div className="p-4 sm:p-6 space-y-6 sm:space-y-8 w-full">
         {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 w-full">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-6 pt-6">
               <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -291,7 +291,7 @@ export default function ProfessionalPatients() {
             </CardTitle>
           </CardHeader>
           <CardContent className="px-6 pb-6">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -342,7 +342,7 @@ export default function ProfessionalPatients() {
         </Card>
 
         {/* Patients List */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 w-full">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 w-full">
           {loading ? (
             <div className="col-span-full text-center py-12">
               <div className="text-muted-foreground">Cargando pacientes...</div>
@@ -353,27 +353,27 @@ export default function ProfessionalPatients() {
               key={patient.id}
               className="hover:shadow-md transition-shadow"
             >
-              <CardContent className="px-6 py-6">
-                <div className="flex items-start gap-4 mb-4">
-                  <div className="relative">
+              <CardContent className="px-4 sm:px-6 py-4 sm:py-6">
+                <div className="flex items-start gap-3 sm:gap-4 mb-3 sm:mb-4">
+                  <div className="relative flex-shrink-0">
                     <Image
                       src={patient.avatar}
                       alt={patient.name}
                       width={60}
                       height={60}
-                      className="h-15 w-15 aspect-square rounded-full object-cover border-2 border-border"
+                      className="h-12 w-12 sm:h-15 sm:w-15 aspect-square rounded-full object-cover border-2 border-border"
                     />
                   </div>
-                  <div className="flex-1">
+                  <div className="flex-1 min-w-0">
                     <div className="mb-1">
-                      <h3 className="text-lg font-semibold text-foreground">
+                      <h3 className="text-base sm:text-lg font-semibold text-foreground truncate">
                         {patient.name}
                       </h3>
                     </div>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-xs sm:text-sm text-muted-foreground">
                       {patient.age} años • {patient.gender}
                     </p>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-xs sm:text-sm text-muted-foreground truncate">
                       {patient.therapyType}
                     </p>
                   </div>
@@ -413,7 +413,7 @@ export default function ProfessionalPatients() {
                   </div>
                 )}
 
-                <div className="flex items-center gap-2">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                   <Button 
                     variant="outline" 
                     size="sm" 
@@ -421,14 +421,16 @@ export default function ProfessionalPatients() {
                     onClick={() => handleViewProfile(patient)}
                   >
                     <Eye className="h-4 w-4 mr-2" />
-                    Ver Perfil
+                    <span className="text-xs sm:text-sm">Ver Perfil</span>
                   </Button>
                   <Button 
                     variant="outline" 
                     size="sm"
                     onClick={() => handleScheduleAppointment(patient)}
+                    className="sm:px-3"
                   >
-                    <Calendar className="h-4 w-4" />
+                    <Calendar className="h-4 w-4 sm:mr-0" />
+                    <span className="sm:hidden ml-2">Agendar</span>
                   </Button>
                 </div>
               </CardContent>
@@ -439,12 +441,12 @@ export default function ProfessionalPatients() {
 
         {!loading && filteredPatients.length === 0 && (
           <Card className="w-full">
-            <CardContent className="px-8 py-12 text-center">
-              <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-foreground mb-2">
+            <CardContent className="px-4 sm:px-8 py-12 text-center">
+              <Users className="h-10 w-10 sm:h-12 sm:w-12 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-base sm:text-lg font-semibold text-foreground mb-2">
                 No se encontraron pacientes
               </h3>
-              <p className="text-muted-foreground">
+              <p className="text-sm sm:text-base text-muted-foreground">
                 No hay pacientes que coincidan con los filtros seleccionados.
               </p>
             </CardContent>

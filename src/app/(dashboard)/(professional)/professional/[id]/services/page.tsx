@@ -92,10 +92,10 @@ export default function ProfessionalServicesPage() {
 
   if (loading) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="space-y-6">
-          <div className="h-8 bg-muted animate-pulse rounded" />
-          <div className="h-64 bg-muted animate-pulse rounded" />
+      <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-8">
+        <div className="space-y-4 sm:space-y-6">
+          <div className="h-6 sm:h-8 bg-muted animate-pulse rounded" />
+          <div className="h-48 sm:h-64 bg-muted animate-pulse rounded" />
         </div>
       </div>
     );
@@ -103,15 +103,15 @@ export default function ProfessionalServicesPage() {
 
   if (!currentUser) {
     return (
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-8">
         <Card>
-          <CardContent className="flex flex-col items-center justify-center py-12">
-            <Package className="w-12 h-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold mb-2">Acceso no autorizado</h3>
-            <p className="text-muted-foreground text-center mb-4">
+          <CardContent className="flex flex-col items-center justify-center py-12 px-4">
+            <Package className="w-10 h-10 sm:w-12 sm:h-12 text-muted-foreground mb-4" />
+            <h3 className="text-base sm:text-lg font-semibold mb-2">Acceso no autorizado</h3>
+            <p className="text-sm sm:text-base text-muted-foreground text-center mb-4">
               No tienes permisos para acceder a esta página
             </p>
-            <Button onClick={() => router.push("/")}>
+            <Button onClick={() => router.push("/")} className="w-full sm:w-auto">
               <ArrowLeft className="w-4 h-4 mr-2" />
               Volver al inicio
             </Button>
@@ -123,15 +123,15 @@ export default function ProfessionalServicesPage() {
 
   if (!professional) {
     return (
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-8">
         <Card>
-          <CardContent className="flex flex-col items-center justify-center py-12">
-            <Package className="w-12 h-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold mb-2">Aplicación profesional requerida</h3>
-            <p className="text-muted-foreground text-center mb-4">
+          <CardContent className="flex flex-col items-center justify-center py-12 px-4">
+            <Package className="w-10 h-10 sm:w-12 sm:h-12 text-muted-foreground mb-4" />
+            <h3 className="text-base sm:text-lg font-semibold mb-2 text-center">Aplicación profesional requerida</h3>
+            <p className="text-sm sm:text-base text-muted-foreground text-center mb-4 max-w-md">
               Necesitas tener una aplicación profesional aprobada para gestionar servicios
             </p>
-            <Button onClick={() => router.push("/patient/" + currentUser.id + "/explore/become-professional")}>
+            <Button onClick={() => router.push("/patient/" + currentUser.id + "/explore/become-professional")} className="w-full sm:w-auto">
               <ArrowLeft className="w-4 h-4 mr-2" />
               Aplicar como profesional
             </Button>
@@ -174,8 +174,8 @@ export default function ProfessionalServicesPage() {
       </div>
 
       {/* Main Content */}
-      <div className="container mx-auto px-4 py-8">
-      <div className="space-y-6">
+      <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-8">
+      <div className="space-y-4 sm:space-y-6">
 
         {/* Services Management */}
         {professional.status === "approved" ? (
@@ -185,12 +185,12 @@ export default function ProfessionalServicesPage() {
           />
         ) : (
           <Card>
-            <CardContent className="flex flex-col items-center justify-center py-12">
-              <Package className="w-12 h-12 text-muted-foreground mb-4" />
-              <h3 className="text-lg font-semibold mb-2">
+            <CardContent className="flex flex-col items-center justify-center py-12 px-4">
+              <Package className="w-10 h-10 sm:w-12 sm:h-12 text-muted-foreground mb-4" />
+              <h3 className="text-base sm:text-lg font-semibold mb-2 text-center">
                 Aplicación en proceso
               </h3>
-              <p className="text-muted-foreground text-center mb-4">
+              <p className="text-sm sm:text-base text-muted-foreground text-center mb-4 max-w-md">
                 Tu aplicación profesional está{" "}
                 {professional.status === "pending"
                   ? "pendiente de revisión"

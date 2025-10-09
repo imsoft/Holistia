@@ -135,21 +135,21 @@ export default function NewBlogPostPage({ params }: { params: Promise<{ id: stri
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
-      <div className="mb-6">
+    <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-8 max-w-4xl">
+      <div className="mb-4 sm:mb-6">
         
-        <h1 className="text-3xl font-bold text-foreground">Crear Nuevo Post</h1>
-        <p className="text-muted-foreground mt-2">
+        <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Crear Nuevo Post</h1>
+        <p className="text-sm sm:text-base text-muted-foreground mt-2">
           Escribe un nuevo post para el blog de Holistia
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <Card className="p-4">
-          <CardHeader>
-            <CardTitle>Información del Post</CardTitle>
+      <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
+        <Card className="p-3 sm:p-4">
+          <CardHeader className="px-0">
+            <CardTitle className="text-lg sm:text-xl">Información del Post</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-4 sm:space-y-6 px-0">
             <div className="space-y-2">
               <Label htmlFor="title">Título *</Label>
               <Input
@@ -182,7 +182,7 @@ export default function NewBlogPostPage({ params }: { params: Promise<{ id: stri
                   </div>
                 )}
               </div>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-xs sm:text-sm text-muted-foreground break-all">
                 Se genera automáticamente desde el título. URL: /blog/{formData.slug}
               </p>
               {formData.slug && (
@@ -201,7 +201,7 @@ export default function NewBlogPostPage({ params }: { params: Promise<{ id: stri
                 placeholder="Breve descripción del post..."
                 rows={3}
               />
-              <p className="text-sm text-muted-foreground">
+              <p className="text-xs sm:text-sm text-muted-foreground">
                 Aparecerá en la lista de posts y en las redes sociales
               </p>
             </div>
@@ -226,11 +226,11 @@ export default function NewBlogPostPage({ params }: { params: Promise<{ id: stri
           </CardContent>
         </Card>
 
-        <Card className="p-4">
-          <CardHeader>
-            <CardTitle>Contenido</CardTitle>
+        <Card className="p-3 sm:p-4">
+          <CardHeader className="px-0">
+            <CardTitle className="text-lg sm:text-xl">Contenido</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="px-0">
             <div className="space-y-2">
               <Label htmlFor="content">Contenido del Post *</Label>
               <RichTextEditor
@@ -238,7 +238,7 @@ export default function NewBlogPostPage({ params }: { params: Promise<{ id: stri
                 onChange={(content) => setFormData(prev => ({ ...prev, content }))}
                 placeholder="Escribe aquí el contenido de tu post..."
               />
-              <p className="text-sm text-muted-foreground">
+              <p className="text-xs sm:text-sm text-muted-foreground">
                 Usa la barra de herramientas para formatear el texto
               </p>
             </div>
@@ -253,13 +253,13 @@ export default function NewBlogPostPage({ params }: { params: Promise<{ id: stri
         />
 
         {error && (
-          <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
-            <p className="text-destructive">{error}</p>
+          <div className="p-3 sm:p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
+            <p className="text-sm sm:text-base text-destructive">{error}</p>
           </div>
         )}
 
-        <div className="flex items-center gap-4">
-          <Button type="submit" disabled={loading}>
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
+          <Button type="submit" disabled={loading} className="w-full sm:w-auto">
             {loading ? (
               "Creando..."
             ) : (
@@ -270,7 +270,7 @@ export default function NewBlogPostPage({ params }: { params: Promise<{ id: stri
             )}
           </Button>
           
-          <Button type="button" variant="outline" asChild>
+          <Button type="button" variant="outline" asChild className="w-full sm:w-auto">
             <Link href={`/admin/${id}/blog`}>
               Cancelar
             </Link>

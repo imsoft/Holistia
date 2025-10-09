@@ -47,6 +47,7 @@ export function EventForm({ event, professionals, onSuccess, onCancel }: EventFo
   });
 
   const [uploadingImages, setUploadingImages] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [tempEventId] = useState(() => `temp-${Date.now()}-${Math.random().toString(36).substring(2)}`);
 
@@ -194,12 +195,18 @@ export function EventForm({ event, professionals, onSuccess, onCancel }: EventFo
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Prevenir múltiples submissions
+    if (saving) {
+      return;
+    }
+    
     if (!validateForm()) {
       toast.error("Por favor corrige los errores en el formulario");
       return;
     }
 
     try {
+      setSaving(true);
       const eventData = {
         ...formData,
         created_by: (await supabase.auth.getUser()).data.user?.id,
@@ -270,6 +277,8 @@ export function EventForm({ event, professionals, onSuccess, onCancel }: EventFo
     } catch (error) {
       console.error("Error saving event:", error);
       toast.error("Error al guardar el evento");
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -595,11 +604,11 @@ export function EventForm({ event, professionals, onSuccess, onCancel }: EventFo
 
       {/* Botones */}
       <div className="flex justify-end gap-4">
-        <Button type="button" variant="outline" onClick={onCancel}>
+        <Button type="button" variant="outline" onClick={onCancel} disabled={saving}>
           Cancelar
         </Button>
-        <Button type="submit" disabled={uploadingImages}>
-          {event ? "Actualizar" : "Crear"} Evento
+        <Button type="submit" disabled={uploadingImages || saving}>
+          {saving ? "Guardando..." : event ? "Actualizar Evento" : "Crear Evento"}
         </Button>
       </div>
     </form>

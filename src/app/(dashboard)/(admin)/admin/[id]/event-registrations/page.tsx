@@ -20,6 +20,7 @@ import {
   Eye,
   Mail
 } from "lucide-react";
+import { SidebarTrigger } from "@/components/ui/sidebar";
 import { toast } from "sonner";
 
 interface EventRegistration {
@@ -259,19 +260,29 @@ export default function EventRegistrationsPage() {
   }
 
   return (
-    <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold">Registros de Eventos</h1>
-          <p className="text-sm sm:text-base text-muted-foreground">
-            Gestiona todos los registros de eventos y códigos de confirmación
-          </p>
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <div className="border-b border-border bg-card">
+        <div className="flex flex-col sm:flex-row sm:h-16 sm:items-center justify-between px-4 sm:px-6 py-4 sm:py-0 gap-4 sm:gap-0">
+          <div className="flex items-center gap-3 sm:gap-4">
+            <SidebarTrigger />
+            <div>
+              <h1 className="text-xl sm:text-2xl font-bold text-foreground">Registros de Eventos</h1>
+              <p className="text-xs sm:text-sm text-muted-foreground">
+                Gestiona todos los registros de eventos y códigos de confirmación
+              </p>
+            </div>
+          </div>
+          <Button onClick={exportToCSV} className="flex items-center gap-2 w-full sm:w-auto">
+            <Download className="h-4 w-4" />
+            <span className="hidden sm:inline">Exportar CSV</span>
+            <span className="sm:hidden">Exportar</span>
+          </Button>
         </div>
-        <Button onClick={exportToCSV} className="flex items-center gap-2 w-full sm:w-auto">
-          <Download className="h-4 w-4" />
-          Exportar CSV
-        </Button>
       </div>
+
+      {/* Main Content */}
+      <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -509,6 +520,7 @@ export default function EventRegistrationsPage() {
           )}
         </CardContent>
       </Card>
+      </div>
     </div>
   );
 }

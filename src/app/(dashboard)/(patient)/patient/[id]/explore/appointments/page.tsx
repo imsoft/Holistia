@@ -288,11 +288,11 @@ export default function AppointmentsPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-2">Mis Citas</h1>
-          <p className="text-muted-foreground">
+        <div className="mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">Mis Citas</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">
             Gestiona tus citas actuales y revisa el historial de consultas
           </p>
         </div>
@@ -305,16 +305,17 @@ export default function AppointmentsPage() {
             </div>
           </div>
         ) : error ? (
-          <div className="flex items-center justify-center py-12">
+          <div className="flex items-center justify-center py-12 px-4">
             <div className="text-center max-w-md">
-              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Calendar className="h-8 w-8 text-red-600" />
+              <div className="w-12 h-12 sm:w-16 sm:h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Calendar className="h-6 w-6 sm:h-8 sm:w-8 text-red-600" />
               </div>
-              <h3 className="text-lg font-semibold text-foreground mb-2">Error al cargar las citas</h3>
-              <p className="text-muted-foreground mb-4">{error}</p>
+              <h3 className="text-base sm:text-lg font-semibold text-foreground mb-2">Error al cargar las citas</h3>
+              <p className="text-sm sm:text-base text-muted-foreground mb-4">{error}</p>
               <Button 
                 onClick={() => window.location.reload()} 
                 variant="outline"
+                className="w-full sm:w-auto"
               >
                 Intentar de nuevo
               </Button>
@@ -324,11 +325,11 @@ export default function AppointmentsPage() {
           <>
             {/* Citas próximas */}
             {upcomingAppointments.length > 0 && (
-          <div className="mb-12">
-            <h2 className="text-2xl font-bold text-foreground mb-6">
+          <div className="mb-8 sm:mb-12">
+            <h2 className="text-xl sm:text-2xl font-bold text-foreground mb-4 sm:mb-6">
               Próximas Citas ({upcomingAppointments.length})
             </h2>
-            <div className="grid gap-6">
+            <div className="grid gap-4 sm:gap-6">
               {upcomingAppointments.map((appointment) => {
                 const StatusIcon = statusConfig[appointment.status as keyof typeof statusConfig].icon;
                 const TypeIcon = typeConfig[appointment.appointment_type as keyof typeof typeConfig].icon;
@@ -336,33 +337,33 @@ export default function AppointmentsPage() {
                 return (
                   <div
                     key={appointment.id}
-                    className="p-6 bg-card rounded-xl border border-border shadow-sm hover:shadow-md transition-shadow"
+                    className="p-4 sm:p-6 bg-card rounded-xl border border-border shadow-sm hover:shadow-md transition-shadow"
                   >
-                    <div className="flex flex-col lg:flex-row gap-6">
+                    <div className="flex flex-col lg:flex-row gap-4 sm:gap-6">
                       {/* Información del profesional */}
                       <Link 
                         href={`/patient/${userId}/explore/professional/${appointment.professional.id}`}
-                        className="flex items-center gap-4 hover:opacity-80 transition-opacity"
+                        className="flex items-center gap-3 sm:gap-4 hover:opacity-80 transition-opacity"
                       >
                         <Image
                           src={appointment.professional.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(appointment.professional.full_name)}&background=random`}
                           alt={appointment.professional.full_name}
                           width={80}
                           height={80}
-                          className="h-20 w-20 aspect-square rounded-full object-cover border-2 border-border"
+                          className="h-16 w-16 sm:h-20 sm:w-20 aspect-square rounded-full object-cover border-2 border-border flex-shrink-0"
                         />
                         <div>
-                          <h3 className="text-lg font-semibold text-foreground hover:text-primary transition-colors">
+                          <h3 className="text-base sm:text-lg font-semibold text-foreground hover:text-primary transition-colors">
                             {appointment.professional.full_name}
                           </h3>
-                          <p className="text-muted-foreground">
+                          <p className="text-sm sm:text-base text-muted-foreground">
                             {appointment.professional.especialidad}
                           </p>
                         </div>
                       </Link>
 
                       {/* Información de la cita */}
-                      <div className="flex-1 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                      <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                         <div className="flex items-center gap-2">
                           <Calendar className="h-4 w-4 text-muted-foreground" />
                           <div>
@@ -405,13 +406,14 @@ export default function AppointmentsPage() {
                       </div>
 
                       {/* Acciones */}
-                      <div className="flex items-center justify-center">
+                      <div className="flex items-center justify-center sm:justify-end lg:justify-center">
                         {appointment.status === "confirmed" && (
                           <Button 
                             variant="destructive" 
                             size="sm"
                             onClick={() => handleCancelAppointment(appointment.id)}
                             disabled={cancelling === appointment.id}
+                            className="w-full sm:w-auto"
                           >
                             {cancelling === appointment.id ? 'Cancelando...' : 'Cancelar'}
                           </Button>
@@ -437,45 +439,45 @@ export default function AppointmentsPage() {
             {/* Citas anteriores */}
             {pastAppointments.length > 0 && (
               <div>
-                <h2 className="text-2xl font-bold text-foreground mb-6">
+                <h2 className="text-xl sm:text-2xl font-bold text-foreground mb-4 sm:mb-6">
                   Historial de Citas ({pastAppointments.length})
                 </h2>
-                <div className="grid gap-4">
+                <div className="grid gap-3 sm:gap-4">
                   {pastAppointments.map((appointment) => {
                     const TypeIcon = typeConfig[appointment.appointment_type as keyof typeof typeConfig].icon;
                 
                     return (
                       <div
                         key={appointment.id}
-                        className="p-4 bg-card rounded-lg border border-border hover:shadow-sm transition-shadow"
+                        className="p-3 sm:p-4 bg-card rounded-lg border border-border hover:shadow-sm transition-shadow"
                       >
-                        <div className="flex items-center gap-4">
+                        <div className="flex flex-col sm:flex-row items-start gap-3 sm:gap-4">
                           <Link 
                             href={`/patient/${userId}/explore/professional/${appointment.professional.id}`}
-                            className="flex items-center gap-4 hover:opacity-80 transition-opacity flex-1"
+                            className="flex items-center gap-3 sm:gap-4 hover:opacity-80 transition-opacity flex-1 w-full sm:w-auto"
                           >
                             <Image
                               src={appointment.professional.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(appointment.professional.full_name)}&background=random`}
                               alt={appointment.professional.full_name}
                               width={60}
                               height={60}
-                              className="h-15 w-15 aspect-square rounded-full object-cover border-2 border-border"
+                              className="h-12 w-12 sm:h-15 sm:w-15 aspect-square rounded-full object-cover border-2 border-border flex-shrink-0"
                             />
                             <div className="flex-1">
-                              <div className="flex items-center gap-2 mb-1">
-                                <h3 className="font-semibold text-foreground hover:text-primary transition-colors">
+                              <div className="flex flex-wrap items-center gap-2 mb-1">
+                                <h3 className="text-sm sm:text-base font-semibold text-foreground hover:text-primary transition-colors">
                                   {appointment.professional.full_name}
                                 </h3>
                                 <Badge
-                                  className={statusConfig[appointment.status as keyof typeof statusConfig].color}
+                                  className={`${statusConfig[appointment.status as keyof typeof statusConfig].color} text-xs`}
                                 >
                                   {statusConfig[appointment.status as keyof typeof statusConfig].label}
                                 </Badge>
                               </div>
-                              <p className="text-sm text-muted-foreground mb-2">
+                              <p className="text-xs sm:text-sm text-muted-foreground mb-2">
                                 {appointment.professional.especialidad}
                               </p>
-                              <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                              <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-[10px] sm:text-xs text-muted-foreground">
                                 <div className="flex items-center gap-1">
                                   <Calendar className="h-3 w-3" />
                                   {formatDate(appointment.appointment_date)} a las {appointment.appointment_time}
@@ -491,14 +493,16 @@ export default function AppointmentsPage() {
                               </div>
                             </div>
                           </Link>
-                          <div className="flex gap-2">
+                          <div className="flex gap-2 w-full sm:w-auto">
                             <Button 
                               variant="outline" 
                               size="sm"
                               onClick={handleNewAppointment}
+                              className="w-full sm:w-auto"
                             >
                               <Calendar className="h-4 w-4 mr-2" />
-                              Nueva cita
+                              <span className="hidden sm:inline">Nueva cita</span>
+                              <span className="sm:hidden">Nueva</span>
                             </Button>
                           </div>
                         </div>
@@ -511,14 +515,21 @@ export default function AppointmentsPage() {
 
             {/* Estado vacío */}
             {appointments.length === 0 && (
-              <div className="text-center py-12">
-                <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-foreground mb-2">
+              <div className="text-center py-12 px-4">
+                <Calendar className="h-10 w-10 sm:h-12 sm:w-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-base sm:text-lg font-semibold text-foreground mb-2">
                   No se encontraron citas
                 </h3>
-                <p className="text-muted-foreground">
+                <p className="text-sm sm:text-base text-muted-foreground mb-4 sm:mb-6">
                   No tienes citas programadas aún
                 </p>
+                <Button 
+                  onClick={handleNewAppointment}
+                  className="w-full sm:w-auto"
+                >
+                  <Calendar className="h-4 w-4 mr-2" />
+                  Agendar Primera Cita
+                </Button>
               </div>
             )}
           </>

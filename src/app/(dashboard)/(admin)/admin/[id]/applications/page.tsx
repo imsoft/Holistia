@@ -312,11 +312,11 @@ export default function ApplicationsPage() {
       </div>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
           {/* Filtros y búsqueda */}
-          <Card className="mb-8">
-            <CardContent className="p-6">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Card className="mb-6 sm:mb-8">
+            <CardContent className="p-4 sm:p-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
@@ -350,7 +350,7 @@ export default function ApplicationsPage() {
             </CardContent>
           </Card>
 
-        <div className="grid gap-6">
+        <div className="grid gap-4 sm:gap-6">
           {filteredApplications.length === 0 ? (
           <Card>
               <CardContent className="flex flex-col items-center justify-center py-12">
@@ -368,10 +368,10 @@ export default function ApplicationsPage() {
           </Card>
           ) : (
             filteredApplications.map((application) => (
-              <Card key={application.id} className="hover:shadow-md transition-shadow p-6">
-                <CardHeader className="pb-6 px-0 pt-0">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center space-x-4">
+              <Card key={application.id} className="hover:shadow-md transition-shadow p-4 sm:p-6">
+                <CardHeader className="pb-4 sm:pb-6 px-0 pt-0">
+                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                    <div className="flex items-center space-x-3 sm:space-x-4">
                       {application.profile_photo && application.profile_photo.trim() !== '' ? (
                         <Image 
                           src={application.profile_photo} 
@@ -399,10 +399,10 @@ export default function ApplicationsPage() {
                         <User className="h-6 w-6 text-primary" />
                       </div>
                       <div>
-                        <CardTitle className="text-xl">
+                        <CardTitle className="text-lg sm:text-xl">
                           {`${application.first_name} ${application.last_name}`}
                         </CardTitle>
-                        <CardDescription className="flex items-center space-x-4 mt-1">
+                        <CardDescription className="flex flex-col sm:flex-row sm:items-center space-y-1 sm:space-y-0 sm:space-x-4 mt-1">
                           <span className="flex items-center">
                             <Mail className="h-4 w-4 mr-1" />
                             {application.email}
@@ -416,17 +416,18 @@ export default function ApplicationsPage() {
                         </CardDescription>
               </div>
               </div>
-                    <div className="flex items-center space-x-3">
+                    <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                       {getStatusBadge(application.status)}
-                      <span className="text-sm text-muted-foreground flex items-center">
+                      <span className="text-xs sm:text-sm text-muted-foreground flex items-center">
                         <Calendar className="h-4 w-4 mr-1" />
-                        {formatDate(application.submitted_at)}
+                        <span className="hidden sm:inline">{formatDate(application.submitted_at)}</span>
+                        <span className="sm:hidden">{new Date(application.submitted_at).toLocaleDateString('es-ES')}</span>
                       </span>
               </div>
         </div>
           </CardHeader>
-                <CardContent className="pt-6 px-0 pb-0">
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+                <CardContent className="pt-4 sm:pt-6 px-0 pb-0">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-4 sm:mb-6">
                     <div>
                       <Label className="text-sm font-medium text-muted-foreground">Profesión</Label>
                       <p className="text-sm text-foreground mt-1">{application.profession}</p>
@@ -448,7 +449,7 @@ export default function ApplicationsPage() {
                     </div>
                   </div>
                       
-                  <div className="flex items-center justify-between pt-6 border-t">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0 pt-4 sm:pt-6 border-t">
                     <div className="flex items-center space-x-2">
                       <Dialog>
                         <DialogTrigger asChild>
@@ -591,12 +592,12 @@ export default function ApplicationsPage() {
                   </div>
                   
                     {(application.status === 'pending' || application.status === 'under_review') && (
-                      <div className="flex space-x-2">
+                      <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                         <Button 
                           size="sm" 
                           onClick={() => handleStatusUpdate(application.id, 'approved')}
                           disabled={updating}
-                          className="bg-green-600 hover:bg-green-700"
+                          className="bg-green-600 hover:bg-green-700 w-full sm:w-auto"
                         >
                           <CheckCircle className="h-4 w-4 mr-2" />
                           Aprobar
@@ -606,6 +607,7 @@ export default function ApplicationsPage() {
                           variant="destructive"
                           onClick={() => handleStatusUpdate(application.id, 'rejected')}
                           disabled={updating}
+                          className="w-full sm:w-auto"
                         >
                           <XCircle className="h-4 w-4 mr-2" />
                           Rechazar

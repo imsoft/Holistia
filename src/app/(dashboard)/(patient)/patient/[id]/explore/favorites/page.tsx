@@ -192,10 +192,10 @@ const FavoritesPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-2">Mis Favoritos</h1>
-          <p className="text-muted-foreground">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+        <div className="mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">Mis Favoritos</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">
             Profesionales de salud mental guardados en tus favoritos
           </p>
         </div>
@@ -208,23 +208,24 @@ const FavoritesPage = () => {
             </div>
           </div>
         ) : error ? (
-          <div className="flex items-center justify-center py-12">
+          <div className="flex items-center justify-center py-12 px-4">
             <div className="text-center max-w-md">
-              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Heart className="h-8 w-8 text-red-600" />
+              <div className="w-12 h-12 sm:w-16 sm:h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Heart className="h-6 w-6 sm:h-8 sm:w-8 text-red-600" />
               </div>
-              <h3 className="text-lg font-semibold text-foreground mb-2">Error al cargar los favoritos</h3>
-              <p className="text-muted-foreground mb-4">{error}</p>
+              <h3 className="text-base sm:text-lg font-semibold text-foreground mb-2">Error al cargar los favoritos</h3>
+              <p className="text-sm sm:text-base text-muted-foreground mb-4">{error}</p>
               <Button 
                 onClick={() => window.location.reload()} 
                 variant="outline"
+                className="w-full sm:w-auto"
               >
                 Intentar de nuevo
               </Button>
             </div>
           </div>
         ) : favorites.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {professionals.map((professional) => (
               <div key={professional.id} className="relative">
                 <ProfessionalCard
@@ -281,16 +282,16 @@ const FavoritesPage = () => {
             ))}
           </div>
         ) : (
-          <div className="text-center py-12">
-            <div className="h-16 w-16 text-muted-foreground mx-auto mb-4 flex items-center justify-center">
-              <Heart className="w-8 h-8" />
+          <div className="text-center py-12 px-4">
+            <div className="h-12 w-12 sm:h-16 sm:w-16 text-muted-foreground mx-auto mb-4 flex items-center justify-center">
+              <Heart className="w-6 h-6 sm:w-8 sm:h-8" />
             </div>
-            <h3 className="text-xl font-semibold text-foreground mb-2">No tienes favoritos aún</h3>
-            <p className="text-muted-foreground mb-6">
+            <h3 className="text-lg sm:text-xl font-semibold text-foreground mb-2">No tienes favoritos aún</h3>
+            <p className="text-sm sm:text-base text-muted-foreground mb-4 sm:mb-6 max-w-md mx-auto">
               Explora profesionales de salud mental y guarda tus favoritos para acceder a ellos fácilmente.
             </p>
             <Button 
-              className="bg-primary text-primary-foreground px-6 py-3 rounded-lg hover:bg-primary/90 transition-colors"
+              className="bg-primary text-primary-foreground px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base rounded-lg hover:bg-primary/90 transition-colors w-full sm:w-auto"
               onClick={() => window.location.href = `/patient/${userId}/explore`}
             >
               Explorar Profesionales

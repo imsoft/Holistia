@@ -213,11 +213,11 @@ export default function EditBlogPostPage({
 
   if (fetchLoading) {
     return (
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
-        <div className="animate-pulse space-y-6">
-          <div className="h-8 bg-muted rounded w-1/3"></div>
-          <div className="h-4 bg-muted rounded w-1/2"></div>
-          <div className="space-y-4">
+      <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-8 max-w-4xl">
+        <div className="animate-pulse space-y-4 sm:space-y-6">
+          <div className="h-6 sm:h-8 bg-muted rounded w-1/2 sm:w-1/3"></div>
+          <div className="h-3 sm:h-4 bg-muted rounded w-3/4 sm:w-1/2"></div>
+          <div className="space-y-3 sm:space-y-4">
             <div className="h-10 bg-muted rounded"></div>
             <div className="h-10 bg-muted rounded"></div>
             <div className="h-32 bg-muted rounded"></div>
@@ -229,10 +229,10 @@ export default function EditBlogPostPage({
 
   if (!post) {
     return (
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
+      <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-8 max-w-4xl">
         <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">Post no encontrado</h1>
-          <Button asChild>
+          <h1 className="text-xl sm:text-2xl font-bold mb-4">Post no encontrado</h1>
+          <Button asChild className="w-full sm:w-auto">
             <Link href={`/admin/${id}/blog`}>
               Volver al Blog
             </Link>
@@ -243,13 +243,13 @@ export default function EditBlogPostPage({
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
-      <div className="mb-6">
+    <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-8 max-w-4xl">
+      <div className="mb-4 sm:mb-6">
         
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Editar Post</h1>
-            <p className="text-muted-foreground mt-2">
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Editar Post</h1>
+            <p className="text-sm sm:text-base text-muted-foreground mt-2">
               Modifica el contenido del post del blog
             </p>
           </div>
@@ -257,6 +257,7 @@ export default function EditBlogPostPage({
             variant="destructive"
             onClick={handleDelete}
             disabled={loading}
+            className="w-full sm:w-auto"
           >
             <Trash2 className="w-4 h-4 mr-2" />
             Eliminar
@@ -264,12 +265,12 @@ export default function EditBlogPostPage({
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <Card className="p-4">
-          <CardHeader>
-            <CardTitle>Información del Post</CardTitle>
+      <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
+        <Card className="p-3 sm:p-4">
+          <CardHeader className="px-0">
+            <CardTitle className="text-lg sm:text-xl">Información del Post</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-4 sm:space-y-6 px-0">
             <div className="space-y-2">
               <Label htmlFor="title">Título *</Label>
               <Input
@@ -302,7 +303,7 @@ export default function EditBlogPostPage({
                   </div>
                 )}
               </div>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-xs sm:text-sm text-muted-foreground break-all">
                 URL: /blog/{formData.slug}
               </p>
               {formData.slug && (
@@ -343,11 +344,11 @@ export default function EditBlogPostPage({
           </CardContent>
         </Card>
 
-        <Card className="p-4">
-          <CardHeader>
-            <CardTitle>Contenido</CardTitle>
+        <Card className="p-3 sm:p-4">
+          <CardHeader className="px-0">
+            <CardTitle className="text-lg sm:text-xl">Contenido</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="px-0">
             <div className="space-y-2">
               <Label htmlFor="content">Contenido del Post *</Label>
               <RichTextEditor
@@ -355,7 +356,7 @@ export default function EditBlogPostPage({
                 onChange={(content) => setFormData(prev => ({ ...prev, content }))}
                 placeholder="Escribe aquí el contenido de tu post..."
               />
-              <p className="text-sm text-muted-foreground">
+              <p className="text-xs sm:text-sm text-muted-foreground">
                 Usa la barra de herramientas para formatear el texto
               </p>
             </div>
@@ -370,13 +371,13 @@ export default function EditBlogPostPage({
         />
 
         {error && (
-          <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
-            <p className="text-destructive">{error}</p>
+          <div className="p-3 sm:p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
+            <p className="text-sm sm:text-base text-destructive">{error}</p>
           </div>
         )}
 
-        <div className="flex items-center gap-4">
-          <Button type="submit" disabled={loading}>
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
+          <Button type="submit" disabled={loading} className="w-full sm:w-auto">
             {loading ? (
               "Guardando..."
             ) : (
@@ -387,7 +388,7 @@ export default function EditBlogPostPage({
             )}
           </Button>
           
-          <Button type="button" variant="outline" asChild>
+          <Button type="button" variant="outline" asChild className="w-full sm:w-auto">
             <Link href={`/admin/${id}/blog`}>
               Cancelar
             </Link>

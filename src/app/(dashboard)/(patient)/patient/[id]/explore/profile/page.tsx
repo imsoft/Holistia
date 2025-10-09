@@ -263,10 +263,10 @@ const ProfilePage = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-2">Mi Perfil</h1>
-          <p className="text-muted-foreground">
+      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+        <div className="mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">Mi Perfil</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">
             Gestiona tu información personal y preferencias
           </p>
         </div>
@@ -274,12 +274,12 @@ const ProfilePage = () => {
         <div className="mx-auto max-w-2xl space-y-16 sm:space-y-20 lg:mx-0 lg:max-w-none">
           {/* Profile Photo Section */}
           <div>
-            <h2 className="text-base/7 font-semibold text-foreground">Foto de perfil</h2>
-            <p className="mt-1 text-sm/6 text-muted-foreground">
+            <h2 className="text-sm sm:text-base font-semibold text-foreground">Foto de perfil</h2>
+            <p className="mt-1 text-xs sm:text-sm text-muted-foreground">
               Tu foto de perfil será visible para los profesionales de salud mental.
             </p>
 
-            <div className="mt-6 flex items-center gap-6">
+            <div className="mt-4 sm:mt-6 flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
               <div className="relative">
                 <Image
                   src={profile.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(profile.name)}&background=random`}
@@ -297,12 +297,12 @@ const ProfilePage = () => {
               </div>
               <div className="flex-1">
                 <Button
-                  className="font-semibold bg-ring text-white hover:text-white"
+                  className="font-semibold bg-ring text-white hover:text-white w-full sm:w-auto"
                   onClick={handlePhotoChange}
                 >
                   Cambiar foto
                 </Button>
-                <p className="text-sm text-muted-foreground mt-1">
+                <p className="text-xs sm:text-sm text-muted-foreground mt-2">
                   Haz clic para seleccionar una imagen. JPG, GIF o PNG. Máximo 2MB.
                 </p>
               </div>
@@ -311,13 +311,13 @@ const ProfilePage = () => {
 
           {/* Profile Section */}
           <div>
-            <h2 className="text-base/7 font-semibold text-foreground">Perfil</h2>
-            <p className="mt-1 text-sm/6 text-muted-foreground">
+            <h2 className="text-sm sm:text-base font-semibold text-foreground">Perfil</h2>
+            <p className="mt-1 text-xs sm:text-sm text-muted-foreground">
               Esta información será visible públicamente, así que ten cuidado con lo que compartes.
             </p>
 
-            <dl className="mt-6 divide-y divide-border border-t border-border text-sm/6">
-              <div className="py-6 sm:flex sm:items-center">
+            <dl className="mt-4 sm:mt-6 divide-y divide-border border-t border-border text-xs sm:text-sm">
+              <div className="py-4 sm:py-6 sm:flex sm:items-center">
                 <dt className="font-medium text-foreground sm:w-64 sm:flex-none sm:pr-6 sm:flex sm:items-center">
                   Nombre completo
                 </dt>
@@ -325,7 +325,7 @@ const ProfilePage = () => {
                   <div className="text-foreground">{profile.name}</div>
                 </dd>
               </div>
-              <div className="py-6 sm:flex sm:items-center">
+              <div className="py-4 sm:py-6 sm:flex sm:items-center">
                 <dt className="font-medium text-foreground sm:w-64 sm:flex-none sm:pr-6 sm:flex sm:items-center">
                   Correo electrónico
                 </dt>
@@ -333,35 +333,38 @@ const ProfilePage = () => {
                   <div className="text-foreground">{profile.email}</div>
                 </dd>
               </div>
-              <div className="py-6 sm:flex sm:items-center">
+              <div className="py-4 sm:py-6 sm:flex sm:items-center">
                 <dt className="font-medium text-foreground sm:w-64 sm:flex-none sm:pr-6 sm:flex sm:items-center">
                   Teléfono
                 </dt>
                 <dd className="mt-1 sm:mt-0 sm:flex-auto">
                   {isEditingPhone ? (
-                    <div className="flex items-center justify-between w-full">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 w-full">
                       <Input
                         type="tel"
                         value={phoneValue}
                         onChange={(e) => setPhoneValue(e.target.value)}
-                        className="max-w-md"
+                        className="w-full sm:max-w-md"
                       />
                       <div className="flex items-center gap-2">
                         <Button
                           size="sm"
                           onClick={handlePhoneSave}
                           disabled={phoneLoading}
-                          className="bg-green-600 hover:bg-green-700"
+                          className="bg-green-600 hover:bg-green-700 flex-1 sm:flex-none"
                         >
-                          <Save className="h-4 w-4" />
+                          <Save className="h-4 w-4 sm:mr-2" />
+                          <span className="hidden sm:inline">Guardar</span>
                         </Button>
                         <Button
                           size="sm"
                           variant="outline"
                           onClick={handlePhoneCancel}
                           disabled={phoneLoading}
+                          className="flex-1 sm:flex-none"
                         >
-                          <X className="h-4 w-4" />
+                          <X className="h-4 w-4 sm:mr-2" />
+                          <span className="hidden sm:inline">Cancelar</span>
                         </Button>
                       </div>
                     </div>
@@ -382,7 +385,7 @@ const ProfilePage = () => {
                   )}
                 </dd>
               </div>
-              <div className="py-6 sm:flex sm:items-center">
+              <div className="py-4 sm:py-6 sm:flex sm:items-center">
                 <dt className="font-medium text-foreground sm:w-64 sm:flex-none sm:pr-6 sm:flex sm:items-center">
                   Tipo de usuario
                 </dt>
@@ -395,13 +398,13 @@ const ProfilePage = () => {
 
           {/* Información adicional del usuario */}
           <div>
-            <h2 className="text-base/7 font-semibold text-foreground">Información adicional</h2>
-            <p className="mt-1 text-sm/6 text-muted-foreground">
+            <h2 className="text-sm sm:text-base font-semibold text-foreground">Información adicional</h2>
+            <p className="mt-1 text-xs sm:text-sm text-muted-foreground">
               Información adicional sobre tu cuenta y actividad.
             </p>
 
-            <dl className="mt-6 divide-y divide-border border-t border-border text-sm/6">
-              <div className="py-6 sm:flex">
+            <dl className="mt-4 sm:mt-6 divide-y divide-border border-t border-border text-xs sm:text-sm">
+              <div className="py-4 sm:py-6 sm:flex">
                 <dt className="font-medium text-foreground sm:w-64 sm:flex-none sm:pr-6">
                   Fecha de registro
                 </dt>
@@ -415,7 +418,7 @@ const ProfilePage = () => {
                   </div>
                 </dd>
               </div>
-              <div className="py-6 sm:flex">
+              <div className="py-4 sm:py-6 sm:flex">
                 <dt className="font-medium text-foreground sm:w-64 sm:flex-none sm:pr-6">
                   Estado de cuenta
                 </dt>

@@ -881,25 +881,25 @@ export default function BecomeProfessionalPage() {
 
     return (
       <div className="min-h-screen bg-background">
-        <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-foreground mb-2">Solicitud de Profesional</h1>
-            <p className="text-muted-foreground">
+        <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+          <div className="mb-6 sm:mb-8">
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">Solicitud de Profesional</h1>
+            <p className="text-sm sm:text-base text-muted-foreground">
               Estado de tu solicitud para convertirte en profesional de salud mental.
             </p>
           </div>
 
           <div className="mx-auto max-w-2xl space-y-16 sm:space-y-20 lg:mx-0 lg:max-w-none">
             <div>
-              <h2 className="text-base/7 font-semibold text-foreground">Estado de la Solicitud</h2>
-              <p className="mt-1 text-sm/6 text-muted-foreground">
+              <h2 className="text-sm sm:text-base font-semibold text-foreground">Estado de la Solicitud</h2>
+              <p className="mt-1 text-xs sm:text-sm text-muted-foreground">
                 Información sobre el progreso de tu solicitud para ser profesional.
               </p>
 
-              <div className="mt-6">
+              <div className="mt-4 sm:mt-6">
                 <Card className={`border-2 ${statusInfo.borderColor} ${statusInfo.bgColor}`}>
-                  <CardHeader className="pb-6 px-8 pt-8">
-                    <div className="flex items-center gap-4">
+                  <CardHeader className="pb-4 sm:pb-6 px-4 sm:px-8 pt-4 sm:pt-8">
+                    <div className="flex items-center gap-3 sm:gap-4">
                       <div className={`p-3 rounded-full ${statusInfo.bgColor} ${statusInfo.borderColor} border`}>
                         {(() => {
                           const IconComponent = statusInfo.icon;
@@ -907,18 +907,18 @@ export default function BecomeProfessionalPage() {
                         })()}
                       </div>
                       <div>
-                        <CardTitle className={`text-xl ${statusInfo.color} mb-2`}>
+                        <CardTitle className={`text-lg sm:text-xl ${statusInfo.color} mb-2`}>
                           {statusInfo.label}
                         </CardTitle>
-                        <CardDescription className="text-base">
+                        <CardDescription className="text-sm sm:text-base">
                           {statusInfo.description}
                         </CardDescription>
                       </div>
                     </div>
                   </CardHeader>
-                  <CardContent className="pt-0 px-8 pb-8">
-                    <div className="space-y-6">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <CardContent className="pt-0 px-4 sm:px-8 pb-4 sm:pb-8">
+                    <div className="space-y-4 sm:space-y-6">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                         <div className="space-y-2">
                           <p className="text-sm font-semibold text-foreground">Profesión solicitada</p>
                           <p className="text-base text-muted-foreground">{existingApplication.profession}</p>
@@ -930,11 +930,11 @@ export default function BecomeProfessionalPage() {
                       </div>
                       
                       {existingApplication.specializations.length > 0 && (
-                        <div className="space-y-3">
+                        <div className="space-y-2 sm:space-y-3">
                           <p className="text-sm font-semibold text-foreground">Especializaciones</p>
-                          <div className="flex flex-wrap gap-3">
+                          <div className="flex flex-wrap gap-2 sm:gap-3">
                             {existingApplication.specializations.map((spec, index) => (
-                              <Badge key={index} variant="secondary" className="text-sm px-3 py-1">
+                              <Badge key={index} variant="secondary" className="text-xs sm:text-sm px-2 sm:px-3 py-1">
                                 {spec}
                               </Badge>
                             ))}
@@ -944,11 +944,11 @@ export default function BecomeProfessionalPage() {
 
 
                       {existingApplication.wellness_areas && existingApplication.wellness_areas.length > 0 && (
-                        <div className="space-y-3">
+                        <div className="space-y-2 sm:space-y-3">
                           <p className="text-sm font-semibold text-foreground">Áreas de bienestar</p>
-                          <div className="flex flex-wrap gap-3">
+                          <div className="flex flex-wrap gap-2 sm:gap-3">
                             {existingApplication.wellness_areas.map((area, index) => (
-                              <Badge key={index} variant="secondary" className="text-sm px-3 py-1">
+                              <Badge key={index} variant="secondary" className="text-xs sm:text-sm px-2 sm:px-3 py-1">
                                 {area}
                               </Badge>
                             ))}
@@ -967,8 +967,8 @@ export default function BecomeProfessionalPage() {
                       )}
 
                       {existingApplication.status !== "approved" && (
-                        <div className="pt-4 border-t border-border">
-                          <div className="flex gap-4">
+                        <div className="pt-3 sm:pt-4 border-t border-border">
+                          <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
                             <Button asChild variant="outline" className="flex-1">
                               <Link href={`/patient/${userId}/explore/profile`}>
                                 Ver Mi Perfil
@@ -997,24 +997,24 @@ export default function BecomeProfessionalPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-8">
         <div className="max-w-2xl mx-auto">
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-foreground mb-2">
+          <div className="text-center mb-6 sm:mb-8">
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">
               Únete como Profesional
             </h1>
-            <p className="text-muted-foreground">
+            <p className="text-sm sm:text-base text-muted-foreground">
               Completa tu perfil para comenzar a ayudar a pacientes en Holistia
             </p>
           </div>
 
           {/* Progress Bar */}
-          <div className="mb-8">
+          <div className="mb-6 sm:mb-8">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-muted-foreground">
+              <span className="text-xs sm:text-sm text-muted-foreground">
                 Paso {currentStep} de 4
               </span>
-              <span className="text-sm text-muted-foreground">
+              <span className="text-xs sm:text-sm text-muted-foreground">
                 {Math.round((currentStep / 4) * 100)}%
               </span>
             </div>
@@ -1027,34 +1027,37 @@ export default function BecomeProfessionalPage() {
           </div>
 
           {/* Form Card */}
-          <Card className="p-4">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                {currentStep === 1 && <User className="h-5 w-5" />}
-                {currentStep === 2 && <GraduationCap className="h-5 w-5" />}
-                {currentStep === 3 && <MapPin className="h-5 w-5" />}
-                {currentStep === 4 && <FileText className="h-5 w-5" />}
-                {currentStep === 1 && "Información Personal"}
-                {currentStep === 2 && "Información Profesional"}
-                {currentStep === 3 && "Ubicación"}
-                {currentStep === 4 && "Biografía y Términos"}
+          <Card className="p-3 sm:p-4">
+            <CardHeader className="px-0">
+              <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+                {currentStep === 1 && <User className="h-4 w-4 sm:h-5 sm:w-5" />}
+                {currentStep === 2 && <GraduationCap className="h-4 w-4 sm:h-5 sm:w-5" />}
+                {currentStep === 3 && <MapPin className="h-4 w-4 sm:h-5 sm:w-5" />}
+                {currentStep === 4 && <FileText className="h-4 w-4 sm:h-5 sm:w-5" />}
+                <span className="text-base sm:text-lg">
+                  {currentStep === 1 && "Información Personal"}
+                  {currentStep === 2 && "Información Profesional"}
+                  {currentStep === 3 && "Ubicación"}
+                  {currentStep === 4 && "Biografía y Términos"}
+                </span>
               </CardTitle>
             </CardHeader>
-            <CardContent>{renderStep()}</CardContent>
+            <CardContent className="px-0">{renderStep()}</CardContent>
           </Card>
 
           {/* Navigation Buttons */}
-          <div className="flex justify-between mt-6">
+          <div className="flex flex-col sm:flex-row justify-between gap-3 sm:gap-0 mt-4 sm:mt-6">
             <Button
               variant="outline"
               onClick={handlePrevious}
               disabled={currentStep === 1}
+              className="w-full sm:w-auto"
             >
               Anterior
             </Button>
 
             {currentStep < 4 ? (
-              <Button onClick={handleNext}>Siguiente</Button>
+              <Button onClick={handleNext} className="w-full sm:w-auto">Siguiente</Button>
             ) : (
               <Button
                 onClick={handleSubmit}
@@ -1063,6 +1066,7 @@ export default function BecomeProfessionalPage() {
                   !formData.terms_accepted ||
                   !formData.privacy_accepted
                 }
+                className="w-full sm:w-auto"
               >
                 {submitting ? "Enviando..." : "Enviar Solicitud"}
               </Button>

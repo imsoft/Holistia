@@ -461,14 +461,14 @@ const HomeUserPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         <div className="rounded-lg">
-          <div className="px-6 py-6 sm:py-12 lg:px-8">
+          <div className="px-4 sm:px-6 py-6 sm:py-12 lg:px-8">
             <div className="mx-auto max-w-4xl text-center">
-              <h2 className="text-4xl font-semibold tracking-tight text-balance text-foreground sm:text-5xl">
+              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-semibold tracking-tight text-balance text-foreground">
                 Profesionales de Salud
               </h2>
-              <p className="mx-auto mt-6 max-w-2xl text-lg/8 text-pretty text-muted-foreground">
+              <p className="mx-auto mt-4 sm:mt-6 max-w-2xl text-base sm:text-lg text-pretty text-muted-foreground">
                 Encuentra el profesional adecuado para tu bienestar mental y emocional.
               </p>
             </div>
@@ -477,37 +477,37 @@ const HomeUserPage = () => {
 
 
         {/* Categories - Para profesionales */}
-        <div className="mb-8">
-          <div className="text-center mb-6">
-            <h3 className="text-lg font-semibold text-foreground mb-2">
+        <div className="mb-6 sm:mb-8">
+          <div className="text-center mb-4 sm:mb-6">
+            <h3 className="text-base sm:text-lg font-semibold text-foreground mb-2">
               Filtrar por categorías
             </h3>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-xs sm:text-sm text-muted-foreground">
               Selecciona una categoría para filtrar profesionales
             </p>
           </div>
-          <div className="flex gap-4 justify-center overflow-x-auto pb-2">
+          <div className="flex gap-3 sm:gap-4 justify-center overflow-x-auto pb-2">
             {categories.map((category) => (
               <div
                 key={category.id}
                 onClick={() => handleCategoryToggle(category.id)}
-                className={`group flex flex-col items-center p-4 rounded-xl border transition-all duration-200 min-w-[140px] flex-shrink-0 cursor-pointer ${
+                className={`group flex flex-col items-center p-3 sm:p-4 rounded-xl border transition-all duration-200 min-w-[120px] sm:min-w-[140px] flex-shrink-0 cursor-pointer ${
                   selectedCategories.includes(category.id)
                     ? "bg-white text-primary border-primary shadow-md"
                     : "bg-primary text-white border-primary/20 hover:border-primary hover:shadow-md"
                 }`}
               >
-                <div className="mb-2">
-                  {category.id === "professionals" && <Brain className={`h-6 w-6 ${selectedCategories.includes(category.id) ? "text-primary" : "text-white"}`} />}
-                  {category.id === "spirituality" && <Sparkles className={`h-6 w-6 ${selectedCategories.includes(category.id) ? "text-primary" : "text-white"}`} />}
-                  {category.id === "physical-activity" && <Activity className={`h-6 w-6 ${selectedCategories.includes(category.id) ? "text-primary" : "text-white"}`} />}
-                  {category.id === "social" && <Users className={`h-6 w-6 ${selectedCategories.includes(category.id) ? "text-primary" : "text-white"}`} />}
-                  {category.id === "nutrition" && <Apple className={`h-6 w-6 ${selectedCategories.includes(category.id) ? "text-primary" : "text-white"}`} />}
+                <div className="mb-1 sm:mb-2">
+                  {category.id === "professionals" && <Brain className={`h-5 w-5 sm:h-6 sm:w-6 ${selectedCategories.includes(category.id) ? "text-primary" : "text-white"}`} />}
+                  {category.id === "spirituality" && <Sparkles className={`h-5 w-5 sm:h-6 sm:w-6 ${selectedCategories.includes(category.id) ? "text-primary" : "text-white"}`} />}
+                  {category.id === "physical-activity" && <Activity className={`h-5 w-5 sm:h-6 sm:w-6 ${selectedCategories.includes(category.id) ? "text-primary" : "text-white"}`} />}
+                  {category.id === "social" && <Users className={`h-5 w-5 sm:h-6 sm:w-6 ${selectedCategories.includes(category.id) ? "text-primary" : "text-white"}`} />}
+                  {category.id === "nutrition" && <Apple className={`h-5 w-5 sm:h-6 sm:w-6 ${selectedCategories.includes(category.id) ? "text-primary" : "text-white"}`} />}
                 </div>
-                <span className={`text-base font-medium text-center ${selectedCategories.includes(category.id) ? "text-primary" : "text-white"}`}>
+                <span className={`text-sm sm:text-base font-medium text-center ${selectedCategories.includes(category.id) ? "text-primary" : "text-white"}`}>
                   {category.name}
                 </span>
-                <span className={`text-xs mt-1 text-center leading-tight ${selectedCategories.includes(category.id) ? "text-primary/80" : "text-white/80"}`}>
+                <span className={`text-[10px] sm:text-xs mt-1 text-center leading-tight ${selectedCategories.includes(category.id) ? "text-primary/80" : "text-white/80"}`}>
                   {category.description}
                 </span>
               </div>
@@ -563,10 +563,10 @@ const HomeUserPage = () => {
                 </div>
               </div>
             ) : (
-              <div className="space-y-12">
+              <div className="space-y-8 sm:space-y-12">
                 {/* Sección de Eventos */}
                 <div>
-                  <h3 className="text-2xl font-bold text-foreground mb-6">Eventos y Talleres</h3>
+                  <h3 className="text-xl sm:text-2xl font-bold text-foreground mb-4 sm:mb-6">Eventos y Talleres</h3>
                   {filteredEvents.length === 0 ? (
                     <div className="text-center py-12">
                       <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
@@ -583,7 +583,7 @@ const HomeUserPage = () => {
                       </p>
                     </div>
                   ) : (
-                    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                    <div className="grid gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-3">
                       {filteredEvents.map((event) => (
                         <Link 
                           key={event.id} 
@@ -603,10 +603,10 @@ const HomeUserPage = () => {
                                 />
                               </div>
                             )}
-                            <CardHeader className="pb-4">
+                            <CardHeader className="pb-3 sm:pb-4">
                               <div className="flex justify-between items-start">
                                 <div className="flex-1">
-                                  <CardTitle className="text-lg mb-2">{event.name}</CardTitle>
+                                  <CardTitle className="text-base sm:text-lg mb-2">{event.name}</CardTitle>
                                   <div className="flex flex-wrap gap-2 mb-3">
                                     <Badge variant="secondary">
                                       {getCategoryLabel(event.category)}
@@ -618,7 +618,7 @@ const HomeUserPage = () => {
                                 </div>
                               </div>
                             </CardHeader>
-                            <CardContent className="space-y-3 flex-1 pb-6">
+                            <CardContent className="space-y-2 sm:space-y-3 flex-1 pb-4 sm:pb-6">
                               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                                 <Calendar className="w-4 h-4" />
                                 <span>{formatDate(event.event_date)} a las {formatTime(event.event_time)}</span>
@@ -650,7 +650,7 @@ const HomeUserPage = () => {
 
                 {/* Sección de Profesionales */}
                 <div>
-                  <h3 className="text-2xl font-bold text-foreground mb-6">Profesionales de Salud</h3>
+                  <h3 className="text-xl sm:text-2xl font-bold text-foreground mb-4 sm:mb-6">Profesionales de Salud</h3>
                   {filteredProfessionals.length === 0 ? (
                     <div className="text-center py-12">
                       <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
@@ -666,7 +666,7 @@ const HomeUserPage = () => {
                       </p>
                     </div>
                   ) : (
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="grid grid-cols-1 gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-3">
                 {filteredProfessionals.map((professional) => (
                   <ProfessionalCard
                     key={professional.id}

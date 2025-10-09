@@ -738,38 +738,38 @@ export default function ProfessionalProfilePage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         {/* Header del profesional */}
-        <div className="mb-12">
-          <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
-            <div className="flex items-center gap-6">
-              <div className="relative">
+        <div className="mb-8 sm:mb-12">
+          <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 sm:gap-6">
+            <div className="flex items-center gap-4 sm:gap-6 w-full lg:w-auto">
+              <div className="relative flex-shrink-0">
                 <Image
                   src={professional.profile_photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(`${professional.first_name} ${professional.last_name}`)}&background=random`}
                   alt={`${professional.first_name} ${professional.last_name}`}
                   width={120}
                   height={120}
-                  className="h-28 w-28 aspect-square rounded-full object-cover shadow-lg"
+                  className="h-20 w-20 sm:h-28 sm:w-28 aspect-square rounded-full object-cover shadow-lg"
                 />
               </div>
-              <div>
-                <h1 className="text-3xl font-bold text-foreground mb-1">
+              <div className="flex-1">
+                <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-1">
                   {professional.first_name} {professional.last_name}
                 </h1>
-                <p className="text-lg text-primary font-medium mb-3">
+                <p className="text-base sm:text-lg text-primary font-medium mb-2 sm:mb-3">
                   {professional.profession}
                 </p>
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-1 px-3 py-1 bg-primary/10 rounded-full">
+                <div className="flex items-center gap-2 sm:gap-4 flex-wrap">
+                  <div className="flex items-center gap-1 px-2 sm:px-3 py-1 bg-primary/10 rounded-full">
                     {getServiceTypeIcon()}
-                    <span className="text-sm text-primary font-medium">
+                    <span className="text-xs sm:text-sm text-primary font-medium">
                       {getServiceTypeText()}
                     </span>
                   </div>
                 </div>
               </div>
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-2 w-full lg:w-auto justify-end">
               <Button
                 variant="outline"
                 size="icon"
@@ -795,9 +795,9 @@ export default function ProfessionalProfilePage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 sm:gap-12">
           {/* Columna principal */}
-          <div className="lg:col-span-2 space-y-10">
+          <div className="lg:col-span-2 space-y-6 sm:space-y-10">
             {/* Galería de imágenes */}
             <ProfessionalGallery
               images={professional.gallery || []}
@@ -807,10 +807,10 @@ export default function ProfessionalProfilePage() {
             {/* Biografía */}
             {professional.biography && (
               <div>
-                <h2 className="text-xl font-bold text-foreground mb-4">
+                <h2 className="text-lg sm:text-xl font-bold text-foreground mb-3 sm:mb-4">
                   Acerca de {professional.first_name}
                 </h2>
-                <p className="text-muted-foreground leading-relaxed text-base max-w-3xl">
+                <p className="text-sm sm:text-base text-muted-foreground leading-relaxed max-w-3xl">
                   {professional.biography}
                 </p>
               </div>
@@ -822,7 +822,7 @@ export default function ProfessionalProfilePage() {
               (service.onlineCost && service.onlineCost !== '')
             ) && (
               <div>
-                <h2 className="text-xl font-bold text-foreground mb-6">
+                <h2 className="text-lg sm:text-xl font-bold text-foreground mb-4 sm:mb-6">
                   Servicios
                 </h2>
                 <div className="space-y-4">
@@ -832,32 +832,32 @@ export default function ProfessionalProfilePage() {
                   ).map((service, index) => (
                     <div
                       key={index}
-                      className="p-4 rounded-xl bg-gradient-to-r from-primary/5 to-primary/10 border border-primary/20 hover:border-primary/30 transition-all"
+                      className="p-3 sm:p-4 rounded-xl bg-gradient-to-r from-primary/5 to-primary/10 border border-primary/20 hover:border-primary/30 transition-all"
                     >
-                      <div className="flex items-start gap-3">
-                        <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0 mt-1">
-                          <CheckCircle className="h-5 w-5 text-primary" />
+                      <div className="flex items-start gap-2 sm:gap-3">
+                        <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0 mt-1">
+                          <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
                         </div>
                         <div className="flex-1">
-                          <h3 className="text-foreground font-semibold text-lg mb-2">
+                          <h3 className="text-foreground font-semibold text-base sm:text-lg mb-1 sm:mb-2">
                             {service.name}
                           </h3>
-                          <p className="text-muted-foreground leading-relaxed">
+                          <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
                             {service.description}
                           </p>
-                          <div className="flex gap-4 mt-3">
+                          <div className="flex flex-wrap gap-2 sm:gap-4 mt-2 sm:mt-3">
                             {service.presencialCost && service.presencialCost !== '' && (
-                              <div className="flex items-center gap-2 px-3 py-1 bg-primary/10 rounded-full">
-                                <Users className="h-4 w-4 text-primary" />
-                                <span className="text-sm text-primary font-medium">
+                              <div className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 bg-primary/10 rounded-full">
+                                <Users className="h-3 w-3 sm:h-4 sm:w-4 text-primary" />
+                                <span className="text-xs sm:text-sm text-primary font-medium">
                                   Presencial: {formatPrice(parseInt(service.presencialCost))}
                                 </span>
                               </div>
                             )}
                             {service.onlineCost && service.onlineCost !== '' && (
-                              <div className="flex items-center gap-2 px-3 py-1 bg-primary/10 rounded-full">
-                                <Monitor className="h-4 w-4 text-primary" />
-                                <span className="text-sm text-primary font-medium">
+                              <div className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 bg-primary/10 rounded-full">
+                                <Monitor className="h-3 w-3 sm:h-4 sm:w-4 text-primary" />
+                                <span className="text-xs sm:text-sm text-primary font-medium">
                                   En línea: {formatPrice(parseInt(service.onlineCost))}
                                 </span>
                               </div>
@@ -874,19 +874,19 @@ export default function ProfessionalProfilePage() {
             {/* Ubicación con mapa */}
             {professional.address && (
               <div>
-                <h2 className="text-xl font-bold text-foreground mb-6">
+                <h2 className="text-lg sm:text-xl font-bold text-foreground mb-4 sm:mb-6">
                   Ubicación
                 </h2>
-                <div className="space-y-4">
-                  <div className="flex items-start gap-3 p-4 rounded-xl bg-gradient-to-r from-primary/5 to-primary/10 border border-primary/20">
-                    <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <MapPin className="h-5 w-5 text-primary" />
+                <div className="space-y-3 sm:space-y-4">
+                  <div className="flex items-start gap-2 sm:gap-3 p-3 sm:p-4 rounded-xl bg-gradient-to-r from-primary/5 to-primary/10 border border-primary/20">
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <MapPin className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
                     </div>
                     <div className="text-foreground">
-                      <p className="font-semibold text-lg">
+                      <p className="font-semibold text-base sm:text-lg">
                         {professional.address}
                       </p>
-                      <p className="text-muted-foreground">
+                      <p className="text-sm sm:text-base text-muted-foreground">
                         {professional.city}, {professional.state}, {professional.country}
                       </p>
                     </div>
@@ -907,19 +907,19 @@ export default function ProfessionalProfilePage() {
             {/* Certificaciones */}
             {professional.certifications && professional.certifications.length > 0 && (
               <div>
-                <h2 className="text-xl font-bold text-foreground mb-6">
+                <h2 className="text-lg sm:text-xl font-bold text-foreground mb-4 sm:mb-6">
                   Certificaciones y Educación
                 </h2>
-                <div className="space-y-3">
+                <div className="space-y-2 sm:space-y-3">
                   {professional.certifications.map((cert, index) => (
                     <div
                       key={index}
-                      className="flex items-center gap-3 p-4 rounded-xl bg-gradient-to-r from-primary/5 to-primary/10 border border-primary/20 hover:border-primary/30 transition-all"
+                      className="flex items-center gap-2 sm:gap-3 p-3 sm:p-4 rounded-xl bg-gradient-to-r from-primary/5 to-primary/10 border border-primary/20 hover:border-primary/30 transition-all"
                     >
-                      <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
-                        <Award className="h-5 w-5 text-primary" />
+                      <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
+                        <Award className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
                       </div>
-                      <span className="text-foreground font-medium">{cert}</span>
+                      <span className="text-sm sm:text-base text-foreground font-medium">{cert}</span>
                     </div>
                   ))}
                 </div>
@@ -928,7 +928,7 @@ export default function ProfessionalProfilePage() {
           </div>
 
           {/* Sidebar */}
-          <div className="space-y-8">
+          <div className="space-y-6 sm:space-y-8">
             {/* Información de contacto y reserva */}
             <div className="sticky top-8">
               <div className="space-y-6">
@@ -949,7 +949,7 @@ export default function ProfessionalProfilePage() {
                   
                   return (
                     <div>
-                      <h3 className="text-lg font-bold text-foreground mb-4">
+                      <h3 className="text-base sm:text-lg font-bold text-foreground mb-3 sm:mb-4">
                         Precios desde
                       </h3>
                       <div className="space-y-3">
@@ -980,16 +980,16 @@ export default function ProfessionalProfilePage() {
 
                 {/* Experiencia */}
                 <div>
-                  <h3 className="text-lg font-bold text-foreground mb-4">
+                  <h3 className="text-base sm:text-lg font-bold text-foreground mb-3 sm:mb-4">
                     Experiencia
                   </h3>
-                  <div className="p-5 rounded-xl bg-gradient-to-r from-primary/5 to-primary/10 border border-primary/20">
-                    <div className="flex items-start gap-4">
-                      <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0 mt-1">
-                        <Clock className="h-5 w-5 text-primary" />
+                  <div className="p-4 sm:p-5 rounded-xl bg-gradient-to-r from-primary/5 to-primary/10 border border-primary/20">
+                    <div className="flex items-start gap-3 sm:gap-4">
+                      <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0 mt-1">
+                        <Clock className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
                       </div>
                       <div className="flex-1">
-                        <p className="text-foreground text-base leading-relaxed font-medium">
+                        <p className="text-foreground text-sm sm:text-base leading-relaxed font-medium">
                           {getExperienceDescription(professional.experience)}
                         </p>
                       </div>
@@ -998,28 +998,27 @@ export default function ProfessionalProfilePage() {
                 </div>
 
                 {/* Botones de acción */}
-                <div className="space-y-3">
+                <div className="space-y-2 sm:space-y-3">
                   <Dialog open={isBookingModalOpen} onOpenChange={setIsBookingModalOpen}>
                     <DialogTrigger asChild>
-                      <Button className="w-full h-12 font-semibold rounded-xl bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-lg">
-                        <Calendar className="h-5 w-5 mr-2" />
+                      <Button className="w-full h-11 sm:h-12 text-sm sm:text-base font-semibold rounded-xl bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-lg">
+                        <Calendar className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                         Reservar cita
                       </Button>
                     </DialogTrigger>
                     <DialogContent 
-                      className="max-h-[90vh] overflow-y-auto" 
-                      style={{ width: '90vw', maxWidth: '1200px' }}
+                      className="max-h-[90vh] overflow-y-auto w-[95vw] sm:w-[90vw] max-w-[1200px]"
                     >
-                      <DialogHeader className="pb-4">
-                        <DialogTitle className="text-xl font-bold text-foreground">
+                      <DialogHeader className="pb-3 sm:pb-4">
+                        <DialogTitle className="text-lg sm:text-xl font-bold text-foreground">
                           Reservar cita con {professional?.first_name} {professional?.last_name}
                         </DialogTitle>
                       </DialogHeader>
                         
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 py-4">
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 py-3 sm:py-4">
                           {/* Selección de fecha y hora */}
-                          <div className="space-y-4">
-                            <h3 className="text-lg font-semibold text-foreground">Fecha y hora</h3>
+                          <div className="space-y-3 sm:space-y-4">
+                            <h3 className="text-base sm:text-lg font-semibold text-foreground">Fecha y hora</h3>
                             
                             {/* Fechas disponibles */}
                             <div>
@@ -1105,8 +1104,8 @@ export default function ProfessionalProfilePage() {
                           </div>
 
                           {/* Formulario de información */}
-                          <div className="space-y-4">
-                            <h3 className="text-lg font-semibold text-foreground">Información</h3>
+                          <div className="space-y-3 sm:space-y-4">
+                            <h3 className="text-base sm:text-lg font-semibold text-foreground">Información</h3>
                             
                             {/* Tipo de servicio */}
                             <div>
@@ -1248,11 +1247,12 @@ export default function ProfessionalProfilePage() {
                         )}
 
                         {/* Botones de acción */}
-                        <div className="flex justify-end gap-3 pt-4 border-t border-border">
+                        <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-3 pt-3 sm:pt-4 border-t border-border">
                           <Button
                             variant="outline"
                             size="sm"
                             onClick={() => setIsBookingModalOpen(false)}
+                            className="w-full sm:w-auto"
                           >
                             Cancelar
                           </Button>
@@ -1260,6 +1260,7 @@ export default function ProfessionalProfilePage() {
                             size="sm"
                             onClick={handleBookingSubmit}
                             disabled={!selectedDate || !selectedTime || !selectedService || bookingLoading}
+                            className="w-full sm:w-auto"
                           >
                             {bookingLoading ? 'Reservando...' : 'Confirmar reserva'}
                           </Button>

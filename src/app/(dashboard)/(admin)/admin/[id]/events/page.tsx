@@ -223,9 +223,10 @@ const EventsAdminPage = () => {
           </div>
           <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
             <DialogTrigger asChild>
-              <Button onClick={() => setEditingEvent(null)}>
+              <Button onClick={() => setEditingEvent(null)} className="w-full sm:w-auto">
                 <Plus className="w-4 h-4 mr-2" />
-                Nuevo Evento
+                <span className="hidden sm:inline">Nuevo Evento</span>
+                <span className="sm:hidden">Nuevo</span>
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
@@ -312,7 +313,7 @@ const EventsAdminPage = () => {
             </CardContent>
           </Card>
         ) : (
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {filteredEvents.map((event) => (
               <Card key={event.id} className={`py-4 ${!event.is_active ? "opacity-60" : ""}`}>
                 {/* Event Image */}
@@ -376,27 +377,34 @@ const EventsAdminPage = () => {
                       {event.description}
                     </p>
                   )}
-                  <div className="flex gap-2 pt-2">
+                  <div className="flex flex-col sm:flex-row gap-2 pt-2">
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => handleEditEvent(event)}
+                      className="flex-1 sm:flex-none"
                     >
-                      <Edit className="w-4 h-4" />
+                      <Edit className="w-4 h-4 sm:mr-2" />
+                      <span className="hidden sm:inline">Editar</span>
                     </Button>
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => handleToggleStatus(event.id!, event.is_active)}
+                      className="flex-1 sm:flex-none"
                     >
-                      {event.is_active ? "Desactivar" : "Activar"}
+                      <span className="text-xs sm:text-sm">
+                        {event.is_active ? "Desactivar" : "Activar"}
+                      </span>
                     </Button>
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => handleDeleteEvent(event.id!)}
+                      className="flex-1 sm:flex-none"
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <Trash2 className="w-4 h-4 sm:mr-2" />
+                      <span className="hidden sm:inline">Eliminar</span>
                     </Button>
                   </div>
                 </CardContent>

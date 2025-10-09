@@ -259,22 +259,22 @@ export default function EventRegistrationsPage() {
   }
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold">Registros de Eventos</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-2xl sm:text-3xl font-bold">Registros de Eventos</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">
             Gestiona todos los registros de eventos y códigos de confirmación
           </p>
         </div>
-        <Button onClick={exportToCSV} className="flex items-center gap-2">
+        <Button onClick={exportToCSV} className="flex items-center gap-2 w-full sm:w-auto">
           <Download className="h-4 w-4" />
           Exportar CSV
         </Button>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="py-6">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Registros</CardTitle>
@@ -328,7 +328,7 @@ export default function EventRegistrationsPage() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <div className="space-y-2">
               <label className="text-sm font-medium">Buscar</label>
               <div className="relative">
@@ -385,8 +385,9 @@ export default function EventRegistrationsPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="rounded-md border">
-            <Table>
+          <div className="overflow-x-auto">
+            <div className="rounded-md border min-w-[800px]">
+              <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Usuario</TableHead>
@@ -476,15 +477,16 @@ export default function EventRegistrationsPage() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Button variant="outline" size="sm" className="flex items-center gap-1">
+                      <Button variant="outline" size="sm" className="flex items-center gap-1 whitespace-nowrap">
                         <Eye className="h-3 w-3" />
-                        Ver
+                        <span className="hidden sm:inline">Ver</span>
                       </Button>
                     </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
-            </Table>
+              </Table>
+            </div>
           </div>
           
           {filteredRegistrations.length === 0 && (

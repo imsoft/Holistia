@@ -339,7 +339,7 @@ export default function AdminProfessionals() {
       {/* Main Content */}
       <div className="p-6 space-y-6">
         {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-6 pt-6">
               <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -413,7 +413,7 @@ export default function AdminProfessionals() {
             </CardTitle>
           </CardHeader>
           <CardContent className="px-6 pb-6">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -457,7 +457,7 @@ export default function AdminProfessionals() {
         </Card>
 
         {/* Professionals List */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {filteredProfessionals.map((professional) => (
             <Card key={professional.id} className="hover:shadow-md transition-shadow">
               <CardContent className="px-6 py-6">

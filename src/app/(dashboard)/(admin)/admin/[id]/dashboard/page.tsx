@@ -305,12 +305,12 @@ export default function AdminDashboard() {
       </div>
 
       {/* Main Content */}
-      <div className="p-6 space-y-6">
+      <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
           {stats.map((stat) => (
             <Card key={stat.title}>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-6 pt-6">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-4 sm:px-6 pt-4 sm:pt-6">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
                   {stat.title}
                 </CardTitle>
@@ -318,7 +318,7 @@ export default function AdminDashboard() {
                   <stat.icon className={`h-4 w-4 ${stat.color}`} />
                 </div>
               </CardHeader>
-              <CardContent className="px-6 pb-6">
+              <CardContent className="px-4 sm:px-6 pb-4 sm:pb-6">
                 <div className="text-2xl font-bold text-foreground">{stat.value}</div>
                 <p className="text-xs text-muted-foreground flex items-center gap-1">
                   <TrendingUp className="h-3 w-3" />
@@ -329,26 +329,26 @@ export default function AdminDashboard() {
           ))}
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
           {/* Solicitudes Recientes */}
           <Card>
-            <CardHeader className="px-6 pt-6">
-              <div className="flex items-center justify-between">
+            <CardHeader className="px-4 sm:px-6 pt-4 sm:pt-6">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div>
                   <CardTitle>Solicitudes Recientes</CardTitle>
                   <CardDescription>
                     Últimas solicitudes de profesionales
                   </CardDescription>
                 </div>
-                <Button variant="outline" size="sm" asChild>
+                <Button variant="outline" size="sm" asChild className="w-full sm:w-auto">
                   <Link href={`/admin/${userId}/applications`}>
                     Ver todas
                   </Link>
                 </Button>
               </div>
             </CardHeader>
-            <CardContent className="px-6 pb-6">
-              <div className="space-y-4">
+            <CardContent className="px-4 sm:px-6 pb-4 sm:pb-6">
+              <div className="space-y-3 sm:space-y-4">
                 {recentApplications.map((application) => (
                   <div
                     key={application.id}
@@ -383,7 +383,7 @@ export default function AdminDashboard() {
 
           {/* Actividad Reciente */}
           <Card>
-            <CardHeader className="px-6 pt-6">
+            <CardHeader className="px-4 sm:px-6 pt-4 sm:pt-6">
               <div>
                 <CardTitle>Actividad Reciente</CardTitle>
                 <CardDescription>
@@ -391,8 +391,8 @@ export default function AdminDashboard() {
                 </CardDescription>
               </div>
             </CardHeader>
-            <CardContent className="px-6 pb-6">
-              <div className="space-y-4">
+            <CardContent className="px-4 sm:px-6 pb-4 sm:pb-6">
+              <div className="space-y-3 sm:space-y-4">
                 {recentActivities.map((activity) => (
                   <div
                     key={activity.id}

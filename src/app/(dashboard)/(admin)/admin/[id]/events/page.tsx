@@ -317,10 +317,10 @@ const EventsAdminPage = () => {
             {filteredEvents.map((event) => (
               <Card key={event.id} className={`py-4 ${!event.is_active ? "opacity-60" : ""}`}>
                 {/* Event Image */}
-                {event.image_url && (
+                {event.gallery_images && event.gallery_images.length > 0 && (
                   <div className="relative h-48 w-full overflow-hidden rounded-t-lg">
                     <Image
-                      src={event.image_url}
+                      src={event.gallery_images[0]}
                       alt={event.name}
                       fill
                       className="object-cover"

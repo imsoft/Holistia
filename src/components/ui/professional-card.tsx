@@ -25,29 +25,77 @@ export const ProfessionalCard = ({ professional, userId }: ProfessionalCardProps
   };
 
   const getServiceTypeIcon = () => {
-    switch (professional.serviceType) {
-      case 'in-person':
-        return <Users className="h-3 w-3" />;
-      case 'online':
-        return <Monitor className="h-3 w-3" />;
-      case 'both':
-        return <MessageCircle className="h-3 w-3" />;
-      default:
-        return <Users className="h-3 w-3" />;
+    // Si ya está definido el serviceType, usarlo
+    if (professional.serviceType) {
+      switch (professional.serviceType) {
+        case 'in-person':
+          return <Users className="h-3 w-3" />;
+        case 'online':
+          return <Monitor className="h-3 w-3" />;
+        case 'both':
+          return <MessageCircle className="h-3 w-3" />;
+        default:
+          return <Users className="h-3 w-3" />;
+      }
     }
+    
+    // Si no está definido, calcular basándose en los servicios
+    if (professional.services && professional.services.length > 0) {
+      const hasPresencial = professional.services.some(service => 
+        service.presencialCost && parseInt(service.presencialCost.toString()) > 0
+      );
+      const hasOnline = professional.services.some(service => 
+        service.onlineCost && parseInt(service.onlineCost.toString()) > 0
+      );
+      
+      if (hasPresencial && hasOnline) {
+        return <MessageCircle className="h-3 w-3" />;
+      } else if (hasOnline) {
+        return <Monitor className="h-3 w-3" />;
+      } else if (hasPresencial) {
+        return <Users className="h-3 w-3" />;
+      }
+    }
+    
+    // Fallback por defecto
+    return <Users className="h-3 w-3" />;
   };
 
   const getServiceTypeText = () => {
-    switch (professional.serviceType) {
-      case 'in-person':
-        return 'Presencial';
-      case 'online':
-        return 'En línea';
-      case 'both':
-        return 'Presencial y en línea';
-      default:
-        return 'Presencial';
+    // Si ya está definido el serviceType, usarlo
+    if (professional.serviceType) {
+      switch (professional.serviceType) {
+        case 'in-person':
+          return 'Presencial';
+        case 'online':
+          return 'En línea';
+        case 'both':
+          return 'Ambos';
+        default:
+          return 'Presencial';
+      }
     }
+    
+    // Si no está definido, calcular basándose en los servicios
+    if (professional.services && professional.services.length > 0) {
+      const hasPresencial = professional.services.some(service => 
+        service.presencialCost && parseInt(service.presencialCost.toString()) > 0
+      );
+      const hasOnline = professional.services.some(service => 
+        service.onlineCost && parseInt(service.onlineCost.toString()) > 0
+      );
+      
+      if (hasPresencial && hasOnline) {
+        return 'Ambos';
+      } else if (hasOnline) {
+        return 'En línea';
+      } else if (hasPresencial) {
+        return 'Presencial';
+      }
+    }
+    
+    // Fallback por defecto
+    return 'Presencial';
   };
 
   const handleToggleFavorite = async (e: React.MouseEvent) => {
@@ -139,19 +187,19 @@ export const ProfessionalCard = ({ professional, userId }: ProfessionalCardProps
             </div>
           )}
 
-          {/* Wellness Areas */}
-          {professional.wellnessAreas && professional.wellnessAreas.length > 0 && (
+          {/* Services */}
+          {professional.services && professional.services.length > 0 && (
             <div>
-              <p className="text-xs text-muted-foreground mb-1">Áreas de bienestar:</p>
+              <p className="text-xs text-muted-foreground mb-1">Servicios:</p>
               <div className="flex flex-wrap gap-1">
-                {professional.wellnessAreas.slice(0, 2).map((area) => (
-                  <span key={area} className="text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded-full border border-blue-200">
-                    {area}
+                {professional.services.slice(0, 2).map((service) => (
+                  <span key={service.name} className="text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded-full border border-blue-200">
+                    {service.name}
                   </span>
                 ))}
-                {professional.wellnessAreas.length > 2 && (
+                {professional.services.length > 2 && (
                   <span className="text-xs text-muted-foreground">
-                    +{professional.wellnessAreas.length - 2} más
+                    +{professional.services.length - 2} más
                   </span>
                 )}
               </div>

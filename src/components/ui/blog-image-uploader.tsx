@@ -206,19 +206,26 @@ export function BlogImageUploader({
         {/* Área de subida */}
         {!currentImageUrl && !preview && (
           <div
-            className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-8 text-center hover:border-primary/50 transition-colors cursor-pointer"
+            className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-4 sm:p-8 text-center hover:border-primary/50 transition-colors cursor-pointer"
             onDrop={handleDrop}
             onDragOver={handleDragOver}
-            onClick={() => fileInputRef.current?.click()}
+            onClick={() => {
+              // En móvil, el input ya está visible, no necesitamos hacer click programático
+              if (window.innerWidth >= 640) {
+                fileInputRef.current?.click();
+              }
+            }}
           >
             <div className="flex flex-col items-center gap-4">
               <div className="p-4 bg-primary/10 rounded-full">
-                <Upload className="w-8 h-8 text-primary" />
+                <Upload className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
               </div>
               <div>
-                <p className="text-lg font-medium">Subir imagen destacada</p>
+                <p className="text-base sm:text-lg font-medium">Subir imagen destacada</p>
                 <p className="text-sm text-muted-foreground">
-                  Arrastra y suelta una imagen aquí o haz clic para seleccionar
+                  <span className="sm:hidden">Usa el selector de archivo de arriba o </span>
+                  <span className="hidden sm:inline">Arrastra y suelta una imagen aquí o haz clic para </span>
+                  seleccionar
                 </p>
                 <p className="text-xs text-muted-foreground mt-2">
                   PNG, JPG, GIF hasta 5MB
@@ -228,13 +235,21 @@ export function BlogImageUploader({
           </div>
         )}
 
-        {/* Input oculto */}
+        {/* Input de archivo - visible en móvil */}
         <Input
           ref={fileInputRef}
           type="file"
           accept="image/*"
           onChange={handleFileSelect}
-          className="hidden"
+          className="hidden sm:hidden"
+        />
+        
+        {/* Input visible para móvil */}
+        <Input
+          type="file"
+          accept="image/*"
+          onChange={handleFileSelect}
+          className="sm:hidden w-full"
         />
 
         {/* Estados de carga y error */}
@@ -259,13 +274,13 @@ export function BlogImageUploader({
           </div>
         )}
 
-        {/* Botón de subida alternativo */}
+        {/* Botón de subida alternativo - solo visible en desktop */}
         {!currentImageUrl && !preview && (
           <Button
             variant="outline"
             onClick={() => fileInputRef.current?.click()}
             disabled={uploading}
-            className="w-full"
+            className="hidden sm:flex w-full"
           >
             <Upload className="w-4 h-4 mr-2" />
             Seleccionar Imagen

@@ -315,10 +315,10 @@ const EventsAdminPage = () => {
         ) : (
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {filteredEvents.map((event) => (
-              <Card key={event.id} className={`py-4 ${!event.is_active ? "opacity-60" : ""}`}>
+              <Card key={event.id} className={`${!event.is_active ? "opacity-60" : ""} overflow-hidden`}>
                 {/* Event Image */}
                 {event.gallery_images && event.gallery_images.length > 0 && (
-                  <div className="relative h-48 w-full overflow-hidden rounded-t-lg">
+                  <div className="relative h-48 w-full">
                     <Image
                       src={event.gallery_images[0]}
                       alt={event.name}
@@ -327,7 +327,6 @@ const EventsAdminPage = () => {
                     />
                   </div>
                 )}
-                
                 <CardHeader className="pb-4 pt-6">
                   <div className="flex justify-between items-start">
                     <div className="flex-1">

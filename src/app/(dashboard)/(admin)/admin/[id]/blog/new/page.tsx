@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, use } from "react";
+import React, { useState, use } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { createClient } from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
@@ -15,6 +15,7 @@ import Link from "next/link";
 import { BlogImageUploader } from "@/components/ui/blog-image-uploader";
 import { RichTextEditor } from "@/components/ui/rich-text-editor";
 import { generateUniqueSlug, isValidSlug } from "@/lib/slug-utils";
+import { BlogAuthor } from "@/types/blog";
 
 export default function NewBlogPostPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -35,10 +36,73 @@ export default function NewBlogPostPage({ params }: { params: Promise<{ id: stri
     content: "",
     status: "draft" as "draft" | "published",
     featured_image: "",
+    author_id: "",
   });
+  
+  const [authors, setAuthors] = useState<BlogAuthor[]>([]);
+  const [loadingAuthors, setLoadingAuthors] = useState(true);
 
   const supabase = createClient();
 
+  // Obtener lista de autores disponibles
+  const fetchAuthors = async () => {
+    try {
+      setLoadingAuthors(true);
+      
+      // Obtener usuarios
+      const { data: users, error: usersError } = await supabase
+        .from('profiles')
+        .select('id, first_name, last_name, email, avatar_url')
+        .not('first_name', 'is', null)
+        .not('last_name', 'is', null);
+
+      if (usersError) throw usersError;
+
+      // Obtener profesionales
+      const { data: professionals, error: professionalsError } = await supabase
+        .from('professional_applications')
+        .select('id, first_name, last_name, email, profession, profile_photo')
+        .eq('status', 'approved')
+        .not('first_name', 'is', null)
+        .not('last_name', 'is', null);
+
+      if (professionalsError) throw professionalsError;
+
+      // Combinar y formatear autores
+      const allAuthors: BlogAuthor[] = [
+        ...(users || []).map(user => ({
+          id: user.id,
+          name: `${user.first_name} ${user.last_name}`,
+          email: user.email,
+          avatar: user.avatar_url,
+          type: 'user' as const
+        })),
+        ...(professionals || []).map(professional => ({
+          id: professional.id,
+          name: `${professional.first_name} ${professional.last_name}`,
+          email: professional.email,
+          avatar: professional.profile_photo,
+          profession: professional.profession,
+          type: 'professional' as const
+        }))
+      ];
+
+      // Ordenar por nombre
+      allAuthors.sort((a, b) => a.name.localeCompare(b.name));
+      
+      setAuthors(allAuthors);
+    } catch (error) {
+      console.error('Error fetching authors:', error);
+      setError('Error al cargar la lista de autores');
+    } finally {
+      setLoadingAuthors(false);
+    }
+  };
+
+  // Cargar autores al montar el componente
+  React.useEffect(() => {
+    fetchAuthors();
+  }, []);
 
   const handleTitleChange = (title: string) => {
     const newSlug = title
@@ -75,6 +139,11 @@ export default function NewBlogPostPage({ params }: { params: Promise<{ id: stri
       return;
     }
 
+    if (!formData.author_id) {
+      setError("Debe seleccionar un autor");
+      return;
+    }
+
     try {
       setLoading(true);
       setError(null);
@@ -95,7 +164,7 @@ export default function NewBlogPostPage({ params }: { params: Promise<{ id: stri
         excerpt: formData.excerpt.trim() || null,
         content: formData.content.trim(),
         status: formData.status,
-        author_id: user.id,
+        author_id: formData.author_id,
         published_at: formData.status === "published" ? new Date().toISOString() : null,
         featured_image: formData.featured_image || null,
       };
@@ -222,6 +291,36 @@ export default function NewBlogPostPage({ params }: { params: Promise<{ id: stri
                   <SelectItem value="published">Publicado</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="author">Autor *</Label>
+              <Select
+                value={formData.author_id}
+                onValueChange={(value) => 
+                  setFormData(prev => ({ ...prev, author_id: value }))
+                }
+                disabled={loadingAuthors}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder={loadingAuthors ? "Cargando autores..." : "Selecciona un autor"} />
+                </SelectTrigger>
+                <SelectContent>
+                  {authors.map((author) => (
+                    <SelectItem key={author.id} value={author.id}>
+                      <div className="flex items-center gap-2">
+                        <span>{author.name}</span>
+                        <span className="text-xs text-muted-foreground">
+                          ({author.type === 'professional' ? author.profession : 'Usuario'})
+                        </span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs sm:text-sm text-muted-foreground">
+                Selecciona el autor que aparecerá en el post
+              </p>
             </div>
           </CardContent>
         </Card>

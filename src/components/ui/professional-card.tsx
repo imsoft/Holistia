@@ -143,11 +143,11 @@ export const ProfessionalCard = ({ professional, userId }: ProfessionalCardProps
       <Card className="group overflow-hidden hover:shadow-xl hover:-translate-y-2 transition-all duration-300 border-border cursor-pointer h-full flex flex-col">
       <div className="relative">
         <Image
-          src={professional.profile_photo || professional.profilePhoto || professional.avatar || "/placeholder-avatar.jpg"}
+          src={professional.profile_photo || professional.profilePhoto || professional.avatar || "/logos/holistia-black.png"}
           alt={professional.name || `${professional.first_name || ''} ${professional.last_name || ''}`.trim()}
           width={400}
           height={300}
-          className="w-full h-48 object-cover"
+          className={`w-full h-48 object-cover ${!professional.profile_photo && !professional.profilePhoto && !professional.avatar ? 'bg-gray-50 p-8' : ''}`}
         />
         {/* Favorite button */}
         <button 

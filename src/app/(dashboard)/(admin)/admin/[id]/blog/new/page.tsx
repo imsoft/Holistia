@@ -49,14 +49,15 @@ export default function NewBlogPostPage({ params }: { params: Promise<{ id: stri
     try {
       setLoadingAuthors(true);
       
-      // Obtener usuarios
-      const { data: users, error: usersError } = await supabase
+      // Obtener administradores (usuarios con rol admin)
+      const { data: admins, error: adminsError } = await supabase
         .from('profiles')
         .select('id, first_name, last_name, email, avatar_url')
+        .eq('role', 'admin')
         .not('first_name', 'is', null)
         .not('last_name', 'is', null);
 
-      if (usersError) throw usersError;
+      if (adminsError) throw adminsError;
 
       // Obtener profesionales
       const { data: professionals, error: professionalsError } = await supabase
@@ -70,11 +71,12 @@ export default function NewBlogPostPage({ params }: { params: Promise<{ id: stri
 
       // Combinar y formatear autores
       const allAuthors: BlogAuthor[] = [
-        ...(users || []).map(user => ({
-          id: user.id,
-          name: `${user.first_name} ${user.last_name}`,
-          email: user.email,
-          avatar: user.avatar_url,
+        ...(admins || []).map(admin => ({
+          id: admin.id,
+          name: `${admin.first_name} ${admin.last_name}`,
+          email: admin.email,
+          avatar: admin.avatar_url,
+          profession: 'Administrador',
           type: 'user' as const
         })),
         ...(professionals || []).map(professional => ({

@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { createClient } from "@/utils/supabase/client";
 import { BlogPost } from "@/types/blog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar, FileText, Clock } from "lucide-react";
+import { Calendar, FileText, Clock, User } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { Navbar } from "@/components/shared/navbar";
@@ -38,7 +38,56 @@ export default function BlogPage() {
         return;
       }
 
-      setPosts(data || []);
+      // Fetch author information for each post
+      const postsWithAuthors = await Promise.all(
+        (data || []).map(async (post) => {
+          let authorInfo = null;
+          if (post.author_id) {
+            // Try to get from professionals first
+            const { data: professionalData } = await supabase
+              .from('professional_applications')
+              .select('id, first_name, last_name, email, profession, profile_photo')
+              .eq('id', post.author_id)
+              .eq('status', 'approved')
+              .single();
+
+            if (professionalData) {
+              authorInfo = {
+                id: professionalData.id,
+                name: `${professionalData.first_name} ${professionalData.last_name}`,
+                email: professionalData.email,
+                avatar: professionalData.profile_photo,
+                profession: professionalData.profession,
+              };
+            } else {
+              // Try to get from profiles (admin users)
+              const { data: profileData } = await supabase
+                .from('profiles')
+                .select('id, first_name, last_name, email, avatar_url')
+                .eq('id', post.author_id)
+                .eq('role', 'admin')
+                .single();
+
+              if (profileData) {
+                authorInfo = {
+                  id: profileData.id,
+                  name: `${profileData.first_name} ${profileData.last_name}`,
+                  email: profileData.email,
+                  avatar: profileData.avatar_url,
+                  profession: 'Administrador',
+                };
+              }
+            }
+          }
+          
+          return {
+            ...post,
+            author: authorInfo
+          };
+        })
+      );
+
+      setPosts(postsWithAuthors);
     } catch (err) {
       console.error("Error:", err);
       setError("Error inesperado al cargar los posts");
@@ -154,6 +203,14 @@ export default function BlogPage() {
                           <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-2 flex-shrink-0" />
                           <span>{getReadingTime(post.content)}</span>
                         </div>
+
+                        {post.author && (
+                          <div className="flex items-center text-xs sm:text-sm text-muted-foreground">
+                            <User className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-2 flex-shrink-0" />
+                            <span>{post.author.name}</span>
+                            <span className="ml-1 opacity-75">({post.author.profession})</span>
+                          </div>
+                        )}
                       </div>
                     </CardContent>
                   </Card>

@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { BlogPost } from "@/types/blog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Calendar, Clock, Share2 } from "lucide-react";
+import { Calendar, Clock, Share2, User } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { Navbar } from "@/components/shared/navbar";
@@ -50,7 +50,50 @@ export default function BlogPostPage({
         return;
       }
 
-      setPost(postData);
+      // Fetch author information
+      let authorInfo = null;
+      if (postData.author_id) {
+        // Try to get from professionals first
+        const { data: professionalData } = await supabase
+          .from('professional_applications')
+          .select('id, first_name, last_name, email, profession, profile_photo')
+          .eq('id', postData.author_id)
+          .eq('status', 'approved')
+          .single();
+
+        if (professionalData) {
+          authorInfo = {
+            id: professionalData.id,
+            name: `${professionalData.first_name} ${professionalData.last_name}`,
+            email: professionalData.email,
+            avatar: professionalData.profile_photo,
+            profession: professionalData.profession,
+          };
+        } else {
+          // Try to get from profiles (admin users)
+          const { data: profileData } = await supabase
+            .from('profiles')
+            .select('id, first_name, last_name, email, avatar_url')
+            .eq('id', postData.author_id)
+            .eq('role', 'admin')
+            .single();
+
+          if (profileData) {
+            authorInfo = {
+              id: profileData.id,
+              name: `${profileData.first_name} ${profileData.last_name}`,
+              email: profileData.email,
+              avatar: profileData.avatar_url,
+              profession: 'Administrador',
+            };
+          }
+        }
+      }
+
+      setPost({
+        ...postData,
+        author: authorInfo
+      });
 
       // Fetch related posts (other published posts)
       const { data: relatedData, error: relatedError } = await supabase
@@ -173,6 +216,13 @@ export default function BlogPostPage({
                 <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-2 flex-shrink-0" />
                 <span>{getReadingTime(post.content)}</span>
               </div>
+              {post.author && (
+                <div className="flex items-center">
+                  <User className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-2 flex-shrink-0" />
+                  <span>{post.author.name}</span>
+                  <span className="ml-1 text-xs opacity-75">({post.author.profession})</span>
+                </div>
+              )}
               <Button
                 variant="outline"
                 size="sm"

@@ -148,7 +148,8 @@ const EventDetailPage = () => {
     const levels = {
       beginner: "Principiante",
       intermediate: "Intermedio",
-      advanced: "Avanzado"
+      advanced: "Avanzado",
+      all: "Todos los niveles"
     };
     return levels[level as keyof typeof levels] || level;
   };

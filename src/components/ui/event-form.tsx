@@ -52,6 +52,7 @@ export function EventForm({ event, professionals, onSuccess, onCancel }: EventFo
     participant_level: "principiante",
     professional_id: "",
     gallery_images: [],
+    image_position: "center center",
   });
 
   const [uploadingImages, setUploadingImages] = useState(false);
@@ -82,6 +83,7 @@ export function EventForm({ event, professionals, onSuccess, onCancel }: EventFo
         participant_level: event.participant_level,
         professional_id: event.professional_id || "",
         gallery_images: event.gallery_images || [],
+        image_position: event.image_position || "center center",
       });
       
       // Cargar la posición de imagen guardada
@@ -209,9 +211,9 @@ export function EventForm({ event, professionals, onSuccess, onCancel }: EventFo
   };
 
   const handleCropSave = (newPosition: string) => {
-    // Por ahora solo actualizamos el estado local
-    // En el futuro se podría guardar la posición de cada imagen individualmente
+    // Actualizar tanto el estado local como el formData
     setCurrentImagePosition(newPosition);
+    setFormData(prev => ({ ...prev, image_position: newPosition }));
     setIsCropDialogOpen(false);
     toast.success('Posición de imagen actualizada');
   };

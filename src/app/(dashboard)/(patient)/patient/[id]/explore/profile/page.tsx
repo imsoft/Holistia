@@ -9,6 +9,7 @@ import { createClient } from "@/utils/supabase/client";
 import { Patient } from "@/types/patient";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PhoneInput } from "@/components/ui/phone-input";
 
 const ProfilePage = () => {
   const [profile, setProfile] = useState<Patient | null>(null);
@@ -340,11 +341,11 @@ const ProfilePage = () => {
                 <dd className="mt-1 sm:mt-0 sm:flex-auto">
                   {isEditingPhone ? (
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 w-full">
-                      <Input
-                        type="tel"
+                      <PhoneInput
                         value={phoneValue}
-                        onChange={(e) => setPhoneValue(e.target.value)}
+                        onChange={(value) => setPhoneValue(value)}
                         className="w-full sm:max-w-md"
+                        defaultCountryCode="+52"
                       />
                       <div className="flex items-center gap-2">
                         <Button

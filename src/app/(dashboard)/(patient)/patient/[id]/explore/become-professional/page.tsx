@@ -19,6 +19,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { PhoneInput } from "@/components/ui/phone-input";
 import {
   Card,
   CardContent,
@@ -436,12 +437,13 @@ export default function BecomeProfessionalPage() {
 
             <div className="space-y-3">
               <Label htmlFor="phone">Teléfono *</Label>
-              <Input
+              <PhoneInput
                 id="phone"
                 value={formData.phone}
-                onChange={(e) => handleInputChange("phone", e.target.value)}
-                placeholder="+1 (555) 123-4567"
-                className={errors.phone ? "border-red-500" : ""}
+                onChange={(value) => handleInputChange("phone", value)}
+                placeholder="55 1234 5678"
+                error={!!errors.phone}
+                defaultCountryCode="+52"
               />
               {errors.phone && (
                 <p className="text-red-500 text-sm mt-1">{errors.phone}</p>

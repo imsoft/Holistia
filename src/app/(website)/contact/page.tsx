@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { PhoneInput } from "@/components/ui/phone-input";
 import { 
   Mail, 
   Phone, 
@@ -173,12 +174,12 @@ export default function ContactPage() {
                   
                   <div>
                     <Label htmlFor="phone">Teléfono (opcional)</Label>
-                    <Input
+                    <PhoneInput
                       id="phone"
                       name="phone"
-                      type="tel"
                       className="mt-2"
-                      placeholder="+52 33 1234 5678"
+                      placeholder="33 1234 5678"
+                      defaultCountryCode="+52"
                     />
                   </div>
                   

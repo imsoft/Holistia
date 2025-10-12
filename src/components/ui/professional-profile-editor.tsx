@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { PhoneInput } from "@/components/ui/phone-input";
 import { 
   Save, 
   X, 
@@ -401,11 +402,12 @@ export default function ProfessionalProfileEditor({
             <div className="space-y-2">
               <Label htmlFor="phone">Teléfono</Label>
               {editingField === 'contact' ? (
-                <Input
+                <PhoneInput
                   id="phone"
-                  value={formData.phone}
-                  onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
-                  placeholder="+52 55 1234 5678"
+                  value={formData.phone || ""}
+                  onChange={(value) => setFormData(prev => ({ ...prev, phone: value }))}
+                  placeholder="55 1234 5678"
+                  defaultCountryCode="+52"
                 />
               ) : (
                 <div 

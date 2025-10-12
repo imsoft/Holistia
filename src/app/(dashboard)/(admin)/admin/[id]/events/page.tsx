@@ -318,11 +318,11 @@ const EventsAdminPage = () => {
                     fallbackSrc="/logos/holistia-black.png"
                   />
                 )}
-                <CardHeader className="pb-4 pt-6">
+                <CardHeader className="pb-6 pt-8">
                   <div className="flex justify-between items-start">
                     <div className="flex-1">
-                      <CardTitle className="text-lg mb-2">{event.name}</CardTitle>
-                      <div className="flex flex-wrap gap-2 mb-3">
+                      <CardTitle className="text-lg mb-3">{event.name}</CardTitle>
+                      <div className="flex flex-wrap gap-2 mb-4">
                         <Badge variant="secondary">
                           {getCategoryLabel(event.category)}
                         </Badge>
@@ -342,7 +342,7 @@ const EventsAdminPage = () => {
                     </div>
                   </div>
                 </CardHeader>
-                <CardContent className="space-y-3">
+                <CardContent className="space-y-4 pb-8">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Calendar className="w-4 h-4" />
                     <span>{formatEventDate(event.event_date)} a las {formatEventTime(event.event_time)}</span>
@@ -367,35 +367,39 @@ const EventsAdminPage = () => {
                       {event.description}
                     </p>
                   )}
-                  <div className="flex flex-col sm:flex-row gap-2 pt-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleEditEvent(event)}
-                      className="flex-1 sm:flex-none"
-                    >
-                      <Edit className="w-4 h-4 sm:mr-2" />
-                      <span className="hidden sm:inline">Editar</span>
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleToggleStatus(event.id!, event.is_active)}
-                      className="flex-1 sm:flex-none"
-                    >
-                      <span className="text-xs sm:text-sm">
-                        {event.is_active ? "Desactivar" : "Activar"}
-                      </span>
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleDeleteEvent(event.id!)}
-                      className="flex-1 sm:flex-none"
-                    >
-                      <Trash2 className="w-4 h-4 sm:mr-2" />
-                      <span className="hidden sm:inline">Eliminar</span>
-                    </Button>
+                  
+                  {/* Botones de acción con mejor espaciado */}
+                  <div className="pt-4 border-t border-border/50">
+                    <div className="grid grid-cols-3 gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleEditEvent(event)}
+                        className="flex items-center justify-center gap-1"
+                      >
+                        <Edit className="w-4 h-4" />
+                        <span className="hidden sm:inline text-xs">Editar</span>
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleToggleStatus(event.id!, event.is_active)}
+                        className="flex items-center justify-center"
+                      >
+                        <span className="text-xs">
+                          {event.is_active ? "Desactivar" : "Activar"}
+                        </span>
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleDeleteEvent(event.id!)}
+                        className="flex items-center justify-center gap-1 text-destructive hover:text-destructive"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                        <span className="hidden sm:inline text-xs">Eliminar</span>
+                      </Button>
+                    </div>
                   </div>
                 </CardContent>
               </Card>

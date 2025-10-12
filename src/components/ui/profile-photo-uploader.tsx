@@ -283,7 +283,7 @@ export default function ProfilePhotoUploader({
 
       {/* Diálogo del editor de recorte */}
       <Dialog open={isCropDialogOpen} onOpenChange={setIsCropDialogOpen}>
-        <DialogContent className="max-w-6xl max-h-[95vh] overflow-y-auto">
+        <DialogContent className="max-w-7xl max-h-[95vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-xl">Editor de Imagen de Perfil</DialogTitle>
           </DialogHeader>

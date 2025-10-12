@@ -90,6 +90,7 @@ export default function ProfessionalProfilePage() {
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const [isErrorModalOpen, setIsErrorModalOpen] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [isPhotoModalOpen, setIsPhotoModalOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [successData, setSuccessData] = useState<{
     date: string;
@@ -743,14 +744,22 @@ export default function ProfessionalProfilePage() {
         <div className="mb-8 sm:mb-12">
           <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 sm:gap-6">
             <div className="flex items-center gap-4 sm:gap-6 w-full lg:w-auto">
-              <div className="relative flex-shrink-0">
+              <div 
+                className="relative flex-shrink-0 cursor-pointer group"
+                onClick={() => setIsPhotoModalOpen(true)}
+              >
                 <Image
                   src={professional.profile_photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(`${professional.first_name} ${professional.last_name}`)}&background=random`}
                   alt={`${professional.first_name} ${professional.last_name}`}
                   width={120}
                   height={120}
-                  className="h-20 w-20 sm:h-28 sm:w-28 aspect-square rounded-full object-cover shadow-lg"
+                  className="h-20 w-20 sm:h-28 sm:w-28 aspect-square rounded-full object-cover shadow-lg transition-opacity group-hover:opacity-80"
                 />
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 rounded-full transition-colors flex items-center justify-center">
+                  <span className="text-white text-xs opacity-0 group-hover:opacity-100 transition-opacity">
+                    Ver foto
+                  </span>
+                </div>
               </div>
               <div className="flex-1">
                 <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-1">
@@ -1563,6 +1572,27 @@ export default function ProfessionalProfilePage() {
             >
               Cancelar
             </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal de Foto de Perfil */}
+      <Dialog open={isPhotoModalOpen} onOpenChange={setIsPhotoModalOpen}>
+        <DialogContent className="sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-center text-xl">
+              {professional.first_name} {professional.last_name}
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="relative w-full aspect-square">
+            <Image
+              src={professional.profile_photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(`${professional.first_name} ${professional.last_name}`)}&background=random`}
+              alt={`${professional.first_name} ${professional.last_name}`}
+              fill
+              className="object-contain rounded-lg"
+              priority
+            />
           </div>
         </DialogContent>
       </Dialog>

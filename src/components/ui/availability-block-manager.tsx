@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { Plus, Calendar, Clock, Trash2, Edit, AlertCircle } from 'lucide-react';
 import { createClient } from '@/utils/supabase/client';
 import { toast } from 'sonner';
@@ -27,6 +28,8 @@ export default function AvailabilityBlockManager({ professionalId, userId: propU
   const [userId, setUserId] = useState<string | null>(propUserId || null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingBlock, setEditingBlock] = useState<AvailabilityBlock | null>(null);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [blockToDelete, setBlockToDelete] = useState<string | null>(null);
   const [formData, setFormData] = useState<AvailabilityBlockFormData>({
     title: '',
     description: '',
@@ -167,14 +170,19 @@ export default function AvailabilityBlockManager({ professionalId, userId: propU
     setIsDialogOpen(true);
   };
 
-  const handleDelete = async (blockId: string) => {
-    if (!confirm('¿Estás seguro de que quieres eliminar este bloqueo?')) return;
+  const handleDelete = (blockId: string) => {
+    setBlockToDelete(blockId);
+    setDeleteConfirmOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!blockToDelete) return;
 
     try {
       const { error } = await supabase
         .from('availability_blocks')
         .delete()
-        .eq('id', blockId);
+        .eq('id', blockToDelete);
 
       if (error) throw error;
       toast.success('Bloqueo eliminado correctamente');
@@ -183,6 +191,8 @@ export default function AvailabilityBlockManager({ professionalId, userId: propU
       console.error('Error deleting availability block:', error);
       const errorMessage = error instanceof Error ? error.message : 'Error al eliminar el bloqueo';
       toast.error(errorMessage);
+    } finally {
+      setBlockToDelete(null);
     }
   };
 
@@ -468,6 +478,18 @@ export default function AvailabilityBlockManager({ professionalId, userId: propU
           ))}
         </div>
       )}
+
+      {/* Dialog de confirmación para eliminar */}
+      <ConfirmDialog
+        open={deleteConfirmOpen}
+        onOpenChange={setDeleteConfirmOpen}
+        title="Eliminar Bloqueo"
+        description="¿Estás seguro de que quieres eliminar este bloqueo de disponibilidad? Esta acción no se puede deshacer."
+        confirmText="Eliminar"
+        cancelText="Cancelar"
+        onConfirm={confirmDelete}
+        variant="destructive"
+      />
     </div>
   );
 }

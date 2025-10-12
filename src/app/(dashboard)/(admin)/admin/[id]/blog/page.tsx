@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { SidebarTrigger } from "@/components/ui/sidebar";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { 
   Plus, 
   Edit, 
@@ -25,6 +26,8 @@ export default function AdminBlogPage({ params }: { params: Promise<{ id: string
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [postToDelete, setPostToDelete] = useState<string | null>(null);
 
   const supabase = createClient();
 
@@ -59,16 +62,19 @@ export default function AdminBlogPage({ params }: { params: Promise<{ id: string
     }
   };
 
-  const handleDeletePost = async (postId: string) => {
-    if (!confirm("¿Estás seguro de que quieres eliminar este post?")) {
-      return;
-    }
+  const handleDeletePost = (postId: string) => {
+    setPostToDelete(postId);
+    setDeleteConfirmOpen(true);
+  };
+
+  const confirmDeletePost = async () => {
+    if (!postToDelete) return;
 
     try {
       const { error } = await supabase
         .from("blog_posts")
         .delete()
-        .eq("id", postId);
+        .eq("id", postToDelete);
 
       if (error) {
         console.error("Error deleting post:", error);
@@ -82,6 +88,8 @@ export default function AdminBlogPage({ params }: { params: Promise<{ id: string
     } catch (err) {
       console.error("Error:", err);
       toast.error("Error inesperado al eliminar el post");
+    } finally {
+      setPostToDelete(null);
     }
   };
 
@@ -230,6 +238,18 @@ export default function AdminBlogPage({ params }: { params: Promise<{ id: string
         </div>
       )}
       </div>
+
+      {/* Dialog de confirmación para eliminar */}
+      <ConfirmDialog
+        open={deleteConfirmOpen}
+        onOpenChange={setDeleteConfirmOpen}
+        title="Eliminar Post"
+        description="¿Estás seguro de que quieres eliminar este post? Esta acción no se puede deshacer."
+        confirmText="Eliminar"
+        cancelText="Cancelar"
+        onConfirm={confirmDeletePost}
+        variant="destructive"
+      />
     </div>
   );
 }

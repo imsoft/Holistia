@@ -12,6 +12,7 @@ import { createClient } from "@/utils/supabase/client";
 import { toast } from "sonner";
 import { formatEventDate, formatEventTime } from "@/utils/date-utils";
 import { StableImage } from "@/components/ui/stable-image";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { 
   Plus, 
   Search, 
@@ -48,6 +49,8 @@ const EventsAdminPage = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [eventToDelete, setEventToDelete] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState<EventWorkshop | null>(null);
@@ -92,16 +95,19 @@ const EventsAdminPage = () => {
     fetchProfessionals();
   }, [fetchEvents, fetchProfessionals]);
 
-  const handleDeleteEvent = async (eventId: string) => {
-    if (!confirm("¿Estás seguro de que quieres eliminar este evento?")) {
-      return;
-    }
+  const handleDeleteEvent = (eventId: string) => {
+    setEventToDelete(eventId);
+    setDeleteConfirmOpen(true);
+  };
+
+  const confirmDeleteEvent = async () => {
+    if (!eventToDelete) return;
 
     try {
       const { error } = await supabase
         .from("events_workshops")
         .delete()
-        .eq("id", eventId);
+        .eq("id", eventToDelete);
 
       if (error) throw error;
       toast.success("Evento eliminado exitosamente");
@@ -109,6 +115,8 @@ const EventsAdminPage = () => {
     } catch (error) {
       console.error("Error deleting event:", error);
       toast.error("Error al eliminar el evento");
+    } finally {
+      setEventToDelete(null);
     }
   };
 
@@ -407,6 +415,18 @@ const EventsAdminPage = () => {
           </div>
         )}
       </div>
+
+      {/* Dialog de confirmación para eliminar */}
+      <ConfirmDialog
+        open={deleteConfirmOpen}
+        onOpenChange={setDeleteConfirmOpen}
+        title="Eliminar Evento"
+        description="¿Estás seguro de que quieres eliminar este evento? Esta acción no se puede deshacer."
+        confirmText="Eliminar"
+        cancelText="Cancelar"
+        onConfirm={confirmDeleteEvent}
+        variant="destructive"
+      />
     </div>
   );
 };

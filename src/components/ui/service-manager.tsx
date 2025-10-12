@@ -24,6 +24,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import {
   Plus,
   Edit,
@@ -50,6 +51,8 @@ export function ServiceManager({ professionalId, userId }: ServiceManagerProps) 
   const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingService, setEditingService] = useState<Service | null>(null);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [serviceToDelete, setServiceToDelete] = useState<string | null>(null);
   const [formData, setFormData] = useState<ServiceFormData>({
     name: "",
     description: "",
@@ -178,16 +181,19 @@ export function ServiceManager({ professionalId, userId }: ServiceManagerProps) 
     setIsDialogOpen(true);
   };
 
-  const handleDelete = async (serviceId: string) => {
-    if (!confirm("¿Estás seguro de que quieres eliminar este servicio?")) {
-      return;
-    }
+  const handleDelete = (serviceId: string) => {
+    setServiceToDelete(serviceId);
+    setDeleteConfirmOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!serviceToDelete) return;
 
     try {
       const { error } = await supabase
         .from("professional_services")
         .delete()
-        .eq("id", serviceId);
+        .eq("id", serviceToDelete);
 
       if (error) throw error;
       toast.success("Servicio eliminado exitosamente");
@@ -195,6 +201,8 @@ export function ServiceManager({ professionalId, userId }: ServiceManagerProps) 
     } catch (error) {
       console.error("Error deleting service:", error);
       toast.error("Error al eliminar el servicio");
+    } finally {
+      setServiceToDelete(null);
     }
   };
 
@@ -537,6 +545,18 @@ export function ServiceManager({ professionalId, userId }: ServiceManagerProps) 
           ))}
         </div>
       )}
+
+      {/* Dialog de confirmación para eliminar */}
+      <ConfirmDialog
+        open={deleteConfirmOpen}
+        onOpenChange={setDeleteConfirmOpen}
+        title="Eliminar Servicio"
+        description="¿Estás seguro de que quieres eliminar este servicio? Esta acción no se puede deshacer."
+        confirmText="Eliminar"
+        cancelText="Cancelar"
+        onConfirm={confirmDelete}
+        variant="destructive"
+      />
     </div>
   );
 }

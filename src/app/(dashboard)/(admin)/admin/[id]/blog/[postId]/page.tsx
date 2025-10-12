@@ -17,6 +17,7 @@ import Link from "next/link";
 import { BlogImageUploader } from "@/components/ui/blog-image-uploader";
 import { RichTextEditor } from "@/components/ui/rich-text-editor";
 import { generateUniqueSlug, isValidSlug } from "@/lib/slug-utils";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 
 export default function EditBlogPostPage({ 
   params 
@@ -29,6 +30,7 @@ export default function EditBlogPostPage({
   const [loading, setLoading] = useState(false);
   const [fetchLoading, setFetchLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [slugValidation, setSlugValidation] = useState<{
     isValid: boolean;
     message: string;
@@ -176,11 +178,11 @@ export default function EditBlogPostPage({
     }
   };
 
-  const handleDelete = async () => {
-    if (!confirm("¿Estás seguro de que quieres eliminar este post? Esta acción no se puede deshacer.")) {
-      return;
-    }
+  const handleDelete = () => {
+    setDeleteConfirmOpen(true);
+  };
 
+  const confirmDelete = async () => {
     try {
       setLoading(true);
       const { error } = await supabase
@@ -395,6 +397,18 @@ export default function EditBlogPostPage({
           </Button>
         </div>
       </form>
+
+      {/* Dialog de confirmación para eliminar */}
+      <ConfirmDialog
+        open={deleteConfirmOpen}
+        onOpenChange={setDeleteConfirmOpen}
+        title="Eliminar Post"
+        description="¿Estás seguro de que quieres eliminar este post? Esta acción no se puede deshacer."
+        confirmText="Eliminar"
+        cancelText="Cancelar"
+        onConfirm={confirmDelete}
+        variant="destructive"
+      />
     </div>
   );
 }

@@ -660,7 +660,7 @@ export function EventForm({ event, professionals, onSuccess, onCancel }: EventFo
 
       {/* Diálogo del editor de recorte */}
       <Dialog open={isCropDialogOpen} onOpenChange={setIsCropDialogOpen}>
-        <DialogContent className="max-w-7xl max-h-[95vh] overflow-y-auto">
+        <DialogContent className="max-w-[95vw] max-h-[95vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-xl">Editor de Imagen del Evento</DialogTitle>
           </DialogHeader>

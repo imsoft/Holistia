@@ -8,6 +8,7 @@ export interface Professional {
   last_name?: string;
   email: string;
   phone?: string;
+  instagram?: string;  // Campo privado, solo visible para administradores
   profession: string;
   specializations?: string[];
   experience?: string;
@@ -75,6 +76,7 @@ export interface ProfessionalApplication {
   name: string;
   email: string;
   phone: string;
+  instagram?: string;  // Campo privado, solo visible para administradores
   profession: string;
   specialization: string;
   location: string;

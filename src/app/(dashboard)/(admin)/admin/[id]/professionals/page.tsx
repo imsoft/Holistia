@@ -14,6 +14,7 @@ import {
   Calendar,
   Shield,
   ShieldCheck,
+  Instagram,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -45,6 +46,7 @@ interface Professional {
   last_name: string;
   email: string;
   phone?: string;
+  instagram?: string;  // Campo privado, solo visible para administradores
   profession: string;
   specializations: string[];
   city: string;
@@ -603,7 +605,7 @@ export default function AdminProfessionals() {
                   <div className="flex items-center gap-2">
                     <Mail className="h-4 w-4 text-muted-foreground" />
                     <span className="font-medium">Email:</span>
-                    <span>{selectedProfessional.email}</span>
+                    <span className="break-all">{selectedProfessional.email}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <Phone className="h-4 w-4 text-muted-foreground" />
@@ -614,6 +616,22 @@ export default function AdminProfessionals() {
                     <MapPin className="h-4 w-4 text-muted-foreground" />
                     <span className="font-medium">Ubicación:</span>
                     <span>{selectedProfessional.city}, {selectedProfessional.state}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Instagram className="h-4 w-4 text-muted-foreground" />
+                    <span className="font-medium">Instagram:</span>
+                    {selectedProfessional.instagram ? (
+                      <a 
+                        href={`https://instagram.com/${selectedProfessional.instagram}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-primary hover:underline"
+                      >
+                        @{selectedProfessional.instagram}
+                      </a>
+                    ) : (
+                      <span className="text-muted-foreground">No disponible</span>
+                    )}
                   </div>
                 </div>
               </div>

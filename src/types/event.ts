@@ -16,6 +16,7 @@ export interface EventWorkshop {
   professional_id?: string;
   image_url?: string; // URL de la imagen principal del evento
   gallery_images: string[];
+  image_position?: string; // Posición de la imagen en la card (ej: 'center center', 'top left')
   is_active: boolean;
   created_at?: string;
   updated_at?: string;
@@ -39,6 +40,7 @@ export interface EventFormData {
   professional_id: string;
   image_url?: string; // URL de la imagen principal del evento
   gallery_images: string[];
+  image_position?: string;
 }
 
 export interface Professional {

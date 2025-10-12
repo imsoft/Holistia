@@ -11,6 +11,7 @@ import { EventWorkshop, Professional } from "@/types/event";
 import { createClient } from "@/utils/supabase/client";
 import { toast } from "sonner";
 import { formatEventDate, formatEventTime } from "@/utils/date-utils";
+import { StableImage } from "@/components/ui/stable-image";
 import { 
   Plus, 
   Search, 
@@ -22,7 +23,6 @@ import {
   Trash2,
   Image as ImageIcon
 } from "lucide-react";
-import Image from "next/image";
 import {
   Select,
   SelectContent,
@@ -308,17 +308,15 @@ const EventsAdminPage = () => {
               <Card key={event.id} className={`${!event.is_active ? "opacity-60" : ""} overflow-hidden`}>
                 {/* Event Image */}
                 {event.gallery_images && event.gallery_images.length > 0 && (
-                  <div className="relative h-48 w-full bg-gradient-to-br from-gray-50 to-gray-100">
-                    <Image
-                      src={event.gallery_images[0]}
-                      alt={event.name}
-                      fill
-                      className="object-contain p-2"
-                      style={{
-                        objectPosition: 'center center'
-                      }}
-                    />
-                  </div>
+                  <StableImage
+                    src={event.gallery_images[0]}
+                    alt={event.name}
+                    fill
+                    className="h-48 w-full"
+                    objectFit="cover"
+                    objectPosition={event.image_position || "center center"}
+                    fallbackSrc="/logos/holistia-black.png"
+                  />
                 )}
                 <CardHeader className="pb-4 pt-6">
                   <div className="flex justify-between items-start">

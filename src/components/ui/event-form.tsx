@@ -14,11 +14,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { EventFormData, EventWorkshop, Professional, EVENT_CATEGORIES, SESSION_TYPES, PARTICIPANT_LEVELS } from "@/types/event";
 import { createClient } from "@/utils/supabase/client";
 import { toast } from "sonner";
-import { Upload, X } from "lucide-react";
+import { Upload, X, Crop } from "lucide-react";
 import Image from "next/image";
+import { EventImageCropEditor } from "@/components/ui/event-image-crop-editor";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 interface EventFormProps {
   event?: EventWorkshop | null;
@@ -50,6 +53,9 @@ export function EventForm({ event, professionals, onSuccess, onCancel }: EventFo
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [tempEventId] = useState(() => `temp-${Date.now()}-${Math.random().toString(36).substring(2)}`);
+  const [isCropDialogOpen, setIsCropDialogOpen] = useState(false);
+  const [cropImageIndex, setCropImageIndex] = useState<number>(0);
+  const [currentImagePosition, setCurrentImagePosition] = useState<string>("center center");
 
   const supabase = createClient();
 
@@ -190,6 +196,23 @@ export function EventForm({ event, professionals, onSuccess, onCancel }: EventFo
   const removeImage = (index: number) => {
     const newImages = formData.gallery_images.filter((_, i) => i !== index);
     handleInputChange('gallery_images', newImages);
+  };
+
+  const handleCropSave = (newPosition: string) => {
+    // Por ahora solo actualizamos el estado local
+    // En el futuro se podría guardar la posición de cada imagen individualmente
+    setCurrentImagePosition(newPosition);
+    setIsCropDialogOpen(false);
+    toast.success('Posición de imagen actualizada');
+  };
+
+  const handleOpenCropEditor = (index: number) => {
+    if (formData.gallery_images.length === 0) {
+      toast.error('Primero debes subir al menos una imagen');
+      return;
+    }
+    setCropImageIndex(index);
+    setIsCropDialogOpen(true);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -581,22 +604,42 @@ export function EventForm({ event, professionals, onSuccess, onCancel }: EventFo
                         width={150}
                         height={150}
                         className="w-full h-32 object-cover"
+                        style={{
+                          objectPosition: index === 0 ? currentImagePosition : "center center"
+                        }}
                       />
-                      {/* Overlay con botón de eliminar */}
-                      <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                      {/* Overlay con botones */}
+                      <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                        {index === 0 && (
+                          <button
+                            type="button"
+                            onClick={() => handleOpenCropEditor(index)}
+                            className="bg-blue-500 hover:bg-blue-600 text-white rounded-full p-2 transition-colors"
+                            title="Ajustar vista en card"
+                          >
+                            <Crop className="h-4 w-4" />
+                          </button>
+                        )}
                         <button
                           type="button"
                           onClick={() => removeImage(index)}
                           className="bg-red-500 hover:bg-red-600 text-white rounded-full p-2 transition-colors"
                           title="Eliminar imagen"
                         >
-                          <X className="h-5 w-5" />
+                          <X className="h-4 w-4" />
                         </button>
                       </div>
                     </div>
-                    <p className="text-xs text-muted-foreground text-center mt-1">
-                      Imagen {index + 1}
-                    </p>
+                    <div className="flex items-center justify-between mt-1">
+                      <p className="text-xs text-muted-foreground">
+                        Imagen {index + 1}
+                      </p>
+                      {index === 0 && (
+                        <Badge variant="secondary" className="text-xs">
+                          Principal
+                        </Badge>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>
@@ -614,6 +657,24 @@ export function EventForm({ event, professionals, onSuccess, onCancel }: EventFo
           {saving ? "Guardando..." : event ? "Actualizar Evento" : "Crear Evento"}
         </Button>
       </div>
+
+      {/* Diálogo del editor de recorte */}
+      <Dialog open={isCropDialogOpen} onOpenChange={setIsCropDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Editor de Imagen del Evento</DialogTitle>
+          </DialogHeader>
+          {formData.gallery_images.length > 0 && (
+            <EventImageCropEditor
+              imageSrc={formData.gallery_images[cropImageIndex]}
+              currentPosition={currentImagePosition}
+              onSave={handleCropSave}
+              onCancel={() => setIsCropDialogOpen(false)}
+              eventName={formData.name || "Evento"}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </form>
   );
 }

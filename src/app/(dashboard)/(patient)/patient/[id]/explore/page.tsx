@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import { Brain, Sparkles, Activity, Users, Apple, X, Calendar, MapPin, Clock } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
 import { Filters } from "@/components/ui/filters";
 import { ProfessionalCard } from "@/components/ui/professional-card";
@@ -13,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { EventWorkshop } from "@/types/event";
 import { formatEventDate, formatEventTime } from "@/utils/date-utils";
 import { determineProfessionalModality, transformServicesFromDB } from "@/utils/professional-utils";
+import { StableImage } from "@/components/ui/stable-image";
 
 interface Professional {
   id: string;
@@ -586,17 +586,15 @@ const HomeUserPage = () => {
                           <Card className="hover:shadow-lg hover:-translate-y-2 transition-all duration-300 overflow-hidden cursor-pointer h-full flex flex-col">
                             {/* Imagen del evento - abarca toda la parte superior */}
                             {event.gallery_images && event.gallery_images.length > 0 && (
-                              <div className="relative w-full h-48 overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100">
-                                <Image
-                                  src={event.gallery_images[0]}
-                                  alt={event.name}
-                                  fill
-                                  className="object-contain p-2"
-                                  style={{
-                                    objectPosition: 'center center'
-                                  }}
-                                />
-                              </div>
+                              <StableImage
+                                src={event.gallery_images[0]}
+                                alt={event.name}
+                                fill
+                                className="w-full h-48"
+                                objectFit="cover"
+                                objectPosition={event.image_position || "center center"}
+                                fallbackSrc="/logos/holistia-black.png"
+                              />
                             )}
                             <CardHeader className="pb-3 sm:pb-4">
                               <div className="flex justify-between items-start">

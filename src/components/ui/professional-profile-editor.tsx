@@ -21,7 +21,8 @@ import {
   Phone,
   Briefcase,
   GraduationCap,
-  Heart
+  Heart,
+  Instagram
 } from "lucide-react";
 
 interface ProfessionalProfileEditorProps {
@@ -35,6 +36,7 @@ interface ProfessionalData {
   last_name: string;
   email: string;
   phone?: string;
+  instagram?: string;
   profession: string;
   specializations: string[];
   experience: string;
@@ -73,6 +75,7 @@ export default function ProfessionalProfileEditor({
     last_name: "",
     email: "",
     phone: "",
+    instagram: "",
     profession: "",
     specializations: [] as string[],
     experience: "",
@@ -113,6 +116,7 @@ export default function ProfessionalProfileEditor({
             last_name: data.last_name || "",
             email: data.email || "",
             phone: data.phone || "",
+            instagram: data.instagram || "",
             profession: data.profession || "",
             specializations: data.specializations || [],
             experience: data.experience || "",
@@ -151,6 +155,7 @@ export default function ProfessionalProfileEditor({
           last_name: formData.last_name,
           email: formData.email,
           phone: formData.phone,
+          instagram: formData.instagram,
           profession: formData.profession,
           specializations: formData.specializations,
           experience: formData.experience,
@@ -181,6 +186,7 @@ export default function ProfessionalProfileEditor({
         last_name: formData.last_name,
         email: formData.email,
         phone: formData.phone,
+        instagram: formData.instagram,
         profession: formData.profession,
         specializations: formData.specializations,
         experience: formData.experience,
@@ -262,6 +268,7 @@ export default function ProfessionalProfileEditor({
         last_name: professionalData.last_name || "",
         email: professionalData.email || "",
         phone: professionalData.phone || "",
+        instagram: professionalData.instagram || "",
         profession: professionalData.profession || "",
         specializations: professionalData.specializations || [],
         experience: professionalData.experience || "",
@@ -416,6 +423,31 @@ export default function ProfessionalProfileEditor({
                 >
                   <Phone className="h-4 w-4 text-muted-foreground" />
                   {professionalData.phone || 'No especificado'}
+                </div>
+              )}
+            </div>
+
+            {/* Instagram */}
+            <div className="space-y-2">
+              <Label htmlFor="instagram">Usuario de Instagram</Label>
+              {editingField === 'contact' ? (
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">@</span>
+                  <Input
+                    id="instagram"
+                    value={formData.instagram || ""}
+                    onChange={(e) => setFormData(prev => ({ ...prev, instagram: e.target.value }))}
+                    placeholder="tu_usuario"
+                    className="pl-8"
+                  />
+                </div>
+              ) : (
+                <div 
+                  className="p-2 border border-transparent hover:border-border rounded cursor-pointer flex items-center gap-2"
+                  onClick={() => startEditing('contact')}
+                >
+                  <Instagram className="h-4 w-4 text-muted-foreground" />
+                  {professionalData.instagram ? `@${professionalData.instagram}` : 'No especificado'}
                 </div>
               )}
             </div>

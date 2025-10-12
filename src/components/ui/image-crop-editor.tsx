@@ -95,7 +95,7 @@ export function ImageCropEditor({
       <div className="grid gap-8 lg:grid-cols-2">
         {/* Vista previa de la card - Mitad del ancho */}
         <div>
-          <Card>
+          <Card className="py-4">
             <CardHeader className="pb-6">
               <div className="flex items-center justify-between">
                 <h3 className="font-semibold text-xl">Vista previa de la card</h3>
@@ -142,7 +142,7 @@ export function ImageCropEditor({
         {/* Controles - Mitad del ancho */}
         <div className="space-y-6">
           {/* Opciones de posición */}
-          <Card>
+          <Card className="py-4">
             <CardHeader className="pb-4">
               <h3 className="font-semibold text-lg">Seleccionar posición</h3>
               <p className="text-base text-muted-foreground">
@@ -168,7 +168,7 @@ export function ImageCropEditor({
           </Card>
 
           {/* Controles de transformación */}
-          <Card>
+          <Card className="py-4">
             <CardHeader className="pb-4">
               <h3 className="font-semibold text-lg">Controles de Imagen</h3>
               <p className="text-base text-muted-foreground">
@@ -199,21 +199,6 @@ export function ImageCropEditor({
                   </Button>
                 </div>
               </div>
-            </CardContent>
-          </Card>
-
-          {/* Consejos */}
-          <Card>
-            <CardHeader className="pb-4">
-              <h3 className="font-semibold text-lg">💡 Consejos</h3>
-            </CardHeader>
-            <CardContent>
-              <ul className="text-sm text-muted-foreground space-y-2">
-                <li>• <strong>Centro</strong>: Fotos centradas</li>
-                <li>• <strong>Superior</strong>: Mostrar rostro</li>
-                <li>• <strong>Inferior</strong>: Mostrar torso</li>
-                <li>• <strong>Esquinas</strong>: Composición artística</li>
-              </ul>
             </CardContent>
           </Card>
         </div>

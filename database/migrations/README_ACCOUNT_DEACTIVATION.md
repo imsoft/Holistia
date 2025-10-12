@@ -6,24 +6,25 @@
 ## Descripción
 Agrega campos necesarios para permitir que los usuarios desactiven sus cuentas de forma controlada.
 
-## Campos Agregados
+## Campos Utilizados y Agregados
 
-### `profiles.is_active`
+### `profiles.activo` (EXISTENTE)
 - **Tipo**: BOOLEAN
 - **Default**: true
 - **Descripción**: Indica si la cuenta del usuario está activa
 - **Uso**: Se establece en `false` cuando el usuario desactiva su cuenta
+- **Nota**: Este campo ya existía en la tabla
 
-### `profiles.deactivated_at`
+### `profiles.deactivated_at` (NUEVO)
 - **Tipo**: TIMESTAMPTZ
 - **Default**: NULL
 - **Descripción**: Fecha y hora en que se desactivó la cuenta
-- **Uso**: Se establece cuando `is_active` cambia a `false`
+- **Uso**: Se establece cuando `activo` cambia a `false`
 
 ## Índices Creados
 
-### `idx_profiles_is_active`
-- **Columna**: is_active
+### `idx_profiles_activo`
+- **Columna**: activo
 - **Propósito**: Optimizar consultas que filtran por cuentas activas
 
 ## Cómo Aplicar la Migración
@@ -58,12 +59,14 @@ Ubicación: `src/components/ui/account-deactivation.tsx`
 ### Efectos de Desactivación
 
 #### Para Pacientes:
-- `profiles.is_active` = false
+- `profiles.activo` = false
+- `profiles.updated_at` = timestamp actual
 - Sesión cerrada
 - Acceso bloqueado a la plataforma
 
 #### Para Profesionales:
-- `profiles.is_active` = false
+- `profiles.activo` = false
+- `profiles.updated_at` = timestamp actual
 - `professional_applications.status` = 'rejected'
 - Sesión cerrada
 - Perfil no visible públicamente
@@ -78,7 +81,7 @@ Las cuentas desactivadas pueden ser reactivadas por:
 Para reactivar:
 ```sql
 UPDATE public.profiles
-SET is_active = true, deactivated_at = NULL
+SET activo = true, deactivated_at = NULL
 WHERE id = '[user-id]';
 ```
 

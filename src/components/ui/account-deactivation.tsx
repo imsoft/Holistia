@@ -36,12 +36,12 @@ export function AccountDeactivation({ userId, userEmail, accountType }: AccountD
     try {
       setIsDeactivating(true);
 
-      // Actualizar el perfil como inactivo
+      // Actualizar el perfil como inactivo (usando el campo 'activo' existente)
       const { error: profileError } = await supabase
         .from('profiles')
         .update({ 
-          is_active: false,
-          deactivated_at: new Date().toISOString()
+          activo: false,
+          updated_at: new Date().toISOString()
         })
         .eq('id', userId);
 

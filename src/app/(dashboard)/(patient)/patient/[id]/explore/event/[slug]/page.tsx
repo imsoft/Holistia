@@ -22,6 +22,7 @@ import {
 import Image from "next/image";
 import { toast } from "sonner";
 import EventPaymentButton from "@/components/ui/event-payment-button";
+import { formatEventDate, formatEventTime } from "@/utils/date-utils";
 
 const EventDetailPage = () => {
   const params = useParams();
@@ -154,18 +155,6 @@ const EventDetailPage = () => {
     return levels[level as keyof typeof levels] || level;
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('es-ES', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      weekday: 'long'
-    });
-  };
-
-  const formatTime = (timeString: string) => {
-    return timeString.substring(0, 5); // HH:MM
-  };
 
   if (loading) {
     return (
@@ -253,7 +242,7 @@ const EventDetailPage = () => {
                   <div className="flex items-center gap-2 sm:gap-3">
                     <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-primary flex-shrink-0" />
                     <div>
-                      <p className="text-sm sm:text-base font-medium">{formatDate(event.event_date)}</p>
+                      <p className="text-sm sm:text-base font-medium">{formatEventDate(event.event_date)}</p>
                       <p className="text-xs sm:text-sm text-muted-foreground">Fecha del evento</p>
                     </div>
                   </div>
@@ -261,7 +250,7 @@ const EventDetailPage = () => {
                   <div className="flex items-center gap-2 sm:gap-3">
                     <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-primary flex-shrink-0" />
                     <div>
-                      <p className="text-sm sm:text-base font-medium">{formatTime(event.event_time)}</p>
+                      <p className="text-sm sm:text-base font-medium">{formatEventTime(event.event_time)}</p>
                       <p className="text-xs sm:text-sm text-muted-foreground">Hora de inicio</p>
                     </div>
                   </div>

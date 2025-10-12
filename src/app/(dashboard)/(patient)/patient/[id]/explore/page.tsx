@@ -11,6 +11,7 @@ import { createClient } from "@/utils/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { EventWorkshop } from "@/types/event";
+import { formatEventDate, formatEventTime } from "@/utils/date-utils";
 
 interface Professional {
   id: string;
@@ -438,17 +439,6 @@ const HomeUserPage = () => {
     return categories[category as keyof typeof categories] || category;
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('es-ES', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-  };
-
-  const formatTime = (timeString: string) => {
-    return timeString.substring(0, 5); // HH:MM
-  };
 
   const generateEventSlug = (eventName: string, eventId: string) => {
     const slug = eventName
@@ -620,7 +610,7 @@ const HomeUserPage = () => {
                             <CardContent className="space-y-2 sm:space-y-3 flex-1 pb-4 sm:pb-6">
                               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                                 <Calendar className="w-4 h-4" />
-                                <span>{formatDate(event.event_date)} a las {formatTime(event.event_time)}</span>
+                                <span>{formatEventDate(event.event_date)} a las {formatEventTime(event.event_time)}</span>
                               </div>
                               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                                 <MapPin className="w-4 h-4" />

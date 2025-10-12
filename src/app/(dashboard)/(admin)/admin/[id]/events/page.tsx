@@ -10,6 +10,7 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 import { EventWorkshop, Professional } from "@/types/event";
 import { createClient } from "@/utils/supabase/client";
 import { toast } from "sonner";
+import { formatEventDate, formatEventTime } from "@/utils/date-utils";
 import { 
   Plus, 
   Search, 
@@ -170,17 +171,6 @@ const EventsAdminPage = () => {
     return professional ? `${professional.first_name} ${professional.last_name}` : "Profesional no encontrado";
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('es-ES', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-  };
-
-  const formatTime = (timeString: string) => {
-    return timeString.substring(0, 5); // HH:MM
-  };
 
   if (loading) {
     return (
@@ -354,7 +344,7 @@ const EventsAdminPage = () => {
                 <CardContent className="space-y-3">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Calendar className="w-4 h-4" />
-                    <span>{formatDate(event.event_date)} a las {formatTime(event.event_time)}</span>
+                    <span>{formatEventDate(event.event_date)} a las {formatEventTime(event.event_time)}</span>
                   </div>
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <MapPin className="w-4 h-4" />

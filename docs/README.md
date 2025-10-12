@@ -1,66 +1,150 @@
-# Documentación del Proyecto Holistia
+# 📚 Documentación de Holistia
 
-Esta carpeta contiene la documentación técnica y de configuración del proyecto Holistia.
+Bienvenido a la documentación técnica del proyecto Holistia - Plataforma de bienestar y salud mental.
 
-## 📁 Archivos de Documentación
+## 📋 Índice de Documentación
 
-### 🗺️ [GOOGLE_MAPS_SETUP.md](./GOOGLE_MAPS_SETUP.md)
-Guía completa para configurar Mapbox (anteriormente Google Maps) en el proyecto:
-- Creación de cuenta en Mapbox
-- Obtención del Access Token
-- Configuración de variables de entorno
-- Implementación en el proyecto
+### 🗄️ Base de Datos
+| Documento | Descripción |
+|-----------|-------------|
+| **[SETUP_DATABASE.md](./SETUP_DATABASE.md)** | Guía completa de configuración de base de datos, migraciones y RLS |
 
-### 🏥 [PROFESSIONAL_DASHBOARD.md](./PROFESSIONAL_DASHBOARD.md)
-Documentación del dashboard profesional:
-- Estructura de archivos y componentes
-- Características principales del sidebar
-- Páginas implementadas (Dashboard, Citas, Pacientes)
-- Guía de navegación y funcionalidades
-- Próximos pasos de desarrollo
+### 🗺️ Mapas y Geolocalización
+| Documento | Descripción |
+|-----------|-------------|
+| **[MAPBOX_PRODUCTION_SETUP.md](./MAPBOX_PRODUCTION_SETUP.md)** | Configuración de Mapbox para producción |
+| **[GOOGLE_MAPS_SETUP.md](./GOOGLE_MAPS_SETUP.md)** | Configuración de Google Maps (legacy) |
 
-### 🔧 [SETUP_DATABASE.md](./SETUP_DATABASE.md)
-Guía para configurar la base de datos del proyecto:
-- Instrucciones de configuración inicial
-- Ejecución de migraciones
-- Configuración de políticas RLS
+### 🔐 Autenticación
+| Documento | Descripción |
+|-----------|-------------|
+| **[GOOGLE_OAUTH_SETUP.md](./GOOGLE_OAUTH_SETUP.md)** | Configuración de Google OAuth 2.0 |
 
-### 🔑 [GOOGLE_OAUTH_SETUP.md](./GOOGLE_OAUTH_SETUP.md)
-Configuración de autenticación con Google OAuth:
-- Creación de credenciales en Google Cloud
-- Configuración en Supabase
-- Variables de entorno necesarias
+### 💼 Funcionalidades Específicas
+| Documento | Descripción |
+|-----------|-------------|
+| **[PROFESSIONAL_DASHBOARD.md](./PROFESSIONAL_DASHBOARD.md)** | Dashboard del profesional - estructura y funcionalidades |
+| **[EVENT_EMAIL_SYSTEM.md](./EVENT_EMAIL_SYSTEM.md)** | Sistema de emails para confirmación de eventos |
 
-### 🚨 [INSTRUCCIONES_URGENTES.md](./INSTRUCCIONES_URGENTES.md)
-Guía de solución rápida para problemas comunes del dashboard de admin:
-- Crear la tabla `professional_applications`
-- Configurar usuario como administrador
-- Insertar datos de prueba
-- Verificación y troubleshooting
+## 🚀 Primeros Pasos
 
-### 🔍 [INSTRUCCIONES_ADMIN_DASHBOARD.md](./INSTRUCCIONES_ADMIN_DASHBOARD.md)
-Solución detallada de problemas del dashboard de administradores:
-- Agregar campos de revisión faltantes
-- Configurar políticas RLS correctamente
-- Verificación de permisos
-- Pasos de debugging
+### Para Nuevos Desarrolladores
 
-## 🚀 Uso de la Documentación
+1. **Configurar Base de Datos**
+   - Lee [`SETUP_DATABASE.md`](./SETUP_DATABASE.md)
+   - Ejecuta las migraciones necesarias
+   - Configura tu usuario como admin
 
-Cada archivo de documentación está diseñado para ser:
-- **Autocontenido**: Incluye toda la información necesaria
-- **Actualizable**: Fácil de mantener y actualizar
-- **Específico**: Enfocado en un aspecto particular del proyecto
+2. **Configurar Servicios Externos**
+   - Mapbox: [`MAPBOX_PRODUCTION_SETUP.md`](./MAPBOX_PRODUCTION_SETUP.md)
+   - Google OAuth: [`GOOGLE_OAUTH_SETUP.md`](./GOOGLE_OAUTH_SETUP.md)
 
-## 📝 Mantenimiento
+3. **Explorar la Aplicación**
+   - Dashboard Profesional: [`PROFESSIONAL_DASHBOARD.md`](./PROFESSIONAL_DASHBOARD.md)
+   - Sistema de Eventos: [`EVENT_EMAIL_SYSTEM.md`](./EVENT_EMAIL_SYSTEM.md)
 
-Cuando agregues nuevas funcionalidades o configuraciones al proyecto, considera:
-1. Actualizar la documentación existente si es relevante
-2. Crear nuevos archivos `.md` para nuevas funcionalidades
-3. Mantener este README actualizado con la lista de archivos
+## 🏗️ Arquitectura del Proyecto
 
-## 🔗 Enlaces Útiles
+### Stack Tecnológico
+- **Framework**: Next.js 15 (App Router)
+- **Base de Datos**: Supabase (PostgreSQL)
+- **Autenticación**: Supabase Auth
+- **Storage**: Supabase Storage
+- **UI**: Tailwind CSS + shadcn/ui
+- **Mapas**: Mapbox GL JS
+- **Pagos**: Stripe
+- **Email**: Resend
 
-- [README Principal](../README.md) - Información general del proyecto
-- [shadcn/ui Documentation](https://ui.shadcn.com/) - Documentación de componentes UI
-- [Next.js Documentation](https://nextjs.org/docs) - Documentación de Next.js
+### Estructura de Carpetas
+```
+holistia/
+├── src/
+│   ├── app/              # Rutas y páginas (App Router)
+│   ├── components/       # Componentes React reutilizables
+│   ├── lib/              # Utilidades y configuraciones
+│   ├── types/            # Definiciones de TypeScript
+│   └── utils/            # Funciones helper
+├── database/             # Migraciones y esquemas SQL
+├── docs/                 # Esta carpeta - Documentación
+└── public/               # Archivos estáticos
+```
+
+## 📖 Documentos por Categoría
+
+### 🔧 Configuración Inicial (Setup)
+- [SETUP_DATABASE.md](./SETUP_DATABASE.md) - Base de datos y migraciones
+- [MAPBOX_PRODUCTION_SETUP.md](./MAPBOX_PRODUCTION_SETUP.md) - Mapbox para mapas
+- [GOOGLE_OAUTH_SETUP.md](./GOOGLE_OAUTH_SETUP.md) - OAuth de Google
+
+### 👨‍💼 Funcionalidades de Usuario
+- [PROFESSIONAL_DASHBOARD.md](./PROFESSIONAL_DASHBOARD.md) - Dashboard del profesional
+- [EVENT_EMAIL_SYSTEM.md](./EVENT_EMAIL_SYSTEM.md) - Sistema de emails de eventos
+
+### 📍 Mapas (Legacy y Actual)
+- [MAPBOX_PRODUCTION_SETUP.md](./MAPBOX_PRODUCTION_SETUP.md) - **Actual** - Mapbox
+- [GOOGLE_MAPS_SETUP.md](./GOOGLE_MAPS_SETUP.md) - Legacy - Google Maps
+
+## 🔍 Recursos Adicionales
+
+### En Base de Datos
+- [`../database/README.md`](../database/README.md) - Visión general de la base de datos
+- [`../database/migrations/README.md`](../database/migrations/README.md) - Índice de migraciones
+
+### Plantillas de Email
+- [`../database/email-templates/`](../database/email-templates/) - Plantillas HTML de emails
+
+## 💡 Tips para Desarrolladores
+
+### Trabajando con la Base de Datos
+1. **Siempre usa migraciones** - No modifiques tablas manualmente
+2. **Prueba en desarrollo** - Usa branches de Supabase si es posible
+3. **Documenta cambios** - Actualiza los READMEs cuando agregues migraciones
+4. **Verifica RLS** - Asegúrate de que las políticas sean correctas
+
+### Trabajando con Storage
+1. **Nombres consistentes** - Sigue el patrón `{user_id}/filename`
+2. **Limpieza automática** - Las imágenes se eliminan al borrar registros
+3. **Políticas públicas** - Lectura pública, escritura autenticada
+4. **Límites de tamaño** - 2MB para fotos de perfil, más para eventos
+
+### Trabajando con Auth
+1. **User Metadata** - Usa `raw_user_meta_data` para datos personalizados
+2. **Roles** - Define en metadata: `type: 'admin' | 'professional' | 'patient'`
+3. **Logout después de cambios** - Los cambios de metadata requieren nueva sesión
+4. **No modifiques auth.users** - Usa las funciones de Supabase Auth
+
+## 🆘 Soporte y Ayuda
+
+### Problemas Comunes
+
+**Dashboard de Admin vacío**
+→ Lee: [SETUP_DATABASE.md#configurar-usuario-administrador](./SETUP_DATABASE.md)
+
+**Error de permisos en RLS**
+→ Lee: [SETUP_DATABASE.md#políticas-rls](./SETUP_DATABASE.md)
+
+**Mapas no funcionan**
+→ Lee: [MAPBOX_PRODUCTION_SETUP.md](./MAPBOX_PRODUCTION_SETUP.md)
+
+**OAuth no funciona**
+→ Lee: [GOOGLE_OAUTH_SETUP.md](./GOOGLE_OAUTH_SETUP.md)
+
+### Recursos Externos
+- [Supabase Docs](https://supabase.com/docs)
+- [Next.js Docs](https://nextjs.org/docs)
+- [shadcn/ui](https://ui.shadcn.com/)
+- [Mapbox GL JS](https://docs.mapbox.com/mapbox-gl-js/)
+
+## 🔄 Mantenimiento de Docs
+
+Al agregar nueva funcionalidad:
+1. ✅ Crear documento específico si es complejo
+2. ✅ Actualizar este README con el nuevo documento
+3. ✅ Categorizar apropiadamente
+4. ✅ Incluir ejemplos de código cuando sea relevante
+
+---
+
+**Proyecto**: Holistia  
+**Última actualización**: Octubre 2025  
+**Total de documentos**: 7

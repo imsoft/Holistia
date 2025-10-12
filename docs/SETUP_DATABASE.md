@@ -1,277 +1,253 @@
-# Configuración de Base de Datos - Holistia
+# 🗄️ Configuración de Base de Datos - Holistia
 
-## Pasos para Configurar Supabase
+Guía completa para configurar y gestionar la base de datos de Holistia en Supabase.
 
-Para que la aplicación funcione correctamente, necesitas ejecutar las siguientes migraciones en el **SQL Editor de Supabase**.
+## 🎯 Inicio Rápido
 
-### 1️⃣ Crear la tabla de Aplicaciones Profesionales
+### 1. Acceder a Supabase
+1. Ve a [supabase.com](https://supabase.com)
+2. Inicia sesión en tu cuenta
+3. Selecciona tu proyecto **Holistia**
+4. Click en **SQL Editor** en el menú lateral
 
-Ve al **SQL Editor** en tu dashboard de Supabase y ejecuta este código:
+### 2. Ejecutar Migraciones
+Consulta [`../database/migrations/README.md`](../database/migrations/README.md) para el orden completo de migraciones.
 
+## 👤 Configurar Usuario Administrador
+
+### Verificar tu Usuario
 ```sql
--- 1. Otorgar permisos a la tabla auth.users
+SELECT id, email, raw_user_meta_data->>'type' as user_type
+FROM auth.users
+WHERE email = 'tu-email@ejemplo.com';
+```
+
+### Convertir en Administrador
+```sql
+UPDATE auth.users
+SET raw_user_meta_data = raw_user_meta_data || '{"type": "admin"}'::jsonb
+WHERE email = 'tu-email@ejemplo.com';
+```
+
+### Verificar Permisos
+```sql
+SELECT 
+  auth.uid() as user_id,
+  (SELECT email FROM auth.users WHERE id = auth.uid()) as email,
+  (SELECT raw_user_meta_data->>'type' FROM auth.users WHERE id = auth.uid()) as user_type,
+  EXISTS (
+    SELECT 1 FROM auth.users 
+    WHERE id = auth.uid() 
+    AND raw_user_meta_data->>'type' = 'admin'
+  ) as is_admin;
+```
+
+**Importante**: Cierra sesión y vuelve a iniciar para que los cambios surtan efecto.
+
+## 🔐 Políticas RLS (Row Level Security)
+
+Todas las tablas tienen RLS habilitado con las siguientes reglas:
+
+### Usuarios Normales
+- ✅ Ver sus propios datos
+- ✅ Crear sus propios registros
+- ✅ Actualizar sus propios datos pendientes
+- ✅ Ver profesionales aprobados
+- ✅ Ver eventos activos
+
+### Profesionales
+- ✅ Todo lo de usuarios normales +
+- ✅ Gestionar sus servicios
+- ✅ Ver sus citas
+- ✅ Gestionar su disponibilidad
+- ✅ Crear eventos/talleres
+
+### Administradores
+- ✅ Ver todos los datos
+- ✅ Aprobar/rechazar solicitudes
+- ✅ Gestionar eventos
+- ✅ Moderar contenido del blog
+- ✅ Ver registros de pagos
+
+## 📊 Tablas Principales
+
+### `professional_applications`
+Solicitudes de profesionales para unirse a la plataforma.
+
+**Campos clave:**
+- `status`: pending, under_review, approved, rejected
+- `reviewed_by`: ID del admin que revisó
+- `review_notes`: Notas de la revisión
+- `instagram`: Usuario de Instagram (solo visible para admins)
+
+### `professional_services`
+Servicios ofrecidos por cada profesional.
+
+**Campos clave:**
+- `type`: session, program
+- `modality`: presencial, online, both
+- `cost`: Precio del servicio
+- `program_duration_value` y `program_duration_unit`: Para programas
+
+### `appointments`
+Citas entre pacientes y profesionales.
+
+**Campos clave:**
+- `status`: pending, confirmed, cancelled, completed
+- `appointment_date` y `appointment_time`: Fecha y hora
+- `service_id`: Servicio reservado
+
+### `events_workshops`
+Eventos y talleres organizados.
+
+**Campos clave:**
+- `session_type`: unique, recurring
+- `participant_level`: todos, principiante, medio, avanzado
+- `gallery_images`: Array de URLs de imágenes
+- `image_position`: Posición de recorte en cards
+
+### `event_registrations`
+Registros de usuarios a eventos.
+
+**Campos clave:**
+- `confirmation_code`: Código de 6 dígitos
+- `payment_status`: pending, confirmed, failed
+
+### `blog_posts`
+Posts del blog.
+
+**Campos clave:**
+- `status`: draft, published
+- `featured_image`: Imagen principal
+- `author_id`: Profesional o admin autor
+
+## 🪣 Storage Buckets
+
+### `professional-gallery`
+- **Uso**: Fotos de perfil y galería de profesionales
+- **Permisos**: Lectura pública, escritura autenticada
+- **Carpetas**: `{user_id}/`
+
+### `event-gallery`
+- **Uso**: Imágenes de eventos y talleres
+- **Permisos**: Lectura pública, escritura autenticada
+- **Carpetas**: `{event_id}/` o `temp-{id}/`
+
+### `blog-images`
+- **Uso**: Imágenes del blog
+- **Permisos**: Lectura pública, escritura autenticada
+- **Carpetas**: `{post_id}/`
+
+## 🔧 Solución de Problemas Comunes
+
+### Error: "permission denied for table users"
+**Causa**: El rol authenticated no tiene permisos en auth.users
+**Solución**:
+```sql
 GRANT SELECT ON auth.users TO authenticated;
-
--- 2. Crear la tabla professional_applications
-CREATE TABLE IF NOT EXISTS professional_applications (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-  
-  -- Información personal
-  first_name TEXT NOT NULL,
-  last_name TEXT NOT NULL,
-  email TEXT NOT NULL,
-  phone TEXT,
-  
-  -- Información profesional
-  profession TEXT NOT NULL,
-  specializations TEXT[] NOT NULL DEFAULT '{}',
-  experience TEXT NOT NULL,
-  certifications TEXT[] NOT NULL DEFAULT '{}',
-  
-  -- Información de servicios
-  services JSONB NOT NULL DEFAULT '[]',
-  
-  -- Información de ubicación
-  address TEXT NOT NULL,
-  city TEXT NOT NULL,
-  state TEXT NOT NULL,
-  country TEXT NOT NULL DEFAULT 'México',
-  
-  -- Información adicional
-  biography TEXT,
-  profile_photo TEXT,
-  gallery TEXT[] NOT NULL DEFAULT '{}',
-  
-  -- Estado de la solicitud
-  status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'under_review', 'approved', 'rejected')),
-  
-  -- Metadatos
-  submitted_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  reviewed_at TIMESTAMP WITH TIME ZONE,
-  reviewed_by UUID REFERENCES auth.users(id),
-  review_notes TEXT,
-  
-  -- Términos aceptados
-  terms_accepted BOOLEAN NOT NULL DEFAULT false,
-  privacy_accepted BOOLEAN NOT NULL DEFAULT false,
-  
-  -- Timestamps
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
-
--- 3. Crear índices
-CREATE INDEX IF NOT EXISTS idx_professional_applications_user_id ON professional_applications(user_id);
-CREATE INDEX IF NOT EXISTS idx_professional_applications_status ON professional_applications(status);
-CREATE INDEX IF NOT EXISTS idx_professional_applications_submitted_at ON professional_applications(submitted_at);
-
--- 4. Habilitar RLS
-ALTER TABLE professional_applications ENABLE ROW LEVEL SECURITY;
-
--- 5. Crear políticas RLS
-CREATE POLICY "Users can view their own applications" ON professional_applications
-  FOR SELECT USING (auth.uid() = user_id);
-
-CREATE POLICY "Users can create their own applications" ON professional_applications
-  FOR INSERT WITH CHECK (auth.uid() = user_id);
-
-CREATE POLICY "Users can update pending applications" ON professional_applications
-  FOR UPDATE USING (auth.uid() = user_id AND status = 'pending');
-
-CREATE POLICY "Admins can view all applications" ON professional_applications
-  FOR SELECT USING (
-    EXISTS (
-      SELECT 1 FROM auth.users 
-      WHERE auth.users.id = auth.uid() 
-      AND (auth.users.raw_user_meta_data->>'type' = 'admin' OR auth.users.raw_user_meta_data->>'type' = 'Admin')
-    )
-  );
-
-CREATE POLICY "Admins can update all applications" ON professional_applications
-  FOR UPDATE USING (
-    EXISTS (
-      SELECT 1 FROM auth.users 
-      WHERE auth.users.id = auth.uid() 
-      AND (auth.users.raw_user_meta_data->>'type' = 'admin' OR auth.users.raw_user_meta_data->>'type' = 'Admin')
-    )
-  );
-
--- 6. Política para que todos puedan ver aplicaciones aprobadas
-CREATE POLICY "Anyone can view approved applications" ON professional_applications
-  FOR SELECT USING (status = 'approved');
-
--- 7. Función y trigger para updated_at
-CREATE OR REPLACE FUNCTION update_updated_at_column()
-RETURNS TRIGGER AS $$
-BEGIN
-    NEW.updated_at = NOW();
-    RETURN NEW;
-END;
-$$ language 'plpgsql';
-
-CREATE TRIGGER update_professional_applications_updated_at 
-  BEFORE UPDATE ON professional_applications 
-  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 ```
 
-### 2️⃣ Crear la tabla de Favoritos
+### Error: "new row violates row-level security policy"
+**Causa**: Políticas RLS bloqueando la inserción
+**Solución**: Verificar que el usuario tenga el tipo correcto en metadata
 
-```sql
--- Crear la tabla user_favorites
-CREATE TABLE IF NOT EXISTS user_favorites (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-  professional_id UUID NOT NULL REFERENCES professional_applications(id) ON DELETE CASCADE,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  
-  UNIQUE(user_id, professional_id)
-);
+### Error: "relation does not exist"
+**Causa**: Tabla no creada
+**Solución**: Ejecutar la migración correspondiente
 
--- Crear índices
-CREATE INDEX IF NOT EXISTS idx_user_favorites_user_id ON user_favorites(user_id);
-CREATE INDEX IF NOT EXISTS idx_user_favorites_professional_id ON user_favorites(professional_id);
+### Dashboard de Admin vacío
+**Causa**: Usuario no configurado como admin
+**Solución**: Ejecutar UPDATE para agregar type='admin' en metadata
 
--- Habilitar RLS
-ALTER TABLE user_favorites ENABLE ROW LEVEL SECURITY;
+### Storage 403 Forbidden
+**Causa**: Bucket no existe o políticas incorrectas
+**Solución**: Ejecutar migraciones de storage (07, 10, 29, 30)
 
--- Políticas RLS
-CREATE POLICY "Users can view their own favorites" ON user_favorites
-  FOR SELECT USING (auth.uid() = user_id);
+## 🛠️ Comandos Útiles
 
-CREATE POLICY "Users can create their own favorites" ON user_favorites
-  FOR INSERT WITH CHECK (auth.uid() = user_id);
-
-CREATE POLICY "Users can delete their own favorites" ON user_favorites
-  FOR DELETE USING (auth.uid() = user_id);
-```
-
-### 3️⃣ Crear la tabla de Citas (Appointments)
-
-```sql
--- Crear la tabla appointments
-CREATE TABLE IF NOT EXISTS appointments (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  patient_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-  professional_id UUID NOT NULL REFERENCES professional_applications(id) ON DELETE CASCADE,
-  appointment_date DATE NOT NULL,
-  appointment_time TIME NOT NULL,
-  duration_minutes INTEGER NOT NULL DEFAULT 50,
-  appointment_type VARCHAR(20) NOT NULL CHECK (appointment_type IN ('presencial', 'online')),
-  status VARCHAR(20) NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'confirmed', 'completed', 'cancelled')),
-  cost DECIMAL(10,2) NOT NULL,
-  location TEXT,
-  notes TEXT,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
-
--- Crear índices
-CREATE INDEX IF NOT EXISTS idx_appointments_patient_id ON appointments(patient_id);
-CREATE INDEX IF NOT EXISTS idx_appointments_professional_id ON appointments(professional_id);
-CREATE INDEX IF NOT EXISTS idx_appointments_date ON appointments(appointment_date);
-CREATE INDEX IF NOT EXISTS idx_appointments_status ON appointments(status);
-
--- Trigger para updated_at
-CREATE TRIGGER update_appointments_updated_at 
-  BEFORE UPDATE ON appointments 
-  FOR EACH ROW 
-  EXECUTE FUNCTION update_updated_at_column();
-
--- Habilitar RLS
-ALTER TABLE appointments ENABLE ROW LEVEL SECURITY;
-
--- Políticas RLS
-CREATE POLICY "Patients can view their own appointments" ON appointments
-  FOR SELECT USING (auth.uid() = patient_id);
-
-CREATE POLICY "Patients can create their own appointments" ON appointments
-  FOR INSERT WITH CHECK (auth.uid() = patient_id);
-
-CREATE POLICY "Patients can update their own appointments" ON appointments
-  FOR UPDATE USING (auth.uid() = patient_id);
-
-CREATE POLICY "Professionals can view their appointments" ON appointments
-  FOR SELECT USING (
-    EXISTS (
-      SELECT 1 FROM professional_applications 
-      WHERE professional_applications.id = appointments.professional_id 
-      AND professional_applications.user_id = auth.uid()
-      AND professional_applications.status = 'approved'
-    )
-  );
-
-CREATE POLICY "Professionals can update their appointments" ON appointments
-  FOR UPDATE USING (
-    EXISTS (
-      SELECT 1 FROM professional_applications 
-      WHERE professional_applications.id = appointments.professional_id 
-      AND professional_applications.user_id = auth.uid()
-      AND professional_applications.status = 'approved'
-    )
-  );
-
-CREATE POLICY "Admins can manage all appointments" ON appointments
-  FOR ALL USING (
-    EXISTS (
-      SELECT 1 FROM auth.users 
-      WHERE auth.users.id = auth.uid() 
-      AND (auth.users.raw_user_meta_data->>'type' = 'admin' OR auth.users.raw_user_meta_data->>'type' = 'Admin')
-    )
-  );
-```
-
-### 4️⃣ Agregar políticas para perfiles de admin
-
-```sql
--- Permitir que los administradores vean todos los perfiles
-CREATE POLICY "Admins can view all profiles" ON profiles
-  FOR SELECT USING (
-    auth.uid() IS NOT NULL AND 
-    EXISTS (
-      SELECT 1 FROM auth.users 
-      WHERE auth.users.id = auth.uid() 
-      AND (auth.users.raw_user_meta_data->>'type' = 'admin' OR auth.users.raw_user_meta_data->>'type' = 'Admin')
-    )
-  );
-
--- Permitir que los administradores actualicen todos los perfiles
-CREATE POLICY "Admins can update all profiles" ON profiles
-  FOR UPDATE USING (
-    auth.uid() IS NOT NULL AND 
-    EXISTS (
-      SELECT 1 FROM auth.users 
-      WHERE auth.users.id = auth.uid() 
-      AND (auth.users.raw_user_meta_data->>'type' = 'admin' OR auth.users.raw_user_meta_data->>'type' = 'Admin')
-    )
-  );
-```
-
-## 🎯 Orden de Ejecución
-
-Ejecuta los scripts en este orden:
-
-1. **Aplicaciones Profesionales** (Primero)
-2. **Favoritos** (Segundo - depende de professional_applications)
-3. **Citas** (Tercero - depende de professional_applications)
-4. **Permisos de Admin** (Cuarto - opcional)
-
-## 📝 Notas Importantes
-
-- Ejecuta cada script **completo** en el SQL Editor
-- Espera a que cada script termine antes de ejecutar el siguiente
-- Si hay errores, léelos cuidadosamente y corrígelos antes de continuar
-- Las políticas RLS garantizan la seguridad de los datos
-
-## ✅ Verificación
-
-Después de ejecutar las migraciones, verifica que las tablas existan:
-
+### Ver Todas las Tablas
 ```sql
 SELECT table_name 
 FROM information_schema.tables 
-WHERE table_schema = 'public' 
-AND table_name IN ('professional_applications', 'user_favorites', 'appointments');
+WHERE table_schema = 'public'
+ORDER BY table_name;
 ```
 
-Deberías ver las 3 tablas en el resultado.
+### Ver Estructura de una Tabla
+```sql
+SELECT column_name, data_type, is_nullable, column_default
+FROM information_schema.columns
+WHERE table_name = 'professional_applications'
+ORDER BY ordinal_position;
+```
+
+### Ver Políticas RLS
+```sql
+SELECT schemaname, tablename, policyname, permissive, roles, cmd
+FROM pg_policies
+WHERE tablename = 'professional_applications';
+```
+
+### Ver Buckets de Storage
+```sql
+SELECT id, name, public, created_at
+FROM storage.buckets
+ORDER BY created_at DESC;
+```
+
+### Contar Registros por Tabla
+```sql
+SELECT 
+  'professional_applications' as tabla,
+  COUNT(*) as total
+FROM professional_applications
+UNION ALL
+SELECT 'appointments', COUNT(*) FROM appointments
+UNION ALL
+SELECT 'events_workshops', COUNT(*) FROM events_workshops
+UNION ALL
+SELECT 'blog_posts', COUNT(*) FROM blog_posts;
+```
+
+## 🔄 Datos de Prueba
+
+### Insertar Profesional de Prueba
+```sql
+-- Primero obtén tu user_id
+SELECT id, email FROM auth.users WHERE email = 'tu-email@ejemplo.com';
+
+-- Insertar profesional de prueba
+INSERT INTO professional_applications (
+  user_id, first_name, last_name, email, phone,
+  profession, specializations, experience, certifications,
+  address, city, state, status,
+  terms_accepted, privacy_accepted
+) VALUES (
+  'TU_USER_ID_AQUI'::uuid,
+  'María', 'González', 'maria@ejemplo.com', '+52 555 1234567',
+  'Psicóloga Clínica', 
+  ARRAY['Terapia Cognitivo-Conductual', 'Ansiedad'],
+  '5 años',
+  ARRAY['Cédula Profesional 12345678'],
+  'Av. Reforma 123', 'CDMX', 'Ciudad de México', 'approved',
+  true, true
+);
+```
+
+## 📚 Referencias
+
+- **Migraciones Completas**: [`../database/migrations/README.md`](../database/migrations/README.md)
+- **Estructura General**: [`../database/README.md`](../database/README.md)
+- **Supabase Docs**: [https://supabase.com/docs](https://supabase.com/docs)
+
+## ⚠️ Importante
+
+1. **Siempre haz backup** antes de ejecutar migraciones en producción
+2. **Ejecuta migraciones en orden** según la numeración
+3. **Verifica el resultado** después de cada migración
+4. **No modifiques auth.users directamente** - usa las funciones de Supabase Auth
+5. **Cierra y vuelve a iniciar sesión** después de cambiar metadata de usuario
+
+---
+
+**Última actualización**: Octubre 2025

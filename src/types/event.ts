@@ -12,7 +12,7 @@ export interface EventWorkshop {
   category: "espiritualidad" | "salud_mental" | "salud_fisica" | "alimentacion" | "social";
   location: string;
   description?: string;
-  participant_level: "principiante" | "medio" | "avanzado";
+  participant_level: "todos" | "principiante" | "medio" | "avanzado";
   professional_id?: string;
   image_url?: string; // URL de la imagen principal del evento
   gallery_images: string[];
@@ -36,7 +36,7 @@ export interface EventFormData {
   category: "espiritualidad" | "salud_mental" | "salud_fisica" | "alimentacion" | "social";
   location: string;
   description: string;
-  participant_level: "principiante" | "medio" | "avanzado";
+  participant_level: "todos" | "principiante" | "medio" | "avanzado";
   professional_id: string;
   image_url?: string; // URL de la imagen principal del evento
   gallery_images: string[];
@@ -64,6 +64,7 @@ export const SESSION_TYPES = [
 ] as const;
 
 export const PARTICIPANT_LEVELS = [
+  { value: "todos", label: "Todos los niveles" },
   { value: "principiante", label: "Principiante" },
   { value: "medio", label: "Intermedio" },
   { value: "avanzado", label: "Avanzado" },

@@ -49,7 +49,7 @@ export function EventForm({ event, professionals, onSuccess, onCancel }: EventFo
     category: "salud_mental",
     location: "",
     description: "",
-    participant_level: "principiante",
+    participant_level: "todos",
     professional_id: "",
     gallery_images: [],
     image_position: "center center",

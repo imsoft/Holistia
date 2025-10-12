@@ -14,6 +14,7 @@ import {
   XCircle,
   Check,
   ChevronsUpDown,
+  Instagram,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -98,6 +99,7 @@ export default function BecomeProfessionalPage() {
     country: "",
     biography: "",
     wellness_areas: [] as string[],
+    instagram: "",
     terms_accepted: false,
     privacy_accepted: false,
   });
@@ -191,6 +193,7 @@ export default function BecomeProfessionalPage() {
             country: existingApp.country || "",
             biography: existingApp.biography || "",
             wellness_areas: existingApp.wellness_areas || [],
+            instagram: existingApp.instagram || "",
             terms_accepted: existingApp.terms_accepted || false,
             privacy_accepted: existingApp.privacy_accepted || false,
           });
@@ -326,6 +329,7 @@ export default function BecomeProfessionalPage() {
         country: formData.country,
         biography: formData.biography,
         wellness_areas: formData.wellness_areas,
+        instagram: formData.instagram,
         profile_photo: userProfilePhoto, // Copiar foto de perfil del usuario
         terms_accepted: formData.terms_accepted,
         privacy_accepted: formData.privacy_accepted,
@@ -744,6 +748,34 @@ export default function BecomeProfessionalPage() {
               {errors.biography && (
                 <p className="text-red-500 text-sm mt-1">{errors.biography}</p>
               )}
+            </div>
+
+            <div className="space-y-3">
+              <Label htmlFor="instagram">
+                <div className="flex items-center gap-2">
+                  <Instagram className="h-4 w-4" />
+                  <span>Instagram (opcional)</span>
+                </div>
+              </Label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                  @
+                </span>
+                <Input
+                  id="instagram"
+                  value={formData.instagram}
+                  onChange={(e) => {
+                    // Eliminar @ o https:// si el usuario lo ingresa
+                    const value = e.target.value.replace(/^@/, '').replace(/^https?:\/\/(www\.)?instagram\.com\//, '');
+                    handleInputChange("instagram", value);
+                  }}
+                  placeholder="tuusuario"
+                  className="pl-8"
+                />
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Solo tu nombre de usuario, sin @ ni enlaces
+              </p>
             </div>
 
             <div className="space-y-4">

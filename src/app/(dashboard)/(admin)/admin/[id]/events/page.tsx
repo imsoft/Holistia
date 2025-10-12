@@ -308,12 +308,15 @@ const EventsAdminPage = () => {
               <Card key={event.id} className={`${!event.is_active ? "opacity-60" : ""} overflow-hidden`}>
                 {/* Event Image */}
                 {event.gallery_images && event.gallery_images.length > 0 && (
-                  <div className="relative h-48 w-full">
+                  <div className="relative h-48 w-full bg-gradient-to-br from-gray-50 to-gray-100">
                     <Image
                       src={event.gallery_images[0]}
                       alt={event.name}
                       fill
-                      className="object-cover"
+                      className="object-contain p-2"
+                      style={{
+                        objectPosition: 'center center'
+                      }}
                     />
                   </div>
                 )}

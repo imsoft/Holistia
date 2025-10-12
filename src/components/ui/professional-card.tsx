@@ -1,12 +1,12 @@
 "use client";
 
 import { Card, CardContent } from "@/components/ui/card";
-import { MapPin, MessageCircle, Monitor, Users, Heart } from "lucide-react";
-import Image from "next/image";
+import { MapPin, Monitor, Heart } from "lucide-react";
 import Link from "next/link";
 import { Professional } from "@/types";
 import { useState } from "react";
 import { createClient } from "@/utils/supabase/client";
+import { SmartImage } from "@/components/ui/smart-image";
 
 interface ProfessionalCardProps {
   professional: Professional;
@@ -152,12 +152,16 @@ export const ProfessionalCard = ({ professional, userId }: ProfessionalCardProps
     <Link href={professionalRoute}>
       <Card className="group overflow-hidden hover:shadow-xl hover:-translate-y-2 transition-all duration-300 border-border cursor-pointer h-full flex flex-col">
       <div className="relative">
-        <Image
-          src={professional.profile_photo || professional.profilePhoto || professional.avatar || "/logos/holistia-black.png"}
+        <SmartImage
+          src={professional.profile_photo || professional.profilePhoto || professional.avatar || ""}
           alt={professional.name || `${professional.first_name || ''} ${professional.last_name || ''}`.trim()}
           width={400}
           height={300}
-          className={`w-full h-48 object-cover ${!professional.profile_photo && !professional.profilePhoto && !professional.avatar ? 'bg-gray-50 p-8' : ''}`}
+          className="w-full h-48"
+          fallbackSrc="/logos/holistia-black.png"
+          defaultFit="contain"
+          defaultPosition="center"
+          showControls={false}
         />
         {/* Favorite button */}
         <button 

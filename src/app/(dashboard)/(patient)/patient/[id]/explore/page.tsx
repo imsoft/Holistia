@@ -584,12 +584,15 @@ const HomeUserPage = () => {
                           <Card className="hover:shadow-lg hover:-translate-y-2 transition-all duration-300 overflow-hidden cursor-pointer h-full flex flex-col">
                             {/* Imagen del evento - abarca toda la parte superior */}
                             {event.gallery_images && event.gallery_images.length > 0 && (
-                              <div className="relative w-full h-48 overflow-hidden">
+                              <div className="relative w-full h-48 overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100">
                                 <Image
                                   src={event.gallery_images[0]}
                                   alt={event.name}
                                   fill
-                                  className="object-cover"
+                                  className="object-contain p-2"
+                                  style={{
+                                    objectPosition: 'center center'
+                                  }}
                                 />
                               </div>
                             )}

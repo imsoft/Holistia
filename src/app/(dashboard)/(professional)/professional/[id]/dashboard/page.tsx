@@ -25,6 +25,7 @@ import { DashboardStats, Appointment } from "@/types";
 import { createClient } from "@/utils/supabase/client";
 import ProfilePhotoUploader from "@/components/ui/profile-photo-uploader";
 import ProfessionalProfileEditor from "@/components/ui/professional-profile-editor";
+import { AccountDeactivation } from "@/components/ui/account-deactivation";
 
 
 
@@ -38,6 +39,7 @@ export default function ProfessionalDashboard() {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [stats, setStats] = useState<DashboardStats[]>([]);
   const [professionalName, setProfessionalName] = useState<string>("");
+  const [professionalEmail, setProfessionalEmail] = useState<string>("");
   const [profilePhoto, setProfilePhoto] = useState<string>("");
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
@@ -49,6 +51,12 @@ export default function ProfessionalDashboard() {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        // Obtener email del usuario autenticado
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user?.email) {
+          setProfessionalEmail(user.email);
+        }
+
         // Obtener la aplicación profesional del usuario
         const { data: professionalApp, error: profError } = await supabase
           .from('professional_applications')
@@ -390,6 +398,17 @@ export default function ProfessionalDashboard() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Desactivar cuenta */}
+        {professionalEmail && (
+          <div className="mt-8">
+            <AccountDeactivation
+              userId={userId}
+              userEmail={professionalEmail}
+              accountType="professional"
+            />
+          </div>
+        )}
 
       </div>
 

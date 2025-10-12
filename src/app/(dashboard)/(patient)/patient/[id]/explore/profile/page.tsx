@@ -10,6 +10,7 @@ import { Patient } from "@/types/patient";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PhoneInput } from "@/components/ui/phone-input";
+import { AccountDeactivation } from "@/components/ui/account-deactivation";
 
 const ProfilePage = () => {
   const [profile, setProfile] = useState<Patient | null>(null);
@@ -428,6 +429,15 @@ const ProfilePage = () => {
                 </dd>
               </div>
             </dl>
+          </div>
+
+          {/* Desactivar cuenta */}
+          <div className="mt-12">
+            <AccountDeactivation
+              userId={userId}
+              userEmail={profile.email}
+              accountType="patient"
+            />
           </div>
 
         </div>

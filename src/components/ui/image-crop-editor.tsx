@@ -80,7 +80,7 @@ export function ImageCropEditor({
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 w-full">
       {/* Header */}
       <CardHeader className="pb-6">
         <CardTitle className="flex items-center gap-3 text-xl">

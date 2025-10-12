@@ -36,21 +36,29 @@ export function AccountDeactivation({ userId, userEmail, accountType }: AccountD
     try {
       setIsDeactivating(true);
 
-      // Actualizar el perfil como inactivo (usando el campo 'activo' existente)
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .update({ 
-          activo: false,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', userId);
-
-      if (profileError) {
-        console.error('Error deactivating profile:', profileError);
-        throw new Error('Error al desactivar el perfil');
+      // Obtener datos actuales del usuario
+      const { data: { user }, error: getUserError } = await supabase.auth.getUser();
+      
+      if (getUserError || !user) {
+        throw new Error('Error al obtener datos del usuario');
       }
 
-      // Si es profesional, también desactivar su aplicación
+      // Actualizar los metadatos del usuario en auth.users
+      const currentMetadata = user.user_metadata || {};
+      const { error: updateError } = await supabase.auth.updateUser({
+        data: {
+          ...currentMetadata,
+          account_active: false,
+          deactivated_at: new Date().toISOString()
+        }
+      });
+
+      if (updateError) {
+        console.error('Error updating user metadata:', updateError);
+        throw new Error('Error al desactivar la cuenta');
+      }
+
+      // Si es profesional, desactivar su aplicación
       if (accountType === "professional") {
         const { error: appError } = await supabase
           .from('professional_applications')

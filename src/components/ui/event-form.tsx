@@ -21,7 +21,12 @@ import { toast } from "sonner";
 import { Upload, X, Crop } from "lucide-react";
 import Image from "next/image";
 import { EventImageCropEditor } from "@/components/ui/event-image-crop-editor";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { 
+  FullWidthDialog, 
+  FullWidthDialogContent, 
+  FullWidthDialogHeader, 
+  FullWidthDialogTitle 
+} from "@/components/ui/full-width-dialog";
 
 interface EventFormProps {
   event?: EventWorkshop | null;
@@ -659,11 +664,11 @@ export function EventForm({ event, professionals, onSuccess, onCancel }: EventFo
       </div>
 
       {/* Diálogo del editor de recorte */}
-      <Dialog open={isCropDialogOpen} onOpenChange={setIsCropDialogOpen}>
-        <DialogContent className="w-full max-w-none max-h-[85vh] overflow-y-auto mx-4">
-          <DialogHeader>
-            <DialogTitle className="text-xl">Editor de Imagen del Evento</DialogTitle>
-          </DialogHeader>
+      <FullWidthDialog open={isCropDialogOpen} onOpenChange={setIsCropDialogOpen}>
+        <FullWidthDialogContent>
+          <FullWidthDialogHeader>
+            <FullWidthDialogTitle className="text-xl">Editor de Imagen del Evento</FullWidthDialogTitle>
+          </FullWidthDialogHeader>
           {formData.gallery_images.length > 0 && (
             <EventImageCropEditor
               imageSrc={formData.gallery_images[cropImageIndex]}
@@ -673,8 +678,8 @@ export function EventForm({ event, professionals, onSuccess, onCancel }: EventFo
               eventName={formData.name || "Evento"}
             />
           )}
-        </DialogContent>
-      </Dialog>
+        </FullWidthDialogContent>
+      </FullWidthDialog>
     </form>
   );
 }

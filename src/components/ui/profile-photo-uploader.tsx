@@ -7,7 +7,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Camera, Upload, CheckCircle, AlertCircle, Crop } from "lucide-react";
 import Image from "next/image";
 import { ImageCropEditor } from "@/components/ui/image-crop-editor";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { 
+  FullWidthDialog, 
+  FullWidthDialogContent, 
+  FullWidthDialogHeader, 
+  FullWidthDialogTitle 
+} from "@/components/ui/full-width-dialog";
 
 interface ProfilePhotoUploaderProps {
   professionalId: string;
@@ -282,11 +287,11 @@ export default function ProfilePhotoUploader({
       </CardContent>
 
       {/* Diálogo del editor de recorte */}
-      <Dialog open={isCropDialogOpen} onOpenChange={setIsCropDialogOpen}>
-        <DialogContent className="w-full max-w-none max-h-[85vh] overflow-y-auto mx-4">
-          <DialogHeader>
-            <DialogTitle className="text-xl">Editor de Imagen de Perfil</DialogTitle>
-          </DialogHeader>
+      <FullWidthDialog open={isCropDialogOpen} onOpenChange={setIsCropDialogOpen}>
+        <FullWidthDialogContent>
+          <FullWidthDialogHeader>
+            <FullWidthDialogTitle className="text-xl">Editor de Imagen de Perfil</FullWidthDialogTitle>
+          </FullWidthDialogHeader>
           {currentPhoto && (
             <ImageCropEditor
               imageSrc={currentPhoto}
@@ -296,8 +301,8 @@ export default function ProfilePhotoUploader({
               professionalName={professionalName}
             />
           )}
-        </DialogContent>
-      </Dialog>
+        </FullWidthDialogContent>
+      </FullWidthDialog>
     </Card>
   );
 }

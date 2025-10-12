@@ -83,6 +83,11 @@ export function EventForm({ event, professionals, onSuccess, onCancel }: EventFo
         professional_id: event.professional_id || "",
         gallery_images: event.gallery_images || [],
       });
+      
+      // Cargar la posición de imagen guardada
+      if (event.image_position) {
+        setCurrentImagePosition(event.image_position);
+      }
     }
   }, [event]);
 

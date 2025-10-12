@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { createClient } from "@/utils/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -34,6 +34,29 @@ export default function ProfilePhotoUploader({
   const [currentImagePosition, setCurrentImagePosition] = useState<string>("center center");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const supabase = createClient();
+
+  // Cargar la posición de imagen guardada cuando el componente se monta
+  useEffect(() => {
+    const loadImagePosition = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('professional_applications')
+          .select('image_position')
+          .eq('user_id', professionalId)
+          .single();
+
+        if (!error && data && data.image_position) {
+          setCurrentImagePosition(data.image_position);
+        }
+      } catch (error) {
+        console.error('Error loading image position:', error);
+      }
+    };
+
+    if (professionalId) {
+      loadImagePosition();
+    }
+  }, [professionalId, supabase]);
 
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];

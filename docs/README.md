@@ -19,6 +19,7 @@ Bienvenido a la documentación técnica del proyecto Holistia - Plataforma de bi
 | Documento | Descripción |
 |-----------|-------------|
 | **[GOOGLE_OAUTH_SETUP.md](./GOOGLE_OAUTH_SETUP.md)** | Configuración de Google OAuth 2.0 |
+| **[SESSION_PERSISTENCE.md](./SESSION_PERSISTENCE.md)** | Solución para mantener la sesión activa |
 
 ### 💼 Funcionalidades Específicas
 | Documento | Descripción |
@@ -75,6 +76,7 @@ holistia/
 - [SETUP_DATABASE.md](./SETUP_DATABASE.md) - Base de datos y migraciones
 - [MAPBOX_PRODUCTION_SETUP.md](./MAPBOX_PRODUCTION_SETUP.md) - Mapbox para mapas
 - [GOOGLE_OAUTH_SETUP.md](./GOOGLE_OAUTH_SETUP.md) - OAuth de Google
+- [SESSION_PERSISTENCE.md](./SESSION_PERSISTENCE.md) - Persistencia de sesión
 
 ### 👨‍💼 Funcionalidades de Usuario
 - [PROFESSIONAL_DASHBOARD.md](./PROFESSIONAL_DASHBOARD.md) - Dashboard del profesional
@@ -147,4 +149,4 @@ Al agregar nueva funcionalidad:
 
 **Proyecto**: Holistia  
 **Última actualización**: Octubre 2025  
-**Total de documentos**: 7
+**Total de documentos**: 8

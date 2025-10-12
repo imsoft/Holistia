@@ -71,6 +71,31 @@ export default function AdminBlogPage({ params }: { params: Promise<{ id: string
     if (!postToDelete) return;
 
     try {
+      // Primero obtener el post para saber qué imágenes eliminar
+      const { data: post, error: fetchError } = await supabase
+        .from("blog_posts")
+        .select("featured_image")
+        .eq("id", postToDelete)
+        .single();
+
+      if (fetchError) throw fetchError;
+
+      // Eliminar imagen destacada del storage si existe
+      if (post?.featured_image) {
+        try {
+          const urlParts = post.featured_image.split('/blog-images/');
+          if (urlParts.length > 1) {
+            const imagePath = urlParts[1];
+            await supabase.storage
+              .from('blog-images')
+              .remove([imagePath]);
+          }
+        } catch (imgError) {
+          console.error('Error deleting featured image:', imgError);
+        }
+      }
+
+      // Eliminar el post de la base de datos
       const { error } = await supabase
         .from("blog_posts")
         .delete()
@@ -84,7 +109,7 @@ export default function AdminBlogPage({ params }: { params: Promise<{ id: string
 
       // Refresh posts list
       fetchPosts();
-      toast.success("Post eliminado exitosamente");
+      toast.success("Post e imágenes eliminados exitosamente");
     } catch (err) {
       console.error("Error:", err);
       toast.error("Error inesperado al eliminar el post");

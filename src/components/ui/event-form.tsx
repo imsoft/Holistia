@@ -205,9 +205,31 @@ export function EventForm({ event, professionals, onSuccess, onCancel }: EventFo
     }
   };
 
-  const removeImage = (index: number) => {
+  const removeImage = async (index: number) => {
+    const imageUrl = formData.gallery_images[index];
+    
+    // Eliminar del storage
+    try {
+      const urlParts = imageUrl.split('/event-gallery/');
+      if (urlParts.length > 1) {
+        const imagePath = urlParts[1];
+        
+        const { error: storageError } = await supabase.storage
+          .from('event-gallery')
+          .remove([imagePath]);
+
+        if (storageError) {
+          console.error('Error deleting image from storage:', storageError);
+        }
+      }
+    } catch (error) {
+      console.error('Error removing image:', error);
+    }
+    
+    // Actualizar el estado local
     const newImages = formData.gallery_images.filter((_, i) => i !== index);
     handleInputChange('gallery_images', newImages);
+    toast.success('Imagen eliminada del evento');
   };
 
   const handleCropSave = (newPosition: string) => {

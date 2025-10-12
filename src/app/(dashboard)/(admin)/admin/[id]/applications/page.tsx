@@ -181,6 +181,45 @@ export default function ApplicationsPage() {
         return;
       }
 
+      // Si se rechaza, eliminar imágenes del storage
+      if (newStatus === 'rejected') {
+        const application = applications.find(app => app.id === applicationId);
+        
+        if (application) {
+          // Eliminar foto de perfil
+          if (application.profile_photo) {
+            try {
+              const urlParts = application.profile_photo.split('/professional-gallery/');
+              if (urlParts.length > 1) {
+                const imagePath = urlParts[1];
+                await supabase.storage
+                  .from('professional-gallery')
+                  .remove([imagePath]);
+              }
+            } catch (imgError) {
+              console.error('Error deleting profile photo:', imgError);
+            }
+          }
+
+          // Eliminar imágenes de galería
+          if (application.gallery && application.gallery.length > 0) {
+            for (const imageUrl of application.gallery) {
+              try {
+                const urlParts = imageUrl.split('/professional-gallery/');
+                if (urlParts.length > 1) {
+                  const imagePath = urlParts[1];
+                  await supabase.storage
+                    .from('professional-gallery')
+                    .remove([imagePath]);
+                }
+              } catch (imgError) {
+                console.error('Error deleting gallery image:', imgError);
+              }
+            }
+          }
+        }
+      }
+
       const { error } = await supabase
         .from('professional_applications')
         .update({
@@ -211,7 +250,7 @@ export default function ApplicationsPage() {
       ));
 
       setReviewNotes("");
-      toast.error(`Solicitud ${newStatus === 'approved' ? 'aprobada' : 'rechazada'} exitosamente.`);
+      toast.success(`Solicitud ${newStatus === 'approved' ? 'aprobada' : 'rechazada'} exitosamente.`);
       
     } catch (error) {
       console.error('Error updating application:', error);

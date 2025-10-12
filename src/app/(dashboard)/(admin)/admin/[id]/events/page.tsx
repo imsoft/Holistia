@@ -104,13 +104,46 @@ const EventsAdminPage = () => {
     if (!eventToDelete) return;
 
     try {
+      // Primero obtener el evento para saber qué imágenes eliminar
+      const { data: event, error: fetchError } = await supabase
+        .from("events_workshops")
+        .select("gallery_images")
+        .eq("id", eventToDelete)
+        .single();
+
+      if (fetchError) throw fetchError;
+
+      // Eliminar imágenes del storage si existen
+      if (event?.gallery_images && event.gallery_images.length > 0) {
+        for (const imageUrl of event.gallery_images) {
+          try {
+            // Extraer el path de la imagen desde la URL pública
+            const urlParts = imageUrl.split('/event-gallery/');
+            if (urlParts.length > 1) {
+              const imagePath = urlParts[1];
+              
+              const { error: storageError } = await supabase.storage
+                .from('event-gallery')
+                .remove([imagePath]);
+
+              if (storageError) {
+                console.error('Error deleting image from storage:', storageError);
+              }
+            }
+          } catch (imgError) {
+            console.error('Error processing image deletion:', imgError);
+          }
+        }
+      }
+
+      // Eliminar el evento de la base de datos
       const { error } = await supabase
         .from("events_workshops")
         .delete()
         .eq("id", eventToDelete);
 
       if (error) throw error;
-      toast.success("Evento eliminado exitosamente");
+      toast.success("Evento e imágenes eliminados exitosamente");
       fetchEvents();
     } catch (error) {
       console.error("Error deleting event:", error);

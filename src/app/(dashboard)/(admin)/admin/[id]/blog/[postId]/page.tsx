@@ -185,6 +185,23 @@ export default function EditBlogPostPage({
   const confirmDelete = async () => {
     try {
       setLoading(true);
+
+      // Eliminar imagen destacada del storage si existe
+      if (post?.featured_image) {
+        try {
+          const urlParts = post.featured_image.split('/blog-images/');
+          if (urlParts.length > 1) {
+            const imagePath = urlParts[1];
+            await supabase.storage
+              .from('blog-images')
+              .remove([imagePath]);
+          }
+        } catch (imgError) {
+          console.error('Error deleting featured image:', imgError);
+        }
+      }
+
+      // Eliminar el post de la base de datos
       const { error } = await supabase
         .from("blog_posts")
         .delete()
@@ -196,6 +213,7 @@ export default function EditBlogPostPage({
         return;
       }
 
+      toast.success("Post e imágenes eliminados exitosamente");
       router.push(`/admin/${id}/blog`);
     } catch (err) {
       console.error("Error:", err);

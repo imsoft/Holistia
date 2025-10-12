@@ -89,6 +89,23 @@ export default function ProfilePhotoUploader({
         throw new Error('Solo puedes subir tu propia foto de perfil');
       }
 
+      // Eliminar la foto de perfil anterior si existe
+      if (currentPhoto) {
+        try {
+          const urlParts = currentPhoto.split('/professional-gallery/');
+          if (urlParts.length > 1) {
+            const oldImagePath = urlParts[1];
+            await supabase.storage
+              .from('professional-gallery')
+              .remove([oldImagePath]);
+            console.log('Old profile photo deleted:', oldImagePath);
+          }
+        } catch (deleteError) {
+          console.error('Error deleting old photo:', deleteError);
+          // Continuar aunque falle la eliminación de la foto anterior
+        }
+      }
+
       // Generar nombre único para la imagen
       const fileExt = file.name.split('.').pop();
       const fileName = `profile-${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;

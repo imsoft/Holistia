@@ -92,8 +92,8 @@ export function ImageCropEditor({
         </p>
       </CardHeader>
 
-      <div className="grid gap-8 lg:grid-cols-2">
-        {/* Vista previa de la card */}
+      <div className="space-y-8">
+        {/* Vista previa de la card - Ancho completo */}
         <Card>
           <CardHeader className="pb-4">
             <div className="flex items-center justify-between">
@@ -111,7 +111,7 @@ export function ImageCropEditor({
           <CardContent className="space-y-6">
             <div 
               ref={cardRef}
-              className="relative w-full h-64 bg-white border rounded-lg overflow-hidden shadow-sm"
+              className="relative w-full h-80 bg-white border rounded-lg overflow-hidden shadow-sm"
             >
               <Image
                 src={imageSrc}
@@ -135,37 +135,13 @@ export function ImageCropEditor({
               )}
             </div>
             
-            {/* Controles de transformación */}
-            {!isPreviewMode && (
-              <div className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <span className="text-base font-medium min-w-[4rem]">Zoom:</span>
-                  <Button variant="outline" size="default" onClick={handleZoomOut}>
-                    <ZoomOut className="h-5 w-5" />
-                  </Button>
-                  <span className="text-base min-w-[4rem] text-center font-medium">{Math.round(scale * 100)}%</span>
-                  <Button variant="outline" size="default" onClick={handleZoomIn}>
-                    <ZoomIn className="h-5 w-5" />
-                  </Button>
-                </div>
-                
-                <div className="flex items-center gap-3">
-                  <span className="text-base font-medium min-w-[4rem]">Rotación:</span>
-                  <Button variant="outline" size="default" onClick={handleRotateLeft}>
-                    <RotateCcw className="h-5 w-5" />
-                  </Button>
-                  <span className="text-base min-w-[4rem] text-center font-medium">{rotation}°</span>
-                  <Button variant="outline" size="default" onClick={handleRotateRight}>
-                    <RotateCw className="h-5 w-5" />
-                  </Button>
-                </div>
-              </div>
-            )}
           </CardContent>
         </Card>
 
-        {/* Opciones de posición */}
-        <Card>
+        {/* Controles en dos columnas */}
+        <div className="grid gap-8 lg:grid-cols-2">
+          {/* Opciones de posición */}
+          <Card>
           <CardHeader className="pb-4">
             <h3 className="font-semibold text-lg">Seleccionar posición</h3>
             <p className="text-base text-muted-foreground">
@@ -199,6 +175,43 @@ export function ImageCropEditor({
             </div>
           </CardContent>
         </Card>
+
+        {/* Controles de transformación */}
+        <Card>
+          <CardHeader className="pb-4">
+            <h3 className="font-semibold text-lg">Controles de Imagen</h3>
+            <p className="text-base text-muted-foreground">
+              Ajusta el zoom y rotación de la imagen
+            </p>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* Controles de transformación */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-3">
+                <span className="text-base font-medium min-w-[4rem]">Zoom:</span>
+                <Button variant="outline" size="default" onClick={handleZoomOut}>
+                  <ZoomOut className="h-5 w-5" />
+                </Button>
+                <span className="text-base min-w-[4rem] text-center font-medium">{Math.round(scale * 100)}%</span>
+                <Button variant="outline" size="default" onClick={handleZoomIn}>
+                  <ZoomIn className="h-5 w-5" />
+                </Button>
+              </div>
+              
+              <div className="flex items-center gap-3">
+                <span className="text-base font-medium min-w-[4rem]">Rotación:</span>
+                <Button variant="outline" size="default" onClick={handleRotateLeft}>
+                  <RotateCcw className="h-5 w-5" />
+                </Button>
+                <span className="text-base min-w-[4rem] text-center font-medium">{rotation}°</span>
+                <Button variant="outline" size="default" onClick={handleRotateRight}>
+                  <RotateCw className="h-5 w-5" />
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        </div>
       </div>
 
       {/* Botones de acción */}

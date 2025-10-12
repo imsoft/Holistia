@@ -45,6 +45,7 @@ export interface Professional {
     online: number;
   };
   serviceType?: "in-person" | "online" | "both";
+  modality?: "presencial" | "online" | "both"; // Modalidad calculada basada en servicios
   location?: string | {
     city: string;
     state: string;

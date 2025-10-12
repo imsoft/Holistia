@@ -12,6 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { EventWorkshop } from "@/types/event";
 import { formatEventDate, formatEventTime } from "@/utils/date-utils";
+import { determineProfessionalModality, transformServicesFromDB } from "@/utils/professional-utils";
 
 interface Professional {
   id: string;
@@ -41,6 +42,7 @@ interface Professional {
   status: "pending" | "under_review" | "approved" | "rejected";
   created_at: string;
   updated_at: string;
+  modality?: "presencial" | "online" | "both"; // Modalidad calculada basada en servicios
 }
 
 const categories = [
@@ -120,17 +122,16 @@ const HomeUserPage = () => {
               .eq("professional_id", prof.id)
               .eq("isactive", true);
 
-            // Transformar servicios a la estructura esperada
-            const transformedServices = (services || []).map(service => ({
-              name: service.name,
-              description: service.description || '',
-              presencialCost: service.modality === 'presencial' || service.modality === 'both' ? service.cost.toString() : '',
-              onlineCost: service.modality === 'online' || service.modality === 'both' ? service.cost.toString() : ''
-            }));
+            // Transformar servicios a la estructura esperada usando la función utilitaria
+            const transformedServices = transformServicesFromDB(services || []);
+            
+            // Determinar la modalidad del profesional basándose en los servicios
+            const professionalModality = determineProfessionalModality(transformedServices);
 
             return {
               ...prof,
-              services: transformedServices.length > 0 ? transformedServices : prof.services || []
+              services: transformedServices.length > 0 ? transformedServices : prof.services || [],
+              modality: professionalModality // Agregar la modalidad calculada
             };
           })
         );
@@ -692,6 +693,21 @@ const HomeUserPage = () => {
                           : 0,
                       },
                       serviceType: (() => {
+                        // Usar la modalidad calculada si está disponible, sino calcularla
+                        if (professional.modality) {
+                          switch (professional.modality) {
+                            case 'presencial':
+                              return 'in-person';
+                            case 'online':
+                              return 'online';
+                            case 'both':
+                              return 'both';
+                            default:
+                              return 'in-person';
+                          }
+                        }
+                        
+                        // Fallback: calcular basándose en los servicios
                         const hasPresencial = professional.services.some(
                           (s) => s.presencialCost && s.presencialCost !== ""
                         );

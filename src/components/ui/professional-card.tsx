@@ -29,13 +29,18 @@ export const ProfessionalCard = ({ professional, userId }: ProfessionalCardProps
     if (professional.serviceType) {
       switch (professional.serviceType) {
         case 'in-person':
-          return <Users className="h-3 w-3" />;
+          return <MapPin className="h-3 w-3" />;
         case 'online':
           return <Monitor className="h-3 w-3" />;
         case 'both':
-          return <MessageCircle className="h-3 w-3" />;
+          return (
+            <div className="flex gap-0.5">
+              <MapPin className="h-3 w-3" />
+              <Monitor className="h-3 w-3" />
+            </div>
+          );
         default:
-          return <Users className="h-3 w-3" />;
+          return <MapPin className="h-3 w-3" />;
       }
     }
     
@@ -49,16 +54,21 @@ export const ProfessionalCard = ({ professional, userId }: ProfessionalCardProps
       );
       
       if (hasPresencial && hasOnline) {
-        return <MessageCircle className="h-3 w-3" />;
+        return (
+          <div className="flex gap-0.5">
+            <MapPin className="h-3 w-3" />
+            <Monitor className="h-3 w-3" />
+          </div>
+        );
       } else if (hasOnline) {
         return <Monitor className="h-3 w-3" />;
       } else if (hasPresencial) {
-        return <Users className="h-3 w-3" />;
+        return <MapPin className="h-3 w-3" />;
       }
     }
     
     // Fallback por defecto
-    return <Users className="h-3 w-3" />;
+    return <MapPin className="h-3 w-3" />;
   };
 
   const getServiceTypeText = () => {

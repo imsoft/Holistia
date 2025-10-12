@@ -80,28 +80,28 @@ export function EventImageCropEditor({
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-10 p-6 w-full">
       {/* Header */}
-      <CardHeader className="pb-6">
-        <CardTitle className="flex items-center gap-3 text-xl">
-          <Crop className="h-6 w-6" />
+      <CardHeader className="pb-8">
+        <CardTitle className="flex items-center gap-3 text-2xl">
+          <Crop className="h-7 w-7" />
           Editor de Imagen del Evento
         </CardTitle>
-        <p className="text-base text-muted-foreground">
+        <p className="text-lg text-muted-foreground">
           Ajusta cómo se verá la imagen de tu evento en las cards
         </p>
       </CardHeader>
 
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid gap-8 lg:grid-cols-2">
         {/* Vista previa de la card - Mitad del ancho */}
         <div>
           <Card>
-            <CardHeader className="pb-4">
+            <CardHeader className="pb-6">
               <div className="flex items-center justify-between">
-                <h3 className="font-semibold text-lg">Vista previa de la card</h3>
+                <h3 className="font-semibold text-xl">Vista previa de la card</h3>
                 <Button
                   variant="outline"
-                  size="default"
+                  size="lg"
                   onClick={() => setIsPreviewMode(!isPreviewMode)}
                 >
                   <Eye className="h-5 w-5 mr-2" />
@@ -109,10 +109,10 @@ export function EventImageCropEditor({
                 </Button>
               </div>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-6">
               <div 
                 ref={cardRef}
-                className="relative w-full h-64 bg-white border rounded-lg overflow-hidden shadow-sm"
+                className="relative w-full h-80 bg-white border rounded-lg overflow-hidden shadow-sm"
               >
                 <Image
                   src={imageSrc}
@@ -140,27 +140,27 @@ export function EventImageCropEditor({
         </div>
 
         {/* Controles - Mitad del ancho */}
-        <div className="space-y-4">
+        <div className="space-y-6">
           {/* Opciones de posición */}
           <Card>
-            <CardHeader className="pb-3">
-              <h3 className="font-semibold text-base">Seleccionar posición</h3>
-              <p className="text-sm text-muted-foreground">
+            <CardHeader className="pb-4">
+              <h3 className="font-semibold text-lg">Seleccionar posición</h3>
+              <p className="text-base text-muted-foreground">
                 Elige qué parte se mostrará
               </p>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-3 gap-2">
+            <CardContent className="space-y-6">
+              <div className="grid grid-cols-3 gap-3">
                 {positionOptions.map((option) => (
                   <Button
                     key={option.value}
                     variant={selectedPosition === option.value ? "default" : "outline"}
-                    size="sm"
+                    size="default"
                     onClick={() => setSelectedPosition(option.value)}
-                    className="flex flex-col items-center gap-1 h-16 p-2"
+                    className="flex flex-col items-center gap-2 h-20 p-4"
                   >
-                    <span className="text-lg">{option.icon}</span>
-                    <span className="text-xs font-medium">{option.label}</span>
+                    <span className="text-xl">{option.icon}</span>
+                    <span className="text-sm font-medium">{option.label}</span>
                   </Button>
                 ))}
               </div>
@@ -169,46 +169,46 @@ export function EventImageCropEditor({
 
           {/* Controles de transformación */}
           <Card>
-            <CardHeader className="pb-3">
-              <h3 className="font-semibold text-base">Controles de Imagen</h3>
-              <p className="text-sm text-muted-foreground">
+            <CardHeader className="pb-4">
+              <h3 className="font-semibold text-lg">Controles de Imagen</h3>
+              <p className="text-base text-muted-foreground">
                 Ajusta zoom y rotación
               </p>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium min-w-[3rem]">Zoom:</span>
-                  <Button variant="outline" size="sm" onClick={handleZoomOut}>
-                    <ZoomOut className="h-4 w-4" />
+            <CardContent className="space-y-6">
+              <div className="space-y-4">
+                <div className="flex items-center gap-4">
+                  <span className="text-base font-medium min-w-[4rem]">Zoom:</span>
+                  <Button variant="outline" size="default" onClick={handleZoomOut}>
+                    <ZoomOut className="h-5 w-5" />
                   </Button>
-                  <span className="text-sm min-w-[3rem] text-center font-medium">{Math.round(scale * 100)}%</span>
-                  <Button variant="outline" size="sm" onClick={handleZoomIn}>
-                    <ZoomIn className="h-4 w-4" />
+                  <span className="text-base min-w-[4rem] text-center font-medium">{Math.round(scale * 100)}%</span>
+                  <Button variant="outline" size="default" onClick={handleZoomIn}>
+                    <ZoomIn className="h-5 w-5" />
                   </Button>
                 </div>
                 
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium min-w-[3rem]">Rotación:</span>
-                  <Button variant="outline" size="sm" onClick={handleRotateLeft}>
-                    <RotateCcw className="h-4 w-4" />
+                <div className="flex items-center gap-4">
+                  <span className="text-base font-medium min-w-[4rem]">Rotación:</span>
+                  <Button variant="outline" size="default" onClick={handleRotateLeft}>
+                    <RotateCcw className="h-5 w-5" />
                   </Button>
-                  <span className="text-sm min-w-[3rem] text-center font-medium">{rotation}°</span>
-                  <Button variant="outline" size="sm" onClick={handleRotateRight}>
-                    <RotateCw className="h-4 w-4" />
+                  <span className="text-base min-w-[4rem] text-center font-medium">{rotation}°</span>
+                  <Button variant="outline" size="default" onClick={handleRotateRight}>
+                    <RotateCw className="h-5 w-5" />
                   </Button>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          {/* Consejos compactos */}
+          {/* Consejos */}
           <Card>
-            <CardHeader className="pb-3">
-              <h3 className="font-semibold text-base">💡 Consejos</h3>
+            <CardHeader className="pb-4">
+              <h3 className="font-semibold text-lg">💡 Consejos</h3>
             </CardHeader>
             <CardContent>
-              <ul className="text-xs text-muted-foreground space-y-1">
+              <ul className="text-sm text-muted-foreground space-y-2">
                 <li>• <strong>Centro</strong>: Imágenes equilibradas</li>
                 <li>• <strong>Superior</strong>: Mostrar logos/títulos</li>
                 <li>• <strong>Inferior</strong>: Mostrar espacios</li>
@@ -220,11 +220,11 @@ export function EventImageCropEditor({
       </div>
 
       {/* Botones de acción */}
-      <div className="flex justify-end gap-4 pt-4">
-        <Button variant="outline" size="default" onClick={onCancel}>
+      <div className="flex justify-end gap-6 pt-6">
+        <Button variant="outline" size="lg" onClick={onCancel}>
           Cancelar
         </Button>
-        <Button size="default" onClick={handleSave}>
+        <Button size="lg" onClick={handleSave}>
           <Save className="h-5 w-5 mr-2" />
           Guardar cambios
         </Button>

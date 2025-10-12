@@ -46,6 +46,7 @@ export interface Professional {
   };
   serviceType?: "in-person" | "online" | "both";
   modality?: "presencial" | "online" | "both"; // Modalidad calculada basada en servicios
+  imagePosition?: string; // Posición de la imagen en la card (ej: "center center", "top left", etc.)
   location?: string | {
     city: string;
     state: string;

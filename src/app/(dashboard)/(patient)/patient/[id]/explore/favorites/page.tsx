@@ -44,6 +44,7 @@ interface Professional {
   status: 'pending' | 'under_review' | 'approved' | 'rejected';
   created_at: string;
   updated_at: string;
+  imagePosition?: string; // Posición de la imagen en la card
 }
 
 const FavoritesPage = () => {
@@ -135,7 +136,8 @@ const FavoritesPage = () => {
               return {
                 ...prof,
                 services: transformedServices.length > 0 ? transformedServices : prof.services || [],
-                modality: professionalModality // Agregar la modalidad calculada
+                modality: professionalModality, // Agregar la modalidad calculada
+                imagePosition: prof.image_position || "center center" // Agregar posición de imagen
               };
             })
           );
@@ -281,9 +283,10 @@ const FavoritesPage = () => {
                     },
                     bookingOption: true,
                     serviceDescription: professional.services[0]?.description || professional.biography || '',
-                    biography: professional.biography || '',
-                    profilePhoto: professional.profile_photo || '',
-                    gallery: professional.gallery
+                      biography: professional.biography || '',
+                      profilePhoto: professional.profile_photo || '',
+                      gallery: professional.gallery,
+                      imagePosition: professional.imagePosition || "center center"
                   }}
                 />
                 <Button

@@ -43,6 +43,7 @@ interface Professional {
   created_at: string;
   updated_at: string;
   modality?: "presencial" | "online" | "both"; // Modalidad calculada basada en servicios
+  imagePosition?: string; // Posición de la imagen en la card
 }
 
 const categories = [
@@ -131,7 +132,8 @@ const HomeUserPage = () => {
             return {
               ...prof,
               services: transformedServices.length > 0 ? transformedServices : prof.services || [],
-              modality: professionalModality // Agregar la modalidad calculada
+              modality: professionalModality, // Agregar la modalidad calculada
+              imagePosition: prof.image_position || "center center" // Agregar posición de imagen
             };
           })
         );
@@ -735,6 +737,7 @@ const HomeUserPage = () => {
                       biography: professional.biography || "",
                       profilePhoto: professional.profile_photo || "",
                       gallery: professional.gallery,
+                      imagePosition: professional.imagePosition || "center center",
                     }}
                   />
                 ))}

@@ -4,8 +4,10 @@ import { useState, useRef } from "react";
 import { createClient } from "@/utils/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Camera, Upload, CheckCircle, AlertCircle } from "lucide-react";
+import { Camera, Upload, CheckCircle, AlertCircle, Crop } from "lucide-react";
 import Image from "next/image";
+import { ImageCropEditor } from "@/components/ui/image-crop-editor";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 interface ProfilePhotoUploaderProps {
   professionalId: string;
@@ -23,6 +25,8 @@ export default function ProfilePhotoUploader({
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [uploadSuccess, setUploadSuccess] = useState<string | null>(null);
+  const [isCropDialogOpen, setIsCropDialogOpen] = useState(false);
+  const [currentImagePosition, setCurrentImagePosition] = useState<string>("center center");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const supabase = createClient();
 
@@ -127,6 +131,43 @@ export default function ProfilePhotoUploader({
     fileInputRef.current?.click();
   };
 
+  const handleCropSave = async (newPosition: string) => {
+    try {
+      // Actualizar la posición de la imagen en la base de datos
+      const { error: updateError } = await supabase
+        .from('professional_applications')
+        .update({ 
+          image_position: newPosition,
+          updated_at: new Date().toISOString()
+        })
+        .eq('user_id', professionalId);
+
+      if (updateError) {
+        console.error('Error updating image position:', updateError);
+        throw new Error('Error al guardar la posición de la imagen');
+      }
+
+      setCurrentImagePosition(newPosition);
+      setIsCropDialogOpen(false);
+      setUploadSuccess('Posición de imagen actualizada correctamente');
+      
+      // Limpiar mensaje de éxito después de 3 segundos
+      setTimeout(() => setUploadSuccess(null), 3000);
+      
+    } catch (error) {
+      console.error('Error saving crop position:', error);
+      setUploadError(error instanceof Error ? error.message : 'Error al guardar la posición');
+    }
+  };
+
+  const handleOpenCropEditor = () => {
+    if (!currentPhoto) {
+      setUploadError('Primero debes subir una foto de perfil');
+      return;
+    }
+    setIsCropDialogOpen(true);
+  };
+
   return (
     <Card className="p-4">
       <CardHeader>
@@ -171,25 +212,38 @@ export default function ProfilePhotoUploader({
           </div>
         </div>
 
-        {/* Botón de subir */}
-        <Button
-          onClick={handleClick}
-          disabled={isUploading}
-          variant="outline"
-          className="w-full"
-        >
-          {isUploading ? (
-            <>
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2"></div>
-              Subiendo...
-            </>
-          ) : (
-            <>
-              <Upload className="h-4 w-4 mr-2" />
-              {currentPhoto ? 'Cambiar Foto' : 'Subir Foto'}
-            </>
+        {/* Botones */}
+        <div className="space-y-2">
+          <Button
+            onClick={handleClick}
+            disabled={isUploading}
+            variant="outline"
+            className="w-full"
+          >
+            {isUploading ? (
+              <>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2"></div>
+                Subiendo...
+              </>
+            ) : (
+              <>
+                <Upload className="h-4 w-4 mr-2" />
+                {currentPhoto ? 'Cambiar Foto' : 'Subir Foto'}
+              </>
+            )}
+          </Button>
+          
+          {currentPhoto && (
+            <Button
+              onClick={handleOpenCropEditor}
+              variant="outline"
+              className="w-full"
+            >
+              <Crop className="h-4 w-4 mr-2" />
+              Ajustar Vista en Card
+            </Button>
           )}
-        </Button>
+        </div>
 
         {/* Input oculto */}
         <input
@@ -226,6 +280,24 @@ export default function ProfilePhotoUploader({
           </ul>
         </div>
       </CardContent>
+
+      {/* Diálogo del editor de recorte */}
+      <Dialog open={isCropDialogOpen} onOpenChange={setIsCropDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Editor de Imagen de Perfil</DialogTitle>
+          </DialogHeader>
+          {currentPhoto && (
+            <ImageCropEditor
+              imageSrc={currentPhoto}
+              currentPosition={currentImagePosition}
+              onSave={handleCropSave}
+              onCancel={() => setIsCropDialogOpen(false)}
+              professionalName={professionalName}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }

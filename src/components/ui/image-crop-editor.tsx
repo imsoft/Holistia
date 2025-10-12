@@ -82,7 +82,7 @@ export function ImageCropEditor({
   return (
     <div className="space-y-10 p-6">
       {/* Header */}
-      <CardHeader className="pb-8">
+      <CardHeader className="pb-4">
         <CardTitle className="flex items-center gap-3 text-2xl">
           <Crop className="h-7 w-7" />
           Editor de Imagen de Perfil

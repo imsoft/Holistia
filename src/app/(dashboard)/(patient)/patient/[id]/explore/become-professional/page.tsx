@@ -15,6 +15,7 @@ import {
   Check,
   ChevronsUpDown,
   Instagram,
+  Info,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -630,16 +631,53 @@ export default function BecomeProfessionalPage() {
       case 3:
         return (
           <div className="space-y-6">
+            {/* Alerta informativa sobre la dirección */}
+            <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+              <div className="flex items-start gap-3">
+                <Info className="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
+                <div className="space-y-2">
+                  <h4 className="font-semibold text-blue-900 dark:text-blue-100 text-sm">
+                    📍 ¿Cómo ingresar tu dirección correctamente?
+                  </h4>
+                  <p className="text-xs text-blue-800 dark:text-blue-200">
+                    Para que el mapa muestre tu ubicación de forma precisa, ingresa tu dirección completa con el mayor detalle posible.
+                  </p>
+                  <div className="space-y-1.5 text-xs text-blue-700 dark:text-blue-300">
+                    <p><strong>✅ Ejemplo correcto:</strong></p>
+                    <p className="pl-4 font-mono bg-white dark:bg-blue-900/30 p-2 rounded">
+                      Av. Paseo de la Reforma 222, Col. Juárez
+                    </p>
+                    <p className="pl-4 font-mono bg-white dark:bg-blue-900/30 p-2 rounded">
+                      Calle Morelos 45, Centro Histórico
+                    </p>
+                    <p className="mt-2"><strong>❌ Evita:</strong></p>
+                    <p className="pl-4">• Direcciones incompletas: &quot;Av. Reforma&quot;</p>
+                    <p className="pl-4">• Sin número: &quot;Calle Principal&quot;</p>
+                    <p className="pl-4">• Muy genéricas: &quot;Centro&quot;</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <div className="space-y-3">
-              <Label htmlFor="address">Dirección *</Label>
+              <Label htmlFor="address">
+                <div className="flex items-center gap-2">
+                  <MapPin className="h-4 w-4" />
+                  <span>Dirección completa *</span>
+                </div>
+              </Label>
               <Input
                 id="address"
                 value={formData.address}
                 onChange={(e) => handleInputChange("address", e.target.value)}
                 onBlur={(e) => handleInputBlur("address", e.target.value)}
-                placeholder="Calle, número, colonia"
+                placeholder="Ej: Av. Insurgentes Sur 1234, Col. Del Valle"
                 className={errors.address ? "border-red-500" : ""}
               />
+              <p className="text-xs text-muted-foreground flex items-start gap-1.5">
+                <Info className="h-3.5 w-3.5 flex-shrink-0 mt-0.5" />
+                <span>Incluye: Calle/Avenida, número exterior, número interior (si aplica) y colonia</span>
+              </p>
               {errors.address && (
                 <p className="text-red-500 text-sm mt-1">{errors.address}</p>
               )}

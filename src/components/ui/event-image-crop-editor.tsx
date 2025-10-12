@@ -92,9 +92,9 @@ export function EventImageCropEditor({
         </p>
       </CardHeader>
 
-      <div className="grid gap-6 lg:grid-cols-3">
-        {/* Vista previa de la card - 2/3 del ancho */}
-        <div className="lg:col-span-2">
+      <div className="grid gap-6 lg:grid-cols-2">
+        {/* Vista previa de la card - Mitad del ancho */}
+        <div>
           <Card>
             <CardHeader className="pb-4">
               <div className="flex items-center justify-between">
@@ -112,7 +112,7 @@ export function EventImageCropEditor({
             <CardContent className="space-y-4">
               <div 
                 ref={cardRef}
-                className="relative w-full h-72 bg-white border rounded-lg overflow-hidden shadow-sm"
+                className="relative w-full h-64 bg-white border rounded-lg overflow-hidden shadow-sm"
               >
                 <Image
                   src={imageSrc}
@@ -139,8 +139,8 @@ export function EventImageCropEditor({
           </Card>
         </div>
 
-        {/* Controles - 1/3 del ancho */}
-        <div className="space-y-6">
+        {/* Controles - Mitad del ancho */}
+        <div className="space-y-4">
           {/* Opciones de posición */}
           <Card>
             <CardHeader className="pb-3">

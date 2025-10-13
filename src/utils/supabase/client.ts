@@ -7,8 +7,6 @@ export function createClient() {
     {
       // Configuración de cookies para persistencia de sesión
       cookieOptions: {
-        // Nombre de la cookie (por defecto usa el nombre de Supabase)
-        name: 'sb-auth-token',
         // Duración de la sesión: 7 días (en segundos)
         maxAge: 60 * 60 * 24 * 7, // 7 días
         // Path de la cookie

@@ -15,7 +15,6 @@ Se actualizó el cliente de Supabase (`src/utils/supabase/client.ts`) para confi
 ```typescript
 {
   cookieOptions: {
-    name: 'sb-auth-token',
     maxAge: 60 * 60 * 24 * 7,  // 7 días
     path: '/',
     sameSite: 'lax',
@@ -24,11 +23,12 @@ Se actualizó el cliente de Supabase (`src/utils/supabase/client.ts`) para confi
 }
 ```
 
+**Nota Importante**: No se especifica el parámetro `name` para permitir que Supabase use sus nombres de cookie predeterminados, lo cual es necesario para el correcto funcionamiento de OAuth (Google, etc.).
+
 ### Parámetros Clave
 
 | Parámetro | Valor | Descripción |
 |-----------|-------|-------------|
-| `name` | `sb-auth-token` | Nombre de la cookie de autenticación |
 | `maxAge` | `604800` segundos | Duración de 7 días |
 | `path` | `/` | Cookie disponible en toda la aplicación |
 | `sameSite` | `lax` | Permite cookies en navegación normal |

@@ -1,38 +1,46 @@
 # 🔐 Persistencia de Sesión en Holistia
 
-## 🎯 Problema Resuelto
+## 🎯 Problema y Solución
 
-**Síntoma**: La sesión se cierra automáticamente al cerrar el navegador o la pestaña.
+**Síntoma Inicial**: La sesión se cerraba automáticamente al cerrar el navegador o la pestaña.
 
-**Causa**: Configuración incorrecta de cookies en el cliente de Supabase.
+**Solución Final**: Usar la configuración predeterminada de Supabase SSR sin personalizaciones de cookies.
 
-## ✅ Solución Implementada
+## ✅ Configuración Correcta
 
-Se actualizó el cliente de Supabase (`src/utils/supabase/client.ts`) para configurar correctamente las cookies con opciones de persistencia.
-
-### Configuración de Cookies
+El cliente de Supabase (`src/utils/supabase/client.ts`) usa la configuración predeterminada de `@supabase/ssr`:
 
 ```typescript
-{
-  cookieOptions: {
-    maxAge: 60 * 60 * 24 * 7,  // 7 días
-    path: '/',
-    sameSite: 'lax',
-    secure: process.env.NODE_ENV === 'production',
-  }
+import { createBrowserClient } from "@supabase/ssr";
+
+export function createClient() {
+  return createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
+  );
 }
 ```
 
-**Nota Importante**: No se especifica el parámetro `name` para permitir que Supabase use sus nombres de cookie predeterminados, lo cual es necesario para el correcto funcionamiento de OAuth (Google, etc.).
+**Por qué no personalizamos las cookies:**
+- ✅ Supabase SSR ya maneja la persistencia de sesión correctamente por defecto
+- ✅ Las personalizaciones pueden interferir con OAuth (Google, Facebook, etc.)
+- ✅ Las personalizaciones pueden causar problemas con email/password auth
+- ✅ La configuración predeterminada es compatible con todos los métodos de autenticación
 
-### Parámetros Clave
+### Cookies Manejadas por Supabase
 
-| Parámetro | Valor | Descripción |
-|-----------|-------|-------------|
-| `maxAge` | `604800` segundos | Duración de 7 días |
-| `path` | `/` | Cookie disponible en toda la aplicación |
-| `sameSite` | `lax` | Permite cookies en navegación normal |
-| `secure` | `true` (producción) | HTTPS requerido en producción |
+Supabase SSR crea y maneja automáticamente las siguientes cookies:
+
+| Cookie | Propósito |
+|--------|-----------|
+| `sb-<project-ref>-auth-token` | Token de acceso principal |
+| `sb-<project-ref>-auth-token-code-verifier` | Verificador PKCE para OAuth |
+| Otras cookies temporales | Para flujos de autenticación específicos |
+
+Todas estas cookies tienen configuración optimizada para:
+- ✅ Persistencia de sesión (duración basada en configuración de Supabase)
+- ✅ Seguridad (HttpOnly, Secure en producción, SameSite)
+- ✅ Compatibilidad con todos los métodos de auth
 
 ## 🔍 Cómo Funciona
 

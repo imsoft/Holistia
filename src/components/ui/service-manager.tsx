@@ -111,7 +111,7 @@ export function ServiceManager({ professionalId, userId }: ServiceManagerProps) 
         description: formData.description.trim(),
         type: formData.type,
         modality: formData.modality,
-        duration: formData.type === "session" ? formData.duration : null,
+        duration: formData.type === "session" ? formData.duration : 60, // Valor por defecto para programas
         program_duration: formData.type === "program" ? {
           value: programDuration.value,
           unit: programDuration.unit

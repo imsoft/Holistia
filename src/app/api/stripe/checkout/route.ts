@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { stripe, calculateCommission, formatAmountForStripe } from '@/lib/stripe';
+import { stripe, calculateCommission, calculateTransferAmount, formatAmountForStripe } from '@/lib/stripe';
 import { createClient } from '@/utils/supabase/server';
 
 export async function POST(request: NextRequest) {
@@ -127,10 +127,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get professional information
+    // Get professional information including Stripe account
     const { data: professional, error: professionalError } = await supabase
       .from('professional_applications')
-      .select('first_name, last_name, profession')
+      .select('first_name, last_name, profession, stripe_account_id, stripe_charges_enabled, stripe_payouts_enabled')
       .eq('id', professional_id)
       .single();
 
@@ -141,8 +141,24 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Calculate commission (15%)
-    const commissionAmount = calculateCommission(service_amount, 15);
+    // Check if professional has Stripe Connect enabled
+    if (!professional.stripe_account_id) {
+      return NextResponse.json(
+        { error: 'El profesional aún no ha configurado su cuenta de pagos' },
+        { status: 400 }
+      );
+    }
+
+    if (!professional.stripe_charges_enabled || !professional.stripe_payouts_enabled) {
+      return NextResponse.json(
+        { error: 'La cuenta de pagos del profesional no está completamente configurada' },
+        { status: 400 }
+      );
+    }
+
+    // Calculate commission (15% for professionals) and transfer amount
+    const platformFee = calculateCommission(service_amount, 15);
+    const transferAmount = calculateTransferAmount(service_amount, 15);
 
     // Create payment record in database
     const { data: payment, error: paymentError } = await supabase
@@ -150,8 +166,10 @@ export async function POST(request: NextRequest) {
       .insert({
         appointment_id: appointmentId,
         service_amount,
-        amount: commissionAmount,
+        amount: service_amount, // Total amount charged to customer
         commission_percentage: 15,
+        platform_fee: platformFee, // Platform commission
+        transfer_amount: transferAmount, // Amount to be transferred to professional
         currency: 'mxn',
         status: 'pending',
         patient_id: user.id,
@@ -169,7 +187,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create Stripe Checkout Session
+    // Create Stripe Checkout Session with Connect (platform charges, transfers to professional)
     const checkoutSession = await stripe.checkout.sessions.create({
       mode: 'payment',
       payment_method_types: ['card'],
@@ -177,7 +195,7 @@ export async function POST(request: NextRequest) {
         {
           price_data: {
             currency: 'mxn',
-            unit_amount: formatAmountForStripe(commissionAmount),
+            unit_amount: formatAmountForStripe(service_amount), // Charge full amount to customer
             product_data: {
               name: 'Reserva de Consulta - Holistia',
               description: `${professional.profession}: ${professional.first_name} ${professional.last_name}`,
@@ -187,13 +205,20 @@ export async function POST(request: NextRequest) {
           quantity: 1,
         },
       ],
+      payment_intent_data: {
+        application_fee_amount: formatAmountForStripe(platformFee), // Platform takes 15%
+        transfer_data: {
+          destination: professional.stripe_account_id, // Transfer rest to professional
+        },
+      },
       metadata: {
         appointment_id: appointmentId,
         payment_id: payment.id,
         patient_id: user.id,
         professional_id,
         service_amount: service_amount.toString(),
-        commission_amount: commissionAmount.toString(),
+        platform_fee: platformFee.toString(),
+        transfer_amount: transferAmount.toString(),
       },
       success_url: `${process.env.NEXT_PUBLIC_SITE_URL || request.nextUrl.origin}/patient/${user.id}/explore/appointments?payment=success&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL || request.nextUrl.origin}/patient/${user.id}/explore/appointments?payment=cancelled`,

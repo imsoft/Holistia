@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { stripe, calculateCommission, formatAmountForStripe } from '@/lib/stripe';
+import { stripe, calculateCommission, calculateTransferAmount, formatAmountForStripe } from '@/lib/stripe';
 import { createClient } from '@/utils/supabase/server';
 
 export async function POST(request: NextRequest) {
@@ -48,10 +48,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if event exists and is active
+    // Check if event exists and is active, include Stripe Connect info
     const { data: event, error: eventError } = await supabase
       .from('events_workshops')
-      .select('*')
+      .select('*, professional_applications!inner(stripe_account_id, stripe_charges_enabled, stripe_payouts_enabled, first_name, last_name)')
       .eq('id', event_id)
       .eq('is_active', true)
       .single();
@@ -60,6 +60,25 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: 'Evento no encontrado o no disponible' },
         { status: 404 }
+      );
+    }
+
+    // Check if event organizer has Stripe Connect enabled
+    const organizer = Array.isArray(event.professional_applications) 
+      ? event.professional_applications[0] 
+      : event.professional_applications;
+
+    if (!organizer?.stripe_account_id) {
+      return NextResponse.json(
+        { error: 'El organizador del evento aún no ha configurado su cuenta de pagos' },
+        { status: 400 }
+      );
+    }
+
+    if (!organizer.stripe_charges_enabled || !organizer.stripe_payouts_enabled) {
+      return NextResponse.json(
+        { error: 'La cuenta de pagos del organizador no está completamente configurada' },
+        { status: 400 }
       );
     }
 
@@ -122,8 +141,9 @@ export async function POST(request: NextRequest) {
       registration = newRegistration;
     }
 
-    // Calculate commission (25% for events)
-    const commissionAmount = calculateCommission(service_amount, 25);
+    // Calculate commission (20% for events) and transfer amount
+    const platformFee = calculateCommission(service_amount, 20);
+    const transferAmount = calculateTransferAmount(service_amount, 20);
 
     // Use existing payment or create new one
     let payment;
@@ -137,8 +157,10 @@ export async function POST(request: NextRequest) {
           event_registration_id: registration.id,
           payment_type: 'event',
           service_amount,
-          amount: commissionAmount,
-          commission_percentage: 25,
+          amount: service_amount, // Total amount charged to customer
+          commission_percentage: 20,
+          platform_fee: platformFee, // Platform commission (20%)
+          transfer_amount: transferAmount, // Amount to be transferred to organizer
           currency: 'mxn',
           status: 'pending',
           patient_id: user.id,
@@ -158,7 +180,7 @@ export async function POST(request: NextRequest) {
       payment = newPayment;
     }
 
-    // Create Stripe Checkout Session
+    // Create Stripe Checkout Session with Connect (platform charges, transfers to organizer)
     const checkoutSession = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: [
@@ -169,12 +191,18 @@ export async function POST(request: NextRequest) {
               name: `Registro al evento: ${event.name}`,
               description: `Reserva para el evento del ${new Date(event.event_date).toLocaleDateString('es-ES')}`,
             },
-            unit_amount: formatAmountForStripe(commissionAmount),
+            unit_amount: formatAmountForStripe(service_amount), // Charge full amount to customer
           },
           quantity: 1,
         },
       ],
       mode: 'payment',
+      payment_intent_data: {
+        application_fee_amount: formatAmountForStripe(platformFee), // Platform takes 20%
+        transfer_data: {
+          destination: organizer.stripe_account_id, // Transfer rest to organizer
+        },
+      },
       success_url: `${process.env.NEXT_PUBLIC_SITE_URL}/patient/${user.id}/explore/event/${event_id}?payment=success`,
       cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL}/patient/${user.id}/explore/event/${event_id}?payment=cancelled`,
       metadata: {
@@ -182,6 +210,8 @@ export async function POST(request: NextRequest) {
         event_id: event_id,
         event_registration_id: registration.id,
         user_id: user.id,
+        platform_fee: platformFee.toString(),
+        transfer_amount: transferAmount.toString(),
       },
       customer_email: user.email,
     });

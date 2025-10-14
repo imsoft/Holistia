@@ -91,7 +91,7 @@ export function AccountDeactivation({ userId, userEmail, accountType }: AccountD
 
   return (
     <>
-      <Card className="border-destructive/50 bg-destructive/5">
+      <Card className="border-destructive/50 bg-destructive/5 py-4">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-destructive">
             <AlertTriangle className="h-5 w-5" />

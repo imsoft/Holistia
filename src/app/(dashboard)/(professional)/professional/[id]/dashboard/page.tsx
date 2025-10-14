@@ -26,6 +26,7 @@ import { createClient } from "@/utils/supabase/client";
 import ProfilePhotoUploader from "@/components/ui/profile-photo-uploader";
 import ProfessionalProfileEditor from "@/components/ui/professional-profile-editor";
 import { AccountDeactivation } from "@/components/ui/account-deactivation";
+import { StripeConnectButton } from "@/components/ui/stripe-connect-button";
 
 
 
@@ -47,6 +48,17 @@ export default function ProfessionalDashboard() {
   const [workingStartTime, setWorkingStartTime] = useState<string>("09:00");
   const [workingEndTime, setWorkingEndTime] = useState<string>("18:00");
   const [professionalId, setProfessionalId] = useState<string>("");
+  const [stripeStatus, setStripeStatus] = useState<{
+    stripe_account_id: string | null;
+    stripe_account_status: string | null;
+    stripe_charges_enabled: boolean | null;
+    stripe_payouts_enabled: boolean | null;
+  }>({
+    stripe_account_id: null,
+    stripe_account_status: null,
+    stripe_charges_enabled: null,
+    stripe_payouts_enabled: null,
+  });
 
   useEffect(() => {
     const fetchData = async () => {
@@ -60,7 +72,7 @@ export default function ProfessionalDashboard() {
         // Obtener la aplicación profesional del usuario
         const { data: professionalApp, error: profError } = await supabase
           .from('professional_applications')
-          .select('id, first_name, last_name, profile_photo, working_start_time, working_end_time')
+          .select('id, first_name, last_name, profile_photo, working_start_time, working_end_time, stripe_account_id, stripe_account_status, stripe_charges_enabled, stripe_payouts_enabled')
           .eq('user_id', userId)
           .eq('status', 'approved')
           .single();
@@ -76,6 +88,12 @@ export default function ProfessionalDashboard() {
           setProfessionalId(professionalApp.id);
           setWorkingStartTime(professionalApp.working_start_time || '09:00');
           setWorkingEndTime(professionalApp.working_end_time || '18:00');
+          setStripeStatus({
+            stripe_account_id: professionalApp.stripe_account_id,
+            stripe_account_status: professionalApp.stripe_account_status,
+            stripe_charges_enabled: professionalApp.stripe_charges_enabled,
+            stripe_payouts_enabled: professionalApp.stripe_payouts_enabled,
+          });
           
           // Obtener citas del profesional para hoy
           const today = new Date().toISOString().split('T')[0];
@@ -398,6 +416,16 @@ export default function ProfessionalDashboard() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Configuración de pagos con Stripe Connect */}
+        {professionalId && (
+          <div className="mt-8">
+            <StripeConnectButton
+              professionalId={professionalId}
+              initialStatus={stripeStatus}
+            />
+          </div>
+        )}
 
         {/* Desactivar cuenta */}
         {professionalEmail && (

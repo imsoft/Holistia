@@ -163,6 +163,7 @@ export async function POST(request: NextRequest) {
             status: 'succeeded',
             paid_at: new Date().toISOString(),
             payment_method: session.payment_method_types?.[0] || null,
+            transfer_status: 'completed', // Transfer is automatic with Connect
           })
           .eq('id', payment_id);
 
@@ -265,6 +266,7 @@ export async function POST(request: NextRequest) {
           .from('payments')
           .update({
             status: 'refunded',
+            transfer_status: 'reversed',
           })
           .eq('stripe_payment_intent_id', charge.payment_intent as string);
 
@@ -274,6 +276,10 @@ export async function POST(request: NextRequest) {
 
         break;
       }
+
+      // Note: With Stripe Connect automatic transfers, the transfer happens 
+      // immediately and we track it via checkout.session.completed
+      // Additional transfer events can be monitored from Stripe Dashboard
 
       default:
         console.log(`Unhandled event type: ${event.type}`);

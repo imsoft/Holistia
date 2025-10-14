@@ -5,6 +5,9 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { PhoneInput } from "@/components/ui/phone-input";
+import { generateStaticMetadata } from "@/lib/seo";
+import { StructuredData } from "@/components/seo/structured-data";
+import { generateStructuredData } from "@/lib/seo";
 import { 
   Mail, 
   Phone, 
@@ -14,10 +17,21 @@ import {
   Send
 } from "lucide-react";
 
-export const metadata: Metadata = {
-  title: "Contáctanos - Holistia",
-  description: "Ponte en contacto con el equipo de Holistia. Estamos aquí para ayudarte con cualquier pregunta sobre nuestros servicios de salud integral.",
-};
+export const metadata: Metadata = generateStaticMetadata({
+  title: 'Contáctanos - Holistia | Soporte y Atención al Cliente',
+  description: 'Ponte en contacto con el equipo de Holistia. Estamos aquí para ayudarte con cualquier pregunta sobre nuestros servicios de salud integral, profesionales certificados y eventos de bienestar.',
+  keywords: [
+    'contacto Holistia',
+    'soporte al cliente',
+    'atención al cliente',
+    'consultas Holistia',
+    'ayuda técnica',
+    'información servicios',
+    'contacto profesionales',
+    'soporte plataforma',
+  ],
+  path: '/contact',
+});
 
 const contactMethods = [
   {
@@ -66,8 +80,18 @@ const faqs = [
 ];
 
 export default function ContactPage() {
+  const structuredData = generateStructuredData('website', {
+    name: 'Contacto - Holistia',
+    description: 'Información de contacto y soporte al cliente de Holistia',
+    contactInfo: {
+      email: 'hola@holistia.io',
+      phone: '+52-55-1234-5678',
+    }
+  });
+
   return (
     <div className="min-h-screen bg-background">
+      <StructuredData data={structuredData} />
       {/* Hero Section */}
       <div className="relative bg-gradient-to-b from-primary/5 to-background">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 py-16 sm:py-24 lg:py-32 lg:px-8">

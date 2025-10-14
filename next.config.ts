@@ -20,7 +20,11 @@ const nextConfig: NextConfig = {
         hostname: "raylqjmjdlojgkggvenq.supabase.co",
       },
     ],
+    formats: ['image/webp', 'image/avif'],
+    minimumCacheTTL: 31536000, // 1 year
   },
+  compress: true,
+  poweredByHeader: false,
   async headers() {
     return [
       {
@@ -41,6 +45,41 @@ const nextConfig: NextConfig = {
           {
             key: 'Referrer-Policy',
             value: 'strict-origin-when-cross-origin'
+          },
+          {
+            key: 'X-DNS-Prefetch-Control',
+            value: 'on'
+          },
+          {
+            key: 'Strict-Transport-Security',
+            value: 'max-age=31536000; includeSubDomains; preload'
+          }
+        ]
+      },
+      {
+        source: '/_next/static/(.*)',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable'
+          }
+        ]
+      },
+      {
+        source: '/images/(.*)',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable'
+          }
+        ]
+      },
+      {
+        source: '/logos/(.*)',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable'
           }
         ]
       }

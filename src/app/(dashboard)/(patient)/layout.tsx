@@ -261,8 +261,8 @@ export default function UserLayout({
                     </div>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-60">
-                  <div className="flex items-center justify-start gap-3 p-3">
+                <DropdownMenuContent align="end" className="min-w-64 max-w-80">
+                  <div className="flex items-start gap-3 p-3">
                     <div className="relative flex-shrink-0">
                       <Image
                         src={user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=random`}
@@ -272,9 +272,11 @@ export default function UserLayout({
                         className="h-10 w-10 aspect-square rounded-full object-cover border-2 border-primary/20"
                       />
                     </div>
-                    <div className="flex flex-col space-y-1 leading-none">
-                      <p className="font-medium text-foreground">{user.name}</p>
-                      <p className="text-sm text-muted-foreground">
+                    <div className="flex flex-col space-y-1 leading-tight min-w-0 flex-1">
+                      <p className="font-medium text-foreground break-words leading-tight">
+                        {user.name}
+                      </p>
+                      <p className="text-sm text-muted-foreground break-all">
                         {user.email}
                       </p>
                     </div>

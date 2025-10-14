@@ -242,9 +242,9 @@ export function AdminSidebar() {
                 />
               </div>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              <div className="flex items-center justify-start gap-3 p-3">
-                <div className="relative">
+            <DropdownMenuContent align="end" className="min-w-64 max-w-80">
+              <div className="flex items-start gap-3 p-3">
+                <div className="relative flex-shrink-0">
                   <Image
                     src={admin.imageUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(admin.name)}&background=random`}
                     alt=""
@@ -253,9 +253,11 @@ export function AdminSidebar() {
                     className="h-10 w-10 aspect-square rounded-full object-cover border-2 border-primary/20"
                   />
                 </div>
-                <div className="flex flex-col space-y-1 leading-none">
-                  <p className="font-medium text-foreground">{admin.name}</p>
-                  <p className="text-sm text-muted-foreground">
+                <div className="flex flex-col space-y-1 leading-tight min-w-0 flex-1">
+                  <p className="font-medium text-foreground break-words leading-tight">
+                    {admin.name}
+                  </p>
+                  <p className="text-sm text-muted-foreground break-all">
                     {admin.email}
                   </p>
                 </div>
@@ -271,10 +273,10 @@ export function AdminSidebar() {
             </DropdownMenuContent>
           </DropdownMenu>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-foreground truncate">
+            <p className="text-sm font-medium text-foreground break-words leading-tight">
               {admin.name}
             </p>
-            <p className="text-xs text-muted-foreground truncate">
+            <p className="text-xs text-muted-foreground break-words leading-tight">
               {admin.role}
             </p>
           </div>

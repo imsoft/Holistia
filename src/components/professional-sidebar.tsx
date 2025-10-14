@@ -268,10 +268,10 @@ export function ProfessionalSidebar() {
             </DropdownMenuContent>
           </DropdownMenu>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-foreground truncate">
+            <p className="text-sm font-medium text-foreground break-words leading-tight">
               {userData.name}
             </p>
-            <p className="text-xs text-muted-foreground truncate">
+            <p className="text-xs text-muted-foreground break-words leading-tight">
               {userData.profession}
             </p>
           </div>
@@ -282,9 +282,9 @@ export function ProfessionalSidebar() {
                 <Settings className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-80">
-              <div className="flex items-center justify-start gap-3 p-4">
-                <div className="relative">
+            <DropdownMenuContent align="end" className="min-w-64 max-w-80">
+              <div className="flex items-start gap-3 p-4">
+                <div className="relative flex-shrink-0">
                   <Image
                     src={userData.imageUrl}
                     alt=""
@@ -293,9 +293,11 @@ export function ProfessionalSidebar() {
                     className="h-10 w-10 aspect-square rounded-full object-cover border-2 border-primary/20"
                   />
                 </div>
-                <div className="flex flex-col space-y-1 leading-none min-w-0 flex-1">
-                  <p className="font-medium text-foreground">{userData.name}</p>
-                  <p className="text-sm text-muted-foreground break-words">
+                <div className="flex flex-col space-y-1 leading-tight min-w-0 flex-1">
+                  <p className="font-medium text-foreground break-words leading-tight">
+                    {userData.name}
+                  </p>
+                  <p className="text-sm text-muted-foreground break-all">
                     {userData.email}
                   </p>
                 </div>

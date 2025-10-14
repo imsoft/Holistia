@@ -9,8 +9,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Calendar, Clock, Share2, User } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
-import { Navbar } from "@/components/shared/navbar";
-import { Footer } from "@/components/shared/footer";
 
 export default function BlogPostPage({
   params,

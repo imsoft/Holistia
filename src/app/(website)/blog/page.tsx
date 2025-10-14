@@ -7,8 +7,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar, FileText, Clock, User } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
-import { Navbar } from "@/components/shared/navbar";
-import { Footer } from "@/components/shared/footer";
 
 export default function BlogPage() {
   const [posts, setPosts] = useState<BlogPost[]>([]);
@@ -113,9 +111,6 @@ export default function BlogPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="pb-12">
-        <Navbar />
-      </div>
       {/* Hero Section */}
       <div className="py-8 sm:py-12 lg:py-16">
         <div className="container mx-auto px-4 sm:px-6">
@@ -220,7 +215,6 @@ export default function BlogPage() {
           </>
         )}
       </div>
-      <Footer />
     </div>
   );
 }

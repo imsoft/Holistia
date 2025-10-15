@@ -186,25 +186,27 @@ export default function ProfessionalProfilePage() {
         const servicesMap = new Map();
         
         (servicesData || []).forEach(service => {
+          console.log('🔍 Procesando servicio:', service);
+          
           const existing = servicesMap.get(service.name);
           
           if (existing) {
             // Si ya existe, actualizar costos según la modalidad
             if (service.modality === 'presencial') {
-              existing.presencialCost = service.cost.toString();
+              existing.presencialCost = service.cost ? service.cost.toString() : '';
             } else if (service.modality === 'online') {
-              existing.onlineCost = service.cost.toString();
+              existing.onlineCost = service.cost ? service.cost.toString() : '';
             } else if (service.modality === 'both') {
-              existing.presencialCost = service.cost.toString();
-              existing.onlineCost = service.cost.toString();
+              existing.presencialCost = service.cost ? service.cost.toString() : '';
+              existing.onlineCost = service.cost ? service.cost.toString() : '';
             }
           } else {
             // Crear nuevo servicio
             servicesMap.set(service.name, {
               name: service.name,
               description: service.description || '',
-              presencialCost: (service.modality === 'presencial' || service.modality === 'both') ? service.cost.toString() : '',
-              onlineCost: (service.modality === 'online' || service.modality === 'both') ? service.cost.toString() : ''
+              presencialCost: (service.modality === 'presencial' || service.modality === 'both') && service.cost ? service.cost.toString() : '',
+              onlineCost: (service.modality === 'online' || service.modality === 'both') && service.cost ? service.cost.toString() : ''
             });
           }
         });
@@ -221,6 +223,18 @@ export default function ProfessionalProfilePage() {
         console.log('📋 Servicios convertidos:', convertedServices);
         console.log('📋 Servicios válidos:', validServices);
         console.log('📋 Cantidad de servicios válidos:', validServices.length);
+        
+        // Debug detallado de cada servicio
+        convertedServices.forEach((service, index) => {
+          console.log(`📋 Servicio ${index}:`, {
+            name: service.name,
+            presencialCost: service.presencialCost,
+            onlineCost: service.onlineCost,
+            hasPresencial: service.presencialCost && service.presencialCost !== '',
+            hasOnline: service.onlineCost && service.onlineCost !== '',
+            isValid: (service.presencialCost && service.presencialCost !== '') || (service.onlineCost && service.onlineCost !== '')
+          });
+        });
 
         // Intentar obtener el avatar del perfil del usuario
         const { data: profileData } = await supabase

@@ -211,8 +211,16 @@ export default function ProfessionalProfilePage() {
         
         const convertedServices = Array.from(servicesMap.values());
         
+        // Filtrar servicios que tengan al menos un costo configurado
+        const validServices = convertedServices.filter(service => 
+          (service.presencialCost && service.presencialCost !== '') || 
+          (service.onlineCost && service.onlineCost !== '')
+        );
+        
         console.log('📋 Servicios encontrados:', servicesData);
         console.log('📋 Servicios convertidos:', convertedServices);
+        console.log('📋 Servicios válidos:', validServices);
+        console.log('📋 Cantidad de servicios válidos:', validServices.length);
 
         // Intentar obtener el avatar del perfil del usuario
         const { data: profileData } = await supabase
@@ -227,7 +235,7 @@ export default function ProfessionalProfilePage() {
         setProfessional({
           ...professionalData,
           profile_photo: finalProfilePhoto,
-          services: convertedServices
+          services: validServices
         });
 
         // Verificar si es favorito

@@ -1,0 +1,11 @@
+/* Ocultar elementos de Mapbox cuando el diálogo de reserva esté abierto */
+.booking-dialog-open .mapboxgl-ctrl-attrib,
+.booking-dialog-open .mapboxgl-ctrl-logo {
+  display: none !important;
+}
+
+/* Asegurar que el diálogo esté por encima de todos los elementos de Mapbox */
+.booking-dialog-open {
+  position: relative;
+  z-index: 100;
+}

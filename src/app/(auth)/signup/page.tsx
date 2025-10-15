@@ -240,7 +240,7 @@ const RegisterPage = () => {
               href="/"
               className="font-medium text-foreground hover:text-primary transition-colors"
             >
-              ← Volver al inicio
+              Volver al inicio
             </Link>
           </p>
         </div>

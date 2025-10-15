@@ -1,10 +1,7 @@
 import { Metadata } from "next";
+import { ContactForm } from "@/components/contact-form";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import { PhoneInput } from "@/components/ui/phone-input";
 import { generateStaticMetadata } from "@/lib/seo";
 import { StructuredData } from "@/components/seo/structured-data";
 import { generateStructuredData } from "@/lib/seo";
@@ -13,8 +10,7 @@ import {
   Phone, 
   MapPin, 
   Clock,
-  MessageCircle,
-  Send
+  MessageCircle
 } from "lucide-react";
 
 export const metadata: Metadata = generateStaticMetadata({
@@ -156,88 +152,7 @@ export default function ContactPage() {
               </p>
             </div>
             
-            <Card>
-              <CardContent className="p-4 sm:p-6 lg:p-8">
-                <form className="space-y-4 sm:space-y-6">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-                    <div>
-                      <Label htmlFor="firstName">Nombre</Label>
-                      <Input
-                        id="firstName"
-                        name="firstName"
-                        type="text"
-                        required
-                        className="mt-2"
-                        placeholder="Tu nombre"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="lastName">Apellido</Label>
-                      <Input
-                        id="lastName"
-                        name="lastName"
-                        type="text"
-                        required
-                        className="mt-2"
-                        placeholder="Tu apellido"
-                      />
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="email">Email</Label>
-                    <Input
-                      id="email"
-                      name="email"
-                      type="email"
-                      required
-                      className="mt-2"
-                      placeholder="tu@email.com"
-                    />
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="phone">Teléfono (opcional)</Label>
-                    <PhoneInput
-                      id="phone"
-                      name="phone"
-                      className="mt-2"
-                      placeholder="33 1234 5678"
-                      defaultCountryCode="+52"
-                    />
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="subject">Asunto</Label>
-                    <Input
-                      id="subject"
-                      name="subject"
-                      type="text"
-                      required
-                      className="mt-2"
-                      placeholder="¿En qué podemos ayudarte?"
-                    />
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="message">Mensaje</Label>
-                    <Textarea
-                      id="message"
-                      name="message"
-                      rows={6}
-                      required
-                      className="mt-2"
-                      placeholder="Cuéntanos más detalles sobre tu consulta..."
-                    />
-                  </div>
-                  
-                  <Button type="submit" className="w-full" size="lg">
-                    <Send className="w-4 h-4 mr-2" />
-                    Enviar Mensaje
-                  </Button>
-                </form>
-              </CardContent>
-            </Card>
+            <ContactForm />
           </div>
         </div>
       </div>

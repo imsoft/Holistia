@@ -1237,11 +1237,6 @@ export default function ProfessionalProfilePage() {
 
                             {/* Campos del formulario */}
                             <div className="space-y-4">
-                              <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                                <p className="text-sm text-blue-700">
-                                  ℹ️ Los datos se obtienen de tu perfil
-                                </p>
-                              </div>
                               
                               <div className="grid grid-cols-1 gap-4">
                                 <div>

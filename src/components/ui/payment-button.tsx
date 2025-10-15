@@ -75,8 +75,24 @@ export default function PaymentButton({
     } catch (error) {
       console.error("Error processing payment:", error);
       const errorMessage = error instanceof Error ? error.message : "Error al procesar el pago";
-      onError?.(errorMessage);
-      toast.error(errorMessage);
+      
+      // Hacer el mensaje más amigable
+      let friendlyMessage = errorMessage;
+      if (errorMessage.includes("configurado su cuenta de pagos")) {
+        friendlyMessage = "El profesional aún no ha configurado su cuenta para recibir pagos. Por favor, contacta al profesional o intenta con otro experto.";
+      } else if (errorMessage.includes("completamente configurada")) {
+        friendlyMessage = "La cuenta de pagos del profesional está en proceso de configuración. Por favor, intenta más tarde o contacta al profesional.";
+      } else if (errorMessage.includes("ya tiene un pago confirmado")) {
+        friendlyMessage = "Esta cita ya tiene un pago confirmado. No es necesario pagar nuevamente.";
+      } else if (errorMessage.includes("cita reservada en este horario")) {
+        friendlyMessage = "Ya tienes una cita reservada en este horario con este profesional. Por favor, selecciona otro horario disponible.";
+      }
+      
+      onError?.(friendlyMessage);
+      toast.error(friendlyMessage, {
+        description: "Por favor, revisa la información e intenta nuevamente.",
+        duration: 6000,
+      });
     } finally {
       setLoading(false);
     }

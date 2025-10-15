@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import "../styles/toast.css";
 import { Analytics } from '@vercel/analytics/next';
 import { GoogleAnalytics, GoogleSearchConsole } from '@/components/seo/google-analytics';
+import { Toaster } from 'sonner';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -77,6 +79,23 @@ export default function RootLayout({
         {children}
         <Analytics />
         <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS_ID} />
+        <Toaster 
+          position="top-center"
+          expand={true}
+          richColors={false}
+          closeButton={true}
+          toastOptions={{
+            style: {
+              background: 'hsl(var(--background))',
+              color: 'hsl(var(--foreground))',
+              border: '1px solid hsl(var(--border))',
+              borderRadius: '12px',
+              boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)',
+            },
+            className: 'toast-custom',
+            duration: 5000,
+          }}
+        />
       </body>
     </html>
   );

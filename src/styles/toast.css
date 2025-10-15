@@ -1,0 +1,116 @@
+/* Estilos personalizados para Sonner Toast */
+
+/* Toast base - más suave y amigable */
+.toast-custom {
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  padding: 16px 20px;
+  margin: 8px;
+  max-width: 400px;
+  backdrop-filter: blur(8px);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Toast de error - menos agresivo */
+.toast-custom[data-type="error"] {
+  background: linear-gradient(135deg, #fef2f2 0%, #fef7f7 100%);
+  border: 1px solid #fecaca;
+  color: #991b1b;
+  box-shadow: 0 4px 6px -1px rgb(220 38 38 / 0.1), 0 2px 4px -2px rgb(220 38 38 / 0.1);
+}
+
+/* Toast de éxito - más suave */
+.toast-custom[data-type="success"] {
+  background: linear-gradient(135deg, #f0fdf4 0%, #f7fef7 100%);
+  border: 1px solid #bbf7d0;
+  color: #166534;
+  box-shadow: 0 4px 6px -1px rgb(34 197 94 / 0.1), 0 2px 4px -2px rgb(34 197 94 / 0.1);
+}
+
+/* Toast de información - neutro */
+.toast-custom[data-type="info"] {
+  background: linear-gradient(135deg, #eff6ff 0%, #f8fafc 100%);
+  border: 1px solid #bfdbfe;
+  color: #1e40af;
+  box-shadow: 0 4px 6px -1px rgb(59 130 246 / 0.1), 0 2px 4px -2px rgb(59 130 246 / 0.1);
+}
+
+/* Toast de advertencia - menos intenso */
+.toast-custom[data-type="warning"] {
+  background: linear-gradient(135deg, #fffbeb 0%, #fefce8 100%);
+  border: 1px solid #fed7aa;
+  color: #92400e;
+  box-shadow: 0 4px 6px -1px rgb(245 158 11 / 0.1), 0 2px 4px -2px rgb(245 158 11 / 0.1);
+}
+
+/* Íconos más suaves */
+.toast-custom [data-icon] {
+  opacity: 0.8;
+  filter: drop-shadow(0 1px 2px rgb(0 0 0 / 0.1));
+}
+
+/* Botón de cerrar más sutil */
+.toast-custom [data-close-button] {
+  opacity: 0.6;
+  transition: opacity 0.2s ease;
+}
+
+.toast-custom [data-close-button]:hover {
+  opacity: 1;
+}
+
+/* Animaciones más suaves */
+.toast-custom[data-state="open"] {
+  animation: slideInFromTop 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.toast-custom[data-state="closed"] {
+  animation: slideOutToTop 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes slideInFromTop {
+  from {
+    opacity: 0;
+    transform: translateY(-100%) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes slideOutToTop {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-100%) scale(0.95);
+  }
+}
+
+/* Hover effect más sutil */
+.toast-custom:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+}
+
+/* Estilos para el contenido del toast */
+.toast-custom [data-content] {
+  font-weight: 500;
+}
+
+/* Estilos para el título del toast */
+.toast-custom [data-title] {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+/* Estilos para la descripción del toast */
+.toast-custom [data-description] {
+  font-weight: 400;
+  opacity: 0.9;
+  margin-top: 4px;
+}

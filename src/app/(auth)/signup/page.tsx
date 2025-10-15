@@ -234,6 +234,15 @@ const RegisterPage = () => {
               Inicia sesión
             </Link>
           </p>
+          
+          <p className="mt-4 text-center text-sm/6 text-muted-foreground">
+            <Link
+              href="/"
+              className="font-medium text-foreground hover:text-primary transition-colors"
+            >
+              ← Volver al inicio
+            </Link>
+          </p>
         </div>
       </div>
     </>

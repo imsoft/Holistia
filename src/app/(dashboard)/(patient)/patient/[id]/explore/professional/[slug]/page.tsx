@@ -178,15 +178,20 @@ export default function ProfessionalProfilePage() {
           .order('created_at', { ascending: true });
 
         if (servicesError) {
-          console.error('Error fetching services:', servicesError);
+          console.error('Error fetching services from professional_services:', servicesError);
         }
+
+        // También obtener servicios del campo JSONB en professional_applications
+        const legacyServices = professionalData.services || [];
+        console.log('📋 Servicios legacy de professional_applications:', legacyServices);
 
         // Convertir servicios de la nueva estructura a la estructura esperada
         // Agrupar servicios por nombre para combinar modalidades
         const servicesMap = new Map();
         
+        // Procesar servicios de la tabla professional_services
         (servicesData || []).forEach(service => {
-          console.log('🔍 Procesando servicio:', service);
+          console.log('🔍 Procesando servicio de professional_services:', service);
           
           const existing = servicesMap.get(service.name);
           
@@ -210,6 +215,31 @@ export default function ProfessionalProfilePage() {
             });
           }
         });
+
+        // Procesar servicios legacy del campo JSONB
+        (legacyServices || []).forEach((service: { name: string; description?: string; presencialCost?: number; onlineCost?: number }) => {
+          console.log('🔍 Procesando servicio legacy:', service);
+          
+          const existing = servicesMap.get(service.name);
+          
+          if (existing) {
+            // Si ya existe, actualizar costos
+            if (service.presencialCost) {
+              existing.presencialCost = service.presencialCost.toString();
+            }
+            if (service.onlineCost) {
+              existing.onlineCost = service.onlineCost.toString();
+            }
+          } else {
+            // Crear nuevo servicio
+            servicesMap.set(service.name, {
+              name: service.name,
+              description: service.description || '',
+              presencialCost: service.presencialCost ? service.presencialCost.toString() : '',
+              onlineCost: service.onlineCost ? service.onlineCost.toString() : ''
+            });
+          }
+        });
         
         const convertedServices = Array.from(servicesMap.values());
         
@@ -219,7 +249,8 @@ export default function ProfessionalProfilePage() {
           (service.onlineCost && service.onlineCost !== '')
         );
         
-        console.log('📋 Servicios encontrados:', servicesData);
+        console.log('📋 Servicios de professional_services:', servicesData);
+        console.log('📋 Servicios legacy de professional_applications:', legacyServices);
         console.log('📋 Servicios convertidos:', convertedServices);
         console.log('📋 Servicios válidos:', validServices);
         console.log('📋 Cantidad de servicios válidos:', validServices.length);

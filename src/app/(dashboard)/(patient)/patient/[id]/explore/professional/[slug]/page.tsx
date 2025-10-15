@@ -35,6 +35,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import PaymentButton from "@/components/ui/payment-button";
+import { FriendlyErrorDialog } from "@/components/ui/friendly-error-dialog";
 import {
   Select,
   SelectContent,
@@ -92,6 +93,13 @@ export default function ProfessionalProfilePage() {
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [isPhotoModalOpen, setIsPhotoModalOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [isFriendlyErrorOpen, setIsFriendlyErrorOpen] = useState(false);
+  const [friendlyErrorData, setFriendlyErrorData] = useState<{
+    title: string;
+    message: string;
+    type: 'error' | 'warning' | 'info' | 'success';
+    description?: string;
+  } | null>(null);
   const [successData, setSuccessData] = useState<{
     date: string;
     time: string;
@@ -1456,8 +1464,36 @@ export default function ProfessionalProfilePage() {
                   setIsSuccessModalOpen(true);
                 }}
                 onError={(error) => {
-                  setErrorMessage(`Error en el pago: ${error}`);
-                  setIsErrorModalOpen(true);
+                  // Determinar el tipo de error y mostrar el FriendlyErrorDialog
+                  let errorType: 'error' | 'warning' | 'info' | 'success' = 'error';
+                  let title = 'Error al Reservar';
+                  let description = 'Por favor, revisa la información e intenta nuevamente.';
+                  
+                  if (error.includes('configurado su cuenta de pagos')) {
+                    errorType = 'warning';
+                    title = 'Cuenta de Pagos No Configurada';
+                    description = 'El profesional aún no ha configurado su cuenta para recibir pagos. Por favor, contacta al profesional o intenta con otro experto.';
+                  } else if (error.includes('completamente configurada')) {
+                    errorType = 'info';
+                    title = 'Configuración en Proceso';
+                    description = 'La cuenta de pagos del profesional está en proceso de configuración. Por favor, intenta más tarde o contacta al profesional.';
+                  } else if (error.includes('ya tiene un pago confirmado')) {
+                    errorType = 'info';
+                    title = 'Pago Ya Confirmado';
+                    description = 'Esta cita ya tiene un pago confirmado. No es necesario pagar nuevamente.';
+                  } else if (error.includes('cita reservada en este horario')) {
+                    errorType = 'warning';
+                    title = 'Horario No Disponible';
+                    description = 'Ya tienes una cita reservada en este horario con este profesional. Por favor, selecciona otro horario disponible.';
+                  }
+                  
+                  setFriendlyErrorData({
+                    title,
+                    message: error,
+                    type: errorType,
+                    description
+                  });
+                  setIsFriendlyErrorOpen(true);
                   setIsPaymentModalOpen(false);
                 }}
               />
@@ -1678,6 +1714,23 @@ export default function ProfessionalProfilePage() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Friendly Error Dialog */}
+      {friendlyErrorData && (
+        <FriendlyErrorDialog
+          open={isFriendlyErrorOpen}
+          onOpenChange={setIsFriendlyErrorOpen}
+          title={friendlyErrorData.title}
+          message={friendlyErrorData.message}
+          type={friendlyErrorData.type}
+          description={friendlyErrorData.description}
+          actionText="Entendido"
+          onAction={() => {
+            setIsFriendlyErrorOpen(false);
+            setFriendlyErrorData(null);
+          }}
+        />
+      )}
     </div>
   );
 }

@@ -3,7 +3,7 @@ import { Heart, Users, Shield, Lightbulb } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "Nuestra Historia - Holistia",
-  description: "Conoce la historia de Holistia, cómo nació nuestra plataforma de salud integral y nuestra misión de conectar pacientes con profesionales de la salud.",
+  description: "Conoce la historia de Holistia, cómo nació nuestra plataforma de salud integral y nuestra misión de conectar pacientes con expertos.",
 };
 
 export default function HistoryPage() {
@@ -42,7 +42,7 @@ export default function HistoryPage() {
                   información sobre dónde encontrar el profesional adecuado.
                 </p>
                 <p>
-                  En 2023, nuestro equipo fundador, compuesto por profesionales de la salud y 
+                  En 2023, nuestro equipo fundador, compuesto por expertos y 
                   tecnólogos apasionados, se propuso una misión ambiciosa: democratizar el acceso 
                   a la salud integral a través de la tecnología.
                 </p>
@@ -80,7 +80,7 @@ export default function HistoryPage() {
               <div className="text-base sm:text-lg leading-7 sm:leading-8 text-muted-foreground space-y-4 sm:space-y-6">
                 <p>
                   Los primeros meses fueron de aprendizaje constante. Trabajamos mano a mano con 
-                  profesionales de la salud para entender sus necesidades, sus desafíos y sus 
+                  expertos para entender sus necesidades, sus desafíos y sus 
                   aspiraciones. Cada conversación, cada feedback, cada sugerencia nos ayudó a 
                   moldear una plataforma verdaderamente útil.
                 </p>

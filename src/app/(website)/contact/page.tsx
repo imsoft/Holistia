@@ -19,7 +19,7 @@ import {
 
 export const metadata: Metadata = generateStaticMetadata({
   title: 'Contáctanos - Holistia | Soporte y Atención al Cliente',
-  description: 'Ponte en contacto con el equipo de Holistia. Estamos aquí para ayudarte con cualquier pregunta sobre nuestros servicios de salud integral, profesionales certificados y eventos de bienestar.',
+  description: 'Ponte en contacto con el equipo de Holistia. Estamos aquí para ayudarte con cualquier pregunta sobre nuestros servicios de salud integral, expertos certificados y eventos de bienestar.',
   keywords: [
     'contacto Holistia',
     'soporte al cliente',
@@ -121,7 +121,7 @@ export default function ContactPage() {
           
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
             {contactMethods.map((method, index) => (
-              <Card key={index} className="text-center hover:shadow-lg transition-shadow">
+              <Card key={index} className="py-4 text-center hover:shadow-lg transition-shadow">
                 <CardHeader className="px-4 sm:px-6">
                   <div className="mx-auto w-10 h-10 sm:w-12 sm:h-12 bg-primary/10 rounded-full flex items-center justify-center mb-3 sm:mb-4">
                     <method.icon className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
@@ -256,7 +256,7 @@ export default function ContactPage() {
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
             {faqs.map((faq, index) => (
-              <Card key={index}>
+              <Card key={index} className="py-4">
                 <CardHeader className="px-4 sm:px-6">
                   <CardTitle className="text-base sm:text-lg text-left">{faq.question}</CardTitle>
                 </CardHeader>

@@ -11,7 +11,7 @@ const testimonials = [
     },
   },
   {
-    body: "Como profesional de la salud, Holistia me ha permitido llegar a más pacientes y ofrecer mis servicios de manera más eficiente. La plataforma es intuitiva y el sistema de pagos funciona perfectamente.",
+    body: "Como experto, Holistia me ha permitido llegar a más pacientes y ofrecer mis servicios de manera más eficiente. La plataforma es intuitiva y el sistema de pagos funciona perfectamente.",
     author: {
       name: "Dr. Carlos Mendoza",
       handle: "dr_carlos_mendoza",

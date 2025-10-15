@@ -956,7 +956,7 @@ export default function BecomeProfessionalPage() {
           <div className="mb-6 sm:mb-8">
             <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">Solicitud de Profesional</h1>
             <p className="text-sm sm:text-base text-muted-foreground">
-              Estado de tu solicitud para convertirte en profesional de salud mental.
+              Estado de tu solicitud para convertirte en experto en salud mental.
             </p>
           </div>
 

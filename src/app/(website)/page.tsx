@@ -8,7 +8,7 @@ import { TestimonialsSection } from "@/components/shared/testimonials-section";
 
 export const metadata: Metadata = generateStaticMetadata({
   title: 'Holistia - Plataforma de Salud Integral y Bienestar en México',
-  description: 'Conecta con profesionales de la salud certificados en México. Consultas presenciales y en línea para tu bienestar integral. Psicólogos, terapeutas, coaches y más. Reserva tu cita hoy.',
+  description: 'Conecta con expertos certificados en México. Consultas presenciales y en línea para tu bienestar integral. Psicólogos, terapeutas, coaches y más. Reserva tu cita hoy.',
   keywords: [
     'psicólogos México',
     'terapeutas México',
@@ -18,7 +18,7 @@ export const metadata: Metadata = generateStaticMetadata({
     'terapia psicológica',
     'coaching México',
     'consultas presenciales',
-    'profesionales de la salud',
+    'expertos',
     'eventos de bienestar',
     'workshops de salud mental',
   ],

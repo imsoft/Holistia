@@ -307,7 +307,7 @@ const FavoritesPage = () => {
             </div>
             <h3 className="text-lg sm:text-xl font-semibold text-foreground mb-2">No tienes favoritos aún</h3>
             <p className="text-sm sm:text-base text-muted-foreground mb-4 sm:mb-6 max-w-md mx-auto">
-              Explora profesionales de salud mental y guarda tus favoritos para acceder a ellos fácilmente.
+              Explora expertos en salud mental y guarda tus favoritos para acceder a ellos fácilmente.
             </p>
             <Button 
               className="bg-primary text-primary-foreground px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base rounded-lg hover:bg-primary/90 transition-colors w-full sm:w-auto"

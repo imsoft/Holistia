@@ -17,7 +17,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://holistia.io'),
   title: "Holistia - Plataforma de Salud Integral",
-  description: "Conecta con profesionales de la salud certificados. Consultas presenciales y en línea para tu bienestar integral.",
+  description: "Conecta con expertos certificados. Consultas presenciales y en línea para tu bienestar integral.",
   keywords: ["salud", "bienestar", "profesionales", "consultas", "terapia", "psicología", "medicina"],
   authors: [{ name: "Holistia" }],
   creator: "Holistia",
@@ -27,7 +27,7 @@ export const metadata: Metadata = {
     locale: "es_ES",
     url: "https://holistia.io",
     title: "Holistia - Plataforma de Salud Integral",
-    description: "Conecta con profesionales de la salud certificados. Consultas presenciales y en línea para tu bienestar integral.",
+    description: "Conecta con expertos certificados. Consultas presenciales y en línea para tu bienestar integral.",
     siteName: "Holistia",
     images: [
       {
@@ -41,7 +41,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "Holistia - Plataforma de Salud Integral",
-    description: "Conecta con profesionales de la salud certificados. Consultas presenciales y en línea para tu bienestar integral.",
+    description: "Conecta con expertos certificados. Consultas presenciales y en línea para tu bienestar integral.",
     images: ["/logos/holistia-black.png"],
   },
   robots: {

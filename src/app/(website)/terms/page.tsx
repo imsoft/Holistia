@@ -58,11 +58,11 @@ export default function TermsPage() {
             <section>
               <h2 className="text-2xl font-bold mb-4">2. Descripción del Servicio</h2>
               <p className="mb-4">
-                Holistia es una plataforma digital que conecta usuarios con profesionales de la salud certificados, 
+                Holistia es una plataforma digital que conecta usuarios con expertos certificados, 
                 incluyendo psicólogos, terapeutas, coaches y otros especialistas en bienestar. Nuestros servicios incluyen:
               </p>
               <ul className="list-disc pl-6 mb-4">
-                <li>Conectarte con profesionales de la salud certificados</li>
+                <li>Conectarte con expertos certificados</li>
                 <li>Facilitar la programación de citas presenciales y en línea</li>
                 <li>Proporcionar información sobre eventos y talleres de bienestar</li>
                 <li>Ofrecer contenido educativo sobre salud mental y bienestar</li>

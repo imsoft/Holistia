@@ -87,7 +87,7 @@ CREATE TRIGGER update_professional_services_updated_at
   EXECUTE FUNCTION update_updated_at_column();
 
 -- 6. Comentarios en la tabla y columnas
-COMMENT ON TABLE professional_services IS 'Servicios ofrecidos por profesionales de la salud';
+COMMENT ON TABLE professional_services IS 'Servicios ofrecidos por expertos';
 COMMENT ON COLUMN professional_services.professional_id IS 'ID de la aplicación profesional';
 COMMENT ON COLUMN professional_services.user_id IS 'ID del usuario profesional';
 COMMENT ON COLUMN professional_services.name IS 'Nombre del servicio';

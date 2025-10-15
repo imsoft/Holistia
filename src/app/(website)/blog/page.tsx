@@ -21,7 +21,7 @@ interface BlogPost {
 // Metadata estático para la página del blog
 export const metadata = generateStaticMetadata({
   title: 'Blog de Holistia - Consejos de Salud Mental y Bienestar',
-  description: 'Descubre consejos, información y recursos sobre bienestar y salud mental en nuestro blog. Artículos escritos por profesionales certificados para tu crecimiento personal.',
+  description: 'Descubre consejos, información y recursos sobre bienestar y salud mental en nuestro blog. Artículos escritos por expertos certificados para tu crecimiento personal.',
   keywords: [
     'blog salud mental',
     'consejos bienestar',

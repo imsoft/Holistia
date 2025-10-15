@@ -277,7 +277,7 @@ const ProfilePage = () => {
           <div>
             <h2 className="text-sm sm:text-base font-semibold text-foreground">Foto de perfil</h2>
             <p className="mt-1 text-xs sm:text-sm text-muted-foreground">
-              Tu foto de perfil será visible para los profesionales de salud mental.
+              Tu foto de perfil será visible para los expertos en salud mental.
             </p>
 
             <div className="mt-4 sm:mt-6 flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">

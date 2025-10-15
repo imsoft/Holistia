@@ -69,7 +69,7 @@ export default function PrivacyPage() {
               </p>
               <ul className="list-disc pl-6 mb-4">
                 <li>Proporcionar y mejorar nuestros servicios</li>
-                <li>Conectarlo con profesionales de la salud apropiados</li>
+                <li>Conectarlo con expertos apropiados</li>
                 <li>Procesar pagos y transacciones</li>
                 <li>Enviar notificaciones sobre citas y servicios</li>
                 <li>Comunicarnos con usted sobre actualizaciones</li>

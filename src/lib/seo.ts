@@ -54,7 +54,7 @@ export const DEFAULT_SEO: Metadata = {
     template: '%s | Holistia',
     default: 'Holistia - Plataforma de Salud Integral y Bienestar',
   },
-  description: 'Conecta con profesionales de la salud certificados en México. Consultas presenciales y en línea para tu bienestar integral. Psicólogos, terapeutas, coaches y más.',
+  description: 'Conecta con expertos certificados en México. Consultas presenciales y en línea para tu bienestar integral. Psicólogos, terapeutas, coaches y más.',
   keywords: [
     'salud mental',
     'bienestar',
@@ -65,7 +65,7 @@ export const DEFAULT_SEO: Metadata = {
     'salud integral',
     'terapia psicológica',
     'bienestar emocional',
-    'profesionales de la salud',
+    'expertos',
     'consultas presenciales',
     'eventos de bienestar',
     'workshops',
@@ -345,7 +345,7 @@ export function generateStructuredData(type: 'website' | 'professional' | 'event
     name: 'Holistia',
     url: BASE_URL,
     logo: `${BASE_URL}/logos/holistia-black.png`,
-    description: 'Plataforma de salud integral que conecta usuarios con profesionales de la salud certificados.',
+    description: 'Plataforma de salud integral que conecta usuarios con expertos certificados.',
     sameAs: [
       'https://facebook.com/holistia',
       'https://instagram.com/holistia_mx',

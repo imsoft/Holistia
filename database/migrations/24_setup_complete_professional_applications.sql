@@ -131,7 +131,7 @@ CREATE POLICY "Admins can update all applications" ON public.professional_applic
   );
 
 -- 10. Comentarios para documentar los campos
-COMMENT ON TABLE public.professional_applications IS 'Tabla para almacenar las aplicaciones de profesionales de la salud';
+COMMENT ON TABLE public.professional_applications IS 'Tabla para almacenar las aplicaciones de expertos';
 COMMENT ON COLUMN public.professional_applications.user_id IS 'ID del usuario que aplicó como profesional';
 COMMENT ON COLUMN public.professional_applications.profession IS 'Profesión del profesional (ej: Psicólogo, Nutriólogo, etc.)';
 COMMENT ON COLUMN public.professional_applications.specializations IS 'Array de especializaciones del profesional';

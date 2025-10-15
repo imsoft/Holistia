@@ -31,69 +31,69 @@ export const LogoClouds = () => {
             </div>
           </div>
           <div className="mx-auto grid w-full max-w-xl grid-cols-3 items-center gap-x-8 gap-y-12 sm:gap-y-14 lg:mx-0 lg:max-w-none lg:pl-8">
-            {/* Vercel */}
+            {/* Mistika */}
             <div className="col-span-1 flex justify-center">
               <Image
-                alt="Vercel"
-                src="https://upload.wikimedia.org/wikipedia/commons/5/5e/Vercel_logo_black.svg"
-                width={120}
-                height={48}
-                className="max-h-12 w-auto object-contain filter grayscale hover:grayscale-0 transition-all duration-300"
+                alt="Mistika"
+                src="/sponsors/mistika.png"
+                width={500}
+                height={200}
+                className="max-h-40 w-auto object-contain filter grayscale hover:grayscale-0 transition-all duration-300"
               />
             </div>
 
-            {/* Supabase */}
+            {/* AM */}
             <div className="col-span-1 flex justify-center">
               <Image
-                alt="Supabase"
-                src="https://supabase.com/images/brand/supabase-logo-wordmark--dark.svg"
-                width={120}
-                height={48}
-                className="max-h-12 w-auto object-contain filter grayscale hover:grayscale-0 transition-all duration-300"
+                alt="AM"
+                src="/sponsors/am.png"
+                width={500}
+                height={200}
+                className="max-h-40 w-auto object-contain filter grayscale hover:grayscale-0 transition-all duration-300"
               />
             </div>
 
-            {/* Next.js */}
+            {/* Munar */}
             <div className="col-span-1 flex justify-center">
               <Image
-                alt="Next.js"
-                src="https://upload.wikimedia.org/wikipedia/commons/8/8e/Nextjs-logo.svg"
-                width={120}
-                height={48}
-                className="max-h-12 w-auto object-contain filter grayscale hover:grayscale-0 transition-all duration-300"
+                alt="Munar"
+                src="/sponsors/munar.png"
+                width={500}
+                height={200}
+                className="max-h-40 w-auto object-contain filter grayscale hover:grayscale-0 transition-all duration-300"
               />
             </div>
 
-            {/* Stripe */}
+            {/* Primitiva */}
             <div className="col-span-1 flex justify-center">
               <Image
-                alt="Stripe"
-                src="https://upload.wikimedia.org/wikipedia/commons/b/ba/Stripe_Logo%2C_revised_2016.svg"
-                width={120}
-                height={48}
-                className="max-h-12 w-auto object-contain filter grayscale hover:grayscale-0 transition-all duration-300"
+                alt="Primitiva"
+                src="/sponsors/primitiva.png"
+                width={500}
+                height={200}
+                className="max-h-40 w-auto object-contain filter grayscale hover:grayscale-0 transition-all duration-300"
               />
             </div>
 
-            {/* Tailwind */}
+            {/* Casa Rosa */}
             <div className="col-span-1 flex justify-center">
               <Image
-                alt="Tailwind CSS"
-                src="https://upload.wikimedia.org/wikipedia/commons/d/d5/Tailwind_CSS_Logo.svg"
-                width={120}
-                height={48}
-                className="max-h-12 w-auto object-contain filter grayscale hover:grayscale-0 transition-all duration-300"
+                alt="Casa Rosa"
+                src="/sponsors/casa-rosa.png"
+                width={500}
+                height={200}
+                className="max-h-40 w-auto object-contain filter grayscale hover:grayscale-0 transition-all duration-300"
               />
             </div>
 
-            {/* TypeScript */}
+            {/* Hycore */}
             <div className="col-span-1 flex justify-center">
               <Image
-                alt="TypeScript"
-                src="https://upload.wikimedia.org/wikipedia/commons/4/4c/Typescript_logo_2020.svg"
-                width={120}
-                height={48}
-                className="max-h-12 w-auto object-contain filter grayscale hover:grayscale-0 transition-all duration-300"
+                alt="Hycore"
+                src="/sponsors/hycore.png"
+                width={500}
+                height={200}
+                className="max-h-40 w-auto object-contain filter grayscale hover:grayscale-0 transition-all duration-300"
               />
             </div>
           </div>

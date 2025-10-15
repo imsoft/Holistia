@@ -44,7 +44,7 @@ export default function TermsPage() {
 
       {/* Content */}
       <div className="container mx-auto px-4 sm:px-6 pb-16">
-        <div className="max-w-4xl mx-auto prose prose-lg max-w-none">
+        <div className="max-w-4xl mx-auto prose prose-lg">
           <div className="space-y-8 text-foreground">
             
             <section>

@@ -197,21 +197,23 @@ export default function ProfessionalProfilePage() {
           
           if (existing) {
             // Si ya existe, actualizar costos según la modalidad
+            const costStr = service.cost ? service.cost.toString() : '';
             if (service.modality === 'presencial') {
-              existing.presencialCost = service.cost ? service.cost.toString() : '';
+              existing.presencialCost = costStr;
             } else if (service.modality === 'online') {
-              existing.onlineCost = service.cost ? service.cost.toString() : '';
+              existing.onlineCost = costStr;
             } else if (service.modality === 'both') {
-              existing.presencialCost = service.cost ? service.cost.toString() : '';
-              existing.onlineCost = service.cost ? service.cost.toString() : '';
+              existing.presencialCost = costStr;
+              existing.onlineCost = costStr;
             }
           } else {
             // Crear nuevo servicio
+            const costStr = service.cost ? service.cost.toString() : '';
             servicesMap.set(service.name, {
               name: service.name,
               description: service.description || '',
-              presencialCost: (service.modality === 'presencial' || service.modality === 'both') && service.cost ? service.cost.toString() : '',
-              onlineCost: (service.modality === 'online' || service.modality === 'both') && service.cost ? service.cost.toString() : ''
+              presencialCost: (service.modality === 'presencial' || service.modality === 'both') ? costStr : '',
+              onlineCost: (service.modality === 'online' || service.modality === 'both') ? costStr : ''
             });
           }
         });

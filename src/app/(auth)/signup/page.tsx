@@ -238,7 +238,7 @@ const RegisterPage = () => {
           <p className="mt-4 text-center text-sm/6 text-muted-foreground">
             <Link
               href="/"
-              className="font-medium text-foreground hover:text-primary transition-colors"
+              className="font-medium text-muted-foreground hover:text-primary transition-colors"
             >
               Volver al inicio
             </Link>

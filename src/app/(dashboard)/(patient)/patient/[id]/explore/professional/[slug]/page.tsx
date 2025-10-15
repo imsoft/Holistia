@@ -29,8 +29,8 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
+import { BookingDialog } from "@/components/ui/booking-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -1008,43 +1008,42 @@ export default function ProfessionalProfilePage() {
 
                 {/* Botones de acción */}
                 <div className="space-y-2 sm:space-y-3">
-                  <Dialog open={isBookingModalOpen} onOpenChange={setIsBookingModalOpen}>
-                    <DialogTrigger asChild>
-                      <Button className="w-full h-11 sm:h-12 text-sm sm:text-base font-semibold rounded-xl bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-lg">
-                        <Calendar className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
-                        Reservar cita
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent 
-                      className="max-h-[90vh] overflow-y-auto w-[95vw] sm:w-[90vw] max-w-[1200px]"
-                    >
-                      <DialogHeader className="pb-3 sm:pb-4">
-                        <DialogTitle className="text-lg sm:text-xl font-bold text-foreground">
-                          Reservar cita con {professional?.first_name} {professional?.last_name}
-                        </DialogTitle>
-                      </DialogHeader>
-                        
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 py-3 sm:py-4">
-                          {/* Selección de fecha y hora */}
-                          <div className="space-y-3 sm:space-y-4">
-                            <h3 className="text-base sm:text-lg font-semibold text-foreground">Fecha y hora</h3>
+                  <Button 
+                    onClick={() => setIsBookingModalOpen(true)}
+                    className="w-full h-11 sm:h-12 text-sm sm:text-base font-semibold rounded-xl bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-lg"
+                  >
+                    <Calendar className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+                    Reservar cita
+                  </Button>
+                  
+                  <BookingDialog 
+                    open={isBookingModalOpen} 
+                    onOpenChange={setIsBookingModalOpen}
+                    title={`Reservar cita con ${professional?.first_name} ${professional?.last_name}`}
+                  >
+                    <div className="p-6">
+                      <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+                        {/* Selección de fecha y hora */}
+                        <div className="space-y-6">
+                          <div>
+                            <h3 className="text-xl font-bold text-foreground mb-4">Fecha y hora</h3>
                             
                             {/* Fechas disponibles */}
                             <div>
-                              <Label className="text-sm font-medium text-foreground">Fecha</Label>
-                              <div className="grid grid-cols-2 gap-2 mt-2 max-h-48 overflow-y-auto">
+                              <Label className="text-base font-semibold text-foreground">Fecha</Label>
+                              <div className="grid grid-cols-3 gap-3 mt-3 max-h-60 overflow-y-auto">
                                 {getAvailableDates().map((dateOption) => (
                                   <button
                                     key={dateOption.date}
                                     onClick={() => handleDateChange(dateOption.date)}
-                                    className={`p-3 text-left rounded-lg border-2 transition-all ${
+                                    className={`p-4 text-left rounded-xl border-2 transition-all hover:shadow-md ${
                                       selectedDate === dateOption.date
-                                        ? "border-primary bg-primary/10 text-primary"
+                                        ? "border-primary bg-primary/10 text-primary shadow-lg"
                                         : "border-border hover:border-primary/50 bg-background"
                                     }`}
                                   >
-                                    <div className="text-sm font-medium">{dateOption.dayName}</div>
-                                    <div className="text-xs text-muted-foreground">
+                                    <div className="text-base font-semibold">{dateOption.dayName}</div>
+                                    <div className="text-sm text-muted-foreground">
                                       {dateOption.display.split(', ')[1]}
                                     </div>
                                   </button>
@@ -1055,14 +1054,14 @@ export default function ProfessionalProfilePage() {
                             {/* Horarios disponibles */}
                             {selectedDate && (
                               <div>
-                                <Label className="text-sm font-medium text-foreground">Horario</Label>
+                                <Label className="text-base font-semibold text-foreground">Horario</Label>
                                 {loadingTimes ? (
-                                  <div className="flex items-center justify-center py-8">
-                                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
-                                    <span className="ml-2 text-sm text-muted-foreground">Cargando horarios...</span>
+                                  <div className="flex items-center justify-center py-12">
+                                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                                    <span className="ml-3 text-base text-muted-foreground">Cargando horarios...</span>
                                   </div>
                                 ) : (
-                                  <div className="grid grid-cols-5 gap-2 mt-2 max-h-40 overflow-y-auto">
+                                  <div className="grid grid-cols-6 gap-3 mt-3 max-h-60 overflow-y-auto">
                                     {availableTimes.map((timeOption) => {
                                       const isAvailable = timeOption.status === 'available';
                                       const isOccupied = timeOption.status === 'occupied';
@@ -1073,9 +1072,9 @@ export default function ProfessionalProfilePage() {
                                           key={timeOption.time}
                                           onClick={() => isAvailable ? setSelectedTime(timeOption.time) : null}
                                           disabled={!isAvailable}
-                                          className={`p-2 text-center rounded-lg border-2 transition-all relative ${
+                                          className={`p-3 text-center rounded-xl border-2 transition-all relative hover:shadow-md ${
                                             selectedTime === timeOption.time
-                                              ? "border-primary bg-primary/10 text-primary"
+                                              ? "border-primary bg-primary/10 text-primary shadow-lg"
                                               : isAvailable
                                               ? "border-border hover:border-primary/50 bg-background hover:bg-primary/5"
                                               : isOccupied
@@ -1083,7 +1082,7 @@ export default function ProfessionalProfilePage() {
                                               : "border-gray-200 bg-gray-50 text-gray-400 cursor-not-allowed"
                                           }`}
                                         >
-                                          <div className={`text-sm font-medium ${
+                                          <div className={`text-base font-semibold ${
                                             isOccupied ? "line-through" : ""
                                           }`}>
                                             {timeOption.display}
@@ -1102,7 +1101,7 @@ export default function ProfessionalProfilePage() {
                                       );
                                     })}
                                     {availableTimes.length === 0 && (
-                                      <div className="col-span-5 text-center py-4 text-sm text-muted-foreground">
+                                      <div className="col-span-6 text-center py-8 text-base text-muted-foreground">
                                         No hay horarios disponibles para esta fecha
                                       </div>
                                     )}
@@ -1111,68 +1110,89 @@ export default function ProfessionalProfilePage() {
                               </div>
                             )}
                           </div>
+                        </div>
 
-                          {/* Formulario de información */}
-                          <div className="space-y-3 sm:space-y-4">
-                            <h3 className="text-base sm:text-lg font-semibold text-foreground">Información</h3>
+                        {/* Formulario de información */}
+                        <div className="space-y-6">
+                          <div>
+                            <h3 className="text-xl font-bold text-foreground mb-4">Información</h3>
                             
                             {/* Tipo de servicio */}
                             <div>
-                              <Label htmlFor="service" className="text-sm font-medium text-foreground">
+                              <Label htmlFor="service" className="text-base font-semibold text-foreground">
                                 Tipo de servicio
                               </Label>
                               <Select value={selectedService} onValueChange={setSelectedService}>
-                                <SelectTrigger className="mt-1 h-10">
+                                <SelectTrigger className="mt-3 h-12 text-base">
                                   <SelectValue placeholder="Selecciona el tipo de servicio" />
                                 </SelectTrigger>
-                                <SelectContent>
-                                  {professional.services.map((service, index) => {
-                                    const hasPresencial = service.presencialCost && service.presencialCost !== '';
-                                    const hasOnline = service.onlineCost && service.onlineCost !== '';
-                                    
-                                    return (
-                                      <div key={index}>
-                                        {hasPresencial && (
-                                          <SelectItem value={`${service.name}-presencial`}>
-                                            {service.name} - Presencial - {formatPrice(parseInt(service.presencialCost))}
-                                          </SelectItem>
-                                        )}
-                                        {hasOnline && (
-                                          <SelectItem value={`${service.name}-online`}>
-                                            {service.name} - En línea - {formatPrice(parseInt(service.onlineCost))}
-                                          </SelectItem>
-                                        )}
-                                      </div>
-                                    );
-                                  })}
+                                <SelectContent className="max-h-60">
+                                  {(() => {
+                                    console.log('🔍 Debug servicios:', {
+                                      professional: professional,
+                                      services: professional?.services,
+                                      servicesLength: professional?.services?.length
+                                    });
+                                    return null;
+                                  })()}
+                                  {professional?.services && professional.services.length > 0 ? (
+                                    professional.services.map((service, index) => {
+                                      const hasPresencial = service.presencialCost && service.presencialCost !== '';
+                                      const hasOnline = service.onlineCost && service.onlineCost !== '';
+                                      
+                                      return (
+                                        <div key={index}>
+                                          {hasPresencial && (
+                                            <SelectItem value={`${service.name}-presencial`} className="text-base py-3">
+                                              {service.name} - Presencial - {formatPrice(parseInt(service.presencialCost))}
+                                            </SelectItem>
+                                          )}
+                                          {hasOnline && (
+                                            <SelectItem value={`${service.name}-online`} className="text-base py-3">
+                                              {service.name} - En línea - {formatPrice(parseInt(service.onlineCost))}
+                                            </SelectItem>
+                                          )}
+                                        </div>
+                                      );
+                                    })
+                                  ) : (
+                                    <div className="p-4 text-center text-muted-foreground">
+                                      No hay servicios disponibles
+                                    </div>
+                                  )}
                                 </SelectContent>
                               </Select>
+                              {professional?.services && professional.services.length === 0 && (
+                                <p className="text-sm text-red-500 mt-2">
+                                  Este profesional no tiene servicios configurados
+                                </p>
+                              )}
                             </div>
 
                             {/* Campos del formulario */}
-                            <div className="space-y-3">
-                              <div className="p-2 bg-blue-50 border border-blue-200 rounded-lg">
-                                <p className="text-xs text-blue-700">
+                            <div className="space-y-4">
+                              <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                                <p className="text-sm text-blue-700">
                                   ℹ️ Los datos se obtienen de tu perfil
                                 </p>
                               </div>
                               
-                              <div className="grid grid-cols-1 gap-2">
+                              <div className="grid grid-cols-1 gap-4">
                                 <div>
-                                  <Label htmlFor="name" className="text-xs font-medium text-foreground">
+                                  <Label htmlFor="name" className="text-base font-semibold text-foreground">
                                     Nombre
                                   </Label>
                                   <Input
                                     id="name"
                                     value={appointmentForm.name}
                                     readOnly
-                                    className="mt-1 h-8 bg-muted/50 cursor-not-allowed text-sm"
+                                    className="mt-2 h-12 bg-muted/50 cursor-not-allowed text-base"
                                     placeholder="Tu nombre completo"
                                   />
                                 </div>
 
                                 <div>
-                                  <Label htmlFor="email" className="text-xs font-medium text-foreground">
+                                  <Label htmlFor="email" className="text-base font-semibold text-foreground">
                                     Email
                                   </Label>
                                   <Input
@@ -1180,12 +1200,12 @@ export default function ProfessionalProfilePage() {
                                     type="email"
                                     value={appointmentForm.email}
                                     readOnly
-                                    className="mt-1 h-8 bg-muted/50 cursor-not-allowed text-sm"
+                                    className="mt-2 h-12 bg-muted/50 cursor-not-allowed text-base"
                                   />
                                 </div>
 
                                 <div>
-                                  <Label htmlFor="phone" className="text-xs font-medium text-foreground">
+                                  <Label htmlFor="phone" className="text-base font-semibold text-foreground">
                                     Teléfono
                                   </Label>
                                   <Input
@@ -1193,89 +1213,90 @@ export default function ProfessionalProfilePage() {
                                     type="tel"
                                     value={appointmentForm.phone}
                                     readOnly
-                                    className="mt-1 h-8 bg-muted/50 cursor-not-allowed text-sm"
+                                    className="mt-2 h-12 bg-muted/50 cursor-not-allowed text-base"
                                     placeholder="+52 55 1234 5678"
                                   />
                                 </div>
 
                                 <div>
-                                  <Label htmlFor="notes" className="text-xs font-medium text-foreground">
+                                  <Label htmlFor="notes" className="text-base font-semibold text-foreground">
                                     Notas (opcional)
                                   </Label>
                                   <Textarea
                                     id="notes"
                                     value={appointmentForm.notes}
                                     onChange={(e) => setAppointmentForm(prev => ({ ...prev, notes: e.target.value }))}
-                                    className="mt-1 text-sm"
+                                    className="mt-2 text-base"
                                     placeholder="Cuéntanos sobre tu consulta..."
-                                    rows={2}
+                                    rows={4}
                                   />
                                 </div>
                               </div>
                             </div>
                           </div>
                         </div>
+                      </div>
 
-                        {/* Resumen de la cita */}
-                        {(selectedDate || selectedTime || selectedService) && (
-                          <div className="border-t border-border pt-4">
-                            <h4 className="text-base font-semibold text-foreground mb-3">Resumen</h4>
-                            <div className="bg-muted/50 rounded-lg p-4 space-y-2">
-                              {selectedDate && (
-                                <div className="flex justify-between">
-                                  <span className="text-muted-foreground">Fecha:</span>
-                                  <span className="text-foreground font-medium">
-                                    {getAvailableDates().find(d => d.date === selectedDate)?.display}
-                                  </span>
-                                </div>
-                              )}
-                              {selectedTime && (
-                                <div className="flex justify-between">
-                                  <span className="text-muted-foreground">Hora:</span>
-                                  <span className="text-foreground font-medium">{selectedTime}</span>
-                                </div>
-                              )}
-                              {selectedService && (
-                                <div className="flex justify-between">
-                                  <span className="text-muted-foreground">Servicio:</span>
-                                  <span className="text-foreground font-medium">
-                                    {(() => {
-                                      const [serviceName, serviceModality] = selectedService.split('-');
-                                      const service = professional.services.find(s => s.name === serviceName);
-                                      const modalityText = serviceModality === 'presencial' ? 'Presencial' : 'En línea';
-                                      const cost = serviceModality === 'presencial' 
-                                        ? parseInt(service?.presencialCost || '0')
-                                        : parseInt(service?.onlineCost || '0');
-                                      return `${serviceName} - ${modalityText} - ${formatPrice(cost)}`;
-                                    })()}
-                                  </span>
-                                </div>
-                              )}
-                            </div>
+                      {/* Resumen de la cita */}
+                      {(selectedDate || selectedTime || selectedService) && (
+                        <div className="border-t border-border pt-6 mt-6">
+                          <h4 className="text-xl font-bold text-foreground mb-4">Resumen</h4>
+                          <div className="bg-muted/50 rounded-xl p-6 space-y-3">
+                            {selectedDate && (
+                              <div className="flex justify-between items-center">
+                                <span className="text-base text-muted-foreground">Fecha:</span>
+                                <span className="text-base text-foreground font-semibold">
+                                  {getAvailableDates().find(d => d.date === selectedDate)?.display}
+                                </span>
+                              </div>
+                            )}
+                            {selectedTime && (
+                              <div className="flex justify-between items-center">
+                                <span className="text-base text-muted-foreground">Hora:</span>
+                                <span className="text-base text-foreground font-semibold">{selectedTime}</span>
+                              </div>
+                            )}
+                            {selectedService && (
+                              <div className="flex justify-between items-center">
+                                <span className="text-base text-muted-foreground">Servicio:</span>
+                                <span className="text-base text-foreground font-semibold">
+                                  {(() => {
+                                    const [serviceName, serviceModality] = selectedService.split('-');
+                                    const service = professional?.services.find(s => s.name === serviceName);
+                                    const modalityText = serviceModality === 'presencial' ? 'Presencial' : 'En línea';
+                                    const cost = serviceModality === 'presencial' 
+                                      ? parseInt(service?.presencialCost || '0')
+                                      : parseInt(service?.onlineCost || '0');
+                                    return `${serviceName} - ${modalityText} - ${formatPrice(cost)}`;
+                                  })()}
+                                </span>
+                              </div>
+                            )}
                           </div>
-                        )}
-
-                        {/* Botones de acción */}
-                        <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-3 pt-3 sm:pt-4 border-t border-border">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setIsBookingModalOpen(false)}
-                            className="w-full sm:w-auto"
-                          >
-                            Cancelar
-                          </Button>
-                          <Button
-                            size="sm"
-                            onClick={handleBookingSubmit}
-                            disabled={!selectedDate || !selectedTime || !selectedService || bookingLoading}
-                            className="w-full sm:w-auto"
-                          >
-                            {bookingLoading ? 'Reservando...' : 'Confirmar reserva'}
-                          </Button>
                         </div>
-                      </DialogContent>
-                    </Dialog>
+                      )}
+
+                      {/* Botones de acción */}
+                      <div className="flex flex-col sm:flex-row justify-end gap-4 pt-6 mt-6 border-t border-border">
+                        <Button
+                          variant="outline"
+                          size="lg"
+                          onClick={() => setIsBookingModalOpen(false)}
+                          className="w-full sm:w-auto h-12 text-base"
+                        >
+                          Cancelar
+                        </Button>
+                        <Button
+                          size="lg"
+                          onClick={handleBookingSubmit}
+                          disabled={!selectedDate || !selectedTime || !selectedService || bookingLoading}
+                          className="w-full sm:w-auto h-12 text-base"
+                        >
+                          {bookingLoading ? 'Reservando...' : 'Confirmar reserva'}
+                        </Button>
+                      </div>
+                    </div>
+                  </BookingDialog>
                 </div>
               </div>
             </div>

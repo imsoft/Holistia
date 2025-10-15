@@ -269,15 +269,8 @@ export default function ProfessionalProfilePage() {
           });
         });
 
-        // Intentar obtener el avatar del perfil del usuario
-        const { data: profileData } = await supabase
-          .from('profiles')
-          .select('avatar_url')
-          .eq('id', professionalData.user_id)
-          .single();
-        
-        // Priorizar avatar_url del perfil, luego profile_photo de la aplicación
-        const finalProfilePhoto = profileData?.avatar_url || professionalData.profile_photo;
+        // Usar profile_photo de la aplicación profesional
+        const finalProfilePhoto = professionalData.profile_photo;
         
         setProfessional({
           ...professionalData,
@@ -287,14 +280,16 @@ export default function ProfessionalProfilePage() {
 
         // Verificar si es favorito
         if (user) {
-          const { data: favoriteData } = await supabase
+          const { data: favoriteData, error: favoriteError } = await supabase
             .from('user_favorites')
             .select('id')
             .eq('user_id', user.id)
             .eq('professional_id', professionalData.id)
-            .single();
+            .maybeSingle();
 
-          setIsFavorite(!!favoriteData);
+          if (!favoriteError) {
+            setIsFavorite(!!favoriteData);
+          }
         }
 
       } catch (error) {
@@ -514,7 +509,7 @@ export default function ProfessionalProfilePage() {
         .from('professional_applications')
         .select('working_start_time, working_end_time, working_days')
         .eq('id', professional?.id)
-        .single();
+        .maybeSingle();
 
       if (profError) {
         console.error('Error fetching professional working hours:', profError);

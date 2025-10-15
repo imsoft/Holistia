@@ -1,11 +1,28 @@
 /* Ocultar elementos de Mapbox cuando el diálogo de reserva esté abierto */
 .booking-dialog-open .mapboxgl-ctrl-attrib,
-.booking-dialog-open .mapboxgl-ctrl-logo {
+.booking-dialog-open .mapboxgl-ctrl-logo,
+.booking-dialog-open .mapboxgl-ctrl-zoom-in,
+.booking-dialog-open .mapboxgl-ctrl-zoom-out,
+.booking-dialog-open .mapboxgl-ctrl-group {
+  display: none !important;
+}
+
+/* Ocultar todos los controles de Mapbox cuando el diálogo esté abierto */
+.booking-dialog-open .mapboxgl-ctrl {
   display: none !important;
 }
 
 /* Asegurar que el diálogo esté por encima de todos los elementos de Mapbox */
 .booking-dialog-open {
   position: relative;
-  z-index: 100;
+  z-index: 9999;
+}
+
+/* Asegurar que todos los elementos de Mapbox tengan z-index bajo */
+.mapboxgl-ctrl {
+  z-index: 1 !important;
+}
+
+.mapboxgl-ctrl-group {
+  z-index: 1 !important;
 }

@@ -29,15 +29,15 @@ export function BookingDialog({ open, onOpenChange, children, title }: BookingDi
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center">
       {/* Backdrop */}
       <div 
-        className="fixed inset-0 bg-black/50 backdrop-blur-sm"
+        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[9998]"
         onClick={() => onOpenChange(false)}
       />
       
       {/* Dialog */}
-      <div className="relative bg-background rounded-2xl shadow-2xl border border-border w-[95vw] max-w-6xl max-h-[95vh] overflow-hidden z-[101]">
+      <div className="relative bg-background rounded-2xl shadow-2xl border border-border w-[95vw] max-w-6xl max-h-[95vh] overflow-hidden z-[9999]">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-border">
           <h2 className="text-2xl font-bold text-foreground">{title}</h2>

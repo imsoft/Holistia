@@ -179,9 +179,12 @@ export default function ProfessionalProfilePage() {
           .order('created_at', { ascending: true });
 
         console.log('📋 Resultado de la consulta de servicios:', { servicesData, servicesError });
+        console.log('👤 Usuario autenticado:', user?.id);
+        console.log('🔍 Professional ID buscado:', professionalId);
         
         if (servicesError) {
           console.error('❌ Error fetching services from professional_services:', servicesError);
+          console.error('❌ Detalles del error:', JSON.stringify(servicesError, null, 2));
         } else {
           console.log('✅ Servicios obtenidos exitosamente:', servicesData?.length || 0, 'servicios');
         }

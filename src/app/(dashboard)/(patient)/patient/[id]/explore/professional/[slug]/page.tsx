@@ -170,6 +170,7 @@ export default function ProfessionalProfilePage() {
         }
 
         // Obtener servicios del profesional desde la tabla professional_services
+        console.log('🔍 Buscando servicios para professional_id:', professionalId);
         const { data: servicesData, error: servicesError } = await supabase
           .from('professional_services')
           .select('*')
@@ -177,8 +178,12 @@ export default function ProfessionalProfilePage() {
           .eq('isactive', true)
           .order('created_at', { ascending: true });
 
+        console.log('📋 Resultado de la consulta de servicios:', { servicesData, servicesError });
+        
         if (servicesError) {
-          console.error('Error fetching services from professional_services:', servicesError);
+          console.error('❌ Error fetching services from professional_services:', servicesError);
+        } else {
+          console.log('✅ Servicios obtenidos exitosamente:', servicesData?.length || 0, 'servicios');
         }
 
         // También obtener servicios del campo JSONB en professional_applications
@@ -276,6 +281,9 @@ export default function ProfessionalProfilePage() {
 
         // Usar profile_photo de la aplicación profesional
         const finalProfilePhoto = professionalData.profile_photo;
+        
+        console.log('🎯 Estableciendo servicios en el estado:', validServices);
+        console.log('🎯 Cantidad final de servicios:', validServices.length);
         
         setProfessional({
           ...professionalData,

@@ -90,7 +90,7 @@ export default function ContactPage() {
       <StructuredData data={structuredData} />
       {/* Hero Section */}
       <div className="relative bg-gradient-to-b from-primary/5 to-background">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 py-16 sm:py-24 lg:py-32 lg:px-8">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 py-12 sm:py-16 lg:py-20 lg:px-8">
           <div className="mx-auto max-w-3xl text-center">
             <h1 className="text-3xl sm:text-4xl lg:text-6xl font-bold tracking-tight text-foreground">
               Contáctanos
@@ -104,9 +104,9 @@ export default function ContactPage() {
       </div>
 
       {/* Contact Methods */}
-      <div className="py-12 sm:py-16 lg:py-24">
+      <div className="py-8 sm:py-12 lg:py-16">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="mx-auto max-w-3xl text-center mb-10 sm:mb-16">
+          <div className="mx-auto max-w-3xl text-center mb-8 sm:mb-12">
             <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-foreground">
               Formas de Contacto
             </h2>

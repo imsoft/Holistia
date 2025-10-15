@@ -18,8 +18,6 @@ interface EventPaymentButtonProps {
 export default function EventPaymentButton({
   eventId,
   serviceAmount,
-  eventName,
-  eventDate,
   onSuccess,
   onError,
   className,

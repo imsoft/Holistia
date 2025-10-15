@@ -108,7 +108,6 @@ export default function BecomeProfessionalPage() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [specializationInput, setSpecializationInput] = useState("");
   const [lastEnterTime, setLastEnterTime] = useState<number | null>(null);
-  const [wellnessAreaInput, setWellnessAreaInput] = useState("");
   const [userProfilePhoto, setUserProfilePhoto] = useState<string | null>(null);
   const [openCountryCombo, setOpenCountryCombo] = useState(false);
   const params = useParams();

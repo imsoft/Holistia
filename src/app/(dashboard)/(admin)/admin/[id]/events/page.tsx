@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
-import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -42,8 +41,6 @@ import {
 import { EventForm } from "@/components/ui/event-form";
 
 const EventsAdminPage = () => {
-  const params = useParams();
-  const adminId = params.id as string;
   const [events, setEvents] = useState<EventWorkshop[]>([]);
   const [professionals, setProfessionals] = useState<Professional[]>([]);
   const [loading, setLoading] = useState(true);

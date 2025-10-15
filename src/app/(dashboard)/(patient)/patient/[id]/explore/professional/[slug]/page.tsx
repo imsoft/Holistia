@@ -481,8 +481,8 @@ export default function ProfessionalProfilePage() {
       }
       
       // Convertir a números para cálculos
-      const [startHour, startMinute] = startTime.split(':').map(Number);
-      const [endHour, endMinute] = endTime.split(':').map(Number);
+      const [startHour] = startTime.split(':').map(Number);
+      const [endHour] = endTime.split(':').map(Number);
       
       console.log(`🕐 Horarios de trabajo: ${startTime} - ${endTime}`);
       

@@ -65,7 +65,7 @@ export function PhoneInput({
   error = false,
 }: PhoneInputProps) {
   // Separar el código de país del número
-  const parsePhoneValue = (phoneValue: string) => {
+  const parsePhoneValue = React.useCallback((phoneValue: string) => {
     if (!phoneValue) {
       return { countryCode: defaultCountryCode, number: "" };
     }
@@ -84,7 +84,7 @@ export function PhoneInput({
 
     // Si no hay código, asumir el código por defecto
     return { countryCode: defaultCountryCode, number: phoneValue };
-  };
+  }, [defaultCountryCode]);
 
   const { countryCode: initialCountryCode, number: initialNumber } =
     parsePhoneValue(value);
@@ -98,7 +98,7 @@ export function PhoneInput({
       parsePhoneValue(value);
     setCountryCode(newCountryCode);
     setPhoneNumber(newNumber);
-  }, [value]);
+  }, [value, parsePhoneValue]);
 
   const handleCountryCodeChange = (newCode: string) => {
     setCountryCode(newCode);

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -22,14 +22,7 @@ export function StripeConnectButton({ professionalId, initialStatus }: StripeCon
   const [accountStatus, setAccountStatus] = useState(initialStatus);
   const [checkingStatus, setCheckingStatus] = useState(false);
 
-  // Check account status on mount if already connected
-  useEffect(() => {
-    if (accountStatus?.stripe_account_id) {
-      checkAccountStatus();
-    }
-  }, []);
-
-  const checkAccountStatus = async () => {
+  const checkAccountStatus = useCallback(async () => {
     try {
       setCheckingStatus(true);
       const response = await fetch('/api/stripe/connect/account-status', {
@@ -53,7 +46,14 @@ export function StripeConnectButton({ professionalId, initialStatus }: StripeCon
     } finally {
       setCheckingStatus(false);
     }
-  };
+  }, [professionalId]);
+
+  // Check account status on mount if already connected
+  useEffect(() => {
+    if (accountStatus?.stripe_account_id) {
+      checkAccountStatus();
+    }
+  }, [accountStatus?.stripe_account_id, checkAccountStatus]);
 
   const handleConnect = async () => {
     try {

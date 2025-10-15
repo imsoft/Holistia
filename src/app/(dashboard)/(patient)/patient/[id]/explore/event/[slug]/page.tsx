@@ -49,13 +49,7 @@ const EventDetailPage = () => {
   // El slug tiene formato: "nombre-del-evento--uuid-del-evento"
   const eventId = slug.includes('--') ? slug.split('--').pop() : slug.split('-').pop();
 
-  useEffect(() => {
-    if (eventId) {
-      fetchEventDetails();
-    }
-  }, [eventId, supabase]);
-
-  const fetchEventDetails = async () => {
+  const fetchEventDetails = React.useCallback(async () => {
     try {
       setLoading(true);
       
@@ -114,7 +108,13 @@ const EventDetailPage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [supabase, eventId, userId]);
+
+  useEffect(() => {
+    if (eventId) {
+      fetchEventDetails();
+    }
+  }, [eventId, fetchEventDetails]);
 
   const handleRegister = async () => {
     if (!event) return;

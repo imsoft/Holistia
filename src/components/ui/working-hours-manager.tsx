@@ -20,7 +20,6 @@ interface WorkingHoursManagerProps {
 
 export function WorkingHoursManager({
   professionalId,
-  userId,
   currentStartTime = "09:00",
   currentEndTime = "18:00",
   currentWorkingDays = [1, 2, 3, 4, 5]
@@ -28,7 +27,6 @@ export function WorkingHoursManager({
   const [startTime, setStartTime] = useState(currentStartTime);
   const [endTime, setEndTime] = useState(currentEndTime);
   const [workingDays, setWorkingDays] = useState<number[]>(currentWorkingDays);
-  const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const supabase = createClient();
 
@@ -202,7 +200,7 @@ export function WorkingHoursManager({
         <div className="flex justify-end">
           <Button 
             onClick={handleSave} 
-            disabled={saving || loading}
+            disabled={saving}
           >
             {saving ? (
               <>

@@ -45,7 +45,7 @@ export default function NewBlogPostPage({ params }: { params: Promise<{ id: stri
   const supabase = createClient();
 
   // Obtener lista de autores disponibles
-  const fetchAuthors = async () => {
+  const fetchAuthors = React.useCallback(async () => {
     try {
       setLoadingAuthors(true);
       
@@ -99,12 +99,12 @@ export default function NewBlogPostPage({ params }: { params: Promise<{ id: stri
     } finally {
       setLoadingAuthors(false);
     }
-  };
+  }, [supabase]);
 
   // Cargar autores al montar el componente
   React.useEffect(() => {
     fetchAuthors();
-  }, []);
+  }, [fetchAuthors]);
 
   const handleTitleChange = (title: string) => {
     const newSlug = title

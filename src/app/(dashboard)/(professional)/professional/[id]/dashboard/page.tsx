@@ -45,8 +45,6 @@ export default function ProfessionalDashboard() {
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
-  const [workingStartTime, setWorkingStartTime] = useState<string>("09:00");
-  const [workingEndTime, setWorkingEndTime] = useState<string>("18:00");
   const [professionalId, setProfessionalId] = useState<string>("");
   const [stripeStatus, setStripeStatus] = useState<{
     stripe_account_id: string | null;
@@ -86,8 +84,6 @@ export default function ProfessionalDashboard() {
           setProfessionalName(`${professionalApp.first_name} ${professionalApp.last_name}`);
           setProfilePhoto(professionalApp.profile_photo || '');
           setProfessionalId(professionalApp.id);
-          setWorkingStartTime(professionalApp.working_start_time || '09:00');
-          setWorkingEndTime(professionalApp.working_end_time || '18:00');
           setStripeStatus({
             stripe_account_id: professionalApp.stripe_account_id,
             stripe_account_status: professionalApp.stripe_account_status,

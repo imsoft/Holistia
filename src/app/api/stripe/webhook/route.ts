@@ -4,7 +4,7 @@ import { createClient } from '@/utils/supabase/server';
 import { sendEventConfirmationEmailSimple } from '@/lib/email-sender';
 import Stripe from 'stripe';
 
-async function sendEventConfirmationEmail(eventRegistrationId: string, session: Stripe.Checkout.Session) {
+async function sendEventConfirmationEmail(eventRegistrationId: string) {
   try {
     const supabase = await createClient();
     
@@ -146,7 +146,6 @@ export async function POST(request: NextRequest) {
         const { 
           payment_id, 
           appointment_id,
-          event_id,
           event_registration_id
         } = session.metadata || {};
 
@@ -203,7 +202,7 @@ export async function POST(request: NextRequest) {
             
             // Send confirmation email for event payments
             try {
-              await sendEventConfirmationEmail(event_registration_id, session);
+              await sendEventConfirmationEmail(event_registration_id);
             } catch (emailError) {
               console.error('Error sending event confirmation email:', emailError);
               // Don't fail the webhook if email fails

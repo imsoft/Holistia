@@ -218,28 +218,33 @@ export default function ProfessionalProfilePage() {
           }
         });
 
-        // Procesar servicios legacy del campo JSONB
+        // Procesar servicios legacy del campo JSONB (solo si tienen datos válidos)
         (legacyServices || []).forEach((service: { name: string; description?: string; presencialCost?: number; onlineCost?: number }) => {
           console.log('🔍 Procesando servicio legacy:', service);
           
-          const existing = servicesMap.get(service.name);
-          
-          if (existing) {
-            // Si ya existe, actualizar costos
-            if (service.presencialCost) {
-              existing.presencialCost = service.presencialCost.toString();
-            }
-            if (service.onlineCost) {
-              existing.onlineCost = service.onlineCost.toString();
+          // Solo procesar servicios que tengan nombre y al menos un costo
+          if (service.name && service.name.trim() !== '' && (service.presencialCost || service.onlineCost)) {
+            const existing = servicesMap.get(service.name);
+            
+            if (existing) {
+              // Si ya existe, actualizar costos
+              if (service.presencialCost) {
+                existing.presencialCost = service.presencialCost.toString();
+              }
+              if (service.onlineCost) {
+                existing.onlineCost = service.onlineCost.toString();
+              }
+            } else {
+              // Crear nuevo servicio
+              servicesMap.set(service.name, {
+                name: service.name,
+                description: service.description || '',
+                presencialCost: service.presencialCost ? service.presencialCost.toString() : '',
+                onlineCost: service.onlineCost ? service.onlineCost.toString() : ''
+              });
             }
           } else {
-            // Crear nuevo servicio
-            servicesMap.set(service.name, {
-              name: service.name,
-              description: service.description || '',
-              presencialCost: service.presencialCost ? service.presencialCost.toString() : '',
-              onlineCost: service.onlineCost ? service.onlineCost.toString() : ''
-            });
+            console.log('⚠️ Servicio legacy ignorado (sin datos válidos):', service);
           }
         });
         

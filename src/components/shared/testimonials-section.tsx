@@ -2,12 +2,11 @@ import Image from "next/image";
 
 const testimonials = [
   {
-    body: "Holistia cambió completamente mi perspectiva sobre el cuidado de la salud. Encontré una psicóloga increíble que me ayudó a superar mi ansiedad. La plataforma es muy fácil de usar y los profesionales son de primera calidad.",
+    body: "Holistia me permitió encontrar la opción perfecta de terapia para mi proceso de desarrollo, en mi etapa y con mis necesidades actuales.",
     author: {
       name: "María González",
       handle: "maria_gonzalez",
-      imageUrl:
-        "https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
+      imageUrl: "/testimonials/testimonial_1.jpeg",
     },
   },
   {
@@ -15,8 +14,7 @@ const testimonials = [
     author: {
       name: "Dr. Carlos Mendoza",
       handle: "dr_carlos_mendoza",
-      imageUrl:
-        "https://images.unsplash.com/photo-1519244703995-f4e0f30006d5?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
+      imageUrl: "/testimonials/testimonial_2.jpeg",
     },
   },
   {
@@ -24,8 +22,7 @@ const testimonials = [
     author: {
       name: "Ana Rodríguez",
       handle: "ana_rodriguez",
-      imageUrl:
-        "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
+      imageUrl: "/testimonials/testimonial_3.jpeg",
     },
   },
 ];

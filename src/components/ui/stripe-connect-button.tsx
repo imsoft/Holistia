@@ -141,7 +141,7 @@ export function StripeConnectButton({ professionalId, initialStatus }: StripeCon
   const isFullyConnected = accountStatus?.stripe_charges_enabled && accountStatus?.stripe_payouts_enabled;
 
   return (
-    <Card>
+    <Card className="py-4">
       <CardHeader>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">

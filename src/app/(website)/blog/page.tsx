@@ -54,7 +54,7 @@ export default async function BlogPage() {
       (data || []).map(async (post: BlogPost) => {
         let authorInfo = null;
         if (post.author_id) {
-          // Try to get from professionals first
+          // Try to get from professional_applications
           const { data: professionalData } = await supabase
             .from('professional_applications')
             .select('id, first_name, last_name, email, profession, profile_photo')
@@ -71,26 +71,18 @@ export default async function BlogPage() {
               profession: professionalData.profession,
             };
           } else {
-            // Try to get from profiles (admin users)
-            const { data: profileData } = await supabase
-              .from('profiles')
-              .select('id, first_name, last_name, email, avatar_url')
-              .eq('id', post.author_id)
-              .eq('role', 'admin')
-              .single();
-
-            if (profileData) {
-              authorInfo = {
-                id: profileData.id,
-                name: `${profileData.first_name} ${profileData.last_name}`,
-                email: profileData.email,
-                avatar: profileData.avatar_url,
-                profession: 'Administrador',
-              };
-            }
+            // If not found in professionals, it's from auth.users
+            // Use a default for now
+            authorInfo = {
+              id: post.author_id,
+              name: 'Holistia',
+              email: '',
+              avatar: undefined,
+              profession: 'Equipo Holistia',
+            };
           }
         }
-        
+
         return {
           ...post,
           author: authorInfo || undefined

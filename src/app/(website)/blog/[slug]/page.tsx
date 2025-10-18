@@ -5,26 +5,6 @@ import { generateBlogMetadata, generateStructuredData } from '@/lib/seo';
 import { StructuredData } from '@/components/seo/structured-data';
 import { BlogPostClient } from './blog-post-client';
 
-interface BlogPost {
-  id: string;
-  slug: string;
-  title: string;
-  content: string;
-  excerpt?: string;
-  published_at: string;
-  updated_at: string;
-  created_at: string;
-  status: string;
-  featured_image?: string;
-  author_id?: string;
-  author?: {
-    first_name: string;
-    last_name: string;
-    profession: string;
-    profile_photo?: string;
-  };
-}
-
 interface BlogPostPageProps {
   params: Promise<{ slug: string }>;
 }
@@ -34,20 +14,13 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
   const supabase = await createClient();
 
   try {
+    // Primero obtener el post sin el autor
     const { data: post, error } = await supabase
       .from('blog_posts')
-      .select(`
-        *,
-        author:professional_applications!author_id(
-          first_name,
-          last_name,
-          profession,
-          profile_photo
-        )
-      `)
+      .select('*')
       .eq('slug', slug)
       .eq('status', 'published')
-        .single();
+      .single();
 
     if (error || !post) {
       return {
@@ -56,12 +29,29 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
       };
     }
 
+    // Intentar obtener el autor desde professional_applications
+    let authorName = 'Holistia';
+    let authorProfession = 'Equipo Holistia';
+
+    if (post.author_id) {
+      const { data: professionalAuthor } = await supabase
+        .from('professional_applications')
+        .select('first_name, last_name, profession')
+        .eq('id', post.author_id)
+        .single();
+
+      if (professionalAuthor) {
+        authorName = `${professionalAuthor.first_name} ${professionalAuthor.last_name}`;
+        authorProfession = professionalAuthor.profession;
+      }
+    }
+
     const blogPost = {
       ...post,
-      author: post.author ? {
-        name: `${post.author.first_name} ${post.author.last_name}`,
-        profession: post.author.profession,
-      } : undefined,
+      author: {
+        name: authorName,
+        profession: authorProfession,
+      },
     };
 
     return generateBlogMetadata(blogPost);
@@ -79,19 +69,10 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
   const supabase = await createClient();
 
   try {
-    // Fetch the specific post with author info
+    // Fetch the specific post without author join
     const { data: post, error: postError } = await supabase
       .from('blog_posts')
-      .select(`
-        *,
-        author:professional_applications!author_id(
-          id,
-          first_name,
-          last_name,
-          profession,
-          profile_photo
-        )
-      `)
+      .select('*')
       .eq('slug', slug)
       .eq('status', 'published')
       .single();
@@ -100,47 +81,82 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
       notFound();
     }
 
+    // Fetch author info if author_id exists
+    let authorInfo = undefined;
+    if (post.author_id) {
+      // Try to get from professional_applications first
+      const { data: professionalAuthor } = await supabase
+        .from('professional_applications')
+        .select('id, first_name, last_name, profession, profile_photo')
+        .eq('id', post.author_id)
+        .single();
+
+      if (professionalAuthor) {
+        authorInfo = {
+          name: `${professionalAuthor.first_name} ${professionalAuthor.last_name}`,
+          profession: professionalAuthor.profession,
+          avatar: professionalAuthor.profile_photo,
+        };
+      } else {
+        // If not found in professionals, could be from auth.users
+        // For now, use default
+        authorInfo = {
+          name: 'Holistia',
+          profession: 'Equipo Holistia',
+          avatar: undefined,
+        };
+      }
+    }
+
     // Fetch related posts
     const { data: relatedPosts } = await supabase
       .from('blog_posts')
-      .select(`
-        *,
-        author:professional_applications!author_id(
-          first_name,
-          last_name,
-          profession
-        )
-      `)
+      .select('*')
       .eq('status', 'published')
       .neq('id', post.id)
       .limit(3)
       .order('published_at', { ascending: false });
 
+    // Fetch authors for related posts
+    const relatedBlogPosts = await Promise.all(
+      (relatedPosts || []).map(async (relatedPost) => {
+        let relatedAuthorInfo = undefined;
+
+        if (relatedPost.author_id) {
+          const { data: professionalAuthor } = await supabase
+            .from('professional_applications')
+            .select('first_name, last_name, profession')
+            .eq('id', relatedPost.author_id)
+            .single();
+
+          if (professionalAuthor) {
+            relatedAuthorInfo = {
+              name: `${professionalAuthor.first_name} ${professionalAuthor.last_name}`,
+              profession: professionalAuthor.profession,
+            };
+          }
+        }
+
+        return {
+          ...relatedPost,
+          author: relatedAuthorInfo,
+        };
+      })
+    );
+
     const blogPost = {
       ...post,
-      author: post.author ? {
-        name: `${post.author.first_name} ${post.author.last_name}`,
-        profession: post.author.profession,
-        avatar: post.author.profile_photo,
-      } : undefined,
+      author: authorInfo,
     };
-
-    const relatedBlogPosts = (relatedPosts || []).map((relatedPost: BlogPost) => ({
-      ...relatedPost,
-      author: relatedPost.author ? {
-        name: `${relatedPost.author.first_name} ${relatedPost.author.last_name}`,
-        profession: relatedPost.author.profession,
-      } : undefined,
-    }));
 
     const structuredData = generateStructuredData('blog', blogPost);
 
     return (
       <>
         <StructuredData data={structuredData} />
-        <BlogPostClient 
-          post={blogPost} 
-          relatedPosts={relatedBlogPosts} 
+        <BlogPostClient
+          post={blogPost}
+          relatedPosts={relatedBlogPosts}
         />
       </>
     );

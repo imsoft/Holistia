@@ -49,72 +49,59 @@ export default function NewBlogPostPage({ params }: { params: Promise<{ id: stri
     try {
       setLoadingAuthors(true);
 
-      // Obtener administradores (usuarios con rol admin)
-      const { data: admins, error: adminsError } = await supabase
-        .from('profiles')
-        .select('id, first_name, last_name, email, avatar_url, role');
+      // Obtener el usuario actual para agregarlo como opción
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
 
-      console.log('Admins query result:', { admins, adminsError });
-
-      if (adminsError) {
-        console.error('Error fetching admins:', adminsError);
-      }
-
-      // Obtener profesionales
+      // Obtener profesionales aprobados
       const { data: professionals, error: professionalsError } = await supabase
         .from('professional_applications')
-        .select('id, first_name, last_name, email, profession, profile_photo, status');
-
-      console.log('Professionals query result:', { professionals, professionalsError });
+        .select('id, first_name, last_name, email, profession, profile_photo, status')
+        .eq('status', 'approved')
+        .not('first_name', 'is', null)
+        .not('last_name', 'is', null);
 
       if (professionalsError) {
         console.error('Error fetching professionals:', professionalsError);
+        setError('Error al cargar profesionales');
+        return;
       }
 
-      // Filtrar y combinar autores
-      const filteredAdmins = (admins || []).filter(admin =>
-        admin.role === 'admin' &&
-        admin.first_name &&
-        admin.last_name
-      );
-
-      const filteredProfessionals = (professionals || []).filter(prof =>
-        prof.status === 'approved' &&
-        prof.first_name &&
-        prof.last_name
-      );
-
-      console.log('Filtered results:', {
-        filteredAdmins,
-        filteredProfessionals,
-        totalAdmins: filteredAdmins.length,
-        totalProfessionals: filteredProfessionals.length
-      });
-
       // Combinar y formatear autores
-      const allAuthors: BlogAuthor[] = [
-        ...filteredAdmins.map(admin => ({
-          id: admin.id,
-          name: `${admin.first_name} ${admin.last_name}`,
-          email: admin.email,
-          avatar: admin.avatar_url,
+      const allAuthors: BlogAuthor[] = [];
+
+      // Agregar usuario actual como opción (administrador)
+      if (currentUser) {
+        const firstName = currentUser.user_metadata?.first_name || '';
+        const lastName = currentUser.user_metadata?.last_name || '';
+        const name = firstName && lastName
+          ? `${firstName} ${lastName}`
+          : currentUser.email?.split('@')[0] || 'Usuario';
+
+        allAuthors.push({
+          id: currentUser.id,
+          name: `${name} (Tú)`,
+          email: currentUser.email || '',
+          avatar: currentUser.user_metadata?.avatar_url,
           profession: 'Administrador',
           type: 'user' as const
-        })),
-        ...filteredProfessionals.map(professional => ({
+        });
+      }
+
+      // Agregar profesionales
+      if (professionals && professionals.length > 0) {
+        const professionalAuthors = professionals.map(professional => ({
           id: professional.id,
           name: `${professional.first_name} ${professional.last_name}`,
           email: professional.email,
           avatar: professional.profile_photo,
           profession: professional.profession,
           type: 'professional' as const
-        }))
-      ];
+        }));
+        allAuthors.push(...professionalAuthors);
+      }
 
       // Ordenar por nombre
       allAuthors.sort((a, b) => a.name.localeCompare(b.name));
-
-      console.log('Final authors list:', allAuthors);
 
       setAuthors(allAuthors);
     } catch (error) {

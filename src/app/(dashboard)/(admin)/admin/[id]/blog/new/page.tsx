@@ -48,30 +48,52 @@ export default function NewBlogPostPage({ params }: { params: Promise<{ id: stri
   const fetchAuthors = React.useCallback(async () => {
     try {
       setLoadingAuthors(true);
-      
+
       // Obtener administradores (usuarios con rol admin)
       const { data: admins, error: adminsError } = await supabase
         .from('profiles')
-        .select('id, first_name, last_name, email, avatar_url')
-        .eq('role', 'admin')
-        .not('first_name', 'is', null)
-        .not('last_name', 'is', null);
+        .select('id, first_name, last_name, email, avatar_url, role');
 
-      if (adminsError) throw adminsError;
+      console.log('Admins query result:', { admins, adminsError });
+
+      if (adminsError) {
+        console.error('Error fetching admins:', adminsError);
+      }
 
       // Obtener profesionales
       const { data: professionals, error: professionalsError } = await supabase
         .from('professional_applications')
-        .select('id, first_name, last_name, email, profession, profile_photo')
-        .eq('status', 'approved')
-        .not('first_name', 'is', null)
-        .not('last_name', 'is', null);
+        .select('id, first_name, last_name, email, profession, profile_photo, status');
 
-      if (professionalsError) throw professionalsError;
+      console.log('Professionals query result:', { professionals, professionalsError });
+
+      if (professionalsError) {
+        console.error('Error fetching professionals:', professionalsError);
+      }
+
+      // Filtrar y combinar autores
+      const filteredAdmins = (admins || []).filter(admin =>
+        admin.role === 'admin' &&
+        admin.first_name &&
+        admin.last_name
+      );
+
+      const filteredProfessionals = (professionals || []).filter(prof =>
+        prof.status === 'approved' &&
+        prof.first_name &&
+        prof.last_name
+      );
+
+      console.log('Filtered results:', {
+        filteredAdmins,
+        filteredProfessionals,
+        totalAdmins: filteredAdmins.length,
+        totalProfessionals: filteredProfessionals.length
+      });
 
       // Combinar y formatear autores
       const allAuthors: BlogAuthor[] = [
-        ...(admins || []).map(admin => ({
+        ...filteredAdmins.map(admin => ({
           id: admin.id,
           name: `${admin.first_name} ${admin.last_name}`,
           email: admin.email,
@@ -79,7 +101,7 @@ export default function NewBlogPostPage({ params }: { params: Promise<{ id: stri
           profession: 'Administrador',
           type: 'user' as const
         })),
-        ...(professionals || []).map(professional => ({
+        ...filteredProfessionals.map(professional => ({
           id: professional.id,
           name: `${professional.first_name} ${professional.last_name}`,
           email: professional.email,
@@ -91,7 +113,9 @@ export default function NewBlogPostPage({ params }: { params: Promise<{ id: stri
 
       // Ordenar por nombre
       allAuthors.sort((a, b) => a.name.localeCompare(b.name));
-      
+
+      console.log('Final authors list:', allAuthors);
+
       setAuthors(allAuthors);
     } catch (error) {
       console.error('Error fetching authors:', error);

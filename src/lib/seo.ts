@@ -344,8 +344,19 @@ export function generateStructuredData(type: 'website' | 'professional' | 'event
     '@type': 'Organization',
     name: 'Holistia',
     url: BASE_URL,
-    logo: `${BASE_URL}/logos/holistia-black.png`,
-    description: 'Plataforma de salud integral que conecta usuarios con expertos certificados.',
+    logo: {
+      '@type': 'ImageObject',
+      url: `${BASE_URL}/logos/holistia-black.png`,
+      width: '512',
+      height: '512'
+    },
+    description: 'Plataforma de salud integral que conecta usuarios con expertos certificados en México. Consultas presenciales y en línea.',
+    slogan: 'Tu bienestar, nuestra prioridad',
+    foundingDate: '2024',
+    areaServed: {
+      '@type': 'Country',
+      name: 'México'
+    },
     sameAs: [
       'https://facebook.com/holistia',
       'https://instagram.com/holistia_mx',
@@ -355,7 +366,8 @@ export function generateStructuredData(type: 'website' | 'professional' | 'event
       '@type': 'ContactPoint',
       telephone: '+52-55-1234-5678',
       contactType: 'customer service',
-      availableLanguage: 'Spanish',
+      availableLanguage: ['Spanish', 'Español'],
+      areaServed: 'MX'
     },
   };
 
@@ -430,4 +442,82 @@ export function generateStructuredData(type: 'website' | 'professional' | 'event
     default:
       return JSON.stringify(baseStructuredData);
   }
+}
+
+// Función para generar FAQ Schema
+export function generateFAQSchema(faqs: Array<{ question: string; answer: string }>): string {
+  return JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: faqs.map(faq => ({
+      '@type': 'Question',
+      name: faq.question,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: faq.answer
+      }
+    }))
+  });
+}
+
+// Función para generar Local Business Schema
+export function generateLocalBusinessSchema(): string {
+  return JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'MedicalBusiness',
+    name: 'Holistia',
+    image: `${BASE_URL}/logos/holistia-black.png`,
+    '@id': BASE_URL,
+    url: BASE_URL,
+    telephone: '+52-55-1234-5678',
+    address: {
+      '@type': 'PostalAddress',
+      addressCountry: 'MX',
+      addressLocality: 'México'
+    },
+    geo: {
+      '@type': 'GeoCoordinates',
+      latitude: 19.4326,
+      longitude: -99.1332
+    },
+    openingHoursSpecification: {
+      '@type': 'OpeningHoursSpecification',
+      dayOfWeek: [
+        'Monday',
+        'Tuesday',
+        'Wednesday',
+        'Thursday',
+        'Friday',
+        'Saturday'
+      ],
+      opens: '09:00',
+      closes: '20:00'
+    },
+    sameAs: [
+      'https://facebook.com/holistia',
+      'https://instagram.com/holistia_mx',
+      'https://twitter.com/holistia_mx'
+    ],
+    priceRange: '$$',
+    paymentAccepted: ['Cash', 'Credit Card', 'Debit Card'],
+    aggregateRating: {
+      '@type': 'AggregateRating',
+      ratingValue: '4.8',
+      reviewCount: '150'
+    }
+  });
+}
+
+// Función para generar Breadcrumb Schema
+export function generateBreadcrumbSchema(breadcrumbs: Array<{ name: string; url: string }>): string {
+  return JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: breadcrumbs.map((item, index) => ({
+      '@type': 'ListItem',
+      position: index + 1,
+      name: item.name,
+      item: item.url
+    }))
+  });
 }

@@ -82,7 +82,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       .not('slug', 'is', null);
 
     const professionalPages: MetadataRoute.Sitemap = (professionals || []).map((professional: ProfessionalSitemap) => ({
-      url: `${BASE_URL}/patient/[id]/explore/professional/${professional.slug}`,
+      url: `${BASE_URL}/profesionales/${professional.slug}`,
       lastModified: new Date(professional.updated_at),
       changeFrequency: 'weekly' as const,
       priority: 0.8,
@@ -92,12 +92,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const { data: events } = await supabase
       .from('events_workshops')
       .select('slug, updated_at, event_date')
-      .eq('status', 'active')
+      .eq('is_active', true)
       .not('slug', 'is', null)
       .gte('event_date', new Date().toISOString());
 
     const eventPages: MetadataRoute.Sitemap = (events || []).map((event: EventSitemap) => ({
-      url: `${BASE_URL}/patient/[id]/explore/event/${event.slug}`,
+      url: `${BASE_URL}/eventos/${event.slug}`,
       lastModified: new Date(event.updated_at),
       changeFrequency: 'weekly' as const,
       priority: 0.7,

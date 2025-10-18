@@ -1,0 +1,29 @@
+{
+  "name": "Holistia - Plataforma de Salud Integral y Bienestar",
+  "short_name": "Holistia",
+  "description": "Conecta con expertos certificados en México. Consultas presenciales y en línea para tu bienestar integral. Psicólogos, terapeutas, coaches y más.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#000000",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/logos/holistia-black.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/logos/holistia-black.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable any"
+    }
+  ],
+  "categories": ["health", "wellness", "medical", "lifestyle"],
+  "lang": "es-MX",
+  "dir": "ltr",
+  "scope": "/",
+  "screenshots": []
+}

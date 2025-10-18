@@ -196,7 +196,7 @@ export default function ProfessionalProfilePage() {
         // Obtener servicios del profesional usando la función RPC para evitar problemas de RLS
         console.log('🔍 Buscando servicios para professional_id:', professionalId);
         const { data: servicesData, error: servicesError } = await supabase
-          .rpc('get_professional_services', { prof_id: professionalId });
+          .rpc('get_professional_services', { p_professional_id: professionalId });
 
         console.log('📋 Resultado de la consulta de servicios:', { servicesData, servicesError });
         console.log('👤 Usuario autenticado:', user?.id);

@@ -182,11 +182,9 @@ export default function NewBlogPostPage({ params }: { params: Promise<{ id: stri
         featured_image: formData.featured_image || null,
       };
 
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from("blog_posts")
-        .insert([postData])
-        .select()
-        .single();
+        .insert([postData]);
 
       if (error) {
         console.error("Error creating post:", error);
@@ -198,8 +196,8 @@ export default function NewBlogPostPage({ params }: { params: Promise<{ id: stri
         return;
       }
 
-      // Redirect to edit page for the new post
-      router.push(`/admin/${id}/blog/${data.id}`);
+      // Redirect to blog list page
+      router.push(`/admin/${id}/blog`);
     } catch (err) {
       console.error("Error:", err);
       setError("Error inesperado al crear el post");

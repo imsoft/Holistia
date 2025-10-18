@@ -73,6 +73,22 @@ interface Professional {
   updated_at: string;
 }
 
+interface ProfessionalService {
+  id: string;
+  professional_id: string;
+  user_id: string;
+  name: string;
+  description: string | null;
+  type: string;
+  modality: string;
+  duration: number;
+  isactive: boolean;
+  created_at: string;
+  updated_at: string;
+  cost: number;
+  program_duration: Record<string, unknown> | null;
+}
+
 interface CurrentUser {
   id: string;
   name: string;
@@ -177,21 +193,17 @@ export default function ProfessionalProfilePage() {
           return;
         }
 
-        // Obtener servicios del profesional desde la tabla professional_services
+        // Obtener servicios del profesional usando la función RPC para evitar problemas de RLS
         console.log('🔍 Buscando servicios para professional_id:', professionalId);
         const { data: servicesData, error: servicesError } = await supabase
-          .from('professional_services')
-          .select('*')
-          .eq('professional_id', professionalId)
-          .eq('isactive', true)
-          .order('created_at', { ascending: true });
+          .rpc('get_professional_services', { prof_id: professionalId });
 
         console.log('📋 Resultado de la consulta de servicios:', { servicesData, servicesError });
         console.log('👤 Usuario autenticado:', user?.id);
         console.log('🔍 Professional ID buscado:', professionalId);
-        
+
         if (servicesError) {
-          console.error('❌ Error fetching services from professional_services:', servicesError);
+          console.error('❌ Error fetching services:', servicesError);
           console.error('❌ Detalles del error:', JSON.stringify(servicesError, null, 2));
         } else {
           console.log('✅ Servicios obtenidos exitosamente:', servicesData?.length || 0, 'servicios');
@@ -203,14 +215,19 @@ export default function ProfessionalProfilePage() {
 
         // Convertir servicios de la nueva estructura a la estructura esperada
         // Agrupar servicios por nombre para combinar modalidades
-        const servicesMap = new Map();
-        
+        const servicesMap = new Map<string, {
+          name: string;
+          description: string;
+          presencialCost: string;
+          onlineCost: string;
+        }>();
+
         // Procesar servicios de la tabla professional_services
-        (servicesData || []).forEach(service => {
+        (servicesData as ProfessionalService[] || []).forEach((service: ProfessionalService) => {
           console.log('🔍 Procesando servicio de professional_services:', service);
-          
+
           const existing = servicesMap.get(service.name);
-          
+
           if (existing) {
             // Si ya existe, actualizar costos según la modalidad
             const costStr = service.cost ? service.cost.toString() : '';

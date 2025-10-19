@@ -72,7 +72,7 @@ function LoginFormWithMessage() {
     } catch (error) {
       console.error("Error inesperado en login:", error);
       const errorMessage = "Ocurrió un error inesperado. Por favor, intenta de nuevo.";
-      toast.error(errorMessage);
+      // toast.error(errorMessage);
       setError(errorMessage);
       setIsLoading(false);
     }

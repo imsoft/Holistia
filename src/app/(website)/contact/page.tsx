@@ -71,7 +71,7 @@ const faqs = [
   },
   {
     question: "¿Cómo funciona el sistema de pagos?",
-    answer: "Utilizamos Stripe para procesar los pagos de manera segura. Puedes pagar con tarjeta de crédito o débito. Holistia cobra una comisión del 15% como reserva."
+    answer: "Utilizamos Stripe para procesar los pagos de manera segura. Puedes pagar con tarjeta de crédito o débito. Todos los pagos están protegidos con encriptación de nivel bancario."
   }
 ];
 

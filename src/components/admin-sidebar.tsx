@@ -11,6 +11,7 @@ import {
   FileText,
   Calendar,
   ClipboardList,
+  CalendarCheck,
 } from "lucide-react";
 import {
   Sidebar,
@@ -47,6 +48,7 @@ export function AdminSidebar() {
   const [admin, setAdmin] = useState<AdminUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState<string>("");
+  const [hasEvents, setHasEvents] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
   const supabase = createClient();
@@ -80,6 +82,18 @@ export function AdminSidebar() {
 
         setAdmin(adminData);
         setUserId(user.id);
+
+        // Verificar si el admin tiene eventos asignados
+        const { data: events, error: eventsError } = await supabase
+          .from('events_workshops')
+          .select('id')
+          .eq('owner_id', user.id)
+          .eq('owner_type', 'admin')
+          .limit(1);
+
+        if (!eventsError && events && events.length > 0) {
+          setHasEvents(true);
+        }
       } catch (error) {
         console.error('Error fetching admin data:', error);
       } finally {
@@ -132,6 +146,15 @@ export function AdminSidebar() {
       icon: UserPlus,
     },
   ];
+
+  // Agregar "Mis eventos" solo si el admin tiene eventos asignados
+  if (hasEvents) {
+    navItems.push({
+      title: "Mis eventos",
+      url: `/admin/${userId}/my-events`,
+      icon: CalendarCheck,
+    });
+  }
 
   // Función para cerrar sesión
   const handleSignOut = async () => {

@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { EventFormData, EventWorkshop, Professional, EVENT_CATEGORIES, SESSION_TYPES, PARTICIPANT_LEVELS } from "@/types/event";
+import { EventFormData, EventWorkshop, Professional, EventOwner, EVENT_CATEGORIES, SESSION_TYPES, PARTICIPANT_LEVELS, OWNER_TYPES } from "@/types/event";
 import { createClient } from "@/utils/supabase/client";
 import { toast } from "sonner";
 import { Upload, X, Crop } from "lucide-react";
@@ -51,6 +51,8 @@ export function EventForm({ event, professionals, onSuccess, onCancel }: EventFo
     description: "",
     participant_level: "todos",
     professional_id: "",
+    owner_id: "",
+    owner_type: "professional",
     gallery_images: [],
     image_position: "center center",
   });
@@ -62,8 +64,81 @@ export function EventForm({ event, professionals, onSuccess, onCancel }: EventFo
   const [isCropDialogOpen, setIsCropDialogOpen] = useState(false);
   const [cropImageIndex, setCropImageIndex] = useState<number>(0);
   const [currentImagePosition, setCurrentImagePosition] = useState<string>("center center");
+  const [availableOwners, setAvailableOwners] = useState<EventOwner[]>([]);
+  const [loadingOwners, setLoadingOwners] = useState(true);
 
   const supabase = createClient();
+
+  // Cargar usuarios disponibles para ser dueños del evento
+  useEffect(() => {
+    const loadAvailableOwners = async () => {
+      try {
+        setLoadingOwners(true);
+        const owners: EventOwner[] = [];
+
+        // Cargar administradores
+        const { data: admins } = await supabase
+          .from('users')
+          .select('id, email, raw_user_meta_data')
+          .eq('raw_user_meta_data->>type', 'admin');
+
+        if (admins) {
+          admins.forEach((admin) => {
+            owners.push({
+              id: admin.id,
+              name: admin.raw_user_meta_data?.name || admin.email,
+              email: admin.email,
+              type: 'admin',
+            });
+          });
+        }
+
+        // Cargar profesionales
+        const { data: profs } = await supabase
+          .from('professional_applications')
+          .select('id, user_id, first_name, last_name, email, status')
+          .eq('status', 'approved');
+
+        if (profs) {
+          profs.forEach((prof) => {
+            owners.push({
+              id: prof.user_id,
+              name: `${prof.first_name} ${prof.last_name}`,
+              email: prof.email,
+              type: 'professional',
+            });
+          });
+        }
+
+        // Cargar usuarios normales
+        const { data: patients } = await supabase
+          .from('users')
+          .select('id, email, raw_user_meta_data')
+          .or('raw_user_meta_data->>type.eq.patient,raw_user_meta_data->>type.is.null');
+
+        if (patients) {
+          patients.forEach((patient) => {
+            owners.push({
+              id: patient.id,
+              name: patient.raw_user_meta_data?.name || patient.email,
+              email: patient.email,
+              type: 'patient',
+            });
+          });
+        }
+
+        setAvailableOwners(owners);
+      } catch (error) {
+        console.error('Error loading owners:', error);
+        toast.error('Error al cargar la lista de usuarios');
+      } finally {
+        setLoadingOwners(false);
+      }
+    };
+
+    loadAvailableOwners();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     if (event) {
@@ -82,10 +157,12 @@ export function EventForm({ event, professionals, onSuccess, onCancel }: EventFo
         description: event.description || "",
         participant_level: event.participant_level,
         professional_id: event.professional_id || "",
+        owner_id: event.owner_id || "",
+        owner_type: event.owner_type || "professional",
         gallery_images: event.gallery_images || [],
         image_position: event.image_position || "center center",
       });
-      
+
       // Cargar la posición de imagen guardada
       if (event.image_position) {
         setCurrentImagePosition(event.image_position);
@@ -126,6 +203,10 @@ export function EventForm({ event, professionals, onSuccess, onCancel }: EventFo
 
     if (!formData.professional_id) {
       newErrors.professional_id = "Debe seleccionar un profesional";
+    }
+
+    if (!formData.owner_id) {
+      newErrors.owner_id = "Debe seleccionar el dueño del evento";
     }
 
     if (formData.gallery_images.length === 0) {
@@ -581,6 +662,63 @@ export function EventForm({ event, professionals, onSuccess, onCancel }: EventFo
               </SelectContent>
             </Select>
             {errors.professional_id && <p className="text-sm text-red-500">{errors.professional_id}</p>}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Dueño del evento */}
+      <Card className="p-4">
+        <CardHeader>
+          <CardTitle>Dueño del Evento</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="owner_type">Tipo de dueño *</Label>
+            <Select
+              value={formData.owner_type}
+              onValueChange={(value: "admin" | "professional" | "patient") => {
+                handleInputChange('owner_type', value);
+                // Reset owner_id cuando cambia el tipo
+                handleInputChange('owner_id', '');
+              }}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {OWNER_TYPES.map((type) => (
+                  <SelectItem key={type.value} value={type.value}>
+                    {type.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="owner_id">Seleccionar dueño *</Label>
+            <Select
+              value={formData.owner_id}
+              onValueChange={(value) => handleInputChange('owner_id', value)}
+              disabled={loadingOwners}
+            >
+              <SelectTrigger className={errors.owner_id ? "border-red-500" : ""}>
+                <SelectValue placeholder={loadingOwners ? "Cargando usuarios..." : "Selecciona el dueño del evento"} />
+              </SelectTrigger>
+              <SelectContent>
+                {availableOwners
+                  .filter(owner => owner.type === formData.owner_type)
+                  .map((owner) => (
+                    <SelectItem key={owner.id} value={owner.id}>
+                      {owner.name} ({owner.email})
+                    </SelectItem>
+                  ))}
+              </SelectContent>
+            </Select>
+            {errors.owner_id && <p className="text-sm text-red-500">{errors.owner_id}</p>}
+            <p className="text-xs text-muted-foreground">
+              El dueño del evento recibirá los pagos en su cuenta de Stripe Connect
+            </p>
           </div>
         </CardContent>
       </Card>

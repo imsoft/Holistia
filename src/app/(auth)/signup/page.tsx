@@ -78,7 +78,7 @@ const RegisterPage = () => {
     } catch (error) {
       console.error("Error inesperado en registro:", error);
       const errorMessage = "Ocurrió un error inesperado. Por favor, intenta de nuevo.";
-      toast.error(errorMessage);
+      // toast.error(errorMessage);
       setError(errorMessage);
       setIsLoading(false);
     }

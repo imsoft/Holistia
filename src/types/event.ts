@@ -14,6 +14,8 @@ export interface EventWorkshop {
   description?: string;
   participant_level: "todos" | "principiante" | "medio" | "avanzado";
   professional_id?: string;
+  owner_id: string; // ID del dueño del evento
+  owner_type: "admin" | "professional" | "patient"; // Tipo de dueño
   image_url?: string; // URL de la imagen principal del evento
   gallery_images: string[];
   image_position?: string; // Posición de la imagen en la card (ej: 'center center', 'top left')
@@ -21,6 +23,11 @@ export interface EventWorkshop {
   created_at?: string;
   updated_at?: string;
   created_by?: string;
+  stripe_account_id?: string;
+  stripe_account_status?: string;
+  stripe_onboarding_completed?: boolean;
+  stripe_charges_enabled?: boolean;
+  stripe_payouts_enabled?: boolean;
 }
 
 export interface EventFormData {
@@ -38,6 +45,8 @@ export interface EventFormData {
   description: string;
   participant_level: "todos" | "principiante" | "medio" | "avanzado";
   professional_id: string;
+  owner_id: string;
+  owner_type: "admin" | "professional" | "patient";
   image_url?: string; // URL de la imagen principal del evento
   gallery_images: string[];
   image_position?: string;
@@ -69,3 +78,16 @@ export const PARTICIPANT_LEVELS = [
   { value: "medio", label: "Intermedio" },
   { value: "avanzado", label: "Avanzado" },
 ] as const;
+
+export const OWNER_TYPES = [
+  { value: "admin", label: "Administrador" },
+  { value: "professional", label: "Profesional" },
+  { value: "patient", label: "Usuario" },
+] as const;
+
+export interface EventOwner {
+  id: string;
+  name: string;
+  email: string;
+  type: "admin" | "professional" | "patient";
+}

@@ -22,11 +22,20 @@ import { createClient } from "@/utils/supabase/client";
 import { Patient } from "@/types/patient";
 
 // Función para generar navegación basada en el ID del usuario
-const getNavigation = (userId: string) => [
-  { name: "Explorar", href: `/patient/${userId}/explore` },
-  { name: "Favoritos", href: `/patient/${userId}/explore/favorites` },
-  { name: "Citas", href: `/patient/${userId}/explore/appointments` },
-];
+const getNavigation = (userId: string, hasEvents: boolean = false) => {
+  const nav = [
+    { name: "Explorar", href: `/patient/${userId}/explore` },
+    { name: "Favoritos", href: `/patient/${userId}/explore/favorites` },
+    { name: "Citas", href: `/patient/${userId}/explore/appointments` },
+  ];
+
+  // Agregar "Mis eventos" solo si el usuario tiene eventos asignados
+  if (hasEvents) {
+    nav.push({ name: "Mis eventos", href: `/patient/${userId}/my-events` });
+  }
+
+  return nav;
+};
 
 // Función para generar navegación dinámica basada en el estado del usuario
 const getUserNavigation = (user: Patient, userId: string, isProfessional: boolean = false) => {
@@ -63,11 +72,12 @@ export default function UserLayout({
   const [currentPathname, setCurrentPathname] = useState("");
   const [user, setUser] = useState<Patient | null>(null);
   const [loading, setLoading] = useState(true);
+  const [hasEvents, setHasEvents] = useState(false);
   const pathname = usePathname();
   const params = useParams();
   const router = useRouter();
   const supabase = createClient();
-  
+
   // Obtener el ID del usuario de los parámetros de la URL
   const userId = params.id as string;
 
@@ -140,6 +150,18 @@ export default function UserLayout({
           };
 
           setUser(formattedUser);
+
+          // Verificar si el usuario tiene eventos asignados
+          const { data: events, error: eventsError } = await supabase
+            .from('events_workshops')
+            .select('id')
+            .eq('owner_id', userData.user.id)
+            .eq('owner_type', 'patient')
+            .limit(1);
+
+          if (!eventsError && events && events.length > 0) {
+            setHasEvents(true);
+          }
         }
       } catch (error) {
         console.error("Error fetching user data:", error);
@@ -168,7 +190,7 @@ export default function UserLayout({
   };
 
   // Generar navegación dinámica basada en el estado del usuario
-  const navigation = getNavigation(userId);
+  const navigation = getNavigation(userId, hasEvents);
   const userNavigation = user ? getUserNavigation(user, userId, user.type === "professional") : [];
 
   // Función para determinar si un item está activo

@@ -160,12 +160,12 @@ export function StripeConnectButton({ professionalId, initialStatus }: StripeCon
             {!accountStatus?.stripe_account_id ? (
               <>
                 Para poder recibir pagos por tus servicios, necesitas conectar una cuenta de Stripe.
-                La plataforma Holistia cobrará una comisión del <strong>15%</strong> por cada cita reservada.
+                Los pagos se procesarán de forma segura y se transferirán automáticamente a tu cuenta bancaria.
               </>
             ) : isFullyConnected ? (
               <>
                 Tu cuenta de Stripe está conectada y activa. Ya puedes recibir pagos por tus servicios.
-                Recuerda que Holistia cobra una comisión del <strong>15%</strong> por cada transacción.
+                Los pagos se transferirán automáticamente a tu cuenta bancaria.
               </>
             ) : (
               <>
@@ -236,10 +236,10 @@ export function StripeConnectButton({ professionalId, initialStatus }: StripeCon
         </div>
 
         <div className="text-xs text-muted-foreground space-y-1 pt-2 border-t">
-          <p>• Comisión por citas: <strong>15%</strong></p>
-          <p>• Comisión por eventos: <strong>20%</strong></p>
+          <p>• Pagos procesados de forma segura con Stripe</p>
           <p>• Transferencias automáticas a tu cuenta bancaria</p>
           <p>• Gestiona tus pagos desde el dashboard de Stripe</p>
+          <p>• Sin costos ocultos ni cargos adicionales</p>
         </div>
       </CardContent>
     </Card>

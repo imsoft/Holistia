@@ -1450,10 +1450,10 @@ export default function ProfessionalProfilePage() {
               
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
                 <p className="text-sm text-blue-800 text-center mb-2">
-                  💳 <strong>Pago de comisión:</strong> Para confirmar tu cita, paga la comisión de reserva
+                  💳 <strong>Pago seguro:</strong> Completa tu pago para confirmar la cita
                 </p>
                 <p className="text-xs text-blue-700 text-center">
-                  El monto total de la consulta lo pagarás directamente al profesional.
+                  Tu información de pago está protegida con encriptación de nivel bancario.
                 </p>
               </div>
 

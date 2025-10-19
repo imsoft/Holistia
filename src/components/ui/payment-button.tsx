@@ -98,23 +98,16 @@ export default function PaymentButton({
     }
   };
 
-  // Calculate commission (15%)
-  const commissionAmount = Math.round(serviceAmount * 0.15 * 100) / 100;
-
   return (
     <div className="space-y-4">
       <div className="bg-muted/50 p-4 rounded-lg space-y-2">
-        <div className="flex justify-between text-sm">
-          <span className="text-muted-foreground">Costo de la consulta:</span>
-          <span className="font-medium">${serviceAmount.toLocaleString('es-MX', { minimumFractionDigits: 2 })}</span>
-        </div>
-        <div className="flex justify-between text-sm">
-          <span className="text-muted-foreground">Apartado (15%):</span>
-          <span className="font-semibold text-primary">${commissionAmount.toLocaleString('es-MX', { minimumFractionDigits: 2 })}</span>
+        <div className="flex justify-between items-center">
+          <span className="text-sm text-muted-foreground">Precio de la consulta:</span>
+          <span className="text-2xl font-bold text-primary">${serviceAmount.toLocaleString('es-MX', { minimumFractionDigits: 2 })}</span>
         </div>
         <div className="pt-2 border-t border-border">
-          <p className="text-xs text-muted-foreground">
-            Solo pagarás la comisión de reserva ahora. El monto total de la consulta (${serviceAmount.toLocaleString('es-MX', { minimumFractionDigits: 2 })}) lo pagarás directamente al profesional.
+          <p className="text-xs text-muted-foreground text-center">
+            Paga de forma segura con tarjeta de crédito o débito
           </p>
         </div>
       </div>
@@ -133,7 +126,7 @@ export default function PaymentButton({
         ) : (
           <>
             <CreditCard className="mr-2 h-5 w-5" />
-            Pagar Reserva (${commissionAmount.toLocaleString('es-MX', { minimumFractionDigits: 2 })})
+            Pagar ${serviceAmount.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
           </>
         )}
       </Button>

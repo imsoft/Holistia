@@ -583,7 +583,7 @@ export default function ProfessionalProfilePage() {
         .select('appointment_time, appointment_type')
         .eq('professional_id', professional?.id)
         .eq('appointment_date', date)
-        .eq('status', 'confirmed'); // Solo citas confirmadas
+        .in('status', ['confirmed', 'pending']); // Citas confirmadas y pendientes
 
       if (error) {
         console.error('Error fetching appointments:', error);
@@ -1152,18 +1152,18 @@ export default function ProfessionalProfilePage() {
                                     <span className="ml-3 text-base text-muted-foreground">Cargando horarios...</span>
                                   </div>
                                 ) : (
-                                  <div className="grid grid-cols-6 gap-3 mt-3 max-h-60 overflow-y-auto">
+                                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 sm:gap-3 mt-3 max-h-60 overflow-y-auto">
                                     {availableTimes.map((timeOption) => {
                                       const isAvailable = timeOption.status === 'available';
                                       const isOccupied = timeOption.status === 'occupied';
                                       const isBlocked = timeOption.status === 'blocked';
-                                      
+
                                       return (
                                         <button
                                           key={timeOption.time}
                                           onClick={() => isAvailable ? setSelectedTime(timeOption.time) : null}
                                           disabled={!isAvailable}
-                                          className={`p-3 text-center rounded-xl border-2 transition-all relative hover:shadow-md ${
+                                          className={`p-2 sm:p-3 text-center rounded-lg sm:rounded-xl border-2 transition-all relative hover:shadow-md ${
                                             selectedTime === timeOption.time
                                               ? "border-primary bg-primary/10 text-primary shadow-lg"
                                               : isAvailable
@@ -1173,26 +1173,26 @@ export default function ProfessionalProfilePage() {
                                               : "border-gray-200 bg-gray-50 text-gray-400 cursor-not-allowed"
                                           }`}
                                         >
-                                          <div className={`text-base font-semibold ${
+                                          <div className={`text-sm sm:text-base font-semibold truncate ${
                                             isOccupied ? "line-through" : ""
                                           }`}>
                                             {timeOption.display}
                                           </div>
                                           {isOccupied && (
-                                            <div className="text-xs text-red-500 mt-1">
+                                            <div className="text-xs text-red-500 mt-0.5 sm:mt-1">
                                               Ocupado
                                             </div>
                                           )}
                                           {isBlocked && (
-                                            <div className="text-xs text-gray-500 mt-1">
-                                              No disponible
+                                            <div className="text-xs text-gray-500 mt-0.5 sm:mt-1">
+                                              No disp.
                                             </div>
                                           )}
                                         </button>
                                       );
                                     })}
                                     {availableTimes.length === 0 && (
-                                      <div className="col-span-6 text-center py-8 text-base text-muted-foreground">
+                                      <div className="col-span-2 sm:col-span-3 md:col-span-4 lg:col-span-6 text-center py-8 text-sm sm:text-base text-muted-foreground">
                                         No hay horarios disponibles para esta fecha
                                       </div>
                                     )}

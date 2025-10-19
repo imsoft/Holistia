@@ -404,9 +404,6 @@ const EventDetailPage = () => {
                         serviceAmount={event.price || 0}
                         eventName={event.name}
                         eventDate={event.event_date}
-                        onSuccess={() => {
-                          toast.success("Redirigiendo al pago...");
-                        }}
                         onError={(error) => {
                           toast.error(error);
                         }}
@@ -439,9 +436,6 @@ const EventDetailPage = () => {
                         serviceAmount={event.price || 0}
                         eventName={event.name}
                         eventDate={event.event_date}
-                        onSuccess={() => {
-                          toast.success("Redirigiendo al pago...");
-                        }}
                         onError={(error) => {
                           toast.error(error);
                         }}

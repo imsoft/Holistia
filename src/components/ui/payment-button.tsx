@@ -15,7 +15,6 @@ interface PaymentButtonProps {
   appointmentTime?: string;
   appointmentType?: string;
   notes?: string;
-  onSuccess?: () => void;
   onError?: (error: string) => void;
   className?: string;
   disabled?: boolean;
@@ -30,7 +29,6 @@ export default function PaymentButton({
   appointmentTime,
   appointmentType,
   notes,
-  onSuccess,
   onError,
   className,
   disabled = false,
@@ -67,8 +65,9 @@ export default function PaymentButton({
 
       // Redirect to Stripe Checkout
       if (data.url) {
+        // No llamar onSuccess aquí - solo redirigir a Stripe
+        // El éxito se manejará después del pago exitoso mediante webhook
         window.location.href = data.url;
-        onSuccess?.();
       } else {
         throw new Error("No se recibió URL de pago");
       }

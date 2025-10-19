@@ -104,7 +104,6 @@ export default function ProfessionalProfilePage() {
   const [favoriteLoading, setFavoriteLoading] = useState(false);
   const [bookingLoading, setBookingLoading] = useState(false);
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
-  const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const [isErrorModalOpen, setIsErrorModalOpen] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [isPhotoModalOpen, setIsPhotoModalOpen] = useState(false);
@@ -115,12 +114,6 @@ export default function ProfessionalProfilePage() {
     message: string;
     type: 'error' | 'warning' | 'info' | 'success';
     description?: string;
-  } | null>(null);
-  const [successData, setSuccessData] = useState<{
-    date: string;
-    time: string;
-    professional: string;
-    cost: number;
   } | null>(null);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [paymentData, setPaymentData] = useState<{
@@ -1470,16 +1463,6 @@ export default function ProfessionalProfilePage() {
                 })()}
                 notes={appointmentForm.notes}
                 description={`Consulta con ${paymentData.professionalName}`}
-                onSuccess={() => {
-                  setIsPaymentModalOpen(false);
-                  setSuccessData({
-                    date: paymentData.date,
-                    time: paymentData.time,
-                    professional: paymentData.professionalName,
-                    cost: paymentData.cost
-                  });
-                  setIsSuccessModalOpen(true);
-                }}
                 onError={(error) => {
                   // Determinar el tipo de error y mostrar el FriendlyErrorDialog
                   let errorType: 'error' | 'warning' | 'info' | 'success' = 'error';
@@ -1523,46 +1506,6 @@ export default function ProfessionalProfilePage() {
               onClick={() => setIsPaymentModalOpen(false)}
             >
               Cancelar
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Modal de Éxito Final (después del pago) */}
-      <Dialog open={isSuccessModalOpen} onOpenChange={setIsSuccessModalOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <div className="flex items-center justify-center mb-4">
-              <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center">
-                <CheckCircle className="h-10 w-10 text-green-600" />
-              </div>
-            </div>
-            <DialogTitle className="text-center text-2xl">
-              ¡Cita Confirmada!
-            </DialogTitle>
-          </DialogHeader>
-          
-          {successData && (
-            <div className="space-y-4 py-4">
-              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                <p className="text-sm text-green-800 text-center mb-2">
-                  ✅ <strong>Pago exitoso</strong>
-                </p>
-                <p className="text-xs text-green-700 text-center">
-                  Tu cita ha sido confirmada y el profesional ha sido notificado.
-                </p>
-              </div>
-            </div>
-          )}
-          
-          <div className="flex justify-end gap-3 pt-4">
-            <Button
-              onClick={() => {
-                setIsSuccessModalOpen(false);
-                window.location.href = `/patient/${patientId}/explore/appointments`;
-              }}
-            >
-              Ver Mis Citas
             </Button>
           </div>
         </DialogContent>

@@ -9,7 +9,6 @@ interface EventPaymentButtonProps {
   serviceAmount: number;
   eventName: string;
   eventDate: string;
-  onSuccess?: () => void;
   onError?: (error: string) => void;
   className?: string;
   disabled?: boolean;
@@ -18,7 +17,6 @@ interface EventPaymentButtonProps {
 export default function EventPaymentButton({
   eventId,
   serviceAmount,
-  onSuccess,
   onError,
   className,
   disabled = false,
@@ -49,8 +47,9 @@ export default function EventPaymentButton({
 
       // Redirect to Stripe Checkout
       if (data.url) {
+        // No llamar onSuccess aquí - solo redirigir a Stripe
+        // El éxito se manejará después del pago exitoso mediante webhook
         window.location.href = data.url;
-        onSuccess?.();
       } else {
         throw new Error("No se recibió URL de pago");
       }

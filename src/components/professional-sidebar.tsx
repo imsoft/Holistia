@@ -143,9 +143,9 @@ export function ProfessionalSidebar() {
             profession: 'Profesional',
           });
         } else if (application) {
-          // Priorizar avatar_url del usuario, luego profile_photo de la aplicación
-          const avatarUrl = user.user_metadata?.avatar_url || application.profile_photo || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&q=80';
-          
+          // Priorizar profile_photo de la aplicación (foto de perfil profesional), luego avatar_url del usuario
+          const avatarUrl = application.profile_photo || user.user_metadata?.avatar_url || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&q=80';
+
           setUserData({
             name: `${application.first_name} ${application.last_name}`,
             email: application.email,

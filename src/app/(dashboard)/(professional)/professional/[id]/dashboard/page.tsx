@@ -105,7 +105,12 @@ export default function ProfessionalDashboard() {
               status,
               location,
               notes,
-              patient_id
+              patient_id,
+              payments (
+                id,
+                status,
+                paid_at
+              )
             `)
             .eq('professional_id', professionalApp.id)
             .eq('appointment_date', today)
@@ -117,25 +122,34 @@ export default function ProfessionalDashboard() {
           }
 
           // Formatear citas sin información de pacientes (temporal)
+          // Solo mostrar citas confirmadas con pago exitoso
           if (appointmentsData && appointmentsData.length > 0) {
-            const formattedAppointments: Appointment[] = appointmentsData.map(apt => {
-              return {
-                id: apt.id,
-                patient: {
-                  name: `Paciente ${apt.patient_id.slice(0, 8)}`,
-                  email: 'No disponible',
-                  phone: 'No disponible',
-                },
-                date: apt.appointment_date,
-                time: apt.appointment_time.substring(0, 5),
-                duration: apt.duration_minutes,
-                type: apt.appointment_type === 'presencial' ? 'Presencial' : 'Online',
-                status: apt.status as "confirmed" | "pending" | "cancelled" | "completed",
-                location: apt.location || (apt.appointment_type === 'online' ? 'Online' : ''),
-                notes: apt.notes || undefined,
-              };
-            });
-            
+            const formattedAppointments: Appointment[] = appointmentsData
+              .filter(apt => {
+                // Solo incluir citas confirmadas con pago exitoso
+                if (apt.status === 'confirmed') {
+                  return apt.payments?.some((payment: { id: string; status: string; paid_at: string | null }) => payment.status === 'succeeded');
+                }
+                return false;
+              })
+              .map(apt => {
+                return {
+                  id: apt.id,
+                  patient: {
+                    name: `Paciente ${apt.patient_id.slice(0, 8)}`,
+                    email: 'No disponible',
+                    phone: 'No disponible',
+                  },
+                  date: apt.appointment_date,
+                  time: apt.appointment_time.substring(0, 5),
+                  duration: apt.duration_minutes,
+                  type: apt.appointment_type === 'presencial' ? 'Presencial' : 'Online',
+                  status: apt.status as "confirmed" | "pending" | "cancelled" | "completed",
+                  location: apt.location || (apt.appointment_type === 'online' ? 'Online' : ''),
+                  notes: apt.notes || undefined,
+                };
+              });
+
             setAppointments(formattedAppointments);
           }
 

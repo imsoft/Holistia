@@ -26,6 +26,12 @@ interface Professional {
   especialidad?: string;
 }
 
+interface Payment {
+  id: string;
+  status: 'pending' | 'processing' | 'succeeded' | 'failed' | 'refunded' | 'cancelled';
+  paid_at: string | null;
+}
+
 interface Appointment {
   id: string;
   patient_id: string;
@@ -41,6 +47,7 @@ interface Appointment {
   created_at: string;
   updated_at: string;
   professional: Professional;
+  payments?: Payment[];
 }
 
 const statusConfig = {
@@ -121,10 +128,17 @@ export default function AppointmentsPage() {
 
         console.log('✅ User ID matches, proceeding to fetch appointments...');
 
-        // Consulta a la tabla appointments
+        // Consulta a la tabla appointments con información de pagos
         const { data: appointmentsData, error } = await supabase
           .from('appointments')
-          .select('*')
+          .select(`
+            *,
+            payments (
+              id,
+              status,
+              paid_at
+            )
+          `)
           .eq('patient_id', user.id)  // Usar el ID del usuario autenticado, no el parámetro
           .order('appointment_date', { ascending: true })
           .order('appointment_time', { ascending: true });
@@ -278,12 +292,27 @@ export default function AppointmentsPage() {
     });
   };
 
+  // Verificar si una cita tiene un pago exitoso
+  const hasSuccessfulPayment = (appointment: Appointment): boolean => {
+    return appointment.payments?.some(payment => payment.status === 'succeeded') || false;
+  };
+
+  // Solo mostrar citas confirmadas que tengan pago exitoso
   const upcomingAppointments = appointments.filter(
-    (appointment) => appointment.status === "confirmed" || appointment.status === "pending"
+    (appointment) => {
+      // Mostrar solo citas confirmadas con pago exitoso
+      if (appointment.status === "confirmed") {
+        return hasSuccessfulPayment(appointment);
+      }
+      return false;
+    }
   );
 
   const pastAppointments = appointments.filter(
-    (appointment) => appointment.status === "completed" || appointment.status === "cancelled"
+    (appointment) => {
+      // Mostrar completadas y canceladas (que previamente fueron confirmadas con pago)
+      return appointment.status === "completed" || appointment.status === "cancelled";
+    }
   );
 
   return (

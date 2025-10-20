@@ -203,8 +203,8 @@ export async function POST(request: NextRequest) {
           destination: organizer.stripe_account_id, // Transfer rest to organizer
         },
       },
-      success_url: `${process.env.NEXT_PUBLIC_SITE_URL}/patient/${user.id}/explore/event/${event_id}?payment=success`,
-      cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL}/patient/${user.id}/explore/event/${event_id}?payment=cancelled`,
+      success_url: `${process.env.NEXT_PUBLIC_SITE_URL}/patient/${user.id}/explore/event/${event_id}`,
+      cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL}/patient/${user.id}/explore/event/${event_id}`,
       metadata: {
         payment_id: payment.id,
         event_id: event_id,

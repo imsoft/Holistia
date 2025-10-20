@@ -51,38 +51,35 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      // Check if already has a Stripe account
-      if (professional.stripe_account_id) {
-        return NextResponse.json(
-          { error: 'Ya tienes una cuenta de Stripe conectada' },
-          { status: 400 }
-        );
+      let accountId = professional.stripe_account_id;
+
+      // If no Stripe account exists, create one
+      if (!accountId) {
+        // Create Stripe Connect account
+        accountId = await createConnectAccount(professional.email, 'individual', 'MX');
+
+        // Update professional with Stripe account ID
+        const { error: updateError } = await supabase
+          .from('professional_applications')
+          .update({
+            stripe_account_id: accountId,
+            stripe_account_status: 'pending',
+          })
+          .eq('id', professional_id);
+
+        if (updateError) {
+          console.error('Error updating professional:', updateError);
+          return NextResponse.json(
+            { error: 'Error al actualizar profesional' },
+            { status: 500 }
+          );
+        }
       }
 
-      // Create Stripe Connect account
-      const accountId = await createConnectAccount(professional.email, 'individual', 'MX');
-
-      // Update professional with Stripe account ID
-      const { error: updateError } = await supabase
-        .from('professional_applications')
-        .update({
-          stripe_account_id: accountId,
-          stripe_account_status: 'pending',
-        })
-        .eq('id', professional_id);
-
-      if (updateError) {
-        console.error('Error updating professional:', updateError);
-        return NextResponse.json(
-          { error: 'Error al actualizar profesional' },
-          { status: 500 }
-        );
-      }
-
-      // Create account link for onboarding
+      // Create account link for onboarding (works for new accounts and resuming incomplete onboarding)
       const returnUrl = `${process.env.NEXT_PUBLIC_SITE_URL}/professional/${user.id}/dashboard?stripe_onboarding=success`;
       const refreshUrl = `${process.env.NEXT_PUBLIC_SITE_URL}/professional/${user.id}/dashboard?stripe_onboarding=refresh`;
-      
+
       const accountLink = await createAccountLink(accountId, returnUrl, refreshUrl);
 
       return NextResponse.json({

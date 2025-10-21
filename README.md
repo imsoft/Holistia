@@ -1,46 +1,233 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Holistia
 
-## Getting Started
+Plataforma integral de bienestar que conecta profesionales de la salud con personas que buscan mejorar su calidad de vida. Holistia facilita la gestión de citas, eventos y pagos para terapeutas, coaches y especialistas en bienestar.
 
-First, run the development server:
+## Características Principales
+
+### Para Pacientes/Usuarios
+- Explorar y descubrir profesionales de bienestar
+- Agendar citas con profesionales verificados
+- Registrarse a eventos y talleres
+- Sistema de favoritos para profesionales
+- Gestión de citas y eventos registrados
+- Perfil personal editable
+
+### Para Profesionales
+- Gestión de servicios (sesiones individuales o programas)
+- Configuración de disponibilidad y horarios
+- Gestión de citas y pacientes
+- Creación y organización de eventos
+- Galería de fotos profesional
+- Integración con Stripe Connect para pagos
+- Dashboard con métricas y gestión
+
+### Para Administradores
+- Revisión y aprobación de aplicaciones de profesionales
+- Gestión del directorio de profesionales
+- Gestión de usuarios del sistema
+- Sistema de blog con editor de texto enriquecido
+- Moderación de eventos
+- Seguimiento de registros a eventos
+- Estadísticas y métricas del sistema
+
+## Stack Tecnológico
+
+### Frontend
+- **Framework:** Next.js 15.5.6 (App Router con Turbopack)
+- **React:** 19.2.0
+- **TypeScript:** 5
+- **Estilos:** Tailwind CSS 4
+- **Componentes UI:** Radix UI + shadcn/ui
+- **Iconos:** Lucide React
+- **Editor:** Tiptap (editor de texto enriquecido)
+- **Formularios:** React Hook Form + Zod
+- **Mapas:** Mapbox GL + Google Maps
+
+### Backend
+- **Base de datos:** Supabase (PostgreSQL)
+- **Autenticación:** Supabase Auth con verificación por email
+- **Almacenamiento:** Supabase Storage
+- **API Routes:** Next.js API Routes
+- **Seguridad:** Row-Level Security (RLS) en Supabase
+
+### Integraciones
+- **Pagos:** Stripe + Stripe Connect (comisiones: 15% citas, 25% eventos)
+- **Email:** Resend API + React Email
+- **Analytics:** Vercel Analytics + Google Analytics 4
+- **Maps:** Mapbox GL para visualización de ubicaciones
+
+## Configuración del Proyecto
+
+### Prerequisitos
+- Node.js 18+
+- npm, yarn, pnpm o bun
+- Cuenta de Supabase
+- Cuenta de Stripe (con Stripe Connect configurado)
+- API keys de Mapbox y Resend
+
+### Variables de Entorno
+
+Crea un archivo `.env.local` con las siguientes variables:
+
+```bash
+# Supabase
+NEXT_PUBLIC_SUPABASE_URL=tu_supabase_url
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=tu_supabase_anon_key
+SUPABASE_SERVICE_ROLE_KEY=tu_service_role_key
+
+# Stripe
+STRIPE_SECRET_KEY=tu_stripe_secret_key
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=tu_stripe_publishable_key
+STRIPE_WEBHOOK_SECRET=tu_webhook_secret
+
+# Mapbox
+NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN=tu_mapbox_token
+
+# Resend (Email)
+RESEND_API_KEY=tu_resend_api_key
+
+# Google Analytics
+NEXT_PUBLIC_GOOGLE_ANALYTICS_ID=tu_ga_id
+
+# URLs
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+```
+
+### Instalación
+
+```bash
+# Clonar el repositorio
+git clone [repository-url]
+
+# Instalar dependencias
+npm install
+# o
+yarn install
+# o
+pnpm install
+```
+
+### Ejecutar en Desarrollo
 
 ```bash
 npm run dev
-# or
+# o
 yarn dev
-# or
+# o
 pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Abre [http://localhost:3000](http://localhost:3000) en tu navegador.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Build para Producción
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run build
+npm run start
+```
 
-## Learn More
+## Estructura del Proyecto
 
-To learn more about Next.js, take a look at the following resources:
+```
+/src
+  /app
+    /(auth)              # Páginas de autenticación (login, signup)
+    /(website)           # Sitio público (home, blog, contacto)
+    /(dashboard)
+      /(admin)          # Panel de administración
+      /(professional)   # Dashboard de profesionales
+      /(patient)        # Portal de pacientes/usuarios
+    /api
+      /stripe           # Endpoints de pagos
+      /contact          # Formulario de contacto
+  /components
+    /ui                 # Componentes reutilizables
+    /shared             # Componentes compartidos (navbar, footer)
+  /types                # Definiciones de TypeScript
+  /lib                  # Utilidades (stripe, email, auth)
+  /utils
+    /supabase          # Configuración de Supabase
+  /hooks                # Custom React hooks
+  /actions              # Server actions
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Flujos Principales
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Reserva de Cita
+1. El paciente busca y selecciona un profesional
+2. Elige un servicio y horario disponible
+3. Completa el checkout con Stripe
+4. Se procesa el pago con comisión del 15%
+5. Se confirma la cita vía email
 
-## Deploy on Vercel
+### Registro a Evento
+1. El usuario descubre un evento
+2. Se registra y proporciona detalles
+3. Procesa el pago (comisión del 25%)
+4. Recibe código de confirmación por email
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Onboarding de Profesional
+1. El usuario aplica como profesional
+2. Envía credenciales y documentación
+3. Admin revisa la aplicación
+4. Aprobación/rechazo
+5. Configuración de servicios
+6. Conexión con Stripe Connect
+7. Activación en la plataforma
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Base de Datos
 
-# Hacer Admins
-UPDATE auth.users 
+### Tablas Principales
+- `auth.users` - Usuarios del sistema
+- `professional_applications` - Perfiles y aplicaciones de profesionales
+- `appointments` - Reservas de citas
+- `professional_services` - Servicios ofrecidos
+- `availability_blocks` - Bloques de tiempo no disponibles
+- `events_workshops` - Eventos y talleres
+- `event_registrations` - Registros a eventos
+- `payments` - Transacciones de pago
+- `user_favorites` - Profesionales favoritos
+- `blog_posts` - Artículos del blog
+- `stripe_connect_accounts` - Cuentas de Stripe Connect
+
+## Administración
+
+### Crear Usuario Admin
+
+Para otorgar permisos de administrador a un usuario, ejecuta en tu consola SQL de Supabase:
+
+```sql
+-- Hacer admin a un usuario
+UPDATE auth.users
 SET raw_user_meta_data = raw_user_meta_data || '{"user_type": "admin"}'::jsonb
-WHERE email = 'holistia.io@gmail.com';
+WHERE email = 'email@ejemplo.com';
 
-# Ver si funciono lo de hacer admins
-SELECT email, raw_user_meta_data->>'user_type' as user_type 
-FROM auth.users 
-WHERE email = 'holistia.io@gmail.com';
+-- Verificar que funcionó
+SELECT email, raw_user_meta_data->>'user_type' as user_type
+FROM auth.users
+WHERE email = 'email@ejemplo.com';
+```
+
+## Deployment
+
+La aplicación está optimizada para despliegue en [Vercel](https://vercel.com):
+
+1. Conecta tu repositorio a Vercel
+2. Configura las variables de entorno
+3. Despliega automáticamente en cada push a main
+
+Para webhooks de Stripe, configura la URL:
+```
+https://tu-dominio.com/api/stripe/webhook
+```
+
+## Recursos Adicionales
+
+- [Documentación de Next.js](https://nextjs.org/docs)
+- [Documentación de Supabase](https://supabase.com/docs)
+- [Documentación de Stripe Connect](https://stripe.com/docs/connect)
+- [Documentación de Tailwind CSS](https://tailwindcss.com/docs)
+
+## Licencia
+
+Todos los derechos reservados - Holistia

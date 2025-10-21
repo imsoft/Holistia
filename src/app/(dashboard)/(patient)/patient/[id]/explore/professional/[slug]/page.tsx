@@ -19,6 +19,7 @@ import {
   CreditCard,
   Copy,
   Mail,
+  Languages,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import MapboxMap from "@/components/ui/mapbox-map";
@@ -53,6 +54,7 @@ interface Professional {
   phone?: string;
   profession: string;
   specializations: string[];
+  languages?: string[];
   experience: string;
   certifications: string[];
   services: Array<{
@@ -906,6 +908,28 @@ export default function ProfessionalProfilePage() {
                 <p className="text-sm sm:text-base text-muted-foreground leading-relaxed max-w-3xl">
                   {professional.biography}
                 </p>
+              </div>
+            )}
+
+            {/* Idiomas */}
+            {professional.languages && professional.languages.length > 0 && (
+              <div>
+                <h2 className="text-lg sm:text-xl font-bold text-foreground mb-3 sm:mb-4">
+                  Idiomas
+                </h2>
+                <div className="flex flex-wrap gap-2">
+                  {professional.languages.map((language, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center gap-2 px-3 sm:px-4 py-2 rounded-full bg-gradient-to-r from-primary/10 to-primary/20 border border-primary/30"
+                    >
+                      <Languages className="h-4 w-4 text-primary" />
+                      <span className="text-sm sm:text-base text-foreground font-medium">
+                        {language}
+                      </span>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
 

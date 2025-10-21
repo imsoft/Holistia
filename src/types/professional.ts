@@ -11,6 +11,7 @@ export interface Professional {
   instagram?: string;  // Campo privado, solo visible para administradores
   profession: string;
   specializations?: string[];
+  languages?: string[];
   experience?: string;
   certifications?: string[];
   wellness_areas?: string[];

@@ -46,7 +46,7 @@ import {
 import { createClient } from "@/utils/supabase/client";
 import Link from "next/link";
 import Image from "next/image";
-import { normalizeName, normalizeProfession, normalizeAddress, normalizeLocation } from "@/lib/text-utils";
+import { normalizeName, normalizeProfession, normalizeAddress, normalizeLocation, normalizeLanguage } from "@/lib/text-utils";
 import { cn } from "@/lib/utils";
 
 interface Service {
@@ -92,6 +92,7 @@ export default function BecomeProfessionalPage() {
     phone: "",
     profession: "",
     specializations: [] as string[],
+    languages: ["Español"] as string[], // Idioma por defecto
     experience: "",
     services: [{ name: "", description: "", price: "", duration: "" }] as Service[],
     address: "",
@@ -107,7 +108,9 @@ export default function BecomeProfessionalPage() {
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [specializationInput, setSpecializationInput] = useState("");
+  const [languageInput, setLanguageInput] = useState("");
   const [lastEnterTime, setLastEnterTime] = useState<number | null>(null);
+  const [lastLanguageEnterTime, setLastLanguageEnterTime] = useState<number | null>(null);
   const [userProfilePhoto, setUserProfilePhoto] = useState<string | null>(null);
   const [openCountryCombo, setOpenCountryCombo] = useState(false);
   const params = useParams();
@@ -183,6 +186,7 @@ export default function BecomeProfessionalPage() {
             phone: existingApp.phone || "",
             profession: existingApp.profession || "",
             specializations: existingApp.specializations || [],
+            languages: existingApp.languages || ["Español"],
             experience: existingApp.experience || "",
             services: existingApp.services || [
               { name: "", description: "", price: "", duration: "" },
@@ -321,6 +325,7 @@ export default function BecomeProfessionalPage() {
         phone: formData.phone,
         profession: formData.profession,
         specializations: formData.specializations,
+        languages: formData.languages,
         experience: formData.experience,
         services: formData.services,
         address: formData.address,
@@ -538,6 +543,80 @@ export default function BecomeProfessionalPage() {
               {errors.specializations && (
                 <p className="text-red-500 text-sm mt-1">
                   {errors.specializations}
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-3">
+              <Label>Idiomas que hablas *</Label>
+              <Input
+                placeholder="Ej: Inglés, Francés, Portugués..."
+                value={languageInput}
+                onChange={(e) => setLanguageInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ',') {
+                    e.preventDefault();
+                    if (languageInput.trim()) {
+                      // En móviles y tabletas, requerir doble Enter
+                      if (window.innerWidth <= 1024 && e.key === 'Enter') {
+                        // Verificar si es el segundo Enter consecutivo
+                        const now = Date.now();
+                        if (!lastLanguageEnterTime || now - lastLanguageEnterTime > 1000) {
+                          setLastLanguageEnterTime(now);
+                          return; // Primer Enter, no hacer nada
+                        }
+                        // Segundo Enter dentro de 1 segundo, proceder
+                        setLastLanguageEnterTime(null);
+                      }
+
+                      // Normalizar el idioma antes de agregarlo
+                      const normalizedLanguage = normalizeLanguage(languageInput.trim());
+
+                      // Evitar duplicados
+                      if (!formData.languages.includes(normalizedLanguage)) {
+                        setFormData((prev) => ({
+                          ...prev,
+                          languages: [...prev.languages, normalizedLanguage]
+                        }));
+                      }
+                      setLanguageInput('');
+                    }
+                  }
+                }}
+                className={errors.languages ? "border-red-500" : ""}
+              />
+              <p className="text-xs text-muted-foreground">
+                {window.innerWidth <= 1024
+                  ? "Presiona Enter dos veces o escribe una coma para agregar. El español ya está incluido por defecto."
+                  : "Presiona Enter o escribe una coma para agregar. El español ya está incluido por defecto."
+                }
+              </p>
+              {formData.languages.length > 0 && (
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {formData.languages.map((lang, index) => (
+                    <Badge
+                      key={index}
+                      variant="secondary"
+                      className={`cursor-pointer hover:bg-red-100 ${lang === "Español" ? "border-2 border-primary" : ""}`}
+                      onClick={() => {
+                        // No permitir eliminar el español si es el único idioma
+                        if (lang === "Español" && formData.languages.length === 1) {
+                          return;
+                        }
+                        setFormData((prev) => ({
+                          ...prev,
+                          languages: prev.languages.filter((_, i) => i !== index)
+                        }));
+                      }}
+                    >
+                      {lang} {lang === "Español" && formData.languages.length === 1 ? "" : "×"}
+                    </Badge>
+                  ))}
+                </div>
+              )}
+              {errors.languages && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.languages}
                 </p>
               )}
             </div>

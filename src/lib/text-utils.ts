@@ -208,10 +208,56 @@ export function normalizeProfession(profession: string): string {
 }
 
 /**
+ * Normaliza nombres de idiomas
+ */
+export function normalizeLanguage(language: string): string {
+  if (!language || typeof language !== 'string') return '';
+
+  const lowercased = language.toLowerCase().trim();
+
+  // Casos especiales para idiomas comunes
+  const specialCases: Record<string, string> = {
+    'español': 'Español',
+    'espanol': 'Español',
+    'inglés': 'Inglés',
+    'ingles': 'Inglés',
+    'francés': 'Francés',
+    'frances': 'Francés',
+    'alemán': 'Alemán',
+    'aleman': 'Alemán',
+    'italiano': 'Italiano',
+    'portugués': 'Portugués',
+    'portugues': 'Portugués',
+    'chino': 'Chino',
+    'japonés': 'Japonés',
+    'japones': 'Japonés',
+    'coreano': 'Coreano',
+    'ruso': 'Ruso',
+    'árabe': 'Árabe',
+    'arabe': 'Árabe',
+    'catalán': 'Catalán',
+    'catalan': 'Catalán',
+    'vasco': 'Vasco',
+    'gallego': 'Gallego',
+    'náhuatl': 'Náhuatl',
+    'nahuatl': 'Náhuatl',
+    'maya': 'Maya',
+    'zapoteco': 'Zapoteco'
+  };
+
+  // Verificar casos especiales primero
+  if (specialCases[lowercased]) {
+    return specialCases[lowercased];
+  }
+
+  return toTitleCase(language);
+}
+
+/**
  * Hook personalizado para normalizar texto en inputs
  */
 export function useTextNormalization() {
-  const normalizeInput = (value: string, type: 'name' | 'address' | 'location' | 'profession' | 'general' = 'general') => {
+  const normalizeInput = (value: string, type: 'name' | 'address' | 'location' | 'profession' | 'language' | 'general' = 'general') => {
     switch (type) {
       case 'name':
         return normalizeName(value);
@@ -221,6 +267,8 @@ export function useTextNormalization() {
         return normalizeLocation(value);
       case 'profession':
         return normalizeProfession(value);
+      case 'language':
+        return normalizeLanguage(value);
       default:
         return toTitleCase(value);
     }

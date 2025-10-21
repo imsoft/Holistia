@@ -17,6 +17,33 @@ interface EventConfirmationEmailData {
   event_url: string;
 }
 
+interface AppointmentNotificationToProfessionalData {
+  professional_name: string;
+  professional_email: string;
+  patient_name: string;
+  appointment_date: string;
+  appointment_time: string;
+  appointment_type: string;
+  duration_minutes: number;
+  cost: number;
+  location: string;
+  notes?: string;
+  appointments_url: string;
+}
+
+interface AppointmentConfirmationToPatientData {
+  patient_name: string;
+  patient_email: string;
+  professional_name: string;
+  appointment_date: string;
+  appointment_time: string;
+  appointment_type: string;
+  duration_minutes: number;
+  cost: number;
+  location: string;
+  notes?: string;
+}
+
 export async function sendEventConfirmationEmail(data: EventConfirmationEmailData) {
   try {
     const supabase = await createClient();
@@ -75,6 +102,137 @@ export async function sendEventConfirmationEmail(data: EventConfirmationEmailDat
   }
 }
 
+// Send appointment notification to professional when a patient books
+export async function sendAppointmentNotificationToProfessional(data: AppointmentNotificationToProfessionalData) {
+  try {
+    const supabase = await createClient();
+
+    // Read the email template
+    const templatePath = 'database/email-templates/appointment-notification-to-professional.html';
+    const fs = await import('fs');
+    const path = await import('path');
+
+    let emailTemplate: string;
+    try {
+      emailTemplate = fs.readFileSync(path.join(process.cwd(), templatePath), 'utf8');
+    } catch (error) {
+      console.error('Error reading email template:', error);
+      return { success: false, error: 'Template not found' };
+    }
+
+    // Replace placeholders in the template
+    let emailContent = emailTemplate
+      .replace(/\{\{professional_name\}\}/g, data.professional_name)
+      .replace(/\{\{patient_name\}\}/g, data.patient_name)
+      .replace(/\{\{appointment_date\}\}/g, data.appointment_date)
+      .replace(/\{\{appointment_time\}\}/g, data.appointment_time)
+      .replace(/\{\{appointment_type\}\}/g, data.appointment_type)
+      .replace(/\{\{duration_minutes\}\}/g, data.duration_minutes.toString())
+      .replace(/\{\{cost\}\}/g, data.cost.toFixed(2))
+      .replace(/\{\{location\}\}/g, data.location)
+      .replace(/\{\{appointments_url\}\}/g, data.appointments_url);
+
+    // Handle optional notes field
+    if (data.notes) {
+      emailContent = emailContent.replace(/\{\{#if notes\}\}[\s\S]*?\{\{\/if\}\}/g, (match) => {
+        return match
+          .replace(/\{\{#if notes\}\}/g, '')
+          .replace(/\{\{\/if\}\}/g, '')
+          .replace(/\{\{notes\}\}/g, data.notes || '');
+      });
+    } else {
+      emailContent = emailContent.replace(/\{\{#if notes\}\}[\s\S]*?\{\{\/if\}\}/g, '');
+    }
+
+    // Send email using Supabase Edge Function
+    const { error } = await supabase.functions.invoke('send-email', {
+      body: {
+        to: data.professional_email,
+        subject: `Nueva Cita Agendada - ${data.patient_name} | Holistia`,
+        html: emailContent,
+        from: 'holistia.io@gmail.com'
+      }
+    });
+
+    if (error) {
+      console.error('Error sending email to professional:', error);
+      return { success: false, error: error.message };
+    }
+
+    console.log('Appointment notification sent successfully to professional:', data.professional_email);
+    return { success: true };
+
+  } catch (error) {
+    console.error('Error in sendAppointmentNotificationToProfessional:', error);
+    return { success: false, error: 'Failed to send email' };
+  }
+}
+
+// Send confirmation to patient when professional confirms appointment
+export async function sendAppointmentConfirmationToPatient(data: AppointmentConfirmationToPatientData) {
+  try {
+    const supabase = await createClient();
+
+    // Read the email template
+    const templatePath = 'database/email-templates/appointment-confirmation-to-patient.html';
+    const fs = await import('fs');
+    const path = await import('path');
+
+    let emailTemplate: string;
+    try {
+      emailTemplate = fs.readFileSync(path.join(process.cwd(), templatePath), 'utf8');
+    } catch (error) {
+      console.error('Error reading email template:', error);
+      return { success: false, error: 'Template not found' };
+    }
+
+    // Replace placeholders in the template
+    let emailContent = emailTemplate
+      .replace(/\{\{patient_name\}\}/g, data.patient_name)
+      .replace(/\{\{professional_name\}\}/g, data.professional_name)
+      .replace(/\{\{appointment_date\}\}/g, data.appointment_date)
+      .replace(/\{\{appointment_time\}\}/g, data.appointment_time)
+      .replace(/\{\{appointment_type\}\}/g, data.appointment_type)
+      .replace(/\{\{duration_minutes\}\}/g, data.duration_minutes.toString())
+      .replace(/\{\{cost\}\}/g, data.cost.toFixed(2))
+      .replace(/\{\{location\}\}/g, data.location);
+
+    // Handle optional notes field
+    if (data.notes) {
+      emailContent = emailContent.replace(/\{\{#if notes\}\}[\s\S]*?\{\{\/if\}\}/g, (match) => {
+        return match
+          .replace(/\{\{#if notes\}\}/g, '')
+          .replace(/\{\{\/if\}\}/g, '')
+          .replace(/\{\{notes\}\}/g, data.notes || '');
+      });
+    } else {
+      emailContent = emailContent.replace(/\{\{#if notes\}\}[\s\S]*?\{\{\/if\}\}/g, '');
+    }
+
+    // Send email using Supabase Edge Function
+    const { error } = await supabase.functions.invoke('send-email', {
+      body: {
+        to: data.patient_email,
+        subject: `Cita Confirmada con ${data.professional_name} | Holistia`,
+        html: emailContent,
+        from: 'holistia.io@gmail.com'
+      }
+    });
+
+    if (error) {
+      console.error('Error sending confirmation email to patient:', error);
+      return { success: false, error: error.message };
+    }
+
+    console.log('Appointment confirmation sent successfully to patient:', data.patient_email);
+    return { success: true };
+
+  } catch (error) {
+    console.error('Error in sendAppointmentConfirmationToPatient:', error);
+    return { success: false, error: 'Failed to send email' };
+  }
+}
+
 // Alternative function using a simple email service (like Resend, SendGrid, etc.)
 export async function sendEventConfirmationEmailSimple(data: EventConfirmationEmailData) {
   try {
@@ -84,15 +242,15 @@ export async function sendEventConfirmationEmailSimple(data: EventConfirmationEm
     // - SendGrid
     // - Mailgun
     // - AWS SES
-    
+
     console.log('Sending event confirmation email to:', data.user_email);
     console.log('Confirmation code:', data.confirmation_code);
     console.log('Event:', data.event_name);
-    
+
     // For now, just log the email data
     // In production, replace this with actual email sending logic
     return { success: true, message: 'Email would be sent in production' };
-    
+
   } catch (error) {
     console.error('Error sending email:', error);
     return { success: false, error: 'Failed to send email' };

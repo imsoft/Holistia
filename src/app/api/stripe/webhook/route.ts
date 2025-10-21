@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe';
 import { createClient } from '@/utils/supabase/server';
-import { sendEventConfirmationEmailSimple } from '@/lib/email-sender';
+import { sendEventConfirmationEmailSimple, sendAppointmentNotificationToProfessional } from '@/lib/email-sender';
 import Stripe from 'stripe';
 
 async function sendEventConfirmationEmail(eventRegistrationId: string) {
   try {
     const supabase = await createClient();
-    
+
     // Get event registration details with event and user info
     const { data: registration, error: registrationError } = await supabase
       .from('event_registrations')
@@ -32,7 +32,7 @@ async function sendEventConfirmationEmail(eventRegistrationId: string) {
 
     // Get user details
     const { data: user, error: userError } = await supabase.auth.admin.getUserById(registration.user_id);
-    
+
     if (userError || !user) {
       console.error('Error fetching user:', userError);
       return;
@@ -59,14 +59,14 @@ async function sendEventConfirmationEmail(eventRegistrationId: string) {
       day: 'numeric',
       weekday: 'long'
     });
-    
+
     const eventTime = event.event_time.substring(0, 5);
     const paymentDate = new Date(payment.paid_at!).toLocaleDateString('es-ES');
-    
+
     // Get category label
     const categoryLabels = {
       espiritualidad: "Espiritualidad",
-      salud_mental: "Salud Mental", 
+      salud_mental: "Salud Mental",
       salud_fisica: "Salud Física",
       alimentacion: "Alimentación",
       social: "Social"
@@ -93,15 +93,93 @@ async function sendEventConfirmationEmail(eventRegistrationId: string) {
 
     // Send email
     const result = await sendEventConfirmationEmailSimple(emailData);
-    
+
     if (result.success) {
       console.log('Event confirmation email sent successfully');
     } else {
       console.error('Failed to send event confirmation email:', result.error);
     }
-    
+
   } catch (error) {
     console.error('Error in sendEventConfirmationEmail:', error);
+  }
+}
+
+async function sendAppointmentNotificationEmail(appointmentId: string) {
+  try {
+    const supabase = await createClient();
+
+    // Get appointment details with patient and professional info
+    const { data: appointment, error: appointmentError } = await supabase
+      .from('appointments')
+      .select('*')
+      .eq('id', appointmentId)
+      .single();
+
+    if (appointmentError || !appointment) {
+      console.error('Error fetching appointment:', appointmentError);
+      return;
+    }
+
+    // Get patient details
+    const { data: patient, error: patientError } = await supabase.auth.admin.getUserById(appointment.patient_id);
+
+    if (patientError || !patient) {
+      console.error('Error fetching patient:', patientError);
+      return;
+    }
+
+    // Get professional details
+    const { data: professional, error: professionalError } = await supabase.auth.admin.getUserById(appointment.professional_id);
+
+    if (professionalError || !professional) {
+      console.error('Error fetching professional:', professionalError);
+      return;
+    }
+
+    // Format appointment data
+    const appointmentDate = new Date(appointment.appointment_date).toLocaleDateString('es-ES', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      weekday: 'long'
+    });
+
+    const appointmentTime = appointment.appointment_time.substring(0, 5);
+
+    // Get appointment type label
+    const typeLabels = {
+      presencial: "Presencial",
+      online: "Online"
+    };
+    const appointmentType = typeLabels[appointment.appointment_type as keyof typeof typeLabels] || appointment.appointment_type;
+
+    // Prepare email data
+    const emailData = {
+      professional_name: professional.user.user_metadata?.full_name || professional.user.email?.split('@')[0] || 'Profesional',
+      professional_email: professional.user.email!,
+      patient_name: patient.user.user_metadata?.full_name || patient.user.email?.split('@')[0] || 'Paciente',
+      appointment_date: appointmentDate,
+      appointment_time: appointmentTime,
+      appointment_type: appointmentType,
+      duration_minutes: appointment.duration_minutes || 50,
+      cost: appointment.cost,
+      location: appointment.location || 'Por definir',
+      notes: appointment.notes,
+      appointments_url: `${process.env.NEXT_PUBLIC_SITE_URL}/professional/${appointment.professional_id}/appointments`
+    };
+
+    // Send email
+    const result = await sendAppointmentNotificationToProfessional(emailData);
+
+    if (result.success) {
+      console.log('Appointment notification sent successfully to professional');
+    } else {
+      console.error('Failed to send appointment notification:', result.error);
+    }
+
+  } catch (error) {
+    console.error('Error in sendAppointmentNotificationEmail:', error);
   }
 }
 
@@ -182,8 +260,17 @@ export async function POST(request: NextRequest) {
 
           if (appointmentUpdateError) {
             console.error('Error updating appointment:', appointmentUpdateError);
+          } else {
+            console.log('Payment and appointment updated successfully');
+
+            // Send notification email to professional
+            try {
+              await sendAppointmentNotificationEmail(appointment_id);
+            } catch (emailError) {
+              console.error('Error sending appointment notification email:', emailError);
+              // Don't fail the webhook if email fails
+            }
           }
-          console.log('Payment and appointment updated successfully');
         }
 
         // Handle event payments

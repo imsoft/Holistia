@@ -43,16 +43,16 @@ export const ProfessionalCard = ({ professional, userId }: ProfessionalCardProps
           return <MapPin className="h-3 w-3" />;
       }
     }
-    
+
     // Si no está definido, calcular basándose en los servicios
     if (professional.services && professional.services.length > 0) {
-      const hasPresencial = professional.services.some(service => 
-        service.presencialCost && parseInt(service.presencialCost.toString()) > 0
+      const hasPresencial = professional.services.some(service =>
+        service.presencialCost && service.presencialCost !== "" && service.presencialCost !== "0"
       );
-      const hasOnline = professional.services.some(service => 
-        service.onlineCost && parseInt(service.onlineCost.toString()) > 0
+      const hasOnline = professional.services.some(service =>
+        service.onlineCost && service.onlineCost !== "" && service.onlineCost !== "0"
       );
-      
+
       if (hasPresencial && hasOnline) {
         return (
           <div className="flex gap-0.5">
@@ -66,7 +66,7 @@ export const ProfessionalCard = ({ professional, userId }: ProfessionalCardProps
         return <MapPin className="h-3 w-3" />;
       }
     }
-    
+
     // Fallback por defecto
     return <MapPin className="h-3 w-3" />;
   };
@@ -80,30 +80,30 @@ export const ProfessionalCard = ({ professional, userId }: ProfessionalCardProps
         case 'online':
           return 'En línea';
         case 'both':
-          return 'Ambos';
+          return 'Presencial y en línea';
         default:
           return 'Presencial';
       }
     }
-    
+
     // Si no está definido, calcular basándose en los servicios
     if (professional.services && professional.services.length > 0) {
-      const hasPresencial = professional.services.some(service => 
-        service.presencialCost && parseInt(service.presencialCost.toString()) > 0
+      const hasPresencial = professional.services.some(service =>
+        service.presencialCost && service.presencialCost !== "" && service.presencialCost !== "0"
       );
-      const hasOnline = professional.services.some(service => 
-        service.onlineCost && parseInt(service.onlineCost.toString()) > 0
+      const hasOnline = professional.services.some(service =>
+        service.onlineCost && service.onlineCost !== "" && service.onlineCost !== "0"
       );
-      
+
       if (hasPresencial && hasOnline) {
-        return 'Ambos';
+        return 'Presencial y en línea';
       } else if (hasOnline) {
         return 'En línea';
       } else if (hasPresencial) {
         return 'Presencial';
       }
     }
-    
+
     // Fallback por defecto
     return 'Presencial';
   };

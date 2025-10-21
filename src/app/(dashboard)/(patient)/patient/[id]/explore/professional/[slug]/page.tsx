@@ -294,9 +294,9 @@ export default function ProfessionalProfilePage() {
             name: service.name,
             presencialCost: service.presencialCost,
             onlineCost: service.onlineCost,
-            hasPresencial: service.presencialCost && service.presencialCost !== '',
-            hasOnline: service.onlineCost && service.onlineCost !== '',
-            isValid: (service.presencialCost && service.presencialCost !== '') || (service.onlineCost && service.onlineCost !== '')
+            hasPresencial: service.presencialCost && service.presencialCost !== '' && service.presencialCost !== '0',
+            hasOnline: service.onlineCost && service.onlineCost !== '' && service.onlineCost !== '0',
+            isValid: (service.presencialCost && service.presencialCost !== '' && service.presencialCost !== '0') || (service.onlineCost && service.onlineCost !== '' && service.onlineCost !== '0')
           });
         });
 
@@ -386,10 +386,10 @@ export default function ProfessionalProfilePage() {
 
   const getServiceTypeIcon = () => {
     if (!professional) return <MessageCircle className="h-4 w-4" />;
-    
-    const hasPresencial = professional.services.some(s => s.presencialCost && s.presencialCost !== '');
-    const hasOnline = professional.services.some(s => s.onlineCost && s.onlineCost !== '');
-    
+
+    const hasPresencial = professional.services.some(s => s.presencialCost && s.presencialCost !== '' && s.presencialCost !== '0');
+    const hasOnline = professional.services.some(s => s.onlineCost && s.onlineCost !== '' && s.onlineCost !== '0');
+
     if (hasPresencial && hasOnline) {
       return <MessageCircle className="h-4 w-4" />;
     } else if (hasPresencial) {
@@ -401,10 +401,10 @@ export default function ProfessionalProfilePage() {
 
   const getServiceTypeText = () => {
     if (!professional) return "Presencial y en línea";
-    
-    const hasPresencial = professional.services.some(s => s.presencialCost && s.presencialCost !== '');
-    const hasOnline = professional.services.some(s => s.onlineCost && s.onlineCost !== '');
-    
+
+    const hasPresencial = professional.services.some(s => s.presencialCost && s.presencialCost !== '' && s.presencialCost !== '0');
+    const hasOnline = professional.services.some(s => s.onlineCost && s.onlineCost !== '' && s.onlineCost !== '0');
+
     if (hasPresencial && hasOnline) {
       return "Presencial y en línea";
     } else if (hasPresencial) {
@@ -1221,9 +1221,9 @@ export default function ProfessionalProfilePage() {
                                   })()}
                                   {professional?.services && professional.services.length > 0 ? (
                                     professional.services.map((service, index) => {
-                                      const hasPresencial = service.presencialCost && service.presencialCost !== '';
-                                      const hasOnline = service.onlineCost && service.onlineCost !== '';
-                                      
+                                      const hasPresencial = service.presencialCost && service.presencialCost !== '' && service.presencialCost !== '0';
+                                      const hasOnline = service.onlineCost && service.onlineCost !== '' && service.onlineCost !== '0';
+
                                       return (
                                         <div key={index}>
                                           {hasPresencial && (

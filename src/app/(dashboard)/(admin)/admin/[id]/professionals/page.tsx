@@ -34,6 +34,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import Image from "next/image";
 import { createClient } from "@/utils/supabase/client";
@@ -53,6 +55,7 @@ interface Professional {
   state: string;
   profile_photo?: string;
   status: 'active' | 'inactive' | 'suspended';
+  is_active: boolean; // Campo de BD para controlar visibilidad en listado público
   submitted_at: string;
   reviewed_at?: string;
   patients?: number;
@@ -142,6 +145,7 @@ export default function AdminProfessionals() {
               state: prof.state,
               profile_photo: prof.profile_photo,
               status,
+              is_active: prof.is_active ?? true, // Por defecto true si no existe
               submitted_at: prof.submitted_at,
               reviewed_at: prof.reviewed_at,
               patients: patientsCount || 0,
@@ -260,21 +264,62 @@ export default function AdminProfessionals() {
   const handleVerifyProfessional = async (professionalId: string) => {
     try {
       setActionLoading(professionalId);
-      
+
       // Aquí actualizarías el estado del profesional en la base de datos
       // Por ahora solo actualizamos el estado local
-      setProfessionals(prev => 
-        prev.map(prof => 
-          prof.id === professionalId 
+      setProfessionals(prev =>
+        prev.map(prof =>
+          prof.id === professionalId
             ? { ...prof, reviewed_at: new Date().toISOString() }
             : prof
         )
       );
-      
+
       console.log('Profesional verificado:', professionalId);
       setIsVerifyDialogOpen(false);
     } catch (error) {
       console.error('Error al verificar profesional:', error);
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  // Función para activar/desactivar un profesional
+  const handleToggleActiveStatus = async (professionalId: string, currentStatus: boolean) => {
+    try {
+      setActionLoading(professionalId);
+
+      const response = await fetch('/api/admin/toggle-professional-status', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          professionalId,
+          isActive: !currentStatus
+        })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        toast.error(data.error || 'Error al cambiar el estado del profesional');
+        return;
+      }
+
+      // Actualizar el estado local
+      setProfessionals(prev =>
+        prev.map(prof =>
+          prof.id === professionalId
+            ? { ...prof, is_active: !currentStatus }
+            : prof
+        )
+      );
+
+      toast.success(data.message || `Profesional ${!currentStatus ? 'activado' : 'desactivado'} exitosamente`);
+    } catch (error) {
+      console.error('Error al cambiar estado del profesional:', error);
+      toast.error('Error al cambiar el estado del profesional');
     } finally {
       setActionLoading(null);
     }
@@ -516,10 +561,23 @@ export default function AdminProfessionals() {
                   </div>
                 </div>
 
+                {/* Control de activación/desactivación */}
+                <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg mb-4">
+                  <Label htmlFor={`active-${professional.id}`} className="text-sm font-medium cursor-pointer">
+                    {professional.is_active ? 'Visible en listado' : 'Oculto del listado'}
+                  </Label>
+                  <Switch
+                    id={`active-${professional.id}`}
+                    checked={professional.is_active}
+                    onCheckedChange={() => handleToggleActiveStatus(professional.id, professional.is_active)}
+                    disabled={actionLoading === professional.id}
+                  />
+                </div>
+
                 <div className="flex items-center gap-2">
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
+                  <Button
+                    variant="outline"
+                    size="sm"
                     className="flex-1"
                     onClick={() => handleViewProfile(professional)}
                   >
@@ -527,7 +585,7 @@ export default function AdminProfessionals() {
                     Ver Perfil
                   </Button>
                   {!professional.reviewed_at && (
-                    <Button 
+                    <Button
                       size="sm"
                       onClick={() => {
                         setSelectedProfessional(professional);

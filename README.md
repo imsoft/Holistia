@@ -122,8 +122,8 @@ Abre [http://localhost:3000](http://localhost:3000) en tu navegador.
 ### Build para Producción
 
 ```bash
-npm run build
-npm run start
+pnpm run build
+pnpm run start
 ```
 
 ## Estructura del Proyecto

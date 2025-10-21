@@ -500,10 +500,10 @@ export default function AdminUsers() {
         {/* Users List */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {filteredUsers.map((user) => (
-            <Card key={user.id} className="hover:shadow-md transition-shadow">
-              <CardContent className="px-6 py-6">
+            <Card key={user.id} className="hover:shadow-md transition-shadow flex flex-col h-full">
+              <CardContent className="px-6 py-6 flex flex-col h-full">
                 <div className="flex items-start gap-4 mb-4">
-                  <div className="relative">
+                  <div className="relative flex-shrink-0">
                     <Image
                       src={user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=random`}
                       alt={user.name}
@@ -512,13 +512,13 @@ export default function AdminUsers() {
                       className="h-15 w-15 aspect-square rounded-full object-cover border-2 border-border"
                     />
                     <div className={`absolute -bottom-1 -right-1 h-5 w-5 rounded-full border-2 border-background ${
-                      user.status === "active" ? "bg-green-500" : 
+                      user.status === "active" ? "bg-green-500" :
                       user.status === "inactive" ? "bg-red-500" : "bg-yellow-500"
                     }`}></div>
                   </div>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <h3 className="text-lg font-semibold text-foreground">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start gap-2 mb-1 flex-wrap">
+                      <h3 className="text-base font-semibold text-foreground line-clamp-1">
                         {user.name}
                       </h3>
                       <Badge className={getStatusColor(user.status)}>
@@ -531,34 +531,34 @@ export default function AdminUsers() {
                   </div>
                 </div>
 
-                <div className="space-y-3 mb-4">
+                <div className="space-y-2 mb-4 flex-grow">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Phone className="h-4 w-4" />
-                    <span>{user.phone}</span>
+                    <Phone className="h-4 w-4 flex-shrink-0" />
+                    <span className="truncate">{user.phone}</span>
                   </div>
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Mail className="h-4 w-4" />
+                    <Mail className="h-4 w-4 flex-shrink-0" />
                     <span className="truncate">{user.email}</span>
                   </div>
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <MapPin className="h-4 w-4" />
-                    <span>{user.location}</span>
+                    <MapPin className="h-4 w-4 flex-shrink-0" />
+                    <span className="truncate">{user.location}</span>
                   </div>
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Calendar className="h-4 w-4" />
+                    <Calendar className="h-4 w-4 flex-shrink-0" />
                     <span>{user.appointments} citas</span>
                   </div>
                 </div>
 
-                <div className="text-xs text-muted-foreground mb-4">
-                  <p>Último acceso: {new Date(user.lastLogin).toLocaleDateString('es-ES')}</p>
-                  <p>Registrado: {new Date(user.joinDate).toLocaleDateString('es-ES')}</p>
+                <div className="text-xs text-muted-foreground mb-4 space-y-1">
+                  <p className="truncate">Último acceso: {new Date(user.lastLogin).toLocaleDateString('es-ES')}</p>
+                  <p className="truncate">Registrado: {new Date(user.joinDate).toLocaleDateString('es-ES')}</p>
                 </div>
 
-                <div className="flex items-center gap-2">
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
+                <div className="flex items-center gap-2 mt-auto">
+                  <Button
+                    variant="outline"
+                    size="sm"
                     className="flex-1"
                     onClick={() => handleViewProfile(user)}
                   >
@@ -566,8 +566,8 @@ export default function AdminUsers() {
                     Ver Perfil
                   </Button>
                   {user.status === "suspended" && (
-                    <Button 
-                      size="sm" 
+                    <Button
+                      size="sm"
                       variant="outline"
                       onClick={() => handleReactivateUser(user.id)}
                       disabled={actionLoading === user.id}
@@ -577,8 +577,8 @@ export default function AdminUsers() {
                     </Button>
                   )}
                   {user.status === "active" && (
-                    <Button 
-                      size="sm" 
+                    <Button
+                      size="sm"
                       variant="destructive"
                       onClick={() => handleSuspendUser(user.id)}
                       disabled={actionLoading === user.id}

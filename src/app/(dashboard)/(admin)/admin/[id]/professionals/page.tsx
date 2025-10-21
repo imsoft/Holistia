@@ -506,10 +506,10 @@ export default function AdminProfessionals() {
         {/* Professionals List */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {filteredProfessionals.map((professional) => (
-            <Card key={professional.id} className="hover:shadow-md transition-shadow">
-              <CardContent className="px-6 py-6">
+            <Card key={professional.id} className="hover:shadow-md transition-shadow flex flex-col h-full">
+              <CardContent className="px-6 py-6 flex flex-col h-full">
                 <div className="flex items-start gap-4 mb-4">
-                  <div className="relative">
+                  <div className="relative flex-shrink-0">
                     <Image
                       src={professional.profile_photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(`${professional.first_name} ${professional.last_name}`)}&background=random`}
                       alt={`${professional.first_name} ${professional.last_name}`}
@@ -523,40 +523,40 @@ export default function AdminProfessionals() {
                       </div>
                     )}
                   </div>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <h3 className="text-lg font-semibold text-foreground">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start gap-2 mb-1 flex-wrap">
+                      <h3 className="text-base font-semibold text-foreground line-clamp-1">
                         {professional.first_name} {professional.last_name}
                       </h3>
                       <Badge className={getStatusColor(professional.status)}>
                         {getStatusText(professional.status)}
                       </Badge>
                     </div>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-sm text-muted-foreground line-clamp-1">
                       {professional.profession}
                     </p>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-xs text-muted-foreground line-clamp-2 mt-1">
                       {professional.specializations.slice(0, 2).join(', ')}
                       {professional.specializations.length > 2 && ` +${professional.specializations.length - 2} más`}
                     </p>
                   </div>
                 </div>
 
-                <div className="space-y-3 mb-4">
+                <div className="space-y-2 mb-4 flex-grow">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Phone className="h-4 w-4" />
-                    <span>{professional.phone}</span>
+                    <Phone className="h-4 w-4 flex-shrink-0" />
+                    <span className="truncate">{professional.phone}</span>
                   </div>
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Mail className="h-4 w-4" />
+                    <Mail className="h-4 w-4 flex-shrink-0" />
                     <span className="truncate">{professional.email}</span>
                   </div>
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <MapPin className="h-4 w-4" />
-                    <span>{professional.city}, {professional.state}</span>
+                    <MapPin className="h-4 w-4 flex-shrink-0" />
+                    <span className="truncate">{professional.city}, {professional.state}</span>
                   </div>
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <UserCheck className="h-4 w-4" />
+                    <UserCheck className="h-4 w-4 flex-shrink-0" />
                     <span>{professional.patients || 0} pacientes</span>
                   </div>
                 </div>
@@ -574,7 +574,7 @@ export default function AdminProfessionals() {
                   />
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 mt-auto">
                   <Button
                     variant="outline"
                     size="sm"

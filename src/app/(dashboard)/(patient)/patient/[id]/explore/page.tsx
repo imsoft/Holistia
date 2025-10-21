@@ -712,10 +712,10 @@ const HomeUserPage = () => {
                         
                         // Fallback: calcular basándose en los servicios
                         const hasPresencial = professional.services.some(
-                          (s) => s.presencialCost && s.presencialCost !== "" && s.presencialCost !== "0"
+                          (s) => s.presencialCost && s.presencialCost !== "" && s.presencialCost !== "0" && Number(s.presencialCost) > 0
                         );
                         const hasOnline = professional.services.some(
-                          (s) => s.onlineCost && s.onlineCost !== "" && s.onlineCost !== "0"
+                          (s) => s.onlineCost && s.onlineCost !== "" && s.onlineCost !== "0" && Number(s.onlineCost) > 0
                         );
                         if (hasPresencial && hasOnline) return "both";
                         if (hasPresencial) return "in-person";

@@ -47,10 +47,10 @@ export const ProfessionalCard = ({ professional, userId }: ProfessionalCardProps
     // Si no está definido, calcular basándose en los servicios
     if (professional.services && professional.services.length > 0) {
       const hasPresencial = professional.services.some(service =>
-        service.presencialCost && service.presencialCost !== "" && service.presencialCost !== "0"
+        service.presencialCost && service.presencialCost !== "" && service.presencialCost !== "0" && Number(service.presencialCost) > 0
       );
       const hasOnline = professional.services.some(service =>
-        service.onlineCost && service.onlineCost !== "" && service.onlineCost !== "0"
+        service.onlineCost && service.onlineCost !== "" && service.onlineCost !== "0" && Number(service.onlineCost) > 0
       );
 
       if (hasPresencial && hasOnline) {
@@ -89,10 +89,10 @@ export const ProfessionalCard = ({ professional, userId }: ProfessionalCardProps
     // Si no está definido, calcular basándose en los servicios
     if (professional.services && professional.services.length > 0) {
       const hasPresencial = professional.services.some(service =>
-        service.presencialCost && service.presencialCost !== "" && service.presencialCost !== "0"
+        service.presencialCost && service.presencialCost !== "" && service.presencialCost !== "0" && Number(service.presencialCost) > 0
       );
       const hasOnline = professional.services.some(service =>
-        service.onlineCost && service.onlineCost !== "" && service.onlineCost !== "0"
+        service.onlineCost && service.onlineCost !== "" && service.onlineCost !== "0" && Number(service.onlineCost) > 0
       );
 
       if (hasPresencial && hasOnline) {

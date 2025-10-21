@@ -153,27 +153,40 @@ export default function ProfessionalDashboard() {
             setAppointments(formattedAppointments);
           }
 
-          // Calcular estadísticas
+          // Calcular estadísticas - SOLO citas con pago exitoso
           const { data: allAppointments } = await supabase
             .from('appointments')
-            .select('appointment_date, cost, patient_id, status')
+            .select(`
+              appointment_date,
+              cost,
+              patient_id,
+              status,
+              payments (
+                status
+              )
+            `)
             .eq('professional_id', professionalApp.id);
 
+          // Filtrar solo citas con pagos exitosos
+          const paidAppointments = allAppointments?.filter(apt => {
+            return apt.payments?.some((payment: { status: string }) => payment.status === 'succeeded');
+          }) || [];
+
           const now = new Date();
-          const todayCount = allAppointments?.filter(apt => apt.appointment_date === today).length || 0;
-          
+          const todayCount = paidAppointments.filter(apt => apt.appointment_date === today).length;
+
           // Calcular citas de ayer para comparación
           const yesterday = new Date(now);
           yesterday.setDate(yesterday.getDate() - 1);
           const yesterdayStr = yesterday.toISOString().split('T')[0];
-          const yesterdayCount = allAppointments?.filter(apt => apt.appointment_date === yesterdayStr).length || 0;
+          const yesterdayCount = paidAppointments.filter(apt => apt.appointment_date === yesterdayStr).length;
           const dailyChange = todayCount - yesterdayCount;
-          
-          // Pacientes únicos activos (con citas futuras)
+
+          // Pacientes únicos activos (con citas futuras y pagadas)
           const uniquePatients = new Set(
-            allAppointments
-              ?.filter(apt => apt.appointment_date >= today)
-              ?.map(apt => apt.patient_id)
+            paidAppointments
+              .filter(apt => apt.appointment_date >= today)
+              .map(apt => apt.patient_id)
           );
           const activePatients = uniquePatients.size;
 
@@ -182,33 +195,33 @@ export default function ProfessionalDashboard() {
           weekAgo.setDate(weekAgo.getDate() - 7);
           const weekAgoStr = weekAgo.toISOString().split('T')[0];
           const lastWeekPatients = new Set(
-            allAppointments
-              ?.filter(apt => apt.appointment_date >= weekAgoStr && apt.appointment_date < today)
-              ?.map(apt => apt.patient_id)
+            paidAppointments
+              .filter(apt => apt.appointment_date >= weekAgoStr && apt.appointment_date < today)
+              .map(apt => apt.patient_id)
           );
           const weeklyChange = activePatients - lastWeekPatients.size;
 
-          // Ingresos del mes actual
+          // Ingresos del mes actual - SOLO de citas pagadas
           const currentMonth = now.getMonth();
           const currentYear = now.getFullYear();
-          const monthlyRevenue = allAppointments?.reduce((sum, apt) => {
+          const monthlyRevenue = paidAppointments.reduce((sum, apt) => {
             const aptDate = new Date(apt.appointment_date);
             if (aptDate.getMonth() === currentMonth && aptDate.getFullYear() === currentYear) {
               return sum + (parseFloat(apt.cost?.toString() || '0'));
             }
             return sum;
-          }, 0) || 0;
+          }, 0);
 
-          // Ingresos del mes pasado para comparación
+          // Ingresos del mes pasado para comparación - SOLO de citas pagadas
           const lastMonth = currentMonth === 0 ? 11 : currentMonth - 1;
           const lastMonthYear = currentMonth === 0 ? currentYear - 1 : currentYear;
-          const lastMonthRevenue = allAppointments?.reduce((sum, apt) => {
+          const lastMonthRevenue = paidAppointments.reduce((sum, apt) => {
             const aptDate = new Date(apt.appointment_date);
             if (aptDate.getMonth() === lastMonth && aptDate.getFullYear() === lastMonthYear) {
               return sum + (parseFloat(apt.cost?.toString() || '0'));
             }
             return sum;
-          }, 0) || 0;
+          }, 0);
           
           const revenueChange = lastMonthRevenue > 0 
             ? Math.round(((monthlyRevenue - lastMonthRevenue) / lastMonthRevenue) * 100)

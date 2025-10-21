@@ -71,7 +71,7 @@ export default function ProfessionalAppointments() {
         }
 
         if (professionalApp) {
-          // Obtener todas las citas del profesional
+          // Obtener todas las citas del profesional con información de pagos
           const { data: appointmentsData, error: appointmentsError } = await supabase
             .from('appointments')
             .select(`
@@ -83,7 +83,12 @@ export default function ProfessionalAppointments() {
               status,
               location,
               notes,
-              patient_id
+              patient_id,
+              payments (
+                id,
+                status,
+                paid_at
+              )
             `)
             .eq('professional_id', professionalApp.id)
             .order('appointment_date', { ascending: true })
@@ -94,13 +99,18 @@ export default function ProfessionalAppointments() {
             return;
           }
 
-          // Obtener fechas únicas para el filtro
-          const uniqueDates = [...new Set(appointmentsData?.map(apt => apt.appointment_date) || [])];
+          // Filtrar solo citas con pagos exitosos
+          const paidAppointments = appointmentsData?.filter(apt => {
+            return apt.payments?.some((payment: { id: string; status: string; paid_at: string | null }) => payment.status === 'succeeded');
+          }) || [];
+
+          // Obtener fechas únicas para el filtro - solo de citas pagadas
+          const uniqueDates = [...new Set(paidAppointments.map(apt => apt.appointment_date))];
           setAvailableDates(uniqueDates);
 
           // Formatear citas sin información de pacientes (temporal)
-          if (appointmentsData && appointmentsData.length > 0) {
-            const formattedAppointments: Appointment[] = appointmentsData.map(apt => {
+          if (paidAppointments.length > 0) {
+            const formattedAppointments: Appointment[] = paidAppointments.map(apt => {
               return {
                 id: apt.id,
                 patient: {
@@ -194,27 +204,35 @@ export default function ProfessionalAppointments() {
     setIsViewDialogOpen(true);
   };
 
-  // Función para confirmar una cita
+  // Función para confirmar una cita - usa el endpoint API que envía email al paciente
   const handleConfirmAppointment = async (appointmentId: string) => {
     try {
-      const { error } = await supabase
-        .from('appointments')
-        .update({ status: 'confirmed' })
-        .eq('id', appointmentId);
+      const response = await fetch('/api/appointments/confirm', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ appointmentId })
+      });
 
-      if (error) {
-        console.error('Error confirmando cita:', error);
+      if (!response.ok) {
+        console.error('Error confirmando cita');
         return;
       }
 
-      // Actualizar el estado local
-      setAppointments(prev => 
-        prev.map(apt => 
-          apt.id === appointmentId 
-            ? { ...apt, status: 'confirmed' as const }
-            : apt
-        )
-      );
+      const result = await response.json();
+
+      if (result.success) {
+        // Actualizar el estado local
+        setAppointments(prev =>
+          prev.map(apt =>
+            apt.id === appointmentId
+              ? { ...apt, status: 'confirmed' as const }
+              : apt
+          )
+        );
+        console.log('Cita confirmada y email enviado al paciente');
+      }
     } catch (error) {
       console.error('Error inesperado:', error);
     }

@@ -29,18 +29,18 @@ export function BookingDialog({ open, onOpenChange, children, title }: BookingDi
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-0 sm:p-4">
       {/* Backdrop */}
-      <div 
+      <div
         className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[9998]"
         onClick={() => onOpenChange(false)}
       />
-      
+
       {/* Dialog */}
-      <div className="relative bg-background rounded-2xl shadow-2xl border border-border w-[95vw] max-w-6xl max-h-[95vh] overflow-hidden z-[9999]">
+      <div className="relative bg-background rounded-none sm:rounded-2xl shadow-2xl border-0 sm:border border-border w-full sm:w-[95vw] max-w-6xl h-full sm:h-auto sm:max-h-[95vh] overflow-hidden z-[9999] flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-border">
-          <h2 className="text-2xl font-bold text-foreground">{title}</h2>
+        <div className="flex items-center justify-between p-4 sm:p-6 border-b border-border flex-shrink-0">
+          <h2 className="text-xl sm:text-2xl font-bold text-foreground">{title}</h2>
           <Button
             variant="ghost"
             size="sm"
@@ -50,9 +50,9 @@ export function BookingDialog({ open, onOpenChange, children, title }: BookingDi
             <X className="h-4 w-4" />
           </Button>
         </div>
-        
-        {/* Content */}
-        <div className="overflow-y-auto max-h-[calc(95vh-80px)]">
+
+        {/* Content - con padding bottom extra en móviles para los botones sticky */}
+        <div className="overflow-y-auto flex-1 pb-32 sm:pb-0">
           {children}
         </div>
       </div>

@@ -39,6 +39,7 @@ interface ProfessionalData {
   instagram?: string;
   profession: string;
   specializations: string[];
+  languages?: string[];
   experience: string;
   certifications: string[];
   wellness_areas: string[];
@@ -78,6 +79,7 @@ export default function ProfessionalProfileEditor({
     instagram: "",
     profession: "",
     specializations: [] as string[],
+    languages: ["Español"] as string[],
     experience: "",
     certifications: [] as string[],
     wellness_areas: [] as string[],
@@ -90,6 +92,7 @@ export default function ProfessionalProfileEditor({
 
   // Estados para campos personalizados
   const [customSpecialization, setCustomSpecialization] = useState("");
+  const [customLanguage, setCustomLanguage] = useState("");
 
   useEffect(() => {
     const fetchProfessionalData = async () => {
@@ -119,6 +122,7 @@ export default function ProfessionalProfileEditor({
             instagram: data.instagram || "",
             profession: data.profession || "",
             specializations: data.specializations || [],
+            languages: data.languages || ["Español"],
             experience: data.experience || "",
             certifications: data.certifications || [],
             wellness_areas: data.wellness_areas || [],
@@ -158,6 +162,7 @@ export default function ProfessionalProfileEditor({
           instagram: formData.instagram,
           profession: formData.profession,
           specializations: formData.specializations,
+          languages: formData.languages,
           experience: formData.experience,
           certifications: formData.certifications,
           wellness_areas: formData.wellness_areas,
@@ -189,6 +194,7 @@ export default function ProfessionalProfileEditor({
         instagram: formData.instagram,
         profession: formData.profession,
         specializations: formData.specializations,
+        languages: formData.languages,
         experience: formData.experience,
         certifications: formData.certifications,
         wellness_areas: formData.wellness_areas,
@@ -252,6 +258,29 @@ export default function ProfessionalProfileEditor({
     }
   };
 
+  const handleLanguageToggle = (language: string) => {
+    // No permitir eliminar el español si es el único idioma
+    if (language === "Español" && formData.languages.length === 1) {
+      return;
+    }
+    setFormData(prev => ({
+      ...prev,
+      languages: prev.languages.includes(language)
+        ? prev.languages.filter(l => l !== language)
+        : [...prev.languages, language]
+    }));
+  };
+
+  const handleAddCustomLanguage = () => {
+    if (customLanguage.trim() && !formData.languages.includes(customLanguage.trim())) {
+      setFormData(prev => ({
+        ...prev,
+        languages: [...prev.languages, customLanguage.trim()]
+      }));
+      setCustomLanguage("");
+    }
+  };
+
 
   const startEditing = (field: string) => {
     setEditingField(field);
@@ -271,6 +300,7 @@ export default function ProfessionalProfileEditor({
         instagram: professionalData.instagram || "",
         profession: professionalData.profession || "",
         specializations: professionalData.specializations || [],
+        languages: professionalData.languages || ["Español"],
         experience: professionalData.experience || "",
         certifications: professionalData.certifications || [],
         wellness_areas: professionalData.wellness_areas || [],
@@ -581,6 +611,72 @@ export default function ProfessionalProfileEditor({
             )}
           </div>
 
+          {/* Idiomas */}
+          <div className="space-y-2">
+            <Label>Idiomas que hablas *</Label>
+            {editingField === 'languages' ? (
+              <div className="space-y-3">
+                <div className="flex flex-wrap gap-2">
+                  {formData.languages.map((lang) => (
+                    <Badge
+                      key={lang}
+                      variant="secondary"
+                      className={`flex items-center gap-1 ${lang === "Español" ? "border-2 border-primary" : ""}`}
+                    >
+                      {lang}
+                      {!(lang === "Español" && formData.languages.length === 1) && (
+                        <button
+                          onClick={() => handleLanguageToggle(lang)}
+                          className="ml-1 hover:bg-muted rounded-full p-0.5"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      )}
+                    </Badge>
+                  ))}
+                </div>
+
+                {/* Input para idioma personalizado */}
+                <div className="flex gap-2 mt-3">
+                  <Input
+                    placeholder="Ej: Inglés, Francés, Portugués..."
+                    value={customLanguage}
+                    onChange={(e) => setCustomLanguage(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleAddCustomLanguage()}
+                    className="flex-1"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleAddCustomLanguage}
+                    disabled={!customLanguage.trim()}
+                    size="sm"
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  El español está incluido por defecto. Agrega otros idiomas que hables.
+                </p>
+              </div>
+            ) : (
+              <div
+                className="p-2 border border-transparent hover:border-border rounded cursor-pointer"
+                onClick={() => startEditing('languages')}
+              >
+                <div className="flex flex-wrap gap-1">
+                  {(professionalData.languages && professionalData.languages.length > 0) ? (
+                    professionalData.languages.map((lang) => (
+                      <Badge key={lang} variant="secondary" className={lang === "Español" ? "border-2 border-primary" : ""}>{lang}</Badge>
+                    ))
+                  ) : (
+                    <Badge variant="secondary">Español</Badge>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+
           {/* Certificaciones */}
           <div className="space-y-2">
             <Label>Certificaciones</Label>
@@ -685,7 +781,7 @@ export default function ProfessionalProfileEditor({
           </div>
 
           {/* Botones de edición para información profesional */}
-          {(editingField === 'profession' || editingField === 'specializations' || editingField === 'certifications' || editingField === 'wellness') && (
+          {(editingField === 'profession' || editingField === 'specializations' || editingField === 'languages' || editingField === 'certifications' || editingField === 'wellness') && (
             <div className="flex gap-2">
               <Button onClick={handleSave} disabled={saving} size="sm">
                 <Save className="h-4 w-4 mr-2" />

@@ -65,6 +65,7 @@ export default function BecomeProfessionalPage() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [processingPayment, setProcessingPayment] = useState(false);
+  const [isEditingRejected, setIsEditingRejected] = useState(false);
   const [currentUser, setCurrentUser] = useState<{
     id: string;
     email: string;
@@ -1004,8 +1005,8 @@ export default function BecomeProfessionalPage() {
     );
   }
 
-  // Mostrar estado de aplicación existente
-  if (existingApplication) {
+  // Mostrar estado de aplicación existente (excepto si está editando una rechazada)
+  if (existingApplication && !isEditingRejected) {
     const getStatusInfo = (status: string) => {
       switch (status) {
         case "approved":
@@ -1311,7 +1312,37 @@ export default function BecomeProfessionalPage() {
                         return null;
                       })()}
 
-                      {existingApplication.status !== "approved" && (
+                      {existingApplication.status === "rejected" && (
+                        <div className="pt-3 sm:pt-4 border-t border-border">
+                          <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg mb-4">
+                            <p className="text-sm text-blue-900 mb-2">
+                              <strong>¿Quieres volver a intentarlo?</strong>
+                            </p>
+                            <p className="text-xs text-blue-800">
+                              Puedes editar tu solicitud y enviarla nuevamente para una nueva revisión.
+                            </p>
+                          </div>
+                          <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
+                            <Button 
+                              onClick={() => {
+                                // Activar modo edición para solicitud rechazada
+                                setIsEditingRejected(true);
+                                setCurrentStep(1);
+                              }}
+                              className="flex-1"
+                            >
+                              Editar y Reenviar Solicitud
+                            </Button>
+                            <Button asChild variant="outline" className="flex-1">
+                              <Link href={`/patient/${userId}/explore/profile`}>
+                                Ver Mi Perfil
+                              </Link>
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+
+                      {existingApplication.status !== "approved" && existingApplication.status !== "rejected" && (
                         <div className="pt-3 sm:pt-4 border-t border-border">
                           <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
                             <Button asChild variant="outline" className="flex-1">
@@ -1346,11 +1377,22 @@ export default function BecomeProfessionalPage() {
         <div className="max-w-2xl mx-auto">
           <div className="text-center mb-6 sm:mb-8">
             <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">
-              Únete como Profesional
+              {isEditingRejected ? 'Editar y Reenviar Solicitud' : 'Únete como Profesional'}
             </h1>
             <p className="text-sm sm:text-base text-muted-foreground">
-              Completa tu perfil para comenzar a ayudar a pacientes en Holistia
+              {isEditingRejected 
+                ? 'Revisa y actualiza tu información antes de reenviar tu solicitud'
+                : 'Completa tu perfil para comenzar a ayudar a pacientes en Holistia'
+              }
             </p>
+            {isEditingRejected && (
+              <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg text-left">
+                <p className="text-sm text-blue-900">
+                  <strong>💡 Consejo:</strong> Revisa cuidadosamente toda la información antes de reenviar. 
+                  Tu solicitud será evaluada nuevamente por nuestro equipo.
+                </p>
+              </div>
+            )}
           </div>
 
           {/* Progress Bar */}

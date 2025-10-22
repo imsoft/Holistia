@@ -224,7 +224,9 @@ export async function POST(request: NextRequest) {
         const { 
           payment_id, 
           appointment_id,
-          event_registration_id
+          event_registration_id,
+          professional_application_id,
+          payment_type
         } = session.metadata || {};
 
         if (!payment_id) {
@@ -294,6 +296,23 @@ export async function POST(request: NextRequest) {
               console.error('Error sending event confirmation email:', emailError);
               // Don't fail the webhook if email fails
             }
+          }
+        }
+
+        // Handle registration fee payments
+        if (payment_type === 'registration' && professional_application_id) {
+          const { error: applicationUpdateError } = await supabase
+            .from('professional_applications')
+            .update({
+              registration_fee_paid: true,
+              registration_fee_paid_at: new Date().toISOString(),
+            })
+            .eq('id', professional_application_id);
+
+          if (applicationUpdateError) {
+            console.error('Error updating professional application:', applicationUpdateError);
+          } else {
+            console.log('Registration fee payment confirmed for application:', professional_application_id);
           }
         }
 

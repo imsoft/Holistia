@@ -103,7 +103,8 @@ const FavoritesPage = () => {
             .from('professional_applications')
             .select('*')
             .in('id', professionalIds)
-            .eq('status', 'approved');
+            .eq('status', 'approved')
+            .eq('registration_fee_paid', true);
 
           if (professionalsError) {
             console.error('Error fetching professionals:', {

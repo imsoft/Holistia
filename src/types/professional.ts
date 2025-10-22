@@ -72,6 +72,12 @@ export interface Professional {
   sessionDuration?: number;
   breakTime?: number;
   bookedSlots?: string[];
+  registration_fee_paid?: boolean;
+  registration_fee_amount?: number;
+  registration_fee_currency?: string;
+  registration_fee_payment_id?: string;
+  registration_fee_paid_at?: string;
+  registration_fee_stripe_session_id?: string;
 }
 
 export interface ProfessionalApplication {
@@ -92,4 +98,10 @@ export interface ProfessionalApplication {
     status: "complete" | "pending" | "incomplete";
   }>;
   avatar: string;
+  registration_fee_paid?: boolean;
+  registration_fee_amount?: number;
+  registration_fee_currency?: string;
+  registration_fee_payment_id?: string;
+  registration_fee_paid_at?: string;
+  registration_fee_stripe_session_id?: string;
 }

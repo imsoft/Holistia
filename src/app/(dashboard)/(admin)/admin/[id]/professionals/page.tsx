@@ -59,6 +59,10 @@ interface Professional {
   submitted_at: string;
   reviewed_at?: string;
   patients?: number;
+  registration_fee_paid?: boolean;
+  registration_fee_amount?: number;
+  registration_fee_currency?: string;
+  registration_fee_paid_at?: string;
 }
 
 export default function AdminProfessionals() {
@@ -718,6 +722,48 @@ export default function AdminProfessionals() {
                     </Badge>
                   ))}
                 </div>
+              </div>
+
+              {/* Información de pago de inscripción */}
+              <div className={`rounded-lg p-4 border-2 ${selectedProfessional.registration_fee_paid ? 'bg-green-50 border-green-200' : 'bg-yellow-50 border-yellow-200'}`}>
+                <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                  <span>Cuota de Inscripción</span>
+                  {selectedProfessional.registration_fee_paid ? (
+                    <Badge className="bg-green-600">Pagado</Badge>
+                  ) : (
+                    <Badge variant="destructive">Pendiente</Badge>
+                  )}
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="flex flex-col gap-1">
+                    <span className="text-sm text-muted-foreground">Monto</span>
+                    <span className="text-base font-medium">
+                      ${selectedProfessional.registration_fee_amount?.toLocaleString('es-MX') || '1,000'} {selectedProfessional.registration_fee_currency?.toUpperCase() || 'MXN'}
+                    </span>
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <span className="text-sm text-muted-foreground">Estado</span>
+                    <span className="text-base font-medium">
+                      {selectedProfessional.registration_fee_paid ? 'Pagado' : 'Pendiente de pago'}
+                    </span>
+                  </div>
+                  {selectedProfessional.registration_fee_paid && selectedProfessional.registration_fee_paid_at && (
+                    <div className="flex flex-col gap-1">
+                      <span className="text-sm text-muted-foreground">Fecha de pago</span>
+                      <span className="text-base font-medium">
+                        {new Date(selectedProfessional.registration_fee_paid_at).toLocaleDateString('es-ES')}
+                      </span>
+                    </div>
+                  )}
+                </div>
+                {!selectedProfessional.registration_fee_paid && (
+                  <div className="mt-3 p-3 bg-yellow-100 border border-yellow-300 rounded-md">
+                    <p className="text-sm text-yellow-800">
+                      ⚠️ El profesional debe pagar la cuota de inscripción para poder aparecer en la plataforma, 
+                      incluso si ya fue aprobado.
+                    </p>
+                  </div>
+                )}
               </div>
 
               {/* Información de verificación */}

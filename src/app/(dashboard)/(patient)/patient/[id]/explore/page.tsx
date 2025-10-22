@@ -108,6 +108,7 @@ const HomeUserPage = () => {
           .select("*")
           .eq("status", "approved")
           .eq("is_active", true)
+          .eq("registration_fee_paid", true)
           .order("created_at", { ascending: false});
 
         if (error) {

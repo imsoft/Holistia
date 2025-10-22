@@ -181,6 +181,7 @@ export default function ProfessionalProfilePage() {
           .select('*')
           .eq('id', professionalId)
           .eq('status', 'approved')
+          .eq('registration_fee_paid', true)
           .single();
 
         if (error) {

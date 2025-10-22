@@ -16,6 +16,8 @@ import {
   ChevronsUpDown,
   Instagram,
   Info,
+  CreditCard,
+  DollarSign,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -60,6 +62,7 @@ export default function BecomeProfessionalPage() {
   const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [processingPayment, setProcessingPayment] = useState(false);
   const [currentUser, setCurrentUser] = useState<{
     id: string;
     email: string;
@@ -83,6 +86,9 @@ export default function BecomeProfessionalPage() {
     wellness_areas: string[];
     gallery: string[];
     created_at: string;
+    registration_fee_paid: boolean;
+    registration_fee_amount: number;
+    registration_fee_currency: string;
   } | null>(null);
 
   const [formData, setFormData] = useState({
@@ -363,6 +369,36 @@ export default function BecomeProfessionalPage() {
       toast.error("Error al enviar la solicitud. Inténtalo de nuevo.");
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleRegistrationPayment = async () => {
+    if (!existingApplication) return;
+
+    setProcessingPayment(true);
+    try {
+      const response = await fetch('/api/stripe/registration-checkout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          professional_application_id: existingApplication.id,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Error al crear la sesión de pago');
+      }
+
+      const { url } = await response.json();
+      
+      // Redirigir a Stripe Checkout
+      window.location.href = url;
+    } catch (error) {
+      console.error('Error processing payment:', error);
+      toast.error('Error al procesar el pago. Inténtalo de nuevo.');
+      setProcessingPayment(false);
     }
   };
 
@@ -1106,13 +1142,82 @@ export default function BecomeProfessionalPage() {
                         </div>
                       )}
 
-                      {existingApplication.status === "approved" && (
+                      {/* Información de pago de inscripción */}
+                      <div className="pt-4 border-t border-border space-y-4">
+                        <div className="flex items-center justify-between p-4 bg-secondary/30 rounded-lg">
+                          <div className="flex items-center gap-3">
+                            <DollarSign className="h-5 w-5 text-primary" />
+                            <div>
+                              <p className="text-sm font-semibold text-foreground">Cuota de Inscripción</p>
+                              <p className="text-xs text-muted-foreground">
+                                Requerida para aparecer en la plataforma
+                              </p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-lg font-bold text-foreground">
+                              ${existingApplication.registration_fee_amount?.toLocaleString('es-MX')} {existingApplication.registration_fee_currency?.toUpperCase()}
+                            </p>
+                            {existingApplication.registration_fee_paid ? (
+                              <Badge variant="default" className="bg-green-600">
+                                <CheckCircle className="h-3 w-3 mr-1" />
+                                Pagado
+                              </Badge>
+                            ) : (
+                              <Badge variant="destructive">
+                                <AlertCircle className="h-3 w-3 mr-1" />
+                                Pendiente
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+
+                        {!existingApplication.registration_fee_paid && (
+                          <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                            <div className="flex items-start gap-3">
+                              <Info className="h-5 w-5 text-yellow-600 mt-0.5" />
+                              <div className="flex-1">
+                                <p className="text-sm font-semibold text-yellow-900 mb-1">
+                                  Pago de Inscripción Requerido
+                                </p>
+                                <p className="text-xs text-yellow-800 mb-3">
+                                  Para que tu perfil sea visible en Holistia después de ser aprobado, 
+                                  debes pagar la cuota de inscripción de ${existingApplication.registration_fee_amount?.toLocaleString('es-MX')} MXN. 
+                                  Puedes realizar el pago ahora o más tarde, pero sin él no podrás aparecer en la plataforma.
+                                </p>
+                                <Button 
+                                  onClick={handleRegistrationPayment}
+                                  disabled={processingPayment}
+                                  className="w-full sm:w-auto"
+                                  size="sm"
+                                >
+                                  <CreditCard className="h-4 w-4 mr-2" />
+                                  {processingPayment ? 'Procesando...' : 'Pagar Inscripción'}
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      {existingApplication.status === "approved" && existingApplication.registration_fee_paid && (
                         <div className="pt-4 border-t border-border">
                           <Button asChild className="w-full">
                             <Link href={`/professional/${userId}/dashboard`}>
                               Ir al Dashboard Profesional
                             </Link>
                           </Button>
+                        </div>
+                      )}
+
+                      {existingApplication.status === "approved" && !existingApplication.registration_fee_paid && (
+                        <div className="pt-4 border-t border-border">
+                          <div className="p-4 bg-orange-50 border border-orange-200 rounded-lg mb-4">
+                            <p className="text-sm text-orange-800">
+                              <strong>¡Tu solicitud ha sido aprobada!</strong> Para acceder a tu dashboard profesional 
+                              y comenzar a aparecer en Holistia, primero debes completar el pago de inscripción.
+                            </p>
+                          </div>
                         </div>
                       )}
 

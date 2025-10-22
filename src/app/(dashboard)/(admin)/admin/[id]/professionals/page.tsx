@@ -632,71 +632,85 @@ export default function AdminProfessionals() {
             <div className="space-y-6">
               {/* Información personal */}
               <div className="bg-muted/50 rounded-lg p-4">
-                <h3 className="text-lg font-semibold mb-3">Información Personal</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="flex items-center gap-2">
-                    <UserCheck className="h-4 w-4 text-muted-foreground" />
-                    <span className="font-medium">Nombre:</span>
-                    <span>{selectedProfessional.first_name} {selectedProfessional.last_name}</span>
+                <h3 className="text-lg font-semibold mb-4">Información Personal</h3>
+                <div className="grid grid-cols-1 gap-3">
+                  <div className="flex flex-col gap-1">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <UserCheck className="h-4 w-4" />
+                      <span>Nombre</span>
+                    </div>
+                    <span className="text-base font-medium pl-6">{selectedProfessional.first_name} {selectedProfessional.last_name}</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium">Profesión:</span>
-                    <span>{selectedProfessional.profession}</span>
+                  <div className="flex flex-col gap-1">
+                    <span className="text-sm text-muted-foreground">Profesión</span>
+                    <span className="text-base font-medium">{selectedProfessional.profession}</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium">Estado:</span>
-                    <Badge className={getStatusColor(selectedProfessional.status)}>
-                      {getStatusText(selectedProfessional.status)}
-                    </Badge>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium">Pacientes:</span>
-                    <span>{selectedProfessional.patients || 0}</span>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="flex flex-col gap-1">
+                      <span className="text-sm text-muted-foreground">Estado</span>
+                      <Badge className={getStatusColor(selectedProfessional.status)}>
+                        {getStatusText(selectedProfessional.status)}
+                      </Badge>
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <span className="text-sm text-muted-foreground">Pacientes</span>
+                      <span className="text-base font-medium">{selectedProfessional.patients || 0}</span>
+                    </div>
                   </div>
                 </div>
               </div>
 
               {/* Información de contacto */}
               <div className="bg-muted/50 rounded-lg p-4">
-                <h3 className="text-lg font-semibold mb-3">Información de Contacto</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="flex items-center gap-2">
-                    <Mail className="h-4 w-4 text-muted-foreground" />
-                    <span className="font-medium">Email:</span>
-                    <span className="break-all">{selectedProfessional.email}</span>
+                <h3 className="text-lg font-semibold mb-4">Información de Contacto</h3>
+                <div className="grid grid-cols-1 gap-3">
+                  <div className="flex flex-col gap-1">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Mail className="h-4 w-4" />
+                      <span>Email</span>
+                    </div>
+                    <span className="text-base font-medium pl-6 break-all">{selectedProfessional.email}</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Phone className="h-4 w-4 text-muted-foreground" />
-                    <span className="font-medium">Teléfono:</span>
-                    <span>{selectedProfessional.phone || 'No disponible'}</span>
+                  <div className="flex flex-col gap-1">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Phone className="h-4 w-4" />
+                      <span>Teléfono</span>
+                    </div>
+                    <span className="text-base font-medium pl-6">{selectedProfessional.phone || 'No disponible'}</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <MapPin className="h-4 w-4 text-muted-foreground" />
-                    <span className="font-medium">Ubicación:</span>
-                    <span>{selectedProfessional.city}, {selectedProfessional.state}</span>
+                  <div className="flex flex-col gap-1">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <MapPin className="h-4 w-4" />
+                      <span>Ubicación</span>
+                    </div>
+                    <span className="text-base font-medium pl-6">{selectedProfessional.city}, {selectedProfessional.state}</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Instagram className="h-4 w-4 text-muted-foreground" />
-                    <span className="font-medium">Instagram:</span>
-                    {selectedProfessional.instagram ? (
-                      <a 
-                        href={`https://instagram.com/${selectedProfessional.instagram}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-primary hover:underline"
-                      >
-                        @{selectedProfessional.instagram}
-                      </a>
-                    ) : (
-                      <span className="text-muted-foreground">No disponible</span>
-                    )}
+                  <div className="flex flex-col gap-1">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Instagram className="h-4 w-4" />
+                      <span>Instagram</span>
+                    </div>
+                    <div className="pl-6">
+                      {selectedProfessional.instagram ? (
+                        <a
+                          href={`https://instagram.com/${selectedProfessional.instagram}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-base font-medium text-primary hover:underline"
+                        >
+                          @{selectedProfessional.instagram}
+                        </a>
+                      ) : (
+                        <span className="text-base font-medium text-muted-foreground">No disponible</span>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
 
               {/* Especialidades */}
               <div className="bg-muted/50 rounded-lg p-4">
-                <h3 className="text-lg font-semibold mb-3">Especialidades</h3>
+                <h3 className="text-lg font-semibold mb-4">Especialidades</h3>
                 <div className="flex flex-wrap gap-2">
                   {selectedProfessional.specializations.map((specialization, index) => (
                     <Badge key={index} variant="secondary">
@@ -708,17 +722,21 @@ export default function AdminProfessionals() {
 
               {/* Información de verificación */}
               <div className="bg-muted/50 rounded-lg p-4">
-                <h3 className="text-lg font-semibold mb-3">Información de Verificación</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-muted-foreground" />
-                    <span className="font-medium">Fecha de registro:</span>
-                    <span>{new Date(selectedProfessional.submitted_at).toLocaleDateString('es-ES')}</span>
+                <h3 className="text-lg font-semibold mb-4">Información de Verificación</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="flex flex-col gap-1">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Calendar className="h-4 w-4" />
+                      <span>Fecha de registro</span>
+                    </div>
+                    <span className="text-base font-medium pl-6">{new Date(selectedProfessional.submitted_at).toLocaleDateString('es-ES')}</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Shield className="h-4 w-4 text-muted-foreground" />
-                    <span className="font-medium">Verificado:</span>
-                    <span>{selectedProfessional.reviewed_at ? new Date(selectedProfessional.reviewed_at).toLocaleDateString('es-ES') : 'No verificado'}</span>
+                  <div className="flex flex-col gap-1">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Shield className="h-4 w-4" />
+                      <span>Verificado</span>
+                    </div>
+                    <span className="text-base font-medium pl-6">{selectedProfessional.reviewed_at ? new Date(selectedProfessional.reviewed_at).toLocaleDateString('es-ES') : 'No verificado'}</span>
                   </div>
                 </div>
               </div>

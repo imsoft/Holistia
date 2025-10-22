@@ -12,6 +12,7 @@ import {
   Calendar,
   ClipboardList,
   CalendarCheck,
+  BarChart3,
 } from "lucide-react";
 import {
   Sidebar,
@@ -114,6 +115,11 @@ export function AdminSidebar() {
       title: "Dashboard",
       url: `/admin/${userId}/dashboard`,
       icon: Home,
+    },
+    {
+      title: "Analíticas",
+      url: `/admin/${userId}/analytics`,
+      icon: BarChart3,
     },
     {
       title: "Blog",

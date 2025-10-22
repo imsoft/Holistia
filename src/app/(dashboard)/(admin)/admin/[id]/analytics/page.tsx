@@ -92,11 +92,22 @@ export default function AnalyticsPage() {
           supabase.from('payments').select('*').eq('status', 'succeeded'),
         ]);
 
+        console.log('🔍 DEBUG Analytics:');
+        console.log('- Appointments:', appointmentsData?.length || 0, appointmentsData);
+        console.log('- Payments (succeeded):', paymentsData?.length || 0, paymentsData);
+        console.log('- Professionals:', professionalsCount);
+
         // Obtener pacientes únicos
         const uniquePatients = new Set(appointmentsData?.map(a => a.patient_id) || []);
 
-        // Calcular ingresos totales
-        const totalRevenue = paymentsData?.reduce((sum, p) => sum + (p.amount || 0), 0) || 0;
+        // Calcular ingresos totales - convertir string a número
+        const totalRevenue = paymentsData?.reduce((sum, p) => {
+          const amount = typeof p.amount === 'string' ? parseFloat(p.amount) : (p.amount || 0);
+          console.log('Payment amount:', p.id, amount);
+          return sum + amount;
+        }, 0) || 0;
+
+        console.log('💰 Total revenue:', totalRevenue);
 
         // Citas completadas
         const completedAppointments = appointmentsData?.filter(a => a.status === 'completed').length || 0;
@@ -125,7 +136,10 @@ export default function AnalyticsPage() {
             return {
               ...prof,
               appointment_count: profAppointments.length,
-              total_revenue: profPayments.reduce((sum, p) => sum + (p.amount || 0), 0),
+              total_revenue: profPayments.reduce((sum, p) => {
+                const amount = typeof p.amount === 'string' ? parseFloat(p.amount) : (p.amount || 0);
+                return sum + amount;
+              }, 0),
             };
           });
 
@@ -143,7 +157,10 @@ export default function AnalyticsPage() {
           appointmentsData.forEach(apt => {
             const existing = patientMap.get(apt.patient_id) || { count: 0, spent: 0 };
             const aptPayments = paymentsData.filter(p => p.appointment_id === apt.id);
-            const spent = aptPayments.reduce((sum, p) => sum + (p.amount || 0), 0);
+            const spent = aptPayments.reduce((sum, p) => {
+              const amount = typeof p.amount === 'string' ? parseFloat(p.amount) : (p.amount || 0);
+              return sum + amount;
+            }, 0);
 
             patientMap.set(apt.patient_id, {
               count: existing.count + 1,
@@ -151,27 +168,20 @@ export default function AnalyticsPage() {
             });
           });
 
-          const patientIds = Array.from(patientMap.keys()).slice(0, 20);
-          const { data: patientsData } = await supabase
-            .from('profiles')
-            .select('id, full_name, email, avatar_url')
-            .in('id', patientIds);
+          // Convertir patientMap a array y ordenar por número de citas
+          const topPats = Array.from(patientMap.entries())
+            .map(([patientId, stats]) => ({
+              id: patientId,
+              full_name: `Paciente ${patientId.slice(0, 8)}`, // Mostrar solo parte del ID por privacidad
+              email: 'No disponible',
+              avatar_url: null,
+              appointment_count: stats.count,
+              total_spent: stats.spent,
+            }))
+            .sort((a, b) => b.appointment_count - a.appointment_count)
+            .slice(0, 5);
 
-          if (patientsData) {
-            const topPats = patientsData
-              .map(patient => {
-                const stats = patientMap.get(patient.id);
-                return {
-                  ...patient,
-                  appointment_count: stats?.count || 0,
-                  total_spent: stats?.spent || 0,
-                };
-              })
-              .sort((a, b) => b.appointment_count - a.appointment_count)
-              .slice(0, 5);
-
-            setTopPatients(topPats);
-          }
+          setTopPatients(topPats);
         }
 
         // Estadísticas por tipo de servicio
@@ -182,7 +192,10 @@ export default function AnalyticsPage() {
             const type = apt.appointment_type === 'presencial' ? 'Presencial' : 'En línea';
             const existing = serviceTypeMap.get(type) || { count: 0, revenue: 0 };
             const aptPayments = paymentsData.filter(p => p.appointment_id === apt.id);
-            const revenue = aptPayments.reduce((sum, p) => sum + (p.amount || 0), 0);
+            const revenue = aptPayments.reduce((sum, p) => {
+              const amount = typeof p.amount === 'string' ? parseFloat(p.amount) : (p.amount || 0);
+              return sum + amount;
+            }, 0);
 
             serviceTypeMap.set(type, {
               count: existing.count + 1,

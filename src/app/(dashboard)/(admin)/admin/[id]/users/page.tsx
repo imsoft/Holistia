@@ -632,66 +632,81 @@ export default function AdminUsers() {
             <div className="space-y-6">
               {/* Información personal */}
               <div className="bg-muted/50 rounded-lg p-4">
-                <h3 className="text-lg font-semibold mb-3">Información Personal</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="flex items-center gap-2">
-                    <Users className="h-4 w-4 text-muted-foreground" />
-                    <span className="font-medium">Nombre:</span>
-                    <span>{selectedUser.name}</span>
+                <h3 className="text-lg font-semibold mb-4">Información Personal</h3>
+                <div className="grid grid-cols-1 gap-3">
+                  <div className="flex flex-col gap-1">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Users className="h-4 w-4" />
+                      <span>Nombre</span>
+                    </div>
+                    <span className="text-base font-medium pl-6">{selectedUser.name}</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium">Tipo:</span>
-                    <Badge className={getTypeColor(selectedUser.type)}>
-                      {getTypeText(selectedUser.type)}
-                    </Badge>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="flex flex-col gap-1">
+                      <span className="text-sm text-muted-foreground">Tipo</span>
+                      <Badge className={getTypeColor(selectedUser.type)}>
+                        {getTypeText(selectedUser.type)}
+                      </Badge>
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <span className="text-sm text-muted-foreground">Estado</span>
+                      <Badge className={getStatusColor(selectedUser.status)}>
+                        {getStatusText(selectedUser.status)}
+                      </Badge>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium">Estado:</span>
-                    <Badge className={getStatusColor(selectedUser.status)}>
-                      {getStatusText(selectedUser.status)}
-                    </Badge>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium">Citas:</span>
-                    <span>{selectedUser.appointments}</span>
+                  <div className="flex flex-col gap-1">
+                    <span className="text-sm text-muted-foreground">Citas</span>
+                    <span className="text-base font-medium">{selectedUser.appointments}</span>
                   </div>
                 </div>
               </div>
 
               {/* Información de contacto */}
               <div className="bg-muted/50 rounded-lg p-4">
-                <h3 className="text-lg font-semibold mb-3">Información de Contacto</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="flex items-center gap-2">
-                    <Mail className="h-4 w-4 text-muted-foreground" />
-                    <span className="font-medium">Email:</span>
-                    <span>{selectedUser.email}</span>
+                <h3 className="text-lg font-semibold mb-4">Información de Contacto</h3>
+                <div className="grid grid-cols-1 gap-3">
+                  <div className="flex flex-col gap-1">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Mail className="h-4 w-4" />
+                      <span>Email</span>
+                    </div>
+                    <span className="text-base font-medium pl-6 break-all">{selectedUser.email}</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Phone className="h-4 w-4 text-muted-foreground" />
-                    <span className="font-medium">Teléfono:</span>
-                    <span>{selectedUser.phone || 'No disponible'}</span>
+                  <div className="flex flex-col gap-1">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Phone className="h-4 w-4" />
+                      <span>Teléfono</span>
+                    </div>
+                    <span className="text-base font-medium pl-6">{selectedUser.phone || 'No disponible'}</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <MapPin className="h-4 w-4 text-muted-foreground" />
-                    <span className="font-medium">Ubicación:</span>
-                    <span>{selectedUser.location || 'No especificada'}</span>
+                  <div className="flex flex-col gap-1">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <MapPin className="h-4 w-4" />
+                      <span>Ubicación</span>
+                    </div>
+                    <span className="text-base font-medium pl-6">{selectedUser.location || 'No especificada'}</span>
                   </div>
                 </div>
               </div>
 
               {/* Información de actividad */}
               <div className="bg-muted/50 rounded-lg p-4">
-                <h3 className="text-lg font-semibold mb-3">Información de Actividad</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-muted-foreground" />
-                    <span className="font-medium">Fecha de registro:</span>
-                    <span>{new Date(selectedUser.joinDate).toLocaleDateString('es-ES')}</span>
+                <h3 className="text-lg font-semibold mb-4">Información de Actividad</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="flex flex-col gap-1">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Calendar className="h-4 w-4" />
+                      <span>Fecha de registro</span>
+                    </div>
+                    <span className="text-base font-medium pl-6">{new Date(selectedUser.joinDate).toLocaleDateString('es-ES')}</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium">Último acceso:</span>
-                    <span>{new Date(selectedUser.lastLogin).toLocaleDateString('es-ES')}</span>
+                  <div className="flex flex-col gap-1">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Calendar className="h-4 w-4" />
+                      <span>Último acceso</span>
+                    </div>
+                    <span className="text-base font-medium pl-6">{new Date(selectedUser.lastLogin).toLocaleDateString('es-ES')}</span>
                   </div>
                 </div>
               </div>

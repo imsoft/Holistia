@@ -483,32 +483,6 @@ export default function ProfessionalProfileEditor({
             </div>
           </div>
 
-          {/* Botones de edición para información personal */}
-          {editingField === 'personal' && (
-            <div className="flex gap-2">
-              <Button onClick={handleSave} disabled={saving} size="sm">
-                <Save className="h-4 w-4 mr-2" />
-                {saving ? 'Guardando...' : 'Guardar'}
-              </Button>
-              <Button variant="outline" onClick={cancelEditing} size="sm">
-                <X className="h-4 w-4 mr-2" />
-                Cancelar
-              </Button>
-            </div>
-          )}
-
-          {editingField === 'contact' && (
-            <div className="flex gap-2">
-              <Button onClick={handleSave} disabled={saving} size="sm">
-                <Save className="h-4 w-4 mr-2" />
-                {saving ? 'Guardando...' : 'Guardar'}
-              </Button>
-              <Button variant="outline" onClick={cancelEditing} size="sm">
-                <X className="h-4 w-4 mr-2" />
-                Cancelar
-              </Button>
-            </div>
-          )}
         </div>
 
         {/* Información Profesional */}
@@ -780,19 +754,6 @@ export default function ProfessionalProfileEditor({
             )}
           </div>
 
-          {/* Botones de edición para información profesional */}
-          {(editingField === 'profession' || editingField === 'specializations' || editingField === 'languages' || editingField === 'certifications' || editingField === 'wellness') && (
-            <div className="flex gap-2">
-              <Button onClick={handleSave} disabled={saving} size="sm">
-                <Save className="h-4 w-4 mr-2" />
-                {saving ? 'Guardando...' : 'Guardar'}
-              </Button>
-              <Button variant="outline" onClick={cancelEditing} size="sm">
-                <X className="h-4 w-4 mr-2" />
-                Cancelar
-              </Button>
-            </div>
-          )}
         </div>
 
         {/* Biografía */}
@@ -822,18 +783,6 @@ export default function ProfessionalProfileEditor({
             )}
           </div>
 
-          {editingField === 'biography' && (
-            <div className="flex gap-2">
-              <Button onClick={handleSave} disabled={saving} size="sm">
-                <Save className="h-4 w-4 mr-2" />
-                {saving ? 'Guardando...' : 'Guardar'}
-              </Button>
-              <Button variant="outline" onClick={cancelEditing} size="sm">
-                <X className="h-4 w-4 mr-2" />
-                Cancelar
-              </Button>
-            </div>
-          )}
         </div>
 
         {/* Ubicación */}
@@ -921,19 +870,21 @@ export default function ProfessionalProfileEditor({
             </div>
           </div>
 
-          {editingField === 'location' && (
-            <div className="flex gap-2">
-              <Button onClick={handleSave} disabled={saving} size="sm">
-                <Save className="h-4 w-4 mr-2" />
-                {saving ? 'Guardando...' : 'Guardar'}
-              </Button>
-              <Button variant="outline" onClick={cancelEditing} size="sm">
-                <X className="h-4 w-4 mr-2" />
-                Cancelar
-              </Button>
-            </div>
-          )}
         </div>
+
+        {/* Botones de edición - Aparecen al final cuando se está editando cualquier sección */}
+        {editingField && (
+          <div className="flex gap-2 justify-end pt-6 border-t">
+            <Button variant="outline" onClick={cancelEditing} size="sm" disabled={saving}>
+              <X className="h-4 w-4 mr-2" />
+              Cancelar
+            </Button>
+            <Button onClick={handleSave} disabled={saving} size="sm">
+              <Save className="h-4 w-4 mr-2" />
+              {saving ? 'Guardando...' : 'Guardar cambios'}
+            </Button>
+          </div>
+        )}
       </CardContent>
     </Card>
   );

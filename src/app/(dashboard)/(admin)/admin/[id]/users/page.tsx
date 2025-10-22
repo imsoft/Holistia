@@ -104,11 +104,22 @@ export default function AdminUsers() {
         // Transformar usuarios a nuestro formato
         const transformedUsers: User[] = await Promise.all(
           (professionalUsers || []).map(async (prof) => {
-            // Obtener número de citas del usuario
-            const { count: appointmentsCount } = await supabase
-              .from('appointments')
-              .select('*', { count: 'exact', head: true })
-              .eq('patient_id', prof.user_id);
+            // Obtener número total de citas del usuario (como paciente o como profesional)
+            const [
+              { data: asPatient },
+              { data: asProfessional }
+            ] = await Promise.all([
+              supabase
+                .from('appointments')
+                .select('id')
+                .eq('patient_id', prof.user_id),
+              supabase
+                .from('appointments')
+                .select('id')
+                .eq('professional_id', prof.user_id)
+            ]);
+            
+            const appointmentsCount = (asPatient?.length || 0) + (asProfessional?.length || 0);
 
             // Usar la foto de perfil de la solicitud profesional
             const avatarUrl = prof.profile_photo;

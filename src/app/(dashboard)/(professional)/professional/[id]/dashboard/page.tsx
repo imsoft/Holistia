@@ -93,7 +93,7 @@ export default function ProfessionalDashboard() {
           
           // Obtener citas del profesional para hoy
           const today = new Date().toISOString().split('T')[0];
-          
+
           const { data: appointmentsData, error: appointmentsError } = await supabase
             .from('appointments')
             .select(`
@@ -105,12 +105,7 @@ export default function ProfessionalDashboard() {
               status,
               location,
               notes,
-              patient_id,
-              payments (
-                id,
-                status,
-                paid_at
-              )
+              patient_id
             `)
             .eq('professional_id', professionalApp.id)
             .eq('appointment_date', today)
@@ -121,6 +116,18 @@ export default function ProfessionalDashboard() {
             return;
           }
 
+          // Obtener pagos por separado
+          let paymentsData: { id: string; appointment_id: string; status: string; paid_at: string | null }[] = [];
+          if (appointmentsData && appointmentsData.length > 0) {
+            const appointmentIds = appointmentsData.map(apt => apt.id);
+            const { data: payments } = await supabase
+              .from('payments')
+              .select('id, appointment_id, status, paid_at')
+              .in('appointment_id', appointmentIds);
+
+            paymentsData = payments || [];
+          }
+
           // Formatear citas sin información de pacientes (temporal)
           // Solo mostrar citas confirmadas con pago exitoso
           if (appointmentsData && appointmentsData.length > 0) {
@@ -128,7 +135,7 @@ export default function ProfessionalDashboard() {
               .filter(apt => {
                 // Solo incluir citas confirmadas con pago exitoso
                 if (apt.status === 'confirmed') {
-                  return apt.payments?.some((payment: { id: string; status: string; paid_at: string | null }) => payment.status === 'succeeded');
+                  return paymentsData.some(payment => payment.appointment_id === apt.id && payment.status === 'succeeded');
                 }
                 return false;
               })
@@ -157,19 +164,29 @@ export default function ProfessionalDashboard() {
           const { data: allAppointments } = await supabase
             .from('appointments')
             .select(`
+              id,
               appointment_date,
               cost,
               patient_id,
-              status,
-              payments (
-                status
-              )
+              status
             `)
             .eq('professional_id', professionalApp.id);
 
+          // Obtener pagos para todas las citas
+          let allPaymentsData: { appointment_id: string; status: string }[] = [];
+          if (allAppointments && allAppointments.length > 0) {
+            const allAppointmentIds = allAppointments.map(apt => apt.id);
+            const { data: allPayments } = await supabase
+              .from('payments')
+              .select('appointment_id, status')
+              .in('appointment_id', allAppointmentIds);
+
+            allPaymentsData = allPayments || [];
+          }
+
           // Filtrar solo citas con pagos exitosos
           const paidAppointments = allAppointments?.filter(apt => {
-            return apt.payments?.some((payment: { status: string }) => payment.status === 'succeeded');
+            return allPaymentsData.some(payment => payment.appointment_id === apt.id && payment.status === 'succeeded');
           }) || [];
 
           const now = new Date();

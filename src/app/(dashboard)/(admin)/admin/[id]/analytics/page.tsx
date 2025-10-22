@@ -230,7 +230,7 @@ export default function AnalyticsPage() {
 
       {/* Estadísticas Generales */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
-        <Card>
+        <Card className="py-4">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
               <Briefcase className="h-4 w-4" />
@@ -245,7 +245,7 @@ export default function AnalyticsPage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="py-4">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
               <Users className="h-4 w-4" />
@@ -260,7 +260,7 @@ export default function AnalyticsPage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="py-4">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
               <Calendar className="h-4 w-4" />
@@ -275,7 +275,7 @@ export default function AnalyticsPage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="py-4">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
               <DollarSign className="h-4 w-4" />
@@ -292,7 +292,7 @@ export default function AnalyticsPage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="py-4">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
               <TrendingUp className="h-4 w-4" />
@@ -312,7 +312,7 @@ export default function AnalyticsPage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="py-4">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
               <BarChart3 className="h-4 w-4" />
@@ -334,7 +334,7 @@ export default function AnalyticsPage() {
       </div>
 
       {/* Top Profesionales */}
-      <Card>
+      <Card className="py-4">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Award className="h-5 w-5 text-primary" />
@@ -360,7 +360,7 @@ export default function AnalyticsPage() {
                     alt={`${prof.first_name} ${prof.last_name}`}
                     width={48}
                     height={48}
-                    className="rounded-full object-cover border-2 border-border"
+                    className="w-12 h-12 aspect-square rounded-full object-cover border-2 border-border"
                   />
                   <div>
                     <p className="font-semibold text-foreground">
@@ -391,7 +391,7 @@ export default function AnalyticsPage() {
       {/* Top Pacientes y Servicios */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Top Pacientes */}
-        <Card>
+        <Card className="py-4">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Users className="h-5 w-5 text-primary" />
@@ -417,7 +417,7 @@ export default function AnalyticsPage() {
                       alt={patient.full_name || patient.email}
                       width={40}
                       height={40}
-                      className="rounded-full object-cover border-2 border-border"
+                      className="w-10 h-10 aspect-square rounded-full object-cover border-2 border-border"
                     />
                     <div>
                       <p className="font-medium text-sm">{patient.full_name || 'Usuario'}</p>
@@ -437,7 +437,7 @@ export default function AnalyticsPage() {
         </Card>
 
         {/* Servicios Más Contratados */}
-        <Card>
+        <Card className="py-4">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Clock className="h-5 w-5 text-primary" />

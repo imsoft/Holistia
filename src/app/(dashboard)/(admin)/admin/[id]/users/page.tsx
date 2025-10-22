@@ -87,10 +87,10 @@ export default function AdminUsers() {
         ] = await Promise.all([
           supabase
             .from('professional_applications')
-            .select('user_id, first_name, last_name, email, phone, status, submitted_at, reviewed_at, profile_photo'),
+            .select('user_id, first_name, last_name, email, phone, city, state, status, submitted_at, reviewed_at, profile_photo'),
           supabase
             .from('professional_applications')
-            .select('user_id, first_name, last_name, email, phone, status, submitted_at, reviewed_at, profile_photo')
+            .select('user_id, first_name, last_name, email, phone, city, state, status, submitted_at, reviewed_at, profile_photo')
             .gte('submitted_at', lastMonthStart.toISOString())
             .lte('submitted_at', lastMonthEnd.toISOString())
         ]);
@@ -125,12 +125,22 @@ export default function AdminUsers() {
               userType = 'professional';
             }
 
+            // Construir ubicación desde city y state
+            let location = 'No especificada';
+            if (prof.city && prof.state) {
+              location = `${prof.city}, ${prof.state}`;
+            } else if (prof.city) {
+              location = prof.city;
+            } else if (prof.state) {
+              location = prof.state;
+            }
+
             return {
               id: prof.user_id,
               name: `${prof.first_name} ${prof.last_name}`,
               email: prof.email,
               phone: prof.phone,
-              location: 'Ciudad de México',
+              location,
               status,
               type: userType,
               joinDate: prof.submitted_at,

@@ -460,7 +460,7 @@ const HomeUserPage = () => {
           <div className="px-4 sm:px-6 py-6 sm:py-12 lg:px-8">
             <div className="mx-auto max-w-4xl text-center">
               <h2 className="text-3xl sm:text-4xl lg:text-5xl font-semibold tracking-tight text-balance text-foreground">
-                Profesionales de Salud
+                Expertos
               </h2>
               <p className="mx-auto mt-4 sm:mt-6 max-w-2xl text-base sm:text-lg text-pretty text-muted-foreground">
                 Encuentra el profesional adecuado para tu bienestar mental y emocional.

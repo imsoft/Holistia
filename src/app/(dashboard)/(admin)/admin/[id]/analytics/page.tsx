@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import {
   TrendingUp,
@@ -15,6 +16,7 @@ import {
   Award,
   Clock,
   BarChart3,
+  RefreshCw,
 } from "lucide-react";
 import Image from "next/image";
 
@@ -58,6 +60,8 @@ export default function AnalyticsPage() {
   const supabase = createClient();
 
   const [loading, setLoading] = useState(true);
+  const [syncing, setSyncing] = useState(false);
+  const [syncMessage, setSyncMessage] = useState<string | null>(null);
   const [generalStats, setGeneralStats] = useState<GeneralStats>({
     total_professionals: 0,
     total_patients: 0,
@@ -205,6 +209,32 @@ export default function AnalyticsPage() {
     fetchAnalytics();
   }, [adminId, supabase]);
 
+  const handleSyncPayments = async () => {
+    setSyncing(true);
+    setSyncMessage(null);
+
+    try {
+      const response = await fetch('/api/admin/sync-payments', {
+        method: 'POST',
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setSyncMessage(`✅ ${data.message}: ${data.updated} pagos actualizados`);
+        // Reload analytics after sync
+        window.location.reload();
+      } else {
+        setSyncMessage(`❌ Error: ${data.error}`);
+      }
+    } catch (error) {
+      console.error('Error syncing payments:', error);
+      setSyncMessage('❌ Error al sincronizar pagos');
+    } finally {
+      setSyncing(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -214,19 +244,45 @@ export default function AnalyticsPage() {
   }
 
   return (
-    <div className="flex flex-col gap-6 p-6">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <SidebarTrigger />
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">Analíticas</h1>
-            <p className="text-muted-foreground">
-              Estadísticas y métricas del sistema
-            </p>
+      <div className="border-b border-border bg-card">
+        <div className="flex flex-col sm:flex-row sm:h-16 sm:items-center justify-between px-4 sm:px-6 py-4 sm:py-0 gap-4 sm:gap-0">
+          <div className="flex items-center gap-3 sm:gap-4">
+            <SidebarTrigger />
+            <div>
+              <h1 className="text-xl sm:text-2xl font-bold text-foreground">Analíticas</h1>
+              <p className="text-xs sm:text-sm text-muted-foreground">
+                Estadísticas y métricas del sistema
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 sm:gap-3">
+            <Button
+              onClick={handleSyncPayments}
+              disabled={syncing}
+              variant="outline"
+              size="sm"
+              className="sm:size-default w-full sm:w-auto"
+            >
+              <RefreshCw className={`h-4 w-4 mr-2 ${syncing ? 'animate-spin' : ''}`} />
+              {syncing ? 'Sincronizando...' : 'Sincronizar pagos'}
+            </Button>
           </div>
         </div>
       </div>
+
+      {/* Main Content */}
+      <div className="p-6 space-y-6">
+        {syncMessage && (
+          <div className={`p-3 rounded-lg text-sm ${
+            syncMessage.startsWith('✅')
+              ? 'bg-green-50 text-green-800 border border-green-200'
+              : 'bg-red-50 text-red-800 border border-red-200'
+          }`}>
+            {syncMessage}
+          </div>
+        )}
 
       {/* Estadísticas Generales */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
@@ -478,6 +534,7 @@ export default function AnalyticsPage() {
             </div>
           </CardContent>
         </Card>
+      </div>
       </div>
     </div>
   );

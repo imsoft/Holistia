@@ -230,15 +230,6 @@ export default function ProfessionalProfileEditor({
     }));
   };
 
-  const handleCertificationToggle = (certification: string) => {
-    setFormData(prev => ({
-      ...prev,
-      certifications: prev.certifications.includes(certification)
-        ? prev.certifications.filter(c => c !== certification)
-        : [...prev.certifications, certification]
-    }));
-  };
-
   const handleWellnessAreaToggle = (area: string) => {
     setFormData(prev => ({
       ...prev,
@@ -652,58 +643,39 @@ export default function ProfessionalProfileEditor({
           </div>
 
           {/* Certificaciones */}
-          <div className="space-y-2">
+          <div className="space-y-3">
             <Label>Certificaciones</Label>
-            {editingField === 'certifications' ? (
-              <div className="space-y-3">
-                <div className="flex flex-wrap gap-2">
-                  {formData.certifications.map((cert) => (
-                    <Badge key={cert} variant="secondary" className="flex items-center gap-1">
-                      {cert}
-                      <button
-                        onClick={() => handleCertificationToggle(cert)}
-                        className="ml-1 hover:bg-muted rounded-full p-0.5"
-                      >
-                        <X className="h-3 w-3" />
-                      </button>
-                    </Badge>
-                  ))}
-                </div>
-                
-                {/* Información sobre certificaciones por email */}
-                <div className="mt-3 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                  <div className="flex items-start gap-2">
-                    <Mail className="h-5 w-5 text-blue-600 mt-0.5" />
-                    <div className="text-sm">
-                      <p className="font-medium text-blue-900 mb-1">
-                        Envíanos tus certificaciones por email
-                      </p>
-                      <p className="text-blue-700 mb-3">
-                        Para agregar certificaciones adicionales, haz clic en el enlace:
-                      </p>
-                      <a 
-                        href={`mailto:hola@holistia.io?subject=Certificaciones - ${professionalData.first_name} ${professionalData.last_name}&body=Adjunta tus certificaciones y documentos de respaldo`}
-                        className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
-                      >
-                        <Mail className="h-4 w-4" />
-                        Enviar Certificaciones
-                      </a>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div 
-                className="p-2 border border-transparent hover:border-border rounded cursor-pointer"
-                onClick={() => startEditing('certifications')}
-              >
-                <div className="flex flex-wrap gap-1">
-                  {professionalData.certifications.map((cert) => (
-                    <Badge key={cert} variant="secondary">{cert}</Badge>
-                  ))}
-                </div>
+
+            {/* Mostrar certificaciones actuales si las hay */}
+            {professionalData.certifications && professionalData.certifications.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {professionalData.certifications.map((cert) => (
+                  <Badge key={cert} variant="secondary">{cert}</Badge>
+                ))}
               </div>
             )}
+
+            {/* Información sobre certificaciones por email - SIEMPRE visible */}
+            <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <div className="flex items-start gap-2">
+                <Mail className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                <div className="text-sm">
+                  <p className="font-medium text-blue-900 mb-1">
+                    Envíanos tus certificaciones por email
+                  </p>
+                  <p className="text-blue-700 mb-3">
+                    Para agregar certificaciones adicionales, haz clic en el enlace:
+                  </p>
+                  <a
+                    href={`mailto:hola@holistia.io?subject=Certificaciones - ${professionalData.first_name} ${professionalData.last_name}&body=Adjunta tus certificaciones y documentos de respaldo`}
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+                  >
+                    <Mail className="h-4 w-4" />
+                    Enviar Certificaciones
+                  </a>
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* Áreas de bienestar */}

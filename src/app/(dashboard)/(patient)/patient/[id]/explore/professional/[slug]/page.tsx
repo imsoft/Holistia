@@ -25,6 +25,10 @@ import { Button } from "@/components/ui/button";
 import MapboxMap from "@/components/ui/mapbox-map";
 import ProfessionalGallery from "@/components/ui/professional-gallery";
 import { createClient } from "@/utils/supabase/client";
+import { ReviewForm } from "@/components/reviews/review-form";
+import { ReviewsList } from "@/components/reviews/reviews-list";
+import { StarRating } from "@/components/reviews/star-rating";
+import type { Review, ReviewStats } from "@/types/review";
 import {
   Dialog,
   DialogContent,
@@ -137,6 +141,10 @@ export default function ProfessionalProfilePage() {
     phone: "",
     notes: "",
   });
+  const [reviewStats, setReviewStats] = useState<ReviewStats | null>(null);
+  const [userReview, setUserReview] = useState<Review | null>(null);
+  const [editingReview, setEditingReview] = useState<Review | null>(null);
+  const [refreshReviews, setRefreshReviews] = useState(0);
 
   const params = useParams();
   const supabase = createClient();
@@ -339,6 +347,44 @@ export default function ProfessionalProfilePage() {
 
     getData();
   }, [professionalId, patientId, supabase]);
+
+  // Cargar estadísticas de reseñas y reseña del usuario
+  useEffect(() => {
+    const loadReviews = async () => {
+      try {
+        // Obtener estadísticas de reseñas
+        const { data: statsData, error: statsError } = await supabase
+          .from('professional_review_stats')
+          .select('*')
+          .eq('professional_id', professional?.user_id)
+          .maybeSingle();
+
+        if (!statsError && statsData) {
+          setReviewStats(statsData);
+        }
+
+        // Obtener reseña del usuario actual (si existe)
+        if (currentUser) {
+          const { data: reviewData, error: reviewError } = await supabase
+            .from('reviews')
+            .select('*')
+            .eq('professional_id', professional?.user_id)
+            .eq('patient_id', currentUser.id)
+            .maybeSingle();
+
+          if (!reviewError && reviewData) {
+            setUserReview(reviewData);
+          }
+        }
+      } catch (error) {
+        console.error('Error loading reviews:', error);
+      }
+    };
+
+    if (professional?.user_id) {
+      loadReviews();
+    }
+  }, [professional?.user_id, currentUser, refreshReviews, supabase]);
 
   const handleToggleFavorite = async () => {
     if (!currentUser || !professional) return;
@@ -863,6 +909,19 @@ export default function ProfessionalProfilePage() {
                       {getServiceTypeText()}
                     </span>
                   </div>
+                  {/* Mostrar rating si hay reseñas */}
+                  {reviewStats && reviewStats.total_reviews > 0 && (
+                    <div className="flex items-center gap-1">
+                      <StarRating 
+                        rating={reviewStats.average_rating} 
+                        size="sm" 
+                        showNumber={true}
+                      />
+                      <span className="text-xs text-muted-foreground ml-1">
+                        ({reviewStats.total_reviews} {reviewStats.total_reviews === 1 ? 'reseña' : 'reseñas'})
+                      </span>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -1044,6 +1103,30 @@ export default function ProfessionalProfilePage() {
                 </div>
               </div>
             )}
+
+            {/* Sistema de reseñas */}
+            <div className="space-y-6">
+              {/* Formulario de reseña (solo si el usuario es diferente al profesional) */}
+              {currentUser && currentUser.id !== professional.user_id && (
+                <ReviewForm
+                  professionalId={professional.user_id}
+                  patientId={currentUser.id}
+                  existingReview={userReview || editingReview || undefined}
+                  onSuccess={() => {
+                    setRefreshReviews(prev => prev + 1);
+                    setEditingReview(null);
+                  }}
+                />
+              )}
+
+              {/* Lista de reseñas */}
+              <ReviewsList
+                professionalId={professional.user_id}
+                currentUserId={currentUser?.id}
+                onEditReview={(review) => setEditingReview(review)}
+                refreshTrigger={refreshReviews}
+              />
+            </div>
           </div>
 
           {/* Sidebar */}

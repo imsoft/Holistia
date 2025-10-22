@@ -79,6 +79,9 @@ export interface Professional {
   registration_fee_paid_at?: string;
   registration_fee_expires_at?: string;
   registration_fee_stripe_session_id?: string;
+  // Review stats
+  average_rating?: number;
+  total_reviews?: number;
 }
 
 export interface ProfessionalApplication {

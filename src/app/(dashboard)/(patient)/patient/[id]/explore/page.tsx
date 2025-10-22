@@ -44,6 +44,8 @@ interface Professional {
   updated_at: string;
   modality?: "presencial" | "online" | "both"; // Modalidad calculada basada en servicios
   imagePosition?: string; // Posición de la imagen en la card
+  average_rating?: number; // Promedio de rating de reseñas
+  total_reviews?: number; // Total de reseñas
 }
 
 const categories = [
@@ -117,7 +119,7 @@ const HomeUserPage = () => {
           return;
         }
 
-        // Obtener servicios para cada profesional
+        // Obtener servicios y estadísticas de reseñas para cada profesional
         const professionalsWithServices = await Promise.all(
           (professionalsData || []).map(async (prof) => {
             const { data: services } = await supabase
@@ -125,6 +127,13 @@ const HomeUserPage = () => {
               .select("*")
               .eq("professional_id", prof.id)
               .eq("isactive", true);
+
+            // Obtener estadísticas de reseñas
+            const { data: reviewStats } = await supabase
+              .from("professional_review_stats")
+              .select("average_rating, total_reviews")
+              .eq("professional_id", prof.user_id)
+              .maybeSingle();
 
             // Transformar servicios a la estructura esperada usando la función utilitaria
             const transformedServices = transformServicesFromDB(services || []);
@@ -136,7 +145,9 @@ const HomeUserPage = () => {
               ...prof,
               services: transformedServices.length > 0 ? transformedServices : prof.services || [],
               modality: professionalModality, // Agregar la modalidad calculada
-              imagePosition: prof.image_position || "center center" // Agregar posición de imagen
+              imagePosition: prof.image_position || "center center", // Agregar posición de imagen
+              average_rating: reviewStats?.average_rating || undefined,
+              total_reviews: reviewStats?.total_reviews || undefined
             };
           })
         );

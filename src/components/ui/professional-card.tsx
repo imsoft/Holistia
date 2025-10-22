@@ -7,6 +7,7 @@ import { Professional } from "@/types";
 import { useState } from "react";
 import { createClient } from "@/utils/supabase/client";
 import { StableImage } from "@/components/ui/stable-image";
+import { StarRating } from "@/components/reviews/star-rating";
 
 interface ProfessionalCardProps {
   professional: Professional;
@@ -182,6 +183,19 @@ export const ProfessionalCard = ({ professional, userId }: ProfessionalCardProps
             <p className="text-sm text-muted-foreground">
               {professional.name || `${professional.first_name || ''} ${professional.last_name || ''}`.trim()}
             </p>
+            {/* Rating */}
+            {professional.average_rating && professional.total_reviews && professional.total_reviews > 0 && (
+              <div className="mt-1">
+                <StarRating 
+                  rating={professional.average_rating} 
+                  size="sm" 
+                  showNumber={false}
+                />
+                <span className="text-xs text-muted-foreground ml-1">
+                  ({professional.total_reviews} {professional.total_reviews === 1 ? 'reseña' : 'reseñas'})
+                </span>
+              </div>
+            )}
           </div>
 
           {/* Therapy Types */}

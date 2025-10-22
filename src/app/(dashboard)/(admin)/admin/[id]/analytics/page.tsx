@@ -54,6 +54,28 @@ interface GeneralStats {
   completed_appointments: number;
 }
 
+interface Appointment {
+  id: string;
+  patient_id: string;
+  professional_id: string;
+  status: string;
+  appointment_type: string;
+}
+
+interface Payment {
+  id: string;
+  appointment_id: string;
+  amount: string | number;
+}
+
+interface Professional {
+  id: string;
+  first_name: string;
+  last_name: string;
+  profile_photo: string | null;
+  profession: string;
+}
+
 export default function AnalyticsPage() {
   const params = useParams();
   const adminId = params.id as string;
@@ -79,29 +101,29 @@ export default function AnalyticsPage() {
       try {
         setLoading(true);
 
-        // Obtener estadísticas generales
-        const [
-          { count: professionalsCount },
-          { count: activeProfessionalsCount },
-          { data: appointmentsData },
-          { data: paymentsData },
-        ] = await Promise.all([
-          supabase.from('professional_applications').select('*', { count: 'exact', head: true }).eq('status', 'approved'),
-          supabase.from('professional_applications').select('*', { count: 'exact', head: true }).eq('status', 'approved').eq('is_active', true),
-          supabase.from('appointments').select('*'),
-          supabase.from('payments').select('*').eq('status', 'succeeded'),
-        ]);
+        // Usar endpoint de API para obtener datos con permisos de servicio (bypassing RLS)
+        const response = await fetch('/api/admin/analytics');
 
-        console.log('🔍 DEBUG Analytics:');
+        if (!response.ok) {
+          throw new Error('Error al obtener datos de analíticas');
+        }
+
+        const data = await response.json();
+
+        const professionalsCount = data.professionals_count;
+        const activeProfessionalsCount = data.active_professionals_count;
+        const appointmentsData = data.appointments;
+        const paymentsData = data.payments;
+        const professionalsData = data.professionals;
+
+        console.log('🔍 DEBUG Analytics (from API):');
         console.log('- Appointments:', appointmentsData?.length || 0, appointmentsData);
         console.log('- Payments (succeeded):', paymentsData?.length || 0, paymentsData);
         console.log('- Professionals:', professionalsCount);
 
-        // Obtener pacientes únicos
-        const uniquePatients = new Set(appointmentsData?.map(a => a.patient_id) || []);
+        const uniquePatients = new Set(appointmentsData?.map((a: Appointment) => a.patient_id) || []);
 
-        // Calcular ingresos totales - convertir string a número
-        const totalRevenue = paymentsData?.reduce((sum, p) => {
+        const totalRevenue = paymentsData?.reduce((sum: number, p: Payment) => {
           const amount = typeof p.amount === 'string' ? parseFloat(p.amount) : (p.amount || 0);
           console.log('Payment amount:', p.id, amount);
           return sum + amount;
@@ -109,8 +131,7 @@ export default function AnalyticsPage() {
 
         console.log('💰 Total revenue:', totalRevenue);
 
-        // Citas completadas
-        const completedAppointments = appointmentsData?.filter(a => a.status === 'completed').length || 0;
+        const completedAppointments = appointmentsData?.filter((a: Appointment) => a.status === 'completed').length || 0;
 
         setGeneralStats({
           total_professionals: professionalsCount || 0,
@@ -121,22 +142,17 @@ export default function AnalyticsPage() {
           completed_appointments: completedAppointments,
         });
 
-        // Obtener top profesionales
-        const { data: professionals } = await supabase
-          .from('professional_applications')
-          .select('id, first_name, last_name, profile_photo, profession')
-          .eq('status', 'approved');
-
-        if (professionals && appointmentsData && paymentsData) {
-          const professionalStats = professionals.map(prof => {
-            const profAppointments = appointmentsData.filter(a => a.professional_id === prof.id);
-            const profAppointmentIds = profAppointments.map(a => a.id);
-            const profPayments = paymentsData.filter(p => profAppointmentIds.includes(p.appointment_id));
+        // Obtener top profesionales (ya viene del API)
+        if (professionalsData && appointmentsData && paymentsData) {
+          const professionalStats = professionalsData.map((prof: Professional) => {
+            const profAppointments = appointmentsData.filter((a: Appointment) => a.professional_id === prof.id);
+            const profAppointmentIds = profAppointments.map((a: Appointment) => a.id);
+            const profPayments = paymentsData.filter((p: Payment) => profAppointmentIds.includes(p.appointment_id));
 
             return {
               ...prof,
               appointment_count: profAppointments.length,
-              total_revenue: profPayments.reduce((sum, p) => {
+              total_revenue: profPayments.reduce((sum: number, p: Payment) => {
                 const amount = typeof p.amount === 'string' ? parseFloat(p.amount) : (p.amount || 0);
                 return sum + amount;
               }, 0),
@@ -144,7 +160,7 @@ export default function AnalyticsPage() {
           });
 
           const topProfs = professionalStats
-            .sort((a, b) => b.appointment_count - a.appointment_count)
+            .sort((a: TopProfessional, b: TopProfessional) => b.appointment_count - a.appointment_count)
             .slice(0, 5);
 
           setTopProfessionals(topProfs);
@@ -154,10 +170,10 @@ export default function AnalyticsPage() {
         if (appointmentsData && paymentsData) {
           const patientMap = new Map<string, { count: number; spent: number }>();
 
-          appointmentsData.forEach(apt => {
+          appointmentsData.forEach((apt: Appointment) => {
             const existing = patientMap.get(apt.patient_id) || { count: 0, spent: 0 };
-            const aptPayments = paymentsData.filter(p => p.appointment_id === apt.id);
-            const spent = aptPayments.reduce((sum, p) => {
+            const aptPayments = paymentsData.filter((p: Payment) => p.appointment_id === apt.id);
+            const spent = aptPayments.reduce((sum: number, p: Payment) => {
               const amount = typeof p.amount === 'string' ? parseFloat(p.amount) : (p.amount || 0);
               return sum + amount;
             }, 0);
@@ -188,11 +204,11 @@ export default function AnalyticsPage() {
         if (appointmentsData && paymentsData) {
           const serviceTypeMap = new Map<string, { count: number; revenue: number }>();
 
-          appointmentsData.forEach(apt => {
+          appointmentsData.forEach((apt: Appointment) => {
             const type = apt.appointment_type === 'presencial' ? 'Presencial' : 'En línea';
             const existing = serviceTypeMap.get(type) || { count: 0, revenue: 0 };
-            const aptPayments = paymentsData.filter(p => p.appointment_id === apt.id);
-            const revenue = aptPayments.reduce((sum, p) => {
+            const aptPayments = paymentsData.filter((p: Payment) => p.appointment_id === apt.id);
+            const revenue = aptPayments.reduce((sum: number, p: Payment) => {
               const amount = typeof p.amount === 'string' ? parseFloat(p.amount) : (p.amount || 0);
               return sum + amount;
             }, 0);

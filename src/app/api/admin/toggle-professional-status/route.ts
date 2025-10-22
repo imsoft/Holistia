@@ -15,17 +15,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Verificar que el usuario sea administrador
-    const { data: userData, error: userError } = await supabase.auth.admin.getUserById(user.id);
+    // Verificar que el usuario sea administrador usando los metadatos del usuario
+    const userType = user.user_metadata?.type;
 
-    if (userError || !userData) {
-      return NextResponse.json(
-        { error: 'Error al verificar usuario' },
-        { status: 500 }
-      );
-    }
-
-    const userType = userData.user.user_metadata?.type;
     if (userType !== 'admin' && userType !== 'Admin') {
       return NextResponse.json(
         { error: 'No tienes permisos de administrador' },

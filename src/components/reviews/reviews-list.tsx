@@ -32,22 +32,28 @@ export function ReviewsList({
       const { createClient } = await import("@/utils/supabase/client");
       const supabase = createClient();
 
-      const { data, error } = await supabase
+      // Obtenemos las reseñas directamente
+      const { data: reviewsData, error: reviewsError } = await supabase
         .from("reviews")
-        .select(`
-          *,
-          patient:patient_id (
-            id,
-            email,
-            raw_user_meta_data
-          )
-        `)
+        .select("*")
         .eq("professional_id", professionalId)
         .order("created_at", { ascending: false });
 
-      if (error) throw error;
+      if (reviewsError) throw reviewsError;
 
-      setReviews(data || []);
+      // Crear reseñas con estructura básica
+      // Los nombres de usuario no estarán disponibles por ahora
+      // El usuario puede identificarse por "Tu reseña" si es suya
+      const reviewsWithBasicInfo = (reviewsData || []).map(review => ({
+        ...review,
+        patient: {
+          id: review.patient_id,
+          email: undefined,
+          user_metadata: undefined
+        }
+      }));
+
+      setReviews(reviewsWithBasicInfo);
     } catch (error) {
       console.error("Error fetching reviews:", error);
       toast.error("Error al cargar las reseñas");
@@ -134,10 +140,12 @@ export function ReviewsList({
       <CardContent className="space-y-4">
         {reviews.map((review) => {
           const isOwnReview = currentUserId === review.patient_id;
-          const patientName = 
-            review.patient?.user_metadata?.full_name || 
-            review.patient?.email?.split("@")[0] || 
-            "Usuario";
+          // Si es la reseña propia, mostrar "Tú", si no mostrar "Usuario anónimo"
+          const patientName = isOwnReview 
+            ? "Tú" 
+            : (review.patient?.user_metadata?.full_name || 
+               review.patient?.email?.split("@")[0] || 
+               "Usuario verificado");
 
           return (
             <div

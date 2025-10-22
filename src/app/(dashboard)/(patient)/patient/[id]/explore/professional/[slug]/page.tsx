@@ -356,11 +356,13 @@ export default function ProfessionalProfilePage() {
         const { data: statsData, error: statsError } = await supabase
           .from('professional_review_stats')
           .select('*')
-          .eq('professional_id', professional?.user_id)
-          .maybeSingle();
+          .eq('professional_id', professional?.user_id);
 
-        if (!statsError && statsData) {
-          setReviewStats(statsData);
+        // La vista puede devolver 0 o 1 resultado, manejar ambos casos
+        if (!statsError && statsData && statsData.length > 0) {
+          setReviewStats(statsData[0]);
+        } else {
+          setReviewStats(null);
         }
 
         // Obtener reseña del usuario actual (si existe)
@@ -369,11 +371,12 @@ export default function ProfessionalProfilePage() {
             .from('reviews')
             .select('*')
             .eq('professional_id', professional?.user_id)
-            .eq('patient_id', currentUser.id)
-            .maybeSingle();
+            .eq('patient_id', currentUser.id);
 
-          if (!reviewError && reviewData) {
-            setUserReview(reviewData);
+          if (!reviewError && reviewData && reviewData.length > 0) {
+            setUserReview(reviewData[0]);
+          } else {
+            setUserReview(null);
           }
         }
       } catch (error) {

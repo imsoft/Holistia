@@ -129,11 +129,13 @@ const HomeUserPage = () => {
               .eq("isactive", true);
 
             // Obtener estadísticas de reseñas
-            const { data: reviewStats } = await supabase
+            const { data: reviewStatsData } = await supabase
               .from("professional_review_stats")
               .select("average_rating, total_reviews")
-              .eq("professional_id", prof.user_id)
-              .maybeSingle();
+              .eq("professional_id", prof.user_id);
+
+            // Tomar el primer resultado si existe
+            const reviewStats = reviewStatsData && reviewStatsData.length > 0 ? reviewStatsData[0] : null;
 
             // Transformar servicios a la estructura esperada usando la función utilitaria
             const transformedServices = transformServicesFromDB(services || []);

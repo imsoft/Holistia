@@ -182,6 +182,7 @@ export default function ProfessionalProfilePage() {
           .eq('id', professionalId)
           .eq('status', 'approved')
           .eq('registration_fee_paid', true)
+          .gt('registration_fee_expires_at', new Date().toISOString())
           .single();
 
         if (error) {

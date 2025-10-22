@@ -77,6 +77,7 @@ export interface Professional {
   registration_fee_currency?: string;
   registration_fee_payment_id?: string;
   registration_fee_paid_at?: string;
+  registration_fee_expires_at?: string;
   registration_fee_stripe_session_id?: string;
 }
 
@@ -103,5 +104,6 @@ export interface ProfessionalApplication {
   registration_fee_currency?: string;
   registration_fee_payment_id?: string;
   registration_fee_paid_at?: string;
+  registration_fee_expires_at?: string;
   registration_fee_stripe_session_id?: string;
 }

@@ -63,6 +63,7 @@ interface Professional {
   registration_fee_amount?: number;
   registration_fee_currency?: string;
   registration_fee_paid_at?: string;
+  registration_fee_expires_at?: string;
 }
 
 export default function AdminProfessionals() {
@@ -725,11 +726,27 @@ export default function AdminProfessionals() {
               </div>
 
               {/* Información de pago de inscripción */}
-              <div className={`rounded-lg p-4 border-2 ${selectedProfessional.registration_fee_paid ? 'bg-green-50 border-green-200' : 'bg-yellow-50 border-yellow-200'}`}>
+              <div className={`rounded-lg p-4 border-2 ${
+                selectedProfessional.registration_fee_paid && 
+                selectedProfessional.registration_fee_expires_at && 
+                new Date(selectedProfessional.registration_fee_expires_at) > new Date()
+                  ? 'bg-green-50 border-green-200' 
+                  : selectedProfessional.registration_fee_paid && 
+                    selectedProfessional.registration_fee_expires_at && 
+                    new Date(selectedProfessional.registration_fee_expires_at) <= new Date()
+                    ? 'bg-red-50 border-red-200'
+                    : 'bg-yellow-50 border-yellow-200'
+              }`}>
                 <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                  <span>Cuota de Inscripción</span>
-                  {selectedProfessional.registration_fee_paid ? (
-                    <Badge className="bg-green-600">Pagado</Badge>
+                  <span>Cuota de Inscripción Anual</span>
+                  {selectedProfessional.registration_fee_paid && 
+                   selectedProfessional.registration_fee_expires_at && 
+                   new Date(selectedProfessional.registration_fee_expires_at) > new Date() ? (
+                    <Badge className="bg-green-600">Vigente</Badge>
+                  ) : selectedProfessional.registration_fee_paid && 
+                     selectedProfessional.registration_fee_expires_at && 
+                     new Date(selectedProfessional.registration_fee_expires_at) <= new Date() ? (
+                    <Badge variant="destructive">Expirado</Badge>
                   ) : (
                     <Badge variant="destructive">Pendiente</Badge>
                   )}
@@ -744,7 +761,12 @@ export default function AdminProfessionals() {
                   <div className="flex flex-col gap-1">
                     <span className="text-sm text-muted-foreground">Estado</span>
                     <span className="text-base font-medium">
-                      {selectedProfessional.registration_fee_paid ? 'Pagado' : 'Pendiente de pago'}
+                      {selectedProfessional.registration_fee_paid ? (
+                        selectedProfessional.registration_fee_expires_at && 
+                        new Date(selectedProfessional.registration_fee_expires_at) > new Date()
+                          ? 'Pagado y vigente'
+                          : 'Pagado pero expirado'
+                      ) : 'Pendiente de pago'}
                     </span>
                   </div>
                   {selectedProfessional.registration_fee_paid && selectedProfessional.registration_fee_paid_at && (
@@ -755,12 +777,39 @@ export default function AdminProfessionals() {
                       </span>
                     </div>
                   )}
+                  {selectedProfessional.registration_fee_expires_at && (
+                    <div className="flex flex-col gap-1">
+                      <span className="text-sm text-muted-foreground">Fecha de expiración</span>
+                      <span className={`text-base font-medium ${
+                        new Date(selectedProfessional.registration_fee_expires_at) <= new Date()
+                          ? 'text-red-600 font-bold'
+                          : new Date(selectedProfessional.registration_fee_expires_at).getTime() - new Date().getTime() < 30 * 24 * 60 * 60 * 1000
+                            ? 'text-yellow-600 font-bold'
+                            : ''
+                      }`}>
+                        {new Date(selectedProfessional.registration_fee_expires_at).toLocaleDateString('es-ES')}
+                        {new Date(selectedProfessional.registration_fee_expires_at) <= new Date() && ' (EXPIRADO)'}
+                        {new Date(selectedProfessional.registration_fee_expires_at) > new Date() && 
+                         new Date(selectedProfessional.registration_fee_expires_at).getTime() - new Date().getTime() < 30 * 24 * 60 * 60 * 1000 && 
+                         ' (Próximo a vencer)'}
+                      </span>
+                    </div>
+                  )}
                 </div>
                 {!selectedProfessional.registration_fee_paid && (
                   <div className="mt-3 p-3 bg-yellow-100 border border-yellow-300 rounded-md">
                     <p className="text-sm text-yellow-800">
-                      ⚠️ El profesional debe pagar la cuota de inscripción para poder aparecer en la plataforma, 
+                      ⚠️ El profesional debe pagar la cuota de inscripción anual para poder aparecer en la plataforma, 
                       incluso si ya fue aprobado.
+                    </p>
+                  </div>
+                )}
+                {selectedProfessional.registration_fee_paid && 
+                 selectedProfessional.registration_fee_expires_at && 
+                 new Date(selectedProfessional.registration_fee_expires_at) <= new Date() && (
+                  <div className="mt-3 p-3 bg-red-100 border border-red-300 rounded-md">
+                    <p className="text-sm text-red-800">
+                      ❌ La inscripción de este profesional ha expirado. Debe renovar su pago para volver a aparecer en la plataforma.
                     </p>
                   </div>
                 )}

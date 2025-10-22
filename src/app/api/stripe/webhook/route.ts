@@ -301,11 +301,16 @@ export async function POST(request: NextRequest) {
 
         // Handle registration fee payments
         if (payment_type === 'registration' && professional_application_id) {
+          const now = new Date();
+          const expiresAt = new Date(now);
+          expiresAt.setFullYear(expiresAt.getFullYear() + 1); // Expira en 1 año
+
           const { error: applicationUpdateError } = await supabase
             .from('professional_applications')
             .update({
               registration_fee_paid: true,
-              registration_fee_paid_at: new Date().toISOString(),
+              registration_fee_paid_at: now.toISOString(),
+              registration_fee_expires_at: expiresAt.toISOString(),
             })
             .eq('id', professional_application_id);
 
@@ -313,6 +318,7 @@ export async function POST(request: NextRequest) {
             console.error('Error updating professional application:', applicationUpdateError);
           } else {
             console.log('Registration fee payment confirmed for application:', professional_application_id);
+            console.log('Payment expires at:', expiresAt.toISOString());
           }
         }
 

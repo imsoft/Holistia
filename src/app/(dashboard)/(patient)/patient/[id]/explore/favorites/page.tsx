@@ -104,7 +104,8 @@ const FavoritesPage = () => {
             .select('*')
             .in('id', professionalIds)
             .eq('status', 'approved')
-            .eq('registration_fee_paid', true);
+            .eq('registration_fee_paid', true)
+            .gt('registration_fee_expires_at', new Date().toISOString());
 
           if (professionalsError) {
             console.error('Error fetching professionals:', {

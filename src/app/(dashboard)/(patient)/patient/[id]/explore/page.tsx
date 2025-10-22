@@ -109,6 +109,7 @@ const HomeUserPage = () => {
           .eq("status", "approved")
           .eq("is_active", true)
           .eq("registration_fee_paid", true)
+          .gt("registration_fee_expires_at", new Date().toISOString())
           .order("created_at", { ascending: false});
 
         if (error) {

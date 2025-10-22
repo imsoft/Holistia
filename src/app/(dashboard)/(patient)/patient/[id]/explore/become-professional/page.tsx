@@ -18,6 +18,7 @@ import {
   Info,
   CreditCard,
   DollarSign,
+  Calendar,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -50,6 +51,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { normalizeName, normalizeProfession, normalizeAddress, normalizeLocation, normalizeLanguage } from "@/lib/text-utils";
 import { cn } from "@/lib/utils";
+import { getRegistrationFeeStatus, formatExpirationDate } from "@/utils/registration-utils";
 
 interface Service {
   name: string;
@@ -89,6 +91,7 @@ export default function BecomeProfessionalPage() {
     registration_fee_paid: boolean;
     registration_fee_amount: number;
     registration_fee_currency: string;
+    registration_fee_expires_at: string | null;
   } | null>(null);
 
   const [formData, setFormData] = useState({
@@ -1144,82 +1147,169 @@ export default function BecomeProfessionalPage() {
 
                       {/* Información de pago de inscripción */}
                       <div className="pt-4 border-t border-border space-y-4">
-                        <div className="flex items-center justify-between p-4 bg-secondary/30 rounded-lg">
-                          <div className="flex items-center gap-3">
-                            <DollarSign className="h-5 w-5 text-primary" />
-                            <div>
-                              <p className="text-sm font-semibold text-foreground">Cuota de Inscripción</p>
-                              <p className="text-xs text-muted-foreground">
-                                Requerida para aparecer en la plataforma
-                              </p>
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <p className="text-lg font-bold text-foreground">
-                              ${existingApplication.registration_fee_amount?.toLocaleString('es-MX')} {existingApplication.registration_fee_currency?.toUpperCase()}
-                            </p>
-                            {existingApplication.registration_fee_paid ? (
-                              <Badge variant="default" className="bg-green-600">
-                                <CheckCircle className="h-3 w-3 mr-1" />
-                                Pagado
-                              </Badge>
-                            ) : (
-                              <Badge variant="destructive">
-                                <AlertCircle className="h-3 w-3 mr-1" />
-                                Pendiente
-                              </Badge>
-                            )}
-                          </div>
-                        </div>
+                        {(() => {
+                          const feeStatus = getRegistrationFeeStatus(
+                            existingApplication.registration_fee_paid,
+                            existingApplication.registration_fee_expires_at
+                          );
 
-                        {!existingApplication.registration_fee_paid && (
-                          <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                            <div className="flex items-start gap-3">
-                              <Info className="h-5 w-5 text-yellow-600 mt-0.5" />
-                              <div className="flex-1">
-                                <p className="text-sm font-semibold text-yellow-900 mb-1">
-                                  Pago de Inscripción Requerido
-                                </p>
-                                <p className="text-xs text-yellow-800 mb-3">
-                                  Para que tu perfil sea visible en Holistia después de ser aprobado, 
-                                  debes pagar la cuota de inscripción de ${existingApplication.registration_fee_amount?.toLocaleString('es-MX')} MXN. 
-                                  Puedes realizar el pago ahora o más tarde, pero sin él no podrás aparecer en la plataforma.
-                                </p>
-                                <Button 
-                                  onClick={handleRegistrationPayment}
-                                  disabled={processingPayment}
-                                  className="w-full sm:w-auto"
-                                  size="sm"
-                                >
-                                  <CreditCard className="h-4 w-4 mr-2" />
-                                  {processingPayment ? 'Procesando...' : 'Pagar Inscripción'}
-                                </Button>
+                          return (
+                            <>
+                              <div className="flex items-center justify-between p-4 bg-secondary/30 rounded-lg">
+                                <div className="flex items-center gap-3">
+                                  <DollarSign className="h-5 w-5 text-primary" />
+                                  <div>
+                                    <p className="text-sm font-semibold text-foreground">Cuota de Inscripción Anual</p>
+                                    <p className="text-xs text-muted-foreground">
+                                      Renovación requerida cada año
+                                    </p>
+                                  </div>
+                                </div>
+                                <div className="text-right">
+                                  <p className="text-lg font-bold text-foreground">
+                                    ${existingApplication.registration_fee_amount?.toLocaleString('es-MX')} {existingApplication.registration_fee_currency?.toUpperCase()}
+                                  </p>
+                                  <Badge 
+                                    variant={feeStatus.isActive ? "default" : "destructive"}
+                                    className={
+                                      feeStatus.color === 'green' ? 'bg-green-600' :
+                                      feeStatus.color === 'yellow' ? 'bg-yellow-600' :
+                                      feeStatus.color === 'red' ? 'bg-red-600' : ''
+                                    }
+                                  >
+                                    {feeStatus.isActive ? <CheckCircle className="h-3 w-3 mr-1" /> : <AlertCircle className="h-3 w-3 mr-1" />}
+                                    {feeStatus.message}
+                                  </Badge>
+                                </div>
                               </div>
-                            </div>
-                          </div>
-                        )}
+
+                              {existingApplication.registration_fee_paid && existingApplication.registration_fee_expires_at && (
+                                <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                                  <div className="flex items-center gap-2 text-sm">
+                                    <Calendar className="h-4 w-4 text-blue-600" />
+                                    <span className="text-blue-900">
+                                      <strong>Fecha de expiración:</strong> {formatExpirationDate(existingApplication.registration_fee_expires_at)}
+                                    </span>
+                                  </div>
+                                </div>
+                              )}
+
+                              {feeStatus.isNearExpiration && (
+                                <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                                  <div className="flex items-start gap-3">
+                                    <AlertCircle className="h-5 w-5 text-yellow-600 mt-0.5" />
+                                    <div className="flex-1">
+                                      <p className="text-sm font-semibold text-yellow-900 mb-1">
+                                        ⚠️ Renovación Próxima
+                                      </p>
+                                      <p className="text-xs text-yellow-800 mb-3">
+                                        Tu inscripción expira en {feeStatus.daysRemaining} día{feeStatus.daysRemaining !== 1 ? 's' : ''}. 
+                                        Renueva tu pago para seguir apareciendo en la plataforma.
+                                      </p>
+                                      <Button 
+                                        onClick={handleRegistrationPayment}
+                                        disabled={processingPayment}
+                                        className="w-full sm:w-auto"
+                                        size="sm"
+                                      >
+                                        <CreditCard className="h-4 w-4 mr-2" />
+                                        {processingPayment ? 'Procesando...' : 'Renovar Inscripción'}
+                                      </Button>
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
+
+                              {feeStatus.isExpired && (
+                                <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+                                  <div className="flex items-start gap-3">
+                                    <XCircle className="h-5 w-5 text-red-600 mt-0.5" />
+                                    <div className="flex-1">
+                                      <p className="text-sm font-semibold text-red-900 mb-1">
+                                        ❌ Inscripción Expirada
+                                      </p>
+                                      <p className="text-xs text-red-800 mb-3">
+                                        Tu inscripción ha expirado. Debes renovar tu pago de ${existingApplication.registration_fee_amount?.toLocaleString('es-MX')} MXN 
+                                        para volver a aparecer en la plataforma.
+                                      </p>
+                                      <Button 
+                                        onClick={handleRegistrationPayment}
+                                        disabled={processingPayment}
+                                        className="w-full sm:w-auto bg-red-600 hover:bg-red-700"
+                                        size="sm"
+                                      >
+                                        <CreditCard className="h-4 w-4 mr-2" />
+                                        {processingPayment ? 'Procesando...' : 'Renovar Inscripción Ahora'}
+                                      </Button>
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
+
+                              {!existingApplication.registration_fee_paid && (
+                                <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                                  <div className="flex items-start gap-3">
+                                    <Info className="h-5 w-5 text-yellow-600 mt-0.5" />
+                                    <div className="flex-1">
+                                      <p className="text-sm font-semibold text-yellow-900 mb-1">
+                                        Pago de Inscripción Requerido
+                                      </p>
+                                      <p className="text-xs text-yellow-800 mb-3">
+                                        Para que tu perfil sea visible en Holistia después de ser aprobado, 
+                                        debes pagar la cuota de inscripción anual de ${existingApplication.registration_fee_amount?.toLocaleString('es-MX')} MXN. 
+                                        Puedes realizar el pago ahora o más tarde, pero sin él no podrás aparecer en la plataforma.
+                                      </p>
+                                      <Button 
+                                        onClick={handleRegistrationPayment}
+                                        disabled={processingPayment}
+                                        className="w-full sm:w-auto"
+                                        size="sm"
+                                      >
+                                        <CreditCard className="h-4 w-4 mr-2" />
+                                        {processingPayment ? 'Procesando...' : 'Pagar Inscripción'}
+                                      </Button>
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
+                            </>
+                          );
+                        })()}
                       </div>
 
-                      {existingApplication.status === "approved" && existingApplication.registration_fee_paid && (
-                        <div className="pt-4 border-t border-border">
-                          <Button asChild className="w-full">
-                            <Link href={`/professional/${userId}/dashboard`}>
-                              Ir al Dashboard Profesional
-                            </Link>
-                          </Button>
-                        </div>
-                      )}
+                      {(() => {
+                        const feeStatus = getRegistrationFeeStatus(
+                          existingApplication.registration_fee_paid,
+                          existingApplication.registration_fee_expires_at
+                        );
 
-                      {existingApplication.status === "approved" && !existingApplication.registration_fee_paid && (
-                        <div className="pt-4 border-t border-border">
-                          <div className="p-4 bg-orange-50 border border-orange-200 rounded-lg mb-4">
-                            <p className="text-sm text-orange-800">
-                              <strong>¡Tu solicitud ha sido aprobada!</strong> Para acceder a tu dashboard profesional 
-                              y comenzar a aparecer en Holistia, primero debes completar el pago de inscripción.
-                            </p>
-                          </div>
-                        </div>
-                      )}
+                        if (existingApplication.status === "approved" && feeStatus.isActive) {
+                          return (
+                            <div className="pt-4 border-t border-border">
+                              <Button asChild className="w-full">
+                                <Link href={`/professional/${userId}/dashboard`}>
+                                  Ir al Dashboard Profesional
+                                </Link>
+                              </Button>
+                            </div>
+                          );
+                        }
+
+                        if (existingApplication.status === "approved" && !feeStatus.isActive) {
+                          return (
+                            <div className="pt-4 border-t border-border">
+                              <div className="p-4 bg-orange-50 border border-orange-200 rounded-lg mb-4">
+                                <p className="text-sm text-orange-800">
+                                  <strong>¡Tu solicitud ha sido aprobada!</strong> Para acceder a tu dashboard profesional 
+                                  y comenzar a aparecer en Holistia, debes {existingApplication.registration_fee_paid ? 'renovar' : 'completar'} el pago de inscripción.
+                                </p>
+                              </div>
+                            </div>
+                          );
+                        }
+
+                        return null;
+                      })()}
 
                       {existingApplication.status !== "approved" && (
                         <div className="pt-3 sm:pt-4 border-t border-border">

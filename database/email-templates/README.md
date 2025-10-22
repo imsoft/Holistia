@@ -4,7 +4,9 @@ Esta carpeta contiene las plantillas de email personalizadas para Supabase Auth.
 
 ## 📧 Plantillas Disponibles
 
-### `confirm-signup.html`
+### Autenticación y Cuenta
+
+#### `confirm-signup.html`
 Plantilla para el email de confirmación de registro.
 
 **Características:**
@@ -15,7 +17,7 @@ Plantilla para el email de confirmación de registro.
 - ✅ Footer con links útiles
 - ✅ Información de contacto
 
-### `reset-password.html`
+#### `reset-password.html`
 Plantilla para el email de restablecimiento de contraseña.
 
 **Características:**
@@ -25,6 +27,39 @@ Plantilla para el email de restablecimiento de contraseña.
 - ✅ Consejos de seguridad para contraseñas
 - ✅ Mensaje claro sobre expiración (1 hora)
 - ✅ Información de contacto de soporte
+
+### Citas (Appointments)
+
+#### `appointment-confirmation-to-patient.html`
+Email de confirmación de cita para el paciente.
+
+#### `appointment-notification-to-professional.html`
+Notificación de nueva cita para el profesional.
+
+### Eventos
+
+#### `event-payment-confirmation.html`
+Confirmación de pago para inscripción a eventos.
+
+### Inscripción Profesional
+
+#### `registration-renewal-reminder.html`
+Recordatorio automático de renovación de inscripción anual.
+
+**Características:**
+- ✅ 4 tipos de recordatorio (30, 15, 7 días y expirado)
+- ✅ Mensaje personalizado según urgencia
+- ✅ Color del borde cambia según días restantes
+- ✅ Botón CTA para renovar
+- ✅ Información de beneficios y consecuencias
+- ✅ Enviado automáticamente por cron job
+
+**Variables:**
+- `{{professional_name}}` - Nombre del profesional
+- `{{reminder_message}}` - Mensaje según días restantes
+- `{{expiration_date}}` - Fecha de expiración
+- `{{renewal_link}}` - Link para renovar
+- `{{color}}` - Color del borde (#f59e0b, #f97316, #ef4444, #dc2626)
 
 ## 🚀 Cómo Aplicar las Plantillas en Supabase
 

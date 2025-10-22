@@ -121,11 +121,16 @@ export default function AdminProfessionals() {
         // Transformar datos y obtener número de pacientes para cada profesional
         const transformedProfessionals: Professional[] = await Promise.all(
           professionalsData.map(async (prof) => {
-            // Obtener número de citas únicas de pacientes para este profesional
-            const { count: patientsCount } = await supabase
+            // Obtener número de pacientes únicos para este profesional
+            // professional_id en appointments corresponde al user_id del profesional
+            const { data: appointmentsData } = await supabase
               .from('appointments')
-              .select('patient_id', { count: 'exact', head: true })
-              .eq('professional_id', prof.id);
+              .select('patient_id')
+              .eq('professional_id', prof.user_id);
+
+            // Contar pacientes únicos
+            const uniquePatients = new Set(appointmentsData?.map(apt => apt.patient_id) || []);
+            const patientsCount = uniquePatients.size;
 
             // Determinar el estado basado en la fecha de revisión
             const reviewedAt = prof.reviewed_at ? new Date(prof.reviewed_at) : new Date(prof.submitted_at);

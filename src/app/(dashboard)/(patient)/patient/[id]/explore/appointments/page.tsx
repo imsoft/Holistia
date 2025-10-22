@@ -128,17 +128,10 @@ export default function AppointmentsPage() {
 
         console.log('✅ User ID matches, proceeding to fetch appointments...');
 
-        // Consulta a la tabla appointments con información de pagos
+        // Consulta a la tabla appointments
         const { data: appointmentsData, error } = await supabase
           .from('appointments')
-          .select(`
-            *,
-            payments (
-              id,
-              status,
-              paid_at
-            )
-          `)
+          .select('*')
           .eq('patient_id', user.id)  // Usar el ID del usuario autenticado, no el parámetro
           .order('appointment_date', { ascending: true })
           .order('appointment_time', { ascending: true });
@@ -163,33 +156,71 @@ export default function AppointmentsPage() {
         }
 
         console.log('Appointments fetched successfully:', appointmentsData);
-        
+
         if (!appointmentsData || appointmentsData.length === 0) {
           console.log('No appointments found for user');
           setAppointments([]);
           return;
         }
-        
+
+        // Obtener pagos para todas las citas
+        const appointmentIds = appointmentsData.map(apt => apt.id);
+        const { data: paymentsData, error: paymentsError } = await supabase
+          .from('payments')
+          .select('id, appointment_id, status, paid_at')
+          .in('appointment_id', appointmentIds);
+
+        if (paymentsError) {
+          console.error('Error fetching payments:', paymentsError);
+        }
+
+        console.log('Payments found:', paymentsData?.length || 0);
+
+        // Filtrar solo citas con pagos exitosos
+        const paidAppointments = appointmentsData.filter(apt => {
+          const hasSuccessfulPayment = paymentsData?.some(
+            payment => payment.appointment_id === apt.id && payment.status === 'succeeded'
+          );
+          return hasSuccessfulPayment;
+        });
+
+        console.log('Paid appointments:', paidAppointments.length);
+
+        if (paidAppointments.length === 0) {
+          console.log('No paid appointments found');
+          setAppointments([]);
+          return;
+        }
+
         // Obtener información de los profesionales
-        const professionalIds = [...new Set(appointmentsData.map(apt => apt.professional_id))];
-        
+        const professionalIds = [...new Set(paidAppointments.map(apt => apt.professional_id))];
+
         const { data: professionalsData } = await supabase
           .from('professional_applications')
           .select('id, first_name, last_name, profession, profile_photo, user_id')
           .in('id', professionalIds);
-        
+
         // Obtener avatares de profiles
         const userIds = professionalsData?.map(p => p.user_id).filter(Boolean) || [];
         const { data: profilesData } = await supabase
           .from('profiles')
           .select('id, avatar_url')
           .in('id', userIds);
-        
+
+        // Agregar información de pagos a las citas
+        const appointmentsWithPayments = paidAppointments.map(apt => {
+          const aptPayments = paymentsData?.filter(p => p.appointment_id === apt.id) || [];
+          return {
+            ...apt,
+            payments: aptPayments
+          };
+        });
+
         // Combinar datos
-        const formattedAppointments = appointmentsData.map(apt => {
+        const formattedAppointments = appointmentsWithPayments.map(apt => {
           const prof = professionalsData?.find(p => p.id === apt.professional_id);
           const profile = profilesData?.find(p => p.id === prof?.user_id);
-          
+
           return {
             ...apt,
             professional: {
@@ -200,7 +231,7 @@ export default function AppointmentsPage() {
             }
           };
         });
-        
+
         setAppointments(formattedAppointments);
         
       } catch (error) {

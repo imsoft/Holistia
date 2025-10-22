@@ -71,6 +71,8 @@ export default function ProfessionalAppointments() {
         }
 
         if (professionalApp) {
+          console.log('Professional app ID:', professionalApp.id);
+
           // Obtener todas las citas del profesional con información de pagos
           const { data: appointmentsData, error: appointmentsError } = await supabase
             .from('appointments')
@@ -81,14 +83,11 @@ export default function ProfessionalAppointments() {
               duration_minutes,
               appointment_type,
               status,
+              cost,
               location,
               notes,
               patient_id,
-              payments (
-                id,
-                status,
-                paid_at
-              )
+              created_at
             `)
             .eq('professional_id', professionalApp.id)
             .order('appointment_date', { ascending: true })
@@ -99,10 +98,36 @@ export default function ProfessionalAppointments() {
             return;
           }
 
+          console.log('Appointments found:', appointmentsData?.length || 0);
+
+          if (!appointmentsData || appointmentsData.length === 0) {
+            setAppointments([]);
+            setAvailableDates([]);
+            return;
+          }
+
+          // Obtener pagos para todas las citas
+          const appointmentIds = appointmentsData.map(apt => apt.id);
+          const { data: paymentsData, error: paymentsError } = await supabase
+            .from('payments')
+            .select('id, appointment_id, status, paid_at')
+            .in('appointment_id', appointmentIds);
+
+          if (paymentsError) {
+            console.error('Error obteniendo pagos:', paymentsError);
+          }
+
+          console.log('Payments found:', paymentsData?.length || 0);
+
           // Filtrar solo citas con pagos exitosos
-          const paidAppointments = appointmentsData?.filter(apt => {
-            return apt.payments?.some((payment: { id: string; status: string; paid_at: string | null }) => payment.status === 'succeeded');
-          }) || [];
+          const paidAppointments = appointmentsData.filter(apt => {
+            const hasSuccessfulPayment = paymentsData?.some(
+              payment => payment.appointment_id === apt.id && payment.status === 'succeeded'
+            );
+            return hasSuccessfulPayment;
+          });
+
+          console.log('Paid appointments:', paidAppointments.length);
 
           // Obtener fechas únicas para el filtro - solo de citas pagadas
           const uniqueDates = [...new Set(paidAppointments.map(apt => apt.appointment_date))];

@@ -30,11 +30,11 @@ INSERT INTO appointments (
   '2025-10-22', -- Fecha: 22 de octubre 2025
   '13:00:00', -- Hora: 1:00 PM
   60, -- Duración: 60 minutos
-  'Limpia Energetica', -- Tipo de servicio
+  'presencial', -- Tipo: presencial (solo acepta 'presencial' u 'online')
   'confirmed', -- Estado: confirmado (ya pagado)
   700.00, -- Costo: $700 MXN
-  'Presencial', -- Modalidad: presencial
-  'Cita recreada manualmente - pagada previamente por el paciente',
+  'Limpia Energetica - Presencial', -- Descripción del servicio en location
+  'Cita recreada manualmente - Servicio: Limpia Energetica - Pagada previamente',
   now(),
   now()
 )

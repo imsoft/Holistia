@@ -80,7 +80,7 @@ export function ReviewForm({ professionalId, patientId, existingReview, onSucces
   const displayRating = hoveredRating || rating;
 
   return (
-    <Card>
+    <Card className="py-4">
       <CardHeader>
         <CardTitle>{existingReview ? "Editar tu reseña" : "Deja tu reseña"}</CardTitle>
         <CardDescription>

@@ -107,7 +107,7 @@ export function ReviewsList({
 
   if (reviews.length === 0) {
     return (
-      <Card>
+      <Card className="py-4">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <MessageSquare className="w-5 h-5" />
@@ -124,7 +124,7 @@ export function ReviewsList({
   }
 
   return (
-    <Card>
+    <Card className="py-4">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <MessageSquare className="w-5 h-5" />

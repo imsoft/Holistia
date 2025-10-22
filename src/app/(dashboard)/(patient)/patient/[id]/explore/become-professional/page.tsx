@@ -1286,11 +1286,38 @@ export default function BecomeProfessionalPage() {
 
                         if (existingApplication.status === "approved" && feeStatus.isActive) {
                           return (
-                            <div className="pt-4 border-t border-border">
+                            <div className="pt-4 border-t border-border space-y-2">
                               <Button asChild className="w-full">
                                 <Link href={`/professional/${userId}/dashboard`}>
                                   Ir al Dashboard Profesional
                                 </Link>
+                              </Button>
+                              <Button 
+                                onClick={async () => {
+                                  if (!confirm('¿Estás seguro de que quieres dar de baja tu perfil profesional? Se eliminará tu solicitud y dejarás de aparecer en la plataforma. Podrás volver a aplicar cuando quieras.')) {
+                                    return;
+                                  }
+                                  
+                                  try {
+                                    const { error } = await supabase
+                                      .from('professional_applications')
+                                      .delete()
+                                      .eq('id', existingApplication.id);
+
+                                    if (error) throw error;
+
+                                    toast.success('Perfil profesional dado de baja exitosamente.');
+                                    window.location.reload();
+                                  } catch (error) {
+                                    console.error('Error deleting application:', error);
+                                    toast.error('Error al dar de baja el perfil.');
+                                  }
+                                }}
+                                variant="ghost"
+                                className="w-full text-muted-foreground hover:text-destructive"
+                                size="sm"
+                              >
+                                Dar de Baja mi Perfil Profesional
                               </Button>
                             </div>
                           );
@@ -1319,7 +1346,7 @@ export default function BecomeProfessionalPage() {
                               <strong>¿Quieres volver a intentarlo?</strong>
                             </p>
                             <p className="text-xs text-blue-800">
-                              Puedes editar tu solicitud y enviarla nuevamente para una nueva revisión.
+                              Puedes editar tu solicitud y enviarla nuevamente para una nueva revisión, o crear una solicitud completamente nueva.
                             </p>
                           </div>
                           <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
@@ -1333,16 +1360,37 @@ export default function BecomeProfessionalPage() {
                             >
                               Editar y Reenviar Solicitud
                             </Button>
-                            <Button asChild variant="outline" className="flex-1">
-                              <Link href={`/patient/${userId}/explore/profile`}>
-                                Ver Mi Perfil
-                              </Link>
+                            <Button 
+                              onClick={async () => {
+                                if (!confirm('¿Estás seguro de que quieres eliminar tu solicitud actual? Esta acción no se puede deshacer. Podrás crear una nueva solicitud desde cero.')) {
+                                  return;
+                                }
+                                
+                                try {
+                                  const { error } = await supabase
+                                    .from('professional_applications')
+                                    .delete()
+                                    .eq('id', existingApplication.id);
+
+                                  if (error) throw error;
+
+                                  toast.success('Solicitud eliminada. Ahora puedes crear una nueva.');
+                                  window.location.reload();
+                                } catch (error) {
+                                  console.error('Error deleting application:', error);
+                                  toast.error('Error al eliminar la solicitud.');
+                                }
+                              }}
+                              variant="outline"
+                              className="flex-1"
+                            >
+                              Crear Nueva Solicitud
                             </Button>
                           </div>
                         </div>
                       )}
 
-                      {existingApplication.status !== "approved" && existingApplication.status !== "rejected" && (
+                      {(existingApplication.status === "pending" || existingApplication.status === "under_review") && (
                         <div className="pt-3 sm:pt-4 border-t border-border">
                           <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
                             <Button asChild variant="outline" className="flex-1">
@@ -1358,6 +1406,33 @@ export default function BecomeProfessionalPage() {
                               Actualizar Estado
                             </Button>
                           </div>
+                          <Button 
+                            onClick={async () => {
+                              if (!confirm('¿Estás seguro de que quieres cancelar tu solicitud? Podrás crear una nueva solicitud cuando quieras.')) {
+                                return;
+                              }
+                              
+                              try {
+                                const { error } = await supabase
+                                  .from('professional_applications')
+                                  .delete()
+                                  .eq('id', existingApplication.id);
+
+                                if (error) throw error;
+
+                                toast.success('Solicitud cancelada exitosamente.');
+                                window.location.reload();
+                              } catch (error) {
+                                console.error('Error deleting application:', error);
+                                toast.error('Error al cancelar la solicitud.');
+                              }
+                            }}
+                            variant="ghost"
+                            className="w-full mt-2 text-muted-foreground hover:text-destructive"
+                            size="sm"
+                          >
+                            Cancelar mi Solicitud
+                          </Button>
                         </div>
                       )}
                     </div>

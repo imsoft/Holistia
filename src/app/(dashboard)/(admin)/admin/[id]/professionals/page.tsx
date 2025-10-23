@@ -72,10 +72,14 @@ export default function AdminProfessionals() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [verificationFilter, setVerificationFilter] = useState("all");
+  const [paymentFilter, setPaymentFilter] = useState("all");
   const [statsData, setStatsData] = useState({
     totalThisMonth: 0,
     lastMonth: 0,
-    totalPatients: 0
+    totalPatients: 0,
+    totalPaid: 0,
+    totalUnpaid: 0,
+    totalExpiringSoon: 0
   });
   const [selectedProfessional, setSelectedProfessional] = useState<Professional | null>(null);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
@@ -149,6 +153,7 @@ export default function AdminProfessionals() {
               last_name: prof.last_name,
               email: prof.email,
               phone: prof.phone,
+              instagram: prof.instagram,
               profession: prof.profession,
               specializations: prof.specializations,
               city: prof.city,
@@ -159,6 +164,11 @@ export default function AdminProfessionals() {
               submitted_at: prof.submitted_at,
               reviewed_at: prof.reviewed_at,
               patients: patientsCount || 0,
+              registration_fee_paid: prof.registration_fee_paid ?? false,
+              registration_fee_amount: prof.registration_fee_amount,
+              registration_fee_currency: prof.registration_fee_currency,
+              registration_fee_paid_at: prof.registration_fee_paid_at,
+              registration_fee_expires_at: prof.registration_fee_expires_at,
             };
           })
         );
@@ -173,10 +183,36 @@ export default function AdminProfessionals() {
 
         const totalPatients = transformedProfessionals.reduce((acc, prof) => acc + (prof.patients || 0), 0);
 
+        // Calcular estadísticas de pago
+        const nowForPayments = new Date();
+        const thirtyDaysFromNow = new Date();
+        thirtyDaysFromNow.setDate(nowForPayments.getDate() + 30);
+
+        const totalPaid = transformedProfessionals.filter(prof => 
+          prof.registration_fee_paid && 
+          prof.registration_fee_expires_at && 
+          new Date(prof.registration_fee_expires_at) > nowForPayments
+        ).length;
+
+        const totalUnpaid = transformedProfessionals.filter(prof => 
+          !prof.registration_fee_paid || 
+          (prof.registration_fee_expires_at && new Date(prof.registration_fee_expires_at) <= nowForPayments)
+        ).length;
+
+        const totalExpiringSoon = transformedProfessionals.filter(prof => 
+          prof.registration_fee_paid && 
+          prof.registration_fee_expires_at && 
+          new Date(prof.registration_fee_expires_at) > nowForPayments &&
+          new Date(prof.registration_fee_expires_at) <= thirtyDaysFromNow
+        ).length;
+
         setStatsData({
           totalThisMonth: thisMonthProfessionals,
           lastMonth: lastMonthProfessionals?.length || 0,
-          totalPatients
+          totalPatients,
+          totalPaid,
+          totalUnpaid,
+          totalExpiringSoon
         });
 
       } catch (error) {
@@ -347,11 +383,31 @@ export default function AdminProfessionals() {
         .toLowerCase()
         .includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === "all" || professional.status === statusFilter;
+    
+    // Filtro de pago
+    const nowForFilter = new Date();
+    const thirtyDaysFromNowForFilter = new Date();
+    thirtyDaysFromNowForFilter.setDate(nowForFilter.getDate() + 30);
+    
+    let matchesPayment = true;
+    if (paymentFilter === "paid") {
+      matchesPayment = !!(professional.registration_fee_paid && 
+        professional.registration_fee_expires_at && 
+        new Date(professional.registration_fee_expires_at) > nowForFilter);
+    } else if (paymentFilter === "unpaid") {
+      matchesPayment = !!(!professional.registration_fee_paid || 
+        (professional.registration_fee_expires_at && new Date(professional.registration_fee_expires_at) <= nowForFilter));
+    } else if (paymentFilter === "expiring_soon") {
+      matchesPayment = !!(professional.registration_fee_paid && 
+        professional.registration_fee_expires_at && 
+        new Date(professional.registration_fee_expires_at) > nowForFilter &&
+        new Date(professional.registration_fee_expires_at) <= thirtyDaysFromNowForFilter);
+    }
     const matchesVerification = verificationFilter === "all" || 
       (verificationFilter === "verified" && professional.reviewed_at) ||
       (verificationFilter === "unverified" && !professional.reviewed_at);
 
-    return matchesSearch && matchesStatus && matchesVerification;
+    return matchesSearch && matchesStatus && matchesVerification && matchesPayment;
   });
 
   if (loading) {
@@ -461,6 +517,58 @@ export default function AdminProfessionals() {
           </Card>
         </div>
 
+        {/* Payment Stats */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <Card className="border-green-200 bg-green-50">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-6 pt-6">
+              <CardTitle className="text-sm font-medium text-green-900">
+                ✅ Inscripciones Pagadas
+              </CardTitle>
+              <ShieldCheck className="h-4 w-4 text-green-600" />
+            </CardHeader>
+            <CardContent className="px-6 pb-6">
+              <div className="text-2xl font-bold text-green-900">
+                {statsData.totalPaid}
+              </div>
+              <p className="text-xs text-green-700">
+                {professionals.length > 0 ? Math.round((statsData.totalPaid / professionals.length) * 100) : 0}% del total
+              </p>
+            </CardContent>
+          </Card>
+          <Card className="border-red-200 bg-red-50">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-6 pt-6">
+              <CardTitle className="text-sm font-medium text-red-900">
+                ❌ Sin Pagar / Expirados
+              </CardTitle>
+              <Shield className="h-4 w-4 text-red-600" />
+            </CardHeader>
+            <CardContent className="px-6 pb-6">
+              <div className="text-2xl font-bold text-red-900">
+                {statsData.totalUnpaid}
+              </div>
+              <p className="text-xs text-red-700">
+                {professionals.length > 0 ? Math.round((statsData.totalUnpaid / professionals.length) * 100) : 0}% del total
+              </p>
+            </CardContent>
+          </Card>
+          <Card className="border-yellow-200 bg-yellow-50">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-6 pt-6">
+              <CardTitle className="text-sm font-medium text-yellow-900">
+                ⚠️ Expiran Pronto (30 días)
+              </CardTitle>
+              <Calendar className="h-4 w-4 text-yellow-600" />
+            </CardHeader>
+            <CardContent className="px-6 pb-6">
+              <div className="text-2xl font-bold text-yellow-900">
+                {statsData.totalExpiringSoon}
+              </div>
+              <p className="text-xs text-yellow-700">
+                Requieren renovación pronto
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+
         {/* Filters */}
         <Card>
           <CardHeader className="px-6 pt-6">
@@ -470,7 +578,7 @@ export default function AdminProfessionals() {
             </CardTitle>
           </CardHeader>
           <CardContent className="px-6 pb-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -499,6 +607,17 @@ export default function AdminProfessionals() {
                   <SelectItem value="all">Todos</SelectItem>
                   <SelectItem value="verified">Verificados</SelectItem>
                   <SelectItem value="unverified">No verificados</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={paymentFilter} onValueChange={setPaymentFilter}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Estado de Pago" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos los pagos</SelectItem>
+                  <SelectItem value="paid">✅ Pagado y Vigente</SelectItem>
+                  <SelectItem value="unpaid">❌ Sin Pagar / Expirado</SelectItem>
+                  <SelectItem value="expiring_soon">⚠️ Expira Pronto</SelectItem>
                 </SelectContent>
               </Select>
               <Button 
@@ -568,6 +687,31 @@ export default function AdminProfessionals() {
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <UserCheck className="h-4 w-4 flex-shrink-0" />
                     <span>{professional.patients || 0} pacientes</span>
+                  </div>
+                  
+                  {/* Estado de pago */}
+                  <div className="pt-2 border-t border-border">
+                    {professional.registration_fee_paid && professional.registration_fee_expires_at && new Date(professional.registration_fee_expires_at) > new Date() ? (
+                      <div className="flex items-center gap-2">
+                        <Badge className="bg-green-100 text-green-800 hover:bg-green-100 text-xs">
+                          ✅ Pagado
+                        </Badge>
+                        {new Date(professional.registration_fee_expires_at) <= new Date(new Date().setDate(new Date().getDate() + 30)) && (
+                          <Badge className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100 text-xs">
+                            ⚠️ Expira pronto
+                          </Badge>
+                        )}
+                      </div>
+                    ) : (
+                      <Badge className="bg-red-100 text-red-800 hover:bg-red-100 text-xs">
+                        ❌ Sin pagar
+                      </Badge>
+                    )}
+                    {professional.registration_fee_expires_at && (
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Expira: {new Date(professional.registration_fee_expires_at).toLocaleDateString('es-ES')}
+                      </p>
+                    )}
                   </div>
                 </div>
 

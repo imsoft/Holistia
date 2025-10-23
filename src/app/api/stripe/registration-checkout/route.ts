@@ -63,8 +63,8 @@ export async function POST(request: Request) {
       .from("payments")
       .insert({
         payment_type: "registration",
-        amount: amountInCents,
-        service_amount: amountInCents,
+        amount: registrationFeeAmount, // Guardar en pesos, no en centavos
+        service_amount: registrationFeeAmount, // Guardar en pesos, no en centavos
         commission_percentage: 100, // 100% va a la plataforma
         currency: currency,
         status: "pending",

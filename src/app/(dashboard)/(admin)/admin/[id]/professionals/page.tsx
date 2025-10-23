@@ -774,7 +774,7 @@ export default function AdminProfessionals() {
 
       {/* Modal para ver perfil del profesional */}
       <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Perfil del Profesional</DialogTitle>
             <DialogDescription>
@@ -787,7 +787,7 @@ export default function AdminProfessionals() {
               {/* Información personal */}
               <div className="bg-muted/50 rounded-lg p-4">
                 <h3 className="text-lg font-semibold mb-4">Información Personal</h3>
-                <div className="grid grid-cols-1 gap-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="flex flex-col gap-1">
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <UserCheck className="h-4 w-4" />
@@ -799,17 +799,15 @@ export default function AdminProfessionals() {
                     <span className="text-sm text-muted-foreground">Profesión</span>
                     <span className="text-base font-medium">{selectedProfessional.profession}</span>
                   </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="flex flex-col gap-1">
-                      <span className="text-sm text-muted-foreground">Estado</span>
-                      <Badge className={getStatusColor(selectedProfessional.status)}>
-                        {getStatusText(selectedProfessional.status)}
-                      </Badge>
-                    </div>
-                    <div className="flex flex-col gap-1">
-                      <span className="text-sm text-muted-foreground">Pacientes</span>
-                      <span className="text-base font-medium">{selectedProfessional.patients || 0}</span>
-                    </div>
+                  <div className="flex flex-col gap-1">
+                    <span className="text-sm text-muted-foreground">Estado</span>
+                    <Badge className={getStatusColor(selectedProfessional.status)}>
+                      {getStatusText(selectedProfessional.status)}
+                    </Badge>
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <span className="text-sm text-muted-foreground">Pacientes</span>
+                    <span className="text-base font-medium">{selectedProfessional.patients || 0}</span>
                   </div>
                 </div>
               </div>
@@ -817,7 +815,7 @@ export default function AdminProfessionals() {
               {/* Información de contacto */}
               <div className="bg-muted/50 rounded-lg p-4">
                 <h3 className="text-lg font-semibold mb-4">Información de Contacto</h3>
-                <div className="grid grid-cols-1 gap-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="flex flex-col gap-1">
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <Mail className="h-4 w-4" />

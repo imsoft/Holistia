@@ -9,6 +9,9 @@ import {
   TrendingUp,
   Clock,
   Eye,
+  CreditCard,
+  AlertCircle,
+  CheckCircle2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -57,6 +60,13 @@ export default function ProfessionalDashboard() {
     stripe_charges_enabled: null,
     stripe_payouts_enabled: null,
   });
+  const [registrationFeeStatus, setRegistrationFeeStatus] = useState<{
+    paid: boolean;
+    amount: number;
+    currency: string;
+    expires_at: string | null;
+    paid_at: string | null;
+  } | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -70,7 +80,7 @@ export default function ProfessionalDashboard() {
         // Obtener la aplicación profesional del usuario
         const { data: professionalApp, error: profError } = await supabase
           .from('professional_applications')
-          .select('id, first_name, last_name, profile_photo, working_start_time, working_end_time, stripe_account_id, stripe_account_status, stripe_charges_enabled, stripe_payouts_enabled')
+          .select('id, first_name, last_name, profile_photo, working_start_time, working_end_time, stripe_account_id, stripe_account_status, stripe_charges_enabled, stripe_payouts_enabled, registration_fee_paid, registration_fee_amount, registration_fee_currency, registration_fee_paid_at, registration_fee_expires_at')
           .eq('user_id', userId)
           .eq('status', 'approved')
           .single();
@@ -89,6 +99,13 @@ export default function ProfessionalDashboard() {
             stripe_account_status: professionalApp.stripe_account_status,
             stripe_charges_enabled: professionalApp.stripe_charges_enabled,
             stripe_payouts_enabled: professionalApp.stripe_payouts_enabled,
+          });
+          setRegistrationFeeStatus({
+            paid: professionalApp.registration_fee_paid || false,
+            amount: professionalApp.registration_fee_amount || 1000,
+            currency: professionalApp.registration_fee_currency || 'mxn',
+            expires_at: professionalApp.registration_fee_expires_at,
+            paid_at: professionalApp.registration_fee_paid_at,
           });
           
           // Obtener citas del profesional para hoy
@@ -368,6 +385,131 @@ export default function ProfessionalDashboard() {
             </Card>
           ))}
         </div>
+
+        {/* Alerta de Estado de Inscripción */}
+        {registrationFeeStatus && (
+          <>
+            {/* Sin pagar */}
+            {!registrationFeeStatus.paid && (
+              <Card className="border-red-200 bg-red-50">
+                <CardContent className="p-4 sm:p-6">
+                  <div className="flex items-start gap-3 sm:gap-4">
+                    <div className="flex-shrink-0">
+                      <AlertCircle className="h-5 w-5 sm:h-6 sm:w-6 text-red-600" />
+                    </div>
+                    <div className="flex-1 space-y-2">
+                      <h3 className="text-sm sm:text-base font-semibold text-red-900">
+                        ⚠️ Pago de Inscripción Pendiente
+                      </h3>
+                      <p className="text-xs sm:text-sm text-red-800">
+                        Para aparecer en la plataforma de Holistia y poder recibir citas de pacientes, 
+                        necesitas pagar la cuota de inscripción anual de <strong>${registrationFeeStatus.amount.toLocaleString('es-MX')} {registrationFeeStatus.currency.toUpperCase()}</strong>.
+                      </p>
+                      <Button 
+                        className="mt-3 bg-red-600 hover:bg-red-700"
+                        size="sm"
+                        onClick={() => router.push(`/patient/${userId}/explore/become-professional`)}
+                      >
+                        <CreditCard className="h-4 w-4 mr-2" />
+                        Pagar Inscripción
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Pagado pero expirado */}
+            {registrationFeeStatus.paid && registrationFeeStatus.expires_at && new Date(registrationFeeStatus.expires_at) <= new Date() && (
+              <Card className="border-red-200 bg-red-50">
+                <CardContent className="p-4 sm:p-6">
+                  <div className="flex items-start gap-3 sm:gap-4">
+                    <div className="flex-shrink-0">
+                      <AlertCircle className="h-5 w-5 sm:h-6 sm:w-6 text-red-600" />
+                    </div>
+                    <div className="flex-1 space-y-2">
+                      <h3 className="text-sm sm:text-base font-semibold text-red-900">
+                        ❌ Inscripción Expirada
+                      </h3>
+                      <p className="text-xs sm:text-sm text-red-800">
+                        Tu inscripción anual expiró el <strong>{new Date(registrationFeeStatus.expires_at).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' })}</strong>. 
+                        Para seguir apareciendo en la plataforma y poder recibir citas, necesitas renovar tu pago de <strong>${registrationFeeStatus.amount.toLocaleString('es-MX')} {registrationFeeStatus.currency.toUpperCase()}</strong>.
+                      </p>
+                      <Button 
+                        className="mt-3 bg-red-600 hover:bg-red-700"
+                        size="sm"
+                        onClick={() => router.push(`/patient/${userId}/explore/become-professional`)}
+                      >
+                        <CreditCard className="h-4 w-4 mr-2" />
+                        Renovar Inscripción
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Pagado pero próximo a vencer (30 días) */}
+            {registrationFeeStatus.paid && 
+             registrationFeeStatus.expires_at && 
+             new Date(registrationFeeStatus.expires_at) > new Date() &&
+             new Date(registrationFeeStatus.expires_at).getTime() - new Date().getTime() < 30 * 24 * 60 * 60 * 1000 && (
+              <Card className="border-yellow-200 bg-yellow-50">
+                <CardContent className="p-4 sm:p-6">
+                  <div className="flex items-start gap-3 sm:gap-4">
+                    <div className="flex-shrink-0">
+                      <AlertCircle className="h-5 w-5 sm:h-6 sm:w-6 text-yellow-600" />
+                    </div>
+                    <div className="flex-1 space-y-2">
+                      <h3 className="text-sm sm:text-base font-semibold text-yellow-900">
+                        ⚠️ Renovación Próxima
+                      </h3>
+                      <p className="text-xs sm:text-sm text-yellow-800">
+                        Tu inscripción expira el <strong>{new Date(registrationFeeStatus.expires_at).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' })}</strong>. 
+                        Renueva tu pago de <strong>${registrationFeeStatus.amount.toLocaleString('es-MX')} {registrationFeeStatus.currency.toUpperCase()}</strong> para seguir apareciendo en la plataforma sin interrupciones.
+                      </p>
+                      <Button 
+                        className="mt-3 bg-yellow-600 hover:bg-yellow-700"
+                        size="sm"
+                        onClick={() => router.push(`/patient/${userId}/explore/become-professional`)}
+                      >
+                        <CreditCard className="h-4 w-4 mr-2" />
+                        Renovar Ahora
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Pagado y vigente (solo mostrar si es reciente, menos de 7 días desde el pago) */}
+            {registrationFeeStatus.paid && 
+             registrationFeeStatus.expires_at && 
+             new Date(registrationFeeStatus.expires_at) > new Date() &&
+             new Date(registrationFeeStatus.expires_at).getTime() - new Date().getTime() >= 30 * 24 * 60 * 60 * 1000 &&
+             registrationFeeStatus.paid_at &&
+             new Date().getTime() - new Date(registrationFeeStatus.paid_at).getTime() < 7 * 24 * 60 * 60 * 1000 && (
+              <Card className="border-green-200 bg-green-50">
+                <CardContent className="p-4 sm:p-6">
+                  <div className="flex items-start gap-3 sm:gap-4">
+                    <div className="flex-shrink-0">
+                      <CheckCircle2 className="h-5 w-5 sm:h-6 sm:w-6 text-green-600" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-sm sm:text-base font-semibold text-green-900">
+                        ✅ Inscripción Activa
+                      </h3>
+                      <p className="text-xs sm:text-sm text-green-800 mt-1">
+                        Tu inscripción está vigente hasta el <strong>{new Date(registrationFeeStatus.expires_at).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' })}</strong>. 
+                        ¡Gracias por ser parte de Holistia!
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </>
+        )}
 
         {/* Foto de Perfil */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">

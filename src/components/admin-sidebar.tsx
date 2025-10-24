@@ -13,6 +13,7 @@ import {
   ClipboardList,
   CalendarCheck,
   BarChart3,
+  DollarSign,
 } from "lucide-react";
 import {
   Sidebar,
@@ -120,6 +121,11 @@ export function AdminSidebar() {
       title: "Analíticas",
       url: `/admin/${userId}/analytics`,
       icon: BarChart3,
+    },
+    {
+      title: "Finanzas",
+      url: `/admin/${userId}/finances`,
+      icon: DollarSign,
     },
     {
       title: "Blog",

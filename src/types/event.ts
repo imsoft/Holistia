@@ -2,6 +2,7 @@ export interface EventWorkshop {
   id?: string;
   name: string;
   duration_hours: number;
+  duration_unit?: "hours" | "days"; // Unidad de duración: horas o días
   session_type: "unique" | "recurring";
   price: number;
   is_free: boolean;
@@ -33,6 +34,7 @@ export interface EventWorkshop {
 export interface EventFormData {
   name: string;
   duration_hours: number;
+  duration_unit: "hours" | "days"; // Unidad de duración: horas o días
   session_type: "unique" | "recurring";
   price: number;
   is_free: boolean;
@@ -68,8 +70,8 @@ export const EVENT_CATEGORIES = [
 ] as const;
 
 export const SESSION_TYPES = [
-  { value: "unique", label: "Sesión Única" },
-  { value: "recurring", label: "Sesión Recurrente" },
+  { value: "unique", label: "Experiencia Única" },
+  { value: "recurring", label: "Experiencia Recurrente" },
 ] as const;
 
 export const PARTICIPANT_LEVELS = [
@@ -83,6 +85,11 @@ export const OWNER_TYPES = [
   { value: "admin", label: "Administrador" },
   { value: "professional", label: "Profesional" },
   { value: "patient", label: "Usuario" },
+] as const;
+
+export const DURATION_UNITS = [
+  { value: "hours", label: "Horas" },
+  { value: "days", label: "Días" },
 ] as const;
 
 export interface EventOwner {

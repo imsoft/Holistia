@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { EventFormData, EventWorkshop, Professional, EventOwner, EVENT_CATEGORIES, SESSION_TYPES, PARTICIPANT_LEVELS, OWNER_TYPES } from "@/types/event";
+import { EventFormData, EventWorkshop, Professional, EventOwner, EVENT_CATEGORIES, SESSION_TYPES, PARTICIPANT_LEVELS, OWNER_TYPES, DURATION_UNITS } from "@/types/event";
 import { createClient } from "@/utils/supabase/client";
 import { toast } from "sonner";
 import { Upload, X, Crop } from "lucide-react";
@@ -39,6 +39,7 @@ export function EventForm({ event, professionals, onSuccess, onCancel }: EventFo
   const [formData, setFormData] = useState<EventFormData>({
     name: "",
     duration_hours: 1,
+    duration_unit: "hours",
     session_type: "unique",
     price: 0,
     is_free: false,
@@ -142,9 +143,19 @@ export function EventForm({ event, professionals, onSuccess, onCancel }: EventFo
 
   useEffect(() => {
     if (event) {
+      // Calcular la unidad y valor de duración correctos
+      const durationUnit = event.duration_unit || "hours";
+      let displayDuration = event.duration_hours;
+      
+      // Si la unidad es días, convertir horas a días para mostrar
+      if (durationUnit === "days") {
+        displayDuration = Math.round(event.duration_hours / 24);
+      }
+      
       setFormData({
         name: event.name,
-        duration_hours: event.duration_hours,
+        duration_hours: displayDuration,
+        duration_unit: durationUnit,
         session_type: event.session_type,
         price: event.price,
         is_free: event.is_free,
@@ -345,8 +356,15 @@ export function EventForm({ event, professionals, onSuccess, onCancel }: EventFo
 
     try {
       setSaving(true);
+      
+      // Convertir días a horas si es necesario
+      const durationInHours = formData.duration_unit === "days" 
+        ? formData.duration_hours * 24 
+        : formData.duration_hours;
+      
       const eventData = {
         ...formData,
+        duration_hours: durationInHours,
         created_by: (await supabase.auth.getUser()).data.user?.id,
       };
 
@@ -440,9 +458,11 @@ export function EventForm({ event, professionals, onSuccess, onCancel }: EventFo
             {errors.name && <p className="text-sm text-red-500">{errors.name}</p>}
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="duration_hours">Duración (horas) *</Label>
+              <Label htmlFor="duration_hours">
+                Duración ({formData.duration_unit === "hours" ? "horas" : "días"}) *
+              </Label>
               <Input
                 id="duration_hours"
                 type="number"
@@ -450,14 +470,42 @@ export function EventForm({ event, professionals, onSuccess, onCancel }: EventFo
                 onChange={(e) => handleInputChange('duration_hours', e.target.value === '' ? 0 : parseInt(e.target.value))}
                 onFocus={(e) => e.target.select()}
                 min="1"
-                max="24"
+                max={formData.duration_unit === "hours" ? "24" : "30"}
                 className={errors.duration_hours ? "border-red-500" : ""}
               />
               {errors.duration_hours && <p className="text-sm text-red-500">{errors.duration_hours}</p>}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="session_type">Tipo de Sesión *</Label>
+              <Label htmlFor="duration_unit">Unidad *</Label>
+              <Select
+                value={formData.duration_unit}
+                onValueChange={(value) => {
+                  handleInputChange('duration_unit', value as "hours" | "days");
+                  // Ajustar el valor de duración si cambia la unidad
+                  if (value === "days" && formData.duration_hours > 30) {
+                    handleInputChange('duration_hours', 30);
+                  } else if (value === "hours" && formData.duration_hours > 24) {
+                    handleInputChange('duration_hours', 24);
+                  }
+                }}
+              >
+                <SelectTrigger className={errors.duration_unit ? "border-red-500" : ""}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {DURATION_UNITS.map((unit) => (
+                    <SelectItem key={unit.value} value={unit.value}>
+                      {unit.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {errors.duration_unit && <p className="text-sm text-red-500">{errors.duration_unit}</p>}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="session_type">Tipo de Experiencia *</Label>
               <Select
                 value={formData.session_type}
                 onValueChange={(value: "unique" | "recurring") => handleInputChange('session_type', value)}

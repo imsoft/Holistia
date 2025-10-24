@@ -201,7 +201,7 @@ const FavoritesPage = () => {
         <div className="mb-6 sm:mb-8">
           <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">Mis Favoritos</h1>
           <p className="text-sm sm:text-base text-muted-foreground">
-            Profesionales de salud mental guardados en tus favoritos
+            Expertos guardados en tus favoritos
           </p>
         </div>
 

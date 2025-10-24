@@ -53,7 +53,7 @@ const categories = [
     id: "professionals",
     name: "Salud mental",
     icon: Brain,
-    description: "Profesionales de salud mental",
+    description: "Expertos en salud mental",
   },
   {
     id: "spirituality",
@@ -666,7 +666,7 @@ const HomeUserPage = () => {
 
                 {/* Sección de Profesionales */}
                 <div>
-                  <h3 className="text-xl sm:text-2xl font-bold text-foreground mb-4 sm:mb-6">Profesionales de Salud</h3>
+                  <h3 className="text-xl sm:text-2xl font-bold text-foreground mb-4 sm:mb-6">Expertos</h3>
                   {filteredProfessionals.length === 0 ? (
                     <div className="text-center py-12">
                       <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">

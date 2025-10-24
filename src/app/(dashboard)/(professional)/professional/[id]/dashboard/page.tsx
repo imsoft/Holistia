@@ -228,14 +228,26 @@ export default function ProfessionalDashboard() {
           );
           const weeklyChange = activePatients - lastWeekPatients.size;
 
-          // CAMBIO CRÍTICO: Calcular ingresos basados en PAGOS REALES, no en cost de citas
-          // Esto evita contar mal si hay pagos duplicados o montos diferentes
+          // CAMBIO CRÍTICO: Calcular ingresos basados en PAGOS REALES
+          // Usamos TODOS los pagos exitosos (no solo del mes actual)
+          // Y mostramos el ingreso NETO (después de comisión 15% Holistia)
+          
+          const PROFESSIONAL_SHARE = 0.85; // 85% para el profesional (15% para Holistia)
+          
+          // Calcular ingresos TOTALES de todos los pagos exitosos
+          const allSucceededPayments = allPaymentsData.filter(p => p.status === 'succeeded');
+          
+          const totalRevenue = allSucceededPayments.reduce((sum, payment) => {
+            const amount = Number(payment.amount || 0);
+            // Restar comisión de Holistia (15%)
+            return sum + (amount * PROFESSIONAL_SHARE);
+          }, 0);
+          
+          // Para el mes actual (por comparación)
           const currentMonth = now.getMonth();
           const currentYear = now.getFullYear();
           
-          // Filtrar pagos exitosos del mes actual
-          const currentMonthPayments = allPaymentsData.filter(payment => {
-            if (payment.status !== 'succeeded') return false;
+          const currentMonthPayments = allSucceededPayments.filter(payment => {
             const apt = allAppointments?.find(a => a.id === payment.appointment_id);
             if (!apt) return false;
             const aptDate = new Date(apt.appointment_date);
@@ -243,15 +255,15 @@ export default function ProfessionalDashboard() {
           });
           
           const monthlyRevenue = currentMonthPayments.reduce((sum, payment) => {
-            return sum + Number(payment.amount || 0);
+            const amount = Number(payment.amount || 0);
+            return sum + (amount * PROFESSIONAL_SHARE);
           }, 0);
 
           // Ingresos del mes pasado para comparación
           const lastMonth = currentMonth === 0 ? 11 : currentMonth - 1;
           const lastMonthYear = currentMonth === 0 ? currentYear - 1 : currentYear;
           
-          const lastMonthPayments = allPaymentsData.filter(payment => {
-            if (payment.status !== 'succeeded') return false;
+          const lastMonthPayments = allSucceededPayments.filter(payment => {
             const apt = allAppointments?.find(a => a.id === payment.appointment_id);
             if (!apt) return false;
             const aptDate = new Date(apt.appointment_date);
@@ -259,12 +271,9 @@ export default function ProfessionalDashboard() {
           });
           
           const lastMonthRevenue = lastMonthPayments.reduce((sum, payment) => {
-            return sum + Number(payment.amount || 0);
+            const amount = Number(payment.amount || 0);
+            return sum + (amount * PROFESSIONAL_SHARE);
           }, 0);
-          
-          const revenueChange = lastMonthRevenue > 0 
-            ? Math.round(((monthlyRevenue - lastMonthRevenue) / lastMonthRevenue) * 100)
-            : 0;
 
           setStats([
             {
@@ -284,9 +293,9 @@ export default function ProfessionalDashboard() {
               bgColor: "bg-green-50",
             },
             {
-              title: "Ingresos del Mes",
-              value: `$${monthlyRevenue.toLocaleString('es-MX')}`,
-              change: revenueChange >= 0 ? `+${revenueChange}% vs mes anterior` : `${revenueChange}% vs mes anterior`,
+              title: "Ingresos Totales",
+              value: `$${totalRevenue.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+              change: `Neto después de comisión (15%)`,
               icon: DollarSign,
               color: "text-purple-600",
               bgColor: "bg-purple-50",

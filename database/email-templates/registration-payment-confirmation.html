@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confirmación de Inscripción - Holistia</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+        }
+        .logo {
+            width: 70px;
+            height: auto;
+            margin-bottom: 15px;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 600;
+        }
+        .content {
+            padding: 30px 20px;
+        }
+        .success-icon {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .success-icon .icon {
+            width: 60px;
+            height: 60px;
+            background-color: #10b981;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+        }
+        .receipt-container {
+            border: 2px solid #667eea;
+            border-radius: 12px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+        .receipt-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        .receipt-header h2 {
+            margin: 0;
+            font-size: 20px;
+        }
+        .receipt-body {
+            padding: 20px;
+        }
+        .detail-section {
+            background-color: #f8fafc;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 15px 0;
+        }
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .detail-row:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+        .detail-label {
+            font-weight: 600;
+            color: #374151;
+        }
+        .detail-value {
+            color: #6b7280;
+            text-align: right;
+        }
+        .total-amount {
+            font-size: 32px;
+            font-weight: bold;
+            color: #667eea;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .status-badge {
+            display: inline-block;
+            background-color: #d1fae5;
+            border: 2px solid #10b981;
+            color: #065f46;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: 600;
+            font-size: 16px;
+        }
+        .validity-box {
+            background-color: #ede9fe;
+            border: 2px solid #667eea;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        .validity-box h3 {
+            margin: 0 0 10px 0;
+            color: #5b21b6;
+        }
+        .validity-date {
+            font-size: 20px;
+            font-weight: bold;
+            color: #7c3aed;
+        }
+        .benefits {
+            background-color: #ecfdf5;
+            border: 1px solid #10b981;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .benefits h3 {
+            margin-top: 0;
+            color: #065f46;
+            font-size: 18px;
+        }
+        .benefits ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        .benefits li {
+            margin-bottom: 8px;
+            color: #047857;
+        }
+        .next-steps {
+            background-color: #fef3c7;
+            border: 1px solid #f59e0b;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .next-steps h3 {
+            margin-top: 0;
+            color: #92400e;
+            font-size: 18px;
+        }
+        .next-steps ol {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        .next-steps li {
+            margin-bottom: 10px;
+            color: #92400e;
+        }
+        .footer {
+            background-color: #f8f9fa;
+            padding: 20px;
+            text-align: center;
+            color: #6b7280;
+            font-size: 14px;
+        }
+        .footer a {
+            color: #667eea;
+            text-decoration: none;
+        }
+        .footer a:hover {
+            text-decoration: underline;
+        }
+        .divider {
+            height: 1px;
+            background: linear-gradient(to right, transparent, #e5e7eb, transparent);
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <img src="https://holistia.io/logos/holistia-white.png" alt="Holistia" class="logo">
+            <h1>🎉 ¡Bienvenido a Holistia!</h1>
+        </div>
+
+        <div class="content">
+            <div class="success-icon">
+                <div class="icon">✓</div>
+            </div>
+
+            <h2 style="text-align: center; color: #1f2937; margin-bottom: 10px;">
+                Inscripción Confirmada
+            </h2>
+            
+            <p style="text-align: center; margin-bottom: 30px;">
+                <span class="status-badge">✓ INSCRIPCIÓN ACTIVA</span>
+            </p>
+
+            <p style="text-align: center; color: #6b7280; margin-bottom: 30px;">
+                Hola <strong>{{professional_name}}</strong>,<br>
+                Tu inscripción anual como profesional en Holistia ha sido confirmada.
+            </p>
+
+            <div class="receipt-container">
+                <div class="receipt-header">
+                    <h2>RECIBO DE INSCRIPCIÓN ANUAL</h2>
+                    <p style="margin: 5px 0; opacity: 0.9;">Holistia Plataforma Profesional</p>
+                </div>
+
+                <div class="receipt-body">
+                    <div class="detail-section">
+                        <h3 style="margin-top: 0; color: #1f2937; font-size: 16px;">👤 Información del Profesional</h3>
+                        <div class="detail-row">
+                            <span class="detail-label">Nombre:</span>
+                            <span class="detail-value">{{professional_name}}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Email:</span>
+                            <span class="detail-value">{{professional_email}}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Profesión:</span>
+                            <span class="detail-value">{{profession}}</span>
+                        </div>
+                    </div>
+
+                    <div class="detail-section">
+                        <h3 style="margin-top: 0; color: #1f2937; font-size: 16px;">💳 Detalles de Pago</h3>
+                        <div class="detail-row">
+                            <span class="detail-label">Concepto:</span>
+                            <span class="detail-value">Inscripción Anual Holistia</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Fecha de pago:</span>
+                            <span class="detail-value">{{payment_date}}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Método:</span>
+                            <span class="detail-value">{{payment_method}}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">ID de transacción:</span>
+                            <span class="detail-value" style="font-size: 12px;">{{transaction_id}}</span>
+                        </div>
+                    </div>
+
+                    <div class="divider"></div>
+
+                    <div class="total-amount">
+                        ${{payment_amount}} MXN
+                    </div>
+                    <p style="text-align: center; color: #6b7280; font-size: 14px;">
+                        Monto Total Pagado
+                    </p>
+                </div>
+            </div>
+
+            <div class="validity-box">
+                <h3>📅 Vigencia de tu Inscripción</h3>
+                <p style="margin: 10px 0; color: #6b21a8;">Válido hasta:</p>
+                <div class="validity-date">{{expiration_date}}</div>
+                <p style="margin: 10px 0 0 0; color: #6b7280; font-size: 14px;">
+                    Te notificaremos 30 días antes del vencimiento
+                </p>
+            </div>
+
+            <div class="benefits">
+                <h3>✨ Beneficios de tu Inscripción</h3>
+                <ul>
+                    <li><strong>Perfil Público:</strong> Tu perfil profesional es visible en toda la plataforma</li>
+                    <li><strong>Sistema de Citas:</strong> Los pacientes pueden agendar citas directamente contigo</li>
+                    <li><strong>Gestión de Pagos:</strong> Recibe pagos de forma segura a través de Stripe</li>
+                    <li><strong>Dashboard Completo:</strong> Administra tus citas, horarios y disponibilidad</li>
+                    <li><strong>Eventos y Talleres:</strong> Crea y gestiona tus propios eventos</li>
+                    <li><strong>Sin Comisiones Ocultas:</strong> Solo pagamos la comisión de Stripe + 15% de la plataforma</li>
+                </ul>
+            </div>
+
+            <div class="next-steps">
+                <h3>🚀 Próximos Pasos</h3>
+                <ol>
+                    <li><strong>Completa tu Perfil:</strong> Asegúrate de tener toda tu información actualizada</li>
+                    <li><strong>Configura tu Disponibilidad:</strong> Define tus horarios de atención</li>
+                    <li><strong>Agrega tus Servicios:</strong> Crea los servicios que ofreces y sus precios</li>
+                    <li><strong>Conecta Stripe:</strong> Configura tu cuenta de Stripe para recibir pagos</li>
+                    <li><strong>¡Empieza a Recibir Pacientes!</strong> Tu perfil ya está activo</li>
+                </ol>
+            </div>
+
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="{{dashboard_url}}" style="display: inline-block; background-color: #667eea; color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px;">
+                    Ir a mi Dashboard
+                </a>
+            </div>
+
+            <p style="color: #6b7280; font-size: 14px; text-align: center; margin-top: 30px;">
+                Este es tu comprobante oficial de inscripción.<br>
+                Guárdalo para cualquier aclaración fiscal o administrativa.
+            </p>
+        </div>
+
+        <div class="footer">
+            <p>
+                <strong>Holistia</strong> - Tu bienestar es nuestra prioridad<br>
+                <a href="https://holistia.io">holistia.io</a> |
+                <a href="mailto:holistia.io@gmail.com">holistia.io@gmail.com</a>
+            </p>
+            <p style="font-size: 12px; margin-top: 15px;">
+                Este es un email automático generado por tu inscripción.<br>
+                Si tienes preguntas, contacta a nuestro equipo de soporte.
+            </p>
+        </div>
+    </div>
+</body>
+</html>
+

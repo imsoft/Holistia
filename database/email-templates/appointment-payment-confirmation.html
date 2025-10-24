@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ticket de Cita - Holistia</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+        }
+        .logo {
+            width: 70px;
+            height: auto;
+            margin-bottom: 15px;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 600;
+        }
+        .content {
+            padding: 30px 20px;
+        }
+        .success-icon {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .success-icon .icon {
+            width: 60px;
+            height: 60px;
+            background-color: #10b981;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+        }
+        .ticket-container {
+            border: 2px solid #10b981;
+            border-radius: 12px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+        .ticket-header {
+            background-color: #ecfdf5;
+            padding: 20px;
+            text-align: center;
+            border-bottom: 2px dashed #10b981;
+        }
+        .ticket-header h2 {
+            margin: 0;
+            color: #065f46;
+            font-size: 20px;
+        }
+        .ticket-number {
+            font-family: 'Courier New', monospace;
+            font-size: 18px;
+            color: #059669;
+            margin-top: 10px;
+            letter-spacing: 2px;
+        }
+        .ticket-body {
+            padding: 20px;
+        }
+        .appointment-details {
+            background-color: #f8fafc;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 15px 0;
+        }
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .detail-row:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+        .detail-label {
+            font-weight: 600;
+            color: #374151;
+        }
+        .detail-value {
+            color: #6b7280;
+            text-align: right;
+        }
+        .payment-summary {
+            background-color: #ecfdf5;
+            border: 1px solid #10b981;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .payment-summary h3 {
+            margin-top: 0;
+            color: #065f46;
+            font-size: 18px;
+        }
+        .total-amount {
+            font-size: 28px;
+            font-weight: bold;
+            color: #059669;
+            text-align: center;
+            margin: 15px 0;
+        }
+        .status-badge {
+            display: inline-block;
+            background-color: #d1fae5;
+            border: 2px solid #10b981;
+            color: #065f46;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        .instructions {
+            background-color: #fef3c7;
+            border: 1px solid #f59e0b;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .instructions h3 {
+            margin-top: 0;
+            color: #92400e;
+            font-size: 18px;
+        }
+        .instructions ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        .instructions li {
+            margin-bottom: 8px;
+            color: #92400e;
+        }
+        .footer {
+            background-color: #f8f9fa;
+            padding: 20px;
+            text-align: center;
+            color: #6b7280;
+            font-size: 14px;
+        }
+        .footer a {
+            color: #667eea;
+            text-decoration: none;
+        }
+        .footer a:hover {
+            text-decoration: underline;
+        }
+        .divider {
+            height: 1px;
+            background: linear-gradient(to right, transparent, #e5e7eb, transparent);
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <img src="https://holistia.io/logos/holistia-white.png" alt="Holistia" class="logo">
+            <h1>🎟️ Tu Ticket de Cita</h1>
+        </div>
+
+        <div class="content">
+            <div class="success-icon">
+                <div class="icon">✓</div>
+            </div>
+
+            <h2 style="text-align: center; color: #1f2937; margin-bottom: 10px;">
+                ¡Pago Confirmado!
+            </h2>
+            
+            <p style="text-align: center; margin-bottom: 30px;">
+                <span class="status-badge">✓ PAGADO</span>
+            </p>
+
+            <p style="text-align: center; color: #6b7280; margin-bottom: 30px;">
+                Hola <strong>{{patient_name}}</strong>,<br>
+                Tu pago ha sido procesado exitosamente. Aquí está tu ticket de cita.
+            </p>
+
+            <div class="ticket-container">
+                <div class="ticket-header">
+                    <h2>TICKET DE CITA PROFESIONAL</h2>
+                    <div class="ticket-number">CITA #{{ticket_number}}</div>
+                </div>
+
+                <div class="ticket-body">
+                    <div class="appointment-details">
+                        <h3 style="margin-top: 0; color: #1f2937; font-size: 16px;">👨‍⚕️ Profesional</h3>
+                        <div class="detail-row">
+                            <span class="detail-label">Nombre:</span>
+                            <span class="detail-value">{{professional_name}}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Profesión:</span>
+                            <span class="detail-value">{{professional_title}}</span>
+                        </div>
+                    </div>
+
+                    <div class="appointment-details">
+                        <h3 style="margin-top: 0; color: #1f2937; font-size: 16px;">📅 Detalles de tu Cita</h3>
+                        <div class="detail-row">
+                            <span class="detail-label">Fecha:</span>
+                            <span class="detail-value">{{appointment_date}}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Hora:</span>
+                            <span class="detail-value">{{appointment_time}}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Duración:</span>
+                            <span class="detail-value">{{duration_minutes}} minutos</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Modalidad:</span>
+                            <span class="detail-value">{{appointment_type}}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Ubicación:</span>
+                            <span class="detail-value">{{location}}</span>
+                        </div>
+                    </div>
+
+                    <div class="divider"></div>
+
+                    <div class="payment-summary">
+                        <h3>💳 Resumen de Pago</h3>
+                        <div class="detail-row">
+                            <span class="detail-label">Monto:</span>
+                            <span class="detail-value">${{payment_amount}} MXN</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Fecha de pago:</span>
+                            <span class="detail-value">{{payment_date}}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Método:</span>
+                            <span class="detail-value">{{payment_method}}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">ID de transacción:</span>
+                            <span class="detail-value" style="font-size: 12px;">{{transaction_id}}</span>
+                        </div>
+                        <div class="divider"></div>
+                        <div class="total-amount">TOTAL PAGADO: ${{payment_amount}} MXN</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="instructions">
+                <h3>📋 Instrucciones Importantes</h3>
+                <ul>
+                    <li><strong>Guarda este ticket:</strong> Llévalo contigo el día de tu cita (impreso o en tu celular)</li>
+                    <li><strong>Llega puntual:</strong> Te recomendamos llegar 10 minutos antes</li>
+                    <li><strong>Confirma ubicación:</strong> {{location}}</li>
+                    <li><strong>Contacto:</strong> El profesional te contactará si necesita confirmar algo adicional</li>
+                    <li><strong>Cancelaciones:</strong> Si necesitas cancelar, házlo con al menos 24 horas de anticipación</li>
+                </ul>
+            </div>
+
+            <p style="color: #6b7280; font-size: 14px; text-align: center; margin-top: 30px;">
+                Este es tu comprobante oficial de pago.<br>
+                Guárdalo para cualquier aclaración o consulta futura.
+            </p>
+        </div>
+
+        <div class="footer">
+            <p>
+                <strong>Holistia</strong> - Tu bienestar es nuestra prioridad<br>
+                <a href="https://holistia.io">holistia.io</a> |
+                <a href="mailto:holistia.io@gmail.com">holistia.io@gmail.com</a>
+            </p>
+            <p style="font-size: 12px; margin-top: 15px;">
+                Este es un email automático generado por tu compra.<br>
+                Si tienes preguntas, contacta a nuestro equipo de soporte.
+            </p>
+        </div>
+    </div>
+</body>
+</html>
+

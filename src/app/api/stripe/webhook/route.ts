@@ -1,7 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe';
 import { createClient } from '@/utils/supabase/server';
-import { sendEventConfirmationEmailSimple, sendAppointmentNotificationToProfessional } from '@/lib/email-sender';
+import { 
+  sendEventConfirmationEmailSimple, 
+  sendAppointmentNotificationToProfessional,
+  sendAppointmentPaymentConfirmation,
+  sendRegistrationPaymentConfirmation
+} from '@/lib/email-sender';
 import Stripe from 'stripe';
 
 async function sendEventConfirmationEmail(eventRegistrationId: string) {
@@ -183,6 +188,174 @@ async function sendAppointmentNotificationEmail(appointmentId: string) {
   }
 }
 
+async function sendAppointmentTicketEmail(appointmentId: string) {
+  try {
+    const supabase = await createClient();
+
+    // Get appointment details
+    const { data: appointment, error: appointmentError } = await supabase
+      .from('appointments')
+      .select('*')
+      .eq('id', appointmentId)
+      .single();
+
+    if (appointmentError || !appointment) {
+      console.error('Error fetching appointment:', appointmentError);
+      return;
+    }
+
+    // Get patient details
+    const { data: patient, error: patientError } = await supabase.auth.admin.getUserById(appointment.patient_id);
+
+    if (patientError || !patient) {
+      console.error('Error fetching patient:', patientError);
+      return;
+    }
+
+    // Get professional details from professional_applications
+    const { data: professionalApp, error: professionalAppError } = await supabase
+      .from('professional_applications')
+      .select('*')
+      .eq('id', appointment.professional_id)
+      .single();
+
+    if (professionalAppError || !professionalApp) {
+      console.error('Error fetching professional application:', professionalAppError);
+      return;
+    }
+
+    // Get payment details
+    const { data: payment, error: paymentError } = await supabase
+      .from('payments')
+      .select('*')
+      .eq('appointment_id', appointmentId)
+      .eq('status', 'succeeded')
+      .single();
+
+    if (paymentError || !payment) {
+      console.error('Error fetching payment:', paymentError);
+      return;
+    }
+
+    // Format data
+    const appointmentDate = new Date(appointment.appointment_date).toLocaleDateString('es-ES', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      weekday: 'long'
+    });
+
+    const appointmentTime = appointment.appointment_time.substring(0, 5);
+    const paymentDate = new Date(payment.paid_at!).toLocaleDateString('es-ES');
+
+    const typeLabels = {
+      presencial: "Presencial",
+      online: "Online"
+    };
+    const appointmentType = typeLabels[appointment.appointment_type as keyof typeof typeLabels] || appointment.appointment_type;
+
+    // Prepare ticket email data
+    const ticketData = {
+      patient_name: patient.user.user_metadata?.full_name || patient.user.email?.split('@')[0] || 'Paciente',
+      patient_email: patient.user.email!,
+      professional_name: `${professionalApp.first_name} ${professionalApp.last_name}`,
+      professional_title: professionalApp.profession,
+      appointment_date: appointmentDate,
+      appointment_time: appointmentTime,
+      appointment_type: appointmentType,
+      duration_minutes: appointment.duration_minutes || 50,
+      location: appointment.location || 'Por definir',
+      payment_amount: Number(payment.amount),
+      payment_date: paymentDate,
+      payment_method: payment.payment_method || 'Tarjeta',
+      transaction_id: payment.stripe_payment_intent_id || payment.id,
+      ticket_number: appointment.id.substring(0, 8).toUpperCase(),
+    };
+
+    // Send ticket email
+    const result = await sendAppointmentPaymentConfirmation(ticketData);
+
+    if (result.success) {
+      console.log('Appointment ticket sent successfully to patient');
+    } else {
+      console.error('Failed to send appointment ticket:', result.error);
+    }
+
+  } catch (error) {
+    console.error('Error in sendAppointmentTicketEmail:', error);
+  }
+}
+
+async function sendRegistrationReceiptEmail(professionalApplicationId: string) {
+  try {
+    const supabase = await createClient();
+
+    // Get professional application details
+    const { data: professionalApp, error: appError } = await supabase
+      .from('professional_applications')
+      .select('*')
+      .eq('id', professionalApplicationId)
+      .single();
+
+    if (appError || !professionalApp) {
+      console.error('Error fetching professional application:', appError);
+      return;
+    }
+
+    // Get payment details
+    const { data: payment, error: paymentError } = await supabase
+      .from('payments')
+      .select('*')
+      .eq('professional_application_id', professionalApplicationId)
+      .eq('payment_type', 'registration')
+      .eq('status', 'succeeded')
+      .single();
+
+    if (paymentError || !payment) {
+      console.error('Error fetching payment:', paymentError);
+      return;
+    }
+
+    // Format data
+    const paymentDate = new Date(payment.paid_at!).toLocaleDateString('es-ES', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+
+    const expirationDate = new Date(professionalApp.registration_fee_expires_at!).toLocaleDateString('es-ES', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+
+    // Prepare receipt email data
+    const receiptData = {
+      professional_name: `${professionalApp.first_name} ${professionalApp.last_name}`,
+      professional_email: professionalApp.email,
+      profession: professionalApp.profession,
+      payment_amount: Number(payment.amount),
+      payment_date: paymentDate,
+      payment_method: payment.payment_method || 'Tarjeta',
+      transaction_id: payment.stripe_payment_intent_id || payment.id,
+      expiration_date: expirationDate,
+      dashboard_url: `${process.env.NEXT_PUBLIC_SITE_URL}/professional/${professionalApp.id}/dashboard`
+    };
+
+    // Send receipt email
+    const result = await sendRegistrationPaymentConfirmation(receiptData);
+
+    if (result.success) {
+      console.log('Registration receipt sent successfully to professional');
+    } else {
+      console.error('Failed to send registration receipt:', result.error);
+    }
+
+  } catch (error) {
+    console.error('Error in sendRegistrationReceiptEmail:', error);
+  }
+}
+
 export async function POST(request: NextRequest) {
   const body = await request.text();
   const signature = request.headers.get('stripe-signature');
@@ -272,6 +445,14 @@ export async function POST(request: NextRequest) {
               console.error('Error sending appointment notification email:', emailError);
               // Don't fail the webhook if email fails
             }
+
+            // Send payment confirmation ticket to patient
+            try {
+              await sendAppointmentTicketEmail(appointment_id);
+            } catch (emailError) {
+              console.error('Error sending appointment ticket email:', emailError);
+              // Don't fail the webhook if email fails
+            }
           }
         }
 
@@ -319,6 +500,14 @@ export async function POST(request: NextRequest) {
           } else {
             console.log('Registration fee payment confirmed for application:', professional_application_id);
             console.log('Payment expires at:', expiresAt.toISOString());
+
+            // Send registration receipt to professional
+            try {
+              await sendRegistrationReceiptEmail(professional_application_id);
+            } catch (emailError) {
+              console.error('Error sending registration receipt email:', emailError);
+              // Don't fail the webhook if email fails
+            }
           }
         }
 

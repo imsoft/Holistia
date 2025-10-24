@@ -66,75 +66,114 @@ export default function ProfessionalAppointments() {
           .single();
 
         if (profError) {
-          console.error('Error obteniendo profesional:', profError);
+          console.error('❌ Error obteniendo profesional:', profError);
+          console.error('❌ Detalles del error:', {
+            message: profError.message,
+            details: profError.details,
+            hint: profError.hint,
+            code: profError.code
+          });
           return;
         }
 
-        if (professionalApp) {
-          console.log('Professional app ID:', professionalApp.id);
-
-          // Obtener todas las citas del profesional con información de pagos
-          const { data: appointmentsData, error: appointmentsError } = await supabase
-            .from('appointments')
-            .select(`
-              id,
-              appointment_date,
-              appointment_time,
-              duration_minutes,
-              appointment_type,
-              status,
-              cost,
-              location,
-              notes,
-              patient_id,
-              created_at
-            `)
-            .eq('professional_id', professionalApp.id)
-            .order('appointment_date', { ascending: true })
-            .order('appointment_time', { ascending: true });
-
-          if (appointmentsError) {
-            console.error('Error obteniendo citas:', appointmentsError);
-            return;
-          }
-
-          console.log('Appointments found:', appointmentsData?.length || 0);
-
-          if (!appointmentsData || appointmentsData.length === 0) {
-            setAppointments([]);
-            setAvailableDates([]);
-            return;
-          }
-
-          // Obtener fechas únicas para el filtro
-          const uniqueDates = [...new Set(appointmentsData.map(apt => apt.appointment_date))];
-          setAvailableDates(uniqueDates);
-
-          // Formatear citas sin información de pacientes (temporal)
-          if (appointmentsData.length > 0) {
-            const formattedAppointments: Appointment[] = appointmentsData.map(apt => {
-              return {
-                id: apt.id,
-                patient: {
-                  name: `Paciente ${apt.patient_id.slice(0, 8)}`,
-                  email: 'No disponible',
-                  phone: 'No disponible',
-                },
-                date: apt.appointment_date,
-                time: apt.appointment_time.substring(0, 5),
-                duration: apt.duration_minutes,
-                type: apt.appointment_type === 'presencial' ? 'Presencial' : 'Online',
-                status: apt.status as "confirmed" | "pending" | "cancelled" | "completed",
-                location: apt.location || (apt.appointment_type === 'online' ? 'Online' : 'Sin especificar'),
-                notes: apt.notes || undefined,
-              };
-            });
-            
-            setAppointments(formattedAppointments);
-          } else {
-            setAppointments([]);
-          }
+        if (!professionalApp) {
+          console.error('❌ No se encontró aplicación profesional aprobada para user_id:', userId);
+          return;
         }
+
+        console.log('✅ Professional app ID:', professionalApp.id);
+        console.log('🔍 Buscando citas con professional_id:', professionalApp.id);
+
+        // Obtener todas las citas del profesional con información de pagos
+        const { data: appointmentsData, error: appointmentsError } = await supabase
+          .from('appointments')
+          .select(`
+            id,
+            appointment_date,
+            appointment_time,
+            duration_minutes,
+            appointment_type,
+            status,
+            cost,
+            location,
+            notes,
+            patient_id,
+            professional_id,
+            created_at
+          `)
+          .eq('professional_id', professionalApp.id)
+          .order('appointment_date', { ascending: true })
+          .order('appointment_time', { ascending: true });
+
+        if (appointmentsError) {
+          console.error('❌ Error obteniendo citas:', appointmentsError);
+          console.error('❌ Detalles del error:', {
+            message: appointmentsError.message,
+            details: appointmentsError.details,
+            hint: appointmentsError.hint,
+            code: appointmentsError.code
+          });
+          return;
+        }
+
+        console.log('📊 Appointments found:', appointmentsData?.length || 0);
+        if (appointmentsData && appointmentsData.length > 0) {
+          console.log('📋 Primera cita encontrada:', appointmentsData[0]);
+        }
+
+        if (!appointmentsData || appointmentsData.length === 0) {
+          setAppointments([]);
+          setAvailableDates([]);
+          return;
+        }
+
+        // Obtener fechas únicas para el filtro
+        const uniqueDates = [...new Set(appointmentsData.map(apt => apt.appointment_date))];
+        setAvailableDates(uniqueDates);
+
+        // Obtener información de los pacientes usando la vista segura
+        const patientIds = [...new Set(appointmentsData.map(apt => apt.patient_id))];
+        
+        const { data: patientsData, error: patientsError } = await supabase
+          .from('professional_patient_info')
+          .select('patient_id, full_name, phone, email')
+          .eq('professional_id', professionalApp.id)
+          .in('patient_id', patientIds);
+
+        if (patientsError) {
+          console.error('Error obteniendo información de pacientes:', patientsError);
+          console.error('Detalles:', {
+            message: patientsError.message,
+            details: patientsError.details,
+            hint: patientsError.hint,
+            code: patientsError.code
+          });
+        }
+
+        console.log('👥 Pacientes encontrados:', patientsData?.length || 0);
+
+        // Formatear citas con información de pacientes
+        const formattedAppointments: Appointment[] = appointmentsData.map(apt => {
+          const patient = patientsData?.find(p => p.patient_id === apt.patient_id);
+          
+          return {
+            id: apt.id,
+            patient: {
+              name: patient?.full_name || `Paciente`,
+              email: patient?.email || 'No disponible',
+              phone: patient?.phone || 'No disponible',
+            },
+            date: apt.appointment_date,
+            time: apt.appointment_time.substring(0, 5),
+            duration: apt.duration_minutes,
+            type: apt.appointment_type === 'presencial' ? 'Presencial' : 'Online',
+            status: apt.status as "confirmed" | "pending" | "cancelled" | "completed",
+            location: apt.location || (apt.appointment_type === 'online' ? 'Online' : 'Sin especificar'),
+            notes: apt.notes || undefined,
+          };
+        });
+
+        setAppointments(formattedAppointments);
       } catch (error) {
         console.error('Error inesperado:', error);
       } finally {

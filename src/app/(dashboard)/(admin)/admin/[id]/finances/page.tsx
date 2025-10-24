@@ -128,7 +128,14 @@ export default function FinancesPage() {
 
         // Calcular métricas del período actual
         const totalIncome = currentPayments?.reduce((sum, p) => sum + Number(p.amount), 0) || 0;
-        const platformFees = currentPayments?.reduce((sum, p) => sum + Number(p.platform_fee || 0), 0) || 0;
+        // Calcular comisiones de plataforma (15% del monto total)
+        // Si platform_fee está en la BD lo usa, si no, calcula el 15%
+        const platformFees = currentPayments?.reduce((sum, p) => {
+          const fee = p.platform_fee && Number(p.platform_fee) > 0 
+            ? Number(p.platform_fee) 
+            : Number(p.amount) * 0.15;
+          return sum + fee;
+        }, 0) || 0;
         
         // Calcular comisiones de Stripe (aproximado: 3.6% + $3 MXN por transacción)
         const stripeFees = currentPayments?.reduce((sum, p) => {
@@ -171,7 +178,12 @@ export default function FinancesPage() {
 
         // Calcular cambios comparando con período anterior
         const previousTotalIncome = previousPayments?.reduce((sum, p) => sum + Number(p.amount), 0) || 0;
-        const previousPlatformFees = previousPayments?.reduce((sum, p) => sum + Number(p.platform_fee || 0), 0) || 0;
+        const previousPlatformFees = previousPayments?.reduce((sum, p) => {
+          const fee = p.platform_fee && Number(p.platform_fee) > 0 
+            ? Number(p.platform_fee) 
+            : Number(p.amount) * 0.15;
+          return sum + fee;
+        }, 0) || 0;
         const previousTransactions = previousPayments?.length || 0;
 
         const incomeChange = previousTotalIncome > 0
@@ -234,13 +246,17 @@ export default function FinancesPage() {
           .reverse()
           .map(p => {
             const stripeFee = (Number(p.amount) * 0.036) + 3;
-            const netAmount = Number(p.amount) - Number(p.platform_fee || 0) - stripeFee;
+            // Calcular platform_fee (15% si no está en la BD)
+            const platformFee = p.platform_fee && Number(p.platform_fee) > 0 
+              ? Number(p.platform_fee) 
+              : Number(p.amount) * 0.15;
+            const netAmount = Number(p.amount) - platformFee - stripeFee;
 
             return {
               id: p.id,
               type: p.payment_type || 'unknown',
               amount: Number(p.amount),
-              platform_fee: Number(p.platform_fee || 0),
+              platform_fee: platformFee,
               stripe_fee: stripeFee,
               net_amount: netAmount,
               status: p.status,
@@ -359,7 +375,7 @@ export default function FinancesPage() {
         {/* Métricas Principales */}
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {metrics.map((metric, index) => (
-            <Card key={index}>
+            <Card key={index} className="py-4">
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
                   {metric.title}
@@ -395,7 +411,7 @@ export default function FinancesPage() {
         {/* Desglose Detallado */}
         <div className="grid gap-6 lg:grid-cols-2">
           {/* Desglose de Ingresos */}
-          <Card>
+          <Card className="py-4">
             <CardHeader>
               <CardTitle>Desglose de Ingresos - {getPeriodLabel()}</CardTitle>
               <CardDescription>Ingresos por tipo de servicio</CardDescription>
@@ -460,7 +476,7 @@ export default function FinancesPage() {
           </Card>
 
           {/* Desglose de Costos */}
-          <Card>
+          <Card className="py-4">
             <CardHeader>
               <CardTitle>Análisis de Costos - {getPeriodLabel()}</CardTitle>
               <CardDescription>Comisiones e impuestos</CardDescription>
@@ -529,7 +545,7 @@ export default function FinancesPage() {
         </div>
 
         {/* Transacciones Recientes */}
-        <Card>
+        <Card className="py-4">
           <CardHeader>
             <CardTitle>Transacciones Recientes</CardTitle>
             <CardDescription>Últimas 10 transacciones del período</CardDescription>
@@ -589,7 +605,7 @@ export default function FinancesPage() {
         </Card>
 
         {/* Nota Informativa */}
-        <Card className="border-blue-200 dark:border-blue-900 bg-blue-50 dark:bg-blue-950/20">
+        <Card className="py-4 border-blue-200 dark:border-blue-900 bg-blue-50 dark:bg-blue-950/20">
           <CardContent className="pt-6">
             <div className="flex gap-3">
               <div className="flex-shrink-0">

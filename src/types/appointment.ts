@@ -19,6 +19,7 @@ export interface Appointment {
   location: string;
   service?: string;
   cost?: number;
+  isPaid?: boolean; // Nuevo campo para indicar si el pago fue exitoso
 }
 
 export interface AppointmentForm {

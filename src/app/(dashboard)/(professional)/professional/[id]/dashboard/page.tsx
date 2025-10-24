@@ -176,13 +176,13 @@ export default function ProfessionalDashboard() {
             `)
             .eq('professional_id', professionalApp.id);
 
-          // Obtener pagos para todas las citas
-          let allPaymentsData: { appointment_id: string; status: string }[] = [];
+          // Obtener pagos para todas las citas con el monto
+          let allPaymentsData: { appointment_id: string; status: string; amount: number }[] = [];
           if (allAppointments && allAppointments.length > 0) {
             const allAppointmentIds = allAppointments.map(apt => apt.id);
             const { data: allPayments } = await supabase
               .from('payments')
-              .select('appointment_id, status')
+              .select('appointment_id, status, amount')
               .in('appointment_id', allAppointmentIds);
 
             allPaymentsData = allPayments || [];
@@ -228,26 +228,38 @@ export default function ProfessionalDashboard() {
           );
           const weeklyChange = activePatients - lastWeekPatients.size;
 
-          // Ingresos del mes actual - SOLO de citas pagadas
+          // CAMBIO CRÍTICO: Calcular ingresos basados en PAGOS REALES, no en cost de citas
+          // Esto evita contar mal si hay pagos duplicados o montos diferentes
           const currentMonth = now.getMonth();
           const currentYear = now.getFullYear();
-          const monthlyRevenue = paidAppointments.reduce((sum, apt) => {
+          
+          // Filtrar pagos exitosos del mes actual
+          const currentMonthPayments = allPaymentsData.filter(payment => {
+            if (payment.status !== 'succeeded') return false;
+            const apt = allAppointments?.find(a => a.id === payment.appointment_id);
+            if (!apt) return false;
             const aptDate = new Date(apt.appointment_date);
-            if (aptDate.getMonth() === currentMonth && aptDate.getFullYear() === currentYear) {
-              return sum + (parseFloat(apt.cost?.toString() || '0'));
-            }
-            return sum;
+            return aptDate.getMonth() === currentMonth && aptDate.getFullYear() === currentYear;
+          });
+          
+          const monthlyRevenue = currentMonthPayments.reduce((sum, payment) => {
+            return sum + Number(payment.amount || 0);
           }, 0);
 
-          // Ingresos del mes pasado para comparación - SOLO de citas pagadas
+          // Ingresos del mes pasado para comparación
           const lastMonth = currentMonth === 0 ? 11 : currentMonth - 1;
           const lastMonthYear = currentMonth === 0 ? currentYear - 1 : currentYear;
-          const lastMonthRevenue = paidAppointments.reduce((sum, apt) => {
+          
+          const lastMonthPayments = allPaymentsData.filter(payment => {
+            if (payment.status !== 'succeeded') return false;
+            const apt = allAppointments?.find(a => a.id === payment.appointment_id);
+            if (!apt) return false;
             const aptDate = new Date(apt.appointment_date);
-            if (aptDate.getMonth() === lastMonth && aptDate.getFullYear() === lastMonthYear) {
-              return sum + (parseFloat(apt.cost?.toString() || '0'));
-            }
-            return sum;
+            return aptDate.getMonth() === lastMonth && aptDate.getFullYear() === lastMonthYear;
+          });
+          
+          const lastMonthRevenue = lastMonthPayments.reduce((sum, payment) => {
+            return sum + Number(payment.amount || 0);
           }, 0);
           
           const revenueChange = lastMonthRevenue > 0 

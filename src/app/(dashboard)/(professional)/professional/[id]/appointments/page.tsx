@@ -152,9 +152,23 @@ export default function ProfessionalAppointments() {
 
         console.log('👥 Pacientes encontrados:', patientsData?.length || 0);
 
-        // Formatear citas con información de pacientes
+        // Obtener información de pagos para todas las citas
+        const appointmentIds = appointmentsData.map(apt => apt.id);
+        const { data: paymentsData } = await supabase
+          .from('payments')
+          .select('appointment_id, status, amount')
+          .in('appointment_id', appointmentIds);
+
+        console.log('💳 Pagos encontrados:', paymentsData?.length || 0);
+
+        // Formatear citas con información de pacientes y pagos
         const formattedAppointments: Appointment[] = appointmentsData.map(apt => {
           const patient = patientsData?.find(p => p.patient_id === apt.patient_id);
+          
+          // Verificar si tiene algún pago exitoso
+          const hasSuccessfulPayment = paymentsData?.some(
+            p => p.appointment_id === apt.id && p.status === 'succeeded'
+          ) || false;
           
           return {
             id: apt.id,
@@ -170,6 +184,7 @@ export default function ProfessionalAppointments() {
             status: apt.status as "confirmed" | "pending" | "cancelled" | "completed",
             location: apt.location || (apt.appointment_type === 'online' ? 'Online' : 'Sin especificar'),
             notes: apt.notes || undefined,
+            isPaid: hasSuccessfulPayment, // Nuevo campo
           };
         });
 
@@ -385,12 +400,30 @@ export default function ProfessionalAppointments() {
                         <h3 className="text-base sm:text-lg font-semibold text-foreground truncate">
                           {appointment.patient.name}
                         </h3>
-                        <Badge className={`${getStatusColor(appointment.status)} text-xs`}>
-                          <div className="flex items-center gap-1">
-                            {getStatusIcon(appointment.status)}
-                            {getStatusText(appointment.status)}
-                          </div>
-                        </Badge>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <Badge className={`${getStatusColor(appointment.status)} text-xs`}>
+                            <div className="flex items-center gap-1">
+                              {getStatusIcon(appointment.status)}
+                              {getStatusText(appointment.status)}
+                            </div>
+                          </Badge>
+                          {/* Indicador de pago */}
+                          {appointment.isPaid ? (
+                            <Badge className="bg-green-500 hover:bg-green-600 text-white text-xs">
+                              <div className="flex items-center gap-1">
+                                <CheckCircle className="h-3 w-3" />
+                                Pagado
+                              </div>
+                            </Badge>
+                          ) : (
+                            <Badge variant="outline" className="border-amber-500 text-amber-700 text-xs">
+                              <div className="flex items-center gap-1">
+                                <AlertCircle className="h-3 w-3" />
+                                Sin pago
+                              </div>
+                            </Badge>
+                          )}
+                        </div>
                       </div>
                       
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 mb-3 sm:mb-4">

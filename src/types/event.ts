@@ -8,8 +8,10 @@ export interface EventWorkshop {
   is_free: boolean;
   max_capacity: number;
   has_parking: boolean;
-  event_date: string; // ISO date string
-  event_time: string; // HH:MM format
+  event_date: string; // ISO date string - Fecha de inicio
+  event_time: string; // HH:MM format - Hora de inicio
+  end_date?: string; // ISO date string - Fecha de finalización (opcional)
+  end_time?: string; // HH:MM format - Hora de finalización (opcional)
   category: "espiritualidad" | "salud_mental" | "salud_fisica" | "alimentacion" | "social";
   location: string;
   description?: string;
@@ -42,6 +44,8 @@ export interface EventFormData {
   has_parking: boolean;
   event_date: string;
   event_time: string;
+  end_date: string;
+  end_time: string;
   category: "espiritualidad" | "salud_mental" | "salud_fisica" | "alimentacion" | "social";
   location: string;
   description: string;

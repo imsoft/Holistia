@@ -242,16 +242,26 @@ const EventDetailPage = () => {
                   <div className="flex items-center gap-2 sm:gap-3">
                     <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-primary flex-shrink-0" />
                     <div>
-                      <p className="text-sm sm:text-base font-medium">{formatEventDate(event.event_date)}</p>
-                      <p className="text-xs sm:text-sm text-muted-foreground">Fecha del evento</p>
+                      <p className="text-sm sm:text-base font-medium">
+                        {event.end_date && event.event_date !== event.end_date
+                          ? `${formatEventDate(event.event_date)} - ${formatEventDate(event.end_date)}`
+                          : formatEventDate(event.event_date)
+                        }
+                      </p>
+                      <p className="text-xs sm:text-sm text-muted-foreground">
+                        {event.end_date && event.event_date !== event.end_date ? 'Fechas del evento' : 'Fecha del evento'}
+                      </p>
                     </div>
                   </div>
 
                   <div className="flex items-center gap-2 sm:gap-3">
                     <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-primary flex-shrink-0" />
                     <div>
-                      <p className="text-sm sm:text-base font-medium">{formatEventTime(event.event_time)}</p>
-                      <p className="text-xs sm:text-sm text-muted-foreground">Hora de inicio</p>
+                      <p className="text-sm sm:text-base font-medium">
+                        {formatEventTime(event.event_time)}
+                        {event.end_time && ` - ${formatEventTime(event.end_time)}`}
+                      </p>
+                      <p className="text-xs sm:text-sm text-muted-foreground">Horario</p>
                     </div>
                   </div>
 

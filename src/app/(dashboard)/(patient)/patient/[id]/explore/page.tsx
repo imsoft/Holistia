@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
-import { Brain, Sparkles, Activity, Users, Apple, X, Calendar, MapPin, Clock } from "lucide-react";
+import { Brain, Sparkles, Activity, Users, Apple, X, Calendar, MapPin } from "lucide-react";
 import Link from "next/link";
 import { Filters } from "@/components/ui/filters";
 import { ProfessionalCard } from "@/components/ui/professional-card";
@@ -628,21 +628,28 @@ const HomeUserPage = () => {
                               </div>
                             </CardHeader>
                             <CardContent className="space-y-2 sm:space-y-3 flex-1 pb-4 sm:pb-6">
-                              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                <Calendar className="w-4 h-4" />
-                                <span>{formatEventDate(event.event_date)} a las {formatEventTime(event.event_time)}</span>
+                              <div className="flex items-start gap-2 text-sm text-muted-foreground">
+                                <Calendar className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                                <div className="flex-1">
+                                  <div className="font-medium text-foreground">
+                                    {event.end_date && event.event_date !== event.end_date
+                                      ? `${formatEventDate(event.event_date)} - ${formatEventDate(event.end_date)}`
+                                      : formatEventDate(event.event_date)
+                                    }
+                                  </div>
+                                  <div className="text-xs">
+                                    {formatEventTime(event.event_time)}
+                                    {event.end_time && ` - ${formatEventTime(event.end_time)}`}
+                                  </div>
+                                </div>
                               </div>
                               <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                <MapPin className="w-4 h-4" />
+                                <MapPin className="w-4 h-4 flex-shrink-0" />
                                 <span className="truncate">{event.location}</span>
                               </div>
                               <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                <Users className="w-4 h-4" />
+                                <Users className="w-4 h-4 flex-shrink-0" />
                                 <span>Cupo: {event.max_capacity} personas</span>
-                              </div>
-                              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                <Clock className="w-4 h-4" />
-                                <span>{event.duration_hours} horas</span>
                               </div>
                               {event.description && (
                                 <p className="text-sm text-muted-foreground line-clamp-2">

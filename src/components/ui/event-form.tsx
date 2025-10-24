@@ -47,6 +47,8 @@ export function EventForm({ event, professionals, onSuccess, onCancel }: EventFo
     has_parking: false,
     event_date: "",
     event_time: "",
+    end_date: "",
+    end_time: "",
     category: "salud_mental",
     location: "",
     description: "",
@@ -163,6 +165,8 @@ export function EventForm({ event, professionals, onSuccess, onCancel }: EventFo
         has_parking: event.has_parking,
         event_date: event.event_date,
         event_time: event.event_time,
+        end_date: event.end_date || "",
+        end_time: event.end_time || "",
         category: event.category,
         location: event.location,
         description: event.description || "",
@@ -201,11 +205,30 @@ export function EventForm({ event, professionals, onSuccess, onCancel }: EventFo
     }
 
     if (!formData.event_date) {
-      newErrors.event_date = "La fecha del evento es requerida";
+      newErrors.event_date = "La fecha de inicio es requerida";
     }
 
     if (!formData.event_time) {
-      newErrors.event_time = "La hora del evento es requerida";
+      newErrors.event_time = "La hora de inicio es requerida";
+    }
+
+    if (!formData.end_date) {
+      newErrors.end_date = "La fecha de finalización es requerida";
+    }
+
+    if (!formData.end_time) {
+      newErrors.end_time = "La hora de finalización es requerida";
+    }
+
+    // Validar que la fecha/hora de finalización sea después de la de inicio
+    if (formData.event_date && formData.event_time && formData.end_date && formData.end_time) {
+      const startDateTime = new Date(`${formData.event_date}T${formData.event_time}`);
+      const endDateTime = new Date(`${formData.end_date}T${formData.end_time}`);
+      
+      if (endDateTime <= startDateTime) {
+        newErrors.end_date = "La fecha/hora de finalización debe ser posterior a la de inicio";
+        newErrors.end_time = "La fecha/hora de finalización debe ser posterior a la de inicio";
+      }
     }
 
     if (!formData.location.trim()) {
@@ -605,7 +628,7 @@ export function EventForm({ event, professionals, onSuccess, onCancel }: EventFo
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="event_time">Hora del Evento *</Label>
+              <Label htmlFor="event_time">Hora de Inicio *</Label>
               <Input
                 id="event_time"
                 type="time"
@@ -614,6 +637,33 @@ export function EventForm({ event, professionals, onSuccess, onCancel }: EventFo
                 className={errors.event_time ? "border-red-500" : ""}
               />
               {errors.event_time && <p className="text-sm text-red-500">{errors.event_time}</p>}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="end_date">Fecha de Finalización *</Label>
+              <Input
+                id="end_date"
+                type="date"
+                value={formData.end_date}
+                onChange={(e) => handleInputChange('end_date', e.target.value)}
+                className={errors.end_date ? "border-red-500" : ""}
+              />
+              {errors.end_date && <p className="text-sm text-red-500">{errors.end_date}</p>}
+              <p className="text-xs text-muted-foreground">Puede ser el mismo día de inicio</p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="end_time">Hora de Finalización *</Label>
+              <Input
+                id="end_time"
+                type="time"
+                value={formData.end_time}
+                onChange={(e) => handleInputChange('end_time', e.target.value)}
+                className={errors.end_time ? "border-red-500" : ""}
+              />
+              {errors.end_time && <p className="text-sm text-red-500">{errors.end_time}</p>}
             </div>
           </div>
 

@@ -176,24 +176,8 @@ export default function AppointmentsPage() {
 
         console.log('Payments found:', paymentsData?.length || 0);
 
-        // Filtrar solo citas con pagos exitosos
-        const paidAppointments = appointmentsData.filter(apt => {
-          const hasSuccessfulPayment = paymentsData?.some(
-            payment => payment.appointment_id === apt.id && payment.status === 'succeeded'
-          );
-          return hasSuccessfulPayment;
-        });
-
-        console.log('Paid appointments:', paidAppointments.length);
-
-        if (paidAppointments.length === 0) {
-          console.log('No paid appointments found');
-          setAppointments([]);
-          return;
-        }
-
         // Obtener información de los profesionales
-        const professionalIds = [...new Set(paidAppointments.map(apt => apt.professional_id))];
+        const professionalIds = [...new Set(appointmentsData.map(apt => apt.professional_id))];
 
         const { data: professionalsData } = await supabase
           .from('professional_applications')
@@ -208,7 +192,7 @@ export default function AppointmentsPage() {
           .in('id', userIds);
 
         // Agregar información de pagos a las citas
-        const appointmentsWithPayments = paidAppointments.map(apt => {
+        const appointmentsWithPayments = appointmentsData.map(apt => {
           const aptPayments = paymentsData?.filter(p => p.appointment_id === apt.id) || [];
           return {
             ...apt,
@@ -323,19 +307,11 @@ export default function AppointmentsPage() {
     });
   };
 
-  // Verificar si una cita tiene un pago exitoso
-  const hasSuccessfulPayment = (appointment: Appointment): boolean => {
-    return appointment.payments?.some(payment => payment.status === 'succeeded') || false;
-  };
-
-  // Solo mostrar citas confirmadas que tengan pago exitoso
+  // Mostrar todas las citas próximas (confirmadas y pendientes)
   const upcomingAppointments = appointments.filter(
     (appointment) => {
-      // Mostrar solo citas confirmadas con pago exitoso
-      if (appointment.status === "confirmed") {
-        return hasSuccessfulPayment(appointment);
-      }
-      return false;
+      // Mostrar citas confirmadas y pendientes
+      return appointment.status === "confirmed" || appointment.status === "pending";
     }
   );
 

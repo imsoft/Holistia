@@ -30,7 +30,7 @@ export async function login(formData: FormData) {
         .from('profiles')
         .select('type')
         .eq('id', result.user.id)
-        .single();
+        .maybeSingle();
 
       const userType = profile?.type;
       
@@ -122,7 +122,7 @@ export async function signup(formData: FormData) {
         .from('profiles')
         .select('type')
         .eq('id', result.user.id)
-        .single();
+        .maybeSingle();
 
       const userType = profile?.type;
       

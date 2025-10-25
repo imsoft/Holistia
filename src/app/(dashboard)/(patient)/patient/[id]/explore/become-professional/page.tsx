@@ -47,6 +47,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { createClient } from "@/utils/supabase/client";
+import { useProfile } from "@/hooks/use-profile";
 import Link from "next/link";
 import Image from "next/image";
 import { normalizeName, normalizeProfession, normalizeAddress, normalizeLocation, normalizeLanguage } from "@/lib/text-utils";
@@ -61,15 +62,12 @@ interface Service {
 }
 
 export default function BecomeProfessionalPage() {
+  const { profile, loading: profileLoading } = useProfile();
   const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [processingPayment, setProcessingPayment] = useState(false);
   const [isEditingRejected, setIsEditingRejected] = useState(false);
-  const [currentUser, setCurrentUser] = useState<{
-    id: string;
-    email: string;
-  } | null>(null);
   const [existingApplication, setExistingApplication] = useState<{
     id: string;
     status: string;
@@ -147,42 +145,28 @@ export default function BecomeProfessionalPage() {
   useEffect(() => {
     const getUserData = async () => {
       try {
-        const {
-          data: { user },
-          error: userError,
-        } = await supabase.auth.getUser();
-
-        if (userError || !user) {
-          console.error("Error getting user:", userError);
+        if (!profile) {
+          console.error("No profile loaded");
           return;
         }
-
-        setCurrentUser({ id: user.id, email: user.email || "" });
         
         // Obtener foto de perfil del usuario
-        const profilePhoto = user.user_metadata?.avatar_url;
-        setUserProfilePhoto(profilePhoto || null);
-        
-        // Obtener datos del usuario desde user_metadata
-        const userMetadata = user.user_metadata || {};
-        const firstName = userMetadata.first_name || "";
-        const lastName = userMetadata.last_name || "";
-        const phone = userMetadata.phone || "";
+        setUserProfilePhoto(profile.avatar_url || null);
         
         // Pre-llenar el formulario con los datos del usuario
         setFormData((prev) => ({
           ...prev,
-          first_name: firstName,
-          last_name: lastName,
-          email: user.email || "",
-          phone: phone,
+          first_name: profile.first_name || "",
+          last_name: profile.last_name || "",
+          email: profile.email || "",
+          phone: profile.phone || "",
         }));
 
         // Verificar si ya existe una aplicación
         const { data: existingApp, error: appError } = await supabase
           .from("professional_applications")
           .select("*")
-          .eq("user_id", user.id)
+          .eq("user_id", profile.id)
           .maybeSingle();
 
         if (appError) {
@@ -319,16 +303,16 @@ export default function BecomeProfessionalPage() {
   };
 
   const handleSubmit = async () => {
-    if (!validateStep(4) || !currentUser) return;
+    if (!validateStep(4) || !profile) return;
 
     setSubmitting(true);
     try {
+
       // Obtener la foto de perfil del usuario actual
-      const { data: { user } } = await supabase.auth.getUser();
-      const userProfilePhoto = user?.user_metadata?.avatar_url;
+      const userProfilePhoto = profile.avatar_url;
 
       const applicationData = {
-        user_id: currentUser.id,
+        user_id: profile.id,
         first_name: formData.first_name,
         last_name: formData.last_name,
         email: formData.email,

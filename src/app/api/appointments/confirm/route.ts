@@ -96,11 +96,32 @@ export async function POST(request: NextRequest) {
         };
         const appointmentType = typeLabels[appointment.appointment_type as keyof typeof typeLabels] || appointment.appointment_type;
 
+        // Get patient and professional profiles for names
+        const { data: patientProfile } = await supabase
+          .from('profiles')
+          .select('first_name, last_name')
+          .eq('id', patient.user.id)
+          .single();
+        
+        const { data: professionalProfile } = await supabase
+          .from('profiles')
+          .select('first_name, last_name')
+          .eq('id', professional.user.id)
+          .single();
+
+        const patientName = patientProfile 
+          ? `${patientProfile.first_name || ''} ${patientProfile.last_name || ''}`.trim() 
+          : patient.user.email?.split('@')[0] || 'Paciente';
+        
+        const professionalName = professionalProfile 
+          ? `${professionalProfile.first_name || ''} ${professionalProfile.last_name || ''}`.trim() 
+          : professional.user.email?.split('@')[0] || 'Profesional';
+
         // Send confirmation email to patient
         const emailData = {
-          patient_name: patient.user.user_metadata?.full_name || patient.user.email?.split('@')[0] || 'Paciente',
+          patient_name: patientName,
           patient_email: patient.user.email!,
-          professional_name: professional.user.user_metadata?.full_name || professional.user.email?.split('@')[0] || 'Profesional',
+          professional_name: professionalName,
           appointment_date: appointmentDate,
           appointment_time: appointmentTime,
           appointment_type: appointmentType,

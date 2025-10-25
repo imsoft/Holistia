@@ -18,12 +18,17 @@ export async function GET(request: Request) {
     if (!error && data.user) {
       console.log('🔐 User authenticated successfully:', {
         userId: data.user.id,
-        email: data.user.email,
-        userMetadata: data.user.user_metadata
+        email: data.user.email
       });
 
-      // Verificar el tipo de usuario y redirigir apropiadamente
-      const userType = data.user.user_metadata?.user_type;
+      // Obtener tipo de usuario desde profiles
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('type')
+        .eq('id', data.user.id)
+        .single();
+      
+      const userType = profile?.type;
       const forwardedHost = request.headers.get('x-forwarded-host') // original origin before load balancer
       const isLocalEnv = process.env.NODE_ENV === 'development'
       

@@ -78,9 +78,20 @@ async function sendEventConfirmationEmail(eventRegistrationId: string) {
     };
     const eventCategory = categoryLabels[event.category as keyof typeof categoryLabels] || event.category;
 
+    // Get user profile for name
+    const { data: userProfile } = await supabase
+      .from('profiles')
+      .select('first_name, last_name')
+      .eq('id', user.user.id)
+      .single();
+    
+    const userName = userProfile 
+      ? `${userProfile.first_name || ''} ${userProfile.last_name || ''}`.trim() 
+      : user.user.email?.split('@')[0] || 'Usuario';
+
     // Prepare email data
     const emailData = {
-      user_name: user.user.user_metadata?.full_name || user.user.email?.split('@')[0] || 'Usuario',
+      user_name: userName,
       user_email: user.user.email!,
       confirmation_code: registration.confirmation_code!,
       event_name: event.name,
@@ -159,11 +170,32 @@ async function sendAppointmentNotificationEmail(appointmentId: string) {
     };
     const appointmentType = typeLabels[appointment.appointment_type as keyof typeof typeLabels] || appointment.appointment_type;
 
+    // Get professional and patient profiles for names
+    const { data: professionalProfile } = await supabase
+      .from('profiles')
+      .select('first_name, last_name')
+      .eq('id', professional.user.id)
+      .single();
+    
+    const { data: patientProfile } = await supabase
+      .from('profiles')
+      .select('first_name, last_name')
+      .eq('id', patient.user.id)
+      .single();
+
+    const professionalName = professionalProfile 
+      ? `${professionalProfile.first_name || ''} ${professionalProfile.last_name || ''}`.trim() 
+      : professional.user.email?.split('@')[0] || 'Profesional';
+    
+    const patientName = patientProfile 
+      ? `${patientProfile.first_name || ''} ${patientProfile.last_name || ''}`.trim() 
+      : patient.user.email?.split('@')[0] || 'Paciente';
+
     // Prepare email data
     const emailData = {
-      professional_name: professional.user.user_metadata?.full_name || professional.user.email?.split('@')[0] || 'Profesional',
+      professional_name: professionalName,
       professional_email: professional.user.email!,
-      patient_name: patient.user.user_metadata?.full_name || patient.user.email?.split('@')[0] || 'Paciente',
+      patient_name: patientName,
       appointment_date: appointmentDate,
       appointment_time: appointmentTime,
       appointment_type: appointmentType,
@@ -254,9 +286,20 @@ async function sendAppointmentTicketEmail(appointmentId: string) {
     };
     const appointmentType = typeLabels[appointment.appointment_type as keyof typeof typeLabels] || appointment.appointment_type;
 
+    // Get patient profile for name
+    const { data: patientProfile } = await supabase
+      .from('profiles')
+      .select('first_name, last_name')
+      .eq('id', patient.user.id)
+      .single();
+    
+    const patientName = patientProfile 
+      ? `${patientProfile.first_name || ''} ${patientProfile.last_name || ''}`.trim() 
+      : patient.user.email?.split('@')[0] || 'Paciente';
+
     // Prepare ticket email data
     const ticketData = {
-      patient_name: patient.user.user_metadata?.full_name || patient.user.email?.split('@')[0] || 'Paciente',
+      patient_name: patientName,
       patient_email: patient.user.email!,
       professional_name: `${professionalApp.first_name} ${professionalApp.last_name}`,
       professional_title: professionalApp.profession,

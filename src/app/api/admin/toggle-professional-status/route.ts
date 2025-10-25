@@ -15,10 +15,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Verificar que el usuario sea administrador usando los metadatos del usuario
-    const userType = user.user_metadata?.type;
+    // Verificar que el usuario sea administrador desde la tabla profiles
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('type')
+      .eq('id', user.id)
+      .single();
 
-    if (userType !== 'admin' && userType !== 'Admin') {
+    if (profile?.type !== 'admin') {
       return NextResponse.json(
         { error: 'No tienes permisos de administrador' },
         { status: 403 }

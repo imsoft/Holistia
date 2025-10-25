@@ -25,7 +25,14 @@ export async function login(formData: FormData) {
 
     // Si el login es exitoso, verificar el tipo de usuario y redirigir apropiadamente
     if (result.user) {
-      const userType = result.user.user_metadata?.user_type;
+      // Obtener tipo de usuario desde profiles
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('type')
+        .eq('id', result.user.id)
+        .single();
+
+      const userType = profile?.type;
       
       revalidatePath("/", "layout");
       
@@ -110,7 +117,14 @@ export async function signup(formData: FormData) {
       return { success: true, needsConfirmation: true };
     } else if (result.user) {
       // Usuario ya confirmado, verificar tipo y redirigir apropiadamente
-      const userType = result.user.user_metadata?.user_type;
+      // Obtener tipo de usuario desde profiles
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('type')
+        .eq('id', result.user.id)
+        .single();
+
+      const userType = profile?.type;
       
       revalidatePath("/", "layout");
       

@@ -10,6 +10,8 @@ export interface Profile {
   phone: string | null;
   avatar_url: string | null;
   type: 'admin' | 'patient' | 'professional';
+  account_active: boolean;
+  deactivated_at: string | null;
   created_at: string;
   updated_at: string;
 }

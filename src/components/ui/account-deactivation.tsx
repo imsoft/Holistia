@@ -43,18 +43,18 @@ export function AccountDeactivation({ userId, userEmail, accountType }: AccountD
         throw new Error('Error al obtener datos del usuario');
       }
 
-      // Actualizar los metadatos del usuario en auth.users
-      const currentMetadata = user.user_metadata || {};
-      const { error: updateError } = await supabase.auth.updateUser({
-        data: {
-          ...currentMetadata,
+      // Actualizar el perfil en la tabla profiles
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({
           account_active: false,
-          deactivated_at: new Date().toISOString()
-        }
-      });
+          deactivated_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', userId);
 
-      if (updateError) {
-        console.error('Error updating user metadata:', updateError);
+      if (profileError) {
+        console.error('Error updating profile:', profileError);
         throw new Error('Error al desactivar la cuenta');
       }
 

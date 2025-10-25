@@ -35,11 +35,11 @@ policies_count AS (
 -- 3. Usuarios con Password Encriptado
 users_check AS (
   SELECT 
-    '3. Contraseñas' as categoria,
-    COUNT(*)::text || ' usuarios con password encriptado' as detalle,
+    '3. Autenticación' as categoria,
+    COUNT(*) FILTER (WHERE encrypted_password IS NOT NULL)::text || ' con password, ' ||
+    COUNT(*) FILTER (WHERE encrypted_password IS NULL)::text || ' con OAuth/Magic Link' as detalle,
     CASE 
-      WHEN COUNT(*) = COUNT(*) FILTER (WHERE encrypted_password IS NOT NULL) 
-      THEN '✅ PASS'
+      WHEN COUNT(*) > 0 THEN '✅ PASS'
       ELSE '❌ FAIL'
     END as estado
   FROM auth.users

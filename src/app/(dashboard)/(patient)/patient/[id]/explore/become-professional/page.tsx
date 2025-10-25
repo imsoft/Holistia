@@ -285,6 +285,8 @@ export default function BecomeProfessionalPage() {
       case 4:
         if (!formData.biography.trim())
           newErrors.biography = "La biografía es requerida";
+        if (!formData.instagram.trim())
+          newErrors.instagram = "El Instagram es requerido";
         break;
     }
 
@@ -894,7 +896,7 @@ export default function BecomeProfessionalPage() {
               <Label htmlFor="instagram">
                 <div className="flex items-center gap-2">
                   <Instagram className="h-4 w-4" />
-                  <span>Instagram (opcional)</span>
+                  <span>Instagram *</span>
                 </div>
               </Label>
               <div className="relative">
@@ -910,12 +912,15 @@ export default function BecomeProfessionalPage() {
                     handleInputChange("instagram", value);
                   }}
                   placeholder="tuusuario"
-                  className="pl-8"
+                  className={`pl-8 ${errors.instagram ? "border-red-500" : ""}`}
                 />
               </div>
               <p className="text-xs text-muted-foreground">
                 Solo tu nombre de usuario, sin @ ni enlaces
               </p>
+              {errors.instagram && (
+                <p className="text-red-500 text-sm mt-1">{errors.instagram}</p>
+              )}
             </div>
 
             <div className="space-y-4">

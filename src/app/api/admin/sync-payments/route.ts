@@ -20,9 +20,14 @@ export async function POST() {
       );
     }
 
-    // Check if user is admin
-    const userType = user.user_metadata?.type;
-    if (userType !== 'admin') {
+    // Verificar tipo de usuario desde profiles
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('type')
+      .eq('id', user.id)
+      .single();
+
+    if (profile?.type !== 'admin') {
       return NextResponse.json(
         { error: 'No autorizado' },
         { status: 403 }

@@ -161,16 +161,22 @@ export default function ProfessionalProfilePage() {
         // Obtener usuario actual
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
-          // Obtener nombre completo del usuario
-          const firstName = user.user_metadata?.first_name || '';
-          const lastName = user.user_metadata?.last_name || '';
-          const fullName = `${firstName} ${lastName}`.trim();
+          // Obtener perfil del usuario desde la tabla profiles
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('first_name, last_name, email, phone')
+            .eq('id', user.id)
+            .single();
+          
+          const fullName = profile?.first_name && profile?.last_name
+            ? `${profile.first_name} ${profile.last_name}`.trim()
+            : profile?.email?.split('@')[0] || user.email?.split('@')[0] || 'Usuario';
           
           const userData: CurrentUser = {
             id: user.id,
-            name: fullName || user.email?.split('@')[0] || 'Usuario',
-            email: user.email || '',
-            phone: user.user_metadata?.phone || ''
+            name: fullName,
+            email: profile?.email || user.email || '',
+            phone: profile?.phone || ''
           };
           setCurrentUser(userData);
           

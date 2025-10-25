@@ -44,11 +44,9 @@ interface EventRegistration {
   };
   user: {
     email: string;
-    user_metadata: {
-      first_name?: string;
-      last_name?: string;
-      full_name?: string;
-    };
+    first_name?: string;
+    last_name?: string;
+    full_name?: string;
   };
   payment: {
     amount: number;
@@ -96,10 +94,34 @@ export default function EventRegistrationsPage() {
           return;
         }
 
+        // Get user IDs
+        const userIds = [...new Set(data.map(reg => reg.user_id))];
+
+        // Get user profiles
+        const { data: profiles } = await supabase
+          .from('profiles')
+          .select('id, email, first_name, last_name')
+          .in('id', userIds);
+
+        // Create profiles map
+        const profilesMap = new Map(
+          (profiles || []).map(p => [
+            p.id,
+            {
+              email: p.email,
+              first_name: p.first_name,
+              last_name: p.last_name,
+              full_name: p.first_name && p.last_name
+                ? `${p.first_name} ${p.last_name}`.trim()
+                : undefined
+            }
+          ])
+        );
+
         // Get user details for each registration
         const registrationsWithUsers = await Promise.all(
           data.map(async (registration) => {
-            const { data: userData } = await supabase.auth.admin.getUserById(registration.user_id);
+            const profile = profilesMap.get(registration.user_id);
             
             // Get payment details
             const { data: paymentData } = await supabase
@@ -111,7 +133,7 @@ export default function EventRegistrationsPage() {
 
             return {
               ...registration,
-              user: userData?.user || null,
+              user: profile || null,
               payment: paymentData || null
             };
           })
@@ -150,9 +172,9 @@ export default function EventRegistrationsPage() {
     if (searchTerm) {
       filtered = filtered.filter(reg => 
         reg.user?.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        reg.user?.user_metadata?.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        reg.user?.user_metadata?.first_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        reg.user?.user_metadata?.last_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        reg.user?.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        reg.user?.first_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        reg.user?.last_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         reg.events_workshops.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         reg.confirmation_code?.toLowerCase().includes(searchTerm.toLowerCase())
       );
@@ -219,7 +241,7 @@ export default function EventRegistrationsPage() {
 
     const csvData = filteredRegistrations.map(reg => [
       reg.id,
-      reg.user?.user_metadata?.full_name || `${reg.user?.user_metadata?.first_name || ''} ${reg.user?.user_metadata?.last_name || ''}`.trim() || 'N/A',
+      reg.user?.full_name || `${reg.user?.first_name || ''} ${reg.user?.last_name || ''}`.trim() || 'N/A',
       reg.user?.email || 'N/A',
       reg.events_workshops.name,
       new Date(reg.events_workshops.event_date).toLocaleDateString('es-ES'),
@@ -416,8 +438,8 @@ export default function EventRegistrationsPage() {
                     <TableCell>
                       <div className="space-y-1">
                         <div className="font-medium">
-                          {registration.user?.user_metadata?.full_name || 
-                           `${registration.user?.user_metadata?.first_name || ''} ${registration.user?.user_metadata?.last_name || ''}`.trim() || 
+                          {registration.user?.full_name || 
+                           `${registration.user?.first_name || ''} ${registration.user?.last_name || ''}`.trim() || 
                            'Usuario'}
                         </div>
                         <div className="text-sm text-muted-foreground flex items-center gap-1">

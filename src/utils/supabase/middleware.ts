@@ -84,8 +84,14 @@ export async function updateSession(request: NextRequest) {
 
       // Redirigir administradores a la URL correcta si están usando un ID incorrecto
       if (user && request.nextUrl.pathname.startsWith("/admin/")) {
-        const userType = user.user_metadata?.user_type;
-        if (userType === 'admin') {
+        // Obtener tipo de usuario desde profiles
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('type')
+          .eq('id', user.id)
+          .single();
+        
+        if (profile?.type === 'admin') {
           const pathSegments = request.nextUrl.pathname.split('/');
           const currentAdminId = pathSegments[2]; // /admin/[id]/...
           

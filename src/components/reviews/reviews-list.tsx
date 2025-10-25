@@ -41,15 +41,36 @@ export function ReviewsList({
 
       if (reviewsError) throw reviewsError;
 
-      // Crear reseñas con estructura básica
-      // Los nombres de usuario no estarán disponibles por ahora
-      // El usuario puede identificarse por "Tu reseña" si es suya
+      // Obtener IDs de pacientes únicos
+      const patientIds = [...new Set((reviewsData || []).map(review => review.patient_id))];
+
+      // Cargar perfiles de pacientes
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("id, email, first_name, last_name")
+        .in("id", patientIds);
+
+      // Crear un mapa de perfiles por ID
+      const profilesMap = new Map(
+        (profiles || []).map(p => [
+          p.id,
+          {
+            id: p.id,
+            email: p.email,
+            full_name: p.first_name && p.last_name
+              ? `${p.first_name} ${p.last_name}`.trim()
+              : undefined
+          }
+        ])
+      );
+
+      // Crear reseñas con información del paciente
       const reviewsWithBasicInfo = (reviewsData || []).map(review => ({
         ...review,
-        patient: {
+        patient: profilesMap.get(review.patient_id) || {
           id: review.patient_id,
           email: undefined,
-          user_metadata: undefined
+          full_name: undefined
         }
       }));
 
@@ -140,10 +161,10 @@ export function ReviewsList({
       <CardContent className="space-y-4">
         {reviews.map((review) => {
           const isOwnReview = currentUserId === review.patient_id;
-          // Si es la reseña propia, mostrar "Tú", si no mostrar "Usuario anónimo"
+          // Si es la reseña propia, mostrar "Tú", si no mostrar el nombre del perfil o "Usuario verificado"
           const patientName = isOwnReview 
             ? "Tú" 
-            : (review.patient?.user_metadata?.full_name || 
+            : (review.patient?.full_name || 
                review.patient?.email?.split("@")[0] || 
                "Usuario verificado");
 

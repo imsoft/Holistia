@@ -48,44 +48,50 @@ export function EventRegistrationsList({ eventId }: EventRegistrationsListProps)
       // Cargar registraciones
       const { data: regs, error } = await supabase
         .from("event_registrations")
-        .select(`
-          *,
-          users:user_id (
-            email,
-            raw_user_meta_data
-          )
-        `)
+        .select("*")
         .eq("event_id", eventId)
         .order("registration_date", { ascending: false });
 
       if (error) throw error;
 
+      // Obtener IDs de usuarios únicos
+      const userIds = [...new Set((regs || []).map(reg => reg.user_id))];
+
+      // Cargar perfiles de usuarios
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("id, email, first_name, last_name")
+        .in("id", userIds);
+
+      // Crear un mapa de perfiles por ID
+      const profilesMap = new Map(
+        (profiles || []).map(p => [
+          p.id, 
+          {
+            email: p.email,
+            name: p.first_name && p.last_name 
+              ? `${p.first_name} ${p.last_name}`.trim()
+              : p.email
+          }
+        ])
+      );
+
       // Formatear datos
-      const formattedRegs: EventRegistration[] = (regs || []).map((reg: {
-        id: string;
-        user_id: string;
-        registration_date: string;
-        status: "pending" | "confirmed" | "cancelled" | "completed";
-        emergency_contact_name?: string;
-        emergency_contact_phone?: string;
-        special_requirements?: string;
-        confirmation_code: string;
-        users?: {
-          email: string;
-          raw_user_meta_data?: { name?: string };
+      const formattedRegs: EventRegistration[] = (regs || []).map((reg) => {
+        const profile = profilesMap.get(reg.user_id);
+        return {
+          id: reg.id,
+          user_id: reg.user_id,
+          registration_date: reg.registration_date,
+          status: reg.status,
+          emergency_contact_name: reg.emergency_contact_name,
+          emergency_contact_phone: reg.emergency_contact_phone,
+          special_requirements: reg.special_requirements,
+          confirmation_code: reg.confirmation_code,
+          user_email: profile?.email,
+          user_name: profile?.name || profile?.email,
         };
-      }) => ({
-        id: reg.id,
-        user_id: reg.user_id,
-        registration_date: reg.registration_date,
-        status: reg.status,
-        emergency_contact_name: reg.emergency_contact_name,
-        emergency_contact_phone: reg.emergency_contact_phone,
-        special_requirements: reg.special_requirements,
-        confirmation_code: reg.confirmation_code,
-        user_email: reg.users?.email,
-        user_name: reg.users?.raw_user_meta_data?.name || reg.users?.email,
-      }));
+      });
 
       setRegistrations(formattedRegs);
 

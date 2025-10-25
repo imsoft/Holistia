@@ -71,17 +71,22 @@ export default function NewBlogPostPage({ params }: { params: Promise<{ id: stri
 
       // Agregar usuario actual como opción (administrador)
       if (currentUser) {
-        const firstName = currentUser.user_metadata?.first_name || '';
-        const lastName = currentUser.user_metadata?.last_name || '';
-        const name = firstName && lastName
-          ? `${firstName} ${lastName}`
-          : currentUser.email?.split('@')[0] || 'Usuario';
+        // Obtener perfil del usuario actual
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('first_name, last_name, email, avatar_url')
+          .eq('id', currentUser.id)
+          .single();
+
+        const name = profile?.first_name && profile?.last_name
+          ? `${profile.first_name} ${profile.last_name}`
+          : profile?.email?.split('@')[0] || currentUser.email?.split('@')[0] || 'Usuario';
 
         allAuthors.push({
           id: currentUser.id,
           name: `${name} (Tú)`,
-          email: currentUser.email || '',
-          avatar: currentUser.user_metadata?.avatar_url,
+          email: profile?.email || currentUser.email || '',
+          avatar: profile?.avatar_url,
           profession: 'Administrador',
           type: 'user' as const
         });

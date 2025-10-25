@@ -15,10 +15,17 @@ const Home = () => {
       const { data: { user } } = await supabase.auth.getUser();
       
       if (user) {
+        // Obtener tipo de usuario desde profiles
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('type')
+          .eq('id', user.id)
+          .single();
+
         console.log("🚨 ALERTA: Usuario autenticado llegó a la página principal:", {
           userId: user.id,
           email: user.email,
-          userType: user.user_metadata?.user_type
+          userType: profile?.type
         });
       }
     };

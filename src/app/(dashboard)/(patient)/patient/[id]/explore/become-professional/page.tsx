@@ -911,7 +911,7 @@ export default function BecomeProfessionalPage() {
                     const value = e.target.value.replace(/^@/, '').replace(/^https?:\/\/(www\.)?instagram\.com\//, '');
                     handleInputChange("instagram", value);
                   }}
-                  placeholder="tuusuario"
+                  placeholder="tu usuario de Instagram"
                   className={`pl-8 ${errors.instagram ? "border-red-500" : ""}`}
                 />
               </div>

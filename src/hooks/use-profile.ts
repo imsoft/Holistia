@@ -45,9 +45,37 @@ export function useProfile() {
         .eq('id', user.id)
         .single();
 
-      if (profileError) throw profileError;
+      if (profileError) {
+        // Si el perfil no existe (error PGRST116), intentar crearlo automáticamente
+        if (profileError.code === 'PGRST116') {
+          console.log('📝 Profile not found, creating automatically...');
+          
+          // Llamar a la función que crea el perfil
+          const { data: createResult, error: createError } = await supabase.rpc('ensure_profile_exists');
 
-      setProfile(data);
+          if (createError) {
+            console.error('❌ Error creating profile:', createError);
+            throw new Error('Failed to create profile automatically');
+          }
+
+          console.log('✅ Profile created:', createResult);
+
+          // Intentar cargar el perfil de nuevo
+          const { data: newProfile, error: retryError } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', user.id)
+            .single();
+
+          if (retryError) throw retryError;
+
+          setProfile(newProfile);
+        } else {
+          throw profileError;
+        }
+      } else {
+        setProfile(data);
+      }
     } catch (err) {
       console.error('Error loading profile:', err);
       setError(err instanceof Error ? err : new Error('Failed to load profile'));

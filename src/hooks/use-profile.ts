@@ -49,16 +49,42 @@ export function useProfile() {
         // Si el perfil no existe (error PGRST116), intentar crearlo automáticamente
         if (profileError.code === 'PGRST116') {
           console.log('📝 Profile not found, creating automatically...');
+          console.log('👤 User ID:', user.id);
+          console.log('📧 User email:', user.email);
+          console.log('📋 User metadata:', user.user_metadata);
           
           // Llamar a la función que crea el perfil
           const { data: createResult, error: createError } = await supabase.rpc('ensure_profile_exists');
 
           if (createError) {
-            console.error('❌ Error creating profile:', createError);
-            throw new Error('Failed to create profile automatically');
+            console.error('❌ Error calling ensure_profile_exists:', createError);
+            
+            // Si falla, intentar crear manualmente con los datos disponibles
+            console.log('🔄 Attempting manual profile creation...');
+            const manualProfile = {
+              id: user.id,
+              email: user.email || '',
+              first_name: user.user_metadata?.first_name || '',
+              last_name: user.user_metadata?.last_name || '',
+              phone: user.user_metadata?.phone || null,
+              avatar_url: user.user_metadata?.avatar_url || null,
+              type: user.user_metadata?.type || 'patient',
+              account_active: true,
+            };
+            
+            const { error: insertError } = await supabase
+              .from('profiles')
+              .insert(manualProfile);
+            
+            if (insertError) {
+              console.error('❌ Error creating profile manually:', insertError);
+              throw new Error('Failed to create profile automatically');
+            }
+            
+            console.log('✅ Profile created manually');
+          } else {
+            console.log('✅ Profile created via RPC:', createResult);
           }
-
-          console.log('✅ Profile created:', createResult);
 
           // Intentar cargar el perfil de nuevo
           const { data: newProfile, error: retryError } = await supabase
@@ -67,8 +93,12 @@ export function useProfile() {
             .eq('id', user.id)
             .single();
 
-          if (retryError) throw retryError;
+          if (retryError) {
+            console.error('❌ Error loading profile after creation:', retryError);
+            throw retryError;
+          }
 
+          console.log('✅ Profile loaded successfully:', newProfile);
           setProfile(newProfile);
         } else {
           throw profileError;

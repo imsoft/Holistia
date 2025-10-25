@@ -44,6 +44,7 @@ export async function updateSession(request: NextRequest) {
       '/forgot-password',
       '/confirm-password',
       '/confirm-email',
+      '/account-deactivated',
       '/error',
       '/auth',
       '/_next',
@@ -83,20 +84,18 @@ export async function updateSession(request: NextRequest) {
       }
 
       // Verificar si el usuario está desactivado
-      if (user) {
+      if (user && !request.nextUrl.pathname.startsWith("/account-deactivated")) {
         const { data: profile } = await supabase
           .from('profiles')
           .select('account_active')
           .eq('id', user.id)
           .maybeSingle();
 
-        // Si la cuenta está desactivada, cerrar sesión y redirigir
+        // Si la cuenta está desactivada, redirigir a página de cuenta desactivada
         if (profile && profile.account_active === false) {
-          console.log('Account is deactivated, signing out user:', user.id);
-          await supabase.auth.signOut();
+          console.log('Account is deactivated, redirecting user:', user.id);
           const url = request.nextUrl.clone();
-          url.pathname = "/login";
-          url.searchParams.set('deactivated', 'true');
+          url.pathname = "/account-deactivated";
           return NextResponse.redirect(url);
         }
       }

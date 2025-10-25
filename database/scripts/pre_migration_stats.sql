@@ -163,7 +163,7 @@ SELECT
   'Políticas que referencian auth.users',
   COUNT(DISTINCT tablename)::text || ' tablas'
 FROM pg_policies
-WHERE definition LIKE '%auth.users%'
+WHERE qual::text LIKE '%auth.users%' OR with_check::text LIKE '%auth.users%'
 
 ORDER BY seccion, metrica;
 

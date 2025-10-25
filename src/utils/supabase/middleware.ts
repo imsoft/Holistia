@@ -82,6 +82,25 @@ export async function updateSession(request: NextRequest) {
         return NextResponse.redirect(url);
       }
 
+      // Verificar si el usuario está desactivado
+      if (user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('account_active')
+          .eq('id', user.id)
+          .maybeSingle();
+
+        // Si la cuenta está desactivada, cerrar sesión y redirigir
+        if (profile && profile.account_active === false) {
+          console.log('Account is deactivated, signing out user:', user.id);
+          await supabase.auth.signOut();
+          const url = request.nextUrl.clone();
+          url.pathname = "/login";
+          url.searchParams.set('deactivated', 'true');
+          return NextResponse.redirect(url);
+        }
+      }
+
       // Redirigir administradores a la URL correcta si están usando un ID incorrecto
       if (user && request.nextUrl.pathname.startsWith("/admin/")) {
         // Obtener tipo de usuario desde profiles

@@ -38,49 +38,34 @@ export function AccountDeactivation({ userId, userEmail, accountType }: AccountD
 
       // Obtener datos actuales del usuario
       const { data: { user }, error: getUserError } = await supabase.auth.getUser();
-      
+
       if (getUserError || !user) {
         throw new Error('Error al obtener datos del usuario');
       }
 
-      // Actualizar el perfil en la tabla profiles
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .update({
-          account_active: false,
-          deactivated_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', userId);
+      // Llamar a la función de base de datos que desactiva la cuenta completamente
+      const { data, error } = await supabase.rpc('deactivate_user_account', {
+        user_id_param: userId
+      });
 
-      if (profileError) {
-        console.error('Error updating profile:', profileError);
+      if (error) {
+        console.error('Error calling deactivate_user_account:', error);
         throw new Error('Error al desactivar la cuenta');
       }
 
-      // Si es profesional, desactivar su aplicación
-      if (accountType === "professional") {
-        const { error: appError } = await supabase
-          .from('professional_applications')
-          .update({ 
-            status: 'rejected',
-            updated_at: new Date().toISOString()
-          })
-          .eq('user_id', userId);
-
-        if (appError) {
-          console.error('Error deactivating professional application:', appError);
-        }
+      // Verificar el resultado de la función
+      if (data && !data.success) {
+        throw new Error(data.message || 'Error al desactivar la cuenta');
       }
 
       toast.success("Cuenta desactivada exitosamente");
-      
+
       // Cerrar sesión
       await supabase.auth.signOut();
-      
+
       // Redirigir al login
       router.push('/login?deactivated=true');
-      
+
     } catch (error) {
       console.error('Error deactivating account:', error);
       toast.error(error instanceof Error ? error.message : 'Error al desactivar la cuenta');

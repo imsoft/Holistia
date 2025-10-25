@@ -45,8 +45,16 @@ function LoginFormWithMessage() {
   // Mostrar mensaje de confirmación si viene de la verificación de email
   useEffect(() => {
     const message = searchParams.get('message');
+    const deactivated = searchParams.get('deactivated');
+
     if (message) {
       toast.success(message);
+    }
+
+    if (deactivated === 'true') {
+      toast.error('Tu cuenta ha sido desactivada. Para reactivarla, contacta con nosotros en hola@holistia.io', {
+        duration: 8000,
+      });
     }
   }, [searchParams]);
 

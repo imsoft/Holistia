@@ -89,7 +89,7 @@ export async function updateSession(request: NextRequest) {
           .from('profiles')
           .select('type')
           .eq('id', user.id)
-          .single();
+          .maybeSingle();
         
         if (profile?.type === 'admin') {
           const pathSegments = request.nextUrl.pathname.split('/');

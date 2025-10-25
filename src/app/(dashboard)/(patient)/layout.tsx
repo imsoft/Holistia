@@ -96,7 +96,7 @@ export default function UserLayout({
         .select('status')
         .eq('user_id', profile.id)
         .eq('status', 'approved')
-        .single();
+        .maybeSingle();
       
       setIsProfessional(!!professionalApp);
 

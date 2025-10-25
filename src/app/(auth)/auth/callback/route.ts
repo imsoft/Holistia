@@ -26,7 +26,7 @@ export async function GET(request: Request) {
         .from('profiles')
         .select('type')
         .eq('id', data.user.id)
-        .single();
+        .maybeSingle();
       
       const userType = profile?.type;
       const forwardedHost = request.headers.get('x-forwarded-host') // original origin before load balancer
@@ -55,7 +55,7 @@ export async function GET(request: Request) {
           .select('id, status')
           .eq('user_id', data.user.id)
           .eq('status', 'approved')
-          .single();
+          .maybeSingle();
 
         console.log('📋 Application check result:', { application, appError });
 

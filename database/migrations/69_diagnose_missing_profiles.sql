@@ -14,7 +14,7 @@ SELECT
   u.id,
   u.email,
   u.created_at as created_at_auth,
-  COALESCE(p.id, 'NO TIENE PERFIL') as profile_id,
+  COALESCE(p.id::text, 'NO TIENE PERFIL') as profile_id,
   u.raw_user_meta_data->>'first_name' as first_name_metadata,
   u.raw_user_meta_data->>'last_name' as last_name_metadata,
   u.raw_user_meta_data->>'type' as type_metadata

@@ -10,11 +10,27 @@ export function AdminRedirect() {
   const { user, loading } = useAuth();
 
   useEffect(() => {
-    if (!loading && user && params.id !== user.id) {
-      // Redirigir a la URL correcta con el ID del usuario autenticado
-      const currentPath = window.location.pathname;
-      const newPath = currentPath.replace(`/admin/${params.id}`, `/admin/${user.id}`);
-      router.replace(newPath);
+    if (!loading && user) {
+      const userType = user.user_metadata?.type;
+      
+      // 🔒 SEGURIDAD: Verificar que el usuario sea admin
+      if (userType !== 'admin') {
+        console.warn('⚠️ Unauthorized access attempt to admin area by:', user.email);
+        router.replace('/'); // Redirigir a home
+        return;
+      }
+
+      // Verificar que el ID en la URL coincida con el usuario
+      if (params.id !== user.id) {
+        const currentPath = window.location.pathname;
+        const newPath = currentPath.replace(`/admin/${params.id}`, `/admin/${user.id}`);
+        router.replace(newPath);
+      }
+    }
+    
+    // Si no hay usuario y no está cargando, redirigir a login
+    if (!loading && !user) {
+      router.replace('/login');
     }
   }, [user, loading, params.id, router]);
 

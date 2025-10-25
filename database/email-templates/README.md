@@ -30,18 +30,74 @@ Plantilla para el email de restablecimiento de contraseña.
 
 ### Citas (Appointments)
 
-#### `appointment-confirmation-to-patient.html`
-Email de confirmación de cita para el paciente.
+#### `appointment-payment-confirmation.html`
+**Ticket de confirmación de pago de cita**
+
+**Cuándo se envía:** Automático cuando un paciente paga una cita  
+**A quién:** Paciente  
+**Método:** Resend (via Stripe webhook)  
+**Función:** `sendAppointmentPaymentConfirmation()`
+
+**Características:**
+- ✅ Ticket con número único
+- ✅ Datos del profesional y cita
+- ✅ Información de pago completa
+- ✅ Diseño Holistia
+- ✅ Enviado automáticamente
 
 #### `appointment-notification-to-professional.html`
-Notificación de nueva cita para el profesional.
+**Notificación de nueva cita al profesional**
+
+**Cuándo se envía:** Automático cuando alguien agenda una cita  
+**A quién:** Profesional  
+**Método:** Resend (via Stripe webhook)  
+**Función:** `sendAppointmentNotificationToProfessional()`
+
+**Características:**
+- ✅ Datos del paciente
+- ✅ Detalles de la cita
+- ✅ Link directo a dashboard
+- ✅ Información de pago
+
+#### `appointment-confirmation-to-patient.html`
+**Confirmación de cita al paciente**
+
+**Cuándo se envía:** Cuando profesional confirma cita  
+**A quién:** Paciente  
+**Método:** Resend (manual desde dashboard)  
+**Función:** `sendAppointmentConfirmationToPatient()`
 
 ### Eventos
 
 #### `event-payment-confirmation.html`
-Confirmación de pago para inscripción a eventos.
+**Ticket de confirmación de evento**
+
+**Cuándo se envía:** Automático cuando alguien se inscribe a un evento  
+**A quién:** Usuario inscrito  
+**Método:** Resend (via Stripe webhook)  
+**Función:** `sendEventConfirmationEmailSimple()`
+
+**Características:**
+- ✅ Código de confirmación único
+- ✅ Detalles completos del evento
+- ✅ Información de pago
+- ✅ Link al evento
 
 ### Inscripción Profesional
+
+#### `registration-payment-confirmation.html`
+**Confirmación de inscripción anual**
+
+**Cuándo se envía:** Automático cuando un profesional paga su inscripción  
+**A quién:** Profesional  
+**Método:** Resend (via Stripe webhook)  
+**Función:** `sendRegistrationPaymentConfirmation()`
+
+**Características:**
+- ✅ Recibo de pago completo
+- ✅ Fecha de expiración
+- ✅ Link a dashboard profesional
+- ✅ Bienvenida a Holistia
 
 #### `registration-renewal-reminder.html`
 Recordatorio automático de renovación de inscripción anual.
@@ -60,6 +116,30 @@ Recordatorio automático de renovación de inscripción anual.
 - `{{expiration_date}}` - Fecha de expiración
 - `{{renewal_link}}` - Link para renovar
 - `{{color}}` - Color del borde (#f59e0b, #f97316, #ef4444, #dc2626)
+
+## 🔧 Sistema de Emails
+
+Holistia usa **DOS sistemas de email**:
+
+### 1. Supabase Auth (Automático)
+Para autenticación:
+- Confirmación de registro (`confirm-signup.html`)
+- Restablecimiento de contraseña (`reset-password.html`)
+
+**Estos se configuran en Supabase Dashboard**
+
+### 2. Resend (Transaccional)
+Para transacciones y notificaciones:
+- Tickets de pago de citas
+- Notificaciones a profesionales
+- Tickets de eventos
+- Confirmaciones de inscripción
+
+**Estos se envían automáticamente via Stripe webhooks**
+
+📖 **Ver guía completa:** `docs/EMAIL_QUICK_START.md`
+
+---
 
 ## 🚀 Cómo Aplicar las Plantillas en Supabase
 

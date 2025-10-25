@@ -1,4 +1,3 @@
-import { createClient } from '@/utils/supabase/server';
 import { Resend } from 'resend';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
@@ -76,77 +75,22 @@ interface RegistrationPaymentConfirmationData {
   dashboard_url: string;
 }
 
-export async function sendEventConfirmationEmail(data: EventConfirmationEmailData) {
-  try {
-    const supabase = await createClient();
-    
-    // Read the email template
-    const templatePath = 'database/email-templates/event-payment-confirmation.html';
-    const fs = await import('fs');
-    const path = await import('path');
-    
-    let emailTemplate: string;
-    try {
-      emailTemplate = fs.readFileSync(path.join(process.cwd(), templatePath), 'utf8');
-    } catch (error) {
-      console.error('Error reading email template:', error);
-      return { success: false, error: 'Template not found' };
-    }
-    
-    // Replace placeholders in the template
-    const emailContent = emailTemplate
-      .replace(/\{\{user_name\}\}/g, data.user_name)
-      .replace(/\{\{confirmation_code\}\}/g, data.confirmation_code)
-      .replace(/\{\{event_name\}\}/g, data.event_name)
-      .replace(/\{\{event_date\}\}/g, data.event_date)
-      .replace(/\{\{event_time\}\}/g, data.event_time)
-      .replace(/\{\{event_location\}\}/g, data.event_location)
-      .replace(/\{\{event_duration\}\}/g, data.event_duration.toString())
-      .replace(/\{\{event_category\}\}/g, data.event_category)
-      .replace(/\{\{payment_amount\}\}/g, data.payment_amount.toFixed(2))
-      .replace(/\{\{payment_date\}\}/g, data.payment_date)
-      .replace(/\{\{payment_method\}\}/g, data.payment_method)
-      .replace(/\{\{transaction_id\}\}/g, data.transaction_id)
-      .replace(/\{\{event_url\}\}/g, data.event_url);
-    
-    // Send email using Supabase Edge Function or external service
-    // For now, we'll use a simple approach with Supabase's built-in email
-    const { error } = await supabase.functions.invoke('send-email', {
-      body: {
-        to: data.user_email,
-        subject: `✅ Confirmación de Pago - ${data.event_name} | Holistia`,
-        html: emailContent,
-        from: 'holistia.io@gmail.com'
-      }
-    });
-    
-    if (error) {
-      console.error('Error sending email:', error);
-      return { success: false, error: error.message };
-    }
-    
-    console.log('Event confirmation email sent successfully to:', data.user_email);
-    return { success: true };
-    
-  } catch (error) {
-    console.error('Error in sendEventConfirmationEmail:', error);
-    return { success: false, error: 'Failed to send email' };
-  }
-}
+// ⚠️ DEPRECATED: Usar sendEventConfirmationEmailSimple en su lugar
+// Esta función usa supabase.functions.invoke que no está implementado
+// export async function sendEventConfirmationEmail(data: EventConfirmationEmailData) { ... }
 
 // Send appointment notification to professional when a patient books
 export async function sendAppointmentNotificationToProfessional(data: AppointmentNotificationToProfessionalData) {
   try {
-    const supabase = await createClient();
-
-    // Read the email template
-    const templatePath = 'database/email-templates/appointment-notification-to-professional.html';
     const fs = await import('fs');
     const path = await import('path');
 
+    // Read the email template
+    const templatePath = path.join(process.cwd(), 'database/email-templates/appointment-notification-to-professional.html');
     let emailTemplate: string;
+
     try {
-      emailTemplate = fs.readFileSync(path.join(process.cwd(), templatePath), 'utf8');
+      emailTemplate = fs.readFileSync(templatePath, 'utf8');
     } catch (error) {
       console.error('Error reading email template:', error);
       return { success: false, error: 'Template not found' };
@@ -176,14 +120,12 @@ export async function sendAppointmentNotificationToProfessional(data: Appointmen
       emailContent = emailContent.replace(/\{\{#if notes\}\}[\s\S]*?\{\{\/if\}\}/g, '');
     }
 
-    // Send email using Supabase Edge Function
-    const { error } = await supabase.functions.invoke('send-email', {
-      body: {
-        to: data.professional_email,
-        subject: `Nueva Cita Agendada - ${data.patient_name} | Holistia`,
-        html: emailContent,
-        from: 'holistia.io@gmail.com'
-      }
+    // Send email using Resend
+    const { data: emailData, error } = await resend.emails.send({
+      from: 'Holistia <noreply@holistia.io>',
+      to: [data.professional_email],
+      subject: `📅 Nueva Cita Agendada - ${data.patient_name} | Holistia`,
+      html: emailContent,
     });
 
     if (error) {
@@ -191,8 +133,8 @@ export async function sendAppointmentNotificationToProfessional(data: Appointmen
       return { success: false, error: error.message };
     }
 
-    console.log('Appointment notification sent successfully to professional:', data.professional_email);
-    return { success: true };
+    console.log('Appointment notification sent successfully to professional:', emailData?.id);
+    return { success: true, message: 'Email sent successfully', id: emailData?.id };
 
   } catch (error) {
     console.error('Error in sendAppointmentNotificationToProfessional:', error);
@@ -203,16 +145,15 @@ export async function sendAppointmentNotificationToProfessional(data: Appointmen
 // Send confirmation to patient when professional confirms appointment
 export async function sendAppointmentConfirmationToPatient(data: AppointmentConfirmationToPatientData) {
   try {
-    const supabase = await createClient();
-
-    // Read the email template
-    const templatePath = 'database/email-templates/appointment-confirmation-to-patient.html';
     const fs = await import('fs');
     const path = await import('path');
 
+    // Read the email template
+    const templatePath = path.join(process.cwd(), 'database/email-templates/appointment-confirmation-to-patient.html');
     let emailTemplate: string;
+
     try {
-      emailTemplate = fs.readFileSync(path.join(process.cwd(), templatePath), 'utf8');
+      emailTemplate = fs.readFileSync(templatePath, 'utf8');
     } catch (error) {
       console.error('Error reading email template:', error);
       return { success: false, error: 'Template not found' };
@@ -241,14 +182,12 @@ export async function sendAppointmentConfirmationToPatient(data: AppointmentConf
       emailContent = emailContent.replace(/\{\{#if notes\}\}[\s\S]*?\{\{\/if\}\}/g, '');
     }
 
-    // Send email using Supabase Edge Function
-    const { error } = await supabase.functions.invoke('send-email', {
-      body: {
-        to: data.patient_email,
-        subject: `Cita Confirmada con ${data.professional_name} | Holistia`,
-        html: emailContent,
-        from: 'holistia.io@gmail.com'
-      }
+    // Send email using Resend
+    const { data: emailData, error } = await resend.emails.send({
+      from: 'Holistia <noreply@holistia.io>',
+      to: [data.patient_email],
+      subject: `✅ Cita Confirmada con ${data.professional_name} | Holistia`,
+      html: emailContent,
     });
 
     if (error) {
@@ -256,8 +195,8 @@ export async function sendAppointmentConfirmationToPatient(data: AppointmentConf
       return { success: false, error: error.message };
     }
 
-    console.log('Appointment confirmation sent successfully to patient:', data.patient_email);
-    return { success: true };
+    console.log('Appointment confirmation sent successfully to patient:', emailData?.id);
+    return { success: true, message: 'Email sent successfully', id: emailData?.id };
 
   } catch (error) {
     console.error('Error in sendAppointmentConfirmationToPatient:', error);

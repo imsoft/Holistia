@@ -1,95 +1,21 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
+import { useState } from "react";
 import { toast } from "sonner";
 import { Edit3, Save, X } from "lucide-react";
 import Image from "next/image";
 import { createClient } from "@/utils/supabase/client";
-import { Patient } from "@/types/patient";
+import { useProfile } from "@/hooks/use-profile";
 import { Button } from "@/components/ui/button";
 import { PhoneInput } from "@/components/ui/phone-input";
 import { AccountDeactivation } from "@/components/ui/account-deactivation";
 
 const ProfilePage = () => {
-  const [profile, setProfile] = useState<Patient | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { profile, loading, updateProfile } = useProfile();
   const [isEditingPhone, setIsEditingPhone] = useState(false);
   const [phoneValue, setPhoneValue] = useState("");
   const [phoneLoading, setPhoneLoading] = useState(false);
-  const params = useParams();
   const supabase = createClient();
-  
-  // Obtener ID del usuario de los parámetros
-  const userId = params.id as string;
-
-
-  // Obtener datos del usuario desde Supabase
-  useEffect(() => {
-    const getUserData = async () => {
-      try {
-        setLoading(true);
-        
-        // Obtener sesión actual
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-        
-        if (sessionError) {
-          console.error("Error getting session:", sessionError);
-          return;
-        }
-
-        if (!session?.user) {
-          console.error("No user session found");
-          return;
-        }
-
-        // Obtener datos del usuario desde auth.users
-        const { data: userData, error: userError } = await supabase.auth.getUser();
-        
-        if (userError) {
-          console.error("Error getting user:", userError);
-          return;
-        }
-
-        if (userData.user) {
-          const userMetadata = userData.user.user_metadata || {};
-          
-          // Formatear datos del usuario según la interface Patient
-          const formattedUser: Patient = {
-            id: userData.user.id,
-            name: userMetadata.first_name && userMetadata.last_name 
-              ? `${userMetadata.first_name} ${userMetadata.last_name}`
-              : userData.user.email?.split('@')[0] || 'Usuario',
-            email: userData.user.email || '',
-            phone: userMetadata.phone || '',
-            location: userMetadata.location || '',
-            status: "active",
-            type: "patient",
-            joinDate: userData.user.created_at || new Date().toISOString(),
-            lastLogin: userData.user.last_sign_in_at || new Date().toISOString(),
-            appointments: 0,
-            avatar: userMetadata.avatar_url || userData.user.user_metadata?.avatar_url || '',
-            age: userMetadata.age,
-            gender: userMetadata.gender,
-            therapyType: userMetadata.therapyType,
-            totalSessions: 0,
-            nextSession: null,
-            lastSession: undefined,
-            notes: userMetadata.notes,
-          };
-
-          setProfile(formattedUser);
-          setPhoneValue(formattedUser.phone || "");
-        }
-      } catch (error) {
-        console.error("Error fetching user data:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    getUserData();
-  }, [userId, supabase]);
 
   const handlePhoneEdit = () => {
     setIsEditingPhone(true);
@@ -107,30 +33,19 @@ const ProfilePage = () => {
     try {
       setPhoneLoading(true);
 
-      // Actualizar el teléfono en Supabase Auth
-      const { error: updateError } = await supabase.auth.updateUser({
-        data: {
-          phone: phoneValue
-        }
-      });
+      // Actualizar el teléfono en profiles
+      const result = await updateProfile({ phone: phoneValue });
 
-      if (updateError) {
-        console.error("Error updating phone:", updateError);
-        toast.success('Error al actualizar el teléfono. Inténtalo de nuevo.');
+      if (!result) {
+        toast.error('Error al actualizar el teléfono. Inténtalo de nuevo.');
         return;
       }
-
-      // Actualizar el estado local
-      setProfile(prev => prev ? {
-        ...prev,
-        phone: phoneValue,
-      } : null);
 
       setIsEditingPhone(false);
       toast.success('Teléfono actualizado exitosamente.');
     } catch (error) {
       console.error("Error saving phone:", error);
-      toast.success('Error al guardar el teléfono. Inténtalo de nuevo.');
+      toast.error('Error al guardar el teléfono. Inténtalo de nuevo.');
     } finally {
       setPhoneLoading(false);
     }
@@ -206,24 +121,13 @@ const ProfilePage = () => {
           .from('avatars')
           .getPublicUrl(filePath);
 
-        // Actualizar el avatar del usuario en Supabase Auth
-        const { error: updateError } = await supabase.auth.updateUser({
-          data: {
-            avatar_url: publicUrl
-          }
-        });
+        // Actualizar el avatar en profiles
+        const result = await updateProfile({ avatar_url: publicUrl });
 
-        if (updateError) {
-          console.error("Error updating user avatar:", updateError);
-          toast.success('Error al actualizar el perfil. Inténtalo de nuevo.');
+        if (!result) {
+          toast.error('Error al actualizar el perfil. Inténtalo de nuevo.');
           return;
         }
-
-        // Actualizar el estado local
-        setProfile(prev => prev ? {
-          ...prev,
-          avatar: publicUrl,
-        } : null);
 
         toast.success('Foto de perfil actualizada exitosamente.');
       } catch (error) {
@@ -283,7 +187,7 @@ const ProfilePage = () => {
             <div className="mt-4 sm:mt-6 flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
               <div className="relative">
                 <Image
-                  src={profile.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(profile.name)}&background=random`}
+                  src={profile.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(`${profile.first_name} ${profile.last_name}`)}&background=random`}
                   alt="Foto de perfil"
                   width={80}
                   height={80}
@@ -323,7 +227,11 @@ const ProfilePage = () => {
                   Nombre completo
                 </dt>
                 <dd className="mt-1 sm:mt-0 sm:flex-auto">
-                  <div className="text-foreground">{profile.name}</div>
+                  <div className="text-foreground">
+                    {profile.first_name && profile.last_name 
+                      ? `${profile.first_name} ${profile.last_name}`
+                      : profile.email?.split('@')[0] || 'Usuario'}
+                  </div>
                 </dd>
               </div>
               <div className="py-4 sm:py-6 sm:flex sm:items-center">
@@ -411,7 +319,7 @@ const ProfilePage = () => {
                 </dt>
                 <dd className="mt-1 sm:mt-0 sm:flex-auto">
                   <div className="text-foreground">
-                    {new Date(profile.joinDate).toLocaleDateString('es-ES', {
+                    {new Date(profile.created_at).toLocaleDateString('es-ES', {
                       year: 'numeric',
                       month: 'long',
                       day: 'numeric'
@@ -424,7 +332,7 @@ const ProfilePage = () => {
                   Estado de cuenta
                 </dt>
                 <dd className="mt-1 sm:mt-0 sm:flex-auto">
-                  <div className="text-foreground capitalize">{profile.status}</div>
+                  <div className="text-foreground capitalize">Activo</div>
                 </dd>
               </div>
             </dl>
@@ -433,7 +341,7 @@ const ProfilePage = () => {
           {/* Desactivar cuenta */}
           <div className="mt-12">
             <AccountDeactivation
-              userId={userId}
+              userId={profile.id}
               userEmail={profile.email}
               accountType="patient"
             />

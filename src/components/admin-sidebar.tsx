@@ -35,6 +35,7 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import { createClient } from "@/utils/supabase/client";
+import { useProfile } from "@/hooks/use-profile";
 import { AdminNavItem } from "@/types";
 
 // Interfaces para los datos dinámicos
@@ -46,6 +47,7 @@ interface AdminUser {
 }
 
 export function AdminSidebar() {
+  const { profile } = useProfile();
   const [currentPathname, setCurrentPathname] = useState("");
   const [admin, setAdmin] = useState<AdminUser | null>(null);
   const [loading, setLoading] = useState(true);
@@ -61,35 +63,31 @@ export function AdminSidebar() {
       try {
         setLoading(true);
         
-        const { data: { user }, error } = await supabase.auth.getUser();
-        
-        if (error || !user) {
-          console.error('Error getting admin user:', error);
+        if (!profile) {
           return;
         }
 
         // Verificar que el usuario sea admin
-        const userType = user.user_metadata?.user_type;
-        if (userType !== 'admin') {
+        if (profile.type !== 'admin') {
           console.error('User is not an admin');
           return;
         }
 
         const adminData: AdminUser = {
-          name: `${user.user_metadata?.first_name || ''} ${user.user_metadata?.last_name || ''}`.trim() || user.email?.split('@')[0] || 'Administrador',
-          email: user.email || '',
-          imageUrl: user.user_metadata?.avatar_url,
+          name: `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || profile.email?.split('@')[0] || 'Administrador',
+          email: profile.email || '',
+          imageUrl: profile.avatar_url || undefined,
           role: 'Administrador',
         };
 
         setAdmin(adminData);
-        setUserId(user.id);
+        setUserId(profile.id);
 
         // Verificar si el admin tiene eventos asignados
         const { data: events, error: eventsError } = await supabase
           .from('events_workshops')
           .select('id')
-          .eq('owner_id', user.id)
+          .eq('owner_id', profile.id)
           .eq('owner_type', 'admin')
           .limit(1);
 
@@ -104,7 +102,7 @@ export function AdminSidebar() {
     };
 
     fetchAdminData();
-  }, [supabase]);
+  }, [profile, supabase]);
 
   useEffect(() => {
     setCurrentPathname(pathname);

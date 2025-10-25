@@ -37,6 +37,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ProfessionalNavItem } from "@/types";
 import { createClient } from "@/utils/supabase/client";
+import { useProfile } from "@/hooks/use-profile";
 
 interface UserData {
   name: string;
@@ -98,6 +99,7 @@ const getNavItems = (id: string, hasEvents: boolean = false): { mainNavItems: Pr
 };
 
 export function ProfessionalSidebar() {
+  const { profile } = useProfile();
   const [currentPathname, setCurrentPathname] = useState("");
   const [userData, setUserData] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -115,12 +117,7 @@ export function ProfessionalSidebar() {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        // Obtener usuario autenticado
-        const { data: { user }, error: authError } = await supabase.auth.getUser();
-        
-        if (authError || !user) {
-          console.error('Error obteniendo usuario:', authError);
-          router.push('/login');
+        if (!profile) {
           return;
         }
 
@@ -128,23 +125,23 @@ export function ProfessionalSidebar() {
         const { data: application, error: appError } = await supabase
           .from('professional_applications')
           .select('first_name, last_name, email, profession, profile_photo')
-          .eq('user_id', user.id)
+          .eq('user_id', profile.id)
           .eq('status', 'approved')
           .single();
 
         if (appError) {
           console.error('Error obteniendo aplicación profesional:', appError);
           setUserData({
-            name: user.user_metadata?.first_name && user.user_metadata?.last_name 
-              ? `${user.user_metadata.first_name} ${user.user_metadata.last_name}`
-              : user.email?.split('@')[0] || 'Usuario',
-            email: user.email || '',
-            imageUrl: user.user_metadata?.avatar_url || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&q=80',
+            name: profile.first_name && profile.last_name 
+              ? `${profile.first_name} ${profile.last_name}`
+              : profile.email?.split('@')[0] || 'Usuario',
+            email: profile.email || '',
+            imageUrl: profile.avatar_url || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&q=80',
             profession: 'Profesional',
           });
         } else if (application) {
           // Priorizar profile_photo de la aplicación (foto de perfil profesional), luego avatar_url del usuario
-          const avatarUrl = application.profile_photo || user.user_metadata?.avatar_url || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&q=80';
+          const avatarUrl = application.profile_photo || profile.avatar_url || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&q=80';
 
           setUserData({
             name: `${application.first_name} ${application.last_name}`,
@@ -158,7 +155,7 @@ export function ProfessionalSidebar() {
         const { data: events, error: eventsError } = await supabase
           .from('events_workshops')
           .select('id')
-          .eq('owner_id', user.id)
+          .eq('owner_id', profile.id)
           .eq('owner_type', 'professional')
           .limit(1);
 
@@ -173,7 +170,7 @@ export function ProfessionalSidebar() {
     };
 
     fetchUserData();
-  }, [id, supabase, router]);
+  }, [id, profile, supabase, router]);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();

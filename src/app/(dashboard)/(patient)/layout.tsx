@@ -19,7 +19,7 @@ import { Menu, User, LogOut, Briefcase } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { createClient } from "@/utils/supabase/client";
-import { Patient } from "@/types/patient";
+import { useProfile } from "@/hooks/use-profile";
 
 // Función para generar navegación basada en el ID del usuario
 const getNavigation = (userId: string, hasEvents: boolean = false) => {
@@ -38,13 +38,13 @@ const getNavigation = (userId: string, hasEvents: boolean = false) => {
 };
 
 // Función para generar navegación dinámica basada en el estado del usuario
-const getUserNavigation = (user: Patient, userId: string, isProfessional: boolean = false) => {
+const getUserNavigation = (userId: string, isProfessional: boolean = false) => {
   const baseNavigation = [
     { name: "Mi perfil", href: `/patient/${userId}/explore/profile`, icon: User },
   ];
 
   // Agregar enlace profesional basado en el estado
-  if (user.type === "professional" || isProfessional) {
+  if (isProfessional) {
     baseNavigation.push({
       name: "Dashboard Profesional",
       href: `/professional/${userId}/dashboard`,
@@ -70,9 +70,9 @@ export default function UserLayout({
 }>) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [currentPathname, setCurrentPathname] = useState("");
-  const [user, setUser] = useState<Patient | null>(null);
-  const [loading, setLoading] = useState(true);
   const [hasEvents, setHasEvents] = useState(false);
+  const [isProfessional, setIsProfessional] = useState(false);
+  const { profile, loading } = useProfile();
   const pathname = usePathname();
   const params = useParams();
   const router = useRouter();
@@ -85,93 +85,36 @@ export default function UserLayout({
     setCurrentPathname(pathname);
   }, [pathname]);
 
-  // Obtener datos del usuario desde Supabase
+  // Verificar si es profesional y tiene eventos
   useEffect(() => {
-    const getUserData = async () => {
-      try {
-        setLoading(true);
-        
-        // Obtener sesión actual
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-        
-        if (sessionError) {
-          console.error("Error getting session:", sessionError);
-          return;
-        }
+    if (!profile) return;
 
-        if (!session?.user) {
-          console.error("No user session found");
-          return;
-        }
+    const checkProfessionalAndEvents = async () => {
+      // Verificar si el usuario es profesional (tiene aplicación aprobada)
+      const { data: professionalApp } = await supabase
+        .from('professional_applications')
+        .select('status')
+        .eq('user_id', profile.id)
+        .eq('status', 'approved')
+        .single();
+      
+      setIsProfessional(!!professionalApp);
 
-        // Obtener datos del usuario desde auth.users
-        const { data: userData, error: userError } = await supabase.auth.getUser();
-        
-        if (userError) {
-          console.error("Error getting user:", userError);
-          return;
-        }
+      // Verificar si el usuario tiene eventos asignados
+      const { data: events, error: eventsError } = await supabase
+        .from('events_workshops')
+        .select('id')
+        .eq('owner_id', profile.id)
+        .eq('owner_type', 'patient')
+        .limit(1);
 
-        if (userData.user) {
-          const userMetadata = userData.user.user_metadata || {};
-          
-          // Verificar si el usuario es profesional (tiene aplicación aprobada)
-          const { data: professionalApp } = await supabase
-            .from('professional_applications')
-            .select('status')
-            .eq('user_id', userData.user.id)
-            .eq('status', 'approved')
-            .single();
-          
-          const isProfessional = !!professionalApp;
-          
-          // Formatear datos del usuario según la interface Patient
-          const formattedUser: Patient = {
-            id: userData.user.id,
-            name: userMetadata.first_name && userMetadata.last_name 
-              ? `${userMetadata.first_name} ${userMetadata.last_name}`
-              : userData.user.email?.split('@')[0] || 'Usuario',
-            email: userData.user.email || '',
-            phone: userMetadata.phone || '',
-            location: userMetadata.location || '',
-            status: "active",
-            type: isProfessional ? "professional" : "patient",
-            joinDate: userData.user.created_at || new Date().toISOString(),
-            lastLogin: userData.user.last_sign_in_at || new Date().toISOString(),
-            appointments: 0,
-            avatar: userMetadata.avatar_url || userData.user.user_metadata?.avatar_url || '',
-            age: userMetadata.age,
-            gender: userMetadata.gender,
-            therapyType: userMetadata.therapyType,
-            totalSessions: 0,
-            nextSession: null,
-            lastSession: undefined,
-            notes: userMetadata.notes,
-          };
-
-          setUser(formattedUser);
-
-          // Verificar si el usuario tiene eventos asignados
-          const { data: events, error: eventsError } = await supabase
-            .from('events_workshops')
-            .select('id')
-            .eq('owner_id', userData.user.id)
-            .eq('owner_type', 'patient')
-            .limit(1);
-
-          if (!eventsError && events && events.length > 0) {
-            setHasEvents(true);
-          }
-        }
-      } catch (error) {
-        console.error("Error fetching user data:", error);
-      } finally {
-        setLoading(false);
+      if (!eventsError && events && events.length > 0) {
+        setHasEvents(true);
       }
     };
 
-    getUserData();
-  }, [userId, supabase]);
+    checkProfessionalAndEvents();
+  }, [profile, supabase]);
 
   // Función para cerrar sesión
   const handleSignOut = async () => {
@@ -191,7 +134,7 @@ export default function UserLayout({
 
   // Generar navegación dinámica basada en el estado del usuario
   const navigation = getNavigation(userId, hasEvents);
-  const userNavigation = user ? getUserNavigation(user, userId, user.type === "professional") : [];
+  const userNavigation = profile ? getUserNavigation(userId, isProfessional) : [];
 
   // Función para determinar si un item está activo
   const isActive = (href: string) => {
@@ -214,8 +157,8 @@ export default function UserLayout({
     );
   }
 
-  // Si no hay usuario, mostrar error
-  if (!user) {
+  // Si no hay perfil, mostrar error
+  if (!profile) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
@@ -224,6 +167,10 @@ export default function UserLayout({
       </div>
     );
   }
+
+  const userName = profile.first_name && profile.last_name 
+    ? `${profile.first_name} ${profile.last_name}`
+    : profile.email?.split('@')[0] || 'Usuario';
 
   return (
     <div className="min-h-screen bg-background">
@@ -274,7 +221,7 @@ export default function UserLayout({
                     <span className="sr-only">Abrir menú de usuario</span>
                     <div className="relative">
                       <Image
-                        src={user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=random`}
+                        src={profile.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=random`}
                         alt=""
                         width={40}
                         height={40}
@@ -287,7 +234,7 @@ export default function UserLayout({
                   <div className="flex items-start gap-3 p-3">
                     <div className="relative flex-shrink-0">
                       <Image
-                        src={user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=random`}
+                        src={profile.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=random`}
                         alt=""
                         width={40}
                         height={40}
@@ -296,10 +243,10 @@ export default function UserLayout({
                     </div>
                     <div className="flex flex-col space-y-1 leading-tight min-w-0 flex-1">
                       <p className="font-medium text-foreground break-words leading-tight">
-                        {user.name}
+                        {userName}
                       </p>
                       <p className="text-sm text-muted-foreground break-all">
-                        {user.email}
+                        {profile.email}
                       </p>
                     </div>
                   </div>
@@ -382,7 +329,7 @@ export default function UserLayout({
                   <div className="mt-8 border-t border-border pt-8">
                     <div className="flex items-center space-x-4">
                       <Image
-                        src={user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=random`}
+                        src={profile.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=random`}
                         alt=""
                         width={48}
                         height={48}
@@ -390,10 +337,10 @@ export default function UserLayout({
                       />
                       <div>
                         <div className="text-base font-medium text-foreground">
-                          {user.name}
+                          {userName}
                         </div>
                         <div className="text-sm text-muted-foreground">
-                          {user.email}
+                          {profile.email}
                         </div>
                       </div>
                     </div>

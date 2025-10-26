@@ -405,6 +405,93 @@ export default function ProfessionalDashboard() {
           ))}
         </div>
 
+        {/* Próximas Citas */}
+        <Card>
+          <CardHeader className="px-4 sm:px-6 pt-4 sm:pt-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0">
+              <div>
+                <CardTitle className="text-base sm:text-lg">Próximas Citas</CardTitle>
+                <CardDescription className="text-xs sm:text-sm">
+                  Citas programadas para hoy
+                </CardDescription>
+              </div>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={handleViewAllAppointments}
+                className="w-full sm:w-auto"
+              >
+                <Eye className="h-4 w-4 mr-2" />
+                Ver todas
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent className="px-4 sm:px-6 pb-4 sm:pb-6">
+            <div className="space-y-3 sm:space-y-4">
+              {loading ? (
+                <div className="text-center py-8 text-xs sm:text-sm text-muted-foreground">Cargando citas...</div>
+              ) : appointments.length === 0 ? (
+                <div className="text-center py-8 text-xs sm:text-sm text-muted-foreground">No hay citas programadas para hoy</div>
+              ) : (
+                appointments.map((appointment) => (
+                <div
+                  key={appointment.id}
+                  className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 sm:p-4 rounded-lg border border-border hover:bg-accent/50 transition-colors gap-3 sm:gap-0"
+                >
+                  <div className="flex items-center gap-3 sm:gap-4">
+                    <div className="flex flex-col items-center flex-shrink-0">
+                      <Clock className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
+                      <span className="text-xs sm:text-sm font-medium text-foreground">
+                        {appointment.time}
+                      </span>
+                    </div>
+                    <div className="min-w-0">
+                      <h4 className="text-sm sm:text-base font-medium text-foreground truncate">
+                        {appointment.patient.name}
+                      </h4>
+                      <p className="text-xs sm:text-sm text-muted-foreground">
+                        {appointment.type} • {appointment.duration} min
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 sm:gap-3 justify-end sm:justify-start">
+                    <Badge className={`${getStatusColor(appointment.status)} text-xs`}>
+                      {getStatusText(appointment.status)}
+                    </Badge>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => handleViewAppointment(appointment)}
+                      className="h-8 w-8 p-0"
+                    >
+                      <Eye className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Foto de Perfil */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+          <div className="lg:col-span-1">
+            <ProfilePhotoUploader
+              professionalId={userId}
+              currentPhoto={profilePhoto}
+              professionalName={professionalName}
+              onPhotoUpdate={(newPhotoUrl) => setProfilePhoto(newPhotoUrl)}
+            />
+          </div>
+          <div className="lg:col-span-2">
+            <ProfessionalProfileEditor
+              professionalId={userId}
+              onProfileUpdate={handleProfileUpdate}
+            />
+          </div>
+        </div>
+
         {/* Alerta de Estado de Inscripción */}
         {registrationFeeStatus && (
           <>
@@ -529,93 +616,6 @@ export default function ProfessionalDashboard() {
             )}
           </>
         )}
-
-        {/* Próximas Citas */}
-        <Card>
-          <CardHeader className="px-4 sm:px-6 pt-4 sm:pt-6">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0">
-              <div>
-                <CardTitle className="text-base sm:text-lg">Próximas Citas</CardTitle>
-                <CardDescription className="text-xs sm:text-sm">
-                  Citas programadas para hoy
-                </CardDescription>
-              </div>
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={handleViewAllAppointments}
-                className="w-full sm:w-auto"
-              >
-                <Eye className="h-4 w-4 mr-2" />
-                Ver todas
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent className="px-4 sm:px-6 pb-4 sm:pb-6">
-            <div className="space-y-3 sm:space-y-4">
-              {loading ? (
-                <div className="text-center py-8 text-xs sm:text-sm text-muted-foreground">Cargando citas...</div>
-              ) : appointments.length === 0 ? (
-                <div className="text-center py-8 text-xs sm:text-sm text-muted-foreground">No hay citas programadas para hoy</div>
-              ) : (
-                appointments.map((appointment) => (
-                <div
-                  key={appointment.id}
-                  className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 sm:p-4 rounded-lg border border-border hover:bg-accent/50 transition-colors gap-3 sm:gap-0"
-                >
-                  <div className="flex items-center gap-3 sm:gap-4">
-                    <div className="flex flex-col items-center flex-shrink-0">
-                      <Clock className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
-                      <span className="text-xs sm:text-sm font-medium text-foreground">
-                        {appointment.time}
-                      </span>
-                    </div>
-                    <div className="min-w-0">
-                      <h4 className="text-sm sm:text-base font-medium text-foreground truncate">
-                        {appointment.patient.name}
-                      </h4>
-                      <p className="text-xs sm:text-sm text-muted-foreground">
-                        {appointment.type} • {appointment.duration} min
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2 sm:gap-3 justify-end sm:justify-start">
-                    <Badge className={`${getStatusColor(appointment.status)} text-xs`}>
-                      {getStatusText(appointment.status)}
-                    </Badge>
-                    <Button 
-                      variant="ghost" 
-                      size="sm"
-                      onClick={() => handleViewAppointment(appointment)}
-                      className="h-8 w-8 p-0"
-                    >
-                      <Eye className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                    </Button>
-                  </div>
-                </div>
-              ))
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Foto de Perfil */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
-          <div className="lg:col-span-1">
-            <ProfilePhotoUploader
-              professionalId={userId}
-              currentPhoto={profilePhoto}
-              professionalName={professionalName}
-              onPhotoUpdate={(newPhotoUrl) => setProfilePhoto(newPhotoUrl)}
-            />
-          </div>
-          <div className="lg:col-span-2">
-            <ProfessionalProfileEditor
-              professionalId={userId}
-              onProfileUpdate={handleProfileUpdate}
-            />
-          </div>
-        </div>
 
         {/* Configuración de pagos con Stripe Connect */}
         {professionalId && (

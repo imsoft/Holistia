@@ -157,26 +157,8 @@ export default function ProfessionalFinancesPage() {
         // Calcular métricas del período actual
         const totalIncome = currentPayments?.reduce((sum, p) => sum + Number(p.amount), 0) || 0;
 
-        // Calcular comisiones de plataforma (15% para citas, 25% para eventos)
-        const platformFees = currentPayments?.reduce((sum, p) => {
-          let fee = 0;
-          if (p.payment_type === 'appointment') {
-            fee = Number(p.amount) * 0.15;
-          } else if (p.payment_type === 'event') {
-            fee = Number(p.amount) * 0.25;
-          }
-          return sum + fee;
-        }, 0) || 0;
-
-        // Calcular comisiones de Stripe (3.6% + $3 MXN por transacción)
-        const stripeFees = currentPayments?.reduce((sum, p) => {
-          const transactionFee = (Number(p.amount) * 0.036) + 3;
-          const stripeTax = transactionFee * 0.16;
-          return sum + transactionFee + stripeTax;
-        }, 0) || 0;
-
-        // Lo que recibe el profesional (monto total - comisiones plataforma)
-        const netIncome = totalIncome - platformFees;
+        // Los ingresos totales son lo que recibe el profesional directamente
+        const netIncome = totalIncome;
 
         // Ingresos por tipo
         const appointmentsIncome = currentPayments
@@ -189,8 +171,8 @@ export default function ProfessionalFinancesPage() {
 
         const financialSummary: FinancialSummary = {
           total_income: totalIncome,
-          platform_fees: platformFees,
-          stripe_fees: stripeFees,
+          platform_fees: 0,
+          stripe_fees: 0,
           net_income: netIncome,
           total_transactions: currentPayments?.length || 0,
           appointments_income: appointmentsIncome,
@@ -201,16 +183,7 @@ export default function ProfessionalFinancesPage() {
 
         // Calcular cambios comparando con período anterior
         const previousTotalIncome = previousPayments?.reduce((sum, p) => sum + Number(p.amount), 0) || 0;
-        const previousPlatformFees = previousPayments?.reduce((sum, p) => {
-          let fee = 0;
-          if (p.payment_type === 'appointment') {
-            fee = Number(p.amount) * 0.15;
-          } else if (p.payment_type === 'event') {
-            fee = Number(p.amount) * 0.25;
-          }
-          return sum + fee;
-        }, 0) || 0;
-        const previousNetIncome = previousTotalIncome - previousPlatformFees;
+        const previousNetIncome = previousTotalIncome;
         const previousTransactions = previousPayments?.length || 0;
 
         const incomeChange = previousTotalIncome > 0
@@ -228,7 +201,7 @@ export default function ProfessionalFinancesPage() {
         // Construir métricas
         const financialMetrics: FinancialMetric[] = [
           {
-            title: "Ingresos Brutos",
+            title: "Ingresos Totales",
             value: `$${totalIncome.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
             change: `${Number(incomeChange) >= 0 ? '+' : ''}${incomeChange}%`,
             isPositive: Number(incomeChange) >= 0,
@@ -237,22 +210,22 @@ export default function ProfessionalFinancesPage() {
             bgColor: "bg-green-100",
           },
           {
-            title: "Comisiones Plataforma",
-            value: `$${platformFees.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
-            change: `15% citas, 25% eventos`,
-            isPositive: false,
-            icon: CreditCard,
-            color: "text-orange-600",
-            bgColor: "bg-orange-100",
-          },
-          {
-            title: "Ganancias Netas",
-            value: `$${netIncome.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
-            change: `${Number(netIncomeChange) >= 0 ? '+' : ''}${netIncomeChange}%`,
-            isPositive: Number(netIncomeChange) >= 0,
-            icon: TrendingUp,
+            title: "Citas",
+            value: `$${appointmentsIncome.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+            change: `Servicios profesionales`,
+            isPositive: true,
+            icon: Calendar,
             color: "text-blue-600",
             bgColor: "bg-blue-100",
+          },
+          {
+            title: "Eventos",
+            value: `$${eventsIncome.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+            change: `Talleres y actividades`,
+            isPositive: true,
+            icon: CalendarDays,
+            color: "text-purple-600",
+            bgColor: "bg-purple-100",
           },
           {
             title: "Transacciones",
@@ -260,8 +233,8 @@ export default function ProfessionalFinancesPage() {
             change: `${Number(transactionsChange) >= 0 ? '+' : ''}${transactionsChange}%`,
             isPositive: Number(transactionsChange) >= 0,
             icon: Receipt,
-            color: "text-purple-600",
-            bgColor: "bg-purple-100",
+            color: "text-orange-600",
+            bgColor: "bg-orange-100",
           },
         ];
 
@@ -272,26 +245,13 @@ export default function ProfessionalFinancesPage() {
           ?.slice(-10)
           .reverse()
           .map(p => {
-            const stripeFee = (Number(p.amount) * 0.036) + 3;
-            const stripeTax = stripeFee * 0.16;
-            const totalStripeFee = stripeFee + stripeTax;
-
-            let platformFee = 0;
-            if (p.payment_type === 'appointment') {
-              platformFee = Number(p.amount) * 0.15;
-            } else if (p.payment_type === 'event') {
-              platformFee = Number(p.amount) * 0.25;
-            }
-
-            const professionalReceives = Number(p.amount) - platformFee;
-
             return {
               id: p.id,
               type: p.payment_type || 'unknown',
               amount: Number(p.amount),
-              platform_fee: platformFee,
-              stripe_fee: totalStripeFee,
-              professional_receives: professionalReceives,
+              platform_fee: 0,
+              stripe_fee: 0,
+              professional_receives: Number(p.amount),
               status: p.status,
               created_at: p.created_at,
               description: p.description || getPaymentTypeLabel(p.payment_type),
@@ -491,13 +451,13 @@ export default function ProfessionalFinancesPage() {
           <Card className="py-4">
             <CardHeader>
               <CardTitle>Resumen Financiero - {getPeriodLabel()}</CardTitle>
-              <CardDescription>Desglose de comisiones</CardDescription>
+              <CardDescription>Ingresos por tipo de servicio</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-3">
                 <div className="flex items-center justify-between p-3 bg-green-50 dark:bg-green-950/20 rounded-lg">
                   <div>
-                    <p className="text-sm font-medium">Ingresos Brutos</p>
+                    <p className="text-sm font-medium">Ingresos Totales</p>
                     <p className="text-xs text-muted-foreground">Total recibido</p>
                   </div>
                   <p className="text-sm font-bold text-green-600">
@@ -505,26 +465,36 @@ export default function ProfessionalFinancesPage() {
                   </p>
                 </div>
 
-                <div className="flex items-center justify-between p-3 bg-orange-50 dark:bg-orange-950/20 rounded-lg">
+                <div className="flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg">
                   <div>
-                    <p className="text-sm font-medium">Comisiones Holistia</p>
-                    <p className="text-xs text-muted-foreground">15% citas, 25% eventos</p>
+                    <p className="text-sm font-medium">Por Citas</p>
+                    <p className="text-xs text-muted-foreground">Servicios profesionales</p>
                   </div>
-                  <p className="text-sm font-bold text-orange-600">
-                    -${summary?.platform_fees.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
+                  <p className="text-sm font-bold text-blue-600">
+                    ${summary?.appointments_income.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
+                  </p>
+                </div>
+
+                <div className="flex items-center justify-between p-3 bg-purple-50 dark:bg-purple-950/20 rounded-lg">
+                  <div>
+                    <p className="text-sm font-medium">Por Eventos</p>
+                    <p className="text-xs text-muted-foreground">Talleres y actividades</p>
+                  </div>
+                  <p className="text-sm font-bold text-purple-600">
+                    ${summary?.events_income.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
                   </p>
                 </div>
               </div>
 
               <div className="pt-3 border-t border-border">
                 <div className="flex items-center justify-between">
-                  <p className="text-sm font-bold">Ganancias Netas</p>
-                  <p className="text-lg font-bold text-blue-600">
+                  <p className="text-sm font-bold">Total de Ingresos</p>
+                  <p className="text-lg font-bold text-green-600">
                     ${summary?.net_income.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
                   </p>
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Monto que recibes después de comisiones
+                  Monto total recibido en el período
                 </p>
               </div>
             </CardContent>
@@ -578,13 +548,10 @@ export default function ProfessionalFinancesPage() {
                     </div>
                     <div className="flex flex-col items-end gap-1">
                       <p className="text-sm font-bold text-green-600">
-                        Recibes: ${transaction.professional_receives.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
+                        ${transaction.amount.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        Total: ${transaction.amount.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
-                      </p>
-                      <p className="text-xs text-orange-600">
-                        Comisión: ${transaction.platform_fee.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
+                        {getPaymentTypeLabel(transaction.type)}
                       </p>
                     </div>
                   </div>

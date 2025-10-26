@@ -14,6 +14,7 @@ import {
   Clock,
   CalendarX,
   CalendarCheck,
+  DollarSign,
 } from "lucide-react";
 import {
   Sidebar,
@@ -83,6 +84,11 @@ const getNavItems = (id: string, hasEvents: boolean = false): { mainNavItems: Pr
       title: "Galería",
       url: `/professional/${id}/gallery`,
       icon: ImageIcon,
+    },
+    {
+      title: "Finanzas",
+      url: `/professional/${id}/finances`,
+      icon: DollarSign,
     },
   ];
 

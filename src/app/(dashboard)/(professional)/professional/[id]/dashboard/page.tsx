@@ -530,25 +530,6 @@ export default function ProfessionalDashboard() {
           </>
         )}
 
-        {/* Foto de Perfil */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
-          <div className="lg:col-span-1">
-            <ProfilePhotoUploader
-              professionalId={userId}
-              currentPhoto={profilePhoto}
-              professionalName={professionalName}
-              onPhotoUpdate={(newPhotoUrl) => setProfilePhoto(newPhotoUrl)}
-            />
-          </div>
-          <div className="lg:col-span-2">
-            <ProfessionalProfileEditor
-              professionalId={userId}
-              onProfileUpdate={handleProfileUpdate}
-            />
-          </div>
-        </div>
-
-
         {/* Próximas Citas */}
         <Card>
           <CardHeader className="px-4 sm:px-6 pt-4 sm:pt-6">
@@ -617,6 +598,24 @@ export default function ProfessionalDashboard() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Foto de Perfil */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+          <div className="lg:col-span-1">
+            <ProfilePhotoUploader
+              professionalId={userId}
+              currentPhoto={profilePhoto}
+              professionalName={professionalName}
+              onPhotoUpdate={(newPhotoUrl) => setProfilePhoto(newPhotoUrl)}
+            />
+          </div>
+          <div className="lg:col-span-2">
+            <ProfessionalProfileEditor
+              professionalId={userId}
+              onProfileUpdate={handleProfileUpdate}
+            />
+          </div>
+        </div>
 
         {/* Configuración de pagos con Stripe Connect */}
         {professionalId && (

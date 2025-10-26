@@ -392,22 +392,6 @@ export default function AnalyticsPage() {
           </CardContent>
         </Card>
 
-        <Card className="py-4">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <DollarSign className="h-4 w-4" />
-              Ingresos Totales
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              ${(generalStats.total_revenue / 100).toLocaleString('es-MX', { minimumFractionDigits: 2 })}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              MXN
-            </p>
-          </CardContent>
-        </Card>
 
         <Card className="py-4">
           <CardHeader className="pb-2">

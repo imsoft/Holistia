@@ -109,8 +109,8 @@ export default function FinancesPage() {
         const { data: currentPayments, error: paymentsError } = await supabase
           .from('payments')
           .select('*')
-          .gte('created_at', startDate.toISOString())
-          .lte('created_at', now.toISOString())
+          .gte('paid_at', startDate.toISOString())
+          .lte('paid_at', now.toISOString())
           .in('status', ['succeeded', 'processing']);
 
         if (paymentsError) {
@@ -122,8 +122,8 @@ export default function FinancesPage() {
         const { data: previousPayments } = await supabase
           .from('payments')
           .select('*')
-          .gte('created_at', previousStartDate.toISOString())
-          .lte('created_at', previousEndDate.toISOString())
+          .gte('paid_at', previousStartDate.toISOString())
+          .lte('paid_at', previousEndDate.toISOString())
           .in('status', ['succeeded', 'processing']);
 
         // Calcular métricas del período actual

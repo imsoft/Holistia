@@ -8,7 +8,7 @@ SELECT
   SUM(amount) as ingresos_totales,
   SUM(amount * 0.15) as comisiones_plataforma_calculadas,
   SUM((amount * 0.036) + 3) as comisiones_stripe_calculadas,
-  SUM((amount * 0.15) + ((amount * 0.036) + 3)) * 0.16) as impuestos_calculados,
+  SUM(((amount * 0.15) + ((amount * 0.036) + 3)) * 0.16) as impuestos_calculados,
   SUM((amount * 0.15) - ((amount * 0.036) + 3) - (((amount * 0.15) + ((amount * 0.036) + 3)) * 0.16)) as ingreso_neto_calculado
 FROM public.payments 
 WHERE EXTRACT(YEAR FROM paid_at) = 2025 

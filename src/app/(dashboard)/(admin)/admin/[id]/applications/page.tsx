@@ -237,10 +237,10 @@ export default function ApplicationsPage() {
       }
 
       // Actualizar el estado local
-      setApplications(prev => prev.map(app => 
-        app.id === applicationId 
-          ? { 
-              ...app, 
+      setApplications(prev => prev.map(app =>
+        app.id === applicationId
+          ? {
+              ...app,
               status: newStatus === 'approved' ? 'approved' : 'rejected',
               reviewed_at: new Date().toISOString(),
               reviewed_by: user.id,
@@ -249,8 +249,39 @@ export default function ApplicationsPage() {
           : app
       ));
 
+      // Enviar email al profesional
+      const application = applications.find(app => app.id === applicationId);
+      if (application) {
+        try {
+          const dashboardUrl = `${process.env.NEXT_PUBLIC_SITE_URL || window.location.origin}/patient/${application.user_id}/explore/become-professional`;
+
+          const emailResponse = await fetch('/api/admin/send-application-decision', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              status: newStatus,
+              professional_name: `${application.first_name} ${application.last_name}`,
+              professional_email: application.email,
+              profession: application.profession,
+              review_notes: reviewNotes || undefined,
+              dashboard_url: dashboardUrl,
+            }),
+          });
+
+          if (!emailResponse.ok) {
+            console.error('Error sending decision email');
+            // No mostramos error al usuario, solo logueamos
+          }
+        } catch (emailError) {
+          console.error('Error sending decision email:', emailError);
+          // No mostramos error al usuario, solo logueamos
+        }
+      }
+
       setReviewNotes("");
-      toast.success(`Solicitud ${newStatus === 'approved' ? 'aprobada' : 'rechazada'} exitosamente.`);
+      toast.success(`Solicitud ${newStatus === 'approved' ? 'aprobada' : 'rechazada'} exitosamente. Se ha enviado un email al profesional.`);
       
     } catch (error) {
       console.error('Error updating application:', error);

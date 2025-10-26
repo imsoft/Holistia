@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Actualización de tu Solicitud - Holistia</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+        }
+        .logo {
+            width: 70px;
+            height: auto;
+            margin-bottom: 15px;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 600;
+        }
+        .content {
+            padding: 40px 30px;
+        }
+        .info-icon {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .info-icon .icon {
+            width: 70px;
+            height: 70px;
+            background-color: #3b82f6;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 40px;
+            font-weight: bold;
+            line-height: 70px;
+            text-align: center;
+        }
+        .message-box {
+            background-color: #f8fafc;
+            border-left: 4px solid: #3b82f6;
+            border-radius: 8px;
+            padding: 25px;
+            margin: 25px 0;
+        }
+        .message-box h2 {
+            margin-top: 0;
+            color: #1e40af;
+            font-size: 20px;
+        }
+        .message-box p {
+            color: #475569;
+            font-size: 15px;
+            margin-bottom: 10px;
+        }
+        .notes-box {
+            background-color: #fef3c7;
+            border: 2px solid #f59e0b;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .notes-box h3 {
+            margin-top: 0;
+            color: #92400e;
+            font-size: 18px;
+        }
+        .notes-box p {
+            margin-bottom: 0;
+            color: #78350f;
+            font-size: 15px;
+            white-space: pre-wrap;
+        }
+        .next-steps {
+            background-color: #ecfdf5;
+            border: 2px solid #10b981;
+            border-radius: 12px;
+            padding: 25px;
+            margin: 25px 0;
+        }
+        .next-steps h3 {
+            margin-top: 0;
+            color: #065f46;
+            font-size: 20px;
+        }
+        .next-steps ul {
+            margin: 15px 0;
+            padding-left: 25px;
+        }
+        .next-steps li {
+            margin-bottom: 12px;
+            color: #047857;
+            font-size: 15px;
+        }
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 14px 32px;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 16px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        .cta-button:hover {
+            opacity: 0.9;
+        }
+        .footer {
+            background-color: #f8f9fa;
+            padding: 25px;
+            text-align: center;
+            color: #6b7280;
+            font-size: 14px;
+        }
+        .footer a {
+            color: #667eea;
+            text-decoration: none;
+        }
+        .footer a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <img src="https://holistia.io/logos/holistia-white.png" alt="Holistia" class="logo">
+            <h1>Actualización de tu Solicitud</h1>
+        </div>
+
+        <div class="content">
+            <div class="info-icon">
+                <div class="icon">ℹ️</div>
+            </div>
+
+            <p style="font-size: 16px; color: #374151;">
+                Hola <strong>{{professional_name}}</strong>,
+            </p>
+
+            <div class="message-box">
+                <h2>Sobre tu solicitud</h2>
+                <p>
+                    Hemos revisado cuidadosamente tu solicitud para unirte a Holistia como
+                    <strong>{{profession}}</strong>.
+                </p>
+                <p>
+                    Después de una evaluación detallada, en este momento no podemos aprobar tu solicitud
+                    para formar parte de nuestra plataforma.
+                </p>
+            </div>
+
+            {{#if review_notes}}
+            <div class="notes-box">
+                <h3>📝 Comentarios del equipo de revisión</h3>
+                <p>{{review_notes}}</p>
+            </div>
+            {{/if}}
+
+            <div class="next-steps">
+                <h3>💚 ¿Qué puedes hacer?</h3>
+                <ul>
+                    <li>
+                        <strong>Revisa los comentarios:</strong> Si incluimos notas específicas arriba,
+                        úsalas como guía para mejorar tu perfil profesional
+                    </li>
+                    <li>
+                        <strong>Actualiza tu información:</strong> Asegúrate de que tus certificaciones,
+                        experiencia y servicios estén completos y actualizados
+                    </li>
+                    <li>
+                        <strong>Vuelve a aplicar:</strong> Una vez que hayas realizado las mejoras necesarias,
+                        eres bienvenido a enviar una nueva solicitud
+                    </li>
+                    <li>
+                        <strong>Contáctanos:</strong> Si tienes preguntas o necesitas más información,
+                        nuestro equipo está aquí para ayudarte
+                    </li>
+                </ul>
+            </div>
+
+            <p style="font-size: 15px; color: #475569; margin: 30px 0;">
+                Valoramos tu interés en formar parte de Holistia. Entendemos que esta noticia
+                puede ser decepcionante, pero queremos asegurarnos de mantener los más altos
+                estándares de calidad para beneficio de toda nuestra comunidad.
+            </p>
+
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="mailto:holistia.io@gmail.com" class="cta-button">
+                    Contactar Soporte
+                </a>
+            </div>
+
+            <p style="color: #6b7280; font-size: 14px; text-align: center; margin-top: 40px;">
+                Gracias por tu comprensión.<br>
+                Te deseamos mucho éxito en tu carrera profesional.
+            </p>
+        </div>
+
+        <div class="footer">
+            <p>
+                <strong>Holistia</strong> - Tu bienestar es nuestra prioridad<br>
+                <a href="https://holistia.io">holistia.io</a> |
+                <a href="mailto:holistia.io@gmail.com">holistia.io@gmail.com</a>
+            </p>
+            <p style="font-size: 12px; margin-top: 15px;">
+                Este es un email automático. Si tienes preguntas, contacta a nuestro equipo de soporte.
+            </p>
+        </div>
+    </div>
+</body>
+</html>

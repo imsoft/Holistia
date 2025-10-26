@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>¡Solicitud Aprobada! - Holistia</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+        }
+        .logo {
+            width: 70px;
+            height: auto;
+            margin-bottom: 15px;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 600;
+        }
+        .content {
+            padding: 40px 30px;
+        }
+        .success-icon {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .success-icon .icon {
+            width: 80px;
+            height: 80px;
+            background-color: #10b981;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 48px;
+            font-weight: bold;
+            line-height: 80px;
+            text-align: center;
+        }
+        .congratulations {
+            background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+            border: 2px solid #10b981;
+            border-radius: 12px;
+            padding: 25px;
+            margin: 25px 0;
+            text-align: center;
+        }
+        .congratulations h2 {
+            margin: 0 0 10px 0;
+            color: #065f46;
+            font-size: 24px;
+        }
+        .congratulations p {
+            margin: 0;
+            color: #047857;
+            font-size: 16px;
+        }
+        .next-steps {
+            background-color: #f0f9ff;
+            border: 2px solid #3b82f6;
+            border-radius: 12px;
+            padding: 25px;
+            margin: 25px 0;
+        }
+        .next-steps h3 {
+            margin-top: 0;
+            color: #1e40af;
+            font-size: 20px;
+        }
+        .next-steps ol {
+            margin: 15px 0;
+            padding-left: 25px;
+        }
+        .next-steps li {
+            margin-bottom: 15px;
+            color: #1e3a8a;
+            font-size: 15px;
+        }
+        .next-steps li strong {
+            color: #1e40af;
+        }
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 16px 40px;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 16px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        .cta-button:hover {
+            opacity: 0.9;
+        }
+        .info-box {
+            background-color: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            border-radius: 4px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .info-box h4 {
+            margin-top: 0;
+            color: #92400e;
+            font-size: 16px;
+        }
+        .info-box p {
+            margin-bottom: 0;
+            color: #78350f;
+            font-size: 14px;
+        }
+        .benefits {
+            background-color: #f8fafc;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .benefits h3 {
+            margin-top: 0;
+            color: #1f2937;
+            font-size: 18px;
+        }
+        .benefits ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        .benefits li {
+            margin-bottom: 10px;
+            color: #4b5563;
+        }
+        .footer {
+            background-color: #f8f9fa;
+            padding: 25px;
+            text-align: center;
+            color: #6b7280;
+            font-size: 14px;
+        }
+        .footer a {
+            color: #667eea;
+            text-decoration: none;
+        }
+        .footer a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <img src="https://holistia.io/logos/holistia-white.png" alt="Holistia" class="logo">
+            <h1>¡Bienvenido a Holistia!</h1>
+        </div>
+
+        <div class="content">
+            <div class="success-icon">
+                <div class="icon">✓</div>
+            </div>
+
+            <div class="congratulations">
+                <h2>¡Felicidades, {{professional_name}}!</h2>
+                <p>Tu solicitud ha sido aprobada</p>
+            </div>
+
+            <p style="font-size: 16px; color: #374151;">
+                Nos complace informarte que tu solicitud para unirte a la plataforma Holistia
+                como <strong>{{profession}}</strong> ha sido aprobada exitosamente.
+            </p>
+
+            <p style="font-size: 16px; color: #374151;">
+                Estamos emocionados de tenerte como parte de nuestra comunidad de profesionales
+                de bienestar y terapias holísticas.
+            </p>
+
+            <div class="info-box">
+                <h4>⚠️ Importante: Cuota de Inscripción Anual</h4>
+                <p>
+                    Para activar tu perfil y comenzar a recibir pacientes, necesitas completar
+                    el pago de la cuota de inscripción anual de <strong>$1,000 MXN</strong>.
+                </p>
+            </div>
+
+            <div class="next-steps">
+                <h3>📋 Próximos Pasos</h3>
+                <ol>
+                    <li>
+                        <strong>Paga tu inscripción anual:</strong>
+                        Ingresa a tu dashboard y completa el pago de $1,000 MXN para activar tu perfil
+                    </li>
+                    <li>
+                        <strong>Completa tu perfil:</strong>
+                        Asegúrate de tener toda tu información actualizada, incluyendo foto de perfil, biografía y servicios
+                    </li>
+                    <li>
+                        <strong>Configura tu disponibilidad:</strong>
+                        Define tus horarios de atención para que los pacientes puedan agendar citas
+                    </li>
+                    <li>
+                        <strong>Agrega tus servicios:</strong>
+                        Crea los servicios que ofreces con sus precios y descripciones
+                    </li>
+                    <li>
+                        <strong>Conecta Stripe:</strong>
+                        Configura tu cuenta de Stripe para recibir pagos de forma segura
+                    </li>
+                    <li>
+                        <strong>¡Empieza a recibir pacientes!</strong>
+                        Una vez completado el pago, tu perfil estará visible en la plataforma
+                    </li>
+                </ol>
+            </div>
+
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="{{dashboard_url}}" class="cta-button">
+                    Ir a mi Dashboard
+                </a>
+            </div>
+
+            <div class="benefits">
+                <h3>✨ Beneficios de tu Membresía</h3>
+                <ul>
+                    <li><strong>Perfil Público:</strong> Tu perfil profesional visible en toda la plataforma</li>
+                    <li><strong>Sistema de Citas:</strong> Los pacientes pueden agendar directamente contigo</li>
+                    <li><strong>Gestión de Pagos:</strong> Recibe pagos de forma segura a través de Stripe</li>
+                    <li><strong>Dashboard Completo:</strong> Administra tus citas, horarios y disponibilidad</li>
+                    <li><strong>Eventos y Talleres:</strong> Crea y gestiona tus propios eventos</li>
+                    <li><strong>Comisiones Transparentes:</strong> Solo 15% de comisión de plataforma + comisión de Stripe</li>
+                    <li><strong>Soporte Dedicado:</strong> Nuestro equipo está aquí para ayudarte</li>
+                </ul>
+            </div>
+
+            <p style="color: #6b7280; font-size: 14px; text-align: center; margin-top: 40px;">
+                Si tienes alguna pregunta, no dudes en contactarnos.<br>
+                Estamos aquí para apoyarte en cada paso del camino.
+            </p>
+        </div>
+
+        <div class="footer">
+            <p>
+                <strong>Holistia</strong> - Tu bienestar es nuestra prioridad<br>
+                <a href="https://holistia.io">holistia.io</a> |
+                <a href="mailto:holistia.io@gmail.com">holistia.io@gmail.com</a>
+            </p>
+            <p style="font-size: 12px; margin-top: 15px;">
+                Este es un email automático. Si tienes preguntas, contacta a nuestro equipo de soporte.
+            </p>
+        </div>
+    </div>
+</body>
+</html>

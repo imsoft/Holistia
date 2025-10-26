@@ -364,3 +364,122 @@ export async function sendRegistrationPaymentConfirmation(data: RegistrationPaym
     return { success: false, error: 'Failed to send email' };
   }
 }
+
+// ============================================================================
+// PROFESSIONAL APPLICATION EMAILS
+// ============================================================================
+
+interface ProfessionalApprovalEmailData {
+  professional_name: string;
+  professional_email: string;
+  profession: string;
+  dashboard_url: string;
+}
+
+interface ProfessionalRejectionEmailData {
+  professional_name: string;
+  professional_email: string;
+  profession: string;
+  review_notes?: string;
+}
+
+// Send approval email to professional
+export async function sendProfessionalApprovalEmail(data: ProfessionalApprovalEmailData) {
+  try {
+    const fs = await import('fs');
+    const path = await import('path');
+
+    // Read the email template
+    const templatePath = path.join(process.cwd(), 'database/email-templates/professional-approval.html');
+    let emailTemplate: string;
+
+    try {
+      emailTemplate = fs.readFileSync(templatePath, 'utf8');
+    } catch (error) {
+      console.error('Error reading email template:', error);
+      return { success: false, error: 'Template not found' };
+    }
+
+    // Replace placeholders in the template
+    const emailContent = emailTemplate
+      .replace(/\{\{professional_name\}\}/g, data.professional_name)
+      .replace(/\{\{profession\}\}/g, data.profession)
+      .replace(/\{\{dashboard_url\}\}/g, data.dashboard_url);
+
+    // Send email using Resend
+    const { data: emailData, error } = await resend.emails.send({
+      from: 'Holistia <noreply@holistia.io>',
+      to: [data.professional_email],
+      subject: `✅ ¡Felicidades! Tu solicitud ha sido aprobada | Holistia`,
+      html: emailContent,
+    });
+
+    if (error) {
+      console.error('Error sending professional approval email:', error);
+      return { success: false, error: error.message };
+    }
+
+    console.log('Professional approval email sent successfully:', emailData?.id);
+    return { success: true, message: 'Email sent successfully', id: emailData?.id };
+
+  } catch (error) {
+    console.error('Error in sendProfessionalApprovalEmail:', error);
+    return { success: false, error: 'Failed to send email' };
+  }
+}
+
+// Send rejection email to professional
+export async function sendProfessionalRejectionEmail(data: ProfessionalRejectionEmailData) {
+  try {
+    const fs = await import('fs');
+    const path = await import('path');
+
+    // Read the email template
+    const templatePath = path.join(process.cwd(), 'database/email-templates/professional-rejection.html');
+    let emailTemplate: string;
+
+    try {
+      emailTemplate = fs.readFileSync(templatePath, 'utf8');
+    } catch (error) {
+      console.error('Error reading email template:', error);
+      return { success: false, error: 'Template not found' };
+    }
+
+    // Replace placeholders in the template
+    let emailContent = emailTemplate
+      .replace(/\{\{professional_name\}\}/g, data.professional_name)
+      .replace(/\{\{profession\}\}/g, data.profession);
+
+    // Handle optional review notes
+    if (data.review_notes) {
+      emailContent = emailContent.replace(/\{\{#if review_notes\}\}[\s\S]*?\{\{\/if\}\}/g, (match) => {
+        return match
+          .replace(/\{\{#if review_notes\}\}/g, '')
+          .replace(/\{\{\/if\}\}/g, '')
+          .replace(/\{\{review_notes\}\}/g, data.review_notes || '');
+      });
+    } else {
+      emailContent = emailContent.replace(/\{\{#if review_notes\}\}[\s\S]*?\{\{\/if\}\}/g, '');
+    }
+
+    // Send email using Resend
+    const { data: emailData, error } = await resend.emails.send({
+      from: 'Holistia <noreply@holistia.io>',
+      to: [data.professional_email],
+      subject: `Actualización de tu solicitud | Holistia`,
+      html: emailContent,
+    });
+
+    if (error) {
+      console.error('Error sending professional rejection email:', error);
+      return { success: false, error: error.message };
+    }
+
+    console.log('Professional rejection email sent successfully:', emailData?.id);
+    return { success: true, message: 'Email sent successfully', id: emailData?.id };
+
+  } catch (error) {
+    console.error('Error in sendProfessionalRejectionEmail:', error);
+    return { success: false, error: 'Failed to send email' };
+  }
+}

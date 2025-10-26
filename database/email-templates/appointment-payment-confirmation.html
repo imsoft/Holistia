@@ -52,7 +52,10 @@
             align-items: center;
             justify-content: center;
             color: white;
-            font-size: 24px;
+            font-size: 36px;
+            font-weight: bold;
+            line-height: 60px;
+            text-align: center;
         }
         .ticket-container {
             border: 2px solid #10b981;
@@ -211,11 +214,11 @@
                     <div class="appointment-details">
                         <h3 style="margin-top: 0; color: #1f2937; font-size: 16px;">👨‍⚕️ Profesional</h3>
                         <div class="detail-row">
-                            <span class="detail-label">Nombre:</span>
+                            <span class="detail-label">Nombre: </span>
                             <span class="detail-value">{{professional_name}}</span>
                         </div>
                         <div class="detail-row">
-                            <span class="detail-label">Profesión:</span>
+                            <span class="detail-label">Profesión: </span>
                             <span class="detail-value">{{professional_title}}</span>
                         </div>
                     </div>
@@ -223,23 +226,23 @@
                     <div class="appointment-details">
                         <h3 style="margin-top: 0; color: #1f2937; font-size: 16px;">📅 Detalles de tu Cita</h3>
                         <div class="detail-row">
-                            <span class="detail-label">Fecha:</span>
+                            <span class="detail-label">Fecha: </span>
                             <span class="detail-value">{{appointment_date}}</span>
                         </div>
                         <div class="detail-row">
-                            <span class="detail-label">Hora:</span>
+                            <span class="detail-label">Hora: </span>
                             <span class="detail-value">{{appointment_time}}</span>
                         </div>
                         <div class="detail-row">
-                            <span class="detail-label">Duración:</span>
+                            <span class="detail-label">Duración: </span>
                             <span class="detail-value">{{duration_minutes}} minutos</span>
                         </div>
                         <div class="detail-row">
-                            <span class="detail-label">Modalidad:</span>
+                            <span class="detail-label">Modalidad: </span>
                             <span class="detail-value">{{appointment_type}}</span>
                         </div>
                         <div class="detail-row">
-                            <span class="detail-label">Ubicación:</span>
+                            <span class="detail-label">Ubicación: </span>
                             <span class="detail-value">{{location}}</span>
                         </div>
                     </div>
@@ -249,19 +252,19 @@
                     <div class="payment-summary">
                         <h3>💳 Resumen de Pago</h3>
                         <div class="detail-row">
-                            <span class="detail-label">Monto:</span>
+                            <span class="detail-label">Monto: </span>
                             <span class="detail-value">${{payment_amount}} MXN</span>
                         </div>
                         <div class="detail-row">
-                            <span class="detail-label">Fecha de pago:</span>
+                            <span class="detail-label">Fecha de pago: </span>
                             <span class="detail-value">{{payment_date}}</span>
                         </div>
                         <div class="detail-row">
-                            <span class="detail-label">Método:</span>
+                            <span class="detail-label">Método: </span>
                             <span class="detail-value">{{payment_method}}</span>
                         </div>
                         <div class="detail-row">
-                            <span class="detail-label">ID de transacción:</span>
+                            <span class="detail-label">ID de transacción: </span>
                             <span class="detail-value" style="font-size: 12px;">{{transaction_id}}</span>
                         </div>
                         <div class="divider"></div>

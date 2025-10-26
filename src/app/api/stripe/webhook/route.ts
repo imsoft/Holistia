@@ -469,19 +469,20 @@ export async function POST(request: NextRequest) {
 
         // Handle appointment payments
         if (appointment_id) {
+          // Mark appointment as paid, but keep it as 'pending' until professional confirms
           const { error: appointmentUpdateError } = await supabase
             .from('appointments')
             .update({
-              status: 'confirmed',
+              status: 'paid', // Changed from 'confirmed' to 'paid'
             })
             .eq('id', appointment_id);
 
           if (appointmentUpdateError) {
             console.error('Error updating appointment:', appointmentUpdateError);
           } else {
-            console.log('Payment and appointment updated successfully');
+            console.log('Payment processed successfully - appointment marked as paid');
 
-            // Send notification email to professional
+            // Send notification email to professional (they need to confirm)
             try {
               await sendAppointmentNotificationEmail(appointment_id);
             } catch (emailError) {

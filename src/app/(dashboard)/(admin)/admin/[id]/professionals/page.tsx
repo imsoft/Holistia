@@ -59,6 +59,7 @@ interface Professional {
   submitted_at: string;
   reviewed_at?: string;
   patients?: number;
+  monthly_patients?: number; // Pacientes del mes actual
   registration_fee_paid?: boolean;
   registration_fee_amount?: number;
   registration_fee_currency?: string;
@@ -126,15 +127,31 @@ export default function AdminProfessionals() {
         const transformedProfessionals: Professional[] = await Promise.all(
           professionalsData.map(async (prof) => {
             // Obtener número de pacientes únicos para este profesional
-            // professional_id en appointments corresponde al user_id del profesional
-            const { data: appointmentsData } = await supabase
-              .from('appointments')
-              .select('patient_id')
-              .eq('professional_id', prof.user_id);
+            // professional_id en appointments corresponde al id del profesional en professional_applications
+            const [
+              { data: appointmentsData },
+              { data: monthlyAppointmentsData }
+            ] = await Promise.all([
+              // Todos los pacientes (histórico)
+              supabase
+                .from('appointments')
+                .select('patient_id, created_at')
+                .eq('professional_id', prof.id),
+              // Pacientes del mes actual
+              supabase
+                .from('appointments')
+                .select('patient_id')
+                .eq('professional_id', prof.id)
+                .gte('created_at', currentMonthStart.toISOString())
+            ]);
 
-            // Contar pacientes únicos
+            // Contar pacientes únicos totales
             const uniquePatients = new Set(appointmentsData?.map(apt => apt.patient_id) || []);
             const patientsCount = uniquePatients.size;
+
+            // Contar pacientes únicos del mes
+            const monthlyUniquePatients = new Set(monthlyAppointmentsData?.map(apt => apt.patient_id) || []);
+            const monthlyPatientsCount = monthlyUniquePatients.size;
 
             // Determinar el estado basado en la fecha de revisión
             const reviewedAt = prof.reviewed_at ? new Date(prof.reviewed_at) : new Date(prof.submitted_at);
@@ -164,6 +181,7 @@ export default function AdminProfessionals() {
               submitted_at: prof.submitted_at,
               reviewed_at: prof.reviewed_at,
               patients: patientsCount || 0,
+              monthly_patients: monthlyPatientsCount || 0,
               registration_fee_paid: prof.registration_fee_paid ?? false,
               registration_fee_amount: prof.registration_fee_amount,
               registration_fee_currency: prof.registration_fee_currency,
@@ -684,9 +702,14 @@ export default function AdminProfessionals() {
                     <MapPin className="h-4 w-4 flex-shrink-0" />
                     <span className="truncate">{professional.city}, {professional.state}</span>
                   </div>
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <UserCheck className="h-4 w-4 flex-shrink-0" />
-                    <span>{professional.patients || 0} pacientes</span>
+                  <div className="flex flex-col gap-1">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <UserCheck className="h-4 w-4 flex-shrink-0" />
+                      <span className="font-medium text-foreground">{professional.patients || 0} pacientes totales</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground pl-6">
+                      <span>{professional.monthly_patients || 0} este mes</span>
+                    </div>
                   </div>
                   
                   {/* Estado de pago */}

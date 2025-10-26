@@ -118,18 +118,21 @@ export default function FinancesPage() {
     };
   };
 
-  // Función para calcular valores de inscripciones (Sin Connect - Directo)
+  // Función para calcular valores de inscripciones (Con Stripe pero sin comisión Holistia)
   const calculateRegistrationValues = (amount: number) => {
-    // Las inscripciones no tienen comisiones de Stripe, son directas
-    const platformFee = amount * 0.15; // 15% para inscripciones
-    const netIncome = platformFee; // Sin costos de Stripe
-    const professionalReceives = amount - platformFee;
+    // Las inscripciones SÍ pasan por Stripe pero NO tienen comisión de Holistia
+    const stripeBase = (amount * 0.036) + 3;
+    const stripeTax = stripeBase * 0.16;
+    const stripeTotal = stripeBase + stripeTax;
+    const platformFee = 0; // Sin comisión de Holistia para inscripciones
+    const netIncome = platformFee - stripeTotal; // Negativo porque solo hay costos de Stripe
+    const professionalReceives = amount - platformFee; // Recibe el monto completo
 
     return {
       amount,
-      stripeBase: 0,
-      stripeTax: 0,
-      stripeTotal: 0,
+      stripeBase: Math.round(stripeBase * 100) / 100,
+      stripeTax: Math.round(stripeTax * 100) / 100,
+      stripeTotal: Math.round(stripeTotal * 100) / 100,
       platformFee: Math.round(platformFee * 100) / 100,
       netIncome: Math.round(netIncome * 100) / 100,
       professionalReceives: Math.round(professionalReceives * 100) / 100,
@@ -918,10 +921,10 @@ export default function FinancesPage() {
           <CardHeader>
             <CardTitle className="text-orange-900 dark:text-orange-100 flex items-center gap-2">
               <Users className="h-5 w-5" />
-              Cálculo para Inscripciones (15% comisión directa)
+              Cálculo para Inscripciones (Sin comisión Holistia)
             </CardTitle>
             <CardDescription className="text-orange-800 dark:text-orange-200">
-              Inscripciones profesionales sin Stripe Connect - Pago directo
+              Inscripciones profesionales con Stripe pero sin comisión de Holistia
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -946,7 +949,7 @@ export default function FinancesPage() {
                   </div>
                 </div>
                 <div className="text-xs text-muted-foreground">
-                  Pago directo - Sin Stripe Connect
+                  Con Stripe - Sin comisión Holistia
                 </div>
               </div>
 
@@ -964,24 +967,32 @@ export default function FinancesPage() {
                 <p className="text-sm font-bold text-orange-600">${registrationAmount.toFixed(2)}</p>
               </div>
 
-              {/* Sin Comisiones Stripe */}
+              {/* Comisiones Stripe */}
               <div className="space-y-2">
                 <h4 className="text-sm font-semibold text-orange-900 dark:text-orange-100">Comisiones de Stripe</h4>
                 
-                <div className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-800 rounded border-l-4 border-gray-400">
+                <div className="flex items-center justify-between p-2 bg-white dark:bg-gray-800 rounded border-l-4 border-red-400">
                   <div className="flex items-center gap-2">
-                    <CreditCard className="h-4 w-4 text-gray-600" />
-                    <span className="text-sm">Sin comisiones Stripe</span>
+                    <CreditCard className="h-4 w-4 text-red-600" />
+                    <span className="text-sm">Comisión base (3.6% + $3)</span>
                   </div>
-                  <span className="text-sm font-bold text-gray-600">$0.00</span>
+                  <span className="text-sm font-bold text-red-600">${calculateRegistrationValues(registrationAmount).stripeBase.toFixed(2)}</span>
                 </div>
 
-                <div className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-800 rounded border-l-4 border-gray-400">
+                <div className="flex items-center justify-between p-2 bg-white dark:bg-gray-800 rounded border-l-4 border-orange-400">
                   <div className="flex items-center gap-2">
-                    <FileText className="h-4 w-4 text-gray-600" />
-                    <span className="text-sm">Sin IVA sobre Stripe</span>
+                    <FileText className="h-4 w-4 text-orange-600" />
+                    <span className="text-sm">IVA sobre Stripe (16%)</span>
                   </div>
-                  <span className="text-sm font-bold text-gray-600">$0.00</span>
+                  <span className="text-sm font-bold text-orange-600">${calculateRegistrationValues(registrationAmount).stripeTax.toFixed(2)}</span>
+                </div>
+
+                <div className="flex items-center justify-between p-2 bg-red-50 dark:bg-red-950/20 rounded border-l-4 border-red-500">
+                  <div className="flex items-center gap-2">
+                    <CreditCard className="h-4 w-4 text-red-700" />
+                    <span className="text-sm font-semibold">Comisión total Stripe</span>
+                  </div>
+                  <span className="text-sm font-bold text-red-700">${calculateRegistrationValues(registrationAmount).stripeTotal.toFixed(2)}</span>
                 </div>
               </div>
 
@@ -989,12 +1000,12 @@ export default function FinancesPage() {
               <div className="space-y-2">
                 <h4 className="text-sm font-semibold text-orange-900 dark:text-orange-100">Comisiones de Holistia</h4>
                 
-                <div className="flex items-center justify-between p-2 bg-orange-50 dark:bg-orange-950/20 rounded border-l-4 border-orange-500">
+                <div className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-800 rounded border-l-4 border-gray-400">
                   <div className="flex items-center gap-2">
-                    <Wallet className="h-4 w-4 text-orange-600" />
-                    <span className="text-sm">Comisión plataforma (15%)</span>
+                    <Wallet className="h-4 w-4 text-gray-600" />
+                    <span className="text-sm">Sin comisión de Holistia</span>
                   </div>
-                  <span className="text-sm font-bold text-orange-600">${calculateRegistrationValues(registrationAmount).platformFee.toFixed(2)}</span>
+                  <span className="text-sm font-bold text-gray-600">$0.00</span>
                 </div>
               </div>
 
@@ -1022,8 +1033,9 @@ export default function FinancesPage() {
               {/* Fórmula para inscripciones */}
               <div className="mt-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
                 <p className="text-xs text-gray-700 dark:text-gray-300">
-                  <strong>Fórmula:</strong> Ingreso Neto Holistia = Comisión Plataforma (Sin costos Stripe)<br/>
-                  <strong>Resultado:</strong> ${calculateRegistrationValues(registrationAmount).platformFee.toFixed(2)} - $0.00 = ${calculateRegistrationValues(registrationAmount).netIncome.toFixed(2)}
+                  <strong>Fórmula:</strong> Ingreso Neto Holistia = Comisión Plataforma - Costos Stripe<br/>
+                  <strong>Resultado:</strong> $0.00 - ${calculateRegistrationValues(registrationAmount).stripeTotal.toFixed(2)} = ${calculateRegistrationValues(registrationAmount).netIncome.toFixed(2)}<br/>
+                  <strong>Nota:</strong> Las inscripciones no generan ingresos para Holistia, solo costos de Stripe
                 </p>
               </div>
             </div>
@@ -1046,7 +1058,7 @@ export default function FinancesPage() {
                 <div className="text-xs text-blue-800 dark:text-blue-200 space-y-1">
                   <p>• <strong>Citas:</strong> 15% comisión + Stripe Connect (3.6% + $3 + IVA)</p>
                   <p>• <strong>Eventos:</strong> 25% comisión + Stripe Connect (3.6% + $3 + IVA)</p>
-                  <p>• <strong>Inscripciones:</strong> 15% comisión directa (Sin Stripe Connect)</p>
+                  <p>• <strong>Inscripciones:</strong> Sin comisión Holistia + Stripe (3.6% + $3 + IVA)</p>
                   <p>• <strong>Impuestos:</strong> IVA del 16% solo sobre comisiones de Stripe</p>
                   <p>• <strong>Ingreso neto:</strong> Comisiones de plataforma - Costos de Stripe</p>
                 </div>

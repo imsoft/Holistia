@@ -38,5 +38,18 @@
       "source": "/api/auth/:path*",
       "destination": "/api/auth/:path*"
     }
+  ],
+  "redirects": [
+    {
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "holistia.io"
+        }
+      ],
+      "destination": "https://www.holistia.io/:path*",
+      "permanent": true
+    }
   ]
 }

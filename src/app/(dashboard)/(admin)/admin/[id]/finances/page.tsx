@@ -483,6 +483,21 @@ export default function FinancesPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-3">
+                <div className="flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <div className="bg-blue-100 dark:bg-blue-900 p-2 rounded-lg">
+                      <Wallet className="h-4 w-4 text-blue-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium">Comisiones Plataforma</p>
+                      <p className="text-xs text-muted-foreground">15% en transacciones</p>
+                    </div>
+                  </div>
+                  <p className="text-sm font-bold text-blue-600">
+                    +${summary?.platform_fees.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
+                  </p>
+                </div>
+
                 <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
                   <div className="flex items-center gap-3">
                     <div className="bg-background p-2 rounded-lg border">
@@ -510,21 +525,6 @@ export default function FinancesPage() {
                   </div>
                   <p className="text-sm font-bold text-red-600">
                     -${summary?.taxes.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
-                  </p>
-                </div>
-
-                <div className="flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <div className="bg-blue-100 dark:bg-blue-900 p-2 rounded-lg">
-                      <Wallet className="h-4 w-4 text-blue-600" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium">Comisiones Plataforma</p>
-                      <p className="text-xs text-muted-foreground">15% en transacciones</p>
-                    </div>
-                  </div>
-                  <p className="text-sm font-bold text-blue-600">
-                    +${summary?.platform_fees.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
                   </p>
                 </div>
               </div>

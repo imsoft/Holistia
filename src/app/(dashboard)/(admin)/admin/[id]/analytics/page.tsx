@@ -334,7 +334,7 @@ export default function AnalyticsPage() {
       </div>
 
       {/* Main Content */}
-      <div className="p-6 space-y-6">
+      <div className="px-6 py-6 space-y-6">
         {syncMessage && (
           <div className={`p-3 rounded-lg text-sm ${
             syncMessage.startsWith('✅')
@@ -346,7 +346,7 @@ export default function AnalyticsPage() {
         )}
 
       {/* Estadísticas Generales */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 w-full -mx-6 px-6">
         <Card className="py-4">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">

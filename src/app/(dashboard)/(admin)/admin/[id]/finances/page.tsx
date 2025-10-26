@@ -16,6 +16,7 @@ import {
   CheckCircle,
   Clock,
   XCircle,
+  Calculator,
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -604,6 +605,107 @@ export default function FinancesPage() {
                 ))}
               </div>
             )}
+          </CardContent>
+        </Card>
+
+        {/* Ejemplo Detallado de Cálculos */}
+        <Card className="py-4 border-green-200 dark:border-green-900 bg-green-50 dark:bg-green-950/20">
+          <CardHeader>
+            <CardTitle className="text-green-900 dark:text-green-100 flex items-center gap-2">
+              <Calculator className="h-5 w-5" />
+              Ejemplo Detallado de Cálculos
+            </CardTitle>
+            <CardDescription className="text-green-800 dark:text-green-200">
+              Desglose paso a paso con un ejemplo de $700
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {/* Monto Original */}
+              <div className="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-lg border">
+                <div className="flex items-center gap-3">
+                  <div className="bg-green-100 dark:bg-green-900 p-2 rounded-lg">
+                    <DollarSign className="h-4 w-4 text-green-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">Monto Original</p>
+                    <p className="text-xs text-muted-foreground">Cita de $700</p>
+                  </div>
+                </div>
+                <p className="text-sm font-bold text-green-600">$700.00</p>
+              </div>
+
+              {/* Comisiones Stripe */}
+              <div className="space-y-2">
+                <h4 className="text-sm font-semibold text-green-900 dark:text-green-100">Comisiones de Stripe</h4>
+                
+                <div className="flex items-center justify-between p-2 bg-white dark:bg-gray-800 rounded border-l-4 border-red-400">
+                  <div className="flex items-center gap-2">
+                    <CreditCard className="h-4 w-4 text-red-600" />
+                    <span className="text-sm">Comisión base (3.6% + $3)</span>
+                  </div>
+                  <span className="text-sm font-bold text-red-600">$28.20</span>
+                </div>
+
+                <div className="flex items-center justify-between p-2 bg-white dark:bg-gray-800 rounded border-l-4 border-orange-400">
+                  <div className="flex items-center gap-2">
+                    <FileText className="h-4 w-4 text-orange-600" />
+                    <span className="text-sm">IVA sobre Stripe (16%)</span>
+                  </div>
+                  <span className="text-sm font-bold text-orange-600">$4.51</span>
+                </div>
+
+                <div className="flex items-center justify-between p-2 bg-red-50 dark:bg-red-950/20 rounded border-l-4 border-red-500">
+                  <div className="flex items-center gap-2">
+                    <CreditCard className="h-4 w-4 text-red-700" />
+                    <span className="text-sm font-semibold">Comisión total Stripe</span>
+                  </div>
+                  <span className="text-sm font-bold text-red-700">$32.71</span>
+                </div>
+              </div>
+
+              {/* Comisiones Plataforma */}
+              <div className="space-y-2">
+                <h4 className="text-sm font-semibold text-green-900 dark:text-green-100">Comisiones de Holistia</h4>
+                
+                <div className="flex items-center justify-between p-2 bg-blue-50 dark:bg-blue-950/20 rounded border-l-4 border-blue-500">
+                  <div className="flex items-center gap-2">
+                    <Wallet className="h-4 w-4 text-blue-600" />
+                    <span className="text-sm">Comisión plataforma (15%)</span>
+                  </div>
+                  <span className="text-sm font-bold text-blue-600">$105.00</span>
+                </div>
+              </div>
+
+              {/* Resultados Finales */}
+              <div className="space-y-2">
+                <h4 className="text-sm font-semibold text-green-900 dark:text-green-100">Resultados</h4>
+                
+                <div className="flex items-center justify-between p-3 bg-green-50 dark:bg-green-950/20 rounded-lg border-l-4 border-green-500">
+                  <div className="flex items-center gap-2">
+                    <TrendingUp className="h-4 w-4 text-green-600" />
+                    <span className="text-sm font-semibold">Ingreso neto Holistia</span>
+                  </div>
+                  <span className="text-sm font-bold text-green-600">$72.29</span>
+                </div>
+
+                <div className="flex items-center justify-between p-3 bg-purple-50 dark:bg-purple-950/20 rounded-lg border-l-4 border-purple-500">
+                  <div className="flex items-center gap-2">
+                    <Users className="h-4 w-4 text-purple-600" />
+                    <span className="text-sm font-semibold">Profesional recibe</span>
+                  </div>
+                  <span className="text-sm font-bold text-purple-600">$595.00</span>
+                </div>
+              </div>
+
+              {/* Fórmula */}
+              <div className="mt-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                <p className="text-xs text-gray-700 dark:text-gray-300">
+                  <strong>Fórmula:</strong> Ingreso Neto Holistia = Comisión Plataforma - Comisión Total Stripe<br/>
+                  <strong>Resultado:</strong> $105.00 - $32.71 = $72.29
+                </p>
+              </div>
+            </div>
           </CardContent>
         </Card>
 

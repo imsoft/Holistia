@@ -98,21 +98,29 @@ export default function ProfessionalPatients() {
         const uniquePatientIds = [...new Set(appointments.map(apt => apt.patient_id))];
 
         // Obtener información real de pacientes usando consulta directa a las tablas
+        // Forzar actualización del caché agregando timestamp
         const { data: patientsInfo, error: patientsInfoError } = await supabase
           .from('profiles')
           .select('id, first_name, last_name, email, phone')
           .in('id', uniquePatientIds)
           .eq('type', 'patient')
-          .eq('account_active', true);
+          .eq('account_active', true)
+          .order('created_at', { ascending: false });
 
         if (patientsInfoError) {
           console.error('Error obteniendo información de pacientes:', patientsInfoError);
         }
 
+        // Debug: Log de información de pacientes
+        console.log('🔍 DEBUG - Pacientes encontrados:', patientsInfo?.length || 0);
+        console.log('🔍 DEBUG - IDs únicos de pacientes:', uniquePatientIds);
+        console.log('🔍 DEBUG - Datos de pacientes:', patientsInfo);
+
         // Crear un mapa para acceso rápido a la información de pacientes
         const patientsInfoMap = new Map();
         patientsInfo?.forEach(patient => {
           patientsInfoMap.set(patient.id, patient);
+          console.log(`🔍 DEBUG - Paciente mapeado: ${patient.id} -> ${patient.first_name} ${patient.last_name}`);
         });
 
         // Procesar datos de pacientes usando información real
@@ -140,6 +148,14 @@ export default function ProfessionalPatients() {
             `${patientInfo.first_name || ''} ${patientInfo.last_name || ''}`.trim() || 
             `Paciente ${patientId.slice(0, 8)}` : 
             `Paciente ${patientId.slice(0, 8)}`;
+
+          // Debug: Log del nombre construido
+          console.log(`🔍 DEBUG - Construyendo nombre para ${patientId}:`, {
+            patientInfo: patientInfo,
+            firstName: patientInfo?.first_name,
+            lastName: patientInfo?.last_name,
+            constructedName: patientName
+          });
 
           return {
             id: patientId,

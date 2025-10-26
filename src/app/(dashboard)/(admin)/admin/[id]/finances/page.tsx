@@ -590,7 +590,7 @@ export default function FinancesPage() {
                     </div>
                   </div>
                   <p className="text-sm font-bold text-blue-600">
-                    +${summary?.platform_fees.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
+                    +${summary?.platform_fees.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </p>
                 </div>
 
@@ -605,7 +605,7 @@ export default function FinancesPage() {
                     </div>
                   </div>
                   <p className="text-sm font-bold text-red-600">
-                    -${summary?.stripe_fees.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
+                    -${summary?.stripe_fees.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </p>
                 </div>
 
@@ -620,7 +620,7 @@ export default function FinancesPage() {
                     </div>
                   </div>
                   <p className="text-sm font-bold text-red-600">
-                    -${summary?.taxes.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
+                    -${summary?.taxes.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </p>
                 </div>
               </div>
@@ -629,7 +629,7 @@ export default function FinancesPage() {
                 <div className="flex items-center justify-between">
                   <p className="text-sm font-bold">Ingreso Neto Holistia</p>
                   <p className={`text-lg font-bold ${summary && summary.net_income > 0 ? 'text-green-600' : 'text-red-600'}`}>
-                    ${summary?.net_income.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
+                    ${summary?.net_income.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </p>
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">

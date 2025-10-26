@@ -361,7 +361,7 @@ export default function EventRegistrationsPage() {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            <div className="space-y-2">
+            <div className="space-y-2 lg:col-span-1">
               <label className="text-sm font-medium">Buscar</label>
               <div className="relative">
                 <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
@@ -373,10 +373,10 @@ export default function EventRegistrationsPage() {
                 />
               </div>
             </div>
-            <div className="space-y-2">
+            <div className="space-y-2 lg:col-span-1">
               <label className="text-sm font-medium">Estado</label>
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder="Todos los estados" />
                 </SelectTrigger>
                 <SelectContent>
@@ -388,10 +388,10 @@ export default function EventRegistrationsPage() {
                 </SelectContent>
               </Select>
             </div>
-            <div className="space-y-2">
+            <div className="space-y-2 lg:col-span-1">
               <label className="text-sm font-medium">Evento</label>
               <Select value={eventFilter} onValueChange={setEventFilter}>
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder="Todos los eventos" />
                 </SelectTrigger>
                 <SelectContent>

@@ -505,7 +505,7 @@ export default function ProfessionalProfilePage() {
 
     const shareData = {
       title: `${professional.first_name} ${professional.last_name} - ${professional.profession}`,
-      text: `Conoce a ${professional.first_name} ${professional.last_name}, especialista en ${professional.specializations.join(', ')}. ${professional.biography || ''}`,
+      text: `${professional.first_name} ${professional.last_name} - ${professional.specializations.join(', ')} | Reserva tu cita en Holistia`,
       url: window.location.href,
     };
 
@@ -530,7 +530,7 @@ export default function ProfessionalProfilePage() {
   const shareToSocial = (platform: string) => {
     if (!professional) return;
 
-    const shareText = `Conoce a ${professional.first_name} ${professional.last_name}, especialista en ${professional.specializations.join(', ')}`;
+    const shareText = `${professional.first_name} ${professional.last_name} - ${professional.specializations.join(', ')} | Reserva tu cita en Holistia`;
     const url = window.location.href;
     
     let shareUrl = '';

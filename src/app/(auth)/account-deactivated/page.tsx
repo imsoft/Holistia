@@ -55,7 +55,7 @@ export default function AccountDeactivatedPage() {
           </Link>
         </div>
 
-        <Card className="border-destructive/50 shadow-lg">
+        <Card className="py-4 border-destructive/50 shadow-lg">
           <CardHeader className="text-center pb-4">
             <div className="flex justify-center mb-4">
               <div className="rounded-full bg-destructive/10 p-4">

@@ -115,6 +115,7 @@ export default function AnalyticsPage() {
         const appointmentsData = data.appointments;
         const paymentsData = data.payments;
         const professionalsData = data.professionals;
+        const patientsData = data.patients;
 
         console.log('🔍 DEBUG Analytics (from API):');
         console.log('- Appointments:', appointmentsData?.length || 0, appointmentsData);
@@ -186,14 +187,21 @@ export default function AnalyticsPage() {
 
           // Convertir patientMap a array y ordenar por número de citas
           const topPats = Array.from(patientMap.entries())
-            .map(([patientId, stats]) => ({
-              id: patientId,
-              full_name: `Paciente ${patientId.slice(0, 8)}`, // Mostrar solo parte del ID por privacidad
-              email: 'No disponible',
-              avatar_url: null,
-              appointment_count: stats.count,
-              total_spent: stats.spent,
-            }))
+            .map(([patientId, stats]) => {
+              // Buscar datos reales del paciente
+              const patientData = patientsData?.find((p: { id: string; first_name: string; last_name: string; email: string; avatar_url: string | null }) => p.id === patientId);
+              
+              return {
+                id: patientId,
+                full_name: patientData 
+                  ? `${patientData.first_name} ${patientData.last_name}`.trim()
+                  : `Paciente ${patientId.slice(0, 8)}`, // Fallback si no se encuentra
+                email: patientData?.email || 'No disponible',
+                avatar_url: patientData?.avatar_url || null,
+                appointment_count: stats.count,
+                total_spent: stats.spent,
+              };
+            })
             .sort((a, b) => b.appointment_count - a.appointment_count)
             .slice(0, 5);
 

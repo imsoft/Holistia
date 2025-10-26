@@ -42,12 +42,14 @@ export async function GET() {
       { data: appointmentsData, error: appointmentsError },
       { data: paymentsData, error: paymentsError },
       { data: professionalsData, error: professionalsError },
+      { data: patientsData, error: patientsError },
     ] = await Promise.all([
       supabase.from('professional_applications').select('*', { count: 'exact', head: true }).eq('status', 'approved'),
       supabase.from('professional_applications').select('*', { count: 'exact', head: true }).eq('status', 'approved').eq('is_active', true),
       supabase.from('appointments').select('*'),
       supabase.from('payments').select('*').eq('status', 'succeeded'),
       supabase.from('professional_applications').select('id, first_name, last_name, profile_photo, profession').eq('status', 'approved'),
+      supabase.from('profiles').select('id, first_name, last_name, email, avatar_url').eq('type', 'patient').eq('account_active', true),
     ]);
 
     if (appointmentsError) {
@@ -62,10 +64,15 @@ export async function GET() {
       console.error('❌ Error fetching professionals:', professionalsError);
     }
 
+    if (patientsError) {
+      console.error('❌ Error fetching patients:', patientsError);
+    }
+
     console.log('✅ Data fetched:');
     console.log('- Appointments:', appointmentsData?.length || 0);
     console.log('- Payments:', paymentsData?.length || 0);
     console.log('- Professionals:', professionalsCount);
+    console.log('- Patients:', patientsData?.length || 0);
 
     return NextResponse.json({
       professionals_count: professionalsCount || 0,
@@ -73,6 +80,7 @@ export async function GET() {
       appointments: appointmentsData || [],
       payments: paymentsData || [],
       professionals: professionalsData || [],
+      patients: patientsData || [],
     });
 
   } catch (error) {

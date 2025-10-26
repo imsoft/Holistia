@@ -78,6 +78,32 @@ export default function FinancesPage() {
   const [registrationAmount, setRegistrationAmount] = useState(1000);
   const supabase = createClient();
 
+  // Función para obtener el nombre del período actual
+  const getCurrentPeriodName = (period: string) => {
+    const now = new Date();
+    const month = now.getMonth();
+    const year = now.getFullYear();
+    
+    const monthNames = [
+      'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+      'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+    ];
+    
+    const quarterNames = ['Q1', 'Q2', 'Q3', 'Q4'];
+    const quarter = Math.floor(month / 3);
+    
+    switch (period) {
+      case 'month':
+        return `Este Mes (${monthNames[month]})`;
+      case 'quarter':
+        return `Este Trimestre (${quarterNames[quarter]})`;
+      case 'year':
+        return `Este Año (${year})`;
+      default:
+        return 'Este Mes';
+    }
+  };
+
   // Función para calcular valores del ejemplo (Citas - 15% comisión)
   const calculateExampleValues = (amount: number) => {
     const stripeBase = (amount * 0.036) + 3;
@@ -431,9 +457,9 @@ export default function FinancesPage() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="month">Este Mes</SelectItem>
-                <SelectItem value="quarter">Este Trimestre</SelectItem>
-                <SelectItem value="year">Este Año</SelectItem>
+                <SelectItem value="month">{getCurrentPeriodName('month')}</SelectItem>
+                <SelectItem value="quarter">{getCurrentPeriodName('quarter')}</SelectItem>
+                <SelectItem value="year">{getCurrentPeriodName('year')}</SelectItem>
               </SelectContent>
             </Select>
           </div>

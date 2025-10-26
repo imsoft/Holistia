@@ -29,6 +29,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 // Interfaces
 interface FinancialMetric {
@@ -71,7 +73,28 @@ export default function FinancesPage() {
   const [metrics, setMetrics] = useState<FinancialMetric[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedPeriod, setSelectedPeriod] = useState("month");
+  const [exampleAmount, setExampleAmount] = useState(700);
   const supabase = createClient();
+
+  // Función para calcular valores del ejemplo
+  const calculateExampleValues = (amount: number) => {
+    const stripeBase = (amount * 0.036) + 3;
+    const stripeTax = stripeBase * 0.16;
+    const stripeTotal = stripeBase + stripeTax;
+    const platformFee = amount * 0.15;
+    const netIncome = platformFee - stripeTotal;
+    const professionalReceives = amount - platformFee;
+
+    return {
+      amount,
+      stripeBase: Math.round(stripeBase * 100) / 100,
+      stripeTax: Math.round(stripeTax * 100) / 100,
+      stripeTotal: Math.round(stripeTotal * 100) / 100,
+      platformFee: Math.round(platformFee * 100) / 100,
+      netIncome: Math.round(netIncome * 100) / 100,
+      professionalReceives: Math.round(professionalReceives * 100) / 100,
+    };
+  };
 
   // Cargar datos financieros
   useEffect(() => {
@@ -616,11 +639,35 @@ export default function FinancesPage() {
               Ejemplo Detallado de Cálculos
             </CardTitle>
             <CardDescription className="text-green-800 dark:text-green-200">
-              Desglose paso a paso con un ejemplo de $700
+              Desglose paso a paso - Cambia el monto para ver los cálculos
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
+              {/* Input para cambiar el monto */}
+              <div className="flex items-center gap-4 p-3 bg-white dark:bg-gray-800 rounded-lg border">
+                <div className="flex items-center gap-2">
+                  <Label htmlFor="example-amount" className="text-sm font-medium">
+                    Monto del ejemplo:
+                  </Label>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-muted-foreground">$</span>
+                    <Input
+                      id="example-amount"
+                      type="number"
+                      value={exampleAmount}
+                      onChange={(e) => setExampleAmount(Number(e.target.value) || 0)}
+                      className="w-24 h-8 text-sm"
+                      min="0"
+                      step="0.01"
+                    />
+                  </div>
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  Los cálculos se actualizan automáticamente
+                </div>
+              </div>
+
               {/* Monto Original */}
               <div className="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-lg border">
                 <div className="flex items-center gap-3">
@@ -629,10 +676,10 @@ export default function FinancesPage() {
                   </div>
                   <div>
                     <p className="text-sm font-medium">Monto Original</p>
-                    <p className="text-xs text-muted-foreground">Cita de $700</p>
+                    <p className="text-xs text-muted-foreground">Cita de ${exampleAmount}</p>
                   </div>
                 </div>
-                <p className="text-sm font-bold text-green-600">$700.00</p>
+                <p className="text-sm font-bold text-green-600">${exampleAmount.toFixed(2)}</p>
               </div>
 
               {/* Comisiones Stripe */}
@@ -644,7 +691,7 @@ export default function FinancesPage() {
                     <CreditCard className="h-4 w-4 text-red-600" />
                     <span className="text-sm">Comisión base (3.6% + $3)</span>
                   </div>
-                  <span className="text-sm font-bold text-red-600">$28.20</span>
+                  <span className="text-sm font-bold text-red-600">${calculateExampleValues(exampleAmount).stripeBase.toFixed(2)}</span>
                 </div>
 
                 <div className="flex items-center justify-between p-2 bg-white dark:bg-gray-800 rounded border-l-4 border-orange-400">
@@ -652,7 +699,7 @@ export default function FinancesPage() {
                     <FileText className="h-4 w-4 text-orange-600" />
                     <span className="text-sm">IVA sobre Stripe (16%)</span>
                   </div>
-                  <span className="text-sm font-bold text-orange-600">$4.51</span>
+                  <span className="text-sm font-bold text-orange-600">${calculateExampleValues(exampleAmount).stripeTax.toFixed(2)}</span>
                 </div>
 
                 <div className="flex items-center justify-between p-2 bg-red-50 dark:bg-red-950/20 rounded border-l-4 border-red-500">
@@ -660,7 +707,7 @@ export default function FinancesPage() {
                     <CreditCard className="h-4 w-4 text-red-700" />
                     <span className="text-sm font-semibold">Comisión total Stripe</span>
                   </div>
-                  <span className="text-sm font-bold text-red-700">$32.71</span>
+                  <span className="text-sm font-bold text-red-700">${calculateExampleValues(exampleAmount).stripeTotal.toFixed(2)}</span>
                 </div>
               </div>
 
@@ -673,7 +720,7 @@ export default function FinancesPage() {
                     <Wallet className="h-4 w-4 text-blue-600" />
                     <span className="text-sm">Comisión plataforma (15%)</span>
                   </div>
-                  <span className="text-sm font-bold text-blue-600">$105.00</span>
+                  <span className="text-sm font-bold text-blue-600">${calculateExampleValues(exampleAmount).platformFee.toFixed(2)}</span>
                 </div>
               </div>
 
@@ -686,7 +733,7 @@ export default function FinancesPage() {
                     <TrendingUp className="h-4 w-4 text-green-600" />
                     <span className="text-sm font-semibold">Ingreso neto Holistia</span>
                   </div>
-                  <span className="text-sm font-bold text-green-600">$72.29</span>
+                  <span className="text-sm font-bold text-green-600">${calculateExampleValues(exampleAmount).netIncome.toFixed(2)}</span>
                 </div>
 
                 <div className="flex items-center justify-between p-3 bg-purple-50 dark:bg-purple-950/20 rounded-lg border-l-4 border-purple-500">
@@ -694,7 +741,7 @@ export default function FinancesPage() {
                     <Users className="h-4 w-4 text-purple-600" />
                     <span className="text-sm font-semibold">Profesional recibe</span>
                   </div>
-                  <span className="text-sm font-bold text-purple-600">$595.00</span>
+                  <span className="text-sm font-bold text-purple-600">${calculateExampleValues(exampleAmount).professionalReceives.toFixed(2)}</span>
                 </div>
               </div>
 
@@ -702,7 +749,7 @@ export default function FinancesPage() {
               <div className="mt-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
                 <p className="text-xs text-gray-700 dark:text-gray-300">
                   <strong>Fórmula:</strong> Ingreso Neto Holistia = Comisión Plataforma - Comisión Total Stripe<br/>
-                  <strong>Resultado:</strong> $105.00 - $32.71 = $72.29
+                  <strong>Resultado:</strong> ${calculateExampleValues(exampleAmount).platformFee.toFixed(2)} - ${calculateExampleValues(exampleAmount).stripeTotal.toFixed(2)} = ${calculateExampleValues(exampleAmount).netIncome.toFixed(2)}
                 </p>
               </div>
             </div>

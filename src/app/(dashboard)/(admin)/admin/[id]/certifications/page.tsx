@@ -200,7 +200,7 @@ El equipo de Holistia`;
             </div>
 
             {/* Lista de Profesionales */}
-            <div className="max-h-60 overflow-y-auto space-y-2">
+            <div className="max-h-80 overflow-y-auto space-y-2">
               {loading ? (
                 <div className="text-center py-4 text-sm text-muted-foreground">
                   Cargando profesionales...

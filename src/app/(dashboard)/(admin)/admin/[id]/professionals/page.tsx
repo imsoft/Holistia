@@ -406,6 +406,8 @@ export default function AdminProfessionals() {
 
   // Función para abrir el diálogo de edición de wellness areas
   const handleOpenEditWellnessAreas = (professional: Professional) => {
+    console.log('🔍 Opening wellness areas editor for:', professional.first_name, professional.last_name);
+    console.log('📋 Current wellness_areas:', professional.wellness_areas);
     setSelectedProfessional(professional);
     setEditingWellnessAreas(professional.wellness_areas || []);
     setIsEditWellnessDialogOpen(true);
@@ -427,12 +429,19 @@ export default function AdminProfessionals() {
     try {
       setActionLoading(selectedProfessional.id);
 
+      console.log('💾 Saving wellness_areas:', editingWellnessAreas);
+
       const { error } = await supabase
         .from('professional_applications')
         .update({ wellness_areas: editingWellnessAreas })
         .eq('id', selectedProfessional.id);
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Error saving:', error);
+        throw error;
+      }
+
+      console.log('✅ Saved successfully!');
 
       // Actualizar el estado local
       setProfessionals(prev =>
@@ -1160,7 +1169,7 @@ export default function AdminProfessionals() {
             <div className="space-y-4">
               <div className="bg-muted/50 rounded-lg p-4">
                 <h4 className="font-medium mb-2">Profesional:</h4>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-muted-foreground whitespace-nowrap overflow-hidden text-ellipsis">
                   {selectedProfessional.first_name} {selectedProfessional.last_name}
                 </p>
                 <p className="text-sm text-muted-foreground">
@@ -1170,25 +1179,33 @@ export default function AdminProfessionals() {
 
               <div className="space-y-3">
                 <Label>Selecciona las áreas de bienestar:</Label>
+                {(() => {
+                  console.log('🎨 Rendering wellness areas. Current editingWellnessAreas:', editingWellnessAreas);
+                  return null;
+                })()}
                 <div className="grid grid-cols-1 gap-2">
-                  {wellnessAreaOptions.map((area) => (
-                    <button
-                      key={area}
-                      onClick={() => handleToggleWellnessArea(area)}
-                      className={`p-3 text-left text-sm rounded-lg border-2 transition-colors ${
-                        editingWellnessAreas.includes(area)
-                          ? "border-primary bg-primary/10 text-primary font-medium"
-                          : "border-border hover:border-primary/50"
-                      }`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <span>{area}</span>
-                        {editingWellnessAreas.includes(area) && (
-                          <CheckCircle className="h-4 w-4" />
-                        )}
-                      </div>
-                    </button>
-                  ))}
+                  {wellnessAreaOptions.map((area) => {
+                    const isSelected = editingWellnessAreas.includes(area);
+                    console.log(`  - ${area}: ${isSelected ? '✅ Selected' : '⬜ Not selected'}`);
+                    return (
+                      <button
+                        key={area}
+                        onClick={() => handleToggleWellnessArea(area)}
+                        className={`p-3 text-left text-sm rounded-lg border-2 transition-colors ${
+                          isSelected
+                            ? "border-primary bg-primary/10 text-primary font-medium"
+                            : "border-border hover:border-primary/50"
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span>{area}</span>
+                          {isSelected && (
+                            <CheckCircle className="h-4 w-4" />
+                          )}
+                        </div>
+                      </button>
+                    );
+                  })}
                 </div>
                 <p className="text-xs text-muted-foreground">
                   Seleccionadas: {editingWellnessAreas.length} de {wellnessAreaOptions.length}

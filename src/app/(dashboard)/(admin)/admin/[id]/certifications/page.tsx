@@ -177,7 +177,7 @@ El equipo de Holistia`;
       {/* Main Content */}
       <div className="p-4 sm:p-6 space-y-6">
         {/* Selección de Profesional */}
-        <Card>
+        <Card className="py-4">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <User className="h-5 w-5" />
@@ -250,7 +250,7 @@ El equipo de Holistia`;
 
         {/* Formulario de Email */}
         {selectedProfessional && (
-          <Card>
+          <Card className="py-4">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Mail className="h-5 w-5" />

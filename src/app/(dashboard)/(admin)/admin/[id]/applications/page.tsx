@@ -15,6 +15,7 @@ import {
   Mail,
   Search,
   Download,
+  Instagram,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -47,6 +48,7 @@ interface ProfessionalApplication {
   last_name: string;
   email: string;
   phone?: string;
+  instagram?: string;
   profession: string;
   specializations: string[];
   experience: string;
@@ -483,6 +485,19 @@ export default function ApplicationsPage() {
                               {application.phone}
                             </span>
                           )}
+                          {application.instagram && (
+                            <span className="flex items-center">
+                              <Instagram className="h-4 w-4 mr-1 text-pink-600" />
+                              <a 
+                                href={`https://instagram.com/${application.instagram.replace('@', '')}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-pink-600 hover:text-pink-700 underline text-sm"
+                              >
+                                @{application.instagram.replace('@', '')}
+                              </a>
+                            </span>
+                          )}
                         </CardDescription>
               </div>
               </div>
@@ -557,6 +572,22 @@ export default function ApplicationsPage() {
                                   <div className="space-y-2">
                                     <Label className="text-sm font-medium text-muted-foreground">Teléfono</Label>
                                     <p className="text-base">{application.phone}</p>
+                                  </div>
+                                )}
+                                {application.instagram && (
+                                  <div className="space-y-2">
+                                    <Label className="text-sm font-medium text-muted-foreground">Instagram</Label>
+                                    <p className="text-base flex items-center">
+                                      <Instagram className="h-4 w-4 mr-2 text-pink-600" />
+                                      <a 
+                                        href={`https://instagram.com/${application.instagram.replace('@', '')}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-pink-600 hover:text-pink-700 underline"
+                                      >
+                                        @{application.instagram.replace('@', '')}
+                                      </a>
+                                    </p>
                                   </div>
                                 )}
                                 <div className="space-y-2">

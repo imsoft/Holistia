@@ -87,14 +87,13 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-      { url: "/favicon.ico" },
-      { url: "/logos/holistia-black.png", sizes: "192x192", type: "image/png" },
+      { url: "/logos/holistia-logo-square-black.png", sizes: "32x32", type: "image/png" },
+      { url: "/logos/holistia-logo-square-black.png", sizes: "192x192", type: "image/png" },
     ],
     apple: [
-      { url: "/logos/holistia-black.png" },
-      { url: "/logos/holistia-black.png", sizes: "180x180", type: "image/png" },
+      { url: "/logos/holistia-logo-square-black.png", sizes: "180x180", type: "image/png" },
     ],
-    shortcut: "/favicon.ico",
+    shortcut: "/logos/holistia-logo-square-black.png",
   },
   manifest: "/manifest.json",
   verification: {

@@ -5,20 +5,32 @@
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
-  "theme_color": "#000000",
+  "theme_color": "#E9416B",
   "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "/logos/holistia-black.png",
+      "src": "/logos/holistia-logo-square-black.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "maskable any"
+      "purpose": "any"
     },
     {
-      "src": "/logos/holistia-black.png",
+      "src": "/logos/holistia-logo-square-black.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "maskable any"
+      "purpose": "any"
+    },
+    {
+      "src": "/logos/holistia-logo-square-black.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/logos/holistia-logo-square-black.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ],
   "categories": ["health", "wellness", "medical", "lifestyle"],

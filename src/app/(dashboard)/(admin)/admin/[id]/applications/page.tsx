@@ -487,7 +487,7 @@ export default function ApplicationsPage() {
                           )}
                           {application.instagram && (
                             <span className="flex items-center">
-                              <Instagram className="h-4 w-4 mr-1 text-pink-600" />
+                              <Instagram className="h-4 w-4 mr-1 text-gray-600" />
                               <a 
                                 href={`https://instagram.com/${application.instagram.replace('@', '')}`}
                                 target="_blank"
@@ -578,7 +578,7 @@ export default function ApplicationsPage() {
                                   <div className="space-y-2">
                                     <Label className="text-sm font-medium text-muted-foreground">Instagram</Label>
                                     <p className="text-base flex items-center">
-                                      <Instagram className="h-4 w-4 mr-2 text-pink-600" />
+                                      <Instagram className="h-4 w-4 mr-2 text-gray-600" />
                                       <a 
                                         href={`https://instagram.com/${application.instagram.replace('@', '')}`}
                                         target="_blank"

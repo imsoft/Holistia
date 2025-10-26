@@ -4,11 +4,11 @@ import Link from "next/link";
 
 export const HeroSection = () => {
   return (
-    <div className="bg-background">
+    <div className="bg-background min-h-screen flex flex-col">
       <Navbar />
 
-      <main>
-        <div className="relative isolate">
+      <main className="flex-1 flex items-center">
+        <div className="relative isolate w-full">
           <div
             aria-hidden="true"
             className="absolute top-0 right-0 left-1/2 z-[9999] -ml-24 transform-gpu overflow-hidden blur-3xl lg:ml-24 xl:ml-48"
@@ -22,7 +22,7 @@ export const HeroSection = () => {
             />
           </div>
           <div className="relative">
-            <div className="mx-auto max-w-7xl px-6 pt-16 pb-32 sm:pt-20 sm:pb-36 lg:px-8 lg:pt-24 lg:pb-40">
+            <div className="mx-auto max-w-7xl px-6 py-8 sm:py-12 lg:px-8 lg:py-16">
               <div className="mx-auto max-w-2xl gap-x-14 lg:mx-0 lg:flex lg:max-w-none lg:items-center">
                 <div className="relative w-full lg:max-w-xl lg:shrink-0 xl:max-w-2xl">
                   <h1 className="text-5xl font-semibold tracking-tight text-pretty text-foreground sm:text-7xl animate-in slide-in-from-bottom-12 fade-in duration-1200 delay-200 fill-mode-both">

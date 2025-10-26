@@ -505,7 +505,7 @@ export default function ProfessionalProfilePage() {
 
     const shareData = {
       title: `${professional.first_name} ${professional.last_name} - ${professional.profession}`,
-      text: `${professional.first_name} ${professional.last_name} - ${professional.specializations.join(', ')} | Reserva tu cita en Holistia`,
+      text: `${professional.first_name} ${professional.last_name} - ${professional.specializations.join(', ')} | Reserva tu cita en Holistia\n${window.location.href}`,
       url: window.location.href,
     };
 
@@ -532,18 +532,18 @@ export default function ProfessionalProfilePage() {
 
     const shareText = `${professional.first_name} ${professional.last_name} - ${professional.specializations.join(', ')} | Reserva tu cita en Holistia`;
     const url = window.location.href;
-    
+
     let shareUrl = '';
-    
+
     switch (platform) {
       case 'whatsapp':
-        shareUrl = `https://wa.me/?text=${encodeURIComponent(`${shareText} ${url}`)}`;
+        shareUrl = `https://wa.me/?text=${encodeURIComponent(`${shareText}\n${url}`)}`;
         break;
       case 'facebook':
         shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}&quote=${encodeURIComponent(shareText)}`;
         break;
       case 'twitter':
-        shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(url)}`;
+        shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(`${shareText}\n${url}`)}`;
         break;
       case 'linkedin':
         shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}&summary=${encodeURIComponent(shareText)}`;
@@ -555,7 +555,7 @@ export default function ProfessionalProfilePage() {
         shareUrl = `mailto:?subject=${encodeURIComponent(`${professional.first_name} ${professional.last_name} - ${professional.profession}`)}&body=${encodeURIComponent(`${shareText}\n\n${url}`)}`;
         break;
       case 'copy':
-        navigator.clipboard.writeText(url);
+        navigator.clipboard.writeText(`${shareText}\n${url}`);
         toast.success('Enlace copiado al portapapeles');
         setIsShareModalOpen(false);
         return;

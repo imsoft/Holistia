@@ -74,9 +74,11 @@ export default function FinancesPage() {
   const [loading, setLoading] = useState(true);
   const [selectedPeriod, setSelectedPeriod] = useState("month");
   const [exampleAmount, setExampleAmount] = useState(700);
+  const [eventAmount, setEventAmount] = useState(500);
+  const [registrationAmount, setRegistrationAmount] = useState(1000);
   const supabase = createClient();
 
-  // Función para calcular valores del ejemplo
+  // Función para calcular valores del ejemplo (Citas - 15% comisión)
   const calculateExampleValues = (amount: number) => {
     const stripeBase = (amount * 0.036) + 3;
     const stripeTax = stripeBase * 0.16;
@@ -90,6 +92,44 @@ export default function FinancesPage() {
       stripeBase: Math.round(stripeBase * 100) / 100,
       stripeTax: Math.round(stripeTax * 100) / 100,
       stripeTotal: Math.round(stripeTotal * 100) / 100,
+      platformFee: Math.round(platformFee * 100) / 100,
+      netIncome: Math.round(netIncome * 100) / 100,
+      professionalReceives: Math.round(professionalReceives * 100) / 100,
+    };
+  };
+
+  // Función para calcular valores de eventos (25% comisión con Connect)
+  const calculateEventValues = (amount: number) => {
+    const stripeBase = (amount * 0.036) + 3;
+    const stripeTax = stripeBase * 0.16;
+    const stripeTotal = stripeBase + stripeTax;
+    const platformFee = amount * 0.25; // 25% para eventos
+    const netIncome = platformFee - stripeTotal;
+    const professionalReceives = amount - platformFee;
+
+    return {
+      amount,
+      stripeBase: Math.round(stripeBase * 100) / 100,
+      stripeTax: Math.round(stripeTax * 100) / 100,
+      stripeTotal: Math.round(stripeTotal * 100) / 100,
+      platformFee: Math.round(platformFee * 100) / 100,
+      netIncome: Math.round(netIncome * 100) / 100,
+      professionalReceives: Math.round(professionalReceives * 100) / 100,
+    };
+  };
+
+  // Función para calcular valores de inscripciones (Sin Connect - Directo)
+  const calculateRegistrationValues = (amount: number) => {
+    // Las inscripciones no tienen comisiones de Stripe, son directas
+    const platformFee = amount * 0.15; // 15% para inscripciones
+    const netIncome = platformFee; // Sin costos de Stripe
+    const professionalReceives = amount - platformFee;
+
+    return {
+      amount,
+      stripeBase: 0,
+      stripeTax: 0,
+      stripeTotal: 0,
       platformFee: Math.round(platformFee * 100) / 100,
       netIncome: Math.round(netIncome * 100) / 100,
       professionalReceives: Math.round(professionalReceives * 100) / 100,
@@ -756,6 +796,240 @@ export default function FinancesPage() {
           </CardContent>
         </Card>
 
+        {/* Ejemplo de Cálculo para Eventos */}
+        <Card className="py-4 border-purple-200 dark:border-purple-900 bg-purple-50 dark:bg-purple-950/20">
+          <CardHeader>
+            <CardTitle className="text-purple-900 dark:text-purple-100 flex items-center gap-2">
+              <CalendarDays className="h-5 w-5" />
+              Cálculo para Eventos (25% comisión con Connect)
+            </CardTitle>
+            <CardDescription className="text-purple-800 dark:text-purple-200">
+              Eventos con comisión del 25% y procesamiento con Stripe Connect
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {/* Input para cambiar el monto del evento */}
+              <div className="flex items-center gap-4 p-3 bg-white dark:bg-gray-800 rounded-lg border">
+                <div className="flex items-center gap-2">
+                  <Label htmlFor="event-amount" className="text-sm font-medium">
+                    Monto del evento:
+                  </Label>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-muted-foreground">$</span>
+                    <Input
+                      id="event-amount"
+                      type="number"
+                      value={eventAmount}
+                      onChange={(e) => setEventAmount(Number(e.target.value) || 0)}
+                      className="w-24 h-8 text-sm"
+                      min="0"
+                      step="0.01"
+                    />
+                  </div>
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  Comisión: 25% + Stripe Connect
+                </div>
+              </div>
+
+              {/* Monto Original */}
+              <div className="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-lg border">
+                <div className="flex items-center gap-3">
+                  <div className="bg-purple-100 dark:bg-purple-900 p-2 rounded-lg">
+                    <DollarSign className="h-4 w-4 text-purple-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">Monto Original</p>
+                    <p className="text-xs text-muted-foreground">Evento de ${eventAmount}</p>
+                  </div>
+                </div>
+                <p className="text-sm font-bold text-purple-600">${eventAmount.toFixed(2)}</p>
+              </div>
+
+              {/* Comisiones Stripe */}
+              <div className="space-y-2">
+                <h4 className="text-sm font-semibold text-purple-900 dark:text-purple-100">Comisiones de Stripe</h4>
+                
+                <div className="flex items-center justify-between p-2 bg-white dark:bg-gray-800 rounded border-l-4 border-red-400">
+                  <div className="flex items-center gap-2">
+                    <CreditCard className="h-4 w-4 text-red-600" />
+                    <span className="text-sm">Comisión base (3.6% + $3)</span>
+                  </div>
+                  <span className="text-sm font-bold text-red-600">${calculateEventValues(eventAmount).stripeBase.toFixed(2)}</span>
+                </div>
+
+                <div className="flex items-center justify-between p-2 bg-white dark:bg-gray-800 rounded border-l-4 border-orange-400">
+                  <div className="flex items-center gap-2">
+                    <FileText className="h-4 w-4 text-orange-600" />
+                    <span className="text-sm">IVA sobre Stripe (16%)</span>
+                  </div>
+                  <span className="text-sm font-bold text-orange-600">${calculateEventValues(eventAmount).stripeTax.toFixed(2)}</span>
+                </div>
+
+                <div className="flex items-center justify-between p-2 bg-red-50 dark:bg-red-950/20 rounded border-l-4 border-red-500">
+                  <div className="flex items-center gap-2">
+                    <CreditCard className="h-4 w-4 text-red-700" />
+                    <span className="text-sm font-semibold">Comisión total Stripe</span>
+                  </div>
+                  <span className="text-sm font-bold text-red-700">${calculateEventValues(eventAmount).stripeTotal.toFixed(2)}</span>
+                </div>
+              </div>
+
+              {/* Comisiones Plataforma */}
+              <div className="space-y-2">
+                <h4 className="text-sm font-semibold text-purple-900 dark:text-purple-100">Comisiones de Holistia</h4>
+                
+                <div className="flex items-center justify-between p-2 bg-purple-50 dark:bg-purple-950/20 rounded border-l-4 border-purple-500">
+                  <div className="flex items-center gap-2">
+                    <Wallet className="h-4 w-4 text-purple-600" />
+                    <span className="text-sm">Comisión plataforma (25%)</span>
+                  </div>
+                  <span className="text-sm font-bold text-purple-600">${calculateEventValues(eventAmount).platformFee.toFixed(2)}</span>
+                </div>
+              </div>
+
+              {/* Resultados Finales */}
+              <div className="space-y-2">
+                <h4 className="text-sm font-semibold text-purple-900 dark:text-purple-100">Resultados</h4>
+                
+                <div className="flex items-center justify-between p-3 bg-green-50 dark:bg-green-950/20 rounded-lg border-l-4 border-green-500">
+                  <div className="flex items-center gap-2">
+                    <TrendingUp className="h-4 w-4 text-green-600" />
+                    <span className="text-sm font-semibold">Ingreso neto Holistia</span>
+                  </div>
+                  <span className="text-sm font-bold text-green-600">${calculateEventValues(eventAmount).netIncome.toFixed(2)}</span>
+                </div>
+
+                <div className="flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg border-l-4 border-blue-500">
+                  <div className="flex items-center gap-2">
+                    <Users className="h-4 w-4 text-blue-600" />
+                    <span className="text-sm font-semibold">Profesional recibe</span>
+                  </div>
+                  <span className="text-sm font-bold text-blue-600">${calculateEventValues(eventAmount).professionalReceives.toFixed(2)}</span>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Ejemplo de Cálculo para Inscripciones */}
+        <Card className="py-4 border-orange-200 dark:border-orange-900 bg-orange-50 dark:bg-orange-950/20">
+          <CardHeader>
+            <CardTitle className="text-orange-900 dark:text-orange-100 flex items-center gap-2">
+              <Users className="h-5 w-5" />
+              Cálculo para Inscripciones (15% comisión directa)
+            </CardTitle>
+            <CardDescription className="text-orange-800 dark:text-orange-200">
+              Inscripciones profesionales sin Stripe Connect - Pago directo
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {/* Input para cambiar el monto de inscripción */}
+              <div className="flex items-center gap-4 p-3 bg-white dark:bg-gray-800 rounded-lg border">
+                <div className="flex items-center gap-2">
+                  <Label htmlFor="registration-amount" className="text-sm font-medium">
+                    Monto de inscripción:
+                  </Label>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-muted-foreground">$</span>
+                    <Input
+                      id="registration-amount"
+                      type="number"
+                      value={registrationAmount}
+                      onChange={(e) => setRegistrationAmount(Number(e.target.value) || 0)}
+                      className="w-24 h-8 text-sm"
+                      min="0"
+                      step="0.01"
+                    />
+                  </div>
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  Pago directo - Sin Stripe Connect
+                </div>
+              </div>
+
+              {/* Monto Original */}
+              <div className="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-lg border">
+                <div className="flex items-center gap-3">
+                  <div className="bg-orange-100 dark:bg-orange-900 p-2 rounded-lg">
+                    <DollarSign className="h-4 w-4 text-orange-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">Monto Original</p>
+                    <p className="text-xs text-muted-foreground">Inscripción de ${registrationAmount}</p>
+                  </div>
+                </div>
+                <p className="text-sm font-bold text-orange-600">${registrationAmount.toFixed(2)}</p>
+              </div>
+
+              {/* Sin Comisiones Stripe */}
+              <div className="space-y-2">
+                <h4 className="text-sm font-semibold text-orange-900 dark:text-orange-100">Comisiones de Stripe</h4>
+                
+                <div className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-800 rounded border-l-4 border-gray-400">
+                  <div className="flex items-center gap-2">
+                    <CreditCard className="h-4 w-4 text-gray-600" />
+                    <span className="text-sm">Sin comisiones Stripe</span>
+                  </div>
+                  <span className="text-sm font-bold text-gray-600">$0.00</span>
+                </div>
+
+                <div className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-800 rounded border-l-4 border-gray-400">
+                  <div className="flex items-center gap-2">
+                    <FileText className="h-4 w-4 text-gray-600" />
+                    <span className="text-sm">Sin IVA sobre Stripe</span>
+                  </div>
+                  <span className="text-sm font-bold text-gray-600">$0.00</span>
+                </div>
+              </div>
+
+              {/* Comisiones Plataforma */}
+              <div className="space-y-2">
+                <h4 className="text-sm font-semibold text-orange-900 dark:text-orange-100">Comisiones de Holistia</h4>
+                
+                <div className="flex items-center justify-between p-2 bg-orange-50 dark:bg-orange-950/20 rounded border-l-4 border-orange-500">
+                  <div className="flex items-center gap-2">
+                    <Wallet className="h-4 w-4 text-orange-600" />
+                    <span className="text-sm">Comisión plataforma (15%)</span>
+                  </div>
+                  <span className="text-sm font-bold text-orange-600">${calculateRegistrationValues(registrationAmount).platformFee.toFixed(2)}</span>
+                </div>
+              </div>
+
+              {/* Resultados Finales */}
+              <div className="space-y-2">
+                <h4 className="text-sm font-semibold text-orange-900 dark:text-orange-100">Resultados</h4>
+                
+                <div className="flex items-center justify-between p-3 bg-green-50 dark:bg-green-950/20 rounded-lg border-l-4 border-green-500">
+                  <div className="flex items-center gap-2">
+                    <TrendingUp className="h-4 w-4 text-green-600" />
+                    <span className="text-sm font-semibold">Ingreso neto Holistia</span>
+                  </div>
+                  <span className="text-sm font-bold text-green-600">${calculateRegistrationValues(registrationAmount).netIncome.toFixed(2)}</span>
+                </div>
+
+                <div className="flex items-center justify-between p-3 bg-purple-50 dark:bg-purple-950/20 rounded-lg border-l-4 border-purple-500">
+                  <div className="flex items-center gap-2">
+                    <Users className="h-4 w-4 text-purple-600" />
+                    <span className="text-sm font-semibold">Profesional recibe</span>
+                  </div>
+                  <span className="text-sm font-bold text-purple-600">${calculateRegistrationValues(registrationAmount).professionalReceives.toFixed(2)}</span>
+                </div>
+              </div>
+
+              {/* Fórmula para inscripciones */}
+              <div className="mt-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                <p className="text-xs text-gray-700 dark:text-gray-300">
+                  <strong>Fórmula:</strong> Ingreso Neto Holistia = Comisión Plataforma (Sin costos Stripe)<br/>
+                  <strong>Resultado:</strong> ${calculateRegistrationValues(registrationAmount).platformFee.toFixed(2)} - $0.00 = ${calculateRegistrationValues(registrationAmount).netIncome.toFixed(2)}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Nota Informativa */}
         <Card className="py-4 border-blue-200 dark:border-blue-900 bg-blue-50 dark:bg-blue-950/20">
           <CardContent className="pt-6">
@@ -770,10 +1044,11 @@ export default function FinancesPage() {
                   Nota sobre el cálculo de ingresos
                 </h3>
                 <div className="text-xs text-blue-800 dark:text-blue-200 space-y-1">
-                  <p>• <strong>Comisiones de Stripe:</strong> Se calculan como 3.6% + $3 MXN por transacción</p>
-                  <p>• <strong>Comisiones de la plataforma:</strong> 15% sobre el monto de cada transacción</p>
-                  <p>• <strong>Impuestos:</strong> IVA del 16% se aplica solo sobre las comisiones de Stripe</p>
-                  <p>• <strong>Ingreso neto:</strong> Comisiones de plataforma - Comisión total de Stripe (incluye IVA)</p>
+                  <p>• <strong>Citas:</strong> 15% comisión + Stripe Connect (3.6% + $3 + IVA)</p>
+                  <p>• <strong>Eventos:</strong> 25% comisión + Stripe Connect (3.6% + $3 + IVA)</p>
+                  <p>• <strong>Inscripciones:</strong> 15% comisión directa (Sin Stripe Connect)</p>
+                  <p>• <strong>Impuestos:</strong> IVA del 16% solo sobre comisiones de Stripe</p>
+                  <p>• <strong>Ingreso neto:</strong> Comisiones de plataforma - Costos de Stripe</p>
                 </div>
               </div>
             </div>

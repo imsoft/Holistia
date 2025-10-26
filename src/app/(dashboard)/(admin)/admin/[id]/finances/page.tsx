@@ -137,17 +137,20 @@ export default function FinancesPage() {
           return sum + fee;
         }, 0) || 0;
         
-        // Calcular comisiones de Stripe (aproximado: 3.6% + $3 MXN por transacción)
+        // Calcular comisiones de Stripe (3.6% + $3 MXN por transacción)
         const stripeFees = currentPayments?.reduce((sum, p) => {
           const transactionFee = (Number(p.amount) * 0.036) + 3;
           return sum + transactionFee;
         }, 0) || 0;
 
-        // IVA sobre comisiones (16%)
-        const taxes = (platformFees + stripeFees) * 0.16;
+        // IVA solo sobre comisiones de Stripe (16%)
+        const taxes = stripeFees * 0.16;
 
-        // Ingresos netos de la plataforma (comisiones - impuestos - costos Stripe)
-        const netIncome = platformFees - stripeFees - taxes;
+        // Comisión total de Stripe (incluye IVA)
+        const totalStripeCommission = stripeFees + taxes;
+
+        // Ingresos netos de la plataforma (comisiones plataforma - comisión total Stripe)
+        const netIncome = platformFees - totalStripeCommission;
 
         // Ingresos por tipo
         const appointmentsIncome = currentPayments
@@ -520,7 +523,7 @@ export default function FinancesPage() {
                     </div>
                     <div>
                       <p className="text-sm font-medium">Impuestos (IVA 16%)</p>
-                      <p className="text-xs text-muted-foreground">Sobre comisiones</p>
+                      <p className="text-xs text-muted-foreground">Sobre comisiones Stripe</p>
                     </div>
                   </div>
                   <p className="text-sm font-bold text-red-600">
@@ -537,7 +540,7 @@ export default function FinancesPage() {
                   </p>
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Comisiones - Costos Stripe - Impuestos
+                  Comisiones Plataforma - Comisión Total Stripe (incluye IVA)
                 </p>
               </div>
             </CardContent>
@@ -620,8 +623,8 @@ export default function FinancesPage() {
                 <div className="text-xs text-blue-800 dark:text-blue-200 space-y-1">
                   <p>• <strong>Comisiones de Stripe:</strong> Se calculan como 3.6% + $3 MXN por transacción</p>
                   <p>• <strong>Comisiones de la plataforma:</strong> 15% sobre el monto de cada transacción</p>
-                  <p>• <strong>Impuestos:</strong> IVA del 16% se aplica sobre las comisiones totales</p>
-                  <p>• <strong>Ingreso neto:</strong> Comisiones de plataforma - Costos de Stripe - Impuestos</p>
+                  <p>• <strong>Impuestos:</strong> IVA del 16% se aplica solo sobre las comisiones de Stripe</p>
+                  <p>• <strong>Ingreso neto:</strong> Comisiones de plataforma - Comisión total de Stripe (incluye IVA)</p>
                 </div>
               </div>
             </div>

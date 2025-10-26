@@ -97,12 +97,13 @@ export default function ProfessionalPatients() {
         // Obtener IDs únicos de pacientes
         const uniquePatientIds = [...new Set(appointments.map(apt => apt.patient_id))];
 
-        // Obtener información real de pacientes usando la vista professional_patient_info
+        // Obtener información real de pacientes usando consulta directa a las tablas
         const { data: patientsInfo, error: patientsInfoError } = await supabase
-          .from('professional_patient_info')
-          .select('patient_id, full_name, phone, email')
-          .eq('professional_id', professionalApp.id)
-          .in('patient_id', uniquePatientIds);
+          .from('profiles')
+          .select('id, first_name, last_name, email, phone')
+          .in('id', uniquePatientIds)
+          .eq('type', 'patient')
+          .eq('account_active', true);
 
         if (patientsInfoError) {
           console.error('Error obteniendo información de pacientes:', patientsInfoError);
@@ -111,7 +112,7 @@ export default function ProfessionalPatients() {
         // Crear un mapa para acceso rápido a la información de pacientes
         const patientsInfoMap = new Map();
         patientsInfo?.forEach(patient => {
-          patientsInfoMap.set(patient.patient_id, patient);
+          patientsInfoMap.set(patient.id, patient);
         });
 
         // Procesar datos de pacientes usando información real
@@ -135,7 +136,10 @@ export default function ProfessionalPatients() {
           const therapyType = therapyTypes.length > 0 ? (therapyTypes[0] === 'presencial' ? 'Terapia Presencial' : 'Terapia Online') : 'No especificado';
 
           // Usar nombre real del paciente o fallback
-          const patientName = patientInfo?.full_name || `Paciente ${patientId.slice(0, 8)}`;
+          const patientName = patientInfo ? 
+            `${patientInfo.first_name || ''} ${patientInfo.last_name || ''}`.trim() || 
+            `Paciente ${patientId.slice(0, 8)}` : 
+            `Paciente ${patientId.slice(0, 8)}`;
 
           return {
             id: patientId,

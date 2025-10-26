@@ -108,7 +108,7 @@ export default function ProfessionalDashboard() {
             paid_at: professionalApp.registration_fee_paid_at,
           });
           
-          // Obtener citas del profesional para hoy
+          // Obtener citas próximas del profesional (desde hoy en adelante)
           const today = new Date().toISOString().split('T')[0];
 
           const { data: appointmentsData, error: appointmentsError } = await supabase
@@ -125,8 +125,10 @@ export default function ProfessionalDashboard() {
               patient_id
             `)
             .eq('professional_id', professionalApp.id)
-            .eq('appointment_date', today)
-            .order('appointment_time', { ascending: true });
+            .gte('appointment_date', today) // Citas desde hoy en adelante
+            .order('appointment_date', { ascending: true })
+            .order('appointment_time', { ascending: true })
+            .limit(10); // Limitar a las próximas 10 citas
 
           if (appointmentsError) {
             console.error('Error obteniendo citas:', appointmentsError);
@@ -200,14 +202,20 @@ export default function ProfessionalDashboard() {
           }) || [];
 
           const now = new Date();
-          const todayCount = paidAppointments.filter(apt => apt.appointment_date === today).length;
 
-          // Calcular citas de ayer para comparación
-          const yesterday = new Date(now);
-          yesterday.setDate(yesterday.getDate() - 1);
-          const yesterdayStr = yesterday.toISOString().split('T')[0];
-          const yesterdayCount = paidAppointments.filter(apt => apt.appointment_date === yesterdayStr).length;
-          const dailyChange = todayCount - yesterdayCount;
+          // Calcular fecha de hace una semana para comparaciones
+          const weekAgo = new Date(now);
+          weekAgo.setDate(weekAgo.getDate() - 7);
+          const weekAgoStr = weekAgo.toISOString().split('T')[0];
+
+          // Contar citas próximas (desde hoy en adelante)
+          const upcomingCount = paidAppointments.filter(apt => apt.appointment_date >= today).length;
+
+          // Calcular citas futuras de la semana pasada para comparación
+          const lastWeekUpcomingCount = paidAppointments.filter(apt =>
+            apt.appointment_date >= weekAgoStr && apt.appointment_date < today
+          ).length;
+          const upcomingChange = upcomingCount - lastWeekUpcomingCount;
 
           // Pacientes únicos activos (con citas futuras y pagadas)
           const uniquePatients = new Set(
@@ -218,9 +226,6 @@ export default function ProfessionalDashboard() {
           const activePatients = uniquePatients.size;
 
           // Calcular pacientes de la semana pasada para comparación
-          const weekAgo = new Date(now);
-          weekAgo.setDate(weekAgo.getDate() - 7);
-          const weekAgoStr = weekAgo.toISOString().split('T')[0];
           const lastWeekPatients = new Set(
             paidAppointments
               .filter(apt => apt.appointment_date >= weekAgoStr && apt.appointment_date < today)
@@ -277,9 +282,9 @@ export default function ProfessionalDashboard() {
 
           setStats([
             {
-              title: "Citas Hoy",
-              value: todayCount.toString(),
-              change: dailyChange >= 0 ? `+${dailyChange} desde ayer` : `${dailyChange} desde ayer`,
+              title: "Citas Próximas",
+              value: upcomingCount.toString(),
+              change: upcomingChange >= 0 ? `+${upcomingChange} vs semana pasada` : `${upcomingChange} vs semana pasada`,
               icon: Calendar,
               color: "text-blue-600",
               bgColor: "bg-blue-50",

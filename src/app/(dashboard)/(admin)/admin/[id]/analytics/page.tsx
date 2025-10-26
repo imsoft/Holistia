@@ -346,7 +346,7 @@ export default function AnalyticsPage() {
         )}
 
       {/* Estadísticas Generales */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 w-full -mx-6 px-6 -mt-6 pt-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 w-full -mx-6 px-6 -mt-6 pt-6 -mb-6 pb-6">
         <Card className="py-4">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">

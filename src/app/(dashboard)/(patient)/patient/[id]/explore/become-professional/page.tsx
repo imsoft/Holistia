@@ -1157,7 +1157,7 @@ export default function BecomeProfessionalPage() {
                                 </div>
                                 <div className="text-right">
                                   <p className="text-lg font-bold text-foreground">
-                                    ${existingApplication.registration_fee_amount?.toLocaleString('es-MX')} {existingApplication.registration_fee_currency?.toUpperCase()}
+                                    ${existingApplication.registration_fee_amount?.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {existingApplication.registration_fee_currency?.toUpperCase()}
                                   </p>
                                   <Badge 
                                     variant={feeStatus.isActive ? "default" : "destructive"}
@@ -1219,7 +1219,7 @@ export default function BecomeProfessionalPage() {
                                         ❌ Inscripción Expirada
                                       </p>
                                       <p className="text-xs text-red-800 mb-3">
-                                        Tu inscripción ha expirado. Debes renovar tu pago de ${existingApplication.registration_fee_amount?.toLocaleString('es-MX')} MXN 
+                                        Tu inscripción ha expirado. Debes renovar tu pago de ${existingApplication.registration_fee_amount?.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} MXN 
                                         para volver a aparecer en la plataforma.
                                       </p>
                                       <Button 
@@ -1246,7 +1246,7 @@ export default function BecomeProfessionalPage() {
                                       </p>
                                       <p className="text-xs text-yellow-800 mb-3">
                                         Para que tu perfil sea visible en Holistia después de ser aprobado, 
-                                        debes pagar la cuota de inscripción anual de ${existingApplication.registration_fee_amount?.toLocaleString('es-MX')} MXN. 
+                                        debes pagar la cuota de inscripción anual de ${existingApplication.registration_fee_amount?.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} MXN. 
                                         Puedes realizar el pago ahora o más tarde, pero sin él no podrás aparecer en la plataforma.
                                       </p>
                                       <Button 

@@ -925,7 +925,7 @@ export default function AdminProfessionals() {
                   <div className="flex flex-col gap-1">
                     <span className="text-sm text-muted-foreground">Monto</span>
                     <span className="text-base font-medium">
-                      ${selectedProfessional.registration_fee_amount?.toLocaleString('es-MX') || '1,000'} {selectedProfessional.registration_fee_currency?.toUpperCase() || 'MXN'}
+                      ${selectedProfessional.registration_fee_amount?.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '1,000.00'} {selectedProfessional.registration_fee_currency?.toUpperCase() || 'MXN'}
                     </span>
                   </div>
                   <div className="flex flex-col gap-1">

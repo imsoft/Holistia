@@ -417,7 +417,7 @@ export default function ProfessionalDashboard() {
                       </h3>
                       <p className="text-xs sm:text-sm text-red-800">
                         Para aparecer en la plataforma de Holistia y poder recibir citas de pacientes, 
-                        necesitas pagar la cuota de inscripción anual de <strong>${registrationFeeStatus.amount.toLocaleString('es-MX')} {registrationFeeStatus.currency.toUpperCase()}</strong>.
+                        necesitas pagar la cuota de inscripción anual de <strong>${registrationFeeStatus.amount.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {registrationFeeStatus.currency.toUpperCase()}</strong>.
                       </p>
                       <Button 
                         className="mt-3 bg-red-600 hover:bg-red-700"
@@ -447,7 +447,7 @@ export default function ProfessionalDashboard() {
                       </h3>
                       <p className="text-xs sm:text-sm text-red-800">
                         Tu inscripción anual expiró el <strong>{new Date(registrationFeeStatus.expires_at).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' })}</strong>. 
-                        Para seguir apareciendo en la plataforma y poder recibir citas, necesitas renovar tu pago de <strong>${registrationFeeStatus.amount.toLocaleString('es-MX')} {registrationFeeStatus.currency.toUpperCase()}</strong>.
+                        Para seguir apareciendo en la plataforma y poder recibir citas, necesitas renovar tu pago de <strong>${registrationFeeStatus.amount.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {registrationFeeStatus.currency.toUpperCase()}</strong>.
                       </p>
                       <Button 
                         className="mt-3 bg-red-600 hover:bg-red-700"
@@ -480,7 +480,7 @@ export default function ProfessionalDashboard() {
                       </h3>
                       <p className="text-xs sm:text-sm text-yellow-800">
                         Tu inscripción expira el <strong>{new Date(registrationFeeStatus.expires_at).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' })}</strong>. 
-                        Renueva tu pago de <strong>${registrationFeeStatus.amount.toLocaleString('es-MX')} {registrationFeeStatus.currency.toUpperCase()}</strong> para seguir apareciendo en la plataforma sin interrupciones.
+                        Renueva tu pago de <strong>${registrationFeeStatus.amount.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {registrationFeeStatus.currency.toUpperCase()}</strong> para seguir apareciendo en la plataforma sin interrupciones.
                       </p>
                       <Button 
                         className="mt-3 bg-yellow-600 hover:bg-yellow-700"

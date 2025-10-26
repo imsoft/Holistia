@@ -1554,7 +1554,7 @@ export default function ProfessionalProfilePage() {
                     💰 Costo:
                   </span>
                   <span className="text-foreground font-bold text-lg">
-                    ${paymentData.cost.toLocaleString('es-MX')}
+                    ${paymentData.cost.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </span>
                 </div>
               </div>

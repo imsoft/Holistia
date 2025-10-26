@@ -568,7 +568,7 @@ export default function AnalyticsPage() {
                       <span className="text-sm font-medium">{service.count} citas</span>
                     </div>
                     <span className="text-sm font-bold text-green-600">
-                      ${(service.revenue / 100).toLocaleString('es-MX')}
+                      ${(service.revenue / 100).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </span>
                   </div>
                   <div className="w-full bg-muted rounded-full h-2">

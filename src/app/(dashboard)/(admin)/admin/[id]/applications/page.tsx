@@ -492,7 +492,7 @@ export default function ApplicationsPage() {
                                 href={`https://instagram.com/${application.instagram.replace('@', '')}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="text-pink-600 hover:text-pink-700 underline text-sm"
+                                className="text-blue-600 hover:text-blue-700 underline text-sm"
                               >
                                 @{application.instagram.replace('@', '')}
                               </a>
@@ -583,7 +583,7 @@ export default function ApplicationsPage() {
                                         href={`https://instagram.com/${application.instagram.replace('@', '')}`}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="text-pink-600 hover:text-pink-700 underline"
+                                        className="text-blue-600 hover:text-blue-700 underline"
                                       >
                                         @{application.instagram.replace('@', '')}
                                       </a>

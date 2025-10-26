@@ -98,17 +98,29 @@ export default function ProfessionalPatients() {
         const uniquePatientIds = [...new Set(appointments.map(apt => apt.patient_id))];
 
         // Obtener información real de pacientes usando consulta directa a las tablas
-        // Forzar actualización del caché agregando timestamp
+        // Usar consulta más específica para evitar problemas de RLS
         const { data: patientsInfo, error: patientsInfoError } = await supabase
           .from('profiles')
           .select('id, first_name, last_name, email, phone')
           .in('id', uniquePatientIds)
           .eq('type', 'patient')
-          .eq('account_active', true)
-          .order('created_at', { ascending: false });
+          .eq('account_active', true);
 
         if (patientsInfoError) {
           console.error('Error obteniendo información de pacientes:', patientsInfoError);
+          
+          // Intentar consulta alternativa si hay error de RLS
+          console.log('🔄 Intentando consulta alternativa...');
+          const { data: alternativePatientsInfo, error: alternativeError } = await supabase
+            .from('profiles')
+            .select('id, first_name, last_name, email, phone')
+            .in('id', uniquePatientIds);
+          
+          if (alternativeError) {
+            console.error('Error en consulta alternativa:', alternativeError);
+          } else {
+            console.log('✅ Consulta alternativa exitosa:', alternativePatientsInfo?.length || 0);
+          }
         }
 
         // Debug: Log de información de pacientes

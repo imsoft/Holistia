@@ -50,13 +50,6 @@ interface ProfessionalData {
   country: string;
 }
 
-const wellnessAreas = [
-  "Salud mental",
-  "Espiritualidad", 
-  "Actividad física",
-  "Social",
-  "Alimentación",
-];
 
 export default function ProfessionalProfileEditor({ 
   professionalId, 
@@ -230,14 +223,6 @@ export default function ProfessionalProfileEditor({
     }));
   };
 
-  const handleWellnessAreaToggle = (area: string) => {
-    setFormData(prev => ({
-      ...prev,
-      wellness_areas: prev.wellness_areas.includes(area)
-        ? prev.wellness_areas.filter(a => a !== area)
-        : [...prev.wellness_areas, area]
-    }));
-  };
 
   const handleAddCustomSpecialization = () => {
     if (customSpecialization.trim() && !formData.specializations.includes(customSpecialization.trim())) {
@@ -678,52 +663,24 @@ export default function ProfessionalProfileEditor({
             </div>
           </div>
 
-          {/* Áreas de bienestar */}
+          {/* Áreas de bienestar - Solo lectura */}
           <div className="space-y-2">
             <Label>Áreas de bienestar</Label>
-            {editingField === 'wellness' ? (
-              <div className="space-y-3">
-                <div className="flex flex-wrap gap-2">
-                  {formData.wellness_areas.map((area) => (
-                    <Badge key={area} variant="secondary" className="flex items-center gap-1">
-                      {area}
-                      <button
-                        onClick={() => handleWellnessAreaToggle(area)}
-                        className="ml-1 hover:bg-muted rounded-full p-0.5"
-                      >
-                        <X className="h-3 w-3" />
-                      </button>
-                    </Badge>
-                  ))}
-                </div>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                  {wellnessAreas.map((area) => (
-                    <button
-                      key={area}
-                      onClick={() => handleWellnessAreaToggle(area)}
-                      className={`p-2 text-left text-xs rounded border transition-colors ${
-                        formData.wellness_areas.includes(area)
-                          ? "border-primary bg-primary/10 text-primary"
-                          : "border-border hover:border-primary/50"
-                      }`}
-                    >
-                      {area}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            ) : (
-              <div 
-                className="p-2 border border-transparent hover:border-border rounded cursor-pointer"
-                onClick={() => startEditing('wellness')}
-              >
-                <div className="flex flex-wrap gap-1">
-                  {professionalData.wellness_areas.map((area) => (
+            <div className="p-3 bg-muted/30 rounded-lg">
+              <div className="flex flex-wrap gap-2 mb-2">
+                {professionalData.wellness_areas && professionalData.wellness_areas.length > 0 ? (
+                  professionalData.wellness_areas.map((area) => (
                     <Badge key={area} variant="secondary">{area}</Badge>
-                  ))}
-                </div>
+                  ))
+                ) : (
+                  <p className="text-sm text-muted-foreground">No hay áreas de bienestar asignadas</p>
+                )}
               </div>
-            )}
+              <p className="text-xs text-muted-foreground flex items-center gap-1">
+                <AlertCircle className="h-3 w-3" />
+                Las áreas de bienestar son gestionadas por el equipo de administración
+              </p>
+            </div>
           </div>
 
         </div>

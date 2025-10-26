@@ -126,14 +126,6 @@ export default function BecomeProfessionalPage() {
 
   const supabase = createClient();
 
-  // Opciones de áreas de bienestar que coinciden con las categorías del filtro
-  const wellnessAreaOptions = [
-    "Salud mental",
-    "Espiritualidad", 
-    "Actividad física",
-    "Social",
-    "Alimentación"
-  ];
 
   // Opciones de países
   const countries = [
@@ -268,9 +260,6 @@ export default function BecomeProfessionalPage() {
         if (formData.specializations.length === 0)
           newErrors.specializations =
             "Al menos una especialización es requerida";
-        if (formData.wellness_areas.length === 0)
-          newErrors.wellness_areas =
-            "Al menos un área de bienestar es requerida";
         if (!formData.experience.trim())
           newErrors.experience = "Los años de experiencia son requeridos";
         break;
@@ -648,40 +637,23 @@ export default function BecomeProfessionalPage() {
             </div>
 
             <div className="space-y-3">
-              <Label>Áreas de bienestar *</Label>
-              <p className="text-xs text-muted-foreground mb-2">
-                Selecciona las áreas de bienestar en las que te especializas:
-              </p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                {wellnessAreaOptions.map((area) => (
-                  <label key={area} className="flex items-center space-x-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={formData.wellness_areas.includes(area)}
-                      onChange={(e) => {
-                        if (e.target.checked) {
-                          setFormData((prev) => ({
-                            ...prev,
-                            wellness_areas: [...prev.wellness_areas, area]
-                          }));
-                        } else {
-                          setFormData((prev) => ({
-                            ...prev,
-                            wellness_areas: prev.wellness_areas.filter(a => a !== area)
-                          }));
-                        }
-                      }}
-                      className="rounded border-gray-300"
-                    />
-                    <span className="text-sm text-foreground">{area}</span>
-                  </label>
-                ))}
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div className="flex items-start gap-3">
+                  <div className="flex-shrink-0">
+                    <svg className="w-5 h-5 text-blue-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-medium text-blue-900 mb-1">
+                      Áreas de Bienestar
+                    </h4>
+                    <p className="text-sm text-blue-700">
+                      Las áreas de bienestar (Salud mental, Espiritualidad, Actividad física, Social, Alimentación) serán asignadas por el equipo de administración después de revisar tu solicitud. Esto asegura la correcta categorización de los profesionales en la plataforma.
+                    </p>
+                  </div>
+                </div>
               </div>
-              {errors.wellness_areas && (
-                <p className="text-red-500 text-sm mt-1">
-                  {errors.wellness_areas}
-                </p>
-              )}
             </div>
 
             <div className="space-y-3">
@@ -1132,6 +1104,9 @@ export default function BecomeProfessionalPage() {
                               </Badge>
                             ))}
                           </div>
+                          <p className="text-xs text-muted-foreground">
+                            Las áreas de bienestar son gestionadas por el equipo de administración
+                          </p>
                         </div>
                       )}
 

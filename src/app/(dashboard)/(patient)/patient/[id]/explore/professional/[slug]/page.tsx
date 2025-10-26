@@ -1003,6 +1003,83 @@ export default function ProfessionalProfilePage() {
               </div>
             )}
 
+            {/* Precios y Experiencia - Visible solo en móvil después de idiomas */}
+            <div className="lg:hidden space-y-6">
+              {/* Resumen de precios */}
+              {(() => {
+                // Calcular precios mínimos
+                const allPrices: number[] = [];
+                professional.services.forEach(service => {
+                  if (service.presencialCost && service.presencialCost !== '') {
+                    allPrices.push(parseInt(service.presencialCost));
+                  }
+                  if (service.onlineCost && service.onlineCost !== '') {
+                    allPrices.push(parseInt(service.onlineCost));
+                  }
+                });
+
+                if (allPrices.length === 0) return null;
+
+                return (
+                  <div>
+                    <h3 className="text-base sm:text-lg font-bold text-foreground mb-3 sm:mb-4">
+                      Precios desde
+                    </h3>
+                    <div className="space-y-3">
+                      {(() => {
+                        const minPrice = Math.min(...allPrices);
+                        const maxPrice = Math.max(...allPrices);
+
+                        return (
+                          <div className="text-center p-4 rounded-xl bg-gradient-to-r from-primary/5 to-primary/10 border border-primary/20">
+                            <div className="text-2xl font-bold text-primary mb-1">
+                              {formatPrice(minPrice)}
+                            </div>
+                            {minPrice !== maxPrice && (
+                              <div className="text-sm text-muted-foreground">
+                                hasta {formatPrice(maxPrice)}
+                              </div>
+                            )}
+                            <div className="text-xs text-muted-foreground mt-2">
+                              por sesión
+                            </div>
+                          </div>
+                        );
+                      })()}
+                    </div>
+                  </div>
+                );
+              })()}
+
+              {/* Experiencia */}
+              <div>
+                <h3 className="text-base sm:text-lg font-bold text-foreground mb-3 sm:mb-4">
+                  Experiencia
+                </h3>
+                <div className="p-4 sm:p-5 rounded-xl bg-gradient-to-r from-primary/5 to-primary/10 border border-primary/20">
+                  <div className="flex items-start gap-3 sm:gap-4">
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0 mt-1">
+                      <Clock className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-foreground text-sm sm:text-base leading-relaxed font-medium">
+                        {getExperienceDescription(professional.experience)}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Botón de reservar */}
+              <Button
+                onClick={() => setIsBookingModalOpen(true)}
+                className="w-full h-11 sm:h-12 text-sm sm:text-base font-semibold rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 shadow-lg text-white"
+              >
+                <Calendar className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+                Reservar cita
+              </Button>
+            </div>
+
             {/* Servicios */}
             {professional.services && professional.services.length > 0 && professional.services.some(service => 
               (service.presencialCost && service.presencialCost !== '') || 
@@ -1138,8 +1215,8 @@ export default function ProfessionalProfilePage() {
             </div>
           </div>
 
-          {/* Sidebar */}
-          <div className="space-y-6 sm:space-y-8">
+          {/* Sidebar - Oculto en móvil */}
+          <div className="hidden lg:block space-y-6 sm:space-y-8">
             {/* Información de contacto y reserva */}
             <div className="sticky top-8">
               <div className="space-y-6">
@@ -1155,9 +1232,9 @@ export default function ProfessionalProfilePage() {
                       allPrices.push(parseInt(service.onlineCost));
                     }
                   });
-                  
+
                   if (allPrices.length === 0) return null;
-                  
+
                   return (
                     <div>
                       <h3 className="text-base sm:text-lg font-bold text-foreground mb-3 sm:mb-4">
@@ -1167,7 +1244,7 @@ export default function ProfessionalProfilePage() {
                         {(() => {
                           const minPrice = Math.min(...allPrices);
                           const maxPrice = Math.max(...allPrices);
-                          
+
                           return (
                             <div className="text-center p-4 rounded-xl bg-gradient-to-r from-primary/5 to-primary/10 border border-primary/20">
                               <div className="text-2xl font-bold text-primary mb-1">
@@ -1210,9 +1287,9 @@ export default function ProfessionalProfilePage() {
 
                 {/* Botones de acción */}
                 <div className="space-y-2 sm:space-y-3">
-                  <Button 
+                  <Button
                     onClick={() => setIsBookingModalOpen(true)}
-                    className="w-full h-11 sm:h-12 text-sm sm:text-base font-semibold rounded-xl bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-lg"
+                    className="w-full h-11 sm:h-12 text-sm sm:text-base font-semibold rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 shadow-lg text-white"
                   >
                     <Calendar className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                     Reservar cita

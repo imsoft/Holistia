@@ -15,6 +15,9 @@ import {
   Shield,
   ShieldCheck,
   Instagram,
+  Edit3,
+  X,
+  CheckCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -51,6 +54,7 @@ interface Professional {
   instagram?: string;  // Campo privado, solo visible para administradores
   profession: string;
   specializations: string[];
+  wellness_areas?: string[]; // Áreas de bienestar
   city: string;
   state: string;
   profile_photo?: string;
@@ -85,8 +89,19 @@ export default function AdminProfessionals() {
   const [selectedProfessional, setSelectedProfessional] = useState<Professional | null>(null);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [isVerifyDialogOpen, setIsVerifyDialogOpen] = useState(false);
+  const [isEditWellnessDialogOpen, setIsEditWellnessDialogOpen] = useState(false);
+  const [editingWellnessAreas, setEditingWellnessAreas] = useState<string[]>([]);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const supabase = createClient();
+
+  // Opciones de áreas de bienestar
+  const wellnessAreaOptions = [
+    "Salud mental",
+    "Espiritualidad",
+    "Actividad física",
+    "Social",
+    "Alimentación"
+  ];
 
   // Obtener profesionales de la base de datos
   useEffect(() => {
@@ -384,6 +399,60 @@ export default function AdminProfessionals() {
     } catch (error) {
       console.error('Error al cambiar estado del profesional:', error);
       toast.error('Error al cambiar el estado del profesional');
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  // Función para abrir el diálogo de edición de wellness areas
+  const handleOpenEditWellnessAreas = (professional: Professional) => {
+    setSelectedProfessional(professional);
+    setEditingWellnessAreas(professional.wellness_areas || []);
+    setIsEditWellnessDialogOpen(true);
+  };
+
+  // Función para alternar un área de bienestar
+  const handleToggleWellnessArea = (area: string) => {
+    setEditingWellnessAreas(prev =>
+      prev.includes(area)
+        ? prev.filter(a => a !== area)
+        : [...prev, area]
+    );
+  };
+
+  // Función para guardar las áreas de bienestar
+  const handleSaveWellnessAreas = async () => {
+    if (!selectedProfessional) return;
+
+    try {
+      setActionLoading(selectedProfessional.id);
+
+      const { error } = await supabase
+        .from('professional_applications')
+        .update({ wellness_areas: editingWellnessAreas })
+        .eq('id', selectedProfessional.id);
+
+      if (error) throw error;
+
+      // Actualizar el estado local
+      setProfessionals(prev =>
+        prev.map(prof =>
+          prof.id === selectedProfessional.id
+            ? { ...prof, wellness_areas: editingWellnessAreas }
+            : prof
+        )
+      );
+
+      // Actualizar el profesional seleccionado
+      setSelectedProfessional(prev =>
+        prev ? { ...prev, wellness_areas: editingWellnessAreas } : null
+      );
+
+      toast.success('Áreas de bienestar actualizadas exitosamente');
+      setIsEditWellnessDialogOpen(false);
+    } catch (error) {
+      console.error('Error al actualizar áreas de bienestar:', error);
+      toast.error('Error al actualizar las áreas de bienestar');
     } finally {
       setActionLoading(null);
     }
@@ -797,7 +866,7 @@ export default function AdminProfessionals() {
 
       {/* Modal para ver perfil del profesional */}
       <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Perfil del Profesional</DialogTitle>
             <DialogDescription>
@@ -892,6 +961,32 @@ export default function AdminProfessionals() {
                       {specialization}
                     </Badge>
                   ))}
+                </div>
+              </div>
+
+              {/* Áreas de bienestar */}
+              <div className="bg-muted/50 rounded-lg p-4">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold">Áreas de bienestar</h3>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleOpenEditWellnessAreas(selectedProfessional)}
+                  >
+                    <Edit3 className="h-4 w-4 mr-2" />
+                    Editar
+                  </Button>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {selectedProfessional.wellness_areas && selectedProfessional.wellness_areas.length > 0 ? (
+                    selectedProfessional.wellness_areas.map((area, index) => (
+                      <Badge key={index} variant="secondary">
+                        {area}
+                      </Badge>
+                    ))
+                  ) : (
+                    <p className="text-sm text-muted-foreground">No hay áreas de bienestar asignadas</p>
+                  )}
                 </div>
               </div>
 
@@ -1019,7 +1114,7 @@ export default function AdminProfessionals() {
               ¿Estás seguro de que quieres verificar a {selectedProfessional?.first_name} {selectedProfessional?.last_name}?
             </DialogDescription>
           </DialogHeader>
-          
+
           {selectedProfessional && (
             <div className="space-y-4">
               <div className="bg-muted/50 rounded-lg p-4">
@@ -1031,19 +1126,87 @@ export default function AdminProfessionals() {
                   {selectedProfessional.profession}
                 </p>
               </div>
-              
+
               <div className="flex justify-end gap-3 pt-4">
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   onClick={() => setIsVerifyDialogOpen(false)}
                 >
                   Cancelar
                 </Button>
-                <Button 
+                <Button
                   onClick={() => handleVerifyProfessional(selectedProfessional.id)}
                   disabled={actionLoading === selectedProfessional.id}
                 >
                   {actionLoading === selectedProfessional.id ? 'Verificando...' : 'Verificar'}
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal para editar áreas de bienestar */}
+      <Dialog open={isEditWellnessDialogOpen} onOpenChange={setIsEditWellnessDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Editar Áreas de Bienestar</DialogTitle>
+            <DialogDescription>
+              Selecciona las áreas de bienestar para {selectedProfessional?.first_name} {selectedProfessional?.last_name}
+            </DialogDescription>
+          </DialogHeader>
+
+          {selectedProfessional && (
+            <div className="space-y-4">
+              <div className="bg-muted/50 rounded-lg p-4">
+                <h4 className="font-medium mb-2">Profesional:</h4>
+                <p className="text-sm text-muted-foreground">
+                  {selectedProfessional.first_name} {selectedProfessional.last_name}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  {selectedProfessional.profession}
+                </p>
+              </div>
+
+              <div className="space-y-3">
+                <Label>Selecciona las áreas de bienestar:</Label>
+                <div className="grid grid-cols-1 gap-2">
+                  {wellnessAreaOptions.map((area) => (
+                    <button
+                      key={area}
+                      onClick={() => handleToggleWellnessArea(area)}
+                      className={`p-3 text-left text-sm rounded-lg border-2 transition-colors ${
+                        editingWellnessAreas.includes(area)
+                          ? "border-primary bg-primary/10 text-primary font-medium"
+                          : "border-border hover:border-primary/50"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span>{area}</span>
+                        {editingWellnessAreas.includes(area) && (
+                          <CheckCircle className="h-4 w-4" />
+                        )}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Seleccionadas: {editingWellnessAreas.length} de {wellnessAreaOptions.length}
+                </p>
+              </div>
+
+              <div className="flex justify-end gap-3 pt-4">
+                <Button
+                  variant="outline"
+                  onClick={() => setIsEditWellnessDialogOpen(false)}
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  onClick={handleSaveWellnessAreas}
+                  disabled={actionLoading === selectedProfessional.id}
+                >
+                  {actionLoading === selectedProfessional.id ? 'Guardando...' : 'Guardar Cambios'}
                 </Button>
               </div>
             </div>

@@ -388,18 +388,18 @@ export default function ApplicationsPage() {
           {/* Filtros y búsqueda */}
           <Card className="mb-6 sm:mb-8">
             <CardContent className="p-4 sm:p-6">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-                <div className="relative">
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 w-full">
+                <div className="relative flex-1">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
                     placeholder="Buscar por nombre, email o profesión..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10"
+                    className="pl-10 w-full"
                   />
                 </div>
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger>
+                  <SelectTrigger className="w-full sm:w-[280px]">
                     <SelectValue placeholder="Filtrar por estado" />
                   </SelectTrigger>
                   <SelectContent>
@@ -410,9 +410,9 @@ export default function ApplicationsPage() {
                     <SelectItem value="rejected">Rechazadas</SelectItem>
                   </SelectContent>
                 </Select>
-                <Button 
-                  variant="outline" 
-                  className="w-full"
+                <Button
+                  variant="outline"
+                  className="w-full sm:w-auto sm:min-w-[180px]"
                   onClick={handleExportApplications}
                 >
                   <Download className="h-4 w-4 mr-2" />

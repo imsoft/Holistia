@@ -700,6 +700,113 @@ export default function FinancesPage() {
           </CardContent>
         </Card>
 
+        {/* Ejemplo de Cálculo para Inscripciones */}
+        <Card className="py-4 border-orange-200 dark:border-orange-900 bg-orange-50 dark:bg-orange-950/20">
+          <CardHeader>
+            <CardTitle className="text-orange-900 dark:text-orange-100 flex items-center gap-2">
+              <Users className="h-5 w-5" />
+              Cálculo para Inscripciones (Sin comisión Holistia)
+            </CardTitle>
+            <CardDescription className="text-orange-800 dark:text-orange-200">
+              Inscripciones profesionales con Stripe pero sin comisión de Holistia
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {/* Input para cambiar el monto de inscripción */}
+              <div className="flex items-center gap-4 p-3 bg-white dark:bg-gray-800 rounded-lg border">
+                <div className="flex items-center gap-2">
+                  <Label htmlFor="registration-amount" className="text-sm font-medium">
+                    Monto de inscripción:
+                  </Label>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-muted-foreground">$</span>
+                    <Input
+                      id="registration-amount"
+                      type="number"
+                      value={registrationAmount}
+                      onChange={(e) => setRegistrationAmount(Number(e.target.value) || 0)}
+                      className="w-24 h-8 text-sm"
+                      min="0"
+                      step="0.01"
+                    />
+                  </div>
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  Con Stripe - Sin comisión Holistia
+                </div>
+              </div>
+
+              {/* Monto Original */}
+              <div className="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-lg border">
+                <div className="flex items-center gap-3">
+                  <div className="bg-orange-100 dark:bg-orange-900 p-2 rounded-lg">
+                    <DollarSign className="h-4 w-4 text-orange-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">Monto Original</p>
+                    <p className="text-xs text-muted-foreground">Inscripción de ${registrationAmount}</p>
+                  </div>
+                </div>
+                <p className="text-sm font-bold text-orange-600">${registrationAmount.toFixed(2)}</p>
+              </div>
+
+              {/* Comisiones Stripe */}
+              <div className="space-y-2">
+                <h4 className="text-sm font-semibold text-orange-900 dark:text-orange-100">Comisiones de Stripe</h4>
+                
+                <div className="flex items-center justify-between p-2 bg-white dark:bg-gray-800 rounded border-l-4 border-red-400">
+                  <div className="flex items-center gap-2">
+                    <CreditCard className="h-4 w-4 text-red-600" />
+                    <span className="text-sm">Comisión base (3.6% + $3)</span>
+                  </div>
+                  <span className="text-sm font-bold text-red-600">${calculateRegistrationValues(registrationAmount).stripeBase.toFixed(2)}</span>
+                </div>
+
+                <div className="flex items-center justify-between p-2 bg-white dark:bg-gray-800 rounded border-l-4 border-orange-400">
+                  <div className="flex items-center gap-2">
+                    <FileText className="h-4 w-4 text-orange-600" />
+                    <span className="text-sm">IVA sobre Stripe (16%)</span>
+                  </div>
+                  <span className="text-sm font-bold text-orange-600">${calculateRegistrationValues(registrationAmount).stripeTax.toFixed(2)}</span>
+                </div>
+
+                <div className="flex items-center justify-between p-2 bg-red-50 dark:bg-red-950/20 rounded border-l-4 border-red-500">
+                  <div className="flex items-center gap-2">
+                    <CreditCard className="h-4 w-4 text-red-700" />
+                    <span className="text-sm font-semibold">Comisión total Stripe</span>
+                  </div>
+                  <span className="text-sm font-bold text-red-700">${calculateRegistrationValues(registrationAmount).stripeTotal.toFixed(2)}</span>
+                </div>
+              </div>
+
+
+              {/* Resultados Finales */}
+              <div className="space-y-2">
+                <h4 className="text-sm font-semibold text-orange-900 dark:text-orange-100">Resultados</h4>
+                
+                <div className="flex items-center justify-between p-3 bg-green-50 dark:bg-green-950/20 rounded-lg border-l-4 border-green-500">
+                  <div className="flex items-center gap-2">
+                    <TrendingUp className="h-4 w-4 text-green-600" />
+                    <span className="text-sm font-semibold">Ingreso neto Holistia</span>
+                  </div>
+                  <span className="text-sm font-bold text-green-600">${calculateRegistrationValues(registrationAmount).netIncome.toFixed(2)}</span>
+                </div>
+
+              </div>
+
+              {/* Fórmula para inscripciones */}
+              <div className="mt-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                <p className="text-xs text-gray-700 dark:text-gray-300">
+                  <strong>Fórmula:</strong> Ingreso Neto Holistia = Monto Total - Comisión Stripe<br/>
+                  <strong>Resultado:</strong> ${registrationAmount.toFixed(2)} - ${calculateRegistrationValues(registrationAmount).stripeTotal.toFixed(2)} = ${calculateRegistrationValues(registrationAmount).netIncome.toFixed(2)}<br/>
+                  <strong>Nota:</strong> Las inscripciones generan ingresos netos para Holistia después de descontar Stripe
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Ejemplo Detallado de Cálculos */}
         <Card className="py-4 border-green-200 dark:border-green-900 bg-green-50 dark:bg-green-950/20">
           <CardHeader>
@@ -825,112 +932,6 @@ export default function FinancesPage() {
           </CardContent>
         </Card>
 
-        {/* Ejemplo de Cálculo para Inscripciones */}
-        <Card className="py-4 border-orange-200 dark:border-orange-900 bg-orange-50 dark:bg-orange-950/20">
-          <CardHeader>
-            <CardTitle className="text-orange-900 dark:text-orange-100 flex items-center gap-2">
-              <Users className="h-5 w-5" />
-              Cálculo para Inscripciones (Sin comisión Holistia)
-            </CardTitle>
-            <CardDescription className="text-orange-800 dark:text-orange-200">
-              Inscripciones profesionales con Stripe pero sin comisión de Holistia
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {/* Input para cambiar el monto de inscripción */}
-              <div className="flex items-center gap-4 p-3 bg-white dark:bg-gray-800 rounded-lg border">
-                <div className="flex items-center gap-2">
-                  <Label htmlFor="registration-amount" className="text-sm font-medium">
-                    Monto de inscripción:
-                  </Label>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm text-muted-foreground">$</span>
-                    <Input
-                      id="registration-amount"
-                      type="number"
-                      value={registrationAmount}
-                      onChange={(e) => setRegistrationAmount(Number(e.target.value) || 0)}
-                      className="w-24 h-8 text-sm"
-                      min="0"
-                      step="0.01"
-                    />
-                  </div>
-                </div>
-                <div className="text-xs text-muted-foreground">
-                  Con Stripe - Sin comisión Holistia
-                </div>
-              </div>
-
-              {/* Monto Original */}
-              <div className="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-lg border">
-                <div className="flex items-center gap-3">
-                  <div className="bg-orange-100 dark:bg-orange-900 p-2 rounded-lg">
-                    <DollarSign className="h-4 w-4 text-orange-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium">Monto Original</p>
-                    <p className="text-xs text-muted-foreground">Inscripción de ${registrationAmount}</p>
-                  </div>
-                </div>
-                <p className="text-sm font-bold text-orange-600">${registrationAmount.toFixed(2)}</p>
-              </div>
-
-              {/* Comisiones Stripe */}
-              <div className="space-y-2">
-                <h4 className="text-sm font-semibold text-orange-900 dark:text-orange-100">Comisiones de Stripe</h4>
-                
-                <div className="flex items-center justify-between p-2 bg-white dark:bg-gray-800 rounded border-l-4 border-red-400">
-                  <div className="flex items-center gap-2">
-                    <CreditCard className="h-4 w-4 text-red-600" />
-                    <span className="text-sm">Comisión base (3.6% + $3)</span>
-                  </div>
-                  <span className="text-sm font-bold text-red-600">${calculateRegistrationValues(registrationAmount).stripeBase.toFixed(2)}</span>
-                </div>
-
-                <div className="flex items-center justify-between p-2 bg-white dark:bg-gray-800 rounded border-l-4 border-orange-400">
-                  <div className="flex items-center gap-2">
-                    <FileText className="h-4 w-4 text-orange-600" />
-                    <span className="text-sm">IVA sobre Stripe (16%)</span>
-                  </div>
-                  <span className="text-sm font-bold text-orange-600">${calculateRegistrationValues(registrationAmount).stripeTax.toFixed(2)}</span>
-                </div>
-
-                <div className="flex items-center justify-between p-2 bg-red-50 dark:bg-red-950/20 rounded border-l-4 border-red-500">
-                  <div className="flex items-center gap-2">
-                    <CreditCard className="h-4 w-4 text-red-700" />
-                    <span className="text-sm font-semibold">Comisión total Stripe</span>
-                  </div>
-                  <span className="text-sm font-bold text-red-700">${calculateRegistrationValues(registrationAmount).stripeTotal.toFixed(2)}</span>
-                </div>
-              </div>
-
-
-              {/* Resultados Finales */}
-              <div className="space-y-2">
-                <h4 className="text-sm font-semibold text-orange-900 dark:text-orange-100">Resultados</h4>
-                
-                <div className="flex items-center justify-between p-3 bg-green-50 dark:bg-green-950/20 rounded-lg border-l-4 border-green-500">
-                  <div className="flex items-center gap-2">
-                    <TrendingUp className="h-4 w-4 text-green-600" />
-                    <span className="text-sm font-semibold">Ingreso neto Holistia</span>
-                  </div>
-                  <span className="text-sm font-bold text-green-600">${calculateRegistrationValues(registrationAmount).netIncome.toFixed(2)}</span>
-                </div>
-
-              </div>
-
-              {/* Fórmula para inscripciones */}
-              <div className="mt-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                <p className="text-xs text-gray-700 dark:text-gray-300">
-                  <strong>Fórmula:</strong> Ingreso Neto Holistia = Monto Total - Comisión Stripe<br/>
-                  <strong>Resultado:</strong> ${registrationAmount.toFixed(2)} - ${calculateRegistrationValues(registrationAmount).stripeTotal.toFixed(2)} = ${calculateRegistrationValues(registrationAmount).netIncome.toFixed(2)}<br/>
-                  <strong>Nota:</strong> Las inscripciones generan ingresos netos para Holistia después de descontar Stripe
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
 
         {/* Ejemplo de Cálculo para Eventos */}
         <Card className="py-4 border-purple-200 dark:border-purple-900 bg-purple-50 dark:bg-purple-950/20">

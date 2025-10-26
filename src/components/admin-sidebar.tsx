@@ -14,6 +14,7 @@ import {
   CalendarCheck,
   BarChart3,
   DollarSign,
+  Award,
 } from "lucide-react";
 import {
   Sidebar,
@@ -154,6 +155,11 @@ export function AdminSidebar() {
       title: "Solicitudes",
       url: `/admin/${userId}/applications`,
       icon: UserPlus,
+    },
+    {
+      title: "Certificaciones",
+      url: `/admin/${userId}/certifications`,
+      icon: Award,
     },
   ];
 

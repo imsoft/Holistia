@@ -87,10 +87,16 @@ export default function AdminUsers() {
         ] = await Promise.all([
           supabase
             .from('professional_applications')
-            .select('user_id, first_name, last_name, email, phone, city, state, status, submitted_at, reviewed_at, profile_photo'),
+            .select(`
+              user_id, first_name, last_name, email, phone, city, state, status, submitted_at, reviewed_at, profile_photo,
+              profiles!inner(account_status)
+            `),
           supabase
             .from('professional_applications')
-            .select('user_id, first_name, last_name, email, phone, city, state, status, submitted_at, reviewed_at, profile_photo')
+            .select(`
+              user_id, first_name, last_name, email, phone, city, state, status, submitted_at, reviewed_at, profile_photo,
+              profiles!inner(account_status)
+            `)
             .gte('submitted_at', lastMonthStart.toISOString())
             .lte('submitted_at', lastMonthEnd.toISOString())
         ]);
@@ -124,9 +130,11 @@ export default function AdminUsers() {
             // Usar la foto de perfil de la solicitud profesional
             const avatarUrl = prof.profile_photo;
 
-            // Determinar el estado basado en el status de la aplicación
+            // Usar el estado de la cuenta desde la tabla profiles
             let status: 'active' | 'inactive' | 'suspended' = 'active';
-            if (prof.status === 'rejected') {
+            if (prof.profiles && Array.isArray(prof.profiles) && prof.profiles.length > 0) {
+              status = prof.profiles[0].account_status as 'active' | 'inactive' | 'suspended';
+            } else if (prof.status === 'rejected') {
               status = 'inactive';
             }
 
@@ -280,8 +288,24 @@ export default function AdminUsers() {
     try {
       setActionLoading(userId);
       
-      // Aquí actualizarías el estado del usuario en la base de datos
-      // Por ahora solo actualizamos el estado local
+      const response = await fetch('/api/admin/update-user-status', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId,
+          status: 'suspended'
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Error al suspender usuario');
+      }
+
+      // Actualizar el estado local
       setUsers(prev => 
         prev.map(user => 
           user.id === userId 
@@ -293,6 +317,7 @@ export default function AdminUsers() {
       console.log('Usuario suspendido:', userId);
     } catch (error) {
       console.error('Error al suspender usuario:', error);
+      // Aquí podrías mostrar un toast de error
     } finally {
       setActionLoading(null);
     }
@@ -303,8 +328,24 @@ export default function AdminUsers() {
     try {
       setActionLoading(userId);
       
-      // Aquí actualizarías el estado del usuario en la base de datos
-      // Por ahora solo actualizamos el estado local
+      const response = await fetch('/api/admin/update-user-status', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId,
+          status: 'active'
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Error al reactivar usuario');
+      }
+
+      // Actualizar el estado local
       setUsers(prev => 
         prev.map(user => 
           user.id === userId 
@@ -316,6 +357,7 @@ export default function AdminUsers() {
       console.log('Usuario reactivado:', userId);
     } catch (error) {
       console.error('Error al reactivar usuario:', error);
+      // Aquí podrías mostrar un toast de error
     } finally {
       setActionLoading(null);
     }

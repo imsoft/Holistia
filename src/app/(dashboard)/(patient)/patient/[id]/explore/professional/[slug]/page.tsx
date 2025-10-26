@@ -1073,7 +1073,7 @@ export default function ProfessionalProfilePage() {
               {/* Botón de reservar */}
               <Button
                 onClick={() => setIsBookingModalOpen(true)}
-                className="w-full h-11 sm:h-12 text-sm sm:text-base font-semibold rounded-xl bg-gradient-to-r from-emerald-300 to-emerald-400 hover:from-emerald-400 hover:to-emerald-500 shadow-lg text-white"
+                className="w-full h-11 sm:h-12 text-sm sm:text-base font-semibold rounded-xl bg-gradient-to-r from-green-300 to-green-400 hover:from-green-400 hover:to-green-500 shadow-lg text-white"
               >
                 <Calendar className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                 Reservar cita

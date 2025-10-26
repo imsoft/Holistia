@@ -433,19 +433,31 @@ export default function AdminProfessionals() {
     try {
       setActionLoading(selectedProfessional.id);
 
-      console.log('💾 Saving wellness_areas:', editingWellnessAreas);
+      console.log('💾 Intentando guardar wellness_areas...');
+      console.log('   Professional ID:', selectedProfessional.id);
+      console.log('   Wellness areas:', editingWellnessAreas);
 
-      const { error } = await supabase
+      // Verificar usuario actual
+      const { data: userData } = await supabase.auth.getUser();
+      console.log('   Usuario actual:', userData.user?.email);
+      console.log('   Metadata:', userData.user?.user_metadata);
+
+      const { data, error } = await supabase
         .from('professional_applications')
         .update({ wellness_areas: editingWellnessAreas })
-        .eq('id', selectedProfessional.id);
+        .eq('id', selectedProfessional.id)
+        .select();
 
       if (error) {
         console.error('❌ Error saving:', error);
+        console.error('   Error code:', error.code);
+        console.error('   Error message:', error.message);
+        console.error('   Error details:', error.details);
         throw error;
       }
 
       console.log('✅ Saved successfully!');
+      console.log('   Updated data:', data);
 
       // Actualizar el estado local
       setProfessionals(prev =>

@@ -138,6 +138,9 @@ export default function AdminProfessionals() {
           return;
         }
 
+        console.log('📊 Loaded professionals from DB:', professionalsData.length);
+        console.log('🔍 Sample professional data:', professionalsData[0]);
+
         // Transformar datos y obtener número de pacientes para cada profesional
         const transformedProfessionals: Professional[] = await Promise.all(
           professionalsData.map(async (prof) => {
@@ -188,6 +191,7 @@ export default function AdminProfessionals() {
               instagram: prof.instagram,
               profession: prof.profession,
               specializations: prof.specializations,
+              wellness_areas: prof.wellness_areas || [], // ⭐ IMPORTANTE: Incluir wellness_areas
               city: prof.city,
               state: prof.state,
               profile_photo: prof.profile_photo,

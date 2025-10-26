@@ -21,13 +21,18 @@ export async function GET(request: Request) {
         email: data.user.email
       });
 
-      // Obtener tipo de usuario desde profiles
+      // Obtener tipo de usuario y estado de cuenta desde profiles
       const { data: profile } = await supabase
         .from('profiles')
-        .select('type')
+        .select('type, account_active')
         .eq('id', data.user.id)
         .maybeSingle();
-      
+
+      // Verificar si la cuenta está desactivada
+      if (profile && profile.account_active === false) {
+        return NextResponse.redirect(`${origin}/account-deactivated`);
+      }
+
       const userType = profile?.type;
       const forwardedHost = request.headers.get('x-forwarded-host') // original origin before load balancer
       const isLocalEnv = process.env.NODE_ENV === 'development'

@@ -25,12 +25,18 @@ export async function login(formData: FormData) {
 
     // Si el login es exitoso, verificar el tipo de usuario y redirigir apropiadamente
     if (result.user) {
-      // Obtener tipo de usuario desde profiles
+      // Obtener tipo de usuario y estado de cuenta desde profiles
       const { data: profile } = await supabase
         .from('profiles')
-        .select('type')
+        .select('type, account_active')
         .eq('id', result.user.id)
         .maybeSingle();
+
+      // Verificar si la cuenta está desactivada
+      if (profile && profile.account_active === false) {
+        revalidatePath("/", "layout");
+        redirect('/account-deactivated');
+      }
 
       const userType = profile?.type;
       

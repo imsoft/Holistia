@@ -393,25 +393,6 @@ export default function AnalyticsPage() {
         </Card>
 
 
-        <Card className="py-4">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <TrendingUp className="h-4 w-4" />
-              Promedio por Cita
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              ${generalStats.total_appointments > 0
-                ? ((generalStats.total_revenue / generalStats.total_appointments) / 100).toFixed(2)
-                : '0.00'
-              }
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              MXN
-            </p>
-          </CardContent>
-        </Card>
 
         <Card className="py-4">
           <CardHeader className="pb-2">
@@ -557,9 +538,6 @@ export default function AnalyticsPage() {
                   </div>
                   <div className="text-right">
                     <Badge variant="secondary">{patient.appointment_count} citas</Badge>
-                    <p className="text-xs text-green-600 mt-1">
-                      ${(patient.total_spent / 100).toLocaleString('es-MX')}
-                    </p>
                   </div>
                 </div>
               ))}

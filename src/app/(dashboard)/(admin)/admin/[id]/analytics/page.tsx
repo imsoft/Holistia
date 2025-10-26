@@ -486,43 +486,46 @@ export default function AnalyticsPage() {
                     <p className="text-sm text-muted-foreground">{prof.profession}</p>
                   </div>
                 </div>
-                <div className="text-right space-y-2">
-                  <div className="flex items-center gap-2 mb-1">
+                <div className="flex items-center gap-6">
+                  {/* Número de citas */}
+                  <div className="flex items-center gap-2">
                     <Calendar className="h-4 w-4 text-muted-foreground" />
-                    <span className="font-bold text-lg">{prof.appointment_count}</span>
-                    <span className="text-sm text-muted-foreground">citas</span>
+                    <div className="text-center">
+                      <div className="font-bold text-lg">{prof.appointment_count}</div>
+                      <div className="text-xs text-muted-foreground">citas</div>
+                    </div>
                   </div>
                   
                   {/* Ingresos del Profesional */}
                   <div className="flex items-center gap-2">
                     <Users className="h-4 w-4 text-blue-600" />
-                    <div className="text-right">
+                    <div className="text-center">
                       <div className="text-xs text-muted-foreground">Profesional</div>
-                      <span className="text-sm font-medium text-blue-600">
+                      <div className="text-sm font-medium text-blue-600">
                         ${prof.professional_earnings?.toLocaleString('es-MX', { minimumFractionDigits: 2 }) || '0.00'}
-                      </span>
+                      </div>
                     </div>
                   </div>
                   
                   {/* Ingresos de Holistia */}
                   <div className="flex items-center gap-2">
                     <TrendingUp className="h-4 w-4 text-green-600" />
-                    <div className="text-right">
+                    <div className="text-center">
                       <div className="text-xs text-muted-foreground">Holistia</div>
-                      <span className="text-sm font-medium text-green-600">
+                      <div className="text-sm font-medium text-green-600">
                         ${prof.holistia_earnings?.toLocaleString('es-MX', { minimumFractionDigits: 2 }) || '0.00'}
-                      </span>
+                      </div>
                     </div>
                   </div>
                   
                   {/* Total de ingresos */}
-                  <div className="flex items-center gap-2 pt-1 border-t">
+                  <div className="flex items-center gap-2">
                     <DollarSign className="h-4 w-4 text-gray-600" />
-                    <div className="text-right">
+                    <div className="text-center">
                       <div className="text-xs text-muted-foreground">Total</div>
-                      <span className="text-sm font-bold text-gray-600">
+                      <div className="text-sm font-bold text-gray-600">
                         ${prof.total_revenue?.toLocaleString('es-MX', { minimumFractionDigits: 2 }) || '0.00'}
-                      </span>
+                      </div>
                     </div>
                   </div>
                 </div>

@@ -532,10 +532,6 @@ export default function AdminUsers() {
                       height={60}
                       className="h-15 w-15 aspect-square rounded-full object-cover border-2 border-border"
                     />
-                    <div className={`absolute -bottom-1 -right-1 h-5 w-5 rounded-full border-2 border-background ${
-                      user.status === "active" ? "bg-green-500" :
-                      user.status === "inactive" ? "bg-red-500" : "bg-yellow-500"
-                    }`}></div>
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start gap-2 mb-1 flex-wrap">

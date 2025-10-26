@@ -125,7 +125,7 @@ export default function FinancesPage() {
     const stripeTax = stripeBase * 0.16;
     const stripeTotal = stripeBase + stripeTax;
     const platformFee = 0; // Sin comisión de Holistia para inscripciones
-    const netIncome = platformFee - stripeTotal; // Negativo porque solo hay costos de Stripe
+    const netIncome = amount - stripeTotal; // Monto total menos comisión de Stripe
     const professionalReceives = amount - platformFee; // Recibe el monto completo
 
     return {
@@ -879,18 +879,6 @@ export default function FinancesPage() {
                 </div>
               </div>
 
-              {/* Comisiones Plataforma */}
-              <div className="space-y-2">
-                <h4 className="text-sm font-semibold text-orange-900 dark:text-orange-100">Comisiones de Holistia</h4>
-                
-                <div className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-800 rounded border-l-4 border-gray-400">
-                  <div className="flex items-center gap-2">
-                    <Wallet className="h-4 w-4 text-gray-600" />
-                    <span className="text-sm">Sin comisión de Holistia</span>
-                  </div>
-                  <span className="text-sm font-bold text-gray-600">$0.00</span>
-                </div>
-              </div>
 
               {/* Resultados Finales */}
               <div className="space-y-2">
@@ -904,21 +892,14 @@ export default function FinancesPage() {
                   <span className="text-sm font-bold text-green-600">${calculateRegistrationValues(registrationAmount).netIncome.toFixed(2)}</span>
                 </div>
 
-                <div className="flex items-center justify-between p-3 bg-purple-50 dark:bg-purple-950/20 rounded-lg border-l-4 border-purple-500">
-                  <div className="flex items-center gap-2">
-                    <Users className="h-4 w-4 text-purple-600" />
-                    <span className="text-sm font-semibold">Profesional recibe</span>
-                  </div>
-                  <span className="text-sm font-bold text-purple-600">${calculateRegistrationValues(registrationAmount).professionalReceives.toFixed(2)}</span>
-                </div>
               </div>
 
               {/* Fórmula para inscripciones */}
               <div className="mt-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
                 <p className="text-xs text-gray-700 dark:text-gray-300">
-                  <strong>Fórmula:</strong> Ingreso Neto Holistia = Comisión Plataforma - Costos Stripe<br/>
-                  <strong>Resultado:</strong> $0.00 - ${calculateRegistrationValues(registrationAmount).stripeTotal.toFixed(2)} = ${calculateRegistrationValues(registrationAmount).netIncome.toFixed(2)}<br/>
-                  <strong>Nota:</strong> Las inscripciones no generan ingresos para Holistia, solo costos de Stripe
+                  <strong>Fórmula:</strong> Ingreso Neto Holistia = Monto Total - Comisión Stripe<br/>
+                  <strong>Resultado:</strong> ${registrationAmount.toFixed(2)} - ${calculateRegistrationValues(registrationAmount).stripeTotal.toFixed(2)} = ${calculateRegistrationValues(registrationAmount).netIncome.toFixed(2)}<br/>
+                  <strong>Nota:</strong> Las inscripciones generan ingresos netos para Holistia después de descontar Stripe
                 </p>
               </div>
             </div>

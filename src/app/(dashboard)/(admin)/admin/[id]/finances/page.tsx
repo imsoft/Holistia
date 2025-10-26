@@ -679,10 +679,10 @@ export default function FinancesPage() {
           <CardHeader>
             <CardTitle className="text-green-900 dark:text-green-100 flex items-center gap-2">
               <Calculator className="h-5 w-5" />
-              Ejemplo Detallado de Cálculos
+              Cálculo para Citas Profesionales (15% comisión con Connect)
             </CardTitle>
             <CardDescription className="text-green-800 dark:text-green-200">
-              Desglose paso a paso - Cambia el monto para ver los cálculos
+              Citas con comisión del 15% y procesamiento con Stripe Connect
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -794,123 +794,6 @@ export default function FinancesPage() {
                   <strong>Fórmula:</strong> Ingreso Neto Holistia = Comisión Plataforma - Comisión Total Stripe<br/>
                   <strong>Resultado:</strong> ${calculateExampleValues(exampleAmount).platformFee.toFixed(2)} - ${calculateExampleValues(exampleAmount).stripeTotal.toFixed(2)} = ${calculateExampleValues(exampleAmount).netIncome.toFixed(2)}
                 </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Ejemplo de Cálculo para Eventos */}
-        <Card className="py-4 border-purple-200 dark:border-purple-900 bg-purple-50 dark:bg-purple-950/20">
-          <CardHeader>
-            <CardTitle className="text-purple-900 dark:text-purple-100 flex items-center gap-2">
-              <CalendarDays className="h-5 w-5" />
-              Cálculo para Eventos (25% comisión con Connect)
-            </CardTitle>
-            <CardDescription className="text-purple-800 dark:text-purple-200">
-              Eventos con comisión del 25% y procesamiento con Stripe Connect
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {/* Input para cambiar el monto del evento */}
-              <div className="flex items-center gap-4 p-3 bg-white dark:bg-gray-800 rounded-lg border">
-                <div className="flex items-center gap-2">
-                  <Label htmlFor="event-amount" className="text-sm font-medium">
-                    Monto del evento:
-                  </Label>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm text-muted-foreground">$</span>
-                    <Input
-                      id="event-amount"
-                      type="number"
-                      value={eventAmount}
-                      onChange={(e) => setEventAmount(Number(e.target.value) || 0)}
-                      className="w-24 h-8 text-sm"
-                      min="0"
-                      step="0.01"
-                    />
-                  </div>
-                </div>
-                <div className="text-xs text-muted-foreground">
-                  Comisión: 25% + Stripe Connect
-                </div>
-              </div>
-
-              {/* Monto Original */}
-              <div className="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-lg border">
-                <div className="flex items-center gap-3">
-                  <div className="bg-purple-100 dark:bg-purple-900 p-2 rounded-lg">
-                    <DollarSign className="h-4 w-4 text-purple-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium">Monto Original</p>
-                    <p className="text-xs text-muted-foreground">Evento de ${eventAmount}</p>
-                  </div>
-                </div>
-                <p className="text-sm font-bold text-purple-600">${eventAmount.toFixed(2)}</p>
-              </div>
-
-              {/* Comisiones Stripe */}
-              <div className="space-y-2">
-                <h4 className="text-sm font-semibold text-purple-900 dark:text-purple-100">Comisiones de Stripe</h4>
-                
-                <div className="flex items-center justify-between p-2 bg-white dark:bg-gray-800 rounded border-l-4 border-red-400">
-                  <div className="flex items-center gap-2">
-                    <CreditCard className="h-4 w-4 text-red-600" />
-                    <span className="text-sm">Comisión base (3.6% + $3)</span>
-                  </div>
-                  <span className="text-sm font-bold text-red-600">${calculateEventValues(eventAmount).stripeBase.toFixed(2)}</span>
-                </div>
-
-                <div className="flex items-center justify-between p-2 bg-white dark:bg-gray-800 rounded border-l-4 border-orange-400">
-                  <div className="flex items-center gap-2">
-                    <FileText className="h-4 w-4 text-orange-600" />
-                    <span className="text-sm">IVA sobre Stripe (16%)</span>
-                  </div>
-                  <span className="text-sm font-bold text-orange-600">${calculateEventValues(eventAmount).stripeTax.toFixed(2)}</span>
-                </div>
-
-                <div className="flex items-center justify-between p-2 bg-red-50 dark:bg-red-950/20 rounded border-l-4 border-red-500">
-                  <div className="flex items-center gap-2">
-                    <CreditCard className="h-4 w-4 text-red-700" />
-                    <span className="text-sm font-semibold">Comisión total Stripe</span>
-                  </div>
-                  <span className="text-sm font-bold text-red-700">${calculateEventValues(eventAmount).stripeTotal.toFixed(2)}</span>
-                </div>
-              </div>
-
-              {/* Comisiones Plataforma */}
-              <div className="space-y-2">
-                <h4 className="text-sm font-semibold text-purple-900 dark:text-purple-100">Comisiones de Holistia</h4>
-                
-                <div className="flex items-center justify-between p-2 bg-purple-50 dark:bg-purple-950/20 rounded border-l-4 border-purple-500">
-                  <div className="flex items-center gap-2">
-                    <Wallet className="h-4 w-4 text-purple-600" />
-                    <span className="text-sm">Comisión plataforma (25%)</span>
-                  </div>
-                  <span className="text-sm font-bold text-purple-600">${calculateEventValues(eventAmount).platformFee.toFixed(2)}</span>
-                </div>
-              </div>
-
-              {/* Resultados Finales */}
-              <div className="space-y-2">
-                <h4 className="text-sm font-semibold text-purple-900 dark:text-purple-100">Resultados</h4>
-                
-                <div className="flex items-center justify-between p-3 bg-green-50 dark:bg-green-950/20 rounded-lg border-l-4 border-green-500">
-                  <div className="flex items-center gap-2">
-                    <TrendingUp className="h-4 w-4 text-green-600" />
-                    <span className="text-sm font-semibold">Ingreso neto Holistia</span>
-                  </div>
-                  <span className="text-sm font-bold text-green-600">${calculateEventValues(eventAmount).netIncome.toFixed(2)}</span>
-                </div>
-
-                <div className="flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg border-l-4 border-blue-500">
-                  <div className="flex items-center gap-2">
-                    <Users className="h-4 w-4 text-blue-600" />
-                    <span className="text-sm font-semibold">Profesional recibe</span>
-                  </div>
-                  <span className="text-sm font-bold text-blue-600">${calculateEventValues(eventAmount).professionalReceives.toFixed(2)}</span>
-                </div>
               </div>
             </div>
           </CardContent>
@@ -1041,6 +924,124 @@ export default function FinancesPage() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Ejemplo de Cálculo para Eventos */}
+        <Card className="py-4 border-purple-200 dark:border-purple-900 bg-purple-50 dark:bg-purple-950/20">
+          <CardHeader>
+            <CardTitle className="text-purple-900 dark:text-purple-100 flex items-center gap-2">
+              <CalendarDays className="h-5 w-5" />
+              Cálculo para Eventos (25% comisión con Connect)
+            </CardTitle>
+            <CardDescription className="text-purple-800 dark:text-purple-200">
+              Eventos con comisión del 25% y procesamiento con Stripe Connect
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {/* Input para cambiar el monto del evento */}
+              <div className="flex items-center gap-4 p-3 bg-white dark:bg-gray-800 rounded-lg border">
+                <div className="flex items-center gap-2">
+                  <Label htmlFor="event-amount" className="text-sm font-medium">
+                    Monto del evento:
+                  </Label>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-muted-foreground">$</span>
+                    <Input
+                      id="event-amount"
+                      type="number"
+                      value={eventAmount}
+                      onChange={(e) => setEventAmount(Number(e.target.value) || 0)}
+                      className="w-24 h-8 text-sm"
+                      min="0"
+                      step="0.01"
+                    />
+                  </div>
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  Comisión: 25% + Stripe Connect
+                </div>
+              </div>
+
+              {/* Monto Original */}
+              <div className="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-lg border">
+                <div className="flex items-center gap-3">
+                  <div className="bg-purple-100 dark:bg-purple-900 p-2 rounded-lg">
+                    <DollarSign className="h-4 w-4 text-purple-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">Monto Original</p>
+                    <p className="text-xs text-muted-foreground">Evento de ${eventAmount}</p>
+                  </div>
+                </div>
+                <p className="text-sm font-bold text-purple-600">${eventAmount.toFixed(2)}</p>
+              </div>
+
+              {/* Comisiones Stripe */}
+              <div className="space-y-2">
+                <h4 className="text-sm font-semibold text-purple-900 dark:text-purple-100">Comisiones de Stripe</h4>
+                
+                <div className="flex items-center justify-between p-2 bg-white dark:bg-gray-800 rounded border-l-4 border-red-400">
+                  <div className="flex items-center gap-2">
+                    <CreditCard className="h-4 w-4 text-red-600" />
+                    <span className="text-sm">Comisión base (3.6% + $3)</span>
+                  </div>
+                  <span className="text-sm font-bold text-red-600">${calculateEventValues(eventAmount).stripeBase.toFixed(2)}</span>
+                </div>
+
+                <div className="flex items-center justify-between p-2 bg-white dark:bg-gray-800 rounded border-l-4 border-orange-400">
+                  <div className="flex items-center gap-2">
+                    <FileText className="h-4 w-4 text-orange-600" />
+                    <span className="text-sm">IVA sobre Stripe (16%)</span>
+                  </div>
+                  <span className="text-sm font-bold text-orange-600">${calculateEventValues(eventAmount).stripeTax.toFixed(2)}</span>
+                </div>
+
+                <div className="flex items-center justify-between p-2 bg-red-50 dark:bg-red-950/20 rounded border-l-4 border-red-500">
+                  <div className="flex items-center gap-2">
+                    <CreditCard className="h-4 w-4 text-red-700" />
+                    <span className="text-sm font-semibold">Comisión total Stripe</span>
+                  </div>
+                  <span className="text-sm font-bold text-red-700">${calculateEventValues(eventAmount).stripeTotal.toFixed(2)}</span>
+                </div>
+              </div>
+
+              {/* Comisiones Plataforma */}
+              <div className="space-y-2">
+                <h4 className="text-sm font-semibold text-purple-900 dark:text-purple-100">Comisiones de Holistia</h4>
+                
+                <div className="flex items-center justify-between p-2 bg-purple-50 dark:bg-purple-950/20 rounded border-l-4 border-purple-500">
+                  <div className="flex items-center gap-2">
+                    <Wallet className="h-4 w-4 text-purple-600" />
+                    <span className="text-sm">Comisión plataforma (25%)</span>
+                  </div>
+                  <span className="text-sm font-bold text-purple-600">${calculateEventValues(eventAmount).platformFee.toFixed(2)}</span>
+                </div>
+              </div>
+
+              {/* Resultados Finales */}
+              <div className="space-y-2">
+                <h4 className="text-sm font-semibold text-purple-900 dark:text-purple-100">Resultados</h4>
+                
+                <div className="flex items-center justify-between p-3 bg-green-50 dark:bg-green-950/20 rounded-lg border-l-4 border-green-500">
+                  <div className="flex items-center gap-2">
+                    <TrendingUp className="h-4 w-4 text-green-600" />
+                    <span className="text-sm font-semibold">Ingreso neto Holistia</span>
+                  </div>
+                  <span className="text-sm font-bold text-green-600">${calculateEventValues(eventAmount).netIncome.toFixed(2)}</span>
+                </div>
+
+                <div className="flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg border-l-4 border-blue-500">
+                  <div className="flex items-center gap-2">
+                    <Users className="h-4 w-4 text-blue-600" />
+                    <span className="text-sm font-semibold">Profesional recibe</span>
+                  </div>
+                  <span className="text-sm font-bold text-blue-600">${calculateEventValues(eventAmount).professionalReceives.toFixed(2)}</span>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
 
         {/* Nota Informativa */}
         <Card className="py-4 border-blue-200 dark:border-blue-900 bg-blue-50 dark:bg-blue-950/20">

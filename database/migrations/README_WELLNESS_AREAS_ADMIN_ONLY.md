@@ -44,19 +44,30 @@ Las 5 categorías de áreas de bienestar son:
 - ✅ Interfaz intuitiva con checkmarks para áreas seleccionadas
 
 ### 4. Base de Datos - Políticas RLS
-**Archivo**: `database/migrations/79_restrict_wellness_areas_to_admin.sql`
+**Archivos**:
+- `database/migrations/79_restrict_wellness_areas_to_admin.sql` (inicial - tiene bug)
+- `database/migrations/80_fix_wellness_areas_rls_recursion.sql` (fix - usar este)
 
-- ✅ Actualizada la política RLS "Users can update own professional application"
-- ✅ Agregada restricción: Los usuarios NO pueden modificar `wellness_areas`
-- ✅ Solo los administradores pueden actualizar este campo
-- ✅ Los usuarios pueden actualizar todos los demás campos de su aplicación
+**IMPORTANTE:** La migración 79 causaba recursión infinita. Usar la migración 80 en su lugar.
+
+**Estrategia Implementada:**
+- ✅ La restricción se maneja a **nivel de aplicación (UI)**, no en la base de datos
+- ✅ Los profesionales no pueden editar wellness_areas porque no tienen la interfaz
+- ✅ Solo el panel de administración tiene UI para editar wellness_areas
+- ✅ La autenticación y autorización protegen el acceso al panel admin
+- ✅ Políticas RLS simples sin recursión
 
 ## Cómo Aplicar la Migración
+
+### ⚠️ IMPORTANTE: Usar la Migración Correcta
+
+**NO ejecutar:** `79_restrict_wellness_areas_to_admin.sql` (causa recursión infinita)
+**SÍ ejecutar:** `80_fix_wellness_areas_rls_recursion.sql` (versión corregida)
 
 ### Opción 1: Supabase Dashboard (Recomendado)
 1. Ir a tu proyecto en Supabase Dashboard
 2. Navegar a "SQL Editor"
-3. Copiar y pegar el contenido de `79_restrict_wellness_areas_to_admin.sql`
+3. Copiar y pegar el contenido de `80_fix_wellness_areas_rls_recursion.sql`
 4. Ejecutar la consulta
 
 ### Opción 2: CLI de Supabase

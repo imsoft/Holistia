@@ -28,6 +28,9 @@ interface TopProfessional {
   profession: string;
   appointment_count: number;
   total_revenue: number;
+  professional_earnings: number;
+  holistia_earnings: number;
+  stripe_commissions: number;
 }
 
 interface TopPatient {
@@ -150,13 +153,34 @@ export default function AnalyticsPage() {
             const profAppointmentIds = profAppointments.map((a: Appointment) => a.id);
             const profPayments = paymentsData.filter((p: Payment) => profAppointmentIds.includes(p.appointment_id));
 
+            // Calcular ingresos totales
+            const totalRevenue = profPayments.reduce((sum: number, p: Payment) => {
+              const amount = typeof p.amount === 'string' ? parseFloat(p.amount) : (p.amount || 0);
+              return sum + amount;
+            }, 0);
+
+            // Calcular comisiones de Stripe (3.6% + $3 + IVA)
+            const stripeCommissions = profPayments.reduce((sum: number, p: Payment) => {
+              const amount = typeof p.amount === 'string' ? parseFloat(p.amount) : (p.amount || 0);
+              const stripeBase = (amount * 0.036) + 3;
+              const stripeTax = stripeBase * 0.16;
+              return sum + stripeBase + stripeTax;
+            }, 0);
+
+            // Calcular comisiones de Holistia (15% para citas)
+            const holistiaCommissions = totalRevenue * 0.15;
+
+            // Calcular ingresos netos
+            const professionalEarnings = totalRevenue - holistiaCommissions;
+            const holistiaEarnings = holistiaCommissions - stripeCommissions;
+
             return {
               ...prof,
               appointment_count: profAppointments.length,
-              total_revenue: profPayments.reduce((sum: number, p: Payment) => {
-                const amount = typeof p.amount === 'string' ? parseFloat(p.amount) : (p.amount || 0);
-                return sum + amount;
-              }, 0),
+              total_revenue: totalRevenue,
+              professional_earnings: professionalEarnings,
+              holistia_earnings: holistiaEarnings,
+              stripe_commissions: stripeCommissions,
             };
           });
 
@@ -434,7 +458,7 @@ export default function AnalyticsPage() {
             Top 5 Profesionales Más Contratados
           </CardTitle>
           <CardDescription>
-            Profesionales con mayor número de citas
+            Profesionales con mayor número de citas - Ingresos del profesional vs Holistia
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -462,17 +486,44 @@ export default function AnalyticsPage() {
                     <p className="text-sm text-muted-foreground">{prof.profession}</p>
                   </div>
                 </div>
-                <div className="text-right">
+                <div className="text-right space-y-2">
                   <div className="flex items-center gap-2 mb-1">
                     <Calendar className="h-4 w-4 text-muted-foreground" />
                     <span className="font-bold text-lg">{prof.appointment_count}</span>
                     <span className="text-sm text-muted-foreground">citas</span>
                   </div>
+                  
+                  {/* Ingresos del Profesional */}
                   <div className="flex items-center gap-2">
-                    <DollarSign className="h-4 w-4 text-green-600" />
-                    <span className="text-sm font-medium text-green-600">
-                      ${(prof.total_revenue / 100).toLocaleString('es-MX')}
-                    </span>
+                    <Users className="h-4 w-4 text-blue-600" />
+                    <div className="text-right">
+                      <div className="text-xs text-muted-foreground">Profesional</div>
+                      <span className="text-sm font-medium text-blue-600">
+                        ${prof.professional_earnings?.toLocaleString('es-MX', { minimumFractionDigits: 2 }) || '0.00'}
+                      </span>
+                    </div>
+                  </div>
+                  
+                  {/* Ingresos de Holistia */}
+                  <div className="flex items-center gap-2">
+                    <TrendingUp className="h-4 w-4 text-green-600" />
+                    <div className="text-right">
+                      <div className="text-xs text-muted-foreground">Holistia</div>
+                      <span className="text-sm font-medium text-green-600">
+                        ${prof.holistia_earnings?.toLocaleString('es-MX', { minimumFractionDigits: 2 }) || '0.00'}
+                      </span>
+                    </div>
+                  </div>
+                  
+                  {/* Total de ingresos */}
+                  <div className="flex items-center gap-2 pt-1 border-t">
+                    <DollarSign className="h-4 w-4 text-gray-600" />
+                    <div className="text-right">
+                      <div className="text-xs text-muted-foreground">Total</div>
+                      <span className="text-sm font-bold text-gray-600">
+                        ${prof.total_revenue?.toLocaleString('es-MX', { minimumFractionDigits: 2 }) || '0.00'}
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>

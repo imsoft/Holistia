@@ -374,16 +374,16 @@ export default function ProfessionalProfilePage() {
     getData();
   }, [professionalId, patientId, supabase]);
 
-  // Establecer fecha inicial cuando se carga la página
-  useEffect(() => {
-    if (!selectedDate && professional) {
-      const today = new Date();
-      const todayString = today.toISOString().split('T')[0];
-      console.log('📅 Estableciendo fecha inicial:', todayString);
-      setSelectedDate(todayString);
-      getAvailableTimes(todayString);
-    }
-  }, [professional, selectedDate]);
+  // No establecer fecha inicial - el usuario debe seleccionar una fecha primero
+  // useEffect(() => {
+  //   if (!selectedDate && professional) {
+  //     const today = new Date();
+  //     const todayString = today.toISOString().split('T')[0];
+  //     console.log('📅 Estableciendo fecha inicial:', todayString);
+  //     setSelectedDate(todayString);
+  //     getAvailableTimes(todayString);
+  //   }
+  // }, [professional, selectedDate]);
 
   // Cargar estadísticas de reseñas y reseña del usuario
   useEffect(() => {
@@ -1627,7 +1627,7 @@ export default function ProfessionalProfilePage() {
                             {/* Horarios disponibles */}
                             {selectedDate && (
                               <div>
-                                <Label className="text-base font-semibold text-foreground">Horario</Label>
+                                <Label className="mt-4 text-base font-semibold text-foreground">Horario</Label>
                                 {loadingTimes ? (
                                   <div className="flex items-center justify-center py-12">
                                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>

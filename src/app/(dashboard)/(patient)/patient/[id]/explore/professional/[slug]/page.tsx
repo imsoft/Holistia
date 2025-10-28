@@ -788,25 +788,17 @@ export default function ProfessionalProfilePage() {
           const endDate = block.end_date ? new Date(block.end_date) : startDate;
           const currentDate = new Date(date);
 
-          // Primero verificar si hay un rango de fechas (start_date a end_date)
-          if (block.end_date && block.end_date !== block.start_date) {
-            // Bloqueo con rango de fechas - aplica a TODOS los días dentro del rango
-            console.log(`📅 Bloqueo de rango - Fecha inicio: ${startDate.toISOString()}, Fecha fin: ${endDate.toISOString()}, Fecha actual: ${currentDate.toISOString()}`);
-
-            // Verificar si la fecha actual está dentro del rango
-            if (currentDate >= startDate && currentDate <= endDate) {
-              shouldApplyBlock = true;
-              console.log(`✅ Bloqueo de rango aplicado para fecha ${date} (rango: ${block.start_date} - ${block.end_date})`);
-            } else {
-              console.log(`❌ Bloqueo de rango NO aplica - fecha fuera del rango`);
-            }
-          } else if (block.is_recurring) {
+          // PRIORIDAD 1: Bloqueos recurrentes semanales (ignorar end_date si existe)
+          if (block.is_recurring) {
             // Bloqueo recurrente semanal - solo aplica al mismo día de la semana
             const blockDayOfWeek = startDate.getDay();
             const currentDayOfWeek = currentDate.getDay();
 
             console.log(`🔄 Bloqueo recurrente semanal - Día del bloqueo: ${blockDayOfWeek}, Día actual: ${currentDayOfWeek}`);
             console.log(`📅 Fecha inicio bloqueo: ${startDate.toISOString()}, Fecha actual: ${currentDate.toISOString()}`);
+            if (block.end_date) {
+              console.log(`⚠️ Bloqueo recurrente tiene end_date (${block.end_date}) - se ignorará para recurrencia`);
+            }
 
             // Verificar que el día de la semana coincida Y que la fecha actual sea >= fecha de inicio
             if (blockDayOfWeek === currentDayOfWeek && currentDate >= startDate) {
@@ -817,8 +809,22 @@ export default function ProfessionalProfilePage() {
             } else if (currentDate < startDate) {
               console.log(`❌ Bloqueo recurrente semanal NO aplica - fecha actual anterior a fecha de inicio`);
             }
-          } else {
-            // Bloqueo de un solo día específico
+          }
+          // PRIORIDAD 2: Bloqueos con rango de fechas (sin recurrencia)
+          else if (block.end_date && block.end_date !== block.start_date) {
+            // Bloqueo con rango de fechas - aplica a TODOS los días dentro del rango
+            console.log(`📅 Bloqueo de rango - Fecha inicio: ${startDate.toISOString()}, Fecha fin: ${endDate.toISOString()}, Fecha actual: ${currentDate.toISOString()}`);
+
+            // Verificar si la fecha actual está dentro del rango
+            if (currentDate >= startDate && currentDate <= endDate) {
+              shouldApplyBlock = true;
+              console.log(`✅ Bloqueo de rango aplicado para fecha ${date} (rango: ${block.start_date} - ${block.end_date})`);
+            } else {
+              console.log(`❌ Bloqueo de rango NO aplica - fecha fuera del rango`);
+            }
+          }
+          // PRIORIDAD 3: Bloqueo de un solo día específico
+          else {
             console.log(`📅 Bloqueo de día único - Fecha: ${startDate.toISOString()}, Fecha actual: ${currentDate.toISOString()}`);
 
             if (currentDate.getTime() === startDate.getTime()) {

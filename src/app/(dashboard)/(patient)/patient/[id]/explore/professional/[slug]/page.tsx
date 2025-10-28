@@ -358,6 +358,17 @@ export default function ProfessionalProfilePage() {
     getData();
   }, [professionalId, patientId, supabase]);
 
+  // Establecer fecha inicial cuando se carga la página
+  useEffect(() => {
+    if (!selectedDate && professional) {
+      const today = new Date();
+      const todayString = today.toISOString().split('T')[0];
+      console.log('📅 Estableciendo fecha inicial:', todayString);
+      setSelectedDate(todayString);
+      getAvailableTimes(todayString);
+    }
+  }, [professional, selectedDate]);
+
   // Cargar estadísticas de reseñas y reseña del usuario
   useEffect(() => {
     const loadReviews = async () => {

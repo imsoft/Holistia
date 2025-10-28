@@ -665,13 +665,23 @@ export default function ProfessionalProfilePage() {
         .from('availability_blocks')
         .select('*')
         .eq('professional_id', professional?.id)
-        .or(`and(start_date.lte.${date},end_date.gte.${date}),and(start_date.eq.${date},end_date.is.null),and(start_date.eq.${date},end_date.eq.${date}),and(is_recurring.eq.true)`);
+        .or(`and(start_date.lte.${date},end_date.gte.${date}),and(start_date.eq.${date},end_date.is.null),and(start_date.eq.${date},end_date.eq.${date}),is_recurring.eq.true`);
 
       if (blocksError) {
         console.error('Error fetching availability blocks:', blocksError);
       }
 
       console.log('🚫 Bloqueos encontrados para', date, ':', availabilityBlocks);
+      console.log('🔍 Detalles de bloqueos:', availabilityBlocks?.map(block => ({
+        id: block.id,
+        title: block.title,
+        block_type: block.block_type,
+        start_date: block.start_date,
+        end_date: block.end_date,
+        start_time: block.start_time,
+        end_time: block.end_time,
+        is_recurring: block.is_recurring
+      })));
 
       // Crear array de horarios bloqueados
       const blockedTimes = new Set();
@@ -815,6 +825,14 @@ export default function ProfessionalProfilePage() {
       }
       
       console.log('⏰ Horarios generados:', times);
+      console.log('📊 Resumen de estados:', {
+        total: times.length,
+        available: times.filter(t => t.status === 'available').length,
+        occupied: times.filter(t => t.status === 'occupied').length,
+        blocked: times.filter(t => t.status === 'blocked').length
+      });
+      console.log('🔒 Horarios bloqueados finales:', Array.from(blockedTimes));
+      console.log('📋 Horarios ocupados finales:', Array.from(occupiedTimes));
       setAvailableTimes(times);
       return times;
     } catch (error) {
@@ -1418,11 +1436,10 @@ export default function ProfessionalProfilePage() {
                                   </div>
                                 ) : (
                                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 sm:gap-3 mt-3 max-h-60 overflow-y-auto">
-                                    {availableTimes
-                                      .filter(timeOption => timeOption.status !== 'blocked') // Filtrar horarios bloqueados
-                                      .map((timeOption) => {
+                                    {availableTimes.map((timeOption) => {
                                       const isAvailable = timeOption.status === 'available';
                                       const isOccupied = timeOption.status === 'occupied';
+                                      const isBlocked = timeOption.status === 'blocked';
 
                                       return (
                                         <button
@@ -1436,17 +1453,24 @@ export default function ProfessionalProfilePage() {
                                               ? "border-border hover:border-primary/50 bg-background hover:bg-primary/5"
                                               : isOccupied
                                               ? "border-red-200 bg-red-50 text-red-600 cursor-not-allowed"
+                                              : isBlocked
+                                              ? "border-orange-200 bg-orange-50 text-orange-600 cursor-not-allowed"
                                               : "border-gray-200 bg-gray-50 text-gray-400 cursor-not-allowed"
                                           }`}
                                         >
                                           <div className={`text-sm sm:text-base font-semibold truncate ${
-                                            isOccupied ? "line-through" : ""
+                                            isOccupied || isBlocked ? "line-through" : ""
                                           }`}>
                                             {timeOption.display}
                                           </div>
                                           {isOccupied && (
                                             <div className="text-xs text-red-500 mt-0.5 sm:mt-1">
                                               Ocupado
+                                            </div>
+                                          )}
+                                          {isBlocked && (
+                                            <div className="text-xs text-orange-500 mt-0.5 sm:mt-1">
+                                              Bloqueado
                                             </div>
                                           )}
                                         </button>

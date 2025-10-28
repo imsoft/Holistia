@@ -808,15 +808,25 @@ export default function AdminProfessionals() {
                   
                   {/* Estado de pago */}
                   <div className="pt-2 border-t border-border">
-                    {professional.registration_fee_paid && professional.registration_fee_expires_at && new Date(professional.registration_fee_expires_at) > new Date() ? (
+                    {professional.registration_fee_paid ? (
                       <div className="flex items-center gap-2">
                         <Badge className="bg-green-100 text-green-800 hover:bg-green-100 text-xs">
                           ✅ Pagado
                         </Badge>
-                        {new Date(professional.registration_fee_expires_at) <= new Date(new Date().setDate(new Date().getDate() + 30)) && (
-                          <Badge className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100 text-xs">
-                            ⚠️ Expira pronto
-                          </Badge>
+                        {professional.registration_fee_expires_at && (
+                          <>
+                            {new Date(professional.registration_fee_expires_at) > new Date() ? (
+                              new Date(professional.registration_fee_expires_at) <= new Date(new Date().setDate(new Date().getDate() + 30)) && (
+                                <Badge className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100 text-xs">
+                                  ⚠️ Expira pronto
+                                </Badge>
+                              )
+                            ) : (
+                              <Badge className="bg-red-100 text-red-800 hover:bg-red-100 text-xs">
+                                ⚠️ Expirado
+                              </Badge>
+                            )}
+                          </>
                         )}
                       </div>
                     ) : (

@@ -681,24 +681,45 @@ export default function ProfessionalProfilePage() {
         is_recurring: block.is_recurring
       })));
 
-      // Filtrar bloqueos que aplican a la fecha actual
-      const applicableBlocks = availabilityBlocks?.filter(block => {
-        // Verificar si es un bloqueo recurrente semanal
-        if (block.is_recurring) {
-          const blockStartDate = new Date(block.start_date);
-          const currentDate = new Date(date);
-          const blockDayOfWeek = blockStartDate.getDay();
-          const currentDayOfWeek = currentDate.getDay();
-          return blockDayOfWeek === currentDayOfWeek;
-        } else {
-          // Para bloqueos no recurrentes, verificar si la fecha está en el rango
-          return (
-            (block.start_date <= date && block.end_date >= date) ||
-            (block.start_date === date && !block.end_date) ||
-            (block.start_date === date && block.end_date === date)
-          );
+      // Procesar bloqueos que aplican a la fecha actual
+      const applicableBlocks = [];
+      
+      if (availabilityBlocks && availabilityBlocks.length > 0) {
+        for (const block of availabilityBlocks) {
+          console.log('🔍 Analizando bloqueo:', block);
+          
+          let shouldApplyBlock = false;
+          
+          if (block.is_recurring) {
+            // Para bloqueos recurrentes, verificar si el día de la semana coincide
+            const blockStartDate = new Date(block.start_date);
+            const currentDate = new Date(date);
+            const blockDayOfWeek = blockStartDate.getDay();
+            const currentDayOfWeek = currentDate.getDay();
+            
+            if (blockDayOfWeek === currentDayOfWeek) {
+              shouldApplyBlock = true;
+              console.log(`🔄 Bloqueo recurrente aplicado para día ${currentDayOfWeek} (${date})`);
+            }
+          } else {
+            // Para bloqueos no recurrentes, verificar si la fecha está en el rango
+            // Procesar día por día desde start_date hasta end_date
+            const startDate = new Date(block.start_date);
+            const endDate = block.end_date ? new Date(block.end_date) : startDate;
+            const currentDate = new Date(date);
+            
+            // Verificar si la fecha actual está dentro del rango
+            if (currentDate >= startDate && currentDate <= endDate) {
+              shouldApplyBlock = true;
+              console.log(`📅 Bloqueo específico aplicado para fecha ${date} (rango: ${block.start_date} - ${block.end_date})`);
+            }
+          }
+          
+          if (shouldApplyBlock) {
+            applicableBlocks.push(block);
+          }
         }
-      }) || [];
+      }
 
       console.log('✅ Bloqueos aplicables para', date, ':', applicableBlocks);
 
@@ -746,7 +767,7 @@ export default function ProfessionalProfilePage() {
         console.log('📋 Horarios ocupados:', Array.from(occupiedTimes));
       }
 
-      // Procesar bloqueos de disponibilidad
+      // Procesar bloqueos de disponibilidad - HORA POR HORA
       if (applicableBlocks && applicableBlocks.length > 0) {
         applicableBlocks.forEach(block => {
           console.log('🔍 Procesando bloqueo aplicable:', block);
@@ -756,23 +777,34 @@ export default function ProfessionalProfilePage() {
             console.log('🚫 Día completo bloqueado:', date);
             blockedTimes.add('FULL_DAY_BLOCKED');
           } else if (block.block_type === 'time_range' && block.start_time && block.end_time) {
-            // Si es bloqueo de rango de horas, bloquear solo ese rango
+            // Si es bloqueo de rango de horas, procesar HORA POR HORA
             const [blockStartHour, blockStartMinute] = block.start_time.split(':').map(Number);
             const [blockEndHour, blockEndMinute] = block.end_time.split(':').map(Number);
             
+            console.log(`🚫 Procesando bloqueo de tiempo: ${block.start_time} - ${block.end_time}`);
+            console.log(`📊 Horarios de trabajo del profesional: ${startTime} - ${endTime}`);
+            
+            // Convertir a minutos para cálculos más precisos
             const blockStartMinutes = blockStartHour * 60 + blockStartMinute;
             const blockEndMinutes = blockEndHour * 60 + blockEndMinute;
             
-            console.log(`🚫 Bloqueando rango de tiempo: ${block.start_time} - ${block.end_time}`);
-            
-            // Marcar todos los horarios en el rango como bloqueados
+            // Procesar cada hora desde el inicio hasta el final del bloqueo
             // Solo considerar horarios que estén dentro del horario de trabajo del profesional
-            for (let hour = Math.max(startHour, blockStartHour); hour < Math.min(endHour, blockEndHour); hour++) {
-              const timeMinutes = hour * 60; // Solo horarios en punto (:00)
-              if (timeMinutes >= blockStartMinutes && timeMinutes < blockEndMinutes) {
+            for (let hour = startHour; hour < endHour; hour++) {
+              const hourMinutes = hour * 60; // Convertir hora a minutos
+              const nextHourMinutes = (hour + 1) * 60; // Minutos de la siguiente hora
+              
+              // Verificar si esta hora completa está dentro del bloqueo
+              // El bloqueo debe cubrir toda la hora (de :00 a :59)
+              if (hourMinutes >= blockStartMinutes && nextHourMinutes <= blockEndMinutes) {
                 const timeString = `${hour.toString().padStart(2, '0')}:00`;
                 blockedTimes.add(timeString);
-                console.log(`🚫 Bloqueando horario: ${timeString}`);
+                console.log(`🚫 Bloqueando hora completa: ${timeString} (dentro de ${block.start_time} - ${block.end_time})`);
+              } else if (hourMinutes < blockEndMinutes && nextHourMinutes > blockStartMinutes) {
+                // Si el bloqueo se superpone parcialmente con esta hora, también bloquearla
+                const timeString = `${hour.toString().padStart(2, '0')}:00`;
+                blockedTimes.add(timeString);
+                console.log(`🚫 Bloqueando hora parcial: ${timeString} (superposición con ${block.start_time} - ${block.end_time})`);
               }
             }
           }
@@ -816,6 +848,9 @@ export default function ProfessionalProfilePage() {
       });
       console.log('🔒 Horarios bloqueados finales:', Array.from(blockedTimes));
       console.log('📋 Horarios ocupados finales:', Array.from(occupiedTimes));
+      console.log('📅 Fecha procesada:', date);
+      console.log('🕐 Horarios de trabajo:', `${startTime} - ${endTime}`);
+      console.log('📋 Días de trabajo:', workingDays);
       setAvailableTimes(times);
       return times;
     } catch (error) {

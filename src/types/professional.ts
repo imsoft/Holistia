@@ -69,6 +69,10 @@ export interface Professional {
     start: string;
     end: string;
   };
+  // Campos específicos de la base de datos
+  working_start_time?: string;
+  working_end_time?: string;
+  working_days?: number[];
   sessionDuration?: number;
   breakTime?: number;
   bookedSlots?: string[];

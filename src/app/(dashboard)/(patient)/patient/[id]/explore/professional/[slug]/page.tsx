@@ -77,6 +77,10 @@ interface Professional {
   status: 'pending' | 'under_review' | 'approved' | 'rejected';
   created_at: string;
   updated_at: string;
+  // Campos de horarios de trabajo
+  working_start_time?: string;
+  working_end_time?: string;
+  working_days?: number[];
 }
 
 interface ProfessionalService {
@@ -434,6 +438,17 @@ export default function ProfessionalProfilePage() {
     } finally {
       setFavoriteLoading(false);
     }
+  };
+
+  // Función para formatear los días de trabajo
+  const formatWorkingDays = (workingDays: number[]) => {
+    const dayNames = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+    return workingDays.map(day => dayNames[day - 1]).join(', ');
+  };
+
+  // Función para formatear el horario de trabajo
+  const formatWorkingHours = (startTime: string, endTime: string) => {
+    return `${startTime} - ${endTime}`;
   };
 
   const formatPrice = (price: number) => {
@@ -978,6 +993,38 @@ export default function ProfessionalProfilePage() {
                 <p className="text-sm sm:text-base text-muted-foreground leading-relaxed max-w-3xl">
                   {professional.biography}
                 </p>
+              </div>
+            )}
+
+            {/* Horarios de Trabajo */}
+            {(professional.working_start_time || professional.working_end_time || professional.working_days) && (
+              <div>
+                <h2 className="text-lg sm:text-xl font-bold text-foreground mb-3 sm:mb-4">
+                  Horarios de Trabajo
+                </h2>
+                <div className="bg-muted/50 rounded-lg p-4 space-y-3">
+                  {professional.working_start_time && professional.working_end_time && (
+                    <div className="flex items-center gap-2 text-sm sm:text-base">
+                      <Clock className="h-4 w-4 text-primary flex-shrink-0" />
+                      <span className="font-medium text-foreground">Horario:</span>
+                      <span className="text-muted-foreground">
+                        {formatWorkingHours(professional.working_start_time, professional.working_end_time)}
+                      </span>
+                    </div>
+                  )}
+                  {professional.working_days && professional.working_days.length > 0 && (
+                    <div className="flex items-start gap-2 text-sm sm:text-base">
+                      <Calendar className="h-4 w-4 text-primary flex-shrink-0 mt-0.5" />
+                      <span className="font-medium text-foreground">Días:</span>
+                      <span className="text-muted-foreground">
+                        {formatWorkingDays(professional.working_days)}
+                      </span>
+                    </div>
+                  )}
+                  <div className="text-xs text-muted-foreground mt-2">
+                    * Los horarios pueden variar según disponibilidad. Se mantiene un colchón de 30 minutos entre citas.
+                  </div>
+                </div>
               </div>
             )}
 

@@ -298,7 +298,10 @@ export default function AppointmentsPage() {
   };
 
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
+    // Crear la fecha usando componentes individuales para evitar problemas de zona horaria
+    const [year, month, day] = dateString.split('-').map(Number);
+    const date = new Date(year, month - 1, day); // month es 0-indexado
+    
     return date.toLocaleDateString("es-ES", {
       weekday: "long",
       year: "numeric",

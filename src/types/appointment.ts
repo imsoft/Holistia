@@ -14,12 +14,13 @@ export interface Appointment {
   time: string;
   duration: number;
   type: string;
-  status: "confirmed" | "pending" | "cancelled" | "completed";
+  status: "confirmed" | "pending" | "cancelled" | "completed" | "paid";
   notes?: string;
   location: string;
   service?: string;
   cost?: number;
   isPaid?: boolean; // Nuevo campo para indicar si el pago fue exitoso
+  meeting_link?: string | null; // Enlace de reunión virtual para citas online
 }
 
 export interface AppointmentForm {

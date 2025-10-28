@@ -383,6 +383,15 @@ interface ProfessionalRejectionEmailData {
   review_notes?: string;
 }
 
+interface MeetingLinkNotificationData {
+  patient_name: string;
+  patient_email: string;
+  professional_name: string;
+  meeting_link: string;
+  appointment_date: string;
+  appointment_time: string;
+}
+
 // Send approval email to professional
 export async function sendProfessionalApprovalEmail(data: ProfessionalApprovalEmailData) {
   try {
@@ -480,6 +489,53 @@ export async function sendProfessionalRejectionEmail(data: ProfessionalRejection
 
   } catch (error) {
     console.error('Error in sendProfessionalRejectionEmail:', error);
+    return { success: false, error: 'Failed to send email' };
+  }
+}
+
+// Send meeting link notification to patient
+export async function sendMeetingLinkNotification(data: MeetingLinkNotificationData) {
+  try {
+    const fs = await import('fs');
+    const path = await import('path');
+
+    // Read the email template
+    const templatePath = path.join(process.cwd(), 'database/email-templates/meeting-link-notification.html');
+    let emailTemplate: string;
+
+    try {
+      emailTemplate = fs.readFileSync(templatePath, 'utf8');
+    } catch (error) {
+      console.error('Error reading email template:', error);
+      return { success: false, error: 'Template not found' };
+    }
+
+    // Replace placeholders in the template
+    const emailContent = emailTemplate
+      .replace(/\{\{patient_name\}\}/g, data.patient_name)
+      .replace(/\{\{professional_name\}\}/g, data.professional_name)
+      .replace(/\{\{meeting_link\}\}/g, data.meeting_link)
+      .replace(/\{\{appointment_date\}\}/g, data.appointment_date)
+      .replace(/\{\{appointment_time\}\}/g, data.appointment_time);
+
+    // Send email using Resend
+    const { data: emailData, error } = await resend.emails.send({
+      from: 'Holistia <noreply@holistia.io>',
+      to: [data.patient_email],
+      subject: `🎥 Enlace de Reunión Virtual - ${data.appointment_date} | Holistia`,
+      html: emailContent,
+    });
+
+    if (error) {
+      console.error('Error sending meeting link notification:', error);
+      return { success: false, error: error.message };
+    }
+
+    console.log('Meeting link notification sent successfully:', emailData?.id);
+    return { success: true, message: 'Email sent successfully', id: emailData?.id };
+
+  } catch (error) {
+    console.error('Error in sendMeetingLinkNotification:', error);
     return { success: false, error: 'Failed to send email' };
   }
 }

@@ -1388,10 +1388,11 @@ export default function ProfessionalProfilePage() {
                                   </div>
                                 ) : (
                                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 sm:gap-3 mt-3 max-h-60 overflow-y-auto">
-                                    {availableTimes.map((timeOption) => {
+                                    {availableTimes
+                                      .filter(timeOption => timeOption.status !== 'blocked') // Filtrar horarios bloqueados
+                                      .map((timeOption) => {
                                       const isAvailable = timeOption.status === 'available';
                                       const isOccupied = timeOption.status === 'occupied';
-                                      const isBlocked = timeOption.status === 'blocked';
 
                                       return (
                                         <button
@@ -1416,11 +1417,6 @@ export default function ProfessionalProfilePage() {
                                           {isOccupied && (
                                             <div className="text-xs text-red-500 mt-0.5 sm:mt-1">
                                               Ocupado
-                                            </div>
-                                          )}
-                                          {isBlocked && (
-                                            <div className="text-xs text-gray-500 mt-0.5 sm:mt-1">
-                                              No disp.
                                             </div>
                                           )}
                                         </button>

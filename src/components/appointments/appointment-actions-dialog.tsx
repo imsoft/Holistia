@@ -49,6 +49,13 @@ export function AppointmentActionsDialog({
       setIsSubmitting(true);
       setError(null);
 
+      // Validar que si es cancelación por paciente, debe tener razón
+      if (actionType === 'cancel' && userRole === 'patient' && !reason.trim()) {
+        setError('Debes proporcionar una razón para cancelar la cita');
+        setIsSubmitting(false);
+        return;
+      }
+
       const endpoint = actionType === 'cancel'
         ? '/api/appointments/cancel'
         : '/api/appointments/mark-no-show';
@@ -98,15 +105,18 @@ export function AppointmentActionsDialog({
 
   const getDialogContent = () => {
     if (actionType === 'cancel') {
+      const isPatient = userRole === 'patient';
       return {
         title: "Cancelar cita",
         icon: <Ban className="h-6 w-6 text-red-600" />,
-        description: userRole === 'patient'
+        description: isPatient
           ? `Estás a punto de cancelar tu cita con ${appointmentDetails?.professionalName || 'el profesional'}.`
           : `Estás a punto de cancelar la cita con ${appointmentDetails?.patientName || 'el paciente'}.`,
-        inputLabel: "Razón de la cancelación (opcional)",
+        inputLabel: isPatient ? "Razón de la cancelación (requerido)" : "Razón de la cancelación (opcional)",
         inputPlaceholder: "Comparte el motivo de tu cancelación...",
-        warningMessage: "Recibirás un crédito de $" + (appointmentDetails?.cost || 0) + " MXN para usar en tu próxima cita.",
+        warningMessage: isPatient
+          ? "Recibirás un crédito de $" + (appointmentDetails?.cost || 0) + " MXN para usar en tu próxima cita con este profesional."
+          : "El paciente recibirá un crédito de $" + (appointmentDetails?.cost || 0) + " MXN para usar en su próxima cita contigo.",
         confirmText: "Cancelar cita",
         confirmVariant: "destructive" as const
       };

@@ -783,42 +783,49 @@ export default function ProfessionalProfilePage() {
           });
           
           let shouldApplyBlock = false;
-          
-          if (block.is_recurring) {
-            // Para bloqueos recurrentes, verificar si el día de la semana coincide
-            // Y si la fecha actual es posterior o igual a la fecha de inicio del bloqueo
-            const blockStartDate = new Date(block.start_date);
-            const currentDate = new Date(date);
-            const blockDayOfWeek = blockStartDate.getDay();
-            const currentDayOfWeek = currentDate.getDay();
-            
-            console.log(`🔄 Bloqueo recurrente - Día del bloqueo: ${blockDayOfWeek}, Día actual: ${currentDayOfWeek}`);
-            console.log(`📅 Fecha inicio bloqueo: ${blockStartDate.toISOString()}, Fecha actual: ${currentDate.toISOString()}`);
-            
-            // Verificar que el día de la semana coincida Y que la fecha actual sea >= fecha de inicio
-            if (blockDayOfWeek === currentDayOfWeek && currentDate >= blockStartDate) {
-              shouldApplyBlock = true;
-              console.log(`✅ Bloqueo recurrente aplicado para día ${currentDayOfWeek} (${date}) - fecha válida`);
-            } else if (blockDayOfWeek !== currentDayOfWeek) {
-              console.log(`❌ Bloqueo recurrente NO aplica - días no coinciden (${blockDayOfWeek} vs ${currentDayOfWeek})`);
-            } else if (currentDate < blockStartDate) {
-              console.log(`❌ Bloqueo recurrente NO aplica - fecha actual anterior a fecha de inicio`);
-            }
-          } else {
-            // Para bloqueos no recurrentes, verificar si la fecha está en el rango
-            // Procesar día por día desde start_date hasta end_date
-            const startDate = new Date(block.start_date);
-            const endDate = block.end_date ? new Date(block.end_date) : startDate;
-            const currentDate = new Date(date);
-            
-            console.log(`📅 Bloqueo específico - Fecha inicio: ${startDate.toISOString()}, Fecha fin: ${endDate.toISOString()}, Fecha actual: ${currentDate.toISOString()}`);
-            
+
+          const startDate = new Date(block.start_date);
+          const endDate = block.end_date ? new Date(block.end_date) : startDate;
+          const currentDate = new Date(date);
+
+          // Primero verificar si hay un rango de fechas (start_date a end_date)
+          if (block.end_date && block.end_date !== block.start_date) {
+            // Bloqueo con rango de fechas - aplica a TODOS los días dentro del rango
+            console.log(`📅 Bloqueo de rango - Fecha inicio: ${startDate.toISOString()}, Fecha fin: ${endDate.toISOString()}, Fecha actual: ${currentDate.toISOString()}`);
+
             // Verificar si la fecha actual está dentro del rango
             if (currentDate >= startDate && currentDate <= endDate) {
               shouldApplyBlock = true;
-              console.log(`✅ Bloqueo específico aplicado para fecha ${date} (rango: ${block.start_date} - ${block.end_date})`);
+              console.log(`✅ Bloqueo de rango aplicado para fecha ${date} (rango: ${block.start_date} - ${block.end_date})`);
             } else {
-              console.log(`❌ Bloqueo específico NO aplica - fecha fuera del rango`);
+              console.log(`❌ Bloqueo de rango NO aplica - fecha fuera del rango`);
+            }
+          } else if (block.is_recurring) {
+            // Bloqueo recurrente semanal - solo aplica al mismo día de la semana
+            const blockDayOfWeek = startDate.getDay();
+            const currentDayOfWeek = currentDate.getDay();
+
+            console.log(`🔄 Bloqueo recurrente semanal - Día del bloqueo: ${blockDayOfWeek}, Día actual: ${currentDayOfWeek}`);
+            console.log(`📅 Fecha inicio bloqueo: ${startDate.toISOString()}, Fecha actual: ${currentDate.toISOString()}`);
+
+            // Verificar que el día de la semana coincida Y que la fecha actual sea >= fecha de inicio
+            if (blockDayOfWeek === currentDayOfWeek && currentDate >= startDate) {
+              shouldApplyBlock = true;
+              console.log(`✅ Bloqueo recurrente semanal aplicado para día ${currentDayOfWeek} (${date})`);
+            } else if (blockDayOfWeek !== currentDayOfWeek) {
+              console.log(`❌ Bloqueo recurrente semanal NO aplica - días no coinciden (${blockDayOfWeek} vs ${currentDayOfWeek})`);
+            } else if (currentDate < startDate) {
+              console.log(`❌ Bloqueo recurrente semanal NO aplica - fecha actual anterior a fecha de inicio`);
+            }
+          } else {
+            // Bloqueo de un solo día específico
+            console.log(`📅 Bloqueo de día único - Fecha: ${startDate.toISOString()}, Fecha actual: ${currentDate.toISOString()}`);
+
+            if (currentDate.getTime() === startDate.getTime()) {
+              shouldApplyBlock = true;
+              console.log(`✅ Bloqueo de día único aplicado para fecha ${date}`);
+            } else {
+              console.log(`❌ Bloqueo de día único NO aplica - fechas no coinciden`);
             }
           }
           

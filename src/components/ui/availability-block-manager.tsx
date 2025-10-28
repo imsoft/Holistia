@@ -11,6 +11,7 @@ import { Switch } from '@/components/ui/switch';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
+import { HourSelector } from '@/components/ui/hour-selector';
 import { formatDate } from '@/lib/date-utils';
 import { Plus, Calendar, Clock, Trash2, Edit, AlertCircle } from 'lucide-react';
 import { createClient } from '@/utils/supabase/client';
@@ -93,6 +94,12 @@ export default function AvailabilityBlockManager({ professionalId, userId: propU
     if (formData.block_type === 'time_range') {
       if (!formData.start_time || !formData.end_time) {
         toast.error('Las horas de inicio y fin son obligatorias para bloqueos de rango');
+        return;
+      }
+      
+      // Validar que las horas sean exactas (terminen en :00)
+      if (!formData.start_time.endsWith(':00') || !formData.end_time.endsWith(':00')) {
+        toast.error('Solo se permiten horas exactas (sin minutos)');
         return;
       }
       
@@ -327,27 +334,31 @@ export default function AvailabilityBlockManager({ professionalId, userId: propU
 
               {formData.block_type === 'time_range' && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="start_time">Hora de Inicio *</Label>
-                    <Input
-                      id="start_time"
-                      type="time"
-                      value={formData.start_time}
-                      onChange={(e) => setFormData({ ...formData, start_time: e.target.value })}
-                      required
-                    />
-                  </div>
+                  <HourSelector
+                    id="start_time"
+                    label="Hora de Inicio"
+                    value={formData.start_time || ''}
+                    onChange={(value) => {
+                      // Limpiar la hora de fin si es anterior o igual a la nueva hora de inicio
+                      const newEndTime = formData.end_time && formData.end_time <= value ? '' : formData.end_time;
+                      setFormData({ ...formData, start_time: value, end_time: newEndTime });
+                    }}
+                    required
+                    placeholder="Selecciona hora de inicio"
+                    startHour={6}
+                    endHour={22}
+                  />
 
-                  <div className="space-y-2">
-                    <Label htmlFor="end_time">Hora de Fin *</Label>
-                    <Input
-                      id="end_time"
-                      type="time"
-                      value={formData.end_time}
-                      onChange={(e) => setFormData({ ...formData, end_time: e.target.value })}
-                      required
-                    />
-                  </div>
+                  <HourSelector
+                    id="end_time"
+                    label="Hora de Fin"
+                    value={formData.end_time || ''}
+                    onChange={(value) => setFormData({ ...formData, end_time: value })}
+                    required
+                    placeholder="Selecciona hora de fin"
+                    startHour={formData.start_time ? parseInt(formData.start_time.split(':')[0]) + 1 : 6}
+                    endHour={22}
+                  />
                 </div>
               )}
 

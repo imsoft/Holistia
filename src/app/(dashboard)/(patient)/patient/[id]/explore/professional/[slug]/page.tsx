@@ -855,11 +855,17 @@ export default function ProfessionalProfilePage() {
           else {
             console.log(`📅 Bloqueo de día único - Fecha: ${startDate.toISOString()}, Fecha actual: ${currentDate.toISOString()}`);
 
-            if (currentDate.getTime() === startDate.getTime()) {
+            // Comparar solo las fechas, ignorando la hora
+            const blockDateString = startDate.toISOString().split('T')[0];
+            const currentDateString = currentDate.toISOString().split('T')[0];
+
+            console.log(`🔍 Comparando fechas: ${blockDateString} vs ${currentDateString}`);
+
+            if (blockDateString === currentDateString) {
               shouldApplyBlock = true;
               console.log(`✅ Bloqueo de día único aplicado para fecha ${date}`);
             } else {
-              console.log(`❌ Bloqueo de día único NO aplica - fechas no coinciden`);
+              console.log(`❌ Bloqueo de día único NO aplica - fechas no coinciden (${blockDateString} vs ${currentDateString})`);
             }
           }
           

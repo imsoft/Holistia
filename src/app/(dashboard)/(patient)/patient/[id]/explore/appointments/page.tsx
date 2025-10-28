@@ -14,10 +14,13 @@ import {
   CheckCircle,
   XCircle,
   AlertCircle,
+  Ban,
+  UserX,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { createClient } from "@/utils/supabase/client";
+import { AppointmentActionsDialog } from "@/components/appointments/appointment-actions-dialog";
 
 interface Professional {
   id: string;
@@ -40,7 +43,7 @@ interface Appointment {
   appointment_time: string;
   duration_minutes: number;
   appointment_type: 'presencial' | 'online';
-  status: 'pending' | 'confirmed' | 'cancelled' | 'completed';
+  status: 'pending' | 'confirmed' | 'cancelled' | 'completed' | 'patient_no_show' | 'professional_no_show';
   cost: number;
   location?: string;
   notes?: string;
@@ -48,6 +51,10 @@ interface Appointment {
   updated_at: string;
   professional: Professional;
   payments?: Payment[];
+  cancelled_by?: 'patient' | 'professional';
+  cancellation_reason?: string;
+  no_show_marked_by?: 'patient' | 'professional';
+  no_show_description?: string;
 }
 
 const statusConfig = {
@@ -71,6 +78,16 @@ const statusConfig = {
     color: "bg-red-100 text-red-800 border-red-200",
     icon: XCircle,
   },
+  patient_no_show: {
+    label: "Paciente no asistió",
+    color: "bg-orange-100 text-orange-800 border-orange-200",
+    icon: UserX,
+  },
+  professional_no_show: {
+    label: "Profesional no asistió",
+    color: "bg-purple-100 text-purple-800 border-purple-200",
+    icon: UserX,
+  },
 };
 
 const typeConfig = {
@@ -90,11 +107,26 @@ export default function AppointmentsPage() {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [cancelling, setCancelling] = useState<string | null>(null);
+  const [dialogState, setDialogState] = useState<{
+    isOpen: boolean;
+    appointmentId: string | null;
+    actionType: 'cancel' | 'no-show' | null;
+    appointmentDetails?: {
+      professionalName?: string;
+      patientName?: string;
+      date: string;
+      time: string;
+      cost: number;
+    };
+  }>({
+    isOpen: false,
+    appointmentId: null,
+    actionType: null,
+  });
   const params = useParams();
   const router = useRouter();
   const supabase = createClient();
-  
+
   const userId = params.id as string;
 
   // Obtener citas del usuario
@@ -234,54 +266,90 @@ export default function AppointmentsPage() {
     }
   }, [userId, supabase, router]);
 
-  const handleCancelAppointment = async (appointmentId: string) => {
-    try {
-      setCancelling(appointmentId);
-      
-      console.log('Cancelling appointment:', appointmentId);
-      
-      // Obtener el usuario autenticado para verificar permisos
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        toast.error('Usuario no autenticado.');
-        return;
-      }
+  const openCancelDialog = (appointment: Appointment) => {
+    setDialogState({
+      isOpen: true,
+      appointmentId: appointment.id,
+      actionType: 'cancel',
+      appointmentDetails: {
+        professionalName: appointment.professional.full_name,
+        date: formatDate(appointment.appointment_date),
+        time: appointment.appointment_time.substring(0, 5),
+        cost: appointment.cost,
+      },
+    });
+  };
 
-      const { error } = await supabase
+  const openNoShowDialog = (appointment: Appointment) => {
+    setDialogState({
+      isOpen: true,
+      appointmentId: appointment.id,
+      actionType: 'no-show',
+      appointmentDetails: {
+        professionalName: appointment.professional.full_name,
+        date: formatDate(appointment.appointment_date),
+        time: appointment.appointment_time.substring(0, 5),
+        cost: appointment.cost,
+      },
+    });
+  };
+
+  const closeDialog = () => {
+    setDialogState({
+      isOpen: false,
+      appointmentId: null,
+      actionType: null,
+    });
+  };
+
+  const handleDialogSuccess = async () => {
+    // Recargar las citas después de una acción exitosa
+    toast.success(
+      dialogState.actionType === 'cancel'
+        ? 'Cita cancelada exitosamente. Recibirás un crédito para tu próxima cita.'
+        : 'Inasistencia reportada exitosamente.'
+    );
+
+    // Recargar la lista de citas
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      const { data: appointmentsData } = await supabase
         .from('appointments')
-        .update({ status: 'cancelled' })
-        .eq('id', appointmentId)
-        .eq('patient_id', user.id);
+        .select('*')
+        .eq('patient_id', user.id)
+        .order('appointment_date', { ascending: true })
+        .order('appointment_time', { ascending: true });
 
-      if (error) {
-        console.error('Error cancelling appointment:', {
-          message: error.message,
-          details: error.details,
-          hint: error.hint,
-          code: error.code
+      if (appointmentsData) {
+        const professionalIds = [...new Set(appointmentsData.map(apt => apt.professional_id))];
+        const { data: professionalsData } = await supabase
+          .from('professional_applications')
+          .select('id, first_name, last_name, profession, profile_photo, user_id')
+          .in('id', professionalIds);
+
+        const userIds = professionalsData?.map(p => p.user_id).filter(Boolean) || [];
+        const { data: profilesData } = await supabase
+          .from('profiles')
+          .select('id, avatar_url')
+          .in('id', userIds);
+
+        const formattedAppointments = appointmentsData.map(apt => {
+          const prof = professionalsData?.find(p => p.id === apt.professional_id);
+          const profile = profilesData?.find(p => p.id === prof?.user_id);
+
+          return {
+            ...apt,
+            professional: {
+              id: prof?.id || '',
+              full_name: prof ? `${prof.first_name} ${prof.last_name}` : 'Profesional',
+              avatar_url: profile?.avatar_url || prof?.profile_photo,
+              especialidad: prof?.profession
+            }
+          };
         });
-        toast.error(`Error al cancelar la cita: ${error.message}`);
-        return;
-      }
 
-      console.log('Appointment cancelled successfully');
-      
-      // Actualizar el estado local
-      setAppointments(prev => 
-        prev.map(apt => 
-          apt.id === appointmentId 
-            ? { ...apt, status: 'cancelled' as const }
-            : apt
-        )
-      );
-      
-      toast.success('Cita cancelada exitosamente.');
-      
-    } catch (error) {
-      console.error('Unexpected error cancelling appointment:', error);
-      toast.error('Error inesperado al cancelar la cita. Por favor intenta de nuevo.');
-    } finally {
-      setCancelling(null);
+        setAppointments(formattedAppointments);
+      }
     }
   };
 
@@ -445,17 +513,31 @@ export default function AppointmentsPage() {
                       </div>
 
                       {/* Acciones */}
-                      <div className="flex items-center justify-center sm:justify-end lg:justify-center">
+                      <div className="flex items-center justify-center sm:justify-end lg:justify-center gap-2">
                         {appointment.status === "confirmed" && (
-                          <Button 
-                            variant="destructive" 
-                            size="sm"
-                            onClick={() => handleCancelAppointment(appointment.id)}
-                            disabled={cancelling === appointment.id}
-                            className="w-full sm:w-auto"
-                          >
-                            {cancelling === appointment.id ? 'Cancelando...' : 'Cancelar'}
-                          </Button>
+                          <>
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              onClick={() => openCancelDialog(appointment)}
+                              className="w-full sm:w-auto"
+                            >
+                              <Ban className="h-4 w-4 mr-1" />
+                              Cancelar
+                            </Button>
+                            {/* Verificar si la cita ya pasó para mostrar botón de no-show */}
+                            {new Date(`${appointment.appointment_date}T${appointment.appointment_time}`) < new Date() && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => openNoShowDialog(appointment)}
+                                className="w-full sm:w-auto"
+                              >
+                                <UserX className="h-4 w-4 mr-1" />
+                                No asistió
+                              </Button>
+                            )}
+                          </>
                         )}
                       </div>
                     </div>
@@ -574,6 +656,19 @@ export default function AppointmentsPage() {
           </>
         )}
       </div>
+
+      {/* Dialog para cancelar o marcar no-show */}
+      {dialogState.isOpen && dialogState.appointmentId && dialogState.actionType && (
+        <AppointmentActionsDialog
+          isOpen={dialogState.isOpen}
+          onClose={closeDialog}
+          appointmentId={dialogState.appointmentId}
+          actionType={dialogState.actionType}
+          userRole="patient"
+          appointmentDetails={dialogState.appointmentDetails}
+          onSuccess={handleDialogSuccess}
+        />
+      )}
     </div>
   );
 }

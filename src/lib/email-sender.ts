@@ -539,3 +539,227 @@ export async function sendMeetingLinkNotification(data: MeetingLinkNotificationD
     return { success: false, error: 'Failed to send email' };
   }
 }
+
+// ============================================================================
+// APPOINTMENT CANCELLATION EMAILS
+// ============================================================================
+
+interface AppointmentCancelledByPatientData {
+  professional_name: string;
+  professional_email: string;
+  patient_name: string;
+  appointment_date: string;
+  appointment_time: string;
+  appointment_type: string;
+  cost: number;
+  cancellation_reason?: string;
+  dashboard_url: string;
+}
+
+interface AppointmentCancelledByProfessionalData {
+  patient_name: string;
+  patient_email: string;
+  professional_name: string;
+  appointment_date: string;
+  appointment_time: string;
+  appointment_type: string;
+  cost: number;
+  cancellation_reason?: string;
+  professional_url: string;
+}
+
+interface AppointmentNoShowNotificationData {
+  recipient_name: string;
+  recipient_email: string;
+  professional_name: string;
+  patient_name: string;
+  appointment_date: string;
+  appointment_time: string;
+  appointment_type: string;
+  cost: number;
+  no_show_description?: string;
+  is_patient_no_show: boolean;
+  dashboard_url: string;
+}
+
+// Send notification when patient cancels appointment
+export async function sendAppointmentCancelledByPatient(data: AppointmentCancelledByPatientData) {
+  try {
+    const fs = await import('fs');
+    const path = await import('path');
+
+    const templatePath = path.join(process.cwd(), 'database/email-templates/appointment-cancelled-by-patient.html');
+    let emailTemplate: string;
+
+    try {
+      emailTemplate = fs.readFileSync(templatePath, 'utf8');
+    } catch (error) {
+      console.error('Error reading email template:', error);
+      return { success: false, error: 'Template not found' };
+    }
+
+    let emailContent = emailTemplate
+      .replace(/{{professional_name}}/g, data.professional_name)
+      .replace(/{{patient_name}}/g, data.patient_name)
+      .replace(/{{appointment_date}}/g, data.appointment_date)
+      .replace(/{{appointment_time}}/g, data.appointment_time)
+      .replace(/{{appointment_type}}/g, data.appointment_type)
+      .replace(/{{cost}}/g, data.cost.toString())
+      .replace(/{{dashboard_url}}/g, data.dashboard_url);
+
+    // Handle optional cancellation reason
+    if (data.cancellation_reason) {
+      emailContent = emailContent
+        .replace(/{{#if cancellation_reason}}/g, '')
+        .replace(/{{\/if}}/g, '')
+        .replace(/{{cancellation_reason}}/g, data.cancellation_reason);
+    } else {
+      emailContent = emailContent.replace(/{{#if cancellation_reason}}[\s\S]*?{{\/if}}/g, '');
+    }
+
+    const { data: emailData, error } = await resend.emails.send({
+      from: 'Holistia <noreply@holistia.io>',
+      to: data.professional_email,
+      subject: `Cita cancelada - ${data.patient_name}`,
+      html: emailContent,
+    });
+
+    if (error) {
+      console.error('Error sending cancellation email to professional:', error);
+      return { success: false, error };
+    }
+
+    console.log('Cancellation email sent to professional:', emailData);
+    return { success: true, data: emailData };
+  } catch (error) {
+    console.error('Error in sendAppointmentCancelledByPatient:', error);
+    return { success: false, error };
+  }
+}
+
+// Send notification when professional cancels appointment
+export async function sendAppointmentCancelledByProfessional(data: AppointmentCancelledByProfessionalData) {
+  try {
+    const fs = await import('fs');
+    const path = await import('path');
+
+    const templatePath = path.join(process.cwd(), 'database/email-templates/appointment-cancelled-by-professional.html');
+    let emailTemplate: string;
+
+    try {
+      emailTemplate = fs.readFileSync(templatePath, 'utf8');
+    } catch (error) {
+      console.error('Error reading email template:', error);
+      return { success: false, error: 'Template not found' };
+    }
+
+    let emailContent = emailTemplate
+      .replace(/{{patient_name}}/g, data.patient_name)
+      .replace(/{{professional_name}}/g, data.professional_name)
+      .replace(/{{appointment_date}}/g, data.appointment_date)
+      .replace(/{{appointment_time}}/g, data.appointment_time)
+      .replace(/{{appointment_type}}/g, data.appointment_type)
+      .replace(/{{cost}}/g, data.cost.toString())
+      .replace(/{{professional_url}}/g, data.professional_url);
+
+    // Handle optional cancellation reason
+    if (data.cancellation_reason) {
+      emailContent = emailContent
+        .replace(/{{#if cancellation_reason}}/g, '')
+        .replace(/{{\/if}}/g, '')
+        .replace(/{{cancellation_reason}}/g, data.cancellation_reason);
+    } else {
+      emailContent = emailContent.replace(/{{#if cancellation_reason}}[\s\S]*?{{\/if}}/g, '');
+    }
+
+    const { data: emailData, error } = await resend.emails.send({
+      from: 'Holistia <noreply@holistia.io>',
+      to: data.patient_email,
+      subject: `Tu cita con ${data.professional_name} ha sido cancelada`,
+      html: emailContent,
+    });
+
+    if (error) {
+      console.error('Error sending cancellation email to patient:', error);
+      return { success: false, error };
+    }
+
+    console.log('Cancellation email sent to patient:', emailData);
+    return { success: true, data: emailData };
+  } catch (error) {
+    console.error('Error in sendAppointmentCancelledByProfessional:', error);
+    return { success: false, error };
+  }
+}
+
+// Send notification when someone doesn't show up
+export async function sendAppointmentNoShowNotification(data: AppointmentNoShowNotificationData) {
+  try {
+    const fs = await import('fs');
+    const path = await import('path');
+
+    const templatePath = path.join(process.cwd(), 'database/email-templates/appointment-no-show-notification.html');
+    let emailTemplate: string;
+
+    try {
+      emailTemplate = fs.readFileSync(templatePath, 'utf8');
+    } catch (error) {
+      console.error('Error reading email template:', error);
+      return { success: false, error: 'Template not found' };
+    }
+
+    let emailContent = emailTemplate
+      .replace(/{{recipient_name}}/g, data.recipient_name)
+      .replace(/{{professional_name}}/g, data.professional_name)
+      .replace(/{{patient_name}}/g, data.patient_name)
+      .replace(/{{appointment_date}}/g, data.appointment_date)
+      .replace(/{{appointment_time}}/g, data.appointment_time)
+      .replace(/{{appointment_type}}/g, data.appointment_type)
+      .replace(/{{cost}}/g, data.cost.toString())
+      .replace(/{{dashboard_url}}/g, data.dashboard_url);
+
+    // Handle conditional sections for patient vs professional no-show
+    if (data.is_patient_no_show) {
+      emailContent = emailContent
+        .replace(/{{#if is_patient_no_show}}/g, '')
+        .replace(/{{#if is_patient_no_show}}[\s\S]*?{{else}}[\s\S]*?{{\/if}}/g,
+          emailContent.match(/{{#if is_patient_no_show}}([\s\S]*?){{else}}/)?.[1] || '');
+    } else {
+      emailContent = emailContent
+        .replace(/{{#if is_patient_no_show}}[\s\S]*?{{else}}/g, '')
+        .replace(/{{\/if}}/g, '');
+    }
+
+    // Handle optional no-show description
+    if (data.no_show_description) {
+      emailContent = emailContent
+        .replace(/{{#if no_show_description}}/g, '')
+        .replace(/{{\/if}}/g, '')
+        .replace(/{{no_show_description}}/g, data.no_show_description);
+    } else {
+      emailContent = emailContent.replace(/{{#if no_show_description}}[\s\S]*?{{\/if}}/g, '');
+    }
+
+    const subject = data.is_patient_no_show
+      ? `Reporte de inasistencia - ${data.appointment_date}`
+      : `Disculpa por la inasistencia del profesional`;
+
+    const { data: emailData, error } = await resend.emails.send({
+      from: 'Holistia <noreply@holistia.io>',
+      to: data.recipient_email,
+      subject: subject,
+      html: emailContent,
+    });
+
+    if (error) {
+      console.error('Error sending no-show notification:', error);
+      return { success: false, error };
+    }
+
+    console.log('No-show notification sent:', emailData);
+    return { success: true, data: emailData };
+  } catch (error) {
+    console.error('Error in sendAppointmentNoShowNotification:', error);
+    return { success: false, error };
+  }
+}

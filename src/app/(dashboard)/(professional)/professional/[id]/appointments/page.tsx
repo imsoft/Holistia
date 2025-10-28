@@ -16,6 +16,8 @@ import {
   CheckCircle,
   XCircle,
   AlertCircle,
+  Ban,
+  UserX,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -38,6 +40,8 @@ import {
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Appointment } from "@/types";
 import { createClient } from "@/utils/supabase/client";
+import { AppointmentActionsDialog } from "@/components/appointments/appointment-actions-dialog";
+import { toast } from "sonner";
 
 
 export default function ProfessionalAppointments() {
@@ -53,6 +57,22 @@ export default function ProfessionalAppointments() {
   const [availableDates, setAvailableDates] = useState<string[]>([]);
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
+  const [dialogState, setDialogState] = useState<{
+    isOpen: boolean;
+    appointmentId: string | null;
+    actionType: 'cancel' | 'no-show' | null;
+    appointmentDetails?: {
+      professionalName?: string;
+      patientName?: string;
+      date: string;
+      time: string;
+      cost: number;
+    };
+  }>({
+    isOpen: false,
+    appointmentId: null,
+    actionType: null,
+  });
 
   useEffect(() => {
     const fetchAppointments = async () => {
@@ -300,6 +320,66 @@ export default function ProfessionalAppointments() {
     console.log('Crear nueva cita');
   };
 
+  const openCancelDialog = (appointment: Appointment) => {
+    const patientName = appointment.patient?.name || 'Paciente';
+    setDialogState({
+      isOpen: true,
+      appointmentId: appointment.id,
+      actionType: 'cancel',
+      appointmentDetails: {
+        patientName: patientName,
+        date: new Date(appointment.date).toLocaleDateString('es-MX', {
+          weekday: 'long',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        }),
+        time: appointment.time.substring(0, 5),
+        cost: appointment.cost || 0,
+      },
+    });
+  };
+
+  const openNoShowDialog = (appointment: Appointment) => {
+    const patientName = appointment.patient?.name || 'Paciente';
+    setDialogState({
+      isOpen: true,
+      appointmentId: appointment.id,
+      actionType: 'no-show',
+      appointmentDetails: {
+        patientName: patientName,
+        date: new Date(appointment.date).toLocaleDateString('es-MX', {
+          weekday: 'long',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        }),
+        time: appointment.time.substring(0, 5),
+        cost: appointment.cost || 0,
+      },
+    });
+  };
+
+  const closeDialog = () => {
+    setDialogState({
+      isOpen: false,
+      appointmentId: null,
+      actionType: null,
+    });
+  };
+
+  const handleDialogSuccess = () => {
+    // Recargar las citas después de una acción exitosa
+    toast.success(
+      dialogState.actionType === 'cancel'
+        ? 'Cita cancelada exitosamente. El paciente recibirá un crédito.'
+        : 'Inasistencia reportada exitosamente.'
+    );
+
+    // Recargar la página para actualizar las citas
+    window.location.reload();
+  };
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -470,8 +550,8 @@ export default function ProfessionalAppointments() {
                   </div>
                   
                   <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 lg:flex-col lg:items-end">
-                    <Button 
-                      variant="outline" 
+                    <Button
+                      variant="outline"
                       size="sm"
                       onClick={() => handleViewAppointment(appointment)}
                       className="w-full sm:w-auto"
@@ -480,7 +560,7 @@ export default function ProfessionalAppointments() {
                       <span className="sm:inline">Ver</span>
                     </Button>
                     {appointment.status === "pending" && (
-                      <Button 
+                      <Button
                         size="sm"
                         onClick={() => handleConfirmAppointment(appointment.id)}
                         className="w-full sm:w-auto"
@@ -488,6 +568,31 @@ export default function ProfessionalAppointments() {
                         <CheckCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 sm:mr-2" />
                         <span className="sm:inline">Confirmar</span>
                       </Button>
+                    )}
+                    {appointment.status === "confirmed" && (
+                      <>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => openCancelDialog(appointment)}
+                          className="w-full sm:w-auto"
+                        >
+                          <Ban className="h-3.5 w-3.5 sm:h-4 sm:w-4 sm:mr-2" />
+                          <span className="sm:inline">Cancelar</span>
+                        </Button>
+                        {/* Mostrar botón de no-show solo si la cita ya pasó */}
+                        {new Date(`${appointment.date}T${appointment.time}`) < new Date() && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => openNoShowDialog(appointment)}
+                            className="w-full sm:w-auto"
+                          >
+                            <UserX className="h-3.5 w-3.5 sm:h-4 sm:w-4 sm:mr-2" />
+                            <span className="sm:inline">No asistió</span>
+                          </Button>
+                        )}
+                      </>
                     )}
                   </div>
                 </div>
@@ -605,6 +710,19 @@ export default function ProfessionalAppointments() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Dialog para cancelar o marcar no-show */}
+      {dialogState.isOpen && dialogState.appointmentId && dialogState.actionType && (
+        <AppointmentActionsDialog
+          isOpen={dialogState.isOpen}
+          onClose={closeDialog}
+          appointmentId={dialogState.appointmentId}
+          actionType={dialogState.actionType}
+          userRole="professional"
+          appointmentDetails={dialogState.appointmentDetails}
+          onSuccess={handleDialogSuccess}
+        />
+      )}
     </div>
   );
 }

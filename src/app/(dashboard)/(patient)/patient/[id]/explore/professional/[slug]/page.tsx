@@ -609,8 +609,15 @@ export default function ProfessionalProfilePage() {
 
   // Generar horarios disponibles para una fecha específica
   const getAvailableTimes = async (date: string) => {
+    console.log('🚀 INICIANDO getAvailableTimes para fecha:', date);
+    console.log('📅 Fecha recibida:', date, 'Tipo:', typeof date);
+    console.log('👤 Professional ID:', professional?.id);
+    console.log('🕐 Horarios de trabajo:', professional?.working_start_time, '-', professional?.working_end_time);
+    console.log('📋 Días de trabajo:', professional?.working_days);
+    
     try {
       setLoadingTimes(true);
+      console.log('⏳ Iniciando carga de horarios...');
       
       // Obtener horarios de trabajo del profesional
       const { data: professionalData, error: profError } = await supabase
@@ -659,34 +666,56 @@ export default function ProfessionalProfilePage() {
       // Obtener bloqueos de disponibilidad para esta fecha específica
       // Usar una consulta más simple que funcione con las políticas RLS existentes
       // Intentar obtener todos los bloqueos del profesional y filtrar en el cliente
+      console.log('🚫 Buscando bloqueos de disponibilidad para', date);
+      console.log('🔍 Professional ID para bloqueos:', professional?.id);
+      
       const { data: availabilityBlocks, error: blocksError } = await supabase
         .from('availability_blocks')
         .select('*')
         .eq('professional_id', professional?.id);
 
       if (blocksError) {
-        console.error('Error fetching availability blocks:', blocksError);
+        console.error('❌ Error fetching availability blocks:', blocksError);
         console.error('Detalles del error:', blocksError);
+      } else {
+        console.log('✅ Consulta de bloqueos exitosa');
       }
 
       console.log('🚫 Bloqueos encontrados para', date, ':', availabilityBlocks);
-      console.log('🔍 Detalles de bloqueos:', availabilityBlocks?.map(block => ({
-        id: block.id,
-        title: block.title,
-        block_type: block.block_type,
-        start_date: block.start_date,
-        end_date: block.end_date,
-        start_time: block.start_time,
-        end_time: block.end_time,
-        is_recurring: block.is_recurring
-      })));
+      console.log('📊 Cantidad de bloqueos:', availabilityBlocks?.length || 0);
+      
+      if (availabilityBlocks && availabilityBlocks.length > 0) {
+        console.log('🔍 Detalles de bloqueos:', availabilityBlocks.map(block => ({
+          id: block.id,
+          title: block.title,
+          block_type: block.block_type,
+          start_date: block.start_date,
+          end_date: block.end_date,
+          start_time: block.start_time,
+          end_time: block.end_time,
+          is_recurring: block.is_recurring,
+          professional_id: block.professional_id
+        })));
+      } else {
+        console.log('ℹ️ No se encontraron bloqueos de disponibilidad');
+      }
 
       // Procesar bloqueos que aplican a la fecha actual
+      console.log('🔄 Iniciando procesamiento de bloqueos aplicables...');
       const applicableBlocks = [];
       
       if (availabilityBlocks && availabilityBlocks.length > 0) {
+        console.log('📋 Procesando', availabilityBlocks.length, 'bloqueos encontrados');
+        
         for (const block of availabilityBlocks) {
-          console.log('🔍 Analizando bloqueo:', block);
+          console.log('🔍 Analizando bloqueo:', {
+            id: block.id,
+            title: block.title,
+            block_type: block.block_type,
+            start_date: block.start_date,
+            end_date: block.end_date,
+            is_recurring: block.is_recurring
+          });
           
           let shouldApplyBlock = false;
           
@@ -697,9 +726,13 @@ export default function ProfessionalProfilePage() {
             const blockDayOfWeek = blockStartDate.getDay();
             const currentDayOfWeek = currentDate.getDay();
             
+            console.log(`🔄 Bloqueo recurrente - Día del bloqueo: ${blockDayOfWeek}, Día actual: ${currentDayOfWeek}`);
+            
             if (blockDayOfWeek === currentDayOfWeek) {
               shouldApplyBlock = true;
-              console.log(`🔄 Bloqueo recurrente aplicado para día ${currentDayOfWeek} (${date})`);
+              console.log(`✅ Bloqueo recurrente aplicado para día ${currentDayOfWeek} (${date})`);
+            } else {
+              console.log(`❌ Bloqueo recurrente NO aplica - días no coinciden`);
             }
           } else {
             // Para bloqueos no recurrentes, verificar si la fecha está en el rango
@@ -708,20 +741,30 @@ export default function ProfessionalProfilePage() {
             const endDate = block.end_date ? new Date(block.end_date) : startDate;
             const currentDate = new Date(date);
             
+            console.log(`📅 Bloqueo específico - Fecha inicio: ${startDate.toISOString()}, Fecha fin: ${endDate.toISOString()}, Fecha actual: ${currentDate.toISOString()}`);
+            
             // Verificar si la fecha actual está dentro del rango
             if (currentDate >= startDate && currentDate <= endDate) {
               shouldApplyBlock = true;
-              console.log(`📅 Bloqueo específico aplicado para fecha ${date} (rango: ${block.start_date} - ${block.end_date})`);
+              console.log(`✅ Bloqueo específico aplicado para fecha ${date} (rango: ${block.start_date} - ${block.end_date})`);
+            } else {
+              console.log(`❌ Bloqueo específico NO aplica - fecha fuera del rango`);
             }
           }
           
           if (shouldApplyBlock) {
             applicableBlocks.push(block);
+            console.log(`➕ Bloqueo agregado a aplicables:`, block.title);
+          } else {
+            console.log(`➖ Bloqueo NO agregado:`, block.title);
           }
         }
+      } else {
+        console.log('ℹ️ No hay bloqueos para procesar');
       }
 
       console.log('✅ Bloqueos aplicables para', date, ':', applicableBlocks);
+      console.log('📊 Total de bloqueos aplicables:', applicableBlocks.length);
 
       // Crear array de horarios bloqueados
       const blockedTimes = new Set();
@@ -851,10 +894,14 @@ export default function ProfessionalProfilePage() {
       console.log('📅 Fecha procesada:', date);
       console.log('🕐 Horarios de trabajo:', `${startTime} - ${endTime}`);
       console.log('📋 Días de trabajo:', workingDays);
+      console.log('✅ FUNCIÓN getAvailableTimes COMPLETADA EXITOSAMENTE');
       setAvailableTimes(times);
       return times;
     } catch (error) {
-      console.error('Error generating available times:', error);
+      console.error('❌ ERROR en getAvailableTimes:', error);
+      console.error('📅 Fecha que causó el error:', date);
+      console.error('👤 Professional ID:', professional?.id);
+      console.error('🔍 Stack trace:', error instanceof Error ? error.stack : 'No stack trace available');
       setAvailableTimes([]);
       return [];
     } finally {

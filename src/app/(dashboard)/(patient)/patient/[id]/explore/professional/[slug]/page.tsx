@@ -83,6 +83,22 @@ interface Professional {
   working_days?: number[];
 }
 
+interface AvailabilityBlock {
+  id: string;
+  professional_id: string;
+  user_id: string;
+  title: string;
+  description?: string;
+  block_type: string;
+  start_date: string;
+  end_date?: string;
+  start_time?: string;
+  end_time?: string;
+  is_recurring: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
 interface ProfessionalService {
   id: string;
   professional_id: string;
@@ -683,10 +699,42 @@ export default function ProfessionalProfilePage() {
       console.log('🔍 DEBUG - Professional ID type:', typeof professional?.id);
       console.log('🔍 DEBUG - Professional ID value:', professional?.id);
       
-      const { data: availabilityBlocks, error: blocksError } = await supabase
-        .from('availability_blocks')
-        .select('*')
-        .eq('professional_id', professional?.id);
+      // Intentar obtener bloqueos usando una función RPC que tenga permisos de administrador
+      console.log('🔍 Intentando obtener bloqueos con función RPC...');
+      
+      let availabilityBlocks = null;
+      let blocksError = null;
+      
+      try {
+        // Primero intentar con función RPC
+        const { data: rpcResult, error: rpcError } = await supabase
+          .rpc('get_professional_availability_blocks', { p_professional_id: professional?.id });
+        
+        if (rpcError) {
+          console.log('⚠️ Función RPC no disponible, intentando consulta directa...');
+          // Si la función RPC no existe, intentar consulta directa
+          const { data: directResult, error: directError } = await supabase
+            .from('availability_blocks')
+            .select('*')
+            .eq('professional_id', professional?.id);
+          
+          availabilityBlocks = directResult;
+          blocksError = directError;
+        } else {
+          availabilityBlocks = rpcResult;
+          blocksError = null;
+        }
+      } catch (rpcError) {
+        console.log('⚠️ Error en consulta RPC, intentando consulta directa...', rpcError);
+        // Fallback a consulta directa
+        const { data: directResult, error: directError } = await supabase
+          .from('availability_blocks')
+          .select('*')
+          .eq('professional_id', professional?.id);
+        
+        availabilityBlocks = directResult;
+        blocksError = directError;
+      }
 
       console.log('🔍 DEBUG - Supabase query result:', { data: availabilityBlocks, error: blocksError });
       console.log('🔍 DEBUG - Query executed with professional_id:', professional?.id);
@@ -702,7 +750,7 @@ export default function ProfessionalProfilePage() {
       console.log('📊 Cantidad de bloqueos:', availabilityBlocks?.length || 0);
       
       if (availabilityBlocks && availabilityBlocks.length > 0) {
-        console.log('🔍 Detalles de bloqueos:', availabilityBlocks.map(block => ({
+        console.log('🔍 Detalles de bloqueos:', availabilityBlocks.map((block: AvailabilityBlock) => ({
           id: block.id,
           title: block.title,
           block_type: block.block_type,

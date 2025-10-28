@@ -703,8 +703,7 @@ export default function ProfessionalProfilePage() {
           // Bloquear todos los horarios que caigan dentro del rango
           for (let minutes = startTimeMinutes; minutes < endTimeMinutes; minutes += 60) {
             const blockHour = Math.floor(minutes / 60);
-            const blockMinute = minutes % 60;
-            const timeString = `${blockHour.toString().padStart(2, '0')}:${blockMinute.toString().padStart(2, '0')}`;
+            const timeString = `${blockHour.toString().padStart(2, '0')}:00`;
             blockedTimes.add(timeString);
             console.log(`🚫 Bloqueando horario: ${timeString}`);
           }
@@ -747,13 +746,11 @@ export default function ProfessionalProfilePage() {
             
             // Marcar todos los horarios en el rango como bloqueados
             for (let hour = startHour; hour < endHour; hour++) {
-              for (let minute = 0; minute < 60; minute += sessionDuration) {
-                const timeMinutes = hour * 60 + minute;
-                if (timeMinutes >= blockStartMinutes && timeMinutes < blockEndMinutes) {
-                  const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
-                  blockedTimes.add(timeString);
-                  console.log(`🚫 Bloqueando horario: ${timeString}`);
-                }
+              const timeMinutes = hour * 60; // Solo horarios en punto (:00)
+              if (timeMinutes >= blockStartMinutes && timeMinutes < blockEndMinutes) {
+                const timeString = `${hour.toString().padStart(2, '0')}:00`;
+                blockedTimes.add(timeString);
+                console.log(`🚫 Bloqueando horario: ${timeString}`);
               }
             }
           }
@@ -768,27 +765,24 @@ export default function ProfessionalProfilePage() {
       }
 
       const times = [];
-      const sessionDuration = 50;
       
       for (let hour = startHour; hour < endHour; hour++) {
-        for (let minute = 0; minute < 60; minute += sessionDuration) {
-          const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
-          
-          // Determinar el estado del horario
-          let status: 'available' | 'occupied' | 'blocked' = 'available';
-          if (blockedTimes.has(timeString)) {
-            status = 'blocked';
-          } else if (occupiedTimes.has(timeString)) {
-            status = 'occupied';
-          }
-          
-          times.push({
-            time: timeString,
-            display: timeString,
-            fullDateTime: `${date}T${timeString}`,
-            status: status
-          });
+        const timeString = `${hour.toString().padStart(2, '0')}:00`;
+        
+        // Determinar el estado del horario
+        let status: 'available' | 'occupied' | 'blocked' = 'available';
+        if (blockedTimes.has(timeString)) {
+          status = 'blocked';
+        } else if (occupiedTimes.has(timeString)) {
+          status = 'occupied';
         }
+        
+        times.push({
+          time: timeString,
+          display: timeString,
+          fullDateTime: `${date}T${timeString}`,
+          status: status
+        });
       }
       
       console.log('⏰ Horarios generados:', times);

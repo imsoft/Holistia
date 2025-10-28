@@ -668,11 +668,17 @@ export default function ProfessionalProfilePage() {
       // Intentar obtener todos los bloqueos del profesional y filtrar en el cliente
       console.log('🚫 Buscando bloqueos de disponibilidad para', date);
       console.log('🔍 Professional ID para bloqueos:', professional?.id);
+      console.log('🔍 DEBUG - Professional object:', professional);
+      console.log('🔍 DEBUG - Professional ID type:', typeof professional?.id);
+      console.log('🔍 DEBUG - Professional ID value:', professional?.id);
       
       const { data: availabilityBlocks, error: blocksError } = await supabase
         .from('availability_blocks')
         .select('*')
         .eq('professional_id', professional?.id);
+
+      console.log('🔍 DEBUG - Supabase query result:', { data: availabilityBlocks, error: blocksError });
+      console.log('🔍 DEBUG - Query executed with professional_id:', professional?.id);
 
       if (blocksError) {
         console.error('❌ Error fetching availability blocks:', blocksError);
@@ -811,8 +817,11 @@ export default function ProfessionalProfilePage() {
           }
         });
         
-        console.log('🔒 Horarios bloqueados:', Array.from(blockedTimes));
-        console.log('📋 Horarios ocupados:', Array.from(occupiedTimes));
+      console.log('🔒 Horarios bloqueados:', Array.from(blockedTimes));
+      console.log('📋 Horarios ocupados:', Array.from(occupiedTimes));
+      console.log('🔍 DEBUG - blockedTimes Set:', blockedTimes);
+      console.log('🔍 DEBUG - blockedTimes size:', blockedTimes.size);
+      console.log('🔍 DEBUG - blockedTimes has FULL_DAY_BLOCKED:', blockedTimes.has('FULL_DAY_BLOCKED'));
       }
 
       // Procesar bloqueos de disponibilidad - HORA POR HORA

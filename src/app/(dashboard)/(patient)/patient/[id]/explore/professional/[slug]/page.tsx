@@ -656,13 +656,12 @@ export default function ProfessionalProfilePage() {
         console.error('Error fetching appointments:', error);
       }
 
-      // Obtener bloqueos de disponibilidad para esta fecha
+      // Obtener bloqueos de disponibilidad para esta fecha específica
       const { data: availabilityBlocks, error: blocksError } = await supabase
         .from('availability_blocks')
         .select('*')
         .eq('professional_id', professional?.id)
-        .lte('start_date', date)
-        .or(`end_date.is.null,end_date.gte.${date}`);
+        .or(`and(start_date.lte.${date},end_date.gte.${date}),and(start_date.eq.${date},end_date.is.null),and(start_date.eq.${date},end_date.eq.${date})`);
 
       if (blocksError) {
         console.error('Error fetching availability blocks:', blocksError);
@@ -718,10 +717,23 @@ export default function ProfessionalProfilePage() {
       // Procesar bloqueos de disponibilidad
       if (availabilityBlocks && availabilityBlocks.length > 0) {
         availabilityBlocks.forEach(block => {
+          console.log('🔍 Procesando bloqueo:', block);
+          
+          // Verificar si la fecha actual está dentro del rango del bloqueo
+          const isDateInRange = (
+            (block.start_date <= date && block.end_date >= date) ||
+            (block.start_date === date && !block.end_date) ||
+            (block.start_date === date && block.end_date === date)
+          );
+          
+          if (!isDateInRange) {
+            console.log(`📅 Fecha ${date} no está en el rango del bloqueo ${block.start_date} - ${block.end_date}`);
+            return;
+          }
+          
           if (block.block_type === 'full_day') {
             // Si es bloqueo de día completo, marcar todos los horarios como bloqueados
             console.log('🚫 Día completo bloqueado:', date);
-            // Agregamos un marcador especial para indicar que todo el día está bloqueado
             blockedTimes.add('FULL_DAY_BLOCKED');
           } else if (block.block_type === 'time_range' && block.start_time && block.end_time) {
             // Si es bloqueo de rango de horas, bloquear solo ese rango
@@ -731,11 +743,11 @@ export default function ProfessionalProfilePage() {
             const blockStartMinutes = blockStartHour * 60 + blockStartMinute;
             const blockEndMinutes = blockEndHour * 60 + blockEndMinute;
             
-            console.log(`🚫 Bloqueando rango: ${block.start_time} - ${block.end_time}`);
+            console.log(`🚫 Bloqueando rango de tiempo: ${block.start_time} - ${block.end_time}`);
             
             // Marcar todos los horarios en el rango como bloqueados
             for (let hour = startHour; hour < endHour; hour++) {
-              for (let minute = 0; minute < 60; minute += 60) {
+              for (let minute = 0; minute < 60; minute += sessionDuration) {
                 const timeMinutes = hour * 60 + minute;
                 if (timeMinutes >= blockStartMinutes && timeMinutes < blockEndMinutes) {
                   const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;

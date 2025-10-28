@@ -607,7 +607,7 @@ export default function ProfessionalProfilePage() {
     return dates;
   };
 
-  // Generar horarios disponibles para una fecha específica - con colchón de 30 minutos
+  // Generar horarios disponibles para una fecha específica
   const getAvailableTimes = async (date: string) => {
     try {
       setLoadingTimes(true);
@@ -670,7 +670,7 @@ export default function ProfessionalProfilePage() {
 
       console.log('🚫 Bloqueos encontrados para', date, ':', availabilityBlocks);
 
-      // Crear array de horarios bloqueados (cita + 30 min de colchón)
+      // Crear array de horarios bloqueados
       const blockedTimes = new Set();
       const occupiedTimes = new Set(); // Para mostrar como ocupados
       
@@ -682,7 +682,7 @@ export default function ProfessionalProfilePage() {
           
           // Asumir duración de 50 minutos por cita
           const sessionDuration = 50;
-          const bufferTime = 30; // Colchón de 30 minutos
+          const bufferTime = 30; // Tiempo de separación entre citas
           
           console.log(`🕐 Procesando cita: ${startHour}:${startMinute.toString().padStart(2, '0')}`);
           
@@ -1021,9 +1021,6 @@ export default function ProfessionalProfilePage() {
                       </span>
                     </div>
                   )}
-                  <div className="text-xs text-muted-foreground mt-2">
-                    * Los horarios pueden variar según disponibilidad. Se mantiene un colchón de 30 minutos entre citas.
-                  </div>
                 </div>
               </div>
             )}

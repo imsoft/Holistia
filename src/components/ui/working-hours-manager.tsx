@@ -192,7 +192,6 @@ export function WorkingHoursManager({
           <ul className="text-sm text-blue-800 space-y-1">
             <li>• Los pacientes solo podrán reservar citas dentro de estos horarios</li>
             <li>• Los horarios se aplican solo en los días seleccionados</li>
-            <li>• Se mantiene el colchón de 30 minutos entre citas</li>
             <li>• Los cambios se aplican inmediatamente</li>
           </ul>
         </div>

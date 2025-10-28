@@ -657,11 +657,15 @@ export default function ProfessionalProfilePage() {
       }
 
       // Obtener bloqueos de disponibilidad para esta fecha específica
+      // Incluir bloqueos que:
+      // 1. Cubran esta fecha específica (start_date <= date <= end_date)
+      // 2. Sean bloqueos de día específico (start_date = date, end_date = null)
+      // 3. Sean bloqueos recurrentes semanales (is_recurring = true)
       const { data: availabilityBlocks, error: blocksError } = await supabase
         .from('availability_blocks')
         .select('*')
         .eq('professional_id', professional?.id)
-        .or(`and(start_date.lte.${date},end_date.gte.${date}),and(start_date.eq.${date},end_date.is.null),and(start_date.eq.${date},end_date.eq.${date})`);
+        .or(`and(start_date.lte.${date},end_date.gte.${date}),and(start_date.eq.${date},end_date.is.null),and(start_date.eq.${date},end_date.eq.${date}),and(is_recurring.eq.true)`);
 
       if (blocksError) {
         console.error('Error fetching availability blocks:', blocksError);
@@ -718,15 +722,39 @@ export default function ProfessionalProfilePage() {
         availabilityBlocks.forEach(block => {
           console.log('🔍 Procesando bloqueo:', block);
           
-          // Verificar si la fecha actual está dentro del rango del bloqueo
-          const isDateInRange = (
-            (block.start_date <= date && block.end_date >= date) ||
-            (block.start_date === date && !block.end_date) ||
-            (block.start_date === date && block.end_date === date)
-          );
+          let shouldApplyBlock = false;
           
-          if (!isDateInRange) {
-            console.log(`📅 Fecha ${date} no está en el rango del bloqueo ${block.start_date} - ${block.end_date}`);
+          // Verificar si es un bloqueo recurrente semanal
+          if (block.is_recurring) {
+            // Para bloqueos recurrentes, verificar si el día de la semana coincide
+            const blockStartDate = new Date(block.start_date);
+            const currentDate = new Date(date);
+            
+            // Obtener el día de la semana (0 = domingo, 1 = lunes, etc.)
+            const blockDayOfWeek = blockStartDate.getDay();
+            const currentDayOfWeek = currentDate.getDay();
+            
+            // Si el día de la semana coincide, aplicar el bloqueo
+            if (blockDayOfWeek === currentDayOfWeek) {
+              shouldApplyBlock = true;
+              console.log(`🔄 Bloqueo recurrente aplicado para día ${currentDayOfWeek} (${date})`);
+            }
+          } else {
+            // Para bloqueos no recurrentes, verificar si la fecha está en el rango
+            const isDateInRange = (
+              (block.start_date <= date && block.end_date >= date) ||
+              (block.start_date === date && !block.end_date) ||
+              (block.start_date === date && block.end_date === date)
+            );
+            
+            if (isDateInRange) {
+              shouldApplyBlock = true;
+              console.log(`📅 Bloqueo específico aplicado para fecha ${date}`);
+            }
+          }
+          
+          if (!shouldApplyBlock) {
+            console.log(`📅 Fecha ${date} no aplica para el bloqueo ${block.start_date} - ${block.end_date} (recurrente: ${block.is_recurring})`);
             return;
           }
           
@@ -745,7 +773,8 @@ export default function ProfessionalProfilePage() {
             console.log(`🚫 Bloqueando rango de tiempo: ${block.start_time} - ${block.end_time}`);
             
             // Marcar todos los horarios en el rango como bloqueados
-            for (let hour = startHour; hour < endHour; hour++) {
+            // Solo considerar horarios que estén dentro del horario de trabajo del profesional
+            for (let hour = Math.max(startHour, blockStartHour); hour < Math.min(endHour, blockEndHour); hour++) {
               const timeMinutes = hour * 60; // Solo horarios en punto (:00)
               if (timeMinutes >= blockStartMinutes && timeMinutes < blockEndMinutes) {
                 const timeString = `${hour.toString().padStart(2, '0')}:00`;

@@ -721,18 +721,23 @@ export default function ProfessionalProfilePage() {
           
           if (block.is_recurring) {
             // Para bloqueos recurrentes, verificar si el día de la semana coincide
+            // Y si la fecha actual es posterior o igual a la fecha de inicio del bloqueo
             const blockStartDate = new Date(block.start_date);
             const currentDate = new Date(date);
             const blockDayOfWeek = blockStartDate.getDay();
             const currentDayOfWeek = currentDate.getDay();
             
             console.log(`🔄 Bloqueo recurrente - Día del bloqueo: ${blockDayOfWeek}, Día actual: ${currentDayOfWeek}`);
+            console.log(`📅 Fecha inicio bloqueo: ${blockStartDate.toISOString()}, Fecha actual: ${currentDate.toISOString()}`);
             
-            if (blockDayOfWeek === currentDayOfWeek) {
+            // Verificar que el día de la semana coincida Y que la fecha actual sea >= fecha de inicio
+            if (blockDayOfWeek === currentDayOfWeek && currentDate >= blockStartDate) {
               shouldApplyBlock = true;
-              console.log(`✅ Bloqueo recurrente aplicado para día ${currentDayOfWeek} (${date})`);
-            } else {
-              console.log(`❌ Bloqueo recurrente NO aplica - días no coinciden`);
+              console.log(`✅ Bloqueo recurrente aplicado para día ${currentDayOfWeek} (${date}) - fecha válida`);
+            } else if (blockDayOfWeek !== currentDayOfWeek) {
+              console.log(`❌ Bloqueo recurrente NO aplica - días no coinciden (${blockDayOfWeek} vs ${currentDayOfWeek})`);
+            } else if (currentDate < blockStartDate) {
+              console.log(`❌ Bloqueo recurrente NO aplica - fecha actual anterior a fecha de inicio`);
             }
           } else {
             // Para bloqueos no recurrentes, verificar si la fecha está en el rango
@@ -811,9 +816,18 @@ export default function ProfessionalProfilePage() {
       }
 
       // Procesar bloqueos de disponibilidad - HORA POR HORA
+      console.log('🔄 Iniciando procesamiento de bloqueos aplicables para horarios...');
+      console.log('📊 Bloqueos aplicables a procesar:', applicableBlocks.length);
+      
       if (applicableBlocks && applicableBlocks.length > 0) {
-        applicableBlocks.forEach(block => {
-          console.log('🔍 Procesando bloqueo aplicable:', block);
+        applicableBlocks.forEach((block, index) => {
+          console.log(`🔍 Procesando bloqueo aplicable ${index + 1}/${applicableBlocks.length}:`, {
+            title: block.title,
+            block_type: block.block_type,
+            start_time: block.start_time,
+            end_time: block.end_time,
+            is_recurring: block.is_recurring
+          });
           
           if (block.block_type === 'full_day') {
             // Si es bloqueo de día completo, marcar todos los horarios como bloqueados
@@ -826,6 +840,7 @@ export default function ProfessionalProfilePage() {
             
             console.log(`🚫 Procesando bloqueo de tiempo: ${block.start_time} - ${block.end_time}`);
             console.log(`📊 Horarios de trabajo del profesional: ${startTime} - ${endTime}`);
+            console.log(`🕐 Bloqueo en minutos: ${blockStartHour * 60 + blockStartMinute} - ${blockEndHour * 60 + blockEndMinute}`);
             
             // Convertir a minutos para cálculos más precisos
             const blockStartMinutes = blockStartHour * 60 + blockStartMinute;
@@ -833,9 +848,13 @@ export default function ProfessionalProfilePage() {
             
             // Procesar cada hora desde el inicio hasta el final del bloqueo
             // Solo considerar horarios que estén dentro del horario de trabajo del profesional
+            console.log(`🔄 Procesando horas desde ${startHour}:00 hasta ${endHour}:00`);
+            
             for (let hour = startHour; hour < endHour; hour++) {
               const hourMinutes = hour * 60; // Convertir hora a minutos
               const nextHourMinutes = (hour + 1) * 60; // Minutos de la siguiente hora
+              
+              console.log(`🕐 Evaluando hora ${hour}:00 (minutos ${hourMinutes}-${nextHourMinutes})`);
               
               // Verificar si esta hora completa está dentro del bloqueo
               // El bloqueo debe cubrir toda la hora (de :00 a :59)
@@ -848,10 +867,16 @@ export default function ProfessionalProfilePage() {
                 const timeString = `${hour.toString().padStart(2, '0')}:00`;
                 blockedTimes.add(timeString);
                 console.log(`🚫 Bloqueando hora parcial: ${timeString} (superposición con ${block.start_time} - ${block.end_time})`);
+              } else {
+                console.log(`✅ Hora ${hour}:00 NO bloqueada - fuera del rango`);
               }
             }
+          } else {
+            console.log(`⚠️ Bloqueo con tipo no reconocido o sin horarios:`, block.block_type);
           }
         });
+      } else {
+        console.log('ℹ️ No hay bloqueos aplicables para procesar');
       }
 
       // Si hay un bloqueo de día completo, no generar horarios

@@ -600,9 +600,32 @@ export async function POST(request: NextRequest) {
         break;
       }
 
+      case 'charge.succeeded': {
+        const charge = event.data.object as Stripe.Charge;
+
+        console.log('Charge succeeded:', charge.id);
+
+        // Update payment record if not already updated
+        // This serves as a backup to payment_intent.succeeded
+        const { error: paymentUpdateError } = await supabase
+          .from('payments')
+          .update({
+            status: 'succeeded',
+            paid_at: new Date().toISOString(),
+          })
+          .eq('stripe_payment_intent_id', charge.payment_intent as string)
+          .is('paid_at', null);
+
+        if (paymentUpdateError) {
+          console.error('Error updating payment:', paymentUpdateError);
+        }
+
+        break;
+      }
+
       case 'charge.refunded': {
         const charge = event.data.object as Stripe.Charge;
-        
+
         console.log('Charge refunded:', charge.id);
 
         // Update payment record to refunded
@@ -621,7 +644,7 @@ export async function POST(request: NextRequest) {
         break;
       }
 
-      // Note: With Stripe Connect automatic transfers, the transfer happens 
+      // Note: With Stripe Connect automatic transfers, the transfer happens
       // immediately and we track it via checkout.session.completed
       // Additional transfer events can be monitored from Stripe Dashboard
 

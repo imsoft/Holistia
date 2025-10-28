@@ -682,7 +682,6 @@ export default function ProfessionalProfilePage() {
           
           // Asumir duración de 50 minutos por cita
           const sessionDuration = 50;
-          const bufferTime = 30; // Tiempo de separación entre citas
           
           console.log(`🕐 Procesando cita: ${startHour}:${startMinute.toString().padStart(2, '0')}`);
           
@@ -691,14 +690,14 @@ export default function ProfessionalProfilePage() {
           occupiedTimes.add(occupiedTimeString);
           console.log(`❌ Marcando como ocupado: ${occupiedTimeString}`);
           
-          // Calcular el tiempo de finalización (inicio + duración + colchón)
-          const totalMinutes = startHour * 60 + startMinute + sessionDuration + bufferTime;
+          // Calcular el tiempo de finalización (inicio + duración)
+          const totalMinutes = startHour * 60 + startMinute + sessionDuration;
           const endHour = Math.floor(totalMinutes / 60);
           const endMinute = totalMinutes % 60;
           
-          console.log(`⏰ Tiempo de finalización (con colchón): ${endHour}:${endMinute.toString().padStart(2, '0')}`);
+          console.log(`⏰ Tiempo de finalización: ${endHour}:${endMinute.toString().padStart(2, '0')}`);
           
-          // Bloquear todos los horarios desde el inicio hasta el final (incluyendo colchón)
+          // Bloquear todos los horarios desde el inicio hasta el final
           const startTimeMinutes = startHour * 60 + startMinute;
           const endTimeMinutes = endHour * 60 + endMinute;
           
@@ -758,10 +757,9 @@ export default function ProfessionalProfilePage() {
 
       const times = [];
       const sessionDuration = 50;
-      const breakTime = 10;
       
       for (let hour = startHour; hour < endHour; hour++) {
-        for (let minute = 0; minute < 60; minute += sessionDuration + breakTime) {
+        for (let minute = 0; minute < 60; minute += sessionDuration) {
           const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
           
           // Determinar el estado del horario

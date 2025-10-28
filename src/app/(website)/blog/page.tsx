@@ -54,11 +54,11 @@ export default async function BlogPage() {
       (data || []).map(async (post: BlogPost) => {
         let authorInfo = null;
         if (post.author_id) {
-          // Try to get from professional_applications
+          // Try to get from professional_applications using user_id
           const { data: professionalData } = await supabase
             .from('professional_applications')
             .select('id, first_name, last_name, email, profession, profile_photo')
-            .eq('id', post.author_id)
+            .eq('user_id', post.author_id)
             .eq('status', 'approved')
             .single();
 
@@ -71,15 +71,31 @@ export default async function BlogPage() {
               profession: professionalData.profession,
             };
           } else {
-            // If not found in professionals, it's from auth.users
-            // Use a default for now
-            authorInfo = {
-              id: post.author_id,
-              name: 'Holistia',
-              email: '',
-              avatar: undefined,
-              profession: 'Equipo Holistia',
-            };
+            // If not found in professionals, try to get from profiles table
+            const { data: profileData } = await supabase
+              .from('profiles')
+              .select('id, first_name, last_name, email, type')
+              .eq('id', post.author_id)
+              .single();
+
+            if (profileData) {
+              authorInfo = {
+                id: profileData.id,
+                name: `${profileData.first_name || ''} ${profileData.last_name || ''}`.trim() || 'Holistia',
+                email: profileData.email || '',
+                avatar: undefined,
+                profession: profileData.type === 'Admin' || profileData.type === 'admin' ? 'Equipo Holistia' : 'Colaborador',
+              };
+            } else {
+              // Use a default if not found anywhere
+              authorInfo = {
+                id: post.author_id,
+                name: 'Holistia',
+                email: '',
+                avatar: undefined,
+                profession: 'Equipo Holistia',
+              };
+            }
           }
         }
 

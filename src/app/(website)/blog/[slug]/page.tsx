@@ -37,12 +37,25 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
       const { data: professionalAuthor } = await supabase
         .from('professional_applications')
         .select('first_name, last_name, profession')
-        .eq('id', post.author_id)
+        .eq('user_id', post.author_id)
+        .eq('status', 'approved')
         .single();
 
       if (professionalAuthor) {
         authorName = `${professionalAuthor.first_name} ${professionalAuthor.last_name}`;
         authorProfession = professionalAuthor.profession;
+      } else {
+        // If not found in professionals, try to get from profiles table
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('id, first_name, last_name, type')
+          .eq('id', post.author_id)
+          .single();
+
+        if (profileData) {
+          authorName = `${profileData.first_name || ''} ${profileData.last_name || ''}`.trim() || 'Holistia';
+          authorProfession = profileData.type === 'Admin' || profileData.type === 'admin' ? 'Equipo Holistia' : 'Colaborador';
+        }
       }
     }
 
@@ -88,7 +101,8 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
       const { data: professionalAuthor } = await supabase
         .from('professional_applications')
         .select('id, first_name, last_name, profession, profile_photo')
-        .eq('id', post.author_id)
+        .eq('user_id', post.author_id)
+        .eq('status', 'approved')
         .single();
 
       if (professionalAuthor) {
@@ -98,13 +112,27 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
           avatar: professionalAuthor.profile_photo,
         };
       } else {
-        // If not found in professionals, could be from auth.users
-        // For now, use default
-        authorInfo = {
-          name: 'Holistia',
-          profession: 'Equipo Holistia',
-          avatar: undefined,
-        };
+        // If not found in professionals, try to get from profiles table
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('id, first_name, last_name, email, type')
+          .eq('id', post.author_id)
+          .single();
+
+        if (profileData) {
+          authorInfo = {
+            name: `${profileData.first_name || ''} ${profileData.last_name || ''}`.trim() || 'Holistia',
+            profession: profileData.type === 'Admin' || profileData.type === 'admin' ? 'Equipo Holistia' : 'Colaborador',
+            avatar: undefined,
+          };
+        } else {
+          // Use default if not found anywhere
+          authorInfo = {
+            name: 'Holistia',
+            profession: 'Equipo Holistia',
+            avatar: undefined,
+          };
+        }
       }
     }
 
@@ -126,7 +154,8 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
           const { data: professionalAuthor } = await supabase
             .from('professional_applications')
             .select('first_name, last_name, profession')
-            .eq('id', relatedPost.author_id)
+            .eq('user_id', relatedPost.author_id)
+            .eq('status', 'approved')
             .single();
 
           if (professionalAuthor) {
@@ -134,6 +163,20 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
               name: `${professionalAuthor.first_name} ${professionalAuthor.last_name}`,
               profession: professionalAuthor.profession,
             };
+          } else {
+            // If not found in professionals, try to get from profiles table
+            const { data: profileData } = await supabase
+              .from('profiles')
+              .select('id, first_name, last_name, type')
+              .eq('id', relatedPost.author_id)
+              .single();
+
+            if (profileData) {
+              relatedAuthorInfo = {
+                name: `${profileData.first_name || ''} ${profileData.last_name || ''}`.trim() || 'Holistia',
+                profession: profileData.type === 'Admin' || profileData.type === 'admin' ? 'Equipo Holistia' : 'Colaborador',
+              };
+            }
           }
         }
 

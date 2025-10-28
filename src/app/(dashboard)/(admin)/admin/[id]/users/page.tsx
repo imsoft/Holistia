@@ -87,16 +87,10 @@ export default function AdminUsers() {
         ] = await Promise.all([
           supabase
             .from('professional_applications')
-            .select(`
-              user_id, first_name, last_name, email, phone, city, state, status, submitted_at, reviewed_at, profile_photo,
-              profiles!inner(account_status)
-            `),
+            .select('user_id, first_name, last_name, email, phone, city, state, status, submitted_at, reviewed_at, profile_photo'),
           supabase
             .from('professional_applications')
-            .select(`
-              user_id, first_name, last_name, email, phone, city, state, status, submitted_at, reviewed_at, profile_photo,
-              profiles!inner(account_status)
-            `)
+            .select('user_id, first_name, last_name, email, phone, city, state, status, submitted_at, reviewed_at, profile_photo')
             .gte('submitted_at', lastMonthStart.toISOString())
             .lte('submitted_at', lastMonthEnd.toISOString())
         ]);
@@ -110,6 +104,13 @@ export default function AdminUsers() {
         // Transformar usuarios a nuestro formato
         const transformedUsers: User[] = await Promise.all(
           (professionalUsers || []).map(async (prof) => {
+            // Obtener información del perfil desde la tabla profiles
+            const { data: profileData } = await supabase
+              .from('profiles')
+              .select('account_status')
+              .eq('id', prof.user_id)
+              .single();
+
             // Obtener número total de citas del usuario (como paciente o como profesional)
             const [
               { data: asPatient },
@@ -124,7 +125,7 @@ export default function AdminUsers() {
                 .select('id')
                 .eq('professional_id', prof.user_id)
             ]);
-            
+
             const appointmentsCount = (asPatient?.length || 0) + (asProfessional?.length || 0);
 
             // Usar la foto de perfil de la solicitud profesional
@@ -132,8 +133,8 @@ export default function AdminUsers() {
 
             // Usar el estado de la cuenta desde la tabla profiles
             let status: 'active' | 'inactive' | 'suspended' = 'active';
-            if (prof.profiles && Array.isArray(prof.profiles) && prof.profiles.length > 0) {
-              status = prof.profiles[0].account_status as 'active' | 'inactive' | 'suspended';
+            if (profileData?.account_status) {
+              status = profileData.account_status as 'active' | 'inactive' | 'suspended';
             } else if (prof.status === 'rejected') {
               status = 'inactive';
             }

@@ -48,6 +48,23 @@ interface EmailData {
   admin_name: string;
 }
 
+interface EmailLog {
+  id: string;
+  recipient_email: string;
+  recipient_id: string;
+  email_type: string;
+  subject: string;
+  sent_at: string;
+  status: string;
+  metadata: {
+    professional_id: string;
+    professional_name: string;
+    profession: string;
+    admin_name: string;
+    resend_id: string;
+  };
+}
+
 export default function CertificationsPage() {
   const params = useParams();
   const adminId = params.id as string;
@@ -61,6 +78,8 @@ export default function CertificationsPage() {
   const [sending, setSending] = useState(false);
   const [customMessage, setCustomMessage] = useState("");
   const [emailSent, setEmailSent] = useState(false);
+  const [emailLogs, setEmailLogs] = useState<EmailLog[]>([]);
+  const [loadingLogs, setLoadingLogs] = useState(true);
 
   // Cargar profesionales aprobados
   useEffect(() => {
@@ -90,6 +109,34 @@ export default function CertificationsPage() {
     };
 
     fetchProfessionals();
+  }, [supabase]);
+
+  // Cargar logs de correos de certificación
+  useEffect(() => {
+    const fetchEmailLogs = async () => {
+      try {
+        setLoadingLogs(true);
+        
+        const { data, error } = await supabase
+          .from('email_logs')
+          .select('*')
+          .eq('email_type', 'certification_confirmation')
+          .order('sent_at', { ascending: false });
+
+        if (error) {
+          console.error('Error fetching email logs:', error);
+          return;
+        }
+
+        setEmailLogs(data || []);
+      } catch (error) {
+        console.error('Error fetching email logs:', error);
+      } finally {
+        setLoadingLogs(false);
+      }
+    };
+
+    fetchEmailLogs();
   }, [supabase]);
 
   // Filtrar profesionales por término de búsqueda
@@ -146,6 +193,17 @@ El equipo de Holistia`;
         setEmailSent(true);
         setCustomMessage("");
         setSelectedProfessional(null);
+        
+        // Refrescar los logs de correos
+        const { data: newLogs, error: logsError } = await supabase
+          .from('email_logs')
+          .select('*')
+          .eq('email_type', 'certification_confirmation')
+          .order('sent_at', { ascending: false });
+
+        if (!logsError && newLogs) {
+          setEmailLogs(newLogs);
+        }
       } else {
         toast.error(result.error || 'Error al enviar el email');
       }
@@ -355,6 +413,79 @@ El equipo de Holistia`;
             </CardContent>
           </Card>
         )}
+
+        {/* Historial de Correos Enviados */}
+        <Card className="py-4">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Mail className="h-5 w-5" />
+              Historial de Correos Enviados
+            </CardTitle>
+            <CardDescription>
+              Lista de profesionales que ya recibieron confirmación de certificaciones
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {loadingLogs ? (
+              <div className="text-center py-4 text-sm text-muted-foreground">
+                Cargando historial...
+              </div>
+            ) : emailLogs.length === 0 ? (
+              <div className="text-center py-8 text-sm text-muted-foreground">
+                <Mail className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p>No se han enviado correos de certificación aún</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {emailLogs.map((log) => (
+                  <div
+                    key={log.id}
+                    className="p-4 border rounded-lg bg-muted/30"
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-2">
+                          <h4 className="font-medium text-sm">
+                            {log.metadata?.professional_name || 'Nombre no disponible'}
+                          </h4>
+                          <Badge variant="outline" className="text-xs">
+                            {log.metadata?.profession || 'Profesión no disponible'}
+                          </Badge>
+                          <Badge 
+                            variant={log.status === 'sent' ? 'default' : 'destructive'}
+                            className="text-xs"
+                          >
+                            {log.status === 'sent' ? 'Enviado' : log.status}
+                          </Badge>
+                        </div>
+                        <p className="text-xs text-muted-foreground mb-1">
+                          📧 {log.recipient_email}
+                        </p>
+                        <p className="text-xs text-muted-foreground mb-2">
+                          📅 Enviado el {new Date(log.sent_at).toLocaleDateString('es-ES', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })}
+                        </p>
+                        {log.metadata?.admin_name && (
+                          <p className="text-xs text-muted-foreground">
+                            👤 Enviado por: {log.metadata.admin_name}
+                          </p>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <CheckCircle className="h-4 w-4 text-green-600" />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Resend } from 'resend';
+import { createClient } from '@/utils/supabase/server';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -196,6 +197,48 @@ ${message}
     }
 
     console.log('Certification email sent successfully:', emailData?.id);
+    
+    // Registrar el correo en la tabla email_logs
+    try {
+      const supabase = await createClient();
+      
+      // Obtener el ID del profesional desde la tabla professional_applications
+      const { data: professionalData, error: profError } = await supabase
+        .from('professional_applications')
+        .select('id, user_id')
+        .eq('email', professional_email)
+        .single();
+
+      if (profError) {
+        console.error('Error fetching professional data:', profError);
+      }
+
+      // Insertar el log del email
+      const { error: logError } = await supabase
+        .from('email_logs')
+        .insert({
+          recipient_email: professional_email,
+          recipient_id: professionalData?.user_id || null,
+          email_type: 'certification_confirmation',
+          subject: `🎓 Certificaciones Recibidas - ${professional_name} | Holistia`,
+          status: 'sent',
+          metadata: {
+            professional_id: professionalData?.id || null,
+            professional_name: professional_name,
+            profession: profession,
+            admin_name: admin_name,
+            resend_id: emailData?.id
+          }
+        });
+
+      if (logError) {
+        console.error('Error logging email:', logError);
+      } else {
+        console.log('Email logged successfully');
+      }
+    } catch (logError) {
+      console.error('Error in email logging process:', logError);
+    }
     
     return NextResponse.json({
       success: true,

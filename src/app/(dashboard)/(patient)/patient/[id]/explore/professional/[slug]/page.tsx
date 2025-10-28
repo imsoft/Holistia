@@ -788,26 +788,54 @@ export default function ProfessionalProfilePage() {
           const endDate = block.end_date ? new Date(block.end_date) : startDate;
           const currentDate = new Date(date);
 
-          // PRIORIDAD 1: Bloqueos recurrentes semanales (ignorar end_date si existe)
+          // PRIORIDAD 1: Bloqueos recurrentes semanales
           if (block.is_recurring) {
-            // Bloqueo recurrente semanal - solo aplica al mismo día de la semana
-            const blockDayOfWeek = startDate.getDay();
             const currentDayOfWeek = currentDate.getDay();
 
-            console.log(`🔄 Bloqueo recurrente semanal - Día del bloqueo: ${blockDayOfWeek}, Día actual: ${currentDayOfWeek}`);
-            console.log(`📅 Fecha inicio bloqueo: ${startDate.toISOString()}, Fecha actual: ${currentDate.toISOString()}`);
-            if (block.end_date) {
-              console.log(`⚠️ Bloqueo recurrente tiene end_date (${block.end_date}) - se ignorará para recurrencia`);
-            }
+            // Si tiene end_date, calcular todos los días de la semana del rango
+            if (block.end_date && block.end_date !== block.start_date) {
+              // Calcular qué días de la semana están en el rango
+              const recurringDays: number[] = [];
+              const tempDate = new Date(startDate);
 
-            // Verificar que el día de la semana coincida Y que la fecha actual sea >= fecha de inicio
-            if (blockDayOfWeek === currentDayOfWeek && currentDate >= startDate) {
-              shouldApplyBlock = true;
-              console.log(`✅ Bloqueo recurrente semanal aplicado para día ${currentDayOfWeek} (${date})`);
-            } else if (blockDayOfWeek !== currentDayOfWeek) {
-              console.log(`❌ Bloqueo recurrente semanal NO aplica - días no coinciden (${blockDayOfWeek} vs ${currentDayOfWeek})`);
-            } else if (currentDate < startDate) {
-              console.log(`❌ Bloqueo recurrente semanal NO aplica - fecha actual anterior a fecha de inicio`);
+              while (tempDate <= endDate) {
+                const dayOfWeek = tempDate.getDay();
+                if (!recurringDays.includes(dayOfWeek)) {
+                  recurringDays.push(dayOfWeek);
+                }
+                tempDate.setDate(tempDate.getDate() + 1);
+              }
+
+              recurringDays.sort((a, b) => a - b);
+
+              console.log(`🔄 Bloqueo recurrente con rango - Días de la semana: ${recurringDays.join(', ')}, Día actual: ${currentDayOfWeek}`);
+              console.log(`📅 Rango: ${block.start_date} a ${block.end_date}, Fecha actual: ${date}`);
+
+              // Verificar si el día actual está en los días recurrentes Y que sea >= fecha de inicio
+              if (recurringDays.includes(currentDayOfWeek) && currentDate >= startDate) {
+                shouldApplyBlock = true;
+                console.log(`✅ Bloqueo recurrente aplicado para día ${currentDayOfWeek} (${date})`);
+              } else if (!recurringDays.includes(currentDayOfWeek)) {
+                console.log(`❌ Bloqueo recurrente NO aplica - día ${currentDayOfWeek} no está en días recurrentes [${recurringDays.join(', ')}]`);
+              } else {
+                console.log(`❌ Bloqueo recurrente NO aplica - fecha actual anterior a fecha de inicio`);
+              }
+            } else {
+              // Bloqueo recurrente de un solo día de la semana
+              const blockDayOfWeek = startDate.getDay();
+
+              console.log(`🔄 Bloqueo recurrente semanal - Día del bloqueo: ${blockDayOfWeek}, Día actual: ${currentDayOfWeek}`);
+              console.log(`📅 Fecha inicio bloqueo: ${startDate.toISOString()}, Fecha actual: ${currentDate.toISOString()}`);
+
+              // Verificar que el día de la semana coincida Y que la fecha actual sea >= fecha de inicio
+              if (blockDayOfWeek === currentDayOfWeek && currentDate >= startDate) {
+                shouldApplyBlock = true;
+                console.log(`✅ Bloqueo recurrente semanal aplicado para día ${currentDayOfWeek} (${date})`);
+              } else if (blockDayOfWeek !== currentDayOfWeek) {
+                console.log(`❌ Bloqueo recurrente semanal NO aplica - días no coinciden (${blockDayOfWeek} vs ${currentDayOfWeek})`);
+              } else if (currentDate < startDate) {
+                console.log(`❌ Bloqueo recurrente semanal NO aplica - fecha actual anterior a fecha de inicio`);
+              }
             }
           }
           // PRIORIDAD 2: Bloqueos con rango de fechas (sin recurrencia)

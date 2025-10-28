@@ -657,18 +657,16 @@ export default function ProfessionalProfilePage() {
       }
 
       // Obtener bloqueos de disponibilidad para esta fecha específica
-      // Incluir bloqueos que:
-      // 1. Cubran esta fecha específica (start_date <= date <= end_date)
-      // 2. Sean bloqueos de día específico (start_date = date, end_date = null)
-      // 3. Sean bloqueos recurrentes semanales (is_recurring = true)
+      // Usar una consulta más simple que funcione con las políticas RLS existentes
+      // Intentar obtener todos los bloqueos del profesional y filtrar en el cliente
       const { data: availabilityBlocks, error: blocksError } = await supabase
         .from('availability_blocks')
         .select('*')
-        .eq('professional_id', professional?.id)
-        .or(`and(start_date.lte.${date},end_date.gte.${date}),and(start_date.eq.${date},end_date.is.null),and(start_date.eq.${date},end_date.eq.${date}),is_recurring.eq.true`);
+        .eq('professional_id', professional?.id);
 
       if (blocksError) {
         console.error('Error fetching availability blocks:', blocksError);
+        console.error('Detalles del error:', blocksError);
       }
 
       console.log('🚫 Bloqueos encontrados para', date, ':', availabilityBlocks);
@@ -682,6 +680,27 @@ export default function ProfessionalProfilePage() {
         end_time: block.end_time,
         is_recurring: block.is_recurring
       })));
+
+      // Filtrar bloqueos que aplican a la fecha actual
+      const applicableBlocks = availabilityBlocks?.filter(block => {
+        // Verificar si es un bloqueo recurrente semanal
+        if (block.is_recurring) {
+          const blockStartDate = new Date(block.start_date);
+          const currentDate = new Date(date);
+          const blockDayOfWeek = blockStartDate.getDay();
+          const currentDayOfWeek = currentDate.getDay();
+          return blockDayOfWeek === currentDayOfWeek;
+        } else {
+          // Para bloqueos no recurrentes, verificar si la fecha está en el rango
+          return (
+            (block.start_date <= date && block.end_date >= date) ||
+            (block.start_date === date && !block.end_date) ||
+            (block.start_date === date && block.end_date === date)
+          );
+        }
+      }) || [];
+
+      console.log('✅ Bloqueos aplicables para', date, ':', applicableBlocks);
 
       // Crear array de horarios bloqueados
       const blockedTimes = new Set();
@@ -728,45 +747,9 @@ export default function ProfessionalProfilePage() {
       }
 
       // Procesar bloqueos de disponibilidad
-      if (availabilityBlocks && availabilityBlocks.length > 0) {
-        availabilityBlocks.forEach(block => {
-          console.log('🔍 Procesando bloqueo:', block);
-          
-          let shouldApplyBlock = false;
-          
-          // Verificar si es un bloqueo recurrente semanal
-          if (block.is_recurring) {
-            // Para bloqueos recurrentes, verificar si el día de la semana coincide
-            const blockStartDate = new Date(block.start_date);
-            const currentDate = new Date(date);
-            
-            // Obtener el día de la semana (0 = domingo, 1 = lunes, etc.)
-            const blockDayOfWeek = blockStartDate.getDay();
-            const currentDayOfWeek = currentDate.getDay();
-            
-            // Si el día de la semana coincide, aplicar el bloqueo
-            if (blockDayOfWeek === currentDayOfWeek) {
-              shouldApplyBlock = true;
-              console.log(`🔄 Bloqueo recurrente aplicado para día ${currentDayOfWeek} (${date})`);
-            }
-          } else {
-            // Para bloqueos no recurrentes, verificar si la fecha está en el rango
-            const isDateInRange = (
-              (block.start_date <= date && block.end_date >= date) ||
-              (block.start_date === date && !block.end_date) ||
-              (block.start_date === date && block.end_date === date)
-            );
-            
-            if (isDateInRange) {
-              shouldApplyBlock = true;
-              console.log(`📅 Bloqueo específico aplicado para fecha ${date}`);
-            }
-          }
-          
-          if (!shouldApplyBlock) {
-            console.log(`📅 Fecha ${date} no aplica para el bloqueo ${block.start_date} - ${block.end_date} (recurrente: ${block.is_recurring})`);
-            return;
-          }
+      if (applicableBlocks && applicableBlocks.length > 0) {
+        applicableBlocks.forEach(block => {
+          console.log('🔍 Procesando bloqueo aplicable:', block);
           
           if (block.block_type === 'full_day') {
             // Si es bloqueo de día completo, marcar todos los horarios como bloqueados

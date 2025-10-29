@@ -99,12 +99,6 @@ export function WideCalendar({
     loadWeekData(nextWeek);
   }, [currentWeek, loadWeekData]);
 
-  const goToToday = useCallback(() => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    setCurrentWeek(today);
-    loadWeekData(today);
-  }, [loadWeekData]);
 
   // Obtener horarios dinámicamente basados en los horarios de trabajo del profesional
   const getTimeSlots = useCallback(() => {
@@ -166,15 +160,6 @@ export function WideCalendar({
           </div>
           
           <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={goToToday}
-              disabled={isLoading}
-              className="text-xs"
-            >
-              Hoy
-            </Button>
             <Button
               variant="outline"
               size="sm"

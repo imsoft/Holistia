@@ -60,7 +60,7 @@ export function WorkingHoursConfig({ professionalId, onSave }: WorkingHoursConfi
   const loadWorkingHours = useCallback(async () => {
     try {
       const { data, error } = await supabase
-        .from('professionals')
+        .from('professional_applications')
         .select('working_days, working_start_time, working_end_time')
         .eq('id', professionalId)
         .single();
@@ -167,7 +167,7 @@ export function WorkingHoursConfig({ professionalId, onSave }: WorkingHoursConfi
       if (allSameHours) {
         // Usar el formato original (working_days, working_start_time, working_end_time)
         const { error } = await supabase
-          .from('professionals')
+          .from('professional_applications')
           .update({
             working_days: workingDays,
             working_start_time: startTime,
@@ -180,7 +180,7 @@ export function WorkingHoursConfig({ professionalId, onSave }: WorkingHoursConfi
         // Si hay horarios diferentes por día, necesitamos una nueva estructura
         // Por ahora, usar el horario más común o el primero
         const { error } = await supabase
-          .from('professionals')
+          .from('professional_applications')
           .update({
             working_days: workingDays,
             working_start_time: startTime,

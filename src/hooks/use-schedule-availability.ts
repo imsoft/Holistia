@@ -30,7 +30,7 @@ export function useScheduleAvailability(professionalId: string) {
   const getProfessionalWorkingHours = useCallback(async (): Promise<ProfessionalWorkingHours | null> => {
     try {
       const { data, error } = await supabase
-        .from('professionals')
+        .from('professional_applications')
         .select('working_start_time, working_end_time, working_days')
         .eq('id', professionalId)
         .single();

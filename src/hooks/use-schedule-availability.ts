@@ -115,19 +115,27 @@ export function useScheduleAvailability(professionalId: string) {
     try {
       console.log('🔍 Buscando bloqueos para rango:', { startDate, endDate, professionalId });
       
-      // Consulta simplificada para obtener todos los bloqueos del profesional
+      // Consulta para obtener bloqueos del profesional con filtro de fechas
       const { data, error } = await supabase
         .from('availability_blocks')
         .select('*')
-        .eq('professional_id', professionalId);
+        .eq('professional_id', professionalId)
+        .or(`and(start_date.gte.${startDate},start_date.lte.${endDate}),and(end_date.gte.${startDate},end_date.lte.${endDate}),and(start_date.lte.${startDate},end_date.gte.${endDate})`);
 
       if (error) {
         console.error('❌ Error en consulta de bloqueos:', error);
+        console.error('❌ Detalles del error:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        });
         throw error;
       }
       
       const blocks = data || [];
       console.log('📋 Bloqueos encontrados:', blocks);
+      console.log('📋 Total de bloqueos:', blocks.length);
       
       // Guardar en caché
       blocksCache.current.set(cacheKey, blocks);

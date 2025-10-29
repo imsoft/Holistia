@@ -115,12 +115,21 @@ export function useScheduleAvailability(professionalId: string) {
     try {
       console.log('🔍 Buscando bloqueos para rango:', { startDate, endDate, professionalId });
       
-      // Consulta para obtener bloqueos del profesional con filtro de fechas
-      const { data, error } = await supabase
+      // Consulta para obtener bloqueos del profesional
+      // Primero intentamos con filtro de fechas, si falla usamos consulta simple
+      let query = supabase
         .from('availability_blocks')
         .select('*')
-        .eq('professional_id', professionalId)
-        .or(`and(start_date.gte.${startDate},start_date.lte.${endDate}),and(end_date.gte.${startDate},end_date.lte.${endDate}),and(start_date.lte.${startDate},end_date.gte.${endDate})`);
+        .eq('professional_id', professionalId);
+      
+      // Intentar agregar filtro de fechas
+      try {
+        query = query.or(`and(start_date.gte.${startDate},start_date.lte.${endDate}),and(end_date.gte.${startDate},end_date.lte.${endDate}),and(start_date.lte.${startDate},end_date.gte.${endDate})`);
+      } catch {
+        console.log('⚠️ No se pudo aplicar filtro de fechas, usando consulta simple');
+      }
+      
+      const { data, error } = await query;
 
       if (error) {
         console.error('❌ Error en consulta de bloqueos:', error);
@@ -137,10 +146,40 @@ export function useScheduleAvailability(professionalId: string) {
       console.log('📋 Bloqueos encontrados:', blocks);
       console.log('📋 Total de bloqueos:', blocks.length);
       
-      // Guardar en caché
-      blocksCache.current.set(cacheKey, blocks);
+      // Filtrar bloqueos que se superponen con el rango de fechas
+      const filteredBlocks = blocks.filter(block => {
+        const blockStart = new Date(block.start_date);
+        const blockEnd = block.end_date ? new Date(block.end_date) : blockStart;
+        const rangeStart = new Date(startDate);
+        const rangeEnd = new Date(endDate);
+        
+        // Normalizar fechas para comparación
+        blockStart.setHours(0, 0, 0, 0);
+        blockEnd.setHours(0, 0, 0, 0);
+        rangeStart.setHours(0, 0, 0, 0);
+        rangeEnd.setHours(0, 0, 0, 0);
+        
+        // Verificar si hay superposición
+        const overlaps = blockStart <= rangeEnd && blockEnd >= rangeStart;
+        console.log('🔍 Bloqueo superposición:', {
+          id: block.id,
+          blockStart: blockStart.toISOString().split('T')[0],
+          blockEnd: blockEnd.toISOString().split('T')[0],
+          rangeStart: rangeStart.toISOString().split('T')[0],
+          rangeEnd: rangeEnd.toISOString().split('T')[0],
+          overlaps
+        });
+        
+        return overlaps;
+      });
       
-      return blocks;
+      console.log('📋 Bloqueos filtrados para el rango:', filteredBlocks);
+      console.log('📋 Total de bloqueos filtrados:', filteredBlocks.length);
+      
+      // Guardar en caché
+      blocksCache.current.set(cacheKey, filteredBlocks);
+      
+      return filteredBlocks;
     } catch (error) {
       console.error('Error fetching availability blocks:', error);
       return [];

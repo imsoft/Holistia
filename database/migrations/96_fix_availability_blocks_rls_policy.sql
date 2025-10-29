@@ -1,31 +1,23 @@
 -- Arreglar política RLS para que los pacientes puedan ver bloqueos de disponibilidad
--- La política actual es demasiado restrictiva
+-- La tabla availability_blocks no tiene foreign key a professional_applications,
+-- solo tiene professional_id como UUID directo
 
--- Eliminar la política existente
+-- Eliminar políticas existentes
 DROP POLICY IF EXISTS "Patients can view availability blocks" ON availability_blocks;
+DROP POLICY IF EXISTS "Professionals can manage their own availability blocks" ON availability_blocks;
 
--- Crear nueva política más permisiva para que cualquier usuario autenticado pueda ver bloqueos
--- de profesionales aprobados (esto es necesario para que los pacientes puedan ver la disponibilidad)
-CREATE POLICY "Authenticated users can view availability blocks of approved professionals"
+-- Crear política simple: cualquier usuario autenticado puede ver bloqueos
+-- Esto es necesario para que los pacientes puedan ver la disponibilidad al agendar
+CREATE POLICY "Authenticated users can view availability blocks"
 ON availability_blocks FOR SELECT
-USING (
-  auth.uid() IS NOT NULL 
-  AND professional_id IN (
-    SELECT id FROM professional_applications 
-    WHERE status = 'approved'
-  )
-);
+USING (auth.uid() IS NOT NULL);
 
--- También permitir que los profesionales vean sus propios bloqueos (por si acaso)
-CREATE POLICY "Professionals can view their own availability blocks"
-ON availability_blocks FOR SELECT
-USING (
-  professional_id IN (
-    SELECT id FROM professional_applications 
-    WHERE user_id = auth.uid()
-  )
-);
+-- Los profesionales pueden gestionar sus propios bloqueos
+CREATE POLICY "Professionals can manage their own availability blocks"
+ON availability_blocks FOR ALL
+USING (user_id = auth.uid())
+WITH CHECK (user_id = auth.uid());
 
 -- Comentario explicativo
-COMMENT ON POLICY "Authenticated users can view availability blocks of approved professionals" 
-ON availability_blocks IS 'Permite a cualquier usuario autenticado ver los bloqueos de disponibilidad de profesionales aprobados para verificar disponibilidad al agendar citas';
+COMMENT ON POLICY "Authenticated users can view availability blocks" 
+ON availability_blocks IS 'Permite a cualquier usuario autenticado ver los bloqueos de disponibilidad para verificar disponibilidad al agendar citas';

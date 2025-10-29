@@ -40,6 +40,13 @@ export function BlocksCalendarView({
 
       if (error) throw error;
       console.log('🔍 Blocks fetched:', data);
+      console.log('📊 Blocks summary:', data?.map(b => ({
+        title: b.title,
+        type: b.block_type,
+        day_of_week: b.day_of_week,
+        is_recurring: b.is_recurring,
+        start_date: b.start_date
+      })));
       setBlocks(data || []);
     } catch (error) {
       console.error('Error fetching blocks:', error);
@@ -110,7 +117,9 @@ export function BlocksCalendarView({
     // Crear fecha en hora local para evitar problemas de zona horaria
     const currentDate = parseLocalDate(date);
     const dayOfWeekCurrent = currentDate.getDay() === 0 ? 7 : currentDate.getDay();
-    
+
+    console.log('🔍 getBlocksForDate called:', { date, dayOfWeekCurrent, totalBlocks: blocks.length });
+
     return blocks.filter(block => {
       if (block.block_type === 'full_day') {
         return block.start_date <= date && (!block.end_date || block.end_date >= date);
@@ -123,17 +132,17 @@ export function BlocksCalendarView({
         if (block.is_recurring) {
           // Recurrente: Aplica a todas las semanas después de start_date
           const applies = matchesDayOfWeek && block.start_date <= date;
-          if (date.startsWith('2025-11-')) {
-            console.log('📅 Checking weekly_day block (recurring):', {
-              date,
-              dayOfWeekCurrent,
-              blockDayOfWeek: block.day_of_week,
-              blockStartDate: block.start_date,
-              isRecurring: block.is_recurring,
-              applies,
-              blockTitle: block.title
-            });
-          }
+          console.log('📅 [RECURRING] weekly_day:', {
+            date,
+            dayOfWeekCurrent,
+            blockDayOfWeek: block.day_of_week,
+            matchesDayOfWeek,
+            blockStartDate: block.start_date,
+            startDateCheck: block.start_date <= date,
+            isRecurring: block.is_recurring,
+            applies,
+            blockTitle: block.title
+          });
           return applies;
         } else {
           // No recurrente: Solo aplica a la fecha específica en start_date

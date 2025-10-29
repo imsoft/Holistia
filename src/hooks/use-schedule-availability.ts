@@ -312,13 +312,19 @@ export function useScheduleAvailability(professionalId: string) {
       // Manejar diferentes tipos de bloqueos
       if (block.block_type === 'weekly_day') {
         // Bloqueo semanal de día completo
-        const dayOfWeekCurrent = currentDate.getDay() === 0 ? 7 : currentDate.getDay();
+        // JavaScript getDay(): 0=Domingo, 1=Lunes, 2=Martes, etc.
+        // Nuestro sistema: 1=Lunes, 2=Martes, 3=Miércoles, ..., 7=Domingo
+        const jsDay = currentDate.getDay();
+        const dayOfWeekCurrent = jsDay === 0 ? 7 : jsDay; // Convertir domingo de 0 a 7
         const applies = block.day_of_week === dayOfWeekCurrent && currentDate >= blockStartDate;
-        console.log('📅 Bloqueo semanal de día completo aplica:', applies, {
+        console.log('📅 Bloqueo semanal de día completo:', {
+          date: currentDate.toISOString().split('T')[0],
+          jsDay,
           dayOfWeekCurrent,
           blockDayOfWeek: block.day_of_week,
-          currentDate: currentDate.toISOString().split('T')[0],
-          blockStartDate: blockStartDate.toISOString().split('T')[0]
+          applies,
+          blockStartDate: blockStartDate.toISOString().split('T')[0],
+          isAfterStart: currentDate >= blockStartDate
         });
         return applies;
       } else if (block.block_type === 'weekly_range') {

@@ -157,22 +157,14 @@ export function useScheduleAvailability(professionalId: string) {
 
     try {
       console.log('🔍 Buscando bloqueos para rango:', { startDate, endDate, professionalId });
-      
-      // Consulta para obtener bloqueos del profesional
-      // Primero intentamos con filtro de fechas, si falla usamos consulta simple
-      let query = supabase
+
+      // Consulta para obtener TODOS los bloqueos del profesional
+      // NO filtramos por fechas en SQL porque los bloqueos recurrentes deben incluirse siempre
+      // El filtrado por fechas se hace en JavaScript después
+      const { data, error } = await supabase
         .from('availability_blocks')
         .select('*')
         .eq('professional_id', professionalId);
-      
-      // Intentar agregar filtro de fechas
-      try {
-        query = query.or(`and(start_date.gte.${startDate},start_date.lte.${endDate}),and(end_date.gte.${startDate},end_date.lte.${endDate}),and(start_date.lte.${startDate},end_date.gte.${endDate})`);
-      } catch {
-        console.log('⚠️ No se pudo aplicar filtro de fechas, usando consulta simple');
-      }
-      
-      const { data, error } = await query;
 
       if (error) {
         console.error('❌ Error en consulta de bloqueos:', error);

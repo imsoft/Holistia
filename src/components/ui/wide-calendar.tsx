@@ -182,12 +182,9 @@ export function WideCalendar({
 
         {/* Grid de horarios */}
         <div className="overflow-x-auto">
-          <div className="min-w-[800px]">
+          <div className="min-w-[700px]">
             {/* Header con días de la semana */}
-            <div className="grid grid-cols-8 gap-2 mb-4">
-              <div className="text-sm font-medium text-muted-foreground text-center py-2">
-                Hora
-              </div>
+            <div className="grid grid-cols-7 gap-2 mb-4">
               {weekData.map((day) => (
                 <div key={day.date} className="text-center py-2">
                   <div className="text-sm font-medium text-foreground">
@@ -203,12 +200,7 @@ export function WideCalendar({
             {/* Grid de horarios */}
             <div className="space-y-1">
               {allTimeSlots.map((time) => (
-                <div key={time} className="grid grid-cols-8 gap-2">
-                  {/* Columna de hora */}
-                  <div className="text-sm text-muted-foreground text-center py-3 flex items-center justify-center">
-                    {time}
-                  </div>
-
+                <div key={time} className="grid grid-cols-7 gap-2">
                   {/* Columnas de días */}
                   {weekData.map((day) => {
                     const timeSlot = day.timeSlots.find(slot => slot.time === time);

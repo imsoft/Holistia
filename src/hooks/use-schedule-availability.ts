@@ -452,6 +452,14 @@ export function useScheduleAvailability(professionalId: string) {
         return dates;
       }
 
+      // Validar que el profesional tenga días de trabajo configurados
+      if (!workingHours.working_days || workingHours.working_days.length === 0) {
+        console.warn('⚠️ El profesional no tiene días de trabajo configurados, usando valores por defecto');
+        workingHours.working_days = [1, 2, 3, 4, 5]; // Lunes a Viernes por defecto
+        workingHours.working_start_time = workingHours.working_start_time || '09:00';
+        workingHours.working_end_time = workingHours.working_end_time || '18:00';
+      }
+
       // Generar horarios para cada día
       const weekData = await Promise.all(dates.map(async day => ({
         ...day,

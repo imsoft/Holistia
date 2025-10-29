@@ -1242,7 +1242,7 @@ export default function ProfessionalProfilePage() {
                             </div>
 
                             {/* Campos del formulario */}
-                            <div className="space-y-4">
+                            <div className="mt-2 space-y-4">
                               
                               <div className="grid grid-cols-1 gap-4">
                                 <div>
@@ -1301,7 +1301,7 @@ export default function ProfessionalProfilePage() {
                               </div>
                             </div>
 
-                            {/* Resumen de la cita */}
+                            {/* Resumen de la cita y botones */}
                             {(selectedDate || selectedTime || selectedService) && (
                               <div className="border-t border-border pt-6 mt-6">
                                 <h4 className="text-xl font-bold text-foreground mb-4">Resumen</h4>
@@ -1310,12 +1310,17 @@ export default function ProfessionalProfilePage() {
                                     <div className="flex justify-between items-center">
                                       <span className="text-base text-muted-foreground">Fecha:</span>
                                       <span className="text-base text-foreground font-semibold">
-                                        {new Date(selectedDate).toLocaleDateString('es-ES', {
-                                          weekday: 'long',
-                                          year: 'numeric',
-                                          month: 'long',
-                                          day: 'numeric'
-                                        })}
+                                        {(() => {
+                                          // Parsear la fecha manualmente para evitar problemas de zona horaria
+                                          const [year, month, day] = selectedDate.split('-').map(Number);
+                                          const date = new Date(year, month - 1, day);
+                                          return date.toLocaleDateString('es-ES', {
+                                            weekday: 'long',
+                                            year: 'numeric',
+                                            month: 'long',
+                                            day: 'numeric'
+                                          });
+                                        })()}
                                       </span>
                                     </div>
                                   )}
@@ -1342,28 +1347,28 @@ export default function ProfessionalProfilePage() {
                                     </div>
                                   )}
                                 </div>
+
+                                {/* Botones de acción */}
+                                <div className="flex flex-col sm:flex-row justify-end gap-3 sm:gap-4 pt-6 mt-6">
+                                  <Button
+                                    variant="outline"
+                                    size="lg"
+                                    onClick={() => setIsBookingModalOpen(false)}
+                                    className="w-full sm:w-auto h-12 text-base order-2 sm:order-1"
+                                  >
+                                    Cancelar
+                                  </Button>
+                                  <Button
+                                    size="lg"
+                                    onClick={handleBookingSubmit}
+                                    disabled={!selectedDate || !selectedTime || !selectedService || bookingLoading}
+                                    className="w-full sm:w-auto h-12 text-base font-semibold order-1 sm:order-2"
+                                  >
+                                    {bookingLoading ? 'Reservando...' : 'Confirmar reserva'}
+                                  </Button>
+                                </div>
                               </div>
                             )}
-
-                            {/* Botones de acción */}
-                            <div className="flex flex-col sm:flex-row justify-end gap-3 sm:gap-4 pt-6 mt-6">
-                              <Button
-                                variant="outline"
-                                size="lg"
-                                onClick={() => setIsBookingModalOpen(false)}
-                                className="w-full sm:w-auto h-12 text-base order-2 sm:order-1"
-                              >
-                                Cancelar
-                              </Button>
-                              <Button
-                                size="lg"
-                                onClick={handleBookingSubmit}
-                                disabled={!selectedDate || !selectedTime || !selectedService || bookingLoading}
-                                className="w-full sm:w-auto h-12 text-base font-semibold order-1 sm:order-2"
-                              >
-                                {bookingLoading ? 'Reservando...' : 'Confirmar reserva'}
-                              </Button>
-                            </div>
                           </div>
                         </div>
                       </div>

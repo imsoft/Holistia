@@ -162,7 +162,7 @@ export function BlocksCalendarView({
   if (loading) {
     return (
       <Card>
-        <CardContent className="p-6">
+        <CardContent className="p-6 py-4">
           <div className="flex items-center justify-center py-12">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
             <span className="ml-3 text-base text-muted-foreground">Cargando bloqueos...</span>
@@ -190,7 +190,7 @@ export function BlocksCalendarView({
 
       {/* Calendar */}
       <Card>
-        <CardHeader>
+        <CardHeader className="py-4">
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2">
               <Calendar className="w-5 h-5" />
@@ -209,7 +209,7 @@ export function BlocksCalendarView({
             </div>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="py-4">
           {/* Day headers */}
           <div className="grid grid-cols-7 gap-1 mb-2">
             {dayNames.map((day) => (
@@ -287,10 +287,10 @@ export function BlocksCalendarView({
 
       {/* Blocks List */}
       <Card>
-        <CardHeader>
+        <CardHeader className="py-4">
           <CardTitle>Todos los Bloqueos</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="py-4">
           {blocks.length === 0 ? (
             <div className="text-center py-8">
               <Calendar className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
@@ -308,7 +308,7 @@ export function BlocksCalendarView({
               {blocks.map((block) => (
                 <div
                   key={block.id}
-                  className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
+                  className="flex items-center justify-between p-4 py-4 border rounded-lg hover:bg-muted/50 transition-colors"
                 >
                   <div className="flex items-center gap-4">
                     <div className={cn(

@@ -25,9 +25,27 @@ interface ProfessionalWorkingHours {
 
 export function useScheduleAvailability(professionalId: string) {
   const supabase = createClient();
+  
+  // Caché global para datos del profesional
+  const professionalCache = useRef<{
+    workingHours: ProfessionalWorkingHours | null;
+    lastFetch: number;
+  }>({ workingHours: null, lastFetch: 0 });
+  
+  // TTL del caché (5 minutos)
+  const CACHE_TTL = 5 * 60 * 1000;
 
-  // Obtener horarios de trabajo del profesional
+  // Obtener horarios de trabajo del profesional con caché
   const getProfessionalWorkingHours = useCallback(async (): Promise<ProfessionalWorkingHours | null> => {
+    const now = Date.now();
+    
+    // Verificar caché primero
+    if (professionalCache.current.workingHours && 
+        (now - professionalCache.current.lastFetch) < CACHE_TTL) {
+      console.log('🚀 Usando datos del profesional desde caché');
+      return professionalCache.current.workingHours;
+    }
+    
     try {
       const { data, error } = await supabase
         .from('professional_applications')
@@ -44,12 +62,18 @@ export function useScheduleAvailability(professionalId: string) {
         working_end_time: data?.working_end_time
       });
       
+      // Guardar en caché
+      professionalCache.current = {
+        workingHours: data,
+        lastFetch: now
+      };
+      
       return data;
     } catch (error) {
       console.error('Error fetching professional working hours:', error);
       return null;
     }
-  }, [professionalId, supabase]);
+  }, [professionalId, supabase, CACHE_TTL]);
 
   // Obtener horarios personalizados por día (si existen)
   const getCustomDaySchedules = useCallback(async (): Promise<Map<number, {startTime: string, endTime: string}>> => {
@@ -469,11 +493,22 @@ export function useScheduleAvailability(professionalId: string) {
         working_end_time: workingHours.working_end_time
       });
 
-      // Generar horarios para cada día
-      const weekData = await Promise.all(dates.map(async day => ({
-        ...day,
-        timeSlots: await generateTimeSlots(day.date, workingHours, existingAppointments, availabilityBlocks)
-      })));
+      // Generar horarios para cada día en paralelo
+      const weekData = await Promise.all(dates.map(async day => {
+        // Verificar si es un día de trabajo antes de generar horarios
+        const [year, month, dayNum] = day.date.split('-').map(Number);
+        const selectedDate = new Date(year, month - 1, dayNum);
+        const dayOfWeek = selectedDate.getDay() === 0 ? 7 : selectedDate.getDay();
+        
+        if (!workingHours.working_days.includes(dayOfWeek)) {
+          return { ...day, timeSlots: [] };
+        }
+        
+        return {
+          ...day,
+          timeSlots: await generateTimeSlots(day.date, workingHours, existingAppointments, availabilityBlocks)
+        };
+      }));
 
       return weekData;
     } catch (error) {

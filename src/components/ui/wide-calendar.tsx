@@ -79,25 +79,55 @@ export function WideCalendar({
     }
   }, [getWeekKey, cache, loadWeekAvailability]);
 
+  // Precargar semanas adyacentes para mejorar la experiencia
+  const preloadAdjacentWeeks = useCallback(async (weekDate: Date) => {
+    const prevWeek = new Date(weekDate);
+    prevWeek.setDate(weekDate.getDate() - 7);
+    const nextWeek = new Date(weekDate);
+    nextWeek.setDate(weekDate.getDate() + 7);
+    
+    // Precargar en paralelo sin mostrar loading
+    const prevWeekKey = getWeekKey(prevWeek);
+    const nextWeekKey = getWeekKey(nextWeek);
+    
+    if (!cache.has(prevWeekKey)) {
+      loadWeekAvailability(prevWeek).then(data => {
+        setCache(prev => new Map(prev).set(prevWeekKey, data));
+      }).catch(console.error);
+    }
+    
+    if (!cache.has(nextWeekKey)) {
+      loadWeekAvailability(nextWeek).then(data => {
+        setCache(prev => new Map(prev).set(nextWeekKey, data));
+      }).catch(console.error);
+    }
+  }, [getWeekKey, cache, loadWeekAvailability]);
+
   // Cargar datos iniciales
   useEffect(() => {
     loadWeekData(currentWeek);
-  }, [professionalId, currentWeek, loadWeekData]);
+    // Precargar semanas adyacentes después de cargar la actual
+    setTimeout(() => preloadAdjacentWeeks(currentWeek), 100);
+  }, [professionalId, currentWeek, loadWeekData, preloadAdjacentWeeks]);
 
-  // Navegación de semanas
+  // Navegación de semanas optimizada
   const goToPreviousWeek = useCallback(() => {
     const prevWeek = new Date(currentWeek);
     prevWeek.setDate(currentWeek.getDate() - 7);
     setCurrentWeek(prevWeek);
     loadWeekData(prevWeek);
-  }, [currentWeek, loadWeekData]);
+    // Precargar la semana anterior a la que vamos
+    setTimeout(() => preloadAdjacentWeeks(prevWeek), 100);
+  }, [currentWeek, loadWeekData, preloadAdjacentWeeks]);
 
   const goToNextWeek = useCallback(() => {
     const nextWeek = new Date(currentWeek);
     nextWeek.setDate(currentWeek.getDate() + 7);
     setCurrentWeek(nextWeek);
     loadWeekData(nextWeek);
-  }, [currentWeek, loadWeekData]);
+    // Precargar la semana siguiente a la que vamos
+    setTimeout(() => preloadAdjacentWeeks(nextWeek), 100);
+  }, [currentWeek, loadWeekData, preloadAdjacentWeeks]);
 
 
   // Obtener horarios dinámicamente basados en los horarios de trabajo del profesional
@@ -155,7 +185,10 @@ export function WideCalendar({
               })}
             </h3>
             {isLoading && (
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+              <div className="flex items-center gap-1">
+                <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-primary"></div>
+                <span className="text-xs text-muted-foreground">Cargando...</span>
+              </div>
             )}
           </div>
           

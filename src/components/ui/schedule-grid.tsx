@@ -36,7 +36,12 @@ export function ScheduleGrid({
   selectedTime,
   className 
 }: ScheduleGridProps) {
-  const [currentWeek, setCurrentWeek] = useState(new Date());
+  // Inicializar desde hoy, asegurando que se muestre desde la fecha actual
+  const [currentWeek, setCurrentWeek] = useState(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Normalizar a medianoche
+    return today;
+  });
   const [weekData, setWeekData] = useState<DayData[]>([]);
   const [cache, setCache] = useState<Map<string, DayData[]>>(new Map());
   const [isLoading, setIsLoading] = useState(false);

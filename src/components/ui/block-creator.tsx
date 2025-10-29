@@ -77,14 +77,26 @@ export function BlockCreator({
     }
   }, [editingBlock]);
 
-  // Generar fechas para el calendario (próximas 8 semanas)
+  // Generar fechas para el calendario (desde hoy, próximas 8 semanas)
   const generateCalendarDates = useCallback(() => {
     const dates = [];
     const today = new Date();
+    today.setHours(0, 0, 0, 0); // Normalizar a medianoche
     
-    for (let i = 0; i < 56; i++) { // 8 semanas
-      const date = new Date(today);
-      date.setDate(today.getDate() + i);
+    // Calcular el inicio de la semana (domingo = 0)
+    const dayOfWeek = today.getDay();
+    let daysToSubtract = dayOfWeek; // Para empezar desde domingo
+    
+    // O si prefieres empezar desde hoy directamente, usar 0
+    daysToSubtract = 0; // Empezar desde hoy
+    
+    const startDate = new Date(today);
+    startDate.setDate(today.getDate() - daysToSubtract);
+    
+    // Generar 8 semanas (56 días) desde el inicio calculado
+    for (let i = 0; i < 56; i++) {
+      const date = new Date(startDate);
+      date.setDate(startDate.getDate() + i);
       
       const dayNames = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
       const monthNames = [
@@ -97,13 +109,18 @@ export function BlockCreator({
       const dayNumber = date.getDate();
       const dateString = date.toISOString().split('T')[0];
       
+      // Verificar si es hoy
+      const isToday = dateString === today.toISOString().split('T')[0];
+      // Verificar si es pasado (antes de hoy)
+      const isPast = date < today;
+      
       dates.push({
         date: dateString,
         dayName,
         monthName,
         dayNumber,
-        isToday: i === 0,
-        isPast: i < 0
+        isToday,
+        isPast
       });
     }
     
@@ -396,14 +413,14 @@ export function BlockCreator({
               </CardTitle>
             </CardHeader>
             <CardContent className="py-4">
-              <div className="grid grid-cols-7 gap-3">
+              <div className="grid grid-cols-7 gap-4 p-4">
                 {calendarDates.map((dateInfo) => (
                   <button
                     key={dateInfo.date}
                     onClick={() => handleDateSelect(dateInfo.date)}
                     disabled={dateInfo.isPast}
                     className={cn(
-                      "p-4 text-center rounded-lg border-2 transition-all hover:shadow-md",
+                      "p-5 text-center rounded-lg border-2 transition-all hover:shadow-md min-h-[100px]",
                       "disabled:opacity-50 disabled:cursor-not-allowed",
                       selectedDates.includes(dateInfo.date)
                         ? "border-primary bg-primary text-primary-foreground"
@@ -412,8 +429,8 @@ export function BlockCreator({
                         : "border-border hover:border-primary/50"
                     )}
                   >
-                    <div className="text-sm font-medium">{dateInfo.dayName}</div>
-                    <div className="text-xl font-bold">{dateInfo.dayNumber}</div>
+                    <div className="text-sm font-medium mb-1">{dateInfo.dayName}</div>
+                    <div className="text-2xl font-bold mb-1">{dateInfo.dayNumber}</div>
                     <div className="text-xs text-muted-foreground">{dateInfo.monthName}</div>
                   </button>
                 ))}

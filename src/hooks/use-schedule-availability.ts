@@ -102,7 +102,7 @@ export function useScheduleAvailability(professionalId: string) {
   }, [professionalId, supabase]);
 
   // Obtener bloqueos de disponibilidad para un rango de fechas (con caché)
-  const blocksCache = useRef<Map<string, Array<{id?: string; block_type: string; start_date: string; end_date?: string; start_time?: string; end_time?: string}>>>(new Map());
+  const blocksCache = useRef<Map<string, Array<{id?: string; block_type: string; start_date: string; end_date?: string; start_time?: string; end_time?: string; is_recurring?: boolean}>>>(new Map());
   
   const getAvailabilityBlocks = useCallback(async (startDate: string, endDate: string) => {
     const cacheKey = `${startDate}-${endDate}`;
@@ -191,7 +191,7 @@ export function useScheduleAvailability(professionalId: string) {
     date: string,
     workingHours: ProfessionalWorkingHours,
     existingAppointments: Array<{appointment_date: string; appointment_time: string; status: string}>,
-    availabilityBlocks: Array<{id?: string; block_type: string; start_date: string; end_date?: string; start_time?: string; end_time?: string}>
+    availabilityBlocks: Array<{id?: string; block_type: string; start_date: string; end_date?: string; start_time?: string; end_time?: string; is_recurring?: boolean}>
   ): Promise<TimeSlot[]> => {
     const timeSlots: TimeSlot[] = [];
     
@@ -228,34 +228,56 @@ export function useScheduleAvailability(professionalId: string) {
         block_type: block.block_type,
         start_date: block.start_date,
         end_date: block.end_date,
+        start_time: block.start_time,
+        end_time: block.end_time,
+        is_recurring: block.is_recurring,
         fecha_actual: date
       });
       
       // Convertir fechas a objetos Date para comparación correcta
       const blockStartDate = new Date(block.start_date);
-      const blockEndDate = block.end_date ? new Date(block.end_date) : null;
+      const blockEndDate = block.end_date ? new Date(block.end_date) : blockStartDate;
       const currentDate = new Date(date);
       
       // Normalizar fechas para comparación (solo fecha, sin hora)
       blockStartDate.setHours(0, 0, 0, 0);
-      if (blockEndDate) blockEndDate.setHours(0, 0, 0, 0);
+      blockEndDate.setHours(0, 0, 0, 0);
       currentDate.setHours(0, 0, 0, 0);
       
       console.log('📅 Fechas normalizadas:', {
         blockStart: blockStartDate.toISOString().split('T')[0],
-        blockEnd: blockEndDate?.toISOString().split('T')[0] || 'null',
+        blockEnd: blockEndDate.toISOString().split('T')[0],
         current: currentDate.toISOString().split('T')[0]
       });
       
+      // Verificar si la fecha actual está dentro del rango del bloqueo
+      const isInDateRange = currentDate >= blockStartDate && currentDate <= blockEndDate;
+      
+      // Si es bloqueo recurrente, verificar si la fecha coincide con el patrón semanal
+      if (block.is_recurring && blockStartDate <= currentDate) {
+        // Calcular cuántas semanas han pasado desde el inicio del bloqueo
+        const weeksDiff = Math.floor((currentDate.getTime() - blockStartDate.getTime()) / (7 * 24 * 60 * 60 * 1000));
+        const dayOfWeekCurrent = currentDate.getDay();
+        const dayOfWeekStart = blockStartDate.getDay();
+        
+        // Si el día de la semana coincide, el bloqueo recurrente aplica
+        if (dayOfWeekCurrent === dayOfWeekStart) {
+          console.log('🔄 Bloqueo recurrente aplica para esta fecha (semana', weeksDiff, ')');
+          return true;
+        }
+      }
+      
       if (block.block_type === 'full_day') {
-        const applies = currentDate >= blockStartDate && (!blockEndDate || currentDate <= blockEndDate);
+        const applies = isInDateRange;
         console.log('📅 Bloqueo de día completo aplica:', applies);
         return applies;
       } else if (block.block_type === 'time_range') {
-        const applies = currentDate >= blockStartDate && (!blockEndDate || currentDate <= blockEndDate);
-        console.log('⏰ Bloqueo de rango de tiempo aplica:', applies);
+        const applies = isInDateRange;
+        console.log('⏰ Bloqueo de rango de tiempo aplica (fecha):', applies);
         return applies;
       }
+      
+      console.log('❌ Bloqueo no aplica para esta fecha');
       return false;
     });
 
@@ -311,10 +333,12 @@ export function useScheduleAvailability(professionalId: string) {
       // Generar fechas de la semana
       const dates: DayData[] = [];
       const today = new Date();
+      today.setHours(0, 0, 0, 0); // Normalizar a medianoche para comparación
       
       for (let i = 0; i < 7; i++) {
         const date = new Date(startDate);
         date.setDate(startDate.getDate() + i);
+        date.setHours(0, 0, 0, 0); // Normalizar a medianoche
         
         // Solo mostrar días futuros (incluyendo hoy)
         if (date >= today) {

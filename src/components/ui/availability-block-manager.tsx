@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { BlocksCalendarView } from '@/components/ui/blocks-calendar-view';
-import { BlockCreator } from '@/components/ui/block-creator';
+import { BlockCreatorTabs } from '@/components/ui/block-creator-tabs';
 import { createClient } from '@/utils/supabase/client';
 import type { AvailabilityBlock } from '@/types/availability';
 
@@ -85,7 +85,7 @@ export default function AvailabilityBlockManager({ professionalId, userId: propU
           <DialogHeader>
             <DialogTitle>Crear Nuevo Bloqueo</DialogTitle>
           </DialogHeader>
-          <BlockCreator
+          <BlockCreatorTabs
             professionalId={professionalId}
             userId={userId}
             onBlockCreated={handleBlockCreated}
@@ -100,7 +100,7 @@ export default function AvailabilityBlockManager({ professionalId, userId: propU
           <DialogHeader>
             <DialogTitle>Editar Bloqueo</DialogTitle>
           </DialogHeader>
-          <BlockCreator
+          <BlockCreatorTabs
             professionalId={professionalId}
             userId={userId}
             editingBlock={editingBlock}

@@ -128,19 +128,26 @@ export function BlockCreatorTabs({
 
     setLoading(true);
     try {
-      const blockData = {
+      const blockData: Record<string, unknown> = {
         professional_id: professionalId,
         user_id: userId,
         title: formData.title,
         description: formData.description || null,
         block_type: formData.block_type,
-        start_date: formData.start_date,
-        end_date: formData.end_date || null,
-        start_time: formData.start_time || null,
-        end_time: formData.end_time || null,
-        day_of_week: formData.day_of_week || null,
         is_recurring: formData.is_recurring,
       };
+
+      // Solo agregar campos de fecha si no son "weekly_day"
+      if (formData.block_type === 'weekly_day') {
+        blockData.day_of_week = formData.day_of_week;
+        // Para bloqueos semanales de día completo, usamos una fecha de inicio (hoy)
+        blockData.start_date = new Date().toISOString().split('T')[0];
+      } else if (formData.block_type === 'weekly_range') {
+        blockData.start_date = formData.start_date;
+        blockData.end_date = formData.end_date;
+        blockData.start_time = formData.start_time;
+        blockData.end_time = formData.end_time;
+      }
 
       if (editingBlock) {
         const { error } = await supabase
@@ -171,13 +178,13 @@ export function BlockCreatorTabs({
   return (
     <div className="space-y-6">
       <Card>
-        <CardHeader>
+        <CardHeader className="py-4">
           <CardTitle className="flex items-center gap-2">
             <Calendar className="w-5 h-5" />
             {editingBlock ? 'Editar Bloqueo' : 'Crear Nuevo Bloqueo'}
           </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="py-4">
           <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="weekly_day">Día Completo</TabsTrigger>

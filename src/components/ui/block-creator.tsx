@@ -312,13 +312,13 @@ export function BlockCreator({
       {/* Step 1: Basic Information */}
       {currentStep === 1 && (
         <Card>
-          <CardHeader>
+          <CardHeader className="py-4">
             <CardTitle className="flex items-center gap-2">
               <AlertCircle className="w-5 h-5" />
               Información del Bloqueo
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-6 py-4">
             <div className="space-y-2">
               <Label htmlFor="title">Título del Bloqueo *</Label>
               <Input
@@ -389,13 +389,13 @@ export function BlockCreator({
         <div className="space-y-6">
           {/* Calendar */}
           <Card>
-            <CardHeader>
+            <CardHeader className="py-4">
               <CardTitle className="flex items-center gap-2">
                 <Calendar className="w-5 h-5" />
                 Seleccionar Fechas
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="py-4">
               <div className="grid grid-cols-7 gap-2">
                 {calendarDates.map((dateInfo) => (
                   <button
@@ -442,13 +442,13 @@ export function BlockCreator({
           {/* Time Range Selection (only for time_range) */}
           {formData.block_type === 'time_range' && (
             <Card>
-              <CardHeader>
+              <CardHeader className="py-4">
                 <CardTitle className="flex items-center gap-2">
                   <Clock className="w-5 h-5" />
                   Seleccionar Horarios
                 </CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="py-4">
                 <div className="grid grid-cols-2 gap-6">
                   <div>
                     <Label className="text-base font-medium">Hora de Inicio</Label>
@@ -508,13 +508,13 @@ export function BlockCreator({
       {/* Step 3: Confirmation */}
       {currentStep === 3 && (
         <Card>
-          <CardHeader>
+          <CardHeader className="py-4">
             <CardTitle className="flex items-center gap-2">
               <CheckCircle className="w-5 h-5" />
               Confirmar Bloqueo
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-4 py-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label className="text-sm font-medium text-muted-foreground">Título</Label>

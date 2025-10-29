@@ -1300,48 +1300,48 @@ export default function ProfessionalProfilePage() {
                                 </div>
                               </div>
                             </div>
+
+                            {/* Resumen de la cita */}
+                            {(selectedDate || selectedTime || selectedService) && (
+                              <div className="border-t border-border pt-6 mt-6">
+                                <h4 className="text-xl font-bold text-foreground mb-4">Resumen</h4>
+                                <div className="bg-muted/50 rounded-xl p-6 space-y-3">
+                                  {selectedDate && (
+                                    <div className="flex justify-between items-center">
+                                      <span className="text-base text-muted-foreground">Fecha:</span>
+                                      <span className="text-base text-foreground font-semibold">
+                                        {getAvailableDates().find(d => d.date === selectedDate)?.display}
+                                      </span>
+                                    </div>
+                                  )}
+                                  {selectedTime && (
+                                    <div className="flex justify-between items-center">
+                                      <span className="text-base text-muted-foreground">Hora:</span>
+                                      <span className="text-base text-foreground font-semibold">{selectedTime}</span>
+                                    </div>
+                                  )}
+                                  {selectedService && (
+                                    <div className="flex justify-between items-center">
+                                      <span className="text-base text-muted-foreground">Servicio:</span>
+                                      <span className="text-base text-foreground font-semibold">
+                                        {(() => {
+                                          const [serviceName, serviceModality] = selectedService.split('-');
+                                          const service = professional?.services.find(s => s.name === serviceName);
+                                          const modalityText = serviceModality === 'presencial' ? 'Presencial' : 'En línea';
+                                          const cost = serviceModality === 'presencial' 
+                                            ? parseInt(service?.presencialCost || '0')
+                                            : parseInt(service?.onlineCost || '0');
+                                          return `${serviceName} - ${modalityText} - ${formatPrice(cost)}`;
+                                        })()}
+                                      </span>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>
-
-                      {/* Resumen de la cita */}
-                      {(selectedDate || selectedTime || selectedService) && (
-                        <div className="border-t border-border pt-6 mt-6">
-                          <h4 className="text-xl font-bold text-foreground mb-4">Resumen</h4>
-                          <div className="bg-muted/50 rounded-xl p-6 space-y-3">
-                            {selectedDate && (
-                              <div className="flex justify-between items-center">
-                                <span className="text-base text-muted-foreground">Fecha:</span>
-                                <span className="text-base text-foreground font-semibold">
-                                  {getAvailableDates().find(d => d.date === selectedDate)?.display}
-                                </span>
-                              </div>
-                            )}
-                            {selectedTime && (
-                              <div className="flex justify-between items-center">
-                                <span className="text-base text-muted-foreground">Hora:</span>
-                                <span className="text-base text-foreground font-semibold">{selectedTime}</span>
-                              </div>
-                            )}
-                            {selectedService && (
-                              <div className="flex justify-between items-center">
-                                <span className="text-base text-muted-foreground">Servicio:</span>
-                                <span className="text-base text-foreground font-semibold">
-                                  {(() => {
-                                    const [serviceName, serviceModality] = selectedService.split('-');
-                                    const service = professional?.services.find(s => s.name === serviceName);
-                                    const modalityText = serviceModality === 'presencial' ? 'Presencial' : 'En línea';
-                                    const cost = serviceModality === 'presencial' 
-                                      ? parseInt(service?.presencialCost || '0')
-                                      : parseInt(service?.onlineCost || '0');
-                                    return `${serviceName} - ${modalityText} - ${formatPrice(cost)}`;
-                                  })()}
-                                </span>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      )}
 
                       {/* Botones de acción - Sticky en móviles */}
                       <div className="fixed sm:relative bottom-0 left-0 right-0 sm:bottom-auto sm:left-auto sm:right-auto bg-background sm:bg-transparent border-t sm:border-t-0 border-border p-4 sm:p-0 flex flex-col sm:flex-row justify-end gap-3 sm:gap-4 pt-4 sm:pt-6 sm:mt-6 shadow-lg sm:shadow-none z-10">

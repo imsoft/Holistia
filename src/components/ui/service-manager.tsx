@@ -35,11 +35,13 @@ import {
   MapPin,
   Calendar,
   Package,
+  Navigation,
 } from "lucide-react";
 import { Service, ServiceFormData } from "@/types/service";
 import { createClient } from "@/utils/supabase/client";
 import { toast } from "sonner";
 import { toTitleCase } from "@/lib/text-utils";
+import { MapModal } from "@/components/ui/map-modal";
 
 interface ServiceManagerProps {
   professionalId: string;
@@ -53,6 +55,8 @@ export function ServiceManager({ professionalId, userId }: ServiceManagerProps) 
   const [editingService, setEditingService] = useState<Service | null>(null);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [serviceToDelete, setServiceToDelete] = useState<string | null>(null);
+  const [mapModalOpen, setMapModalOpen] = useState(false);
+  const [selectedServiceForMap, setSelectedServiceForMap] = useState<Service | null>(null);
   const [formData, setFormData] = useState<ServiceFormData>({
     name: "",
     description: "",
@@ -186,6 +190,11 @@ export function ServiceManager({ professionalId, userId }: ServiceManagerProps) 
   const handleDelete = (serviceId: string) => {
     setServiceToDelete(serviceId);
     setDeleteConfirmOpen(true);
+  };
+
+  const handleOpenMap = (service: Service) => {
+    setSelectedServiceForMap(service);
+    setMapModalOpen(true);
   };
 
   const confirmDelete = async () => {
@@ -560,9 +569,20 @@ export function ServiceManager({ professionalId, userId }: ServiceManagerProps) 
                     <span>Costo: ${typeof service.cost === 'number' ? service.cost : (service.cost?.presencial || service.cost?.online || 0)}</span>
                   </div>
                   {service.address && (
-                    <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                      <MapPin className="w-4 h-4" />
-                      <span>{service.address}</span>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                        <MapPin className="w-4 h-4" />
+                        <span className="truncate flex-1">{service.address}</span>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleOpenMap(service)}
+                        className="ml-2 h-6 px-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50"
+                      >
+                        <Navigation className="w-3 h-3 mr-1" />
+                        Ver mapa
+                      </Button>
                     </div>
                   )}
                 </div>
@@ -583,6 +603,16 @@ export function ServiceManager({ professionalId, userId }: ServiceManagerProps) 
         onConfirm={confirmDelete}
         variant="destructive"
       />
+
+      {/* Modal del mapa */}
+      {selectedServiceForMap && (
+        <MapModal
+          open={mapModalOpen}
+          onOpenChange={setMapModalOpen}
+          address={selectedServiceForMap.address!}
+          serviceName={selectedServiceForMap.name}
+        />
+      )}
     </div>
   );
 }

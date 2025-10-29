@@ -106,16 +106,23 @@ export function WideCalendar({
     loadWeekData(today);
   }, [loadWeekData]);
 
-  // Generar todos los horarios posibles (6:00 - 22:00)
-  const getAllTimeSlots = useCallback(() => {
-    const slots = [];
-    for (let hour = 6; hour <= 22; hour++) {
-      slots.push(`${hour.toString().padStart(2, '0')}:00`);
-    }
-    return slots;
-  }, []);
+  // Obtener horarios dinámicamente basados en los horarios de trabajo del profesional
+  const getTimeSlots = useCallback(() => {
+    if (weekData.length === 0) return [];
+    
+    // Obtener el rango de horarios de los datos de la semana
+    const allSlots = new Set<string>();
+    weekData.forEach(day => {
+      day.timeSlots.forEach(slot => {
+        allSlots.add(slot.time);
+      });
+    });
+    
+    // Convertir a array y ordenar
+    return Array.from(allSlots).sort();
+  }, [weekData]);
 
-  const allTimeSlots = getAllTimeSlots();
+  const allTimeSlots = getTimeSlots();
 
   // Solo mostrar loading en la carga inicial
   if (weekData.length === 0 && isLoading) {

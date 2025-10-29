@@ -130,15 +130,13 @@ export function BlocksCalendarView({
         const matchesDayOfWeek = block.day_of_week === dayOfWeekCurrent;
 
         if (block.is_recurring) {
-          // Recurrente: Aplica a todas las semanas después de start_date
-          const applies = matchesDayOfWeek && block.start_date <= date;
+          // Recurrente: Aplica a TODAS las ocurrencias del día de la semana, sin importar la fecha
+          const applies = matchesDayOfWeek;
           console.log('📅 [RECURRING] weekly_day:', {
             date,
             dayOfWeekCurrent,
             blockDayOfWeek: block.day_of_week,
             matchesDayOfWeek,
-            blockStartDate: block.start_date,
-            startDateCheck: block.start_date <= date,
             isRecurring: block.is_recurring,
             applies,
             blockTitle: block.title
@@ -171,8 +169,8 @@ export function BlocksCalendarView({
         const isInWeekRange = dayOfWeekCurrent >= dayOfWeekStart && dayOfWeekCurrent <= dayOfWeekEnd;
 
         if (block.is_recurring) {
-          // Recurrente: Aplica todas las semanas después de start_date
-          return isInWeekRange && block.start_date <= date;
+          // Recurrente: Aplica a TODAS las ocurrencias dentro del rango de días, sin importar la fecha
+          return isInWeekRange;
         } else {
           // No recurrente: Solo aplica dentro del rango de fechas específicas
           const isInDateRange = block.start_date <= date && (!block.end_date || block.end_date >= date);

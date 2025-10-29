@@ -1310,7 +1310,12 @@ export default function ProfessionalProfilePage() {
                                     <div className="flex justify-between items-center">
                                       <span className="text-base text-muted-foreground">Fecha:</span>
                                       <span className="text-base text-foreground font-semibold">
-                                        {getAvailableDates().find(d => d.date === selectedDate)?.display}
+                                        {new Date(selectedDate).toLocaleDateString('es-ES', {
+                                          weekday: 'long',
+                                          year: 'numeric',
+                                          month: 'long',
+                                          day: 'numeric'
+                                        })}
                                       </span>
                                     </div>
                                   )}
@@ -1339,28 +1344,28 @@ export default function ProfessionalProfilePage() {
                                 </div>
                               </div>
                             )}
+
+                            {/* Botones de acción */}
+                            <div className="flex flex-col sm:flex-row justify-end gap-3 sm:gap-4 pt-6 mt-6">
+                              <Button
+                                variant="outline"
+                                size="lg"
+                                onClick={() => setIsBookingModalOpen(false)}
+                                className="w-full sm:w-auto h-12 text-base order-2 sm:order-1"
+                              >
+                                Cancelar
+                              </Button>
+                              <Button
+                                size="lg"
+                                onClick={handleBookingSubmit}
+                                disabled={!selectedDate || !selectedTime || !selectedService || bookingLoading}
+                                className="w-full sm:w-auto h-12 text-base font-semibold order-1 sm:order-2"
+                              >
+                                {bookingLoading ? 'Reservando...' : 'Confirmar reserva'}
+                              </Button>
+                            </div>
                           </div>
                         </div>
-                      </div>
-
-                      {/* Botones de acción - Sticky en móviles */}
-                      <div className="fixed sm:relative bottom-0 left-0 right-0 sm:bottom-auto sm:left-auto sm:right-auto bg-background sm:bg-transparent border-t sm:border-t-0 border-border p-4 sm:p-0 flex flex-col sm:flex-row justify-end gap-3 sm:gap-4 pt-4 sm:pt-6 sm:mt-6 shadow-lg sm:shadow-none z-10">
-                        <Button
-                          variant="outline"
-                          size="lg"
-                          onClick={() => setIsBookingModalOpen(false)}
-                          className="w-full sm:w-auto h-12 sm:h-12 text-base order-2 sm:order-1"
-                        >
-                          Cancelar
-                        </Button>
-                        <Button
-                          size="lg"
-                          onClick={handleBookingSubmit}
-                          disabled={!selectedDate || !selectedTime || !selectedService || bookingLoading}
-                          className="w-full sm:w-auto h-14 sm:h-12 text-base font-semibold order-1 sm:order-2"
-                        >
-                          {bookingLoading ? 'Reservando...' : 'Confirmar reserva'}
-                        </Button>
                       </div>
                     </div>
                   </BookingDialog>

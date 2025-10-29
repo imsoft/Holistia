@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { ChevronLeft, ChevronRight, ChevronUp } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useScheduleAvailability } from '@/hooks/use-schedule-availability';
 
@@ -38,29 +38,73 @@ export function ScheduleGrid({
 }: ScheduleGridProps) {
   const [currentWeek, setCurrentWeek] = useState(new Date());
   const [weekData, setWeekData] = useState<DayData[]>([]);
-  const [showAllTimes, setShowAllTimes] = useState(false);
+  const [cache, setCache] = useState<Map<string, DayData[]>>(new Map());
+  const [isLoading, setIsLoading] = useState(false);
   
-  const { loading, loadWeekAvailability } = useScheduleAvailability(professionalId);
+  const { loadWeekAvailability } = useScheduleAvailability(professionalId);
 
-  // Cargar datos de la semana
-  const loadWeekData = useCallback(async () => {
+  // Generar clave de caché para la semana
+  const getWeekKey = useCallback((date: Date) => {
+    const startOfWeek = new Date(date);
+    startOfWeek.setDate(date.getDate() - date.getDay());
+    return startOfWeek.toISOString().split('T')[0];
+  }, []);
+
+  // Cargar datos de la semana con caché
+  const loadWeekData = useCallback(async (weekDate: Date, useCache = true) => {
+    const weekKey = getWeekKey(weekDate);
+    
+    // Verificar caché primero
+    if (useCache && cache.has(weekKey)) {
+      setWeekData(cache.get(weekKey)!);
+      return;
+    }
+
+    setIsLoading(true);
     try {
-      const data = await loadWeekAvailability(currentWeek);
+      const data = await loadWeekAvailability(weekDate);
       setWeekData(data);
+      
+      // Guardar en caché
+      setCache(prev => new Map(prev).set(weekKey, data));
     } catch (error) {
       console.error('Error loading week data:', error);
+    } finally {
+      setIsLoading(false);
     }
-  }, [currentWeek, loadWeekAvailability]);
+  }, [getWeekKey, cache, loadWeekAvailability]);
 
+  // Cargar datos iniciales
   useEffect(() => {
-    loadWeekData();
-  }, [loadWeekData]);
+    loadWeekData(currentWeek);
+  }, [professionalId, currentWeek, loadWeekData]); // Cargar cuando cambie el profesional o la semana
+
+  // Precargar semanas adyacentes
+  const preloadAdjacentWeeks = useCallback(() => {
+    const prevWeek = new Date(currentWeek);
+    prevWeek.setDate(currentWeek.getDate() - 7);
+    
+    const nextWeek = new Date(currentWeek);
+    nextWeek.setDate(currentWeek.getDate() + 7);
+    
+    // Precargar en segundo plano
+    loadWeekData(prevWeek, true);
+    loadWeekData(nextWeek, true);
+  }, [currentWeek, loadWeekData]);
+
+  // Precargar cuando se carga la semana actual
+  useEffect(() => {
+    if (weekData.length > 0) {
+      preloadAdjacentWeeks();
+    }
+  }, [weekData.length, preloadAdjacentWeeks]);
 
   // Navegación entre semanas
   const goToPreviousWeek = () => {
     setCurrentWeek(prev => {
       const newWeek = new Date(prev);
       newWeek.setDate(prev.getDate() - 7);
+      loadWeekData(newWeek);
       return newWeek;
     });
   };
@@ -69,6 +113,7 @@ export function ScheduleGrid({
     setCurrentWeek(prev => {
       const newWeek = new Date(prev);
       newWeek.setDate(prev.getDate() + 7);
+      loadWeekData(newWeek);
       return newWeek;
     });
   };
@@ -84,9 +129,9 @@ export function ScheduleGrid({
   };
 
   const allTimeSlots = getAllTimeSlots();
-  const filteredTimeSlots = showAllTimes ? allTimeSlots : allTimeSlots.slice(0, 7);
 
-  if (loading) {
+  // Solo mostrar loading en la carga inicial
+  if (weekData.length === 0 && isLoading) {
     return (
       <Card className={className}>
         <CardContent className="p-6">
@@ -108,22 +153,29 @@ export function ScheduleGrid({
             variant="outline"
             size="sm"
             onClick={goToPreviousWeek}
+            disabled={isLoading}
             className="rounded-full w-10 h-10 p-0"
           >
             <ChevronLeft className="w-4 h-4" />
           </Button>
           
-          <h3 className="text-lg font-semibold">
-            {currentWeek.toLocaleDateString('es-ES', { 
-              month: 'long', 
-              year: 'numeric' 
-            })}
-          </h3>
+          <div className="flex items-center gap-2">
+            <h3 className="text-lg font-semibold">
+              {currentWeek.toLocaleDateString('es-ES', { 
+                month: 'long', 
+                year: 'numeric' 
+              })}
+            </h3>
+            {isLoading && (
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+            )}
+          </div>
           
           <Button
             variant="outline"
             size="sm"
             onClick={goToNextWeek}
+            disabled={isLoading}
             className="rounded-full w-10 h-10 p-0"
           >
             <ChevronRight className="w-4 h-4" />
@@ -150,7 +202,7 @@ export function ScheduleGrid({
 
             {/* Filas de horarios */}
             <div className="space-y-1">
-              {filteredTimeSlots.map((time) => (
+              {allTimeSlots.map((time) => (
                 <div key={time} className="grid grid-cols-8 gap-1">
                   {/* Hora */}
                   <div className="w-16 flex items-center justify-center">
@@ -212,29 +264,6 @@ export function ScheduleGrid({
               ))}
             </div>
 
-            {/* Botón para mostrar más/menos horarios */}
-            {allTimeSlots.length > 7 && (
-              <div className="flex justify-center mt-4">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setShowAllTimes(!showAllTimes)}
-                  className="text-muted-foreground hover:text-foreground"
-                >
-                  {showAllTimes ? (
-                    <>
-                      <ChevronUp className="w-4 h-4 mr-1" />
-                      Ver menos
-                    </>
-                  ) : (
-                    <>
-                      Ver más
-                      <ChevronUp className="w-4 h-4 ml-1 rotate-180" />
-                    </>
-                  )}
-                </Button>
-              </div>
-            )}
           </div>
         </div>
       </CardContent>

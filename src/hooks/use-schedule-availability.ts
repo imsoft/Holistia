@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useCallback, useRef } from 'react';
 import { createClient } from '@/utils/supabase/client';
 
 interface TimeSlot {
@@ -25,7 +25,6 @@ interface ProfessionalWorkingHours {
 
 export function useScheduleAvailability(professionalId: string) {
   const supabase = createClient();
-  const [loading, setLoading] = useState(false);
 
   // Obtener horarios de trabajo del profesional
   const getProfessionalWorkingHours = useCallback(async (): Promise<ProfessionalWorkingHours | null> => {
@@ -44,8 +43,17 @@ export function useScheduleAvailability(professionalId: string) {
     }
   }, [professionalId, supabase]);
 
-  // Obtener citas existentes para un rango de fechas
+  // Obtener citas existentes para un rango de fechas (con caché)
+  const appointmentCache = useRef<Map<string, Array<{appointment_date: string; appointment_time: string; status: string}>>>(new Map());
+  
   const getExistingAppointments = useCallback(async (startDate: string, endDate: string) => {
+    const cacheKey = `${startDate}-${endDate}`;
+    
+    // Verificar caché
+    if (appointmentCache.current.has(cacheKey)) {
+      return appointmentCache.current.get(cacheKey)!;
+    }
+
     try {
       const { data, error } = await supabase
         .from('appointments')
@@ -56,15 +64,29 @@ export function useScheduleAvailability(professionalId: string) {
         .in('status', ['pending', 'confirmed']);
 
       if (error) throw error;
-      return data || [];
+      
+      const appointments = data || [];
+      // Guardar en caché
+      appointmentCache.current.set(cacheKey, appointments);
+      
+      return appointments;
     } catch (error) {
       console.error('Error fetching existing appointments:', error);
       return [];
     }
   }, [professionalId, supabase]);
 
-  // Obtener bloqueos de disponibilidad para un rango de fechas
+  // Obtener bloqueos de disponibilidad para un rango de fechas (con caché)
+  const blocksCache = useRef<Map<string, Array<{block_type: string; start_date: string; end_date?: string; start_time?: string; end_time?: string}>>>(new Map());
+  
   const getAvailabilityBlocks = useCallback(async (startDate: string, endDate: string) => {
+    const cacheKey = `${startDate}-${endDate}`;
+    
+    // Verificar caché
+    if (blocksCache.current.has(cacheKey)) {
+      return blocksCache.current.get(cacheKey)!;
+    }
+
     try {
       const { data, error } = await supabase
         .from('availability_blocks')
@@ -73,7 +95,12 @@ export function useScheduleAvailability(professionalId: string) {
         .or(`and(start_date.gte.${startDate},start_date.lte.${endDate}),and(end_date.gte.${startDate},end_date.lte.${endDate}),and(start_date.lte.${startDate},end_date.gte.${endDate})`);
 
       if (error) throw error;
-      return data || [];
+      
+      const blocks = data || [];
+      // Guardar en caché
+      blocksCache.current.set(cacheKey, blocks);
+      
+      return blocks;
     } catch (error) {
       console.error('Error fetching availability blocks:', error);
       return [];
@@ -157,7 +184,6 @@ export function useScheduleAvailability(professionalId: string) {
 
   // Cargar datos de disponibilidad para una semana
   const loadWeekAvailability = useCallback(async (startDate: Date): Promise<DayData[]> => {
-    setLoading(true);
     try {
       // Generar fechas de la semana
       const dates: DayData[] = [];
@@ -211,13 +237,10 @@ export function useScheduleAvailability(professionalId: string) {
     } catch (error) {
       console.error('Error loading week availability:', error);
       return [];
-    } finally {
-      setLoading(false);
     }
   }, [getProfessionalWorkingHours, getExistingAppointments, getAvailabilityBlocks, generateTimeSlots]);
 
   return {
-    loading,
     loadWeekAvailability
   };
 }

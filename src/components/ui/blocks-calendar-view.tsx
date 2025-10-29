@@ -106,11 +106,27 @@ export function BlocksCalendarView({
 
   // Obtener bloqueos para una fecha específica
   const getBlocksForDate = (date: string) => {
+    const currentDate = new Date(date);
+    const dayOfWeekCurrent = currentDate.getDay() === 0 ? 7 : currentDate.getDay();
+    
     return blocks.filter(block => {
       if (block.block_type === 'full_day') {
         return block.start_date <= date && (!block.end_date || block.end_date >= date);
       } else if (block.block_type === 'time_range') {
         return block.start_date <= date && (!block.end_date || block.end_date >= date);
+      } else if (block.block_type === 'weekly_day') {
+        // Bloqueo semanal de día completo
+        return block.day_of_week === dayOfWeekCurrent && block.start_date <= date;
+      } else if (block.block_type === 'weekly_range') {
+        // Bloqueo semanal de rango de horas
+        const blockStartDate = new Date(block.start_date);
+        const blockEndDate = block.end_date ? new Date(block.end_date) : null;
+        const dayOfWeekStart = blockStartDate.getDay() === 0 ? 7 : blockStartDate.getDay();
+        const dayOfWeekEnd = blockEndDate ? (blockEndDate.getDay() === 0 ? 7 : blockEndDate.getDay()) : dayOfWeekStart;
+        
+        // Verificar si el día actual está en el rango de días de la semana
+        const isInWeekRange = dayOfWeekCurrent >= dayOfWeekStart && dayOfWeekCurrent <= dayOfWeekEnd;
+        return isInWeekRange && block.start_date <= date;
       }
       return false;
     });
@@ -250,7 +266,7 @@ export function BlocksCalendarView({
                         className={cn(
                           "text-xs p-1 rounded truncate cursor-pointer",
                           "hover:opacity-80 transition-opacity",
-                          block.block_type === 'full_day'
+                          (block.block_type === 'full_day' || block.block_type === 'weekly_day')
                             ? "bg-red-100 text-red-800 border border-red-200"
                             : "bg-orange-100 text-orange-800 border border-orange-200"
                         )}
@@ -258,14 +274,14 @@ export function BlocksCalendarView({
                         title={block.title}
                       >
                         <div className="flex items-center gap-1">
-                          {block.block_type === 'full_day' ? (
+                          {(block.block_type === 'full_day' || block.block_type === 'weekly_day') ? (
                             <Calendar className="w-3 h-3" />
                           ) : (
                             <Clock className="w-3 h-3" />
                           )}
                           <span className="truncate">{block.title}</span>
                         </div>
-                        {block.block_type === 'time_range' && block.start_time && block.end_time && (
+                        {(block.block_type === 'time_range' || block.block_type === 'weekly_range') && block.start_time && block.end_time && (
                           <div className="text-xs opacity-75">
                             {block.start_time} - {block.end_time}
                           </div>

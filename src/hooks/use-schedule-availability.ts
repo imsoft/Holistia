@@ -210,19 +210,15 @@ export function useScheduleAvailability(professionalId: string) {
         rangeStart.setHours(0, 0, 0, 0);
         rangeEnd.setHours(0, 0, 0, 0);
 
-        // Para bloqueos recurrentes, solo verificar que start_date sea <= rangeEnd
-        // ya que se aplican todas las semanas después de start_date
+        // Para bloqueos recurrentes, SIEMPRE incluirlos ya que se aplican a todos los días de la semana
         if (block.is_recurring && (block.block_type === 'weekly_day' || block.block_type === 'weekly_range')) {
-          const overlaps = blockStart <= rangeEnd;
-          console.log('🔍 Bloqueo recurrente:', {
+          console.log('🔍 Bloqueo recurrente (siempre incluido):', {
             id: block.id,
             type: block.block_type,
-            blockStart: blockStart.toISOString().split('T')[0],
-            rangeEnd: rangeEnd.toISOString().split('T')[0],
-            is_recurring: block.is_recurring,
-            overlaps
+            day_of_week: block.day_of_week,
+            is_recurring: block.is_recurring
           });
-          return overlaps;
+          return true; // Siempre incluir bloqueos recurrentes
         }
 
         // Para bloqueos no recurrentes, verificar superposición normal
@@ -355,8 +351,8 @@ export function useScheduleAvailability(professionalId: string) {
         const matchesDayOfWeek = block.day_of_week === dayOfWeekCurrent;
 
         if (block.is_recurring) {
-          // Recurrente: Aplica a todas las semanas después de start_date
-          const applies = matchesDayOfWeek && currentDate >= blockStartDate;
+          // Recurrente: Aplica a TODAS las ocurrencias del día de la semana, sin importar la fecha
+          const applies = matchesDayOfWeek;
           console.log('📅 Bloqueo de día completo (recurrente):', {
             blockId: block.id?.substring(0, 8),
             blockTitle: block.title,
@@ -366,12 +362,8 @@ export function useScheduleAvailability(professionalId: string) {
             blockDayOfWeek: block.day_of_week,
             matchesDayOfWeek,
             isRecurring: block.is_recurring,
-            blockStartDate: blockStartDate.toISOString().split('T')[0],
-            isAfterStart: currentDate >= blockStartDate,
             applies,
-            reason: !applies ? (
-              !matchesDayOfWeek ? 'Día no coincide' : 'Fecha anterior a start_date'
-            ) : 'OK'
+            reason: !applies ? 'Día no coincide' : 'OK'
           });
           return applies;
         } else {
@@ -400,8 +392,8 @@ export function useScheduleAvailability(professionalId: string) {
         const isInWeekRange = dayOfWeekCurrent >= dayOfWeekStart && dayOfWeekCurrent <= dayOfWeekEnd;
 
         if (block.is_recurring) {
-          // Recurrente: Aplica todas las semanas después de start_date
-          const applies = isInWeekRange && currentDate >= blockStartDate;
+          // Recurrente: Aplica a TODAS las ocurrencias dentro del rango de días, sin importar la fecha
+          const applies = isInWeekRange;
           console.log('⏰ Bloqueo de rango de horas (recurrente):', {
             applies,
             dayOfWeekCurrent,

@@ -140,8 +140,41 @@ export function BlockCreatorTabs({
       // Solo agregar campos de fecha si no son "weekly_day"
       if (formData.block_type === 'weekly_day') {
         blockData.day_of_week = formData.day_of_week;
-        // Para bloqueos semanales de día completo, usamos una fecha de inicio (hoy)
-        blockData.start_date = new Date().toISOString().split('T')[0];
+
+        // Calcular la fecha correcta según si es recurrente o no
+        const today = new Date();
+
+        if (formData.is_recurring) {
+          // Para recurrentes: usar la fecha de hoy como referencia
+          blockData.start_date = today.toISOString().split('T')[0];
+        } else {
+          // Para no recurrentes: calcular el próximo día de la semana seleccionado
+          // Convertir day_of_week (1=Lunes) a getDay (0=Domingo, 1=Lunes)
+          const selectedDayOfWeek = formData.day_of_week || 1; // Default a lunes si no está definido
+          const targetDay = selectedDayOfWeek === 7 ? 0 : selectedDayOfWeek;
+          const currentDay = today.getDay();
+
+          // Calcular días hasta el próximo día objetivo
+          let daysToAdd = targetDay - currentDay;
+          if (daysToAdd < 0) {
+            daysToAdd += 7; // Si ya pasó esta semana, ir a la próxima
+          }
+          if (daysToAdd === 0 && currentDay !== targetDay) {
+            daysToAdd = 7; // Si es hoy pero no coincide, ir a la próxima semana
+          }
+
+          const targetDate = new Date(today);
+          targetDate.setDate(today.getDate() + daysToAdd);
+          blockData.start_date = targetDate.toISOString().split('T')[0];
+
+          console.log('📅 Calculando fecha para bloqueo no recurrente:', {
+            day_of_week: selectedDayOfWeek,
+            targetDay,
+            currentDay,
+            daysToAdd,
+            calculatedDate: blockData.start_date
+          });
+        }
       } else if (formData.block_type === 'weekly_range') {
         blockData.start_date = formData.start_date;
         blockData.end_date = formData.end_date;

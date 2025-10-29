@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Professional Data</title>
+</head>
+<body>
+    <h1>Debug Professional Data</h1>
+    <div id="output"></div>
+    
+    <script>
+        // Simular la lógica del calendario
+        function checkDayLogic() {
+            const output = document.getElementById('output');
+            
+            // Fecha de lunes (18 de noviembre de 2024)
+            const testDate = '2024-11-18';
+            const selectedDate = new Date(testDate);
+            const dayOfWeek = selectedDate.getDay() === 0 ? 7 : selectedDate.getDay();
+            
+            output.innerHTML = `
+                <h2>Verificación de lógica de días:</h2>
+                <p><strong>Fecha de prueba:</strong> ${testDate}</p>
+                <p><strong>Día de la semana (JS getDay()):</strong> ${selectedDate.getDay()} (0=Domingo, 1=Lunes, etc.)</p>
+                <p><strong>Día convertido:</strong> ${dayOfWeek} (1=Lunes, 7=Domingo)</p>
+                <p><strong>¿Es lunes?</strong> ${dayOfWeek === 1 ? 'SÍ' : 'NO'}</p>
+                
+                <h2>Días de la semana del sistema:</h2>
+                <p>1 = Lunes</p>
+                <p>2 = Martes</p>
+                <p>3 = Miércoles</p>
+                <p>4 = Jueves</p>
+                <p>5 = Viernes</p>
+                <p>6 = Sábado</p>
+                <p>7 = Domingo</p>
+                
+                <h2>Problema posible:</h2>
+                <p>Si el profesional tiene working_days = [1, 2, 3, 4, 5] (Lunes a Viernes),</p>
+                <p>y el lunes se convierte correctamente a 1,</p>
+                <p>entonces debería incluir el lunes. El problema puede estar en:</p>
+                <ul>
+                    <li>Los datos del profesional no incluyen el lunes</li>
+                    <li>Hay un problema en la consulta a la base de datos</li>
+                    <li>Hay un problema en la lógica de filtrado</li>
+                </ul>
+            `;
+        }
+        
+        checkDayLogic();
+    </script>
+</body>
+</html>

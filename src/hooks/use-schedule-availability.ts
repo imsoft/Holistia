@@ -36,6 +36,14 @@ export function useScheduleAvailability(professionalId: string) {
         .single();
 
       if (error) throw error;
+      
+      console.log('🔍 Datos del profesional obtenidos:', {
+        professionalId,
+        working_days: data?.working_days,
+        working_start_time: data?.working_start_time,
+        working_end_time: data?.working_end_time
+      });
+      
       return data;
     } catch (error) {
       console.error('Error fetching professional working hours:', error);
@@ -199,9 +207,19 @@ export function useScheduleAvailability(professionalId: string) {
     const selectedDate = new Date(date);
     const dayOfWeek = selectedDate.getDay() === 0 ? 7 : selectedDate.getDay();
     
+    console.log('🔍 Verificando día de trabajo:', {
+      date,
+      dayOfWeek,
+      workingDays: workingHours.working_days,
+      isWorkingDay: workingHours.working_days.includes(dayOfWeek)
+    });
+    
     if (!workingHours.working_days.includes(dayOfWeek)) {
+      console.log('❌ No es día de trabajo, retornando slots vacíos');
       return timeSlots; // No hay horarios si no es día de trabajo
     }
+    
+    console.log('✅ Es día de trabajo, continuando con generación de horarios');
 
     // Obtener horarios personalizados para este día
     const customSchedules = await getCustomDaySchedules();

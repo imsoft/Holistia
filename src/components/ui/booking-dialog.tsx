@@ -37,7 +37,7 @@ export function BookingDialog({ open, onOpenChange, children, title }: BookingDi
       />
 
       {/* Dialog */}
-      <div className="relative bg-background rounded-none sm:rounded-2xl shadow-2xl border-0 sm:border border-border w-full sm:w-[95vw] max-w-6xl h-full sm:h-auto sm:max-h-[95vh] overflow-hidden z-[9999] flex flex-col">
+      <div className="relative bg-background rounded-none sm:rounded-2xl shadow-2xl border-0 sm:border border-border w-full sm:w-[98vw] max-w-7xl h-full sm:h-auto sm:max-h-[95vh] overflow-hidden z-[9999] flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between p-4 sm:p-6 border-b border-border flex-shrink-0">
           <h2 className="text-xl sm:text-2xl font-bold text-foreground">{title}</h2>

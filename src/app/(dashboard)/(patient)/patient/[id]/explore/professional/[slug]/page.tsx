@@ -41,7 +41,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import PaymentButton from "@/components/ui/payment-button";
 import { FriendlyErrorDialog } from "@/components/ui/friendly-error-dialog";
-import { ScheduleGrid } from "@/components/ui/schedule-grid";
+import { WideCalendar } from "@/components/ui/wide-calendar";
 import {
   Select,
   SelectContent,
@@ -1171,7 +1171,7 @@ export default function ProfessionalProfilePage() {
                           <div>
                             <h3 className="text-xl font-bold text-foreground mb-4">Selecciona fecha y hora</h3>
                             
-                            <ScheduleGrid
+                            <WideCalendar
                               professionalId={professional?.id || ''}
                               onTimeSelect={(date, time) => {
                                 setSelectedDate(date);

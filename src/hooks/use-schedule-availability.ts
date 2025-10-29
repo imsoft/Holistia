@@ -335,13 +335,34 @@ export function useScheduleAvailability(professionalId: string) {
       const today = new Date();
       today.setHours(0, 0, 0, 0); // Normalizar a medianoche para comparación
       
+      // Asegurar que startDate esté normalizado
+      const normalizedStartDate = new Date(startDate);
+      normalizedStartDate.setHours(0, 0, 0, 0);
+      
+      console.log('📅 loadWeekAvailability - Fechas:', {
+        startDate: startDate.toISOString(),
+        normalizedStartDate: normalizedStartDate.toISOString(),
+        today: today.toISOString(),
+        todayFormatted: today.toLocaleDateString('es-ES')
+      });
+      
       for (let i = 0; i < 7; i++) {
-        const date = new Date(startDate);
-        date.setDate(startDate.getDate() + i);
+        const date = new Date(normalizedStartDate);
+        date.setDate(normalizedStartDate.getDate() + i);
         date.setHours(0, 0, 0, 0); // Normalizar a medianoche
         
         // Solo mostrar días futuros (incluyendo hoy)
-        if (date >= today) {
+        const isFutureOrToday = date >= today;
+        console.log('📅 Evaluando fecha:', {
+          date: date.toISOString(),
+          dateFormatted: date.toLocaleDateString('es-ES'),
+          today: today.toISOString(),
+          todayFormatted: today.toLocaleDateString('es-ES'),
+          isFutureOrToday,
+          comparison: date.getTime() >= today.getTime()
+        });
+        
+        if (isFutureOrToday) {
           const dayNames = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
           const monthNames = [
             'Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun',
@@ -349,14 +370,27 @@ export function useScheduleAvailability(professionalId: string) {
           ];
           
           const dayName = dayNames[date.getDay()];
-          const display = `${dayName} ${date.getDate()} ${monthNames[date.getMonth()]}`;
+          const monthName = monthNames[date.getMonth()];
+          const dayNumber = date.getDate();
+          const dateString = date.toISOString().split('T')[0];
+          const display = `${dayName} ${dayNumber} ${monthName}`;
+          
+          console.log('✅ Agregando fecha:', {
+            dateString,
+            dayName,
+            display,
+            monthName,
+            dayNumber
+          });
           
           dates.push({
-            date: date.toISOString().split('T')[0],
+            date: dateString,
             dayName,
             display,
             timeSlots: []
           });
+        } else {
+          console.log('❌ Fecha pasada, omitiendo:', date.toLocaleDateString('es-ES'));
         }
       }
 

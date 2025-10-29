@@ -313,37 +313,76 @@ export function useScheduleAvailability(professionalId: string) {
       
       // Manejar diferentes tipos de bloqueos
       if (block.block_type === 'weekly_day') {
-        // Bloqueo semanal de día completo
+        // Bloqueo de día completo (puede ser recurrente o de una sola vez)
         // JavaScript getDay(): 0=Domingo, 1=Lunes, 2=Martes, etc.
         // Nuestro sistema: 1=Lunes, 2=Martes, 3=Miércoles, ..., 7=Domingo
         const jsDay = currentDate.getDay();
         const dayOfWeekCurrent = jsDay === 0 ? 7 : jsDay; // Convertir domingo de 0 a 7
-        const applies = block.day_of_week === dayOfWeekCurrent && currentDate >= blockStartDate;
-        console.log('📅 Bloqueo semanal de día completo:', {
-          date: currentDate.toISOString().split('T')[0],
-          jsDay,
-          dayOfWeekCurrent,
-          blockDayOfWeek: block.day_of_week,
-          applies,
-          blockStartDate: blockStartDate.toISOString().split('T')[0],
-          isAfterStart: currentDate >= blockStartDate
-        });
-        return applies;
+        const matchesDayOfWeek = block.day_of_week === dayOfWeekCurrent;
+
+        if (block.is_recurring) {
+          // Recurrente: Aplica a todas las semanas después de start_date
+          const applies = matchesDayOfWeek && currentDate >= blockStartDate;
+          console.log('📅 Bloqueo de día completo (recurrente):', {
+            date: currentDate.toISOString().split('T')[0],
+            jsDay,
+            dayOfWeekCurrent,
+            blockDayOfWeek: block.day_of_week,
+            isRecurring: block.is_recurring,
+            applies,
+            blockStartDate: blockStartDate.toISOString().split('T')[0],
+            isAfterStart: currentDate >= blockStartDate
+          });
+          return applies;
+        } else {
+          // No recurrente: Solo aplica a la fecha específica en start_date
+          const dateString = date; // Ya es string YYYY-MM-DD
+          const applies = matchesDayOfWeek && block.start_date === dateString;
+          console.log('📅 Bloqueo de día completo (una sola vez):', {
+            date: dateString,
+            jsDay,
+            dayOfWeekCurrent,
+            blockDayOfWeek: block.day_of_week,
+            isRecurring: block.is_recurring,
+            applies,
+            blockStartDate: block.start_date,
+            matchesExactDate: block.start_date === dateString
+          });
+          return applies;
+        }
       } else if (block.block_type === 'weekly_range') {
-        // Bloqueo semanal de rango de horas
+        // Bloqueo de rango de horas (puede ser recurrente o de una sola vez)
         const dayOfWeekCurrent = currentDate.getDay() === 0 ? 7 : currentDate.getDay();
         const dayOfWeekStart = blockStartDate.getDay() === 0 ? 7 : blockStartDate.getDay();
         const dayOfWeekEnd = blockEndDate ? (blockEndDate.getDay() === 0 ? 7 : blockEndDate.getDay()) : dayOfWeekStart;
-        
+
         // Verificar si el día actual está en el rango de días de la semana
         const isInWeekRange = dayOfWeekCurrent >= dayOfWeekStart && dayOfWeekCurrent <= dayOfWeekEnd;
-        const applies = isInWeekRange && currentDate >= blockStartDate;
-        console.log('⏰ Bloqueo semanal de rango aplica:', applies, {
-          dayOfWeekCurrent,
-          weekRange: `${dayOfWeekStart}-${dayOfWeekEnd}`,
-          currentDate: currentDate.toISOString().split('T')[0]
-        });
-        return applies;
+
+        if (block.is_recurring) {
+          // Recurrente: Aplica todas las semanas después de start_date
+          const applies = isInWeekRange && currentDate >= blockStartDate;
+          console.log('⏰ Bloqueo de rango de horas (recurrente):', {
+            applies,
+            dayOfWeekCurrent,
+            weekRange: `${dayOfWeekStart}-${dayOfWeekEnd}`,
+            isRecurring: block.is_recurring,
+            currentDate: currentDate.toISOString().split('T')[0]
+          });
+          return applies;
+        } else {
+          // No recurrente: Solo aplica dentro del rango de fechas específicas
+          const applies = isInWeekRange && isInDateRange;
+          console.log('⏰ Bloqueo de rango de horas (una sola vez):', {
+            applies,
+            dayOfWeekCurrent,
+            weekRange: `${dayOfWeekStart}-${dayOfWeekEnd}`,
+            isRecurring: block.is_recurring,
+            isInDateRange,
+            currentDate: currentDate.toISOString().split('T')[0]
+          });
+          return applies;
+        }
       } else if (block.block_type === 'full_day') {
         // Bloqueo de día completo (legacy)
         const applies = isInDateRange;

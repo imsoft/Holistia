@@ -117,29 +117,58 @@ export function BlocksCalendarView({
       } else if (block.block_type === 'time_range') {
         return block.start_date <= date && (!block.end_date || block.end_date >= date);
       } else if (block.block_type === 'weekly_day') {
-        // Bloqueo semanal de día completo
-        const applies = block.day_of_week === dayOfWeekCurrent && block.start_date <= date;
-        if (date.startsWith('2025-11-')) {
-          console.log('📅 Checking weekly_day block:', {
-            date,
-            dayOfWeekCurrent,
-            blockDayOfWeek: block.day_of_week,
-            blockStartDate: block.start_date,
-            applies,
-            blockTitle: block.title
-          });
+        // Bloqueo de día completo (puede ser recurrente o de una sola vez)
+        const matchesDayOfWeek = block.day_of_week === dayOfWeekCurrent;
+
+        if (block.is_recurring) {
+          // Recurrente: Aplica a todas las semanas después de start_date
+          const applies = matchesDayOfWeek && block.start_date <= date;
+          if (date.startsWith('2025-11-')) {
+            console.log('📅 Checking weekly_day block (recurring):', {
+              date,
+              dayOfWeekCurrent,
+              blockDayOfWeek: block.day_of_week,
+              blockStartDate: block.start_date,
+              isRecurring: block.is_recurring,
+              applies,
+              blockTitle: block.title
+            });
+          }
+          return applies;
+        } else {
+          // No recurrente: Solo aplica a la fecha específica en start_date
+          const applies = matchesDayOfWeek && block.start_date === date;
+          if (date.startsWith('2025-11-')) {
+            console.log('📅 Checking weekly_day block (one-time):', {
+              date,
+              dayOfWeekCurrent,
+              blockDayOfWeek: block.day_of_week,
+              blockStartDate: block.start_date,
+              isRecurring: block.is_recurring,
+              applies,
+              blockTitle: block.title
+            });
+          }
+          return applies;
         }
-        return applies;
       } else if (block.block_type === 'weekly_range') {
-        // Bloqueo semanal de rango de horas
-        const blockStartDate = new Date(block.start_date);
-        const blockEndDate = block.end_date ? new Date(block.end_date) : null;
+        // Bloqueo de rango de horas (puede ser recurrente o de una sola vez)
+        const blockStartDate = parseLocalDate(block.start_date);
+        const blockEndDate = block.end_date ? parseLocalDate(block.end_date) : null;
         const dayOfWeekStart = blockStartDate.getDay() === 0 ? 7 : blockStartDate.getDay();
         const dayOfWeekEnd = blockEndDate ? (blockEndDate.getDay() === 0 ? 7 : blockEndDate.getDay()) : dayOfWeekStart;
-        
+
         // Verificar si el día actual está en el rango de días de la semana
         const isInWeekRange = dayOfWeekCurrent >= dayOfWeekStart && dayOfWeekCurrent <= dayOfWeekEnd;
-        return isInWeekRange && block.start_date <= date;
+
+        if (block.is_recurring) {
+          // Recurrente: Aplica todas las semanas después de start_date
+          return isInWeekRange && block.start_date <= date;
+        } else {
+          // No recurrente: Solo aplica dentro del rango de fechas específicas
+          const isInDateRange = block.start_date <= date && (!block.end_date || block.end_date >= date);
+          return isInWeekRange && isInDateRange;
+        }
       }
       return false;
     });

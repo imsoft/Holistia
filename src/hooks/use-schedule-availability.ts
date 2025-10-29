@@ -204,7 +204,9 @@ export function useScheduleAvailability(professionalId: string) {
     const timeSlots: TimeSlot[] = [];
     
     // Verificar si es un día de trabajo
-    const selectedDate = new Date(date);
+    // Parsear la fecha manualmente para evitar problemas de zona horaria
+    const [year, month, day] = date.split('-').map(Number);
+    const selectedDate = new Date(year, month - 1, day);
     const dayOfWeek = selectedDate.getDay() === 0 ? 7 : selectedDate.getDay();
     
     console.log('🔍 Verificando día de trabajo:', {

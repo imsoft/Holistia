@@ -81,7 +81,7 @@ export default function AvailabilityBlockManager({ professionalId, userId: propU
 
       {/* Dialog para crear bloqueo */}
       <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-7xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Crear Nuevo Bloqueo</DialogTitle>
           </DialogHeader>
@@ -96,7 +96,7 @@ export default function AvailabilityBlockManager({ professionalId, userId: propU
 
       {/* Dialog para editar bloqueo */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-7xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Editar Bloqueo</DialogTitle>
           </DialogHeader>

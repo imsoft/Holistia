@@ -396,14 +396,14 @@ export function BlockCreator({
               </CardTitle>
             </CardHeader>
             <CardContent className="py-4">
-              <div className="grid grid-cols-7 gap-2">
+              <div className="grid grid-cols-7 gap-3">
                 {calendarDates.map((dateInfo) => (
                   <button
                     key={dateInfo.date}
                     onClick={() => handleDateSelect(dateInfo.date)}
                     disabled={dateInfo.isPast}
                     className={cn(
-                      "p-3 text-center rounded-lg border-2 transition-all hover:shadow-md",
+                      "p-4 text-center rounded-lg border-2 transition-all hover:shadow-md",
                       "disabled:opacity-50 disabled:cursor-not-allowed",
                       selectedDates.includes(dateInfo.date)
                         ? "border-primary bg-primary text-primary-foreground"
@@ -412,8 +412,8 @@ export function BlockCreator({
                         : "border-border hover:border-primary/50"
                     )}
                   >
-                    <div className="text-xs font-medium">{dateInfo.dayName}</div>
-                    <div className="text-lg font-bold">{dateInfo.dayNumber}</div>
+                    <div className="text-sm font-medium">{dateInfo.dayName}</div>
+                    <div className="text-xl font-bold">{dateInfo.dayNumber}</div>
                     <div className="text-xs text-muted-foreground">{dateInfo.monthName}</div>
                   </button>
                 ))}
@@ -449,16 +449,16 @@ export function BlockCreator({
                 </CardTitle>
               </CardHeader>
               <CardContent className="py-4">
-                <div className="grid grid-cols-2 gap-6">
+                <div className="grid grid-cols-2 gap-8">
                   <div>
                     <Label className="text-base font-medium">Hora de Inicio</Label>
-                    <div className="grid grid-cols-4 gap-2 mt-2">
+                    <div className="grid grid-cols-5 gap-3 mt-3">
                       {timeSlots.map((time) => (
                         <button
                           key={time}
                           onClick={() => handleTimeSelect(time, 'start')}
                           className={cn(
-                            "p-2 text-sm rounded-lg border-2 transition-all",
+                            "p-3 text-sm rounded-lg border-2 transition-all",
                             selectedTimeRange?.start === time
                               ? "border-primary bg-primary text-primary-foreground"
                               : "border-border hover:border-primary/50"
@@ -472,13 +472,13 @@ export function BlockCreator({
                   
                   <div>
                     <Label className="text-base font-medium">Hora de Fin</Label>
-                    <div className="grid grid-cols-4 gap-2 mt-2">
+                    <div className="grid grid-cols-5 gap-3 mt-3">
                       {timeSlots.map((time) => (
                         <button
                           key={time}
                           onClick={() => handleTimeSelect(time, 'end')}
                           className={cn(
-                            "p-2 text-sm rounded-lg border-2 transition-all",
+                            "p-3 text-sm rounded-lg border-2 transition-all",
                             selectedTimeRange?.end === time
                               ? "border-primary bg-primary text-primary-foreground"
                               : "border-border hover:border-primary/50"

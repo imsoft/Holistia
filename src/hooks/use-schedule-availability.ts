@@ -213,6 +213,17 @@ export function useScheduleAvailability(professionalId: string) {
     
     const [startHour] = startTime.split(':').map(Number);
     const [endHour] = endTime.split(':').map(Number);
+    
+    console.log('🕐 Horarios de trabajo para fecha:', {
+      date,
+      dayOfWeek,
+      daySchedule: daySchedule ? 'personalizado' : 'general',
+      startTime,
+      endTime,
+      startHour,
+      endHour,
+      workingDays: workingHours.working_days
+    });
 
     // Obtener citas para esta fecha
     const dayAppointments = existingAppointments.filter(apt => apt.appointment_date === date);
@@ -293,6 +304,7 @@ export function useScheduleAvailability(professionalId: string) {
     }
 
     // Generar horarios de hora en hora
+    console.log('🕐 Generando horarios desde', startHour, 'hasta', endHour);
     for (let hour = startHour; hour < endHour; hour++) {
       const timeString = `${hour.toString().padStart(2, '0')}:00`;
       const display = `${hour.toString().padStart(2, '0')}:00`;
@@ -309,11 +321,20 @@ export function useScheduleAvailability(professionalId: string) {
         if (block.block_type === 'time_range' && block.start_time && block.end_time) {
           const blockStart = block.start_time;
           const blockEnd = block.end_time;
-          return timeString >= blockStart && timeString < blockEnd;
+          const isBlocked = timeString >= blockStart && timeString < blockEnd;
+          console.log('⏰ Verificando bloqueo de tiempo:', {
+            timeString,
+            blockStart,
+            blockEnd,
+            isBlocked,
+            blockId: block.id
+          });
+          return isBlocked;
         }
         return false;
       })) {
         status = 'blocked';
+        console.log('🚫 Horario bloqueado:', timeString);
       }
 
       timeSlots.push({
@@ -323,6 +344,11 @@ export function useScheduleAvailability(professionalId: string) {
         status
       });
     }
+
+    console.log('📋 Horarios generados para', date, ':', timeSlots.map(slot => ({
+      time: slot.time,
+      status: slot.status
+    })));
 
     return timeSlots;
   }, [getCustomDaySchedules]);

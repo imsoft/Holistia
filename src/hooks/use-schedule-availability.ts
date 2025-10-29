@@ -181,28 +181,44 @@ export function useScheduleAvailability(professionalId: string) {
       
       // Filtrar bloqueos que se superponen con el rango de fechas
       const filteredBlocks = blocks.filter(block => {
-        const blockStart = new Date(block.start_date);
-        const blockEnd = block.end_date ? new Date(block.end_date) : blockStart;
-        const rangeStart = new Date(startDate);
-        const rangeEnd = new Date(endDate);
-        
+        const blockStart = parseLocalDate(block.start_date);
+        const blockEnd = block.end_date ? parseLocalDate(block.end_date) : blockStart;
+        const rangeStart = parseLocalDate(startDate);
+        const rangeEnd = parseLocalDate(endDate);
+
         // Normalizar fechas para comparación
         blockStart.setHours(0, 0, 0, 0);
         blockEnd.setHours(0, 0, 0, 0);
         rangeStart.setHours(0, 0, 0, 0);
         rangeEnd.setHours(0, 0, 0, 0);
-        
-        // Verificar si hay superposición
+
+        // Para bloqueos recurrentes, solo verificar que start_date sea <= rangeEnd
+        // ya que se aplican todas las semanas después de start_date
+        if (block.is_recurring && (block.block_type === 'weekly_day' || block.block_type === 'weekly_range')) {
+          const overlaps = blockStart <= rangeEnd;
+          console.log('🔍 Bloqueo recurrente:', {
+            id: block.id,
+            type: block.block_type,
+            blockStart: blockStart.toISOString().split('T')[0],
+            rangeEnd: rangeEnd.toISOString().split('T')[0],
+            is_recurring: block.is_recurring,
+            overlaps
+          });
+          return overlaps;
+        }
+
+        // Para bloqueos no recurrentes, verificar superposición normal
         const overlaps = blockStart <= rangeEnd && blockEnd >= rangeStart;
-        console.log('🔍 Bloqueo superposición:', {
+        console.log('🔍 Bloqueo no recurrente:', {
           id: block.id,
+          type: block.block_type,
           blockStart: blockStart.toISOString().split('T')[0],
           blockEnd: blockEnd.toISOString().split('T')[0],
           rangeStart: rangeStart.toISOString().split('T')[0],
           rangeEnd: rangeEnd.toISOString().split('T')[0],
           overlaps
         });
-        
+
         return overlaps;
       });
       

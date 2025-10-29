@@ -248,7 +248,7 @@ export function WideCalendar({
                               }
                             )}
                           >
-                            {timeSlot.status === 'available' ? '✓' : '-'}
+                            {timeSlot.status === 'available' ? time : '-'}
                           </button>
                         ) : (
                           <div className="w-full h-full rounded-md border-2 border-gray-200 bg-gray-50 flex items-center justify-center">

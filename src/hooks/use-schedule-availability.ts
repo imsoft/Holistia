@@ -150,12 +150,28 @@ export function useScheduleAvailability(professionalId: string) {
         fecha_actual: date
       });
       
+      // Convertir fechas a objetos Date para comparación correcta
+      const blockStartDate = new Date(block.start_date);
+      const blockEndDate = block.end_date ? new Date(block.end_date) : null;
+      const currentDate = new Date(date);
+      
+      // Normalizar fechas para comparación (solo fecha, sin hora)
+      blockStartDate.setHours(0, 0, 0, 0);
+      if (blockEndDate) blockEndDate.setHours(0, 0, 0, 0);
+      currentDate.setHours(0, 0, 0, 0);
+      
+      console.log('📅 Fechas normalizadas:', {
+        blockStart: blockStartDate.toISOString().split('T')[0],
+        blockEnd: blockEndDate?.toISOString().split('T')[0] || 'null',
+        current: currentDate.toISOString().split('T')[0]
+      });
+      
       if (block.block_type === 'full_day') {
-        const applies = block.start_date <= date && (!block.end_date || block.end_date >= date);
+        const applies = currentDate >= blockStartDate && (!blockEndDate || currentDate <= blockEndDate);
         console.log('📅 Bloqueo de día completo aplica:', applies);
         return applies;
       } else if (block.block_type === 'time_range') {
-        const applies = block.start_date <= date && (!block.end_date || block.end_date >= date);
+        const applies = currentDate >= blockStartDate && (!blockEndDate || currentDate <= blockEndDate);
         console.log('⏰ Bloqueo de rango de tiempo aplica:', applies);
         return applies;
       }

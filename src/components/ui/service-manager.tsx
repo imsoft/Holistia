@@ -117,6 +117,7 @@ export function ServiceManager({ professionalId, userId }: ServiceManagerProps) 
           unit: programDuration.unit
         } : null,
         cost: formData.cost,
+        address: formData.address?.trim() || null, // Guardar como null si está vacío
         isactive: true,
       };
 
@@ -166,6 +167,7 @@ export function ServiceManager({ professionalId, userId }: ServiceManagerProps) 
       modality: service.modality,
       duration: service.duration,
       cost: serviceCost,
+      address: service.address || "",
     });
 
     // Si es un programa, intentar extraer la duración del programa
@@ -230,6 +232,7 @@ export function ServiceManager({ professionalId, userId }: ServiceManagerProps) 
       modality: "both",
       duration: 60,
       cost: undefined,
+      address: "",
     });
     setProgramDuration({
       value: 1,
@@ -439,6 +442,21 @@ export function ServiceManager({ professionalId, userId }: ServiceManagerProps) 
                 />
               </div>
 
+              <div className="space-y-2">
+                <Label htmlFor="address">Dirección del Servicio (Opcional)</Label>
+                <Input
+                  id="address"
+                  value={formData.address || ""}
+                  onChange={(e) =>
+                    setFormData({ ...formData, address: e.target.value })
+                  }
+                  placeholder="Ej: Consultorio 205, Torre Médica, Av. Reforma 123"
+                />
+                <p className="text-sm text-muted-foreground">
+                  Si no especificas una dirección, se usará la dirección de tu perfil profesional
+                </p>
+              </div>
+
               <DialogFooter>
                 <Button
                   type="button"
@@ -536,9 +554,17 @@ export function ServiceManager({ professionalId, userId }: ServiceManagerProps) 
                 {service.description && (
                   <p className="text-muted-foreground mb-4">{service.description}</p>
                 )}
-                <div className="flex items-center gap-1 text-sm">
-                  <DollarSign className="w-4 h-4" />
-                  <span>Costo: ${typeof service.cost === 'number' ? service.cost : (service.cost?.presencial || service.cost?.online || 0)}</span>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-1 text-sm">
+                    <DollarSign className="w-4 h-4" />
+                    <span>Costo: ${typeof service.cost === 'number' ? service.cost : (service.cost?.presencial || service.cost?.online || 0)}</span>
+                  </div>
+                  {service.address && (
+                    <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                      <MapPin className="w-4 h-4" />
+                      <span>{service.address}</span>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>

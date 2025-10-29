@@ -106,6 +106,7 @@ interface DatabaseService {
   description?: string;
   modality: 'presencial' | 'online' | 'both';
   cost: number;
+  address?: string;
 }
 
 /**

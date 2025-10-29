@@ -153,6 +153,32 @@ async function sendAppointmentNotificationEmail(appointmentId: string) {
       return;
     }
 
+    // Get professional application details for address
+    const { data: professionalApp, error: professionalAppError } = await supabase
+      .from('professional_applications')
+      .select('*')
+      .eq('id', appointment.professional_id)
+      .single();
+
+    if (professionalAppError || !professionalApp) {
+      console.error('Error fetching professional application:', professionalAppError);
+      return;
+    }
+
+    // Get service details to check for specific address
+    let serviceAddress = null;
+    if (appointment.service_id) {
+      const { data: service, error: serviceError } = await supabase
+        .from('professional_services')
+        .select('address')
+        .eq('id', appointment.service_id)
+        .single();
+      
+      if (!serviceError && service?.address) {
+        serviceAddress = service.address;
+      }
+    }
+
     // Format appointment data
     const appointmentDate = new Date(appointment.appointment_date).toLocaleDateString('es-ES', {
       year: 'numeric',
@@ -191,6 +217,12 @@ async function sendAppointmentNotificationEmail(appointmentId: string) {
       ? `${patientProfile.first_name || ''} ${patientProfile.last_name || ''}`.trim() 
       : patient.user.email?.split('@')[0] || 'Paciente';
 
+    // Determine the location to use
+    const finalLocation = serviceAddress || 
+                         appointment.location || 
+                         `${professionalApp.address}, ${professionalApp.city}, ${professionalApp.state}` || 
+                         'Por definir';
+
     // Prepare email data
     const emailData = {
       professional_name: professionalName,
@@ -201,7 +233,7 @@ async function sendAppointmentNotificationEmail(appointmentId: string) {
       appointment_type: appointmentType,
       duration_minutes: appointment.duration_minutes || 50,
       cost: appointment.cost,
-      location: appointment.location || 'Por definir',
+      location: finalLocation,
       notes: appointment.notes,
       appointments_url: `${process.env.NEXT_PUBLIC_SITE_URL}/professional/${appointment.professional_id}/appointments`
     };
@@ -256,6 +288,20 @@ async function sendAppointmentTicketEmail(appointmentId: string) {
       return;
     }
 
+    // Get service details to check for specific address
+    let serviceAddress = null;
+    if (appointment.service_id) {
+      const { data: service, error: serviceError } = await supabase
+        .from('professional_services')
+        .select('address')
+        .eq('id', appointment.service_id)
+        .single();
+      
+      if (!serviceError && service?.address) {
+        serviceAddress = service.address;
+      }
+    }
+
     // Get payment details
     const { data: payment, error: paymentError } = await supabase
       .from('payments')
@@ -297,6 +343,12 @@ async function sendAppointmentTicketEmail(appointmentId: string) {
       ? `${patientProfile.first_name || ''} ${patientProfile.last_name || ''}`.trim() 
       : patient.user.email?.split('@')[0] || 'Paciente';
 
+    // Determine the location to use
+    const finalLocation = serviceAddress || 
+                         appointment.location || 
+                         `${professionalApp.address}, ${professionalApp.city}, ${professionalApp.state}` || 
+                         'Por definir';
+
     // Prepare ticket email data
     const ticketData = {
       patient_name: patientName,
@@ -307,7 +359,7 @@ async function sendAppointmentTicketEmail(appointmentId: string) {
       appointment_time: appointmentTime,
       appointment_type: appointmentType,
       duration_minutes: appointment.duration_minutes || 50,
-      location: appointment.location || 'Por definir',
+      location: finalLocation,
       payment_amount: Number(payment.amount),
       payment_date: paymentDate,
       payment_method: payment.payment_method || 'Tarjeta',

@@ -10,6 +10,7 @@ export interface Service {
     unit: "meses" | "semanas" | "dias" | "horas";
   };
   cost: number | { presencial?: number; online?: number }; // Temporal: puede ser number o jsonb
+  address?: string; // Dirección específica del servicio (opcional)
   isactive: boolean; // Nombre del campo en la base de datos
   created_at?: string;
   updated_at?: string;
@@ -22,6 +23,7 @@ export interface ServiceFormData {
   modality: "presencial" | "online" | "both";
   duration: number;
   cost?: number; // Precio único
+  address?: string; // Dirección específica del servicio (opcional)
 }
 
 export interface ProfessionalService extends Service {

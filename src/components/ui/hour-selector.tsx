@@ -14,6 +14,7 @@ interface HourSelectorProps {
   placeholder?: string;
   startHour?: number;
   endHour?: number;
+  className?: string;
 }
 
 export function HourSelector({
@@ -25,7 +26,8 @@ export function HourSelector({
   disabled = false,
   placeholder = "Selecciona una hora",
   startHour = 0,
-  endHour = 23
+  endHour = 23,
+  className
 }: HourSelectorProps) {
   // Generar array de horas desde startHour hasta endHour
   const hours = Array.from({ length: endHour - startHour + 1 }, (_, i) => {
@@ -48,7 +50,7 @@ export function HourSelector({
         disabled={disabled}
         required={required}
       >
-        <SelectTrigger>
+        <SelectTrigger className={className}>
           <SelectValue placeholder={placeholder} />
         </SelectTrigger>
         <SelectContent>

@@ -30,10 +30,10 @@ export function useScheduleAvailability(professionalId: string) {
   const getProfessionalWorkingHours = useCallback(async (): Promise<ProfessionalWorkingHours | null> => {
     try {
       const { data, error } = await supabase
-        .from('professional_applications')
+        .from('professionals')
         .select('working_start_time, working_end_time, working_days')
         .eq('id', professionalId)
-        .maybeSingle();
+        .single();
 
       if (error) throw error;
       return data;
@@ -42,6 +42,31 @@ export function useScheduleAvailability(professionalId: string) {
       return null;
     }
   }, [professionalId, supabase]);
+
+  // Obtener horarios personalizados por día (si existen)
+  const getCustomDaySchedules = useCallback(async (): Promise<Map<number, {startTime: string, endTime: string}>> => {
+    try {
+      // Por ahora, usamos los horarios generales
+      // En el futuro, esto podría ser una tabla separada para horarios por día
+      const workingHours = await getProfessionalWorkingHours();
+      if (!workingHours) return new Map();
+
+      const schedules = new Map<number, {startTime: string, endTime: string}>();
+      
+      // Aplicar el mismo horario a todos los días laborales
+      workingHours.working_days.forEach(day => {
+        schedules.set(day, {
+          startTime: workingHours.working_start_time,
+          endTime: workingHours.working_end_time
+        });
+      });
+
+      return schedules;
+    } catch (error) {
+      console.error('Error fetching custom day schedules:', error);
+      return new Map();
+    }
+  }, [getProfessionalWorkingHours]);
 
   // Obtener citas existentes para un rango de fechas (con caché)
   const appointmentCache = useRef<Map<string, Array<{appointment_date: string; appointment_time: string; status: string}>>>(new Map());
@@ -115,15 +140,13 @@ export function useScheduleAvailability(professionalId: string) {
   }, [professionalId, supabase]);
 
   // Generar horarios para una fecha específica
-  const generateTimeSlots = useCallback((
+  const generateTimeSlots = useCallback(async (
     date: string,
     workingHours: ProfessionalWorkingHours,
     existingAppointments: Array<{appointment_date: string; appointment_time: string; status: string}>,
     availabilityBlocks: Array<{id?: string; block_type: string; start_date: string; end_date?: string; start_time?: string; end_time?: string}>
-  ): TimeSlot[] => {
+  ): Promise<TimeSlot[]> => {
     const timeSlots: TimeSlot[] = [];
-    const [startHour] = workingHours.working_start_time.split(':').map(Number);
-    const [endHour] = workingHours.working_end_time.split(':').map(Number);
     
     // Verificar si es un día de trabajo
     const selectedDate = new Date(date);
@@ -132,6 +155,17 @@ export function useScheduleAvailability(professionalId: string) {
     if (!workingHours.working_days.includes(dayOfWeek)) {
       return timeSlots; // No hay horarios si no es día de trabajo
     }
+
+    // Obtener horarios personalizados para este día
+    const customSchedules = await getCustomDaySchedules();
+    const daySchedule = customSchedules.get(dayOfWeek);
+    
+    // Usar horarios personalizados si existen, sino usar los generales
+    const startTime = daySchedule?.startTime || workingHours.working_start_time;
+    const endTime = daySchedule?.endTime || workingHours.working_end_time;
+    
+    const [startHour] = startTime.split(':').map(Number);
+    const [endHour] = endTime.split(':').map(Number);
 
     // Obtener citas para esta fecha
     const dayAppointments = existingAppointments.filter(apt => apt.appointment_date === date);
@@ -222,7 +256,7 @@ export function useScheduleAvailability(professionalId: string) {
     }
 
     return timeSlots;
-  }, []);
+  }, [getCustomDaySchedules]);
 
   // Cargar datos de disponibilidad para una semana
   const loadWeekAvailability = useCallback(async (startDate: Date): Promise<DayData[]> => {
@@ -270,10 +304,10 @@ export function useScheduleAvailability(professionalId: string) {
       }
 
       // Generar horarios para cada día
-      const weekData = dates.map(day => ({
+      const weekData = await Promise.all(dates.map(async day => ({
         ...day,
-        timeSlots: generateTimeSlots(day.date, workingHours, existingAppointments, availabilityBlocks)
-      }));
+        timeSlots: await generateTimeSlots(day.date, workingHours, existingAppointments, availabilityBlocks)
+      })));
 
       return weekData;
     } catch (error) {

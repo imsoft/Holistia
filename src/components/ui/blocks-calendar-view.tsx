@@ -212,6 +212,10 @@ export function BlocksCalendarView({
       if (error) throw error;
 
       toast.success('Bloqueo eliminado correctamente');
+
+      // Emitir evento para recargar el calendario
+      window.dispatchEvent(new Event('reload-calendar'));
+
       fetchBlocks();
       onDeleteBlock?.(blockId);
     } catch (error) {

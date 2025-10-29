@@ -190,6 +190,10 @@ export function BlockCreatorTabs({
 
         if (error) throw error;
         toast.success('Bloqueo actualizado correctamente');
+
+        // Emitir evento para recargar el calendario
+        window.dispatchEvent(new Event('reload-calendar'));
+
         onBlockUpdated?.();
       } else {
         const { error } = await supabase
@@ -198,6 +202,10 @@ export function BlockCreatorTabs({
 
         if (error) throw error;
         toast.success('Bloqueo creado correctamente');
+
+        // Emitir evento para recargar el calendario
+        window.dispatchEvent(new Event('reload-calendar'));
+
         onBlockCreated?.();
       }
     } catch (error) {

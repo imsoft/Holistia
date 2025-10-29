@@ -55,21 +55,30 @@ export function WideCalendar({
     return startOfWeek.toISOString().split('T')[0];
   }, []);
 
+  // Función para forzar recarga sin caché
+  const forceReload = useCallback(async () => {
+    console.log('🔄 Forzando recarga del calendario sin caché');
+    setCache(new Map()); // Limpiar todo el caché
+    await loadWeekData(currentWeek, false);
+  }, [currentWeek]);
+
   // Cargar datos de la semana con caché
   const loadWeekData = useCallback(async (weekDate: Date, useCache = true) => {
     const weekKey = getWeekKey(weekDate);
-    
+
     // Verificar caché primero
     if (useCache && cache.has(weekKey)) {
+      console.log('📦 Usando datos del caché para:', weekKey);
       setWeekData(cache.get(weekKey)!);
       return;
     }
 
+    console.log('🔍 Cargando datos frescos para:', weekKey);
     setIsLoading(true);
     try {
       const data = await loadWeekAvailability(weekDate);
       setWeekData(data);
-      
+
       // Guardar en caché
       setCache(prev => new Map(prev).set(weekKey, data));
     } catch (error) {
@@ -109,6 +118,17 @@ export function WideCalendar({
     // Precargar semanas adyacentes después de cargar la actual
     setTimeout(() => preloadAdjacentWeeks(currentWeek), 100);
   }, [professionalId, currentWeek, loadWeekData, preloadAdjacentWeeks]);
+
+  // Listener para recargar cuando se actualicen bloqueos
+  useEffect(() => {
+    const handleReload = () => {
+      console.log('🔄 Evento de recarga detectado, limpiando caché del calendario...');
+      forceReload();
+    };
+
+    window.addEventListener('reload-calendar', handleReload);
+    return () => window.removeEventListener('reload-calendar', handleReload);
+  }, [forceReload]);
 
   // Navegación de semanas optimizada
   const goToPreviousWeek = useCallback(() => {
@@ -210,16 +230,33 @@ export function WideCalendar({
           <div className="min-w-[700px]">
             {/* Header con días de la semana */}
             <div className="grid grid-cols-7 gap-2 mb-4">
-              {weekData.map((day) => (
-                <div key={day.date} className="text-center py-2">
-                  <div className="text-sm font-medium text-foreground">
-                    {day.dayName}
+              {weekData.map((day) => {
+                const today = new Date().toISOString().split('T')[0];
+                const isToday = day.date === today;
+
+                return (
+                  <div
+                    key={day.date}
+                    className={cn(
+                      "text-center py-2 rounded-lg transition-colors",
+                      isToday && "bg-blue-50 border-2 border-blue-200"
+                    )}
+                  >
+                    <div className={cn(
+                      "text-sm font-medium",
+                      isToday ? "text-blue-600" : "text-foreground"
+                    )}>
+                      {day.dayName}
+                    </div>
+                    <div className={cn(
+                      "text-xs",
+                      isToday ? "text-blue-500 font-medium" : "text-muted-foreground"
+                    )}>
+                      {day.display}
+                    </div>
                   </div>
-                  <div className="text-xs text-muted-foreground">
-                    {day.display}
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
 
             {/* Grid de horarios */}

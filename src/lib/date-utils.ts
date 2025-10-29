@@ -3,6 +3,30 @@
  */
 
 /**
+ * Convierte una fecha en formato YYYY-MM-DD a objeto Date en hora local
+ * Evita problemas de zona horaria al no usar new Date(string)
+ * @param dateString - Fecha en formato YYYY-MM-DD
+ * @returns Objeto Date en hora local
+ */
+export function parseLocalDate(dateString: string): Date {
+  const [year, month, day] = dateString.split('-').map(Number);
+  return new Date(year, month - 1, day);
+}
+
+/**
+ * Convierte un objeto Date a string en formato YYYY-MM-DD en hora local
+ * Evita problemas de zona horaria al no usar toISOString()
+ * @param date - Objeto Date
+ * @returns String en formato YYYY-MM-DD
+ */
+export function formatLocalDate(date: Date): string {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
+/**
  * Formatea una fecha en formato YYYY-MM-DD evitando problemas de zona horaria
  * @param dateString - Fecha en formato YYYY-MM-DD
  * @param locale - Locale para el formato (por defecto 'es-MX')

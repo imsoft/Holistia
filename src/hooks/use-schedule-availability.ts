@@ -2,6 +2,7 @@
 
 import { useCallback, useRef } from 'react';
 import { createClient } from '@/utils/supabase/client';
+import { parseLocalDate } from '@/lib/date-utils';
 
 interface TimeSlot {
   time: string;
@@ -291,9 +292,10 @@ export function useScheduleAvailability(professionalId: string) {
       });
       
       // Convertir fechas a objetos Date para comparación correcta
-      const blockStartDate = new Date(block.start_date);
-      const blockEndDate = block.end_date ? new Date(block.end_date) : blockStartDate;
-      const currentDate = new Date(date);
+      // Usar hora local para evitar problemas de zona horaria
+      const blockStartDate = parseLocalDate(block.start_date);
+      const blockEndDate = block.end_date ? parseLocalDate(block.end_date) : blockStartDate;
+      const currentDate = parseLocalDate(date);
       
       // Normalizar fechas para comparación (solo fecha, sin hora)
       blockStartDate.setHours(0, 0, 0, 0);

@@ -8,7 +8,7 @@ import { Calendar, Clock, Edit, Trash2, Plus, ChevronLeft, ChevronRight } from '
 import { cn } from '@/lib/utils';
 import { createClient } from '@/utils/supabase/client';
 import { toast } from 'sonner';
-import { formatDate } from '@/lib/date-utils';
+import { formatDate, parseLocalDate, formatLocalDate } from '@/lib/date-utils';
 import type { AvailabilityBlock } from '@/types/availability';
 
 interface BlocksCalendarViewProps {
@@ -57,49 +57,49 @@ export function BlocksCalendarView({
   const generateMonthDays = useCallback(() => {
     const year = currentMonth.getFullYear();
     const month = currentMonth.getMonth();
-    
+
     const firstDay = new Date(year, month, 1);
     const lastDay = new Date(year, month + 1, 0);
     const daysInMonth = lastDay.getDate();
     const startingDayOfWeek = firstDay.getDay();
-    
+
     const days = [];
-    
+
     // Días del mes anterior
     for (let i = startingDayOfWeek - 1; i >= 0; i--) {
       const date = new Date(year, month, -i);
       days.push({
-        date: date.toISOString().split('T')[0],
+        date: formatLocalDate(date),
         dayNumber: date.getDate(),
         isCurrentMonth: false,
         isToday: false
       });
     }
-    
+
     // Días del mes actual
     for (let day = 1; day <= daysInMonth; day++) {
       const date = new Date(year, month, day);
       const today = new Date();
       days.push({
-        date: date.toISOString().split('T')[0],
+        date: formatLocalDate(date),
         dayNumber: day,
         isCurrentMonth: true,
         isToday: date.toDateString() === today.toDateString()
       });
     }
-    
+
     // Días del mes siguiente para completar la grilla
     const remainingDays = 42 - days.length;
     for (let day = 1; day <= remainingDays; day++) {
       const date = new Date(year, month + 1, day);
       days.push({
-        date: date.toISOString().split('T')[0],
+        date: formatLocalDate(date),
         dayNumber: day,
         isCurrentMonth: false,
         isToday: false
       });
     }
-    
+
     return days;
   }, [currentMonth]);
 
@@ -107,7 +107,8 @@ export function BlocksCalendarView({
 
   // Obtener bloqueos para una fecha específica
   const getBlocksForDate = (date: string) => {
-    const currentDate = new Date(date);
+    // Crear fecha en hora local para evitar problemas de zona horaria
+    const currentDate = parseLocalDate(date);
     const dayOfWeekCurrent = currentDate.getDay() === 0 ? 7 : currentDate.getDay();
     
     return blocks.filter(block => {

@@ -1195,7 +1195,7 @@ export default function ProfessionalProfilePage() {
                                 Tipo de servicio
                               </Label>
                               <Select value={selectedService} onValueChange={setSelectedService}>
-                                <SelectTrigger className="mt-3 h-12 text-base">
+                                <SelectTrigger className="mt-3 h-12 text-base w-full">
                                   <SelectValue placeholder="Selecciona el tipo de servicio" />
                                 </SelectTrigger>
                                 <SelectContent className="max-h-60">

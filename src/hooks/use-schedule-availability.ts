@@ -140,9 +140,19 @@ export function useScheduleAvailability(professionalId: string) {
   const getAvailabilityBlocks = useCallback(async (startDate: string, endDate: string) => {
     const cacheKey = `${startDate}-${endDate}`;
     
+    // TEMPORAL: Deshabilitar caché de bloqueos para asegurar datos frescos
+    // TODO: Implementar invalidación de caché cuando se actualiza un bloqueo
+    const USE_CACHE = false;
+
     // Verificar caché
-    if (blocksCache.current.has(cacheKey)) {
-      return blocksCache.current.get(cacheKey)!;
+    if (USE_CACHE && blocksCache.current.has(cacheKey)) {
+      const cached = blocksCache.current.get(cacheKey)!;
+      console.log('🚀 Usando bloqueos desde caché:', {
+        cacheKey,
+        totalBlocks: cached.length,
+        blocks: cached.map(b => ({ type: b.block_type, day_of_week: b.day_of_week, is_recurring: b.is_recurring }))
+      });
+      return cached;
     }
 
     try {

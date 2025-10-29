@@ -6,6 +6,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useScheduleAvailability } from '@/hooks/use-schedule-availability';
+import { formatLocalDate } from '@/lib/date-utils';
 
 interface TimeSlot {
   time: string;
@@ -36,11 +37,20 @@ export function WideCalendar({
   selectedTime,
   className 
 }: WideCalendarProps) {
-  // Inicializar desde hoy
+  // Inicializar desde el domingo de esta semana
   const [currentWeek, setCurrentWeek] = useState(() => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    return today;
+    // Calcular el domingo de esta semana (getDay() = 0 es domingo)
+    const dayOfWeek = today.getDay();
+    const startOfWeek = new Date(today);
+    startOfWeek.setDate(today.getDate() - dayOfWeek);
+    console.log('📅 Inicializando calendario desde domingo:', {
+      today: today.toISOString().split('T')[0],
+      dayOfWeek,
+      startOfWeek: startOfWeek.toISOString().split('T')[0]
+    });
+    return startOfWeek;
   });
   const [weekData, setWeekData] = useState<DayData[]>([]);
   const [cache, setCache] = useState<Map<string, DayData[]>>(new Map());
@@ -231,7 +241,7 @@ export function WideCalendar({
             {/* Header con días de la semana */}
             <div className="grid grid-cols-7 gap-2 mb-4">
               {weekData.map((day) => {
-                const today = new Date().toISOString().split('T')[0];
+                const today = formatLocalDate(new Date());
                 const isToday = day.date === today;
 
                 return (

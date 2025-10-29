@@ -135,7 +135,7 @@ export function useScheduleAvailability(professionalId: string) {
   }, [professionalId, supabase]);
 
   // Obtener bloqueos de disponibilidad para un rango de fechas (con caché)
-  const blocksCache = useRef<Map<string, Array<{id?: string; block_type: string; start_date: string; end_date?: string; start_time?: string; end_time?: string; day_of_week?: number; is_recurring?: boolean}>>>(new Map());
+  const blocksCache = useRef<Map<string, Array<{id?: string; title?: string; block_type: string; start_date: string; end_date?: string; start_time?: string; end_time?: string; day_of_week?: number; is_recurring?: boolean}>>>(new Map());
   
   const getAvailabilityBlocks = useCallback(async (startDate: string, endDate: string) => {
     const cacheKey = `${startDate}-${endDate}`;
@@ -258,7 +258,7 @@ export function useScheduleAvailability(professionalId: string) {
     date: string,
     workingHours: ProfessionalWorkingHours,
     existingAppointments: Array<{appointment_date: string; appointment_time: string; status: string}>,
-    availabilityBlocks: Array<{id?: string; block_type: string; start_date: string; end_date?: string; start_time?: string; end_time?: string; day_of_week?: number; is_recurring?: boolean}>
+    availabilityBlocks: Array<{id?: string; title?: string; block_type: string; start_date: string; end_date?: string; start_time?: string; end_time?: string; day_of_week?: number; is_recurring?: boolean}>
   ): Promise<TimeSlot[]> => {
     const timeSlots: TimeSlot[] = [];
     
@@ -358,14 +358,20 @@ export function useScheduleAvailability(professionalId: string) {
           // Recurrente: Aplica a todas las semanas después de start_date
           const applies = matchesDayOfWeek && currentDate >= blockStartDate;
           console.log('📅 Bloqueo de día completo (recurrente):', {
+            blockId: block.id?.substring(0, 8),
+            blockTitle: block.title,
             date: currentDate.toISOString().split('T')[0],
             jsDay,
             dayOfWeekCurrent,
             blockDayOfWeek: block.day_of_week,
+            matchesDayOfWeek,
             isRecurring: block.is_recurring,
-            applies,
             blockStartDate: blockStartDate.toISOString().split('T')[0],
-            isAfterStart: currentDate >= blockStartDate
+            isAfterStart: currentDate >= blockStartDate,
+            applies,
+            reason: !applies ? (
+              !matchesDayOfWeek ? 'Día no coincide' : 'Fecha anterior a start_date'
+            ) : 'OK'
           });
           return applies;
         } else {

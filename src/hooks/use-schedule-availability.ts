@@ -178,6 +178,14 @@ export function useScheduleAvailability(professionalId: string) {
       const blocks = data || [];
       console.log('📋 Bloqueos encontrados:', blocks);
       console.log('📋 Total de bloqueos:', blocks.length);
+      console.log('📋 Resumen de bloqueos cargados:', blocks.map(b => ({
+        id: b.id?.substring(0, 8),
+        type: b.block_type,
+        day_of_week: b.day_of_week,
+        is_recurring: b.is_recurring,
+        start_date: b.start_date,
+        title: b.title
+      })));
       
       // Filtrar bloqueos que se superponen con el rango de fechas
       const filteredBlocks = blocks.filter(block => {

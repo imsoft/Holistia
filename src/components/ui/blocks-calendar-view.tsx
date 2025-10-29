@@ -18,13 +18,12 @@ interface BlocksCalendarViewProps {
   onCreateBlock?: () => void;
 }
 
-export function BlocksCalendarView({ 
-  professionalId, 
-  onEditBlock, 
+export function BlocksCalendarView({
+  professionalId,
+  onEditBlock,
   onDeleteBlock,
-  onCreateBlock 
+  onCreateBlock
 }: BlocksCalendarViewProps) {
-  const supabase = createClient();
   const [blocks, setBlocks] = useState<AvailabilityBlock[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentMonth, setCurrentMonth] = useState(new Date());
@@ -32,6 +31,7 @@ export function BlocksCalendarView({
   // Cargar bloqueos
   const fetchBlocks = useCallback(async () => {
     try {
+      const supabase = createClient();
       const { data, error } = await supabase
         .from('availability_blocks')
         .select('*')
@@ -47,7 +47,7 @@ export function BlocksCalendarView({
     } finally {
       setLoading(false);
     }
-  }, [professionalId, supabase]);
+  }, [professionalId]);
 
   useEffect(() => {
     fetchBlocks();
@@ -194,13 +194,14 @@ export function BlocksCalendarView({
     }
 
     try {
+      const supabase = createClient();
       const { error } = await supabase
         .from('availability_blocks')
         .delete()
         .eq('id', blockId);
 
       if (error) throw error;
-      
+
       toast.success('Bloqueo eliminado correctamente');
       fetchBlocks();
       onDeleteBlock?.(blockId);

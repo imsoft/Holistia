@@ -39,6 +39,7 @@ export function BlocksCalendarView({
         .order('start_date', { ascending: true });
 
       if (error) throw error;
+      console.log('🔍 Blocks fetched:', data);
       setBlocks(data || []);
     } catch (error) {
       console.error('Error fetching blocks:', error);
@@ -116,7 +117,18 @@ export function BlocksCalendarView({
         return block.start_date <= date && (!block.end_date || block.end_date >= date);
       } else if (block.block_type === 'weekly_day') {
         // Bloqueo semanal de día completo
-        return block.day_of_week === dayOfWeekCurrent && block.start_date <= date;
+        const applies = block.day_of_week === dayOfWeekCurrent && block.start_date <= date;
+        if (date.startsWith('2025-11-')) {
+          console.log('📅 Checking weekly_day block:', {
+            date,
+            dayOfWeekCurrent,
+            blockDayOfWeek: block.day_of_week,
+            blockStartDate: block.start_date,
+            applies,
+            blockTitle: block.title
+          });
+        }
+        return applies;
       } else if (block.block_type === 'weekly_range') {
         // Bloqueo semanal de rango de horas
         const blockStartDate = new Date(block.start_date);

@@ -3,30 +3,9 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { MapPin, Navigation, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { AddressCacheEntry, MAP_CONFIG } from '@/types/google-maps';
-
-// Declaración global para Google Maps
-declare global {
-  interface Window {
-    google: {
-      maps: {
-        Map: new (element: HTMLElement, options: unknown) => unknown;
-        Marker: new (options: unknown) => unknown;
-        InfoWindow: new (options: unknown) => unknown;
-        Geocoder: new () => {
-          geocode: (request: { address: string }, callback: (results: unknown[], status: string) => void) => void;
-        };
-        MapTypeId: {
-          ROADMAP: string;
-        };
-        LatLng: new (lat: number, lng: number) => unknown;
-        LatLngBounds: new () => unknown;
-        Size: new (width: number, height: number) => unknown;
-        Point: new (x: number, y: number) => unknown;
-      };
-    };
-  }
-}
+import { AddressCacheEntry, MAP_CONFIG } from '@/types/mapbox';
+import mapboxgl from 'mapbox-gl';
+import 'mapbox-gl/dist/mapbox-gl.css';
 
 interface MapComponentProps {
   address: string;
@@ -87,12 +66,14 @@ class AddressCache {
 const addressCache = new AddressCache();
 
 export function MapComponent({ address, serviceName, className = '' }: MapComponentProps) {
-  const mapRef = useRef<HTMLDivElement>(null);
+  const mapContainerRef = useRef<HTMLDivElement>(null);
+  const mapRef = useRef<mapboxgl.Map | null>(null);
+  const markerRef = useRef<mapboxgl.Marker | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
   const [mapError, setMapError] = useState<string | null>(null);
   const [coordinates, setCoordinates] = useState<{ lat: number; lng: number } | null>(null);
 
-  // Función para geocodificar una dirección
+  // Función para geocodificar una dirección usando Mapbox Geocoding API
   const geocodeAddress = async (address: string): Promise<{ lat: number; lng: number } | null> => {
     try {
       // Verificar cache primero
@@ -104,29 +85,36 @@ export function MapComponent({ address, serviceName, className = '' }: MapCompon
 
       console.log('🌍 Geocoding address:', address);
 
-      // Usar la API de geocodificación de Google Maps
-      const geocoder = new window.google.maps.Geocoder();
-      
-      return new Promise((resolve, reject) => {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        geocoder.geocode({ address }, (results: any[], status: string) => {
-          if (status === 'OK' && results && results[0]) {
-            const location = results[0].geometry.location;
-            const coords = {
-              lat: location.lat(),
-              lng: location.lng()
-            };
-            
-            // Guardar en cache con información adicional
-            addressCache.set(address, coords, results[0].formatted_address);
-            console.log('✅ Address geocoded and cached:', results[0].formatted_address);
-            resolve(coords);
-          } else {
-            console.error('❌ Geocoding failed:', status, results);
-            reject(new Error(`Geocoding failed: ${status}`));
-          }
-        });
-      });
+      const apiKey = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
+      if (!apiKey) {
+        throw new Error('Mapbox access token no configurado');
+      }
+
+      // Usar la API de geocodificación de Mapbox
+      const response = await fetch(
+        `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(address)}.json?access_token=${apiKey}&limit=1&country=MX`
+      );
+
+      if (!response.ok) {
+        throw new Error(`Geocoding failed: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+
+      if (data.features && data.features.length > 0) {
+        const feature = data.features[0];
+        const coords = {
+          lng: feature.center[0],
+          lat: feature.center[1]
+        };
+
+        // Guardar en cache con información adicional
+        addressCache.set(address, coords, feature.place_name || address);
+        console.log('✅ Address geocoded and cached:', feature.place_name || address);
+        return coords;
+      } else {
+        throw new Error('No se encontraron resultados');
+      }
     } catch (error) {
       console.error('Error geocoding address:', error);
       return null;
@@ -135,76 +123,78 @@ export function MapComponent({ address, serviceName, className = '' }: MapCompon
 
   // Función para inicializar el mapa
   const initializeMap = useCallback(async () => {
-    if (!mapRef.current || !coordinates) return;
+    if (!mapContainerRef.current || !coordinates) return;
+
+    const apiKey = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
+    if (!apiKey) {
+      setMapError('Mapbox access token no configurado');
+      return;
+    }
 
     try {
-      const map = new window.google.maps.Map(mapRef.current, {
+      // Configurar el token de acceso
+      mapboxgl.accessToken = apiKey;
+
+      // Crear el mapa
+      const map = new mapboxgl.Map({
+        container: mapContainerRef.current,
+        style: 'mapbox://styles/mapbox/streets-v12',
+        center: [coordinates.lng, coordinates.lat],
         zoom: MAP_CONFIG.DEFAULT_ZOOM,
-        center: coordinates,
-        mapTypeId: window.google.maps.MapTypeId.ROADMAP,
-        styles: [
-          {
-            featureType: 'poi',
-            elementType: 'labels',
-            stylers: [{ visibility: 'off' }]
-          },
-          {
-            featureType: 'transit',
-            elementType: 'labels',
-            stylers: [{ visibility: 'off' }]
-          }
-        ],
-        gestureHandling: 'greedy',
-        disableDefaultUI: false,
-        zoomControl: true,
-        mapTypeControl: false,
-        scaleControl: true,
-        streetViewControl: false,
-        rotateControl: false,
-        fullscreenControl: true
+        attributionControl: false
       });
 
-      // Agregar marcador
-      new window.google.maps.Marker({
-        position: coordinates,
-        map: map,
-        title: serviceName,
-        icon: {
-          url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
-            <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <circle cx="16" cy="16" r="12" fill="#10b981" stroke="white" stroke-width="2"/>
-              <path d="M16 8C13.7909 8 12 9.79086 12 12C12 14.2091 13.7909 16 16 16C18.2091 16 20 14.2091 20 12C20 9.79086 18.2091 8 16 8Z" fill="white"/>
-            </svg>
-          `),
-          scaledSize: new window.google.maps.Size(32, 32),
-          anchor: new window.google.maps.Point(16, 32)
-        }
-      });
+      mapRef.current = map;
 
-      // Agregar info window
-      const infoWindow = new window.google.maps.InfoWindow({
-        content: `
+      // Crear elemento HTML personalizado para el marcador
+      const el = document.createElement('div');
+      el.className = 'custom-marker';
+      el.innerHTML = `
+        <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="16" cy="16" r="12" fill="#10b981" stroke="white" stroke-width="2"/>
+          <path d="M16 8C13.7909 8 12 9.79086 12 12C12 14.2091 13.7909 16 16 16C18.2091 16 20 14.2091 20 12C20 9.79086 18.2091 8 16 8Z" fill="white"/>
+        </svg>
+      `;
+      el.style.width = '32px';
+      el.style.height = '32px';
+      el.style.cursor = 'pointer';
+
+      // Crear marcador
+      const marker = new mapboxgl.Marker(el)
+        .setLngLat([coordinates.lng, coordinates.lat])
+        .addTo(map);
+
+      markerRef.current = marker;
+
+      // Crear popup
+      const popup = new mapboxgl.Popup({ offset: 25, closeOnClick: true })
+        .setHTML(`
           <div class="p-2">
             <h3 class="font-semibold text-gray-900">${serviceName}</h3>
             <p class="text-sm text-gray-600">${address}</p>
           </div>
-        `
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      }) as any;
+        `);
 
-      // Mostrar info window al hacer clic en el marcador
-      const marker = new window.google.maps.Marker({
-        position: coordinates,
-        map: map,
-        title: serviceName
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      }) as any;
+      marker.setPopup(popup);
 
-      marker.addListener('click', () => {
-        infoWindow.open(map, marker);
+      // Mostrar popup al hacer clic en el marcador
+      marker.getElement().addEventListener('click', () => {
+        popup.addTo(map);
       });
 
-      setMapLoaded(true);
+      // Esperar a que el mapa cargue completamente
+      map.on('load', () => {
+        setMapLoaded(true);
+      });
+
+      map.on('error', (e) => {
+        console.error('Map error:', e);
+        setMapError('Error al cargar el mapa');
+      });
+
+      // Agregar controles de navegación
+      map.addControl(new mapboxgl.NavigationControl(), 'top-right');
+      map.addControl(new mapboxgl.FullscreenControl(), 'top-right');
     } catch (error) {
       console.error('Error initializing map:', error);
       setMapError('Error al cargar el mapa');
@@ -240,23 +230,38 @@ export function MapComponent({ address, serviceName, className = '' }: MapCompon
     if (coordinates) {
       initializeMap();
     }
+
+    // Cleanup: destruir el mapa cuando el componente se desmonte
+    return () => {
+      if (markerRef.current) {
+        markerRef.current.remove();
+      }
+      if (mapRef.current) {
+        mapRef.current.remove();
+      }
+    };
   }, [coordinates, initializeMap]);
 
-  // Función para abrir en Google Maps
-  const openInGoogleMaps = () => {
+  // Función para abrir en Mapbox
+  const openInMapbox = () => {
     if (coordinates) {
-      const url = `https://www.google.com/maps?q=${coordinates.lat},${coordinates.lng}`;
+      const url = `https://www.mapbox.com/directions/?destination=${coordinates.lat},${coordinates.lng}`;
       window.open(url, '_blank');
     } else {
-      const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
+      const url = `https://www.mapbox.com/directions/?destination=${encodeURIComponent(address)}`;
       window.open(url, '_blank');
     }
   };
 
-  // Función para obtener direcciones
+  // Función para obtener direcciones (usando Google Maps como fallback ya que Mapbox no tiene direcciones web)
   const getDirections = () => {
-    const url = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(address)}`;
-    window.open(url, '_blank');
+    if (coordinates) {
+      const url = `https://www.google.com/maps/dir/?api=1&destination=${coordinates.lat},${coordinates.lng}`;
+      window.open(url, '_blank');
+    } else {
+      const url = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(address)}`;
+      window.open(url, '_blank');
+    }
   };
 
   if (mapError) {
@@ -269,11 +274,11 @@ export function MapComponent({ address, serviceName, className = '' }: MapCompon
           <Button
             variant="outline"
             size="sm"
-            onClick={openInGoogleMaps}
+            onClick={getDirections}
             className="flex items-center gap-2"
           >
             <ExternalLink className="w-4 h-4" />
-            Abrir en Google Maps
+            Abrir ubicación
           </Button>
         </div>
       </div>
@@ -293,11 +298,11 @@ export function MapComponent({ address, serviceName, className = '' }: MapCompon
       )}
 
       {/* Mapa */}
-      <div ref={mapRef} className="w-full h-full rounded-lg" />
+      <div ref={mapContainerRef} className="w-full h-full rounded-lg" />
 
       {/* Botones de acción */}
       {mapLoaded && (
-        <div className="absolute top-4 right-4 flex flex-col gap-2">
+        <div className="absolute top-4 right-4 flex flex-col gap-2 z-10">
           <Button
             variant="secondary"
             size="sm"
@@ -310,7 +315,7 @@ export function MapComponent({ address, serviceName, className = '' }: MapCompon
           <Button
             variant="secondary"
             size="sm"
-            onClick={openInGoogleMaps}
+            onClick={openInMapbox}
             className="flex items-center gap-2 shadow-lg"
           >
             <ExternalLink className="w-4 h-4" />
@@ -320,7 +325,7 @@ export function MapComponent({ address, serviceName, className = '' }: MapCompon
       )}
 
       {/* Información de la dirección */}
-      <div className="absolute bottom-4 left-4 right-4 bg-white/90 backdrop-blur-sm rounded-lg p-3 shadow-lg">
+      <div className="absolute bottom-4 left-4 right-4 bg-white/90 backdrop-blur-sm rounded-lg p-3 shadow-lg z-10">
         <div className="flex items-start gap-2">
           <MapPin className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
           <div className="min-w-0">

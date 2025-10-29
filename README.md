@@ -41,7 +41,7 @@ Plataforma integral de bienestar que conecta profesionales de la salud con perso
 - **Iconos:** Lucide React
 - **Editor:** Tiptap (editor de texto enriquecido)
 - **Formularios:** React Hook Form + Zod
-- **Mapas:** Mapbox GL + Google Maps
+- **Mapas:** Mapbox GL
 
 ### Backend
 - **Base de datos:** Supabase (PostgreSQL)

@@ -12,8 +12,8 @@ Bienvenido a la documentación técnica del proyecto Holistia - Plataforma de bi
 ### 🗺️ Mapas y Geolocalización
 | Documento | Descripción |
 |-----------|-------------|
+| **[MAPBOX_SETUP.md](./MAPBOX_SETUP.md)** | Configuración de Mapbox para servicios profesionales |
 | **[MAPBOX_PRODUCTION_SETUP.md](./MAPBOX_PRODUCTION_SETUP.md)** | Configuración de Mapbox para producción |
-| **[GOOGLE_MAPS_SETUP.md](./GOOGLE_MAPS_SETUP.md)** | Configuración de Google Maps (legacy) |
 
 ### 🔐 Autenticación
 | Documento | Descripción |
@@ -82,9 +82,9 @@ holistia/
 - [PROFESSIONAL_DASHBOARD.md](./PROFESSIONAL_DASHBOARD.md) - Dashboard del profesional
 - [EVENT_EMAIL_SYSTEM.md](./EVENT_EMAIL_SYSTEM.md) - Sistema de emails de eventos
 
-### 📍 Mapas (Legacy y Actual)
-- [MAPBOX_PRODUCTION_SETUP.md](./MAPBOX_PRODUCTION_SETUP.md) - **Actual** - Mapbox
-- [GOOGLE_MAPS_SETUP.md](./GOOGLE_MAPS_SETUP.md) - Legacy - Google Maps
+### 📍 Mapas y Geolocalización
+- [MAPBOX_SETUP.md](./MAPBOX_SETUP.md) - Configuración de Mapbox para servicios profesionales
+- [MAPBOX_PRODUCTION_SETUP.md](./MAPBOX_PRODUCTION_SETUP.md) - Configuración de Mapbox para producción
 
 ## 🔍 Recursos Adicionales
 

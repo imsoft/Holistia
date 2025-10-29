@@ -1,6 +1,5 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -20,53 +19,6 @@ interface MapModalProps {
 }
 
 export function MapModal({ open, onOpenChange, address, serviceName }: MapModalProps) {
-  const [isGoogleMapsLoaded, setIsGoogleMapsLoaded] = useState(false);
-
-  // Cargar Google Maps API solo cuando el modal se abre
-  useEffect(() => {
-    if (open && !isGoogleMapsLoaded) {
-      loadGoogleMapsAPI();
-    }
-  }, [open, isGoogleMapsLoaded]);
-
-  const loadGoogleMapsAPI = () => {
-    // Verificar si ya está cargada
-    if (window.google && window.google.maps) {
-      setIsGoogleMapsLoaded(true);
-      return;
-    }
-
-    // Verificar si ya se está cargando
-    if (document.querySelector('script[src*="maps.googleapis.com"]')) {
-      // Esperar a que termine de cargar
-      const checkLoaded = () => {
-        if (window.google && window.google.maps) {
-          setIsGoogleMapsLoaded(true);
-        } else {
-          setTimeout(checkLoaded, 100);
-        }
-      };
-      checkLoaded();
-      return;
-    }
-
-    // Cargar la API de Google Maps
-    const script = document.createElement('script');
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&libraries=places`;
-    script.async = true;
-    script.defer = true;
-    
-    script.onload = () => {
-      setIsGoogleMapsLoaded(true);
-    };
-    
-    script.onerror = () => {
-      console.error('Error loading Google Maps API');
-    };
-
-    document.head.appendChild(script);
-  };
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] p-0">
@@ -104,26 +56,19 @@ export function MapModal({ open, onOpenChange, address, serviceName }: MapModalP
 
           {/* Mapa */}
           <div className="h-96 w-full rounded-lg overflow-hidden border">
-            {isGoogleMapsLoaded ? (
+            {open && (
               <MapComponent
                 address={address}
                 serviceName={serviceName}
                 className="h-full w-full"
               />
-            ) : (
-              <div className="h-full w-full flex items-center justify-center bg-gray-100">
-                <div className="flex flex-col items-center gap-3">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                  <p className="text-sm text-gray-600">Cargando mapa...</p>
-                </div>
-              </div>
             )}
           </div>
 
           {/* Información adicional */}
           <div className="mt-4 text-xs text-gray-500 text-center">
             <p>
-              💡 <strong>Tip:</strong> Usa los botones en el mapa para obtener direcciones o abrir en Google Maps
+              💡 <strong>Tip:</strong> Usa los botones en el mapa para obtener direcciones o abrir la ubicación
             </p>
           </div>
         </div>

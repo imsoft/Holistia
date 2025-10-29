@@ -211,7 +211,8 @@ export function useScheduleAvailability(professionalId: string) {
       date,
       dayOfWeek,
       workingDays: workingHours.working_days,
-      isWorkingDay: workingHours.working_days.includes(dayOfWeek)
+      isWorkingDay: workingHours.working_days.includes(dayOfWeek),
+      dayName: ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'][selectedDate.getDay()]
     });
     
     if (!workingHours.working_days.includes(dayOfWeek)) {
@@ -459,6 +460,12 @@ export function useScheduleAvailability(professionalId: string) {
         workingHours.working_start_time = workingHours.working_start_time || '09:00';
         workingHours.working_end_time = workingHours.working_end_time || '18:00';
       }
+
+      console.log('🔧 Horarios de trabajo finales:', {
+        working_days: workingHours.working_days,
+        working_start_time: workingHours.working_start_time,
+        working_end_time: workingHours.working_end_time
+      });
 
       // Generar horarios para cada día
       const weekData = await Promise.all(dates.map(async day => ({

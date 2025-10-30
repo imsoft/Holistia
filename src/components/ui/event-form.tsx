@@ -161,6 +161,8 @@ export function EventForm({ event, professionals, onSuccess, onCancel }: EventFo
         name: event.name,
         duration_hours: displayDuration,
         duration_unit: durationUnit,
+        weekly_days: event.weekly_days || [],
+        weekly_hours_per_day: event.weekly_hours_per_day || undefined,
         session_type: event.session_type,
         price: event.price,
         is_free: event.is_free,
@@ -184,6 +186,14 @@ export function EventForm({ event, professionals, onSuccess, onCancel }: EventFo
       // Cargar la posición de imagen guardada
       if (event.image_position) {
         setCurrentImagePosition(event.image_position);
+      }
+
+      // Inicializar estado semanal si existe
+      if (event.weekly_days && event.weekly_days.length > 0) {
+        setWeeklyWeekdays(event.weekly_days);
+      }
+      if (event.weekly_hours_per_day && event.weekly_hours_per_day > 0) {
+        setWeeklyHoursPerDay(event.weekly_hours_per_day);
       }
     }
   }, [event]);
@@ -417,6 +427,8 @@ export function EventForm({ event, professionals, onSuccess, onCancel }: EventFo
       const eventData = {
         ...formData,
         duration_hours: durationInHours,
+        weekly_days: formData.duration_unit === 'weeks' ? weeklyWeekdays : null,
+        weekly_hours_per_day: formData.duration_unit === 'weeks' ? weeklyHoursPerDay : null,
         created_by: (await supabase.auth.getUser()).data.user?.id,
       };
 

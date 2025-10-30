@@ -3,6 +3,8 @@ export interface EventWorkshop {
   name: string;
   duration_hours: number;
   duration_unit?: "hours" | "days" | "weeks"; // Unidad de duración: horas, días o semanas
+  weekly_days?: number[]; // Días de la semana (0=Dom..6=Sáb) si es por semanas
+  weekly_hours_per_day?: number; // Horas por cada día seleccionado si es por semanas
   session_type: "unique" | "recurring";
   price: number;
   is_free: boolean;
@@ -37,6 +39,8 @@ export interface EventFormData {
   name: string;
   duration_hours: number;
   duration_unit: "hours" | "days" | "weeks"; // Unidad de duración: horas, días o semanas
+  weekly_days?: number[];
+  weekly_hours_per_day?: number;
   session_type: "unique" | "recurring";
   price: number;
   is_free: boolean;

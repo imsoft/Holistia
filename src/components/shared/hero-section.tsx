@@ -39,13 +39,13 @@ export const HeroSection = () => {
                       href="/signup"
                       className="rounded-md bg-primary px-3.5 py-2.5 text-sm font-semibold text-primary-foreground shadow-xs hover:bg-primary/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
                     >
-                      Registrate
+                      Crear cuenta
                     </Link>
                     <Link
-                      href="/blog"
+                      href="/signup"
                       className="text-sm/6 font-semibold text-foreground"
                     >
-                      Blog <span aria-hidden="true">→</span>
+                      Explorar expertos <span aria-hidden="true">→</span>
                     </Link>
                   </div>
                 </div>

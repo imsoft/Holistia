@@ -46,6 +46,17 @@ export function BlockCreatorTabs({
   });
   const [loading, setLoading] = useState(false);
 
+  // Días de la semana
+  const weekDays = [
+    { value: 1, label: 'Lunes' },
+    { value: 2, label: 'Martes' },
+    { value: 3, label: 'Miércoles' },
+    { value: 4, label: 'Jueves' },
+    { value: 5, label: 'Viernes' },
+    { value: 6, label: 'Sábado' },
+    { value: 7, label: 'Domingo' },
+  ];
+
   // Horas disponibles (de 0:00 a 23:00)
   const availableHours = Array.from({ length: 24 }, (_, i) => {
     const hour = i.toString().padStart(2, '0');
@@ -291,24 +302,60 @@ export function BlockCreatorTabs({
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="start_date">Fecha de inicio *</Label>
-                    <Input
-                      id="start_date"
-                      type="date"
-                      value={formData.start_date}
-                      onChange={(e) => handleInputChange('start_date', e.target.value)}
-                      className="mt-1"
-                    />
+                    <Label htmlFor="day_of_week_start">Día de inicio *</Label>
+                    <Select
+                      value={formData.start_date ? new Date(formData.start_date + 'T00:00:00').getDay().toString() : '1'}
+                      onValueChange={(value) => {
+                        const dayOfWeek = parseInt(value);
+                        const today = new Date();
+                        const targetDay = dayOfWeek === 0 ? 0 : dayOfWeek;
+                        const currentDay = today.getDay();
+                        let daysToAdd = targetDay - currentDay;
+                        if (daysToAdd < 0) daysToAdd += 7;
+                        const targetDate = new Date(today);
+                        targetDate.setDate(today.getDate() + daysToAdd);
+                        handleInputChange('start_date', targetDate.toISOString().split('T')[0]);
+                      }}
+                    >
+                      <SelectTrigger className="w-full mt-1">
+                        <SelectValue placeholder="Selecciona día" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {weekDays.map((day) => (
+                          <SelectItem key={day.value} value={day.value === 7 ? '0' : day.value.toString()}>
+                            {day.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div>
-                    <Label htmlFor="end_date">Fecha de fin *</Label>
-                    <Input
-                      id="end_date"
-                      type="date"
-                      value={formData.end_date}
-                      onChange={(e) => handleInputChange('end_date', e.target.value)}
-                      className="mt-1"
-                    />
+                    <Label htmlFor="day_of_week_end">Día de fin *</Label>
+                    <Select
+                      value={formData.end_date ? new Date(formData.end_date + 'T00:00:00').getDay().toString() : '5'}
+                      onValueChange={(value) => {
+                        const dayOfWeek = parseInt(value);
+                        const startDate = formData.start_date ? new Date(formData.start_date + 'T00:00:00') : new Date();
+                        const targetDay = dayOfWeek === 0 ? 0 : dayOfWeek;
+                        const startDay = startDate.getDay();
+                        let daysToAdd = targetDay - startDay;
+                        if (daysToAdd < 0) daysToAdd += 7;
+                        const targetDate = new Date(startDate);
+                        targetDate.setDate(startDate.getDate() + daysToAdd);
+                        handleInputChange('end_date', targetDate.toISOString().split('T')[0]);
+                      }}
+                    >
+                      <SelectTrigger className="w-full mt-1">
+                        <SelectValue placeholder="Selecciona día" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {weekDays.map((day) => (
+                          <SelectItem key={day.value} value={day.value === 7 ? '0' : day.value.toString()}>
+                            {day.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
 
@@ -360,6 +407,13 @@ export function BlockCreatorTabs({
                   <Label htmlFor="is_recurring_range">
                     Aplicar este rango todas las semanas
                   </Label>
+                </div>
+
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <p className="text-sm text-blue-800">
+                    <strong>Nota:</strong> Este tipo de bloqueo bloqueará las horas seleccionadas dentro del rango de días de la semana. Por ejemplo, de Lunes a Viernes de 12:00 a 14:00.
+                    {formData.is_recurring && ' Si está marcado como recurrente, se aplicará todas las semanas.'}
+                  </p>
                 </div>
               </div>
             </TabsContent>

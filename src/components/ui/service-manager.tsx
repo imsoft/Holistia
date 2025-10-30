@@ -317,36 +317,17 @@ export function ServiceManager({ professionalId, userId }: ServiceManagerProps) 
               </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="name">Nombre del Servicio *</Label>
-                  <Input
-                    id="name"
-                    value={formData.name}
-                    onChange={(e) =>
-                      setFormData({ ...formData, name: e.target.value })
-                    }
-                    placeholder="Ej: Consulta de Psicología"
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="type">Tipo de Servicio *</Label>
-                  <Select
-                    value={formData.type}
-                    onValueChange={(value: "session" | "program") =>
-                      setFormData({ ...formData, type: value })
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="session">Sesión Individual</SelectItem>
-                      <SelectItem value="program">Programa/Paquete</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+              <div className="space-y-2">
+                <Label htmlFor="name">Nombre del Servicio *</Label>
+                <Input
+                  id="name"
+                  value={formData.name}
+                  onChange={(e) =>
+                    setFormData({ ...formData, name: e.target.value })
+                  }
+                  placeholder="Ej: Consulta de Psicología"
+                  required
+                />
               </div>
 
               <div className="space-y-2">
@@ -362,75 +343,92 @@ export function ServiceManager({ professionalId, userId }: ServiceManagerProps) 
                 />
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="modality">Modalidad *</Label>
+                <Select
+                  value={formData.modality}
+                  onValueChange={(value: "presencial" | "online" | "both") =>
+                    setFormData({ ...formData, modality: value })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="presencial">Solo Presencial</SelectItem>
+                    <SelectItem value="online">Solo En Línea</SelectItem>
+                    <SelectItem value="both">Presencial y En Línea</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {formData.type === "session" ? (
                 <div className="space-y-2">
-                  <Label htmlFor="modality">Modalidad *</Label>
-                  <Select
-                    value={formData.modality}
-                    onValueChange={(value: "presencial" | "online" | "both") =>
-                      setFormData({ ...formData, modality: value })
+                  <Label htmlFor="duration">Duración (minutos) *</Label>
+                  <Input
+                    id="duration"
+                    type="number"
+                    value={formData.duration}
+                    onChange={(e) =>
+                      setFormData({ ...formData, duration: parseInt(e.target.value) || 0 })
                     }
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="presencial">Solo Presencial</SelectItem>
-                      <SelectItem value="online">Solo En Línea</SelectItem>
-                      <SelectItem value="both">Presencial y En Línea</SelectItem>
-                    </SelectContent>
-                  </Select>
+                    placeholder="60"
+                    min="15"
+                    max="480"
+                    required
+                  />
                 </div>
-                {formData.type === "session" ? (
-                  <div className="space-y-2">
-                    <Label htmlFor="duration">Duración (minutos) *</Label>
+              ) : (
+                <div className="space-y-2">
+                  <Label>Duración del Programa *</Label>
+                  <div className="flex gap-2">
                     <Input
-                      id="duration"
                       type="number"
-                      value={formData.duration}
+                      value={programDuration.value}
                       onChange={(e) =>
-                        setFormData({ ...formData, duration: parseInt(e.target.value) || 0 })
+                        setProgramDuration({ ...programDuration, value: parseInt(e.target.value) || 1 })
                       }
-                      placeholder="60"
-                      min="15"
-                      max="480"
+                      placeholder="1"
+                      min="1"
+                      className="flex-1"
                       required
                     />
+                    <Select
+                      value={programDuration.unit}
+                      onValueChange={(value: "meses" | "semanas" | "dias" | "horas") =>
+                        setProgramDuration({ ...programDuration, unit: value })
+                      }
+                    >
+                      <SelectTrigger className="w-32">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="horas">Horas</SelectItem>
+                        <SelectItem value="dias">Días</SelectItem>
+                        <SelectItem value="semanas">Semanas</SelectItem>
+                        <SelectItem value="meses">Meses</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
-                ) : (
-                  <div className="space-y-2">
-                    <Label>Duración del Programa *</Label>
-                    <div className="flex gap-2">
-                      <Input
-                        type="number"
-                        value={programDuration.value}
-                        onChange={(e) =>
-                          setProgramDuration({ ...programDuration, value: parseInt(e.target.value) || 1 })
-                        }
-                        placeholder="1"
-                        min="1"
-                        className="flex-1"
-                        required
-                      />
-                      <Select
-                        value={programDuration.unit}
-                        onValueChange={(value: "meses" | "semanas" | "dias" | "horas") =>
-                          setProgramDuration({ ...programDuration, unit: value })
-                        }
-                      >
-                        <SelectTrigger className="w-32">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="horas">Horas</SelectItem>
-                          <SelectItem value="dias">Días</SelectItem>
-                          <SelectItem value="semanas">Semanas</SelectItem>
-                          <SelectItem value="meses">Meses</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                )}
+                </div>
+              )}
+
+              <div className="space-y-2">
+                <Label htmlFor="type">Tipo de Servicio *</Label>
+                <Select
+                  value={formData.type}
+                  onValueChange={(value: "session" | "program") =>
+                    setFormData({ ...formData, type: value })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="session">Sesión Individual</SelectItem>
+                    <SelectItem value="program">Programa/Paquete</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="space-y-2">

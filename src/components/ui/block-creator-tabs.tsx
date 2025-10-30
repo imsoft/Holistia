@@ -432,7 +432,7 @@ export function BlockCreatorTabs({
                       value={formData.start_time}
                       onValueChange={(value) => handleInputChange('start_time', value)}
                     >
-                      <SelectTrigger className="mt-1">
+                      <SelectTrigger className="w-full mt-1">
                         <SelectValue placeholder="Selecciona hora" />
                       </SelectTrigger>
                       <SelectContent>
@@ -450,7 +450,7 @@ export function BlockCreatorTabs({
                       value={formData.end_time}
                       onValueChange={(value) => handleInputChange('end_time', value)}
                     >
-                      <SelectTrigger className="mt-1">
+                      <SelectTrigger className="w-full mt-1">
                         <SelectValue placeholder="Selecciona hora" />
                       </SelectTrigger>
                       <SelectContent>

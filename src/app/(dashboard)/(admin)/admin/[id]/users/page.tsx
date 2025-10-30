@@ -648,7 +648,7 @@ export default function AdminUsers() {
                         >
                           {getStripeStatusIcon(user.stripeAccountStatus || 'not_connected')}
                           <span className="text-xs">
-                            {user.stripeConnected ? 'Stripe' : 'Sin Stripe'}
+                            {user.stripeConnected ? 'Vinculado con Stripe' : 'Sin vincular Stripe'}
                           </span>
                         </Badge>
                       )}

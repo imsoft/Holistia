@@ -293,7 +293,7 @@ export function BlockCreatorTabs({
                     value={formData.day_of_week?.toString()}
                     onValueChange={(value) => handleInputChange('day_of_week', parseInt(value))}
                   >
-                    <SelectTrigger className="mt-1">
+                    <SelectTrigger className="w-full mt-1">
                       <SelectValue placeholder="Selecciona un día" />
                     </SelectTrigger>
                     <SelectContent>

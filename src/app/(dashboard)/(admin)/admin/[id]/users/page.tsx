@@ -80,35 +80,35 @@ export default function AdminUsers() {
         const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
         const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
 
-        // Obtener usuarios desde professional_applications y datos comparativos
+        // Obtener TODOS los usuarios desde la tabla profiles
         const [
-          { data: professionalUsers, error: professionalError },
-          { data: lastMonthUsers }
+          { data: allProfiles, error: profilesError },
+          { data: lastMonthProfiles }
         ] = await Promise.all([
           supabase
-            .from('professional_applications')
-            .select('user_id, first_name, last_name, email, phone, city, state, status, submitted_at, reviewed_at, profile_photo'),
+            .from('profiles')
+            .select('id, first_name, last_name, email, phone, avatar_url, type, created_at, updated_at, account_status'),
           supabase
-            .from('professional_applications')
-            .select('user_id, first_name, last_name, email, phone, city, state, status, submitted_at, reviewed_at, profile_photo')
-            .gte('submitted_at', lastMonthStart.toISOString())
-            .lte('submitted_at', lastMonthEnd.toISOString())
+            .from('profiles')
+            .select('id')
+            .gte('created_at', lastMonthStart.toISOString())
+            .lte('created_at', lastMonthEnd.toISOString())
         ]);
 
-        if (professionalError) {
-          console.error('Error fetching professional users:', professionalError);
+        if (profilesError) {
+          console.error('Error fetching users:', profilesError);
           setUsers([]);
           return;
         }
 
         // Transformar usuarios a nuestro formato
         const transformedUsers: User[] = await Promise.all(
-          (professionalUsers || []).map(async (prof) => {
-            // Obtener información del perfil desde la tabla profiles
-            const { data: profileData } = await supabase
-              .from('profiles')
-              .select('account_status')
-              .eq('id', prof.user_id)
+          (allProfiles || []).map(async (profile) => {
+            // Verificar si tiene solicitud profesional
+            const { data: professionalApp } = await supabase
+              .from('professional_applications')
+              .select('city, state, status, submitted_at')
+              .eq('user_id', profile.id)
               .single();
 
             // Obtener número total de citas del usuario (como paciente o como profesional)
@@ -119,54 +119,51 @@ export default function AdminUsers() {
               supabase
                 .from('appointments')
                 .select('id')
-                .eq('patient_id', prof.user_id),
+                .eq('patient_id', profile.id),
               supabase
                 .from('appointments')
                 .select('id')
-                .eq('professional_id', prof.user_id)
+                .eq('professional_id', profile.id)
             ]);
 
             const appointmentsCount = (asPatient?.length || 0) + (asProfessional?.length || 0);
 
-            // Usar la foto de perfil de la solicitud profesional
-            const avatarUrl = prof.profile_photo;
-
-            // Usar el estado de la cuenta desde la tabla profiles
+            // Determinar el estado del usuario
             let status: 'active' | 'inactive' | 'suspended' = 'active';
-            if (profileData?.account_status) {
-              status = profileData.account_status as 'active' | 'inactive' | 'suspended';
-            } else if (prof.status === 'rejected') {
-              status = 'inactive';
+            if (profile.account_status) {
+              status = profile.account_status as 'active' | 'inactive' | 'suspended';
             }
 
             // Determinar el tipo de usuario
-            let userType: 'user' | 'professional' | 'admin' | 'patient' = 'patient';
-            if (prof.status === 'approved') {
+            let userType: 'user' | 'professional' | 'admin' | 'patient' = profile.type || 'patient';
+            if (professionalApp && professionalApp.status === 'approved') {
               userType = 'professional';
             }
 
-            // Construir ubicación desde city y state
+            // Construir ubicación desde professional_applications si existe
             let location = 'No especificada';
-            if (prof.city && prof.state) {
-              location = `${prof.city}, ${prof.state}`;
-            } else if (prof.city) {
-              location = prof.city;
-            } else if (prof.state) {
-              location = prof.state;
+            if (professionalApp) {
+              if (professionalApp.city && professionalApp.state) {
+                location = `${professionalApp.city}, ${professionalApp.state}`;
+              } else if (professionalApp.city) {
+                location = professionalApp.city;
+              } else if (professionalApp.state) {
+                location = professionalApp.state;
+              }
             }
 
             return {
-              id: prof.user_id,
-              name: `${prof.first_name} ${prof.last_name}`,
-              email: prof.email,
-              phone: prof.phone,
+              id: profile.id,
+              name: `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || 'Sin nombre',
+              email: profile.email,
+              phone: profile.phone || '',
               location,
               status,
               type: userType,
-              joinDate: prof.submitted_at,
-              lastLogin: prof.reviewed_at || prof.submitted_at,
+              joinDate: profile.created_at,
+              lastLogin: profile.updated_at || profile.created_at,
               appointments: appointmentsCount || 0,
-              avatar: avatarUrl,
+              avatar: profile.avatar_url || '',
             };
           })
         );
@@ -174,16 +171,16 @@ export default function AdminUsers() {
         setUsers(transformedUsers);
 
         // Calcular estadísticas para el dashboard
-        const thisMonthUsers = professionalUsers?.filter(user => {
-          const submittedAt = new Date(user.submitted_at);
-          return submittedAt >= currentMonthStart;
+        const thisMonthUsers = allProfiles?.filter(user => {
+          const createdAt = new Date(user.created_at);
+          return createdAt >= currentMonthStart;
         }).length || 0;
 
         const totalAppointments = transformedUsers.reduce((acc, user) => acc + (user.appointments || 0), 0);
 
         setStatsData({
           totalThisMonth: thisMonthUsers,
-          lastMonth: lastMonthUsers?.length || 0,
+          lastMonth: lastMonthProfiles?.length || 0,
           totalAppointments
         });
 

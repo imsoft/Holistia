@@ -2,7 +2,7 @@ export interface EventWorkshop {
   id?: string;
   name: string;
   duration_hours: number;
-  duration_unit?: "hours" | "days"; // Unidad de duración: horas o días
+  duration_unit?: "hours" | "days" | "weeks"; // Unidad de duración: horas, días o semanas
   session_type: "unique" | "recurring";
   price: number;
   is_free: boolean;
@@ -36,7 +36,7 @@ export interface EventWorkshop {
 export interface EventFormData {
   name: string;
   duration_hours: number;
-  duration_unit: "hours" | "days"; // Unidad de duración: horas o días
+  duration_unit: "hours" | "days" | "weeks"; // Unidad de duración: horas, días o semanas
   session_type: "unique" | "recurring";
   price: number;
   is_free: boolean;
@@ -94,6 +94,7 @@ export const OWNER_TYPES = [
 export const DURATION_UNITS = [
   { value: "hours", label: "Horas" },
   { value: "days", label: "Días" },
+  { value: "weeks", label: "Semanas" },
 ] as const;
 
 export interface EventOwner {

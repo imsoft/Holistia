@@ -149,9 +149,11 @@ export function EventForm({ event, professionals, onSuccess, onCancel }: EventFo
       const durationUnit = event.duration_unit || "hours";
       let displayDuration = event.duration_hours;
       
-      // Si la unidad es días, convertir horas a días para mostrar
+      // Convertir horas a la unidad seleccionada para mostrar
       if (durationUnit === "days") {
         displayDuration = Math.round(event.duration_hours / 24);
+      } else if (durationUnit === "weeks") {
+        displayDuration = Math.round(event.duration_hours / (24 * 7));
       }
       
       setFormData({
@@ -380,10 +382,12 @@ export function EventForm({ event, professionals, onSuccess, onCancel }: EventFo
     try {
       setSaving(true);
       
-      // Convertir días a horas si es necesario
+      // Convertir la unidad seleccionada a horas si es necesario
       const durationInHours = formData.duration_unit === "days" 
         ? formData.duration_hours * 24 
-        : formData.duration_hours;
+        : formData.duration_unit === "weeks"
+          ? formData.duration_hours * 24 * 7
+          : formData.duration_hours;
       
       const eventData = {
         ...formData,
@@ -484,7 +488,7 @@ export function EventForm({ event, professionals, onSuccess, onCancel }: EventFo
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="duration_hours">
-                Duración ({formData.duration_unit === "hours" ? "horas" : "días"}) *
+                Duración ({formData.duration_unit === "hours" ? "horas" : formData.duration_unit === "days" ? "días" : "semanas"}) *
               </Label>
               <Input
                 id="duration_hours"
@@ -493,7 +497,7 @@ export function EventForm({ event, professionals, onSuccess, onCancel }: EventFo
                 onChange={(e) => handleInputChange('duration_hours', e.target.value === '' ? 0 : parseInt(e.target.value))}
                 onFocus={(e) => e.target.select()}
                 min="1"
-                max={formData.duration_unit === "hours" ? "24" : "30"}
+                max={formData.duration_unit === "hours" ? "24" : formData.duration_unit === "days" ? "30" : "52"}
                 className={errors.duration_hours ? "border-red-500" : ""}
               />
               {errors.duration_hours && <p className="text-sm text-red-500">{errors.duration_hours}</p>}
@@ -504,12 +508,14 @@ export function EventForm({ event, professionals, onSuccess, onCancel }: EventFo
               <Select
                 value={formData.duration_unit}
                 onValueChange={(value) => {
-                  handleInputChange('duration_unit', value as "hours" | "days");
+                  handleInputChange('duration_unit', value as "hours" | "days" | "weeks");
                   // Ajustar el valor de duración si cambia la unidad
                   if (value === "days" && formData.duration_hours > 30) {
                     handleInputChange('duration_hours', 30);
                   } else if (value === "hours" && formData.duration_hours > 24) {
                     handleInputChange('duration_hours', 24);
+                  } else if (value === "weeks" && formData.duration_hours > 52) {
+                    handleInputChange('duration_hours', 52);
                   }
                 }}
               >

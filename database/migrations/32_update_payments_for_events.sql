@@ -15,7 +15,7 @@ ALTER TABLE public.payments
 ALTER COLUMN professional_id DROP NOT NULL;
 
 -- Update commission percentage to support different rates
--- Events will use 25%, appointments will continue using 15%
+-- Events will use 20%, appointments will continue using 15%
 ALTER TABLE public.payments 
 ALTER COLUMN commission_percentage DROP DEFAULT;
 

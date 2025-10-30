@@ -51,7 +51,7 @@ Plataforma integral de bienestar que conecta profesionales de la salud con perso
 - **Seguridad:** Row-Level Security (RLS) en Supabase
 
 ### Integraciones
-- **Pagos:** Stripe + Stripe Connect (comisiones: 15% citas, 25% eventos)
+- **Pagos:** Stripe + Stripe Connect (comisiones: 15% citas, 20% eventos)
 - **Email:** Resend API + React Email
 - **Analytics:** Vercel Analytics + Google Analytics 4
 - **Maps:** Mapbox GL para visualización de ubicaciones
@@ -163,7 +163,7 @@ pnpm run start
 ### Registro a Evento
 1. El usuario descubre un evento
 2. Se registra y proporciona detalles
-3. Procesa el pago (comisión del 25%)
+3. Procesa el pago (comisión del 20%)
 4. Recibe código de confirmación por email
 
 ### Onboarding de Profesional

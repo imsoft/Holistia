@@ -124,12 +124,12 @@ export default function FinancesPage() {
     };
   };
 
-  // Función para calcular valores de eventos (25% comisión con Connect)
+  // Función para calcular valores de eventos (20% comisión con Connect)
   const calculateEventValues = (amount: number) => {
     const stripeBase = (amount * 0.036) + 3;
     const stripeTax = stripeBase * 0.16;
     const stripeTotal = stripeBase + stripeTax;
-    const platformFee = amount * 0.25; // 25% para eventos
+    const platformFee = amount * 0.20; // 20% para eventos
     const netIncome = platformFee - stripeTotal;
     const professionalReceives = amount - platformFee;
 
@@ -938,10 +938,10 @@ export default function FinancesPage() {
           <CardHeader>
             <CardTitle className="text-purple-900 dark:text-purple-100 flex items-center gap-2">
               <CalendarDays className="h-5 w-5" />
-              Cálculo para Eventos (25% comisión con Connect)
+              Cálculo para Eventos (20% comisión con Connect)
             </CardTitle>
             <CardDescription className="text-purple-800 dark:text-purple-200">
-              Eventos con comisión del 25% y procesamiento con Stripe Connect
+              Eventos con comisión del 20% y procesamiento con Stripe Connect
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -966,7 +966,7 @@ export default function FinancesPage() {
                   </div>
                 </div>
                 <div className="text-xs text-muted-foreground">
-                  Comisión: 25% + Stripe Connect
+                  Comisión: 20% + Stripe Connect
                 </div>
               </div>
 
@@ -1020,7 +1020,7 @@ export default function FinancesPage() {
                 <div className="flex items-center justify-between p-2 bg-purple-50 dark:bg-purple-950/20 rounded border-l-4 border-purple-500">
                   <div className="flex items-center gap-2">
                     <Wallet className="h-4 w-4 text-purple-600" />
-                    <span className="text-sm">Comisión plataforma (25%)</span>
+                    <span className="text-sm">Comisión plataforma (20%)</span>
                   </div>
                   <span className="text-sm font-bold text-purple-600">${calculateEventValues(eventAmount).platformFee.toFixed(2)}</span>
                 </div>
@@ -1066,7 +1066,7 @@ export default function FinancesPage() {
                 </h3>
                 <div className="text-xs text-blue-800 dark:text-blue-200 space-y-1">
                   <p>• <strong>Citas:</strong> 15% comisión + Stripe Connect (3.6% + $3 + IVA)</p>
-                  <p>• <strong>Eventos:</strong> 25% comisión + Stripe Connect (3.6% + $3 + IVA)</p>
+                  <p>• <strong>Eventos:</strong> 20% comisión + Stripe Connect (3.6% + $3 + IVA)</p>
                   <p>• <strong>Inscripciones:</strong> Sin comisión Holistia + Stripe (3.6% + $3 + IVA)</p>
                   <p>• <strong>Impuestos:</strong> IVA del 16% solo sobre comisiones de Stripe</p>
                   <p>• <strong>Ingreso neto:</strong> Comisiones de plataforma - Costos de Stripe</p>

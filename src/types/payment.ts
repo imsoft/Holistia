@@ -39,7 +39,7 @@ export interface CreatePaymentData {
   patient_id: string;
   professional_id?: string;
   description?: string;
-  commission_percentage?: number; // Default 15% for appointments, 25% for events
+  commission_percentage?: number; // Default 15% for appointments, 20% for events
 }
 
 export interface CreateEventPaymentData {

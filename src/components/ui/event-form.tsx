@@ -513,7 +513,7 @@ export function EventForm({ event, professionals, onSuccess, onCancel }: EventFo
                   }
                 }}
               >
-                <SelectTrigger className={errors.duration_unit ? "border-red-500" : ""}>
+                <SelectTrigger className={errors.duration_unit ? "w-full border-red-500" : "w-full"}>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -702,7 +702,7 @@ export function EventForm({ event, professionals, onSuccess, onCancel }: EventFo
               value={formData.category}
               onValueChange={(value: "espiritualidad" | "salud_mental" | "salud_fisica" | "alimentacion" | "social") => handleInputChange('category', value)}
             >
-              <SelectTrigger>
+              <SelectTrigger className="w-full">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -721,7 +721,7 @@ export function EventForm({ event, professionals, onSuccess, onCancel }: EventFo
               value={formData.participant_level}
               onValueChange={(value: "principiante" | "medio" | "avanzado") => handleInputChange('participant_level', value)}
             >
-              <SelectTrigger>
+              <SelectTrigger className="w-full">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -748,7 +748,7 @@ export function EventForm({ event, professionals, onSuccess, onCancel }: EventFo
               value={formData.professional_id}
               onValueChange={(value) => handleInputChange('professional_id', value)}
             >
-              <SelectTrigger className={errors.professional_id ? "border-red-500" : ""}>
+              <SelectTrigger className={errors.professional_id ? "w-full border-red-500" : "w-full"}>
                 <SelectValue placeholder="Selecciona un profesional" />
               </SelectTrigger>
               <SelectContent>
@@ -780,7 +780,7 @@ export function EventForm({ event, professionals, onSuccess, onCancel }: EventFo
                 handleInputChange('owner_id', '');
               }}
             >
-              <SelectTrigger>
+              <SelectTrigger className="w-full">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -800,7 +800,7 @@ export function EventForm({ event, professionals, onSuccess, onCancel }: EventFo
               onValueChange={(value) => handleInputChange('owner_id', value)}
               disabled={loadingOwners}
             >
-              <SelectTrigger className={errors.owner_id ? "border-red-500" : ""}>
+              <SelectTrigger className={errors.owner_id ? "w-full border-red-500" : "w-full"}>
                 <SelectValue placeholder={loadingOwners ? "Cargando usuarios..." : "Selecciona el dueño del evento"} />
               </SelectTrigger>
               <SelectContent>

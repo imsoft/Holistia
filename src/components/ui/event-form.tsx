@@ -481,7 +481,7 @@ export function EventForm({ event, professionals, onSuccess, onCancel }: EventFo
             {errors.name && <p className="text-sm text-red-500">{errors.name}</p>}
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="duration_hours">
                 Duración ({formData.duration_unit === "hours" ? "horas" : "días"}) *
@@ -526,25 +526,25 @@ export function EventForm({ event, professionals, onSuccess, onCancel }: EventFo
               </Select>
               {errors.duration_unit && <p className="text-sm text-red-500">{errors.duration_unit}</p>}
             </div>
+          </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="session_type">Tipo de Experiencia *</Label>
-              <Select
-                value={formData.session_type}
-                onValueChange={(value: "unique" | "recurring") => handleInputChange('session_type', value)}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {SESSION_TYPES.map((type) => (
-                    <SelectItem key={type.value} value={type.value}>
-                      {type.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+          <div className="space-y-2">
+            <Label htmlFor="session_type">Tipo de Experiencia *</Label>
+            <Select
+              value={formData.session_type}
+              onValueChange={(value: "unique" | "recurring") => handleInputChange('session_type', value)}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {SESSION_TYPES.map((type) => (
+                  <SelectItem key={type.value} value={type.value}>
+                    {type.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="space-y-2">

@@ -71,7 +71,10 @@ export function BlockCreatorTabs({
         day_of_week: editingBlock.day_of_week || 1,
         is_recurring: editingBlock.is_recurring,
       });
-      setActiveTab(editingBlock.block_type === 'weekly_day' ? 'weekly_day' : 'weekly_range');
+      let tab = 'weekly_day';
+      if (editingBlock.block_type === 'weekly_range') tab = 'weekly_range';
+      else if (editingBlock.block_type === 'full_day') tab = 'full_day';
+      setActiveTab(tab);
     }
   }, [editingBlock]);
 
@@ -84,9 +87,13 @@ export function BlockCreatorTabs({
 
   const handleTabChange = (value: string) => {
     setActiveTab(value);
+    let blockType: 'weekly_day' | 'weekly_range' | 'full_day' = 'weekly_day';
+    if (value === 'weekly_range') blockType = 'weekly_range';
+    else if (value === 'full_day') blockType = 'full_day';
+
     setFormData(prev => ({
       ...prev,
-      block_type: value === 'weekly_day' ? 'weekly_day' : 'weekly_range'
+      block_type: blockType
     }));
   };
 
@@ -99,6 +106,15 @@ export function BlockCreatorTabs({
     if (activeTab === 'weekly_day') {
       if (!formData.day_of_week) {
         toast.error('Selecciona un día de la semana');
+        return false;
+      }
+    } else if (activeTab === 'full_day') {
+      if (!formData.start_date || !formData.end_date) {
+        toast.error('Las fechas de inicio y fin son obligatorias');
+        return false;
+      }
+      if (new Date(formData.start_date) > new Date(formData.end_date)) {
+        toast.error('La fecha de inicio debe ser anterior a la fecha de fin');
         return false;
       }
     } else {
@@ -137,7 +153,7 @@ export function BlockCreatorTabs({
         is_recurring: formData.is_recurring,
       };
 
-      // Solo agregar campos de fecha si no son "weekly_day"
+      // Agregar campos específicos según el tipo de bloqueo
       if (formData.block_type === 'weekly_day') {
         blockData.day_of_week = formData.day_of_week;
 
@@ -175,7 +191,13 @@ export function BlockCreatorTabs({
             calculatedDate: blockData.start_date
           });
         }
+      } else if (formData.block_type === 'full_day') {
+        // Rango de fechas completo (bloquea todos los días del rango, todo el día)
+        blockData.start_date = formData.start_date;
+        blockData.end_date = formData.end_date;
+        // No lleva day_of_week, start_time ni end_time
       } else if (formData.block_type === 'weekly_range') {
+        // Rango de horas dentro de días específicos
         blockData.start_date = formData.start_date;
         blockData.end_date = formData.end_date;
         blockData.start_time = formData.start_time;
@@ -227,8 +249,9 @@ export function BlockCreatorTabs({
         </CardHeader>
         <CardContent className="py-4">
           <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="weekly_day">Día Completo</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="weekly_day">Día Semanal</TabsTrigger>
+              <TabsTrigger value="full_day">Rango de Fechas</TabsTrigger>
               <TabsTrigger value="weekly_range">Rango de Horas</TabsTrigger>
             </TabsList>
 
@@ -286,6 +309,63 @@ export function BlockCreatorTabs({
                   <Label htmlFor="is_recurring_day">
                     Aplicar este bloqueo todas las semanas
                   </Label>
+                </div>
+              </div>
+            </TabsContent>
+
+            {/* Tab: Rango de Fechas Completo */}
+            <TabsContent value="full_day" className="space-y-4 mt-6">
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="title_fullday">Título del bloqueo *</Label>
+                  <Input
+                    id="title_fullday"
+                    value={formData.title}
+                    onChange={(e) => handleInputChange('title', e.target.value)}
+                    placeholder="Ej: Vacaciones"
+                    className="mt-1"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="description_fullday">Descripción (opcional)</Label>
+                  <Textarea
+                    id="description_fullday"
+                    value={formData.description}
+                    onChange={(e) => handleInputChange('description', e.target.value)}
+                    placeholder="Describe el motivo del bloqueo..."
+                    className="mt-1"
+                    rows={3}
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="start_date_fullday">Fecha de inicio *</Label>
+                    <Input
+                      id="start_date_fullday"
+                      type="date"
+                      value={formData.start_date}
+                      onChange={(e) => handleInputChange('start_date', e.target.value)}
+                      className="mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="end_date_fullday">Fecha de fin *</Label>
+                    <Input
+                      id="end_date_fullday"
+                      type="date"
+                      value={formData.end_date}
+                      onChange={(e) => handleInputChange('end_date', e.target.value)}
+                      className="mt-1"
+                    />
+                  </div>
+                </div>
+
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <p className="text-sm text-blue-800">
+                    <strong>Nota:</strong> Este tipo de bloqueo bloqueará <strong>todos los días</strong> desde la fecha de inicio hasta la fecha de fin, incluyendo todas las horas del día.
+                  </p>
                 </div>
               </div>
             </TabsContent>

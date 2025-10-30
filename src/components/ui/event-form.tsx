@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { EventFormData, EventWorkshop, Professional, EventOwner, EVENT_CATEGORIES, SESSION_TYPES, PARTICIPANT_LEVELS, OWNER_TYPES, DURATION_UNITS } from "@/types/event";
 import { createClient } from "@/utils/supabase/client";
 import { toast } from "sonner";
@@ -186,6 +187,27 @@ export function EventForm({ event, professionals, onSuccess, onCancel }: EventFo
       }
     }
   }, [event]);
+
+  // Estado para modo por semanas
+  const [weeklyWeekdays, setWeeklyWeekdays] = useState<number[]>([]); // 0=Dom, 6=Sáb
+  const [weeklyHoursPerDay, setWeeklyHoursPerDay] = useState<number>(2);
+
+  // Si está en semanas y hay fecha de inicio, sugerir fecha fin automáticamente
+  useEffect(() => {
+    if (formData.duration_unit === "weeks" && formData.event_date) {
+      const weeksCount = Math.max(1, formData.duration_hours || 1);
+      const start = new Date(`${formData.event_date}T00:00:00`);
+      const end = new Date(start);
+      end.setDate(start.getDate() + weeksCount * 7 - 1);
+      const yyyy = end.getFullYear();
+      const mm = String(end.getMonth() + 1).padStart(2, '0');
+      const dd = String(end.getDate()).padStart(2, '0');
+      const suggested = `${yyyy}-${mm}-${dd}`;
+      if (formData.end_date !== suggested) {
+        handleInputChange('end_date', suggested);
+      }
+    }
+  }, [formData.duration_unit, formData.duration_hours, formData.event_date]);
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
@@ -382,12 +404,15 @@ export function EventForm({ event, professionals, onSuccess, onCancel }: EventFo
     try {
       setSaving(true);
       
-      // Convertir la unidad seleccionada a horas si es necesario
-      const durationInHours = formData.duration_unit === "days" 
-        ? formData.duration_hours * 24 
-        : formData.duration_unit === "weeks"
-          ? formData.duration_hours * 24 * 7
-          : formData.duration_hours;
+      // Calcular duración total en horas según la unidad seleccionada
+      let durationInHours = formData.duration_hours;
+      if (formData.duration_unit === "days") {
+        durationInHours = formData.duration_hours * 24;
+      } else if (formData.duration_unit === "weeks") {
+        const daysSelected = weeklyWeekdays.length > 0 ? weeklyWeekdays.length : 1;
+        const weeksCount = Math.max(1, formData.duration_hours || 1);
+        durationInHours = weeksCount * daysSelected * (weeklyHoursPerDay || 1);
+      }
       
       const eventData = {
         ...formData,
@@ -533,6 +558,53 @@ export function EventForm({ event, professionals, onSuccess, onCancel }: EventFo
               {errors.duration_unit && <p className="text-sm text-red-500">{errors.duration_unit}</p>}
             </div>
           </div>
+
+          {formData.duration_unit === "weeks" && (
+            <div className="space-y-3">
+              <div className="space-y-2">
+                <Label>Días por semana</Label>
+                <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-2">
+                  {[
+                    { v: 1, label: 'Lun' },
+                    { v: 2, label: 'Mar' },
+                    { v: 3, label: 'Mié' },
+                    { v: 4, label: 'Jue' },
+                    { v: 5, label: 'Vie' },
+                    { v: 6, label: 'Sáb' },
+                    { v: 0, label: 'Dom' },
+                  ].map((d) => (
+                    <label key={d.v} className="flex items-center gap-2 text-sm">
+                      <Checkbox
+                        checked={weeklyWeekdays.includes(d.v)}
+                        onCheckedChange={(checked) => {
+                          setWeeklyWeekdays((prev) => {
+                            const set = new Set(prev);
+                            if (checked) set.add(d.v); else set.delete(d.v);
+                            return Array.from(set.values()).sort();
+                          });
+                        }}
+                      />
+                      <span>{d.label}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Horas por día seleccionado</Label>
+                <Input
+                  type="number"
+                  min="1"
+                  max="12"
+                  value={weeklyHoursPerDay}
+                  onChange={(e) => setWeeklyHoursPerDay(e.target.value === '' ? 1 : Math.max(1, parseInt(e.target.value)))}
+                />
+                <p className="text-sm text-muted-foreground">
+                  {`${formData.duration_hours || 1} ${formData.duration_hours === 1 ? 'semana' : 'semanas'} · ${weeklyHoursPerDay} ${weeklyHoursPerDay === 1 ? 'hr' : 'hrs'} por día · ${weeklyWeekdays.length} ${weeklyWeekdays.length === 1 ? 'día' : 'días'} por semana (${(Math.max(1, formData.duration_hours || 1) * Math.max(1, weeklyWeekdays.length) * Math.max(1, weeklyHoursPerDay)).toString()} hrs total)`}
+                </p>
+              </div>
+            </div>
+          )}
 
           <div className="space-y-2">
             <Label htmlFor="session_type">Tipo de Experiencia *</Label>

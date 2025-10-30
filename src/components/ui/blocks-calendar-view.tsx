@@ -394,11 +394,11 @@ export function BlocksCalendarView({
                   <div className="flex items-center gap-4">
                     <div className={cn(
                       "w-10 h-10 rounded-full flex items-center justify-center",
-                      block.block_type === 'full_day'
+                      (block.block_type === 'full_day' || block.block_type === 'weekly_day')
                         ? "bg-red-100 text-red-600"
                         : "bg-orange-100 text-orange-600"
                     )}>
-                      {block.block_type === 'full_day' ? (
+                      {(block.block_type === 'full_day' || block.block_type === 'weekly_day') ? (
                         <Calendar className="w-5 h-5" />
                       ) : (
                         <Clock className="w-5 h-5" />
@@ -408,12 +408,18 @@ export function BlocksCalendarView({
                     <div>
                       <h3 className="font-medium">{block.title}</h3>
                       <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                        <span>
-                          {formatDate(block.start_date)}
-                          {block.end_date && block.end_date !== block.start_date && 
-                            ` - ${formatDate(block.end_date)}`}
-                        </span>
-                        {block.block_type === 'time_range' && block.start_time && block.end_time && (
+                        {block.block_type === 'weekly_day' && block.day_of_week ? (
+                          <span>
+                            {['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'][block.day_of_week - 1]}
+                          </span>
+                        ) : (
+                          <span>
+                            {formatDate(block.start_date)}
+                            {block.end_date && block.end_date !== block.start_date &&
+                              ` - ${formatDate(block.end_date)}`}
+                          </span>
+                        )}
+                        {(block.block_type === 'time_range' || block.block_type === 'weekly_range') && block.start_time && block.end_time && (
                           <span>{block.start_time} - {block.end_time}</span>
                         )}
                         {block.is_recurring && (

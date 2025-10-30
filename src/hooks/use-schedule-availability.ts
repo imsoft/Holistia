@@ -426,15 +426,10 @@ export function useScheduleAvailability(professionalId: string) {
     console.log('📋 Bloqueos aplicables para la fecha:', dayBlocks);
 
     // Verificar si hay bloqueo de día completo
-    const hasFullDayBlock = dayBlocks.some(block => 
+    const hasFullDayBlock = dayBlocks.some(block =>
       block.block_type === 'full_day' || block.block_type === 'weekly_day'
     );
     console.log('🚫 ¿Día completamente bloqueado?', hasFullDayBlock);
-
-    if (hasFullDayBlock) {
-      console.log('🚫 Día completamente bloqueado, no generando horarios');
-      return timeSlots; // No hay horarios si el día está completamente bloqueado
-    }
 
     // Generar horarios de hora en hora
     console.log('🕐 Generando horarios desde', startHour, 'hasta', endHour);
@@ -442,14 +437,18 @@ export function useScheduleAvailability(professionalId: string) {
       const timeString = `${hour.toString().padStart(2, '0')}:00`;
       const display = `${hour.toString().padStart(2, '0')}:00`;
       const fullDateTime = `${date}T${timeString}`;
-      
+
       let status: TimeSlot['status'] = 'available';
 
-      // Verificar si está ocupado por una cita
-      if (appointmentTimes.has(timeString)) {
+      // Si el día completo está bloqueado, marcar todos los slots como bloqueados
+      if (hasFullDayBlock) {
+        status = 'blocked';
+      }
+      // Verificar si está ocupado por una cita (solo si no está bloqueado el día completo)
+      else if (appointmentTimes.has(timeString)) {
         status = 'occupied';
       }
-      // Verificar si está bloqueado
+      // Verificar si está bloqueado por rango de horas
       else if (dayBlocks.some(block => {
         if (block.block_type === 'time_range' && block.start_time && block.end_time) {
           const blockStart = block.start_time;

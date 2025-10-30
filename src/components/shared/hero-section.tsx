@@ -26,13 +26,12 @@ export const HeroSection = () => {
               <div className="mx-auto max-w-2xl gap-x-14 lg:mx-0 lg:flex lg:max-w-none lg:items-center">
                 <div className="relative w-full lg:max-w-xl lg:shrink-0 xl:max-w-2xl">
                   <h1 className="text-5xl font-semibold tracking-tight text-pretty text-foreground sm:text-7xl animate-in slide-in-from-bottom-12 fade-in duration-1200 delay-200 fill-mode-both">
-                    Conectamos a personas para transformar vidas
+                    Tu acceso al wellness integral, en un solo lugar
                   </h1>
                   <p className="mt-8 text-lg font-medium text-pretty text-muted-foreground sm:max-w-md sm:text-xl/8 lg:max-w-none animate-in slide-in-from-bottom-12 fade-in duration-1200 delay-500 fill-mode-both">
-                    Sabemos que tu bienestar es integral. Por eso reunimos
-                    expertos, experiencias y comunidades en un solo espacio,
-                    para que cada paso de tu transformación sea acompañado y
-                    seguro.
+                    Encuentra expertos, experiencias, talleres, centros,
+                    restaurantes y espacios que acompañan tu equilibrio mental,
+                    físico, emocional, espiritual y social.
                   </p>
                   <div className="mt-10 flex items-center gap-x-6 animate-in slide-in-from-bottom-12 fade-in duration-1200 delay-800 fill-mode-both">
                     <Link

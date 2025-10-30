@@ -16,8 +16,12 @@ import {
   ShieldCheck,
   Instagram,
   Edit3,
-  X,
   CheckCircle,
+  CreditCard,
+  CheckCircle2,
+  XCircle,
+  Clock,
+  AlertCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -69,6 +73,9 @@ interface Professional {
   registration_fee_currency?: string;
   registration_fee_paid_at?: string;
   registration_fee_expires_at?: string;
+  stripe_account_id?: string;
+  stripe_account_status?: 'not_connected' | 'pending' | 'connected' | 'restricted';
+  stripe_onboarding_completed?: boolean;
 }
 
 export default function AdminProfessionals() {
@@ -206,6 +213,9 @@ export default function AdminProfessionals() {
               registration_fee_currency: prof.registration_fee_currency,
               registration_fee_paid_at: prof.registration_fee_paid_at,
               registration_fee_expires_at: prof.registration_fee_expires_at,
+              stripe_account_id: prof.stripe_account_id,
+              stripe_account_status: prof.stripe_account_status || 'not_connected',
+              stripe_onboarding_completed: prof.stripe_onboarding_completed ?? false,
             };
           })
         );
@@ -285,6 +295,48 @@ export default function AdminProfessionals() {
         return "Suspendido";
       default:
         return status;
+    }
+  };
+
+  const getStripeStatusColor = (status: string) => {
+    switch (status) {
+      case "connected":
+        return "bg-green-100 text-green-800 border-green-200";
+      case "pending":
+        return "bg-yellow-100 text-yellow-800 border-yellow-200";
+      case "restricted":
+        return "bg-orange-100 text-orange-800 border-orange-200";
+      case "not_connected":
+      default:
+        return "bg-gray-100 text-gray-800 border-gray-200";
+    }
+  };
+
+  const getStripeStatusIcon = (status: string) => {
+    switch (status) {
+      case "connected":
+        return <CheckCircle2 className="h-3 w-3" />;
+      case "pending":
+        return <Clock className="h-3 w-3" />;
+      case "restricted":
+        return <AlertCircle className="h-3 w-3" />;
+      case "not_connected":
+      default:
+        return <XCircle className="h-3 w-3" />;
+    }
+  };
+
+  const getStripeStatusText = (status: string) => {
+    switch (status) {
+      case "connected":
+        return "Stripe conectado";
+      case "pending":
+        return "Stripe pendiente";
+      case "restricted":
+        return "Stripe restringido";
+      case "not_connected":
+      default:
+        return "Stripe no conectado";
     }
   };
 
@@ -773,6 +825,17 @@ export default function AdminProfessionals() {
                         {getStatusText(professional.status)}
                       </Badge>
                     </div>
+                    <div className="flex items-center gap-2 flex-wrap mb-2">
+                      <Badge
+                        variant="outline"
+                        className={`${getStripeStatusColor(professional.stripe_account_status || 'not_connected')} flex items-center gap-1`}
+                      >
+                        {getStripeStatusIcon(professional.stripe_account_status || 'not_connected')}
+                        <span className="text-xs">
+                          {professional.stripe_onboarding_completed ? 'Vinculado con Stripe' : 'Sin vincular Stripe'}
+                        </span>
+                      </Badge>
+                    </div>
                     <p className="text-sm text-muted-foreground line-clamp-1">
                       {professional.profession}
                     </p>
@@ -1133,6 +1196,34 @@ export default function AdminProfessionals() {
                     </div>
                     <span className="text-base font-medium pl-6">{selectedProfessional.reviewed_at ? new Date(selectedProfessional.reviewed_at).toLocaleDateString('es-ES') : 'No verificado'}</span>
                   </div>
+                </div>
+              </div>
+
+              {/* Información de pagos (Stripe) */}
+              <div className="bg-muted/50 rounded-lg p-4">
+                <h3 className="text-lg font-semibold mb-4">Información de Pagos</h3>
+                <div className="grid grid-cols-1 gap-3">
+                  <div className="flex flex-col gap-1">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <CreditCard className="h-4 w-4" />
+                      <span>Estado de Stripe</span>
+                    </div>
+                    <div className="pl-6">
+                      <Badge
+                        variant="outline"
+                        className={`${getStripeStatusColor(selectedProfessional.stripe_account_status || 'not_connected')} flex items-center gap-1 w-fit`}
+                      >
+                        {getStripeStatusIcon(selectedProfessional.stripe_account_status || 'not_connected')}
+                        <span>{getStripeStatusText(selectedProfessional.stripe_account_status || 'not_connected')}</span>
+                      </Badge>
+                    </div>
+                  </div>
+                  {selectedProfessional.stripe_account_id && (
+                    <div className="flex flex-col gap-1">
+                      <span className="text-sm text-muted-foreground">ID de cuenta Stripe</span>
+                      <span className="text-xs font-mono text-foreground pl-6">{selectedProfessional.stripe_account_id}</span>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

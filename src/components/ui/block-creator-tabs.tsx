@@ -32,30 +32,19 @@ export function BlockCreatorTabs({
   onCancel 
 }: BlockCreatorTabsProps) {
   const supabase = createClient();
-  const [activeTab, setActiveTab] = useState('weekly_day');
+  const [activeTab, setActiveTab] = useState('full_day');
   const [formData, setFormData] = useState<AvailabilityBlockFormData>({
     title: '',
     description: '',
-    block_type: 'weekly_day',
+    block_type: 'full_day',
     start_date: '',
     end_date: '',
     start_time: '',
     end_time: '',
     day_of_week: 1,
-    is_recurring: true,
+    is_recurring: false,
   });
   const [loading, setLoading] = useState(false);
-
-  // Días de la semana
-  const weekDays = [
-    { value: 1, label: 'Lunes' },
-    { value: 2, label: 'Martes' },
-    { value: 3, label: 'Miércoles' },
-    { value: 4, label: 'Jueves' },
-    { value: 5, label: 'Viernes' },
-    { value: 6, label: 'Sábado' },
-    { value: 7, label: 'Domingo' },
-  ];
 
   // Horas disponibles (de 0:00 a 23:00)
   const availableHours = Array.from({ length: 24 }, (_, i) => {
@@ -77,9 +66,9 @@ export function BlockCreatorTabs({
         day_of_week: editingBlock.day_of_week || 1,
         is_recurring: editingBlock.is_recurring,
       });
-      let tab = 'weekly_day';
+      let tab = 'full_day';
       if (editingBlock.block_type === 'weekly_range') tab = 'weekly_range';
-      else if (editingBlock.block_type === 'full_day') tab = 'full_day';
+      else if (editingBlock.block_type === 'full_day' || editingBlock.block_type === 'weekly_day') tab = 'full_day';
       setActiveTab(tab);
     }
   }, [editingBlock]);
@@ -93,9 +82,8 @@ export function BlockCreatorTabs({
 
   const handleTabChange = (value: string) => {
     setActiveTab(value);
-    let blockType: 'weekly_day' | 'weekly_range' | 'full_day' = 'weekly_day';
+    let blockType: 'weekly_range' | 'full_day' = 'full_day';
     if (value === 'weekly_range') blockType = 'weekly_range';
-    else if (value === 'full_day') blockType = 'full_day';
 
     setFormData(prev => ({
       ...prev,
@@ -109,12 +97,7 @@ export function BlockCreatorTabs({
       return false;
     }
 
-    if (activeTab === 'weekly_day') {
-      if (!formData.day_of_week) {
-        toast.error('Selecciona un día de la semana');
-        return false;
-      }
-    } else if (activeTab === 'full_day') {
+    if (activeTab === 'full_day') {
       if (!formData.start_date || !formData.end_date) {
         toast.error('Las fechas de inicio y fin son obligatorias');
         return false;
@@ -160,44 +143,7 @@ export function BlockCreatorTabs({
       };
 
       // Agregar campos específicos según el tipo de bloqueo
-      if (formData.block_type === 'weekly_day') {
-        blockData.day_of_week = formData.day_of_week;
-
-        // Calcular la fecha correcta según si es recurrente o no
-        const today = new Date();
-
-        if (formData.is_recurring) {
-          // Para recurrentes: usar la fecha de hoy como referencia
-          blockData.start_date = today.toISOString().split('T')[0];
-        } else {
-          // Para no recurrentes: calcular el próximo día de la semana seleccionado
-          // Convertir day_of_week (1=Lunes) a getDay (0=Domingo, 1=Lunes)
-          const selectedDayOfWeek = formData.day_of_week || 1; // Default a lunes si no está definido
-          const targetDay = selectedDayOfWeek === 7 ? 0 : selectedDayOfWeek;
-          const currentDay = today.getDay();
-
-          // Calcular días hasta el próximo día objetivo
-          let daysToAdd = targetDay - currentDay;
-          if (daysToAdd < 0) {
-            daysToAdd += 7; // Si ya pasó esta semana, ir a la próxima
-          }
-          if (daysToAdd === 0 && currentDay !== targetDay) {
-            daysToAdd = 7; // Si es hoy pero no coincide, ir a la próxima semana
-          }
-
-          const targetDate = new Date(today);
-          targetDate.setDate(today.getDate() + daysToAdd);
-          blockData.start_date = targetDate.toISOString().split('T')[0];
-
-          console.log('📅 Calculando fecha para bloqueo no recurrente:', {
-            day_of_week: selectedDayOfWeek,
-            targetDay,
-            currentDay,
-            daysToAdd,
-            calculatedDate: blockData.start_date
-          });
-        }
-      } else if (formData.block_type === 'full_day') {
+      if (formData.block_type === 'full_day') {
         // Rango de fechas completo (bloquea todos los días del rango, todo el día)
         blockData.start_date = formData.start_date;
         blockData.end_date = formData.end_date;
@@ -255,69 +201,10 @@ export function BlockCreatorTabs({
         </CardHeader>
         <CardContent className="py-4">
           <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="weekly_day">Día Semanal</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="full_day">Rango de Fechas</TabsTrigger>
               <TabsTrigger value="weekly_range">Rango de Horas</TabsTrigger>
             </TabsList>
-
-            {/* Tab: Día Completo */}
-            <TabsContent value="weekly_day" className="space-y-4 mt-6">
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="title">Título del bloqueo *</Label>
-                  <Input
-                    id="title"
-                    value={formData.title}
-                    onChange={(e) => handleInputChange('title', e.target.value)}
-                    placeholder="Ej: Día de descanso"
-                    className="mt-1"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="description">Descripción (opcional)</Label>
-                  <Textarea
-                    id="description"
-                    value={formData.description}
-                    onChange={(e) => handleInputChange('description', e.target.value)}
-                    placeholder="Describe el motivo del bloqueo..."
-                    className="mt-1"
-                    rows={3}
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="day_of_week">Día de la semana *</Label>
-                  <Select
-                    value={formData.day_of_week?.toString()}
-                    onValueChange={(value) => handleInputChange('day_of_week', parseInt(value))}
-                  >
-                    <SelectTrigger className="w-full mt-1">
-                      <SelectValue placeholder="Selecciona un día" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {weekDays.map((day) => (
-                        <SelectItem key={day.value} value={day.value.toString()}>
-                          {day.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="flex items-center space-x-2">
-                  <Switch
-                    id="is_recurring_day"
-                    checked={formData.is_recurring}
-                    onCheckedChange={(checked) => handleInputChange('is_recurring', checked)}
-                  />
-                  <Label htmlFor="is_recurring_day">
-                    Aplicar este bloqueo todas las semanas
-                  </Label>
-                </div>
-              </div>
-            </TabsContent>
 
             {/* Tab: Rango de Fechas Completo */}
             <TabsContent value="full_day" className="space-y-4 mt-6">

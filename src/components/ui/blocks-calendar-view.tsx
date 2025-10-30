@@ -60,6 +60,17 @@ export function BlocksCalendarView({
     fetchBlocks();
   }, [fetchBlocks]);
 
+  // Listener para recargar cuando se cree/actualice un bloqueo
+  useEffect(() => {
+    const handleReload = () => {
+      console.log('🔄 Evento de recarga detectado en blocks-calendar-view');
+      fetchBlocks();
+    };
+
+    window.addEventListener('reload-calendar', handleReload);
+    return () => window.removeEventListener('reload-calendar', handleReload);
+  }, [fetchBlocks]);
+
   // Generar días del mes
   const generateMonthDays = useCallback(() => {
     const year = currentMonth.getFullYear();

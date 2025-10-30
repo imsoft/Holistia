@@ -57,6 +57,12 @@ export function BlockCreatorTabs({
     { value: 7, label: 'Domingo' },
   ];
 
+  // Horas disponibles (de 0:00 a 23:00)
+  const availableHours = Array.from({ length: 24 }, (_, i) => {
+    const hour = i.toString().padStart(2, '0');
+    return { value: `${hour}:00`, label: `${hour}:00` };
+  });
+
   // Cargar datos del bloqueo si se está editando
   useEffect(() => {
     if (editingBlock) {
@@ -422,23 +428,39 @@ export function BlockCreatorTabs({
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="start_time">Hora de inicio *</Label>
-                    <Input
-                      id="start_time"
-                      type="time"
+                    <Select
                       value={formData.start_time}
-                      onChange={(e) => handleInputChange('start_time', e.target.value)}
-                      className="mt-1"
-                    />
+                      onValueChange={(value) => handleInputChange('start_time', value)}
+                    >
+                      <SelectTrigger className="mt-1">
+                        <SelectValue placeholder="Selecciona hora" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {availableHours.map((hour) => (
+                          <SelectItem key={hour.value} value={hour.value}>
+                            {hour.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div>
                     <Label htmlFor="end_time">Hora de fin *</Label>
-                    <Input
-                      id="end_time"
-                      type="time"
+                    <Select
                       value={formData.end_time}
-                      onChange={(e) => handleInputChange('end_time', e.target.value)}
-                      className="mt-1"
-                    />
+                      onValueChange={(value) => handleInputChange('end_time', value)}
+                    >
+                      <SelectTrigger className="mt-1">
+                        <SelectValue placeholder="Selecciona hora" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {availableHours.map((hour) => (
+                          <SelectItem key={hour.value} value={hour.value}>
+                            {hour.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
 

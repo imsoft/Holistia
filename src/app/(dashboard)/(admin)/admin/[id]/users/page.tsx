@@ -14,11 +14,6 @@ import {
   UserCheck,
   UserX,
   Shield,
-  CreditCard,
-  CheckCircle2,
-  XCircle,
-  Clock,
-  AlertCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -55,8 +50,6 @@ interface User {
   lastLogin: string;
   appointments: number;
   avatar?: string;
-  stripeConnected?: boolean;
-  stripeAccountStatus?: 'not_connected' | 'pending' | 'connected' | 'restricted';
 }
 
 export default function AdminUsers() {
@@ -114,7 +107,7 @@ export default function AdminUsers() {
             // Verificar si tiene solicitud profesional
             const { data: professionalApp } = await supabase
               .from('professional_applications')
-              .select('city, state, status, submitted_at, stripe_account_id, stripe_account_status, stripe_onboarding_completed')
+              .select('city, state, status, submitted_at')
               .eq('user_id', profile.id)
               .single();
 
@@ -159,10 +152,6 @@ export default function AdminUsers() {
               }
             }
 
-            // Determinar el estado de conexión de Stripe
-            const stripeConnected = professionalApp?.stripe_onboarding_completed || false;
-            const stripeAccountStatus = professionalApp?.stripe_account_status || 'not_connected';
-
             return {
               id: profile.id,
               name: `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || 'Sin nombre',
@@ -175,8 +164,6 @@ export default function AdminUsers() {
               lastLogin: profile.updated_at || profile.created_at,
               appointments: appointmentsCount || 0,
               avatar: profile.avatar_url || '',
-              stripeConnected,
-              stripeAccountStatus,
             };
           })
         );
@@ -258,48 +245,6 @@ export default function AdminUsers() {
         return "Administrador";
       default:
         return type;
-    }
-  };
-
-  const getStripeStatusColor = (status: string) => {
-    switch (status) {
-      case "connected":
-        return "bg-green-100 text-green-800 border-green-200";
-      case "pending":
-        return "bg-yellow-100 text-yellow-800 border-yellow-200";
-      case "restricted":
-        return "bg-orange-100 text-orange-800 border-orange-200";
-      case "not_connected":
-      default:
-        return "bg-gray-100 text-gray-800 border-gray-200";
-    }
-  };
-
-  const getStripeStatusIcon = (status: string) => {
-    switch (status) {
-      case "connected":
-        return <CheckCircle2 className="h-3 w-3" />;
-      case "pending":
-        return <Clock className="h-3 w-3" />;
-      case "restricted":
-        return <AlertCircle className="h-3 w-3" />;
-      case "not_connected":
-      default:
-        return <XCircle className="h-3 w-3" />;
-    }
-  };
-
-  const getStripeStatusText = (status: string) => {
-    switch (status) {
-      case "connected":
-        return "Stripe conectado";
-      case "pending":
-        return "Stripe pendiente";
-      case "restricted":
-        return "Stripe restringido";
-      case "not_connected":
-      default:
-        return "Stripe no conectado";
     }
   };
 
@@ -637,22 +582,9 @@ export default function AdminUsers() {
                         {getStatusText(user.status)}
                       </Badge>
                     </div>
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <Badge className={getTypeColor(user.type)}>
-                        {getTypeText(user.type)}
-                      </Badge>
-                      {user.type === 'professional' && (
-                        <Badge
-                          variant="outline"
-                          className={`${getStripeStatusColor(user.stripeAccountStatus || 'not_connected')} flex items-center gap-1`}
-                        >
-                          {getStripeStatusIcon(user.stripeAccountStatus || 'not_connected')}
-                          <span className="text-xs">
-                            {user.stripeConnected ? 'Vinculado con Stripe' : 'Sin vincular Stripe'}
-                          </span>
-                        </Badge>
-                      )}
-                    </div>
+                    <Badge className={getTypeColor(user.type)}>
+                      {getTypeText(user.type)}
+                    </Badge>
                   </div>
                 </div>
 
@@ -825,30 +757,6 @@ export default function AdminUsers() {
                   </div>
                 </div>
               </div>
-
-              {/* Información de pagos (solo para profesionales) */}
-              {selectedUser.type === 'professional' && (
-                <div className="bg-muted/50 rounded-lg p-4">
-                  <h3 className="text-lg font-semibold mb-4">Información de Pagos</h3>
-                  <div className="grid grid-cols-1 gap-3">
-                    <div className="flex flex-col gap-1">
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <CreditCard className="h-4 w-4" />
-                        <span>Estado de Stripe</span>
-                      </div>
-                      <div className="pl-6">
-                        <Badge
-                          variant="outline"
-                          className={`${getStripeStatusColor(selectedUser.stripeAccountStatus || 'not_connected')} flex items-center gap-1 w-fit`}
-                        >
-                          {getStripeStatusIcon(selectedUser.stripeAccountStatus || 'not_connected')}
-                          <span>{getStripeStatusText(selectedUser.stripeAccountStatus || 'not_connected')}</span>
-                        </Badge>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
             </div>
           )}
         </DialogContent>

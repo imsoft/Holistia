@@ -343,7 +343,7 @@ const EventsAdminPage = () => {
         ) : (
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {filteredEvents.map((event) => (
-              <Card key={event.id} className={`${!event.is_active ? "opacity-60" : ""} overflow-hidden`}>
+              <Card key={event.id} className={`${!event.is_active ? "opacity-60" : ""} overflow-hidden flex flex-col h-full`}>
                 {/* Event Image */}
                 {event.gallery_images && event.gallery_images.length > 0 && (
                   <StableImage
@@ -380,34 +380,36 @@ const EventsAdminPage = () => {
                     </div>
                   </div>
                 </CardHeader>
-                <CardContent className="space-y-4 pb-8">
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Calendar className="w-4 h-4" />
-                    <span>{formatEventDate(event.event_date)} a las {formatEventTime(event.event_time)}</span>
+                <CardContent className="flex flex-col flex-1 pb-8">
+                  <div className="space-y-4 flex-1">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Calendar className="w-4 h-4" />
+                      <span>{formatEventDate(event.event_date)} a las {formatEventTime(event.event_time)}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <MapPin className="w-4 h-4" />
+                      <span className="truncate">{event.location}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Users className="w-4 h-4" />
+                      <span>Cupo: {event.max_capacity} personas</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Clock className="w-4 h-4" />
+                      <span>{event.duration_hours} horas</span>
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      <strong>Profesional:</strong> {getProfessionalName(event.professional_id)}
+                    </div>
+                    {event.description && (
+                      <p className="text-sm text-muted-foreground line-clamp-2">
+                        {event.description}
+                      </p>
+                    )}
                   </div>
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <MapPin className="w-4 h-4" />
-                    <span className="truncate">{event.location}</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Users className="w-4 h-4" />
-                    <span>Cupo: {event.max_capacity} personas</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Clock className="w-4 h-4" />
-                    <span>{event.duration_hours} horas</span>
-                  </div>
-                  <div className="text-sm text-muted-foreground">
-                    <strong>Profesional:</strong> {getProfessionalName(event.professional_id)}
-                  </div>
-                  {event.description && (
-                    <p className="text-sm text-muted-foreground line-clamp-2">
-                      {event.description}
-                    </p>
-                  )}
-                  
+
                   {/* Botones de acción con mejor espaciado */}
-                  <div className="pt-4 border-t border-border/50">
+                  <div className="pt-4 border-t border-border/50 mt-auto">
                     <div className="grid grid-cols-3 gap-2">
                       <Button
                         variant="outline"

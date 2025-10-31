@@ -270,6 +270,7 @@ const EventsAdminPage = () => {
                 </DialogDescription>
               </DialogHeader>
               <EventForm
+                key={editingEvent?.id || 'new'}
                 event={editingEvent}
                 professionals={professionals}
                 onSuccess={handleFormSuccess}

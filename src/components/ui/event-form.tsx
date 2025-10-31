@@ -42,6 +42,8 @@ export function EventForm({ event, professionals, onSuccess, onCancel }: EventFo
     duration_hours: 1,
     duration_unit: "hours",
     session_type: "unique",
+    weekly_days: [],
+    weekly_hours_per_day: undefined,
     price: 0,
     is_free: false,
     max_capacity: 10,
@@ -82,15 +84,16 @@ export function EventForm({ event, professionals, onSuccess, onCancel }: EventFo
 
         // Cargar administradores
         const { data: admins } = await supabase
-          .from('users')
-          .select('id, email, raw_user_meta_data')
-          .eq('raw_user_meta_data->>type', 'admin');
+          .from('profiles')
+          .select('id, email, first_name, last_name, type')
+          .eq('type', 'admin');
 
         if (admins) {
           admins.forEach((admin) => {
+            const name = `${admin.first_name || ''} ${admin.last_name || ''}`.trim() || admin.email;
             owners.push({
               id: admin.id,
-              name: admin.raw_user_meta_data?.name || admin.email,
+              name: name,
               email: admin.email,
               type: 'admin',
             });
@@ -114,17 +117,18 @@ export function EventForm({ event, professionals, onSuccess, onCancel }: EventFo
           });
         }
 
-        // Cargar usuarios normales
+        // Cargar usuarios normales (pacientes)
         const { data: patients } = await supabase
-          .from('users')
-          .select('id, email, raw_user_meta_data')
-          .or('raw_user_meta_data->>type.eq.patient,raw_user_meta_data->>type.is.null');
+          .from('profiles')
+          .select('id, email, first_name, last_name, type')
+          .eq('type', 'patient');
 
         if (patients) {
           patients.forEach((patient) => {
+            const name = `${patient.first_name || ''} ${patient.last_name || ''}`.trim() || patient.email;
             owners.push({
               id: patient.id,
-              name: patient.raw_user_meta_data?.name || patient.email,
+              name: name,
               email: patient.email,
               type: 'patient',
             });

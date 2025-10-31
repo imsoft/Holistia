@@ -150,18 +150,20 @@ export function EventForm({ event, professionals, onSuccess, onCancel }: EventFo
 
   useEffect(() => {
     if (event) {
+      console.log('🔍 EventForm - Evento recibido:', event);
+
       // Calcular la unidad y valor de duración correctos
       const durationUnit = event.duration_unit || "hours";
       let displayDuration = event.duration_hours;
-      
+
       // Convertir horas a la unidad seleccionada para mostrar
       if (durationUnit === "days") {
         displayDuration = Math.round(event.duration_hours / 24);
       } else if (durationUnit === "weeks") {
         displayDuration = Math.round(event.duration_hours / (24 * 7));
       }
-      
-      setFormData({
+
+      const newFormData = {
         name: event.name,
         duration_hours: displayDuration,
         duration_unit: durationUnit,
@@ -185,7 +187,10 @@ export function EventForm({ event, professionals, onSuccess, onCancel }: EventFo
         owner_type: event.owner_type || "professional",
         gallery_images: event.gallery_images || [],
         image_position: event.image_position || "center center",
-      });
+      };
+
+      console.log('📝 EventForm - Datos a cargar:', newFormData);
+      setFormData(newFormData);
 
       // Cargar la posición de imagen guardada
       if (event.image_position) {

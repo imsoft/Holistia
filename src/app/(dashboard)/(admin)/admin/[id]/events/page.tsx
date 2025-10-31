@@ -167,6 +167,7 @@ const EventsAdminPage = () => {
   };
 
   const handleEditEvent = (event: EventWorkshop) => {
+    console.log('🎯 handleEditEvent - Evento a editar:', event);
     setEditingEvent(event);
     setIsFormOpen(true);
   };

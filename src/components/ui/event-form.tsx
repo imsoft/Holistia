@@ -152,16 +152,10 @@ export function EventForm({ event, professionals, onSuccess, onCancel }: EventFo
     if (event) {
       console.log('🔍 EventForm - Evento recibido:', event);
 
-      // Calcular la unidad y valor de duración correctos
+      // El duration_hours ya viene en la unidad correcta según duration_unit
+      // No necesitamos hacer conversión porque se guarda directamente como el usuario lo ingresó
       const durationUnit = event.duration_unit || "hours";
-      let displayDuration = event.duration_hours;
-
-      // Convertir horas a la unidad seleccionada para mostrar
-      if (durationUnit === "days") {
-        displayDuration = Math.round(event.duration_hours / 24);
-      } else if (durationUnit === "weeks") {
-        displayDuration = Math.round(event.duration_hours / (24 * 7));
-      }
+      const displayDuration = event.duration_hours;
 
       const newFormData = {
         name: event.name,

@@ -340,8 +340,8 @@ const EventDetailPage = () => {
             )}
           </div>
 
-          {/* Sidebar */}
-          <div className="space-y-4 sm:space-y-6">
+          {/* Sidebar - sticky en desktop */}
+          <div className="lg:sticky lg:top-6 lg:self-start space-y-4 sm:space-y-6">
             {/* Información del profesional */}
             {professional && (
               <Card className="py-6 sm:py-8">

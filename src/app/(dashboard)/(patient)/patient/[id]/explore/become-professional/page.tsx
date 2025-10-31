@@ -342,7 +342,16 @@ export default function BecomeProfessionalPage() {
       }
 
       toast.success("¡Solicitud enviada exitosamente!");
-      window.location.reload();
+      // Recargar los datos en lugar de recargar toda la página
+      const { data: updatedApp } = await supabase
+        .from("professional_applications")
+        .select("*")
+        .eq("user_id", profile.id)
+        .maybeSingle();
+
+      if (updatedApp) {
+        setExistingApplication(updatedApp);
+      }
     } catch (error) {
       console.error("Error submitting application:", error);
       toast.error("Error al enviar la solicitud. Inténtalo de nuevo.");

@@ -197,13 +197,17 @@ const EventDetailPage = () => {
           <div className="lg:col-span-2 space-y-4 sm:space-y-6">
             {/* Imagen principal */}
             {event.gallery_images && event.gallery_images.length > 0 && (
-              <div className="relative">
+              <div className="relative w-full h-64 md:h-80 overflow-hidden rounded-lg">
                 <Image
                   src={event.gallery_images[0]}
                   alt={event.name}
                   width={800}
                   height={400}
-                  className="w-full h-64 md:h-80 object-cover rounded-lg"
+                  className="w-full h-full object-cover"
+                  style={{
+                    objectPosition: event.image_position || 'center center'
+                  }}
+                  priority
                 />
               </div>
             )}
@@ -402,23 +406,28 @@ const EventDetailPage = () => {
                     <div className="flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 bg-yellow-100 dark:bg-yellow-900 rounded-full mx-auto">
                       <Clock className="w-6 h-6 sm:w-8 sm:h-8 text-yellow-600" />
                     </div>
-                    <div>
+                    <div className="space-y-3 sm:space-y-4">
                       <p className="text-base sm:text-lg font-semibold text-yellow-600">Registro pendiente</p>
                       <p className="text-xs sm:text-sm text-muted-foreground px-2">
                         Tu registro está pendiente de pago. Completa el proceso para confirmar tu asistencia.
                       </p>
+                      {!event.is_free && (
+                        <>
+                          <EventPaymentButton
+                            eventId={event.id!}
+                            serviceAmount={event.price || 0}
+                            eventName={event.name}
+                            eventDate={event.event_date}
+                            onError={(error) => {
+                              toast.error(error);
+                            }}
+                          />
+                          <p className="text-xs text-muted-foreground text-center px-2">
+                            Al completar el pago, recibirás un email de confirmación.
+                          </p>
+                        </>
+                      )}
                     </div>
-                    {!event.is_free && (
-                      <EventPaymentButton
-                        eventId={event.id!}
-                        serviceAmount={event.price || 0}
-                        eventName={event.name}
-                        eventDate={event.event_date}
-                        onError={(error) => {
-                          toast.error(error);
-                        }}
-                      />
-                    )}
                   </div>
                 ) : (
                   <>
@@ -432,11 +441,12 @@ const EventDetailPage = () => {
                     </div>
 
                     {event.is_free ? (
-                      <Button 
-                        className="w-full text-sm sm:text-base" 
+                      <Button
+                        className="w-full text-sm sm:text-base touch-manipulation"
                         size="lg"
                         onClick={handleRegister}
                         disabled={registering}
+                        type="button"
                       >
                         {registering ? "Registrando..." : "Registrarse al evento"}
                       </Button>
@@ -452,10 +462,10 @@ const EventDetailPage = () => {
                       />
                     )}
 
-                    <p className="text-xs text-muted-foreground text-center">
-                      {event.is_free 
+                    <p className="text-xs text-muted-foreground text-center px-2">
+                      {event.is_free
                         ? "Al registrarte, recibirás un email de confirmación con todos los detalles del evento."
-                        : "Al registrarte, serás redirigido a Stripe para completar el pago de forma segura."
+                        : "Al registrarte, serás redirigido a Stripe para completar el pago de forma segura. Recibirás un email de confirmación una vez completado el pago."
                       }
                     </p>
                   </>

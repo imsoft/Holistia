@@ -65,20 +65,14 @@ export default function EventPaymentButton({
 
 
   return (
-    <div className="space-y-4">
-      <Button 
-        className={`w-full ${className || ''}`}
-        size="lg"
-        onClick={handlePayment}
-        disabled={loading || disabled}
-      >
-        {loading ? "Procesando..." : "Registrarse al evento"}
-      </Button>
-
-      <p className="text-xs text-muted-foreground text-center">
-        Al registrarte, serás redirigido a Stripe para completar el pago de forma segura.
-        Recibirás un email de confirmación una vez completado el pago.
-      </p>
-    </div>
+    <Button
+      className={`w-full touch-manipulation ${className || ''}`}
+      size="lg"
+      onClick={handlePayment}
+      disabled={loading || disabled}
+      type="button"
+    >
+      {loading ? "Procesando..." : "Registrarse al evento"}
+    </Button>
   );
 }

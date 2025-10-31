@@ -201,7 +201,7 @@ export function EventForm({ event, professionals, onSuccess, onCancel }: EventFo
         setWeeklyHoursPerDay(event.weekly_hours_per_day);
       }
     }
-  }, [event]);
+  }, [event, availableOwners]);
 
   // Estado para modo por semanas
   const [weeklyWeekdays, setWeeklyWeekdays] = useState<number[]>([]); // 0=Dom, 6=Sáb

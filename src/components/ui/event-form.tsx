@@ -150,12 +150,21 @@ export function EventForm({ event, professionals, onSuccess, onCancel }: EventFo
 
   useEffect(() => {
     if (event) {
-      console.log('🔍 EventForm - Evento recibido:', event);
-
-      // El duration_hours ya viene en la unidad correcta según duration_unit
-      // No necesitamos hacer conversión porque se guarda directamente como el usuario lo ingresó
+      // Convertir duration_hours de vuelta a la unidad original
+      // duration_hours en la DB está siempre en horas totales
       const durationUnit = event.duration_unit || "hours";
-      const displayDuration = event.duration_hours;
+      let displayDuration = event.duration_hours;
+
+      if (durationUnit === "days") {
+        // Convertir horas a días
+        displayDuration = Math.round(event.duration_hours / 24);
+      } else if (durationUnit === "weeks") {
+        // Convertir horas totales a número de semanas
+        const daysInWeek = event.weekly_days?.length || 1;
+        const hoursPerDay = event.weekly_hours_per_day || 1;
+        displayDuration = Math.round(event.duration_hours / (daysInWeek * hoursPerDay));
+      }
+      // Si es "hours", no se necesita conversión
 
       const newFormData = {
         name: event.name,
@@ -183,9 +192,6 @@ export function EventForm({ event, professionals, onSuccess, onCancel }: EventFo
         image_position: event.image_position || "center center",
       };
 
-      console.log('📝 EventForm - Datos a cargar:', newFormData);
-      console.log('👥 Professionals disponibles:', professionals);
-      console.log('👤 Owners disponibles:', availableOwners);
       setFormData(newFormData);
 
       // Cargar la posición de imagen guardada

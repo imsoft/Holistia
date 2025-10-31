@@ -184,6 +184,8 @@ export function EventForm({ event, professionals, onSuccess, onCancel }: EventFo
       };
 
       console.log('📝 EventForm - Datos a cargar:', newFormData);
+      console.log('👥 Professionals disponibles:', professionals);
+      console.log('👤 Owners disponibles:', availableOwners);
       setFormData(newFormData);
 
       // Cargar la posición de imagen guardada

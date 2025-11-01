@@ -15,6 +15,8 @@ import {
   BarChart3,
   DollarSign,
   Award,
+  Building2,
+  UtensilsCrossed,
 } from "lucide-react";
 import {
   Sidebar,
@@ -160,6 +162,16 @@ export function AdminSidebar() {
       title: "Certificaciones",
       url: `/admin/${userId}/certifications`,
       icon: Award,
+    },
+    {
+      title: "Centros Holísticos",
+      url: `/admin/${userId}/holistic-centers`,
+      icon: Building2,
+    },
+    {
+      title: "Restaurantes",
+      url: `/admin/${userId}/restaurants`,
+      icon: UtensilsCrossed,
     },
   ];
 

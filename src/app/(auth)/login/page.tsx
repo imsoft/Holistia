@@ -88,7 +88,7 @@ function LoginFormWithMessage() {
 
   return (
     <>
-      <div className="flex min-h-screen flex-col justify-center py-12 sm:px-6 lg:px-8">
+      <div className="flex min-h-screen flex-col justify-center py-4 sm:py-8 px-4 sm:px-6 lg:px-8">
         <div className="sm:mx-auto sm:w-full sm:max-w-md">
           <Link href="/" className="block">
             <Image
@@ -106,13 +106,13 @@ function LoginFormWithMessage() {
               height={40}
             />
           </Link>
-          <h2 className="mt-6 text-center text-2xl/9 font-bold tracking-tight text-foreground">
+          <h2 className="mt-4 sm:mt-6 text-center text-xl sm:text-2xl/9 font-bold tracking-tight text-foreground">
             Inicia sesión en tu cuenta
           </h2>
         </div>
 
-        <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-[480px]">
-          <div className="bg-card px-6 py-12 shadow-sm sm:rounded-lg sm:px-12 border border-border">
+        <div className="mt-6 sm:mt-10 sm:mx-auto sm:w-full sm:max-w-[480px]">
+          <div className="bg-card px-4 py-6 sm:px-12 sm:py-8 lg:py-12 shadow-sm sm:rounded-lg border border-border">
             {error && (
               <div className="mb-4 rounded-md bg-destructive/15 p-3 text-sm text-destructive">
                 {error}
@@ -122,7 +122,7 @@ function LoginFormWithMessage() {
             <Form {...form}>
               <form
                 onSubmit={form.handleSubmit(onSubmit)}
-                className="space-y-8"
+                className="space-y-4 sm:space-y-6"
               >
                 <FormField
                   control={form.control}
@@ -174,21 +174,21 @@ function LoginFormWithMessage() {
             </Form>
 
             <div>
-              <div className="mt-6 flex items-center gap-x-6">
+              <div className="mt-4 sm:mt-6 flex items-center gap-x-4 sm:gap-x-6">
                 <div className="w-full flex-1 border-t border-border" />
-                <p className="text-sm/6 font-medium text-nowrap text-foreground">
+                <p className="text-xs sm:text-sm/6 font-medium text-nowrap text-foreground">
                   O continúa con
                 </p>
                 <div className="w-full flex-1 border-t border-border" />
               </div>
 
-              <div className="mt-6 grid grid-cols-1 gap-4">
+              <div className="mt-4 sm:mt-6 grid grid-cols-1 gap-4">
                 <GoogleButton text="Continuar con Google" />
               </div>
             </div>
           </div>
 
-          <p className="mt-10 text-center text-sm/6 text-muted-foreground">
+          <p className="mt-6 sm:mt-10 text-center text-sm/6 text-muted-foreground">
             ¿No tienes cuenta?{" "}
             <Link
               href="/signup"
@@ -197,8 +197,8 @@ function LoginFormWithMessage() {
               Regístrate ahora
             </Link>
           </p>
-          
-          <p className="mt-4 text-center text-sm/6 text-muted-foreground">
+
+          <p className="mt-3 sm:mt-4 text-center text-sm/6 text-muted-foreground">
             <Link
               href="/"
               className="font-medium text-muted-foreground hover:text-primary transition-colors"

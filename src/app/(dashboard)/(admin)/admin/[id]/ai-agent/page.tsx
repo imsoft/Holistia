@@ -19,7 +19,6 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 import { createClient } from "@/utils/supabase/client";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
-import Image from "next/image";
 import Link from "next/link";
 
 interface Message {
@@ -319,12 +318,16 @@ export default function AIAgentPage() {
                                 <div className="flex items-start gap-3">
                                   {/* Foto de perfil */}
                                   <div className="flex-shrink-0">
-                                    <Image
+                                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                                    <img
                                       src={prof.profile_photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(`${prof.first_name} ${prof.last_name}`)}&background=random&size=96`}
                                       alt={`${prof.first_name} ${prof.last_name}`}
-                                      width={48}
-                                      height={48}
                                       className="w-12 h-12 rounded-full object-cover border-2 border-primary/20"
+                                      onError={(e) => {
+                                        // Fallback a UI Avatars si la imagen falla
+                                        const target = e.target as HTMLImageElement;
+                                        target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(`${prof.first_name} ${prof.last_name}`)}&background=random&size=96`;
+                                      }}
                                     />
                                   </div>
 

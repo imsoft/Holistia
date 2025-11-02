@@ -67,21 +67,36 @@ export default function AIAgentPage() {
       // Obtener profesionales aprobados
       const { data: professionalsData, error } = await supabase
         .from("professional_applications")
-        .select("id, first_name, last_name, profession, email, phone, user_id")
+        .select("id, first_name, last_name, profession, email, phone, user_id, profile_photo")
         .eq("status", "approved");
 
       if (error) throw error;
 
+      console.log("📊 Profesionales obtenidos:", professionalsData?.length);
+
       // Obtener avatares de profiles
       const userIds = professionalsData?.map(p => p.user_id).filter(Boolean) || [];
+      console.log("👥 User IDs para buscar avatares:", userIds);
+
       const { data: profilesData } = await supabase
         .from("profiles")
         .select("id, avatar_url")
         .in("id", userIds);
 
+      console.log("🖼️ Profiles con avatares encontrados:", profilesData);
+
       // Combinar datos: mapear avatar_url a profile_photo
       const mappedData = professionalsData?.map((prof) => {
         const profile = profilesData?.find(p => p.id === prof.user_id);
+        const photoUrl = profile?.avatar_url || prof.profile_photo;
+
+        console.log(`👤 ${prof.first_name} ${prof.last_name}:`, {
+          user_id: prof.user_id,
+          avatar_url: profile?.avatar_url,
+          profile_photo: prof.profile_photo,
+          final_photo: photoUrl
+        });
+
         return {
           id: prof.id,
           first_name: prof.first_name,
@@ -89,10 +104,11 @@ export default function AIAgentPage() {
           profession: prof.profession,
           email: prof.email,
           phone: prof.phone,
-          profile_photo: profile?.avatar_url,
+          profile_photo: photoUrl,
         };
       }) || [];
 
+      console.log("✅ Datos finales mapeados:", mappedData);
       setProfessionals(mappedData);
     } catch (error) {
       console.error("Error fetching professionals:", error);
@@ -333,19 +349,6 @@ export default function AIAgentPage() {
                                         &quot;{prof.reason}&quot;
                                       </p>
                                     )}
-
-                                    <div className="flex gap-2 mt-2 flex-wrap">
-                                      {prof.email && (
-                                        <Badge variant="outline" className="text-xs truncate max-w-[150px]">
-                                          {prof.email}
-                                        </Badge>
-                                      )}
-                                      {prof.phone && (
-                                        <Badge variant="outline" className="text-xs">
-                                          {prof.phone}
-                                        </Badge>
-                                      )}
-                                    </div>
                                   </div>
                                 </div>
                               </Card>

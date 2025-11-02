@@ -49,6 +49,7 @@ interface HolisticCenter {
   phone?: string;
   email?: string;
   website?: string;
+  instagram?: string;
   image_url?: string;
   opening_hours?: string;
   is_active: boolean;
@@ -63,6 +64,7 @@ interface FormData {
   phone: string;
   email: string;
   website: string;
+  instagram: string;
   opening_hours: DaySchedule[];
   is_active: boolean;
 }
@@ -85,6 +87,7 @@ export default function AdminHolisticCenters() {
     phone: "",
     email: "",
     website: "",
+    instagram: "",
     opening_hours: createEmptySchedule(),
     is_active: true,
   });
@@ -123,6 +126,7 @@ export default function AdminHolisticCenters() {
         phone: center.phone || "",
         email: center.email || "",
         website: center.website || "",
+        instagram: center.instagram || "",
         opening_hours: parseScheduleFromString(center.opening_hours),
         is_active: center.is_active,
       });
@@ -135,6 +139,7 @@ export default function AdminHolisticCenters() {
         phone: "",
         email: "",
         website: "",
+        instagram: "",
         opening_hours: createEmptySchedule(),
         is_active: true,
       });
@@ -166,6 +171,7 @@ export default function AdminHolisticCenters() {
             phone: formData.phone.trim() || null,
             email: formData.email.trim() || null,
             website: formData.website.trim() || null,
+            instagram: formData.instagram.trim() || null,
             opening_hours: scheduleJson,
             is_active: formData.is_active,
           })
@@ -183,6 +189,7 @@ export default function AdminHolisticCenters() {
             phone: formData.phone.trim() || null,
             email: formData.email.trim() || null,
             website: formData.website.trim() || null,
+            instagram: formData.instagram.trim() || null,
             opening_hours: scheduleJson,
             is_active: formData.is_active,
           });
@@ -445,12 +452,22 @@ export default function AdminHolisticCenters() {
               </div>
 
               <div className="space-y-2">
-                <Label>Horarios de atención</Label>
-                <ScheduleEditor
-                  schedule={formData.opening_hours}
-                  onChange={(schedule) => setFormData({ ...formData, opening_hours: schedule })}
+                <Label htmlFor="instagram">Instagram</Label>
+                <Input
+                  id="instagram"
+                  value={formData.instagram}
+                  onChange={(e) => setFormData({ ...formData, instagram: e.target.value })}
+                  placeholder="@nombre_del_centro"
                 />
               </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Horarios de atención</Label>
+              <ScheduleEditor
+                schedule={formData.opening_hours}
+                onChange={(schedule) => setFormData({ ...formData, opening_hours: schedule })}
+              />
             </div>
 
             <div className="flex items-center gap-2">
@@ -545,6 +562,23 @@ export default function AdminHolisticCenters() {
                       className="text-primary hover:underline"
                     >
                       {viewingCenter.website}
+                    </a>
+                  </p>
+                </div>
+              )}
+
+              {viewingCenter.instagram && (
+                <div>
+                  <Label className="text-muted-foreground">Instagram</Label>
+                  <p className="mt-1 text-sm flex items-center gap-2">
+                    <Globe className="w-4 h-4" />
+                    <a
+                      href={`https://instagram.com/${viewingCenter.instagram.replace('@', '')}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-primary hover:underline"
+                    >
+                      {viewingCenter.instagram}
                     </a>
                   </p>
                 </div>

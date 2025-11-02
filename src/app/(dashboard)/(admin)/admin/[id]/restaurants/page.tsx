@@ -56,6 +56,7 @@ interface Restaurant {
   phone?: string;
   email?: string;
   website?: string;
+  instagram?: string;
   image_url?: string;
   cuisine_type?: string;
   price_range?: string;
@@ -73,6 +74,7 @@ interface FormData {
   phone: string;
   email: string;
   website: string;
+  instagram: string;
   cuisine_type: string;
   price_range: string;
   opening_hours: DaySchedule[];
@@ -115,6 +117,7 @@ export default function AdminRestaurants() {
     phone: "",
     email: "",
     website: "",
+    instagram: "",
     cuisine_type: "",
     price_range: "",
     opening_hours: createEmptySchedule(),
@@ -155,6 +158,7 @@ export default function AdminRestaurants() {
         phone: restaurant.phone || "",
         email: restaurant.email || "",
         website: restaurant.website || "",
+        instagram: restaurant.instagram || "",
         cuisine_type: restaurant.cuisine_type || "",
         price_range: restaurant.price_range || "",
         opening_hours: parseScheduleFromString(restaurant.opening_hours),
@@ -169,6 +173,7 @@ export default function AdminRestaurants() {
         phone: "",
         email: "",
         website: "",
+        instagram: "",
         cuisine_type: "",
         price_range: "",
         opening_hours: createEmptySchedule(),
@@ -202,6 +207,7 @@ export default function AdminRestaurants() {
             phone: formData.phone.trim() || null,
             email: formData.email.trim() || null,
             website: formData.website.trim() || null,
+            instagram: formData.instagram.trim() || null,
             cuisine_type: formData.cuisine_type || null,
             price_range: formData.price_range || null,
             opening_hours: scheduleJson,
@@ -221,6 +227,7 @@ export default function AdminRestaurants() {
             phone: formData.phone.trim() || null,
             email: formData.email.trim() || null,
             website: formData.website.trim() || null,
+            instagram: formData.instagram.trim() || null,
             cuisine_type: formData.cuisine_type || null,
             price_range: formData.price_range || null,
             opening_hours: scheduleJson,
@@ -536,12 +543,22 @@ export default function AdminRestaurants() {
               </div>
 
               <div className="space-y-2">
-                <Label>Horarios de atención</Label>
-                <ScheduleEditor
-                  schedule={formData.opening_hours}
-                  onChange={(schedule) => setFormData({ ...formData, opening_hours: schedule })}
+                <Label htmlFor="instagram">Instagram</Label>
+                <Input
+                  id="instagram"
+                  value={formData.instagram}
+                  onChange={(e) => setFormData({ ...formData, instagram: e.target.value })}
+                  placeholder="@nombre_del_restaurante"
                 />
               </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Horarios de atención</Label>
+              <ScheduleEditor
+                schedule={formData.opening_hours}
+                onChange={(schedule) => setFormData({ ...formData, opening_hours: schedule })}
+              />
             </div>
 
             <div className="flex items-center gap-2">
@@ -641,6 +658,23 @@ export default function AdminRestaurants() {
                       className="text-primary hover:underline"
                     >
                       {viewingRestaurant.website}
+                    </a>
+                  </p>
+                </div>
+              )}
+
+              {viewingRestaurant.instagram && (
+                <div>
+                  <Label className="text-muted-foreground">Instagram</Label>
+                  <p className="mt-1 text-sm flex items-center gap-2">
+                    <Globe className="w-4 h-4" />
+                    <a
+                      href={`https://instagram.com/${viewingRestaurant.instagram.replace('@', '')}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-primary hover:underline"
+                    >
+                      {viewingRestaurant.instagram}
                     </a>
                   </p>
                 </div>

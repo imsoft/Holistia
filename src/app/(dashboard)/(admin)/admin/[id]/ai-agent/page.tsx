@@ -64,35 +64,34 @@ export default function AIAgentPage() {
 
   const fetchProfessionals = async () => {
     try {
-      const { data, error } = await supabase
+      // Obtener profesionales aprobados
+      const { data: professionalsData, error } = await supabase
         .from("professional_applications")
-        .select(`
-          id,
-          first_name,
-          last_name,
-          profession,
-          email,
-          phone,
-          status,
-          user_id,
-          profiles!professional_applications_user_id_fkey (
-            avatar_url
-          )
-        `)
+        .select("id, first_name, last_name, profession, email, phone, user_id")
         .eq("status", "approved");
 
       if (error) throw error;
 
-      // Mapear los datos para incluir avatar_url como profile_photo
-      const mappedData = data?.map((prof) => ({
-        id: prof.id,
-        first_name: prof.first_name,
-        last_name: prof.last_name,
-        profession: prof.profession,
-        email: prof.email,
-        phone: prof.phone,
-        profile_photo: (prof.profiles as { avatar_url?: string })?.avatar_url || undefined,
-      })) || [];
+      // Obtener avatares de profiles
+      const userIds = professionalsData?.map(p => p.user_id).filter(Boolean) || [];
+      const { data: profilesData } = await supabase
+        .from("profiles")
+        .select("id, avatar_url")
+        .in("id", userIds);
+
+      // Combinar datos: mapear avatar_url a profile_photo
+      const mappedData = professionalsData?.map((prof) => {
+        const profile = profilesData?.find(p => p.id === prof.user_id);
+        return {
+          id: prof.id,
+          first_name: prof.first_name,
+          last_name: prof.last_name,
+          profession: prof.profession,
+          email: prof.email,
+          phone: prof.phone,
+          profile_photo: profile?.avatar_url,
+        };
+      }) || [];
 
       setProfessionals(mappedData);
     } catch (error) {

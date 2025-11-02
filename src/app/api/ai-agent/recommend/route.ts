@@ -58,6 +58,7 @@ export async function POST(request: NextRequest) {
       profession: string;
       email: string;
       phone?: string;
+      profile_photo?: string;
     }
 
     const professionalsContext = professionals.map((prof: Professional) => ({

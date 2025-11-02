@@ -16,6 +16,8 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 import { createClient } from "@/utils/supabase/client";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
+import Image from "next/image";
+import Link from "next/link";
 
 interface Message {
   id: string;
@@ -32,6 +34,7 @@ interface RecommendedProfessional {
   profession: string;
   email: string;
   phone?: string;
+  profile_photo?: string;
   score?: number;
   reason?: string;
 }
@@ -58,7 +61,7 @@ export default function AIAgentPage() {
     try {
       const { data, error } = await supabase
         .from("professional_applications")
-        .select("id, first_name, last_name, profession, email, phone, status")
+        .select("id, first_name, last_name, profession, email, phone, profile_photo, status")
         .eq("status", "approved");
 
       if (error) throw error;
@@ -137,7 +140,7 @@ export default function AIAgentPage() {
     toast.success("Conversación limpiada");
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage();
@@ -250,38 +253,68 @@ export default function AIAgentPage() {
                         <div className="mt-4 space-y-2">
                           <p className="text-xs font-semibold mb-2">Profesionales recomendados:</p>
                           {message.professionals.map((prof) => (
-                            <Card key={prof.id} className="p-3 bg-background">
-                              <div className="flex items-start justify-between gap-2">
-                                <div className="flex-1">
-                                  <p className="font-semibold text-sm">
-                                    {prof.first_name} {prof.last_name}
-                                  </p>
-                                  <p className="text-xs text-muted-foreground">{prof.profession}</p>
-                                  {prof.reason && (
-                                    <p className="text-xs text-muted-foreground mt-1 italic">
-                                      &quot;{prof.reason}&quot;
-                                    </p>
-                                  )}
-                                  <div className="flex gap-2 mt-2">
-                                    {prof.email && (
-                                      <Badge variant="outline" className="text-xs">
-                                        {prof.email}
-                                      </Badge>
-                                    )}
-                                    {prof.phone && (
-                                      <Badge variant="outline" className="text-xs">
-                                        {prof.phone}
-                                      </Badge>
+                            <Link
+                              key={prof.id}
+                              href={`/patient/${prof.id}/explore/professional/${prof.id}`}
+                              target="_blank"
+                            >
+                              <Card className="p-3 bg-background hover:bg-muted/50 transition-colors cursor-pointer">
+                                <div className="flex items-start gap-3">
+                                  {/* Foto de perfil */}
+                                  <div className="flex-shrink-0">
+                                    {prof.profile_photo ? (
+                                      <Image
+                                        src={prof.profile_photo}
+                                        alt={`${prof.first_name} ${prof.last_name}`}
+                                        width={48}
+                                        height={48}
+                                        className="w-12 h-12 rounded-full object-cover border-2 border-primary/20"
+                                      />
+                                    ) : (
+                                      <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center border-2 border-primary/20">
+                                        <User className="w-6 h-6 text-primary" />
+                                      </div>
                                     )}
                                   </div>
+
+                                  {/* Información del profesional */}
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-start justify-between gap-2">
+                                      <div className="flex-1 min-w-0">
+                                        <p className="font-semibold text-sm truncate">
+                                          {prof.first_name} {prof.last_name}
+                                        </p>
+                                        <p className="text-xs text-muted-foreground truncate">{prof.profession}</p>
+                                      </div>
+                                      {prof.score !== undefined && (
+                                        <Badge variant="secondary" className="text-xs flex-shrink-0">
+                                          {Math.round(prof.score * 100)}%
+                                        </Badge>
+                                      )}
+                                    </div>
+
+                                    {prof.reason && (
+                                      <p className="text-xs text-muted-foreground mt-1 italic line-clamp-2">
+                                        &quot;{prof.reason}&quot;
+                                      </p>
+                                    )}
+
+                                    <div className="flex gap-2 mt-2 flex-wrap">
+                                      {prof.email && (
+                                        <Badge variant="outline" className="text-xs truncate max-w-[150px]">
+                                          {prof.email}
+                                        </Badge>
+                                      )}
+                                      {prof.phone && (
+                                        <Badge variant="outline" className="text-xs">
+                                          {prof.phone}
+                                        </Badge>
+                                      )}
+                                    </div>
+                                  </div>
                                 </div>
-                                {prof.score !== undefined && (
-                                  <Badge variant="secondary" className="text-xs flex-shrink-0">
-                                    {Math.round(prof.score * 100)}% match
-                                  </Badge>
-                                )}
-                              </div>
-                            </Card>
+                              </Card>
+                            </Link>
                           ))}
                         </div>
                       )}
@@ -328,7 +361,7 @@ export default function AIAgentPage() {
                 placeholder="Escribe tu consulta aquí..."
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
-                onKeyPress={handleKeyPress}
+                onKeyDown={handleKeyDown}
                 disabled={isLoading}
                 className="flex-1"
               />

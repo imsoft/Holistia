@@ -197,9 +197,9 @@ export default function AIAgentPage() {
 
       {/* Main Content */}
       <div className="container mx-auto px-6 py-6 max-w-7xl">
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr,320px] gap-6">
+        <div className="flex flex-col lg:flex-row gap-6">
           {/* Chat Panel */}
-          <Card className="h-[calc(100vh-12rem)] py-4 flex flex-col">
+          <Card className="h-[calc(100vh-12rem)] py-4 flex flex-col flex-1 lg:flex-[2]">
           <CardHeader className="border-b">
             <CardTitle className="flex items-center gap-2 text-lg">
               <Bot className="w-5 h-5" />
@@ -276,7 +276,7 @@ export default function AIAgentPage() {
                               href={`/patient/${prof.id}/explore/professional/${prof.id}`}
                               target="_blank"
                             >
-                              <Card className="p-3 bg-background hover:bg-muted/50 transition-colors cursor-pointer">
+                              <Card className="p-3 mt-2 bg-background hover:bg-muted/50 transition-colors cursor-pointer">
                                 <div className="flex items-start gap-3">
                                   {/* Foto de perfil */}
                                   <div className="flex-shrink-0">
@@ -396,7 +396,7 @@ export default function AIAgentPage() {
         </Card>
 
         {/* Panel de Estadísticas */}
-        <div className="space-y-4">
+        <div className="space-y-4 lg:h-[calc(100vh-12rem)] overflow-y-auto flex-1 lg:max-w-[320px]">
           {/* Estadísticas de Tokens */}
           <Card>
             <CardHeader className="pb-3">

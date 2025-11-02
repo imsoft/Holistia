@@ -40,6 +40,13 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 import { createClient } from "@/utils/supabase/client";
 import { toast } from "sonner";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import {
+  ScheduleEditor,
+  DaySchedule,
+  createEmptySchedule,
+  parseScheduleFromString,
+  formatScheduleForDisplay,
+} from "@/components/ui/schedule-editor";
 
 interface Restaurant {
   id: string;
@@ -68,7 +75,7 @@ interface FormData {
   website: string;
   cuisine_type: string;
   price_range: string;
-  opening_hours: string;
+  opening_hours: DaySchedule[];
   is_active: boolean;
 }
 
@@ -110,7 +117,7 @@ export default function AdminRestaurants() {
     website: "",
     cuisine_type: "",
     price_range: "",
-    opening_hours: "",
+    opening_hours: createEmptySchedule(),
     is_active: true,
   });
 
@@ -150,7 +157,7 @@ export default function AdminRestaurants() {
         website: restaurant.website || "",
         cuisine_type: restaurant.cuisine_type || "",
         price_range: restaurant.price_range || "",
-        opening_hours: restaurant.opening_hours || "",
+        opening_hours: parseScheduleFromString(restaurant.opening_hours),
         is_active: restaurant.is_active,
       });
     } else {
@@ -164,7 +171,7 @@ export default function AdminRestaurants() {
         website: "",
         cuisine_type: "",
         price_range: "",
-        opening_hours: "",
+        opening_hours: createEmptySchedule(),
         is_active: true,
       });
     }
@@ -182,6 +189,9 @@ export default function AdminRestaurants() {
     try {
       setSaving(true);
 
+      // Convertir schedule a JSON string
+      const scheduleJson = JSON.stringify(formData.opening_hours);
+
       if (editingRestaurant) {
         const { error } = await supabase
           .from("restaurants")
@@ -194,7 +204,7 @@ export default function AdminRestaurants() {
             website: formData.website.trim() || null,
             cuisine_type: formData.cuisine_type || null,
             price_range: formData.price_range || null,
-            opening_hours: formData.opening_hours.trim() || null,
+            opening_hours: scheduleJson,
             is_active: formData.is_active,
           })
           .eq("id", editingRestaurant.id);
@@ -213,7 +223,7 @@ export default function AdminRestaurants() {
             website: formData.website.trim() || null,
             cuisine_type: formData.cuisine_type || null,
             price_range: formData.price_range || null,
-            opening_hours: formData.opening_hours.trim() || null,
+            opening_hours: scheduleJson,
             is_active: formData.is_active,
           });
 
@@ -526,12 +536,10 @@ export default function AdminRestaurants() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="opening_hours">Horario</Label>
-                <Input
-                  id="opening_hours"
-                  value={formData.opening_hours}
-                  onChange={(e) => setFormData({ ...formData, opening_hours: e.target.value })}
-                  placeholder="Lun-Dom 12:00-22:00"
+                <Label>Horarios de atención</Label>
+                <ScheduleEditor
+                  schedule={formData.opening_hours}
+                  onChange={(schedule) => setFormData({ ...formData, opening_hours: schedule })}
                 />
               </div>
             </div>
@@ -640,11 +648,13 @@ export default function AdminRestaurants() {
 
               {viewingRestaurant.opening_hours && (
                 <div>
-                  <Label className="text-muted-foreground">Horario</Label>
-                  <p className="mt-1 text-sm flex items-center gap-2">
-                    <Clock className="w-4 h-4" />
-                    {viewingRestaurant.opening_hours}
-                  </p>
+                  <Label className="text-muted-foreground">Horarios de atención</Label>
+                  <div className="mt-1 text-sm whitespace-pre-line">
+                    <div className="flex items-start gap-2">
+                      <Clock className="w-4 h-4 mt-0.5" />
+                      <span>{formatScheduleForDisplay(parseScheduleFromString(viewingRestaurant.opening_hours))}</span>
+                    </div>
+                  </div>
                 </div>
               )}
             </div>

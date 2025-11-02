@@ -33,6 +33,13 @@ import Image from "next/image";
 import { createClient } from "@/utils/supabase/client";
 import { toast } from "sonner";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import {
+  ScheduleEditor,
+  DaySchedule,
+  createEmptySchedule,
+  parseScheduleFromString,
+  formatScheduleForDisplay,
+} from "@/components/ui/schedule-editor";
 
 interface HolisticCenter {
   id: string;
@@ -56,7 +63,7 @@ interface FormData {
   phone: string;
   email: string;
   website: string;
-  opening_hours: string;
+  opening_hours: DaySchedule[];
   is_active: boolean;
 }
 
@@ -78,7 +85,7 @@ export default function AdminHolisticCenters() {
     phone: "",
     email: "",
     website: "",
-    opening_hours: "",
+    opening_hours: createEmptySchedule(),
     is_active: true,
   });
 
@@ -116,7 +123,7 @@ export default function AdminHolisticCenters() {
         phone: center.phone || "",
         email: center.email || "",
         website: center.website || "",
-        opening_hours: center.opening_hours || "",
+        opening_hours: parseScheduleFromString(center.opening_hours),
         is_active: center.is_active,
       });
     } else {
@@ -128,7 +135,7 @@ export default function AdminHolisticCenters() {
         phone: "",
         email: "",
         website: "",
-        opening_hours: "",
+        opening_hours: createEmptySchedule(),
         is_active: true,
       });
     }
@@ -146,6 +153,9 @@ export default function AdminHolisticCenters() {
     try {
       setSaving(true);
 
+      // Convertir schedule a JSON string
+      const scheduleJson = JSON.stringify(formData.opening_hours);
+
       if (editingCenter) {
         const { error } = await supabase
           .from("holistic_centers")
@@ -156,7 +166,7 @@ export default function AdminHolisticCenters() {
             phone: formData.phone.trim() || null,
             email: formData.email.trim() || null,
             website: formData.website.trim() || null,
-            opening_hours: formData.opening_hours.trim() || null,
+            opening_hours: scheduleJson,
             is_active: formData.is_active,
           })
           .eq("id", editingCenter.id);
@@ -173,7 +183,7 @@ export default function AdminHolisticCenters() {
             phone: formData.phone.trim() || null,
             email: formData.email.trim() || null,
             website: formData.website.trim() || null,
-            opening_hours: formData.opening_hours.trim() || null,
+            opening_hours: scheduleJson,
             is_active: formData.is_active,
           });
 
@@ -435,12 +445,10 @@ export default function AdminHolisticCenters() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="opening_hours">Horario</Label>
-                <Input
-                  id="opening_hours"
-                  value={formData.opening_hours}
-                  onChange={(e) => setFormData({ ...formData, opening_hours: e.target.value })}
-                  placeholder="Lun-Vie 9:00-18:00"
+                <Label>Horarios de atención</Label>
+                <ScheduleEditor
+                  schedule={formData.opening_hours}
+                  onChange={(schedule) => setFormData({ ...formData, opening_hours: schedule })}
                 />
               </div>
             </div>
@@ -544,11 +552,13 @@ export default function AdminHolisticCenters() {
 
               {viewingCenter.opening_hours && (
                 <div>
-                  <Label className="text-muted-foreground">Horario</Label>
-                  <p className="mt-1 text-sm flex items-center gap-2">
-                    <Clock className="w-4 h-4" />
-                    {viewingCenter.opening_hours}
-                  </p>
+                  <Label className="text-muted-foreground">Horarios de atención</Label>
+                  <div className="mt-1 text-sm whitespace-pre-line">
+                    <div className="flex items-start gap-2">
+                      <Clock className="w-4 h-4 mt-0.5" />
+                      <span>{formatScheduleForDisplay(parseScheduleFromString(viewingCenter.opening_hours))}</span>
+                    </div>
+                  </div>
                 </div>
               )}
             </div>

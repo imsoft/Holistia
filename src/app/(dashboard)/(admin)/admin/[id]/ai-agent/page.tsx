@@ -398,8 +398,8 @@ export default function AIAgentPage() {
         {/* Panel de Estadísticas */}
         <div className="space-y-4 lg:h-[calc(100vh-12rem)] overflow-y-auto flex-1 lg:max-w-[320px]">
           {/* Estadísticas de Tokens */}
-          <Card>
-            <CardHeader className="pb-3">
+          <Card className="py-4">
+            <CardHeader>
               <CardTitle className="text-sm font-medium flex items-center gap-2">
                 <Zap className="w-4 h-4 text-amber-500" />
                 Estadísticas
@@ -455,8 +455,8 @@ export default function AIAgentPage() {
           </Card>
 
           {/* Información del modelo */}
-          <Card>
-            <CardHeader className="pb-3">
+          <Card className="py-4">
+            <CardHeader>
               <CardTitle className="text-sm font-medium">Información del modelo</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3 text-xs">

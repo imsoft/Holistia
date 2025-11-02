@@ -178,7 +178,7 @@ export default function AIAgentPage() {
 
       {/* Main Content */}
       <div className="container mx-auto px-6 py-6 max-w-5xl">
-        <Card className="h-[calc(100vh-12rem)] flex flex-col">
+        <Card className="h-[calc(100vh-12rem)] py-4 flex flex-col">
           <CardHeader className="border-b">
             <CardTitle className="flex items-center gap-2 text-lg">
               <Bot className="w-5 h-5" />

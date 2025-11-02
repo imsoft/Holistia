@@ -66,11 +66,35 @@ export default function AIAgentPage() {
     try {
       const { data, error } = await supabase
         .from("professional_applications")
-        .select("id, first_name, last_name, profession, email, phone, profile_photo, status")
+        .select(`
+          id,
+          first_name,
+          last_name,
+          profession,
+          email,
+          phone,
+          status,
+          user_id,
+          profiles!professional_applications_user_id_fkey (
+            avatar_url
+          )
+        `)
         .eq("status", "approved");
 
       if (error) throw error;
-      setProfessionals(data || []);
+
+      // Mapear los datos para incluir avatar_url como profile_photo
+      const mappedData = data?.map((prof) => ({
+        id: prof.id,
+        first_name: prof.first_name,
+        last_name: prof.last_name,
+        profession: prof.profession,
+        email: prof.email,
+        phone: prof.phone,
+        profile_photo: (prof.profiles as { avatar_url?: string })?.avatar_url || undefined,
+      })) || [];
+
+      setProfessionals(mappedData);
     } catch (error) {
       console.error("Error fetching professionals:", error);
       toast.error("Error al cargar profesionales");

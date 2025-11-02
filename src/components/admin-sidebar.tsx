@@ -17,6 +17,7 @@ import {
   Award,
   Building2,
   UtensilsCrossed,
+  Sparkles,
 } from "lucide-react";
 import {
   Sidebar,
@@ -172,6 +173,11 @@ export function AdminSidebar() {
       title: "Restaurantes",
       url: `/admin/${userId}/restaurants`,
       icon: UtensilsCrossed,
+    },
+    {
+      title: "Agente IA (Pruebas)",
+      url: `/admin/${userId}/ai-agent`,
+      icon: Sparkles,
     },
   ];
 

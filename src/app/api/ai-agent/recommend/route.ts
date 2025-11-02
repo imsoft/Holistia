@@ -146,7 +146,11 @@ Si no encuentras profesionales adecuados, explica por qué y sugiere alternativa
       };
     }
 
-    return NextResponse.json(parsedResponse);
+    // Agregar información de uso de tokens
+    return NextResponse.json({
+      ...parsedResponse,
+      usage: openaiData.usage // Incluir estadísticas de uso
+    });
 
   } catch (error) {
     console.error('Error in AI agent recommendation:', error);

@@ -309,7 +309,7 @@ export default function AdminHolisticCenters() {
                     </div>
                   </div>
                 </CardHeader>
-                <CardContent className="space-y-3">
+                <CardContent className="space-y-3 py-4">
                   {center.address && (
                     <div className="flex items-start gap-2 text-sm">
                       <MapPin className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
@@ -326,6 +326,14 @@ export default function AdminHolisticCenters() {
                     <div className="flex items-center gap-2 text-sm">
                       <Mail className="w-4 h-4 text-muted-foreground flex-shrink-0" />
                       <span className="text-muted-foreground truncate">{center.email}</span>
+                    </div>
+                  )}
+                  {center.opening_hours && (
+                    <div className="flex items-start gap-2 text-sm">
+                      <Clock className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+                      <span className="text-muted-foreground whitespace-pre-line">
+                        {formatScheduleForDisplay(parseScheduleFromString(center.opening_hours))}
+                      </span>
                     </div>
                   )}
 

@@ -48,6 +48,7 @@ import {
   parseScheduleFromString,
   formatScheduleForDisplay,
 } from "@/components/ui/schedule-editor";
+import { RestaurantCenterImageUploader } from "@/components/ui/restaurant-center-image-uploader";
 
 interface Restaurant {
   id: string;
@@ -188,6 +189,48 @@ export default function AdminRestaurants() {
     setIsFormOpen(true);
   };
 
+  const handleImageUploaded = async (imageUrl: string) => {
+    setFormData({ ...formData, image_url: imageUrl });
+    
+    // Actualizar automáticamente en la base de datos si estamos editando
+    if (editingRestaurant) {
+      try {
+        const { error } = await supabase
+          .from("restaurants")
+          .update({ image_url: imageUrl })
+          .eq("id", editingRestaurant.id);
+        
+        if (error) throw error;
+        // Actualizar el estado local
+        setEditingRestaurant({ ...editingRestaurant, image_url: imageUrl });
+      } catch (error) {
+        console.error("Error updating image in database:", error);
+        toast.error("Error al actualizar la imagen en la base de datos");
+      }
+    }
+  };
+
+  const handleImageRemoved = async () => {
+    setFormData({ ...formData, image_url: "" });
+    
+    // Actualizar automáticamente en la base de datos si estamos editando
+    if (editingRestaurant) {
+      try {
+        const { error } = await supabase
+          .from("restaurants")
+          .update({ image_url: null })
+          .eq("id", editingRestaurant.id);
+        
+        if (error) throw error;
+        // Actualizar el estado local
+        setEditingRestaurant({ ...editingRestaurant, image_url: undefined });
+      } catch (error) {
+        console.error("Error removing image from database:", error);
+        toast.error("Error al eliminar la imagen de la base de datos");
+      }
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -220,8 +263,10 @@ export default function AdminRestaurants() {
 
         if (error) throw error;
         toast.success("Restaurante actualizado exitosamente");
+        setIsFormOpen(false);
+        fetchRestaurants();
       } else {
-        const { error } = await supabase
+        const { data: newRestaurant, error } = await supabase
           .from("restaurants")
           .insert({
             name: formData.name.trim(),
@@ -236,14 +281,24 @@ export default function AdminRestaurants() {
             price_range: formData.price_range || null,
             opening_hours: formData.opening_hours,
             is_active: formData.is_active,
-          });
+          })
+          .select()
+          .single();
 
         if (error) throw error;
         toast.success("Restaurante creado exitosamente");
+        
+        // Si se creó exitosamente, abrir el formulario en modo edición para permitir subir imagen
+        if (newRestaurant) {
+          setEditingRestaurant(newRestaurant);
+          setFormData(prev => ({ ...prev, image_url: newRestaurant.image_url || "" }));
+          // No cerrar el formulario, mantenerlo abierto para que puedan subir la imagen
+          fetchRestaurants();
+        } else {
+          setIsFormOpen(false);
+          fetchRestaurants();
+        }
       }
-
-      setIsFormOpen(false);
-      fetchRestaurants();
     } catch (error) {
       console.error("Error saving restaurant:", error);
       toast.error("Error al guardar el restaurante");
@@ -570,19 +625,23 @@ export default function AdminRestaurants() {
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="image_url">URL de imagen principal</Label>
-              <Input
-                id="image_url"
-                type="url"
-                value={formData.image_url}
-                onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
-                placeholder="https://example.com/imagen-restaurante.jpg"
+            {editingRestaurant ? (
+              <RestaurantCenterImageUploader
+                entityId={editingRestaurant.id}
+                bucketName="restaurants"
+                onImageUploaded={handleImageUploaded}
+                currentImageUrl={formData.image_url || undefined}
+                onImageRemoved={handleImageRemoved}
+                entityName={formData.name || "restaurante"}
               />
-              <p className="text-xs text-muted-foreground">
-                URL de la imagen principal del restaurante (jpg, png, webp)
-              </p>
-            </div>
+            ) : (
+              <div className="space-y-2">
+                <Label>Imagen principal</Label>
+                <p className="text-xs text-muted-foreground mb-2">
+                  Guarda el restaurante primero, luego podrás subir una imagen editándolo
+                </p>
+              </div>
+            )}
 
             <div className="space-y-2">
               <Label>Horarios de atención</Label>

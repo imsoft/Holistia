@@ -298,8 +298,8 @@ export default function AdminHolisticCenters() {
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {filteredCenters.map((center) => (
-              <Card key={center.id} className="hover:shadow-lg transition-shadow">
-                <CardHeader className="pb-4">
+              <Card key={center.id} className="py-4 hover:shadow-lg transition-shadow">
+                <CardHeader>
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <CardTitle className="text-lg mb-2">{center.name}</CardTitle>

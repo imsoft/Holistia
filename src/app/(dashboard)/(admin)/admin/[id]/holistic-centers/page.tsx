@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import {
   Building2,
   Search,
@@ -29,7 +30,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { SidebarTrigger } from "@/components/ui/sidebar";
-import Image from "next/image";
 import { createClient } from "@/utils/supabase/client";
 import { toast } from "sonner";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
@@ -65,6 +65,7 @@ interface FormData {
   email: string;
   website: string;
   instagram: string;
+  image_url: string;
   opening_hours: DaySchedule[];
   is_active: boolean;
 }
@@ -88,6 +89,7 @@ export default function AdminHolisticCenters() {
     email: "",
     website: "",
     instagram: "",
+    image_url: "",
     opening_hours: createEmptySchedule(),
     is_active: true,
   });
@@ -127,6 +129,7 @@ export default function AdminHolisticCenters() {
         email: center.email || "",
         website: center.website || "",
         instagram: center.instagram || "",
+        image_url: center.image_url || "",
         opening_hours: parseScheduleFromString(center.opening_hours),
         is_active: center.is_active,
       });
@@ -140,6 +143,7 @@ export default function AdminHolisticCenters() {
         email: "",
         website: "",
         instagram: "",
+        image_url: "",
         opening_hours: createEmptySchedule(),
         is_active: true,
       });
@@ -169,6 +173,7 @@ export default function AdminHolisticCenters() {
             email: formData.email.trim() || null,
             website: formData.website.trim() || null,
             instagram: formData.instagram.trim() || null,
+            image_url: formData.image_url.trim() || null,
             opening_hours: formData.opening_hours,
             is_active: formData.is_active,
           })
@@ -187,6 +192,7 @@ export default function AdminHolisticCenters() {
             email: formData.email.trim() || null,
             website: formData.website.trim() || null,
             instagram: formData.instagram.trim() || null,
+            image_url: formData.image_url.trim() || null,
             opening_hours: formData.opening_hours,
             is_active: formData.is_active,
           });
@@ -298,8 +304,19 @@ export default function AdminHolisticCenters() {
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {filteredCenters.map((center) => (
-              <Card key={center.id} className="py-4 hover:shadow-lg transition-shadow">
-                <CardHeader>
+              <Card key={center.id} className="hover:shadow-lg transition-shadow overflow-hidden">
+                {center.image_url && (
+                  <div className="relative w-full h-48 bg-muted">
+                    <Image
+                      src={center.image_url}
+                      alt={center.name}
+                      fill
+                      className="object-cover"
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                    />
+                  </div>
+                )}
+                <CardHeader className="py-4">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <CardTitle className="text-lg mb-2">{center.name}</CardTitle>
@@ -465,6 +482,20 @@ export default function AdminHolisticCenters() {
                   placeholder="@nombre_del_centro"
                 />
               </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="image_url">URL de imagen principal</Label>
+              <Input
+                id="image_url"
+                type="url"
+                value={formData.image_url}
+                onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
+                placeholder="https://example.com/imagen-centro.jpg"
+              />
+              <p className="text-xs text-muted-foreground">
+                URL de la imagen principal del centro holístico (jpg, png, webp)
+              </p>
             </div>
 
             <div className="space-y-2">

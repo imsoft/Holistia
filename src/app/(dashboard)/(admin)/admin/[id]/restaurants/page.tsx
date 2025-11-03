@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import {
   UtensilsCrossed,
   Search,
@@ -75,6 +76,7 @@ interface FormData {
   email: string;
   website: string;
   instagram: string;
+  image_url: string;
   cuisine_type: string;
   price_range: string;
   opening_hours: DaySchedule[];
@@ -118,6 +120,7 @@ export default function AdminRestaurants() {
     email: "",
     website: "",
     instagram: "",
+    image_url: "",
     cuisine_type: "",
     price_range: "",
     opening_hours: createEmptySchedule(),
@@ -159,6 +162,7 @@ export default function AdminRestaurants() {
         email: restaurant.email || "",
         website: restaurant.website || "",
         instagram: restaurant.instagram || "",
+        image_url: restaurant.image_url || "",
         cuisine_type: restaurant.cuisine_type || "",
         price_range: restaurant.price_range || "",
         opening_hours: parseScheduleFromString(restaurant.opening_hours),
@@ -174,6 +178,7 @@ export default function AdminRestaurants() {
         email: "",
         website: "",
         instagram: "",
+        image_url: "",
         cuisine_type: "",
         price_range: "",
         opening_hours: createEmptySchedule(),
@@ -205,6 +210,7 @@ export default function AdminRestaurants() {
             email: formData.email.trim() || null,
             website: formData.website.trim() || null,
             instagram: formData.instagram.trim() || null,
+            image_url: formData.image_url.trim() || null,
             cuisine_type: formData.cuisine_type || null,
             price_range: formData.price_range || null,
             opening_hours: formData.opening_hours,
@@ -225,6 +231,7 @@ export default function AdminRestaurants() {
             email: formData.email.trim() || null,
             website: formData.website.trim() || null,
             instagram: formData.instagram.trim() || null,
+            image_url: formData.image_url.trim() || null,
             cuisine_type: formData.cuisine_type || null,
             price_range: formData.price_range || null,
             opening_hours: formData.opening_hours,
@@ -339,8 +346,19 @@ export default function AdminRestaurants() {
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {filteredRestaurants.map((restaurant) => (
-              <Card key={restaurant.id} className="py-4 hover:shadow-lg transition-shadow">
-                <CardHeader>
+              <Card key={restaurant.id} className="hover:shadow-lg transition-shadow overflow-hidden">
+                {restaurant.image_url && (
+                  <div className="relative w-full h-48 bg-muted">
+                    <Image
+                      src={restaurant.image_url}
+                      alt={restaurant.name}
+                      fill
+                      className="object-cover"
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                    />
+                  </div>
+                )}
+                <CardHeader className="py-4">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <CardTitle className="text-lg mb-2">{restaurant.name}</CardTitle>
@@ -550,6 +568,20 @@ export default function AdminRestaurants() {
                   placeholder="@nombre_del_restaurante"
                 />
               </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="image_url">URL de imagen principal</Label>
+              <Input
+                id="image_url"
+                type="url"
+                value={formData.image_url}
+                onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
+                placeholder="https://example.com/imagen-restaurante.jpg"
+              />
+              <p className="text-xs text-muted-foreground">
+                URL de la imagen principal del restaurante (jpg, png, webp)
+              </p>
             </div>
 
             <div className="space-y-2">

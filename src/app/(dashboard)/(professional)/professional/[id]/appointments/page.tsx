@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import {
   Calendar,
+  CalendarClock,
   Clock,
   User,
   Phone,
@@ -41,6 +42,7 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Appointment } from "@/types";
 import { createClient } from "@/utils/supabase/client";
 import { AppointmentActionsDialog } from "@/components/appointments/appointment-actions-dialog";
+import { RescheduleAppointmentDialog } from "@/components/appointments/reschedule-appointment-dialog";
 import { toast } from "sonner";
 
 
@@ -72,6 +74,22 @@ export default function ProfessionalAppointments() {
     isOpen: false,
     appointmentId: null,
     actionType: null,
+  });
+
+  const [rescheduleDialogState, setRescheduleDialogState] = useState<{
+    isOpen: boolean;
+    appointmentId: string | null;
+    currentDate: string;
+    currentTime: string;
+    appointmentDetails?: {
+      patientName?: string;
+      cost: number;
+    };
+  }>({
+    isOpen: false,
+    appointmentId: null,
+    currentDate: '',
+    currentTime: '',
   });
 
   useEffect(() => {
@@ -368,6 +386,37 @@ export default function ProfessionalAppointments() {
     });
   };
 
+  const openRescheduleDialog = (appointment: Appointment) => {
+    const patientName = appointment.patient?.name || 'Paciente';
+    setRescheduleDialogState({
+      isOpen: true,
+      appointmentId: appointment.id,
+      currentDate: appointment.date,
+      currentTime: appointment.time,
+      appointmentDetails: {
+        patientName: patientName,
+        cost: appointment.cost || 0,
+      },
+    });
+  };
+
+  const closeRescheduleDialog = () => {
+    setRescheduleDialogState({
+      isOpen: false,
+      appointmentId: null,
+      currentDate: '',
+      currentTime: '',
+    });
+  };
+
+  const handleRescheduleSuccess = () => {
+    // Recargar las citas después de reprogramar
+    closeRescheduleDialog();
+
+    // Recargar la página para actualizar las citas
+    window.location.reload();
+  };
+
   const handleDialogSuccess = () => {
     // Recargar las citas después de una acción exitosa
     toast.success(
@@ -572,6 +621,15 @@ export default function ProfessionalAppointments() {
                     {appointment.status === "confirmed" && (
                       <>
                         <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => openRescheduleDialog(appointment)}
+                          className="w-full sm:w-auto"
+                        >
+                          <CalendarClock className="h-3.5 w-3.5 sm:h-4 sm:w-4 sm:mr-2" />
+                          <span className="sm:inline">Reprogramar</span>
+                        </Button>
+                        <Button
                           variant="destructive"
                           size="sm"
                           onClick={() => openCancelDialog(appointment)}
@@ -721,6 +779,20 @@ export default function ProfessionalAppointments() {
           userRole="professional"
           appointmentDetails={dialogState.appointmentDetails}
           onSuccess={handleDialogSuccess}
+        />
+      )}
+
+      {/* Dialog para reprogramar */}
+      {rescheduleDialogState.isOpen && rescheduleDialogState.appointmentId && (
+        <RescheduleAppointmentDialog
+          isOpen={rescheduleDialogState.isOpen}
+          onClose={closeRescheduleDialog}
+          appointmentId={rescheduleDialogState.appointmentId}
+          currentDate={rescheduleDialogState.currentDate}
+          currentTime={rescheduleDialogState.currentTime}
+          userRole="professional"
+          appointmentDetails={rescheduleDialogState.appointmentDetails}
+          onSuccess={handleRescheduleSuccess}
         />
       )}
     </div>

@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cita Reprogramada - Holistia</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+        }
+        .logo {
+            width: 70px;
+            height: auto;
+            margin-bottom: 15px;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 600;
+        }
+        .content {
+            padding: 30px 20px;
+        }
+        .reschedule-icon {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .reschedule-icon .icon {
+            width: 60px;
+            height: 60px;
+            background-color: #3b82f6;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 36px;
+            font-weight: bold;
+            line-height: 60px;
+            text-align: center;
+        }
+        .appointment-details {
+            background-color: #f8fafc;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .appointment-details h3 {
+            margin-top: 0;
+            color: #1f2937;
+            font-size: 18px;
+        }
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .detail-row:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+        .detail-label {
+            font-weight: 600;
+            color: #374151;
+        }
+        .detail-value {
+            color: #6b7280;
+            text-align: right;
+        }
+        .rescheduled-badge {
+            background-color: #dbeafe;
+            border: 2px solid #3b82f6;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        .rescheduled-badge h3 {
+            margin: 0;
+            color: #1e40af;
+            font-size: 20px;
+        }
+        .rescheduled-badge p {
+            margin: 10px 0 0 0;
+            color: #2563eb;
+            font-size: 16px;
+        }
+        .comparison {
+            display: flex;
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .comparison-box {
+            flex: 1;
+            border-radius: 8px;
+            padding: 15px;
+        }
+        .old-date {
+            background-color: #fee2e2;
+            border: 1px solid #ef4444;
+        }
+        .new-date {
+            background-color: #d1fae5;
+            border: 1px solid: #10b981;
+        }
+        .comparison-box h4 {
+            margin: 0 0 10px 0;
+            font-size: 14px;
+            text-transform: uppercase;
+        }
+        .old-date h4 {
+            color: #991b1b;
+        }
+        .new-date h4 {
+            color: #065f46;
+        }
+        .comparison-box p {
+            margin: 5px 0;
+            font-size: 14px;
+        }
+        .old-date p {
+            color: #7f1d1d;
+            text-decoration: line-through;
+        }
+        .new-date p {
+            color: #064e3b;
+            font-weight: 600;
+        }
+        .instructions {
+            background-color: #fef3c7;
+            border: 1px solid #f59e0b;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .instructions h3 {
+            margin-top: 0;
+            color: #92400e;
+            font-size: 18px;
+        }
+        .instructions ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        .instructions li {
+            margin-bottom: 8px;
+            color: #92400e;
+        }
+        .footer {
+            background-color: #f8f9fa;
+            padding: 20px;
+            text-align: center;
+            color: #6b7280;
+            font-size: 14px;
+        }
+        .footer a {
+            color: #667eea;
+            text-decoration: none;
+        }
+        .footer a:hover {
+            text-decoration: underline;
+        }
+        .notes-box {
+            background-color: #f3f4f6;
+            border-left: 4px solid #6b7280;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 15px 0;
+            font-style: italic;
+            color: #4b5563;
+        }
+        .rescheduled-by {
+            background-color: #eff6ff;
+            border-radius: 6px;
+            padding: 12px;
+            margin: 15px 0;
+            text-align: center;
+            font-size: 14px;
+            color: #1e40af;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <img src="https://holistia.io/logos/holistia-white.png" alt="Holistia" class="logo">
+            <h1>Cita Reprogramada</h1>
+        </div>
+
+        <div class="content">
+            <div class="reschedule-icon">
+                <div class="icon">🔄</div>
+            </div>
+
+            <h2 style="text-align: center; color: #1f2937; margin-bottom: 20px;">
+                Tu cita ha sido reprogramada
+            </h2>
+
+            <p style="text-align: center; color: #6b7280; margin-bottom: 30px;">
+                Hola <strong>{{recipient_name}}</strong>,<br>
+                Te informamos que tu cita con <strong>{{other_party_name}}</strong> ha sido reprogramada.
+            </p>
+
+            <div class="rescheduled-by">
+                📝 Reprogramada por: <strong>{{rescheduled_by}}</strong>
+            </div>
+
+            <div class="rescheduled-badge">
+                <h3>🔄 Nueva Fecha y Hora</h3>
+                <p>Tu cita ha sido movida a una nueva fecha</p>
+            </div>
+
+            <div class="comparison">
+                <div class="comparison-box old-date">
+                    <h4>❌ Fecha Anterior</h4>
+                    <p><strong>Fecha:</strong> {{old_date}}</p>
+                    <p><strong>Hora:</strong> {{old_time}}</p>
+                </div>
+                <div class="comparison-box new-date">
+                    <h4>✅ Nueva Fecha</h4>
+                    <p><strong>Fecha:</strong> {{new_date}}</p>
+                    <p><strong>Hora:</strong> {{new_time}}</p>
+                </div>
+            </div>
+
+            <div class="appointment-details">
+                <h3>👨‍⚕️ Profesional</h3>
+                <div class="detail-row">
+                    <span class="detail-label">Nombre:</span>
+                    <span class="detail-value">{{professional_name}}</span>
+                </div>
+            </div>
+
+            <div class="appointment-details">
+                <h3>📅 Detalles de la Cita</h3>
+                <div class="detail-row">
+                    <span class="detail-label">Fecha:</span>
+                    <span class="detail-value">{{new_date}}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Hora:</span>
+                    <span class="detail-value">{{new_time}}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Duración:</span>
+                    <span class="detail-value">{{duration_minutes}} minutos</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Tipo:</span>
+                    <span class="detail-value">{{appointment_type}}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Ubicación:</span>
+                    <span class="detail-value">{{location}}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Costo:</span>
+                    <span class="detail-value">${{cost}} MXN (Pagado)</span>
+                </div>
+            </div>
+
+            {{#if notes}}
+            <div class="notes-box">
+                <strong>Notas sobre tu cita:</strong><br>
+                {{notes}}
+            </div>
+            {{/if}}
+
+            <div class="instructions">
+                <h3>📋 Información Importante</h3>
+                <ul>
+                    <li><strong>Nueva fecha confirmada:</strong> Tu cita ahora está programada para {{new_date}} a las {{new_time}}</li>
+                    <li><strong>Llega a tiempo:</strong> Te recomendamos llegar 10 minutos antes</li>
+                    <li><strong>Ubicación:</strong> {{location}}</li>
+                    <li><strong>Dudas:</strong> Si tienes alguna pregunta sobre el cambio, contacta directamente con {{contact_name}}</li>
+                </ul>
+            </div>
+
+            <p style="color: #6b7280; font-size: 14px; text-align: center; margin-top: 30px;">
+                Por favor, guarda este correo como comprobante de tu nueva cita.<br>
+                Si tienes alguna pregunta, no dudes en contactarnos.
+            </p>
+        </div>
+
+        <div class="footer">
+            <p>
+                <strong>Holistia</strong> - Tu bienestar es nuestra prioridad<br>
+                <a href="https://holistia.io">holistia.io</a> |
+                <a href="mailto:holistia.io@gmail.com">holistia.io@gmail.com</a>
+            </p>
+            <p style="font-size: 12px; margin-top: 15px;">
+                Este es un email automático, por favor no respondas directamente.
+                Si necesitas ayuda, contacta a nuestro equipo de soporte.
+            </p>
+        </div>
+    </div>
+</body>
+</html>

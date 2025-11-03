@@ -7,6 +7,7 @@ import Link from "next/link";
 import { toast } from "sonner";
 import {
   Calendar,
+  CalendarClock,
   Clock,
   MapPin,
   Monitor,
@@ -21,6 +22,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { createClient } from "@/utils/supabase/client";
 import { AppointmentActionsDialog } from "@/components/appointments/appointment-actions-dialog";
+import { RescheduleAppointmentDialog } from "@/components/appointments/reschedule-appointment-dialog";
 
 interface Professional {
   id: string;
@@ -122,6 +124,22 @@ export default function AppointmentsPage() {
     isOpen: false,
     appointmentId: null,
     actionType: null,
+  });
+
+  const [rescheduleDialogState, setRescheduleDialogState] = useState<{
+    isOpen: boolean;
+    appointmentId: string | null;
+    currentDate: string;
+    currentTime: string;
+    appointmentDetails?: {
+      professionalName?: string;
+      cost: number;
+    };
+  }>({
+    isOpen: false,
+    appointmentId: null,
+    currentDate: '',
+    currentTime: '',
   });
   const params = useParams();
   const router = useRouter();
@@ -300,6 +318,75 @@ export default function AppointmentsPage() {
       appointmentId: null,
       actionType: null,
     });
+  };
+
+  const openRescheduleDialog = (appointment: Appointment) => {
+    setRescheduleDialogState({
+      isOpen: true,
+      appointmentId: appointment.id,
+      currentDate: appointment.appointment_date,
+      currentTime: appointment.appointment_time,
+      appointmentDetails: {
+        professionalName: appointment.professional.full_name,
+        cost: appointment.cost,
+      },
+    });
+  };
+
+  const closeRescheduleDialog = () => {
+    setRescheduleDialogState({
+      isOpen: false,
+      appointmentId: null,
+      currentDate: '',
+      currentTime: '',
+    });
+  };
+
+  const handleRescheduleSuccess = async () => {
+    // Recargar las citas después de reprogramar
+    closeRescheduleDialog();
+
+    // Recargar la lista de citas
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      const { data: appointmentsData } = await supabase
+        .from('appointments')
+        .select('*')
+        .eq('patient_id', user.id)
+        .order('appointment_date', { ascending: true })
+        .order('appointment_time', { ascending: true });
+
+      if (appointmentsData) {
+        const professionalIds = [...new Set(appointmentsData.map(apt => apt.professional_id))];
+        const { data: professionalsData } = await supabase
+          .from('professional_applications')
+          .select('id, first_name, last_name, profession, profile_photo, user_id')
+          .in('id', professionalIds);
+
+        const userIds = professionalsData?.map(p => p.user_id).filter(Boolean) || [];
+        const { data: profilesData } = await supabase
+          .from('profiles')
+          .select('id, avatar_url')
+          .in('id', userIds);
+
+        const formattedAppointments = appointmentsData.map(apt => {
+          const prof = professionalsData?.find(p => p.id === apt.professional_id);
+          const profile = profilesData?.find(p => p.id === prof?.user_id);
+
+          return {
+            ...apt,
+            professional: {
+              id: prof?.id || '',
+              full_name: prof ? `${prof.first_name} ${prof.last_name}` : 'Profesional',
+              avatar_url: profile?.avatar_url || prof?.profile_photo,
+              especialidad: prof?.profession
+            }
+          };
+        });
+
+        setAppointments(formattedAppointments);
+      }
+    }
   };
 
   const handleDialogSuccess = async () => {
@@ -517,6 +604,15 @@ export default function AppointmentsPage() {
                         {appointment.status === "confirmed" && (
                           <>
                             <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => openRescheduleDialog(appointment)}
+                              className="w-full sm:w-auto"
+                            >
+                              <CalendarClock className="h-4 w-4 mr-1" />
+                              Reprogramar
+                            </Button>
+                            <Button
                               variant="destructive"
                               size="sm"
                               onClick={() => openCancelDialog(appointment)}
@@ -667,6 +763,20 @@ export default function AppointmentsPage() {
           userRole="patient"
           appointmentDetails={dialogState.appointmentDetails}
           onSuccess={handleDialogSuccess}
+        />
+      )}
+
+      {/* Dialog para reprogramar */}
+      {rescheduleDialogState.isOpen && rescheduleDialogState.appointmentId && (
+        <RescheduleAppointmentDialog
+          isOpen={rescheduleDialogState.isOpen}
+          onClose={closeRescheduleDialog}
+          appointmentId={rescheduleDialogState.appointmentId}
+          currentDate={rescheduleDialogState.currentDate}
+          currentTime={rescheduleDialogState.currentTime}
+          userRole="patient"
+          appointmentDetails={rescheduleDialogState.appointmentDetails}
+          onSuccess={handleRescheduleSuccess}
         />
       )}
     </div>

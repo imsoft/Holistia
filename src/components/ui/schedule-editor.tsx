@@ -203,17 +203,25 @@ export function createEmptySchedule(): DaySchedule[] {
   }));
 }
 
-// Función helper para parsear schedule desde JSON string
-export function parseScheduleFromString(scheduleString: string | null | undefined): DaySchedule[] {
-  if (!scheduleString) return createEmptySchedule();
+// Función helper para parsear schedule desde JSON string o objeto JSONB
+export function parseScheduleFromString(scheduleData: string | DaySchedule[] | null | undefined): DaySchedule[] {
+  if (!scheduleData) return createEmptySchedule();
 
-  try {
-    const parsed = JSON.parse(scheduleString);
-    if (Array.isArray(parsed)) return parsed;
-    return createEmptySchedule();
-  } catch {
-    return createEmptySchedule();
+  // Si ya es un array (objeto JSONB desde la base de datos), retornarlo directamente
+  if (Array.isArray(scheduleData)) return scheduleData;
+
+  // Si es un string, intentar parsearlo
+  if (typeof scheduleData === 'string') {
+    try {
+      const parsed = JSON.parse(scheduleData);
+      if (Array.isArray(parsed)) return parsed;
+      return createEmptySchedule();
+    } catch {
+      return createEmptySchedule();
+    }
   }
+
+  return createEmptySchedule();
 }
 
 // Función helper para formatear schedule para mostrar

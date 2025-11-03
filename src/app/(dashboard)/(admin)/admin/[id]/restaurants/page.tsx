@@ -60,7 +60,7 @@ interface Restaurant {
   image_url?: string;
   cuisine_type?: string;
   price_range?: string;
-  opening_hours?: string;
+  opening_hours?: DaySchedule[] | string;
   rating?: number;
   is_active: boolean;
   created_at: string;
@@ -376,7 +376,9 @@ export default function AdminRestaurants() {
                   {restaurant.opening_hours && (
                     <div className="flex items-center gap-2 text-sm">
                       <Clock className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                      <span className="text-muted-foreground">{restaurant.opening_hours}</span>
+                      <span className="text-muted-foreground">
+                        {formatScheduleForDisplay(parseScheduleFromString(restaurant.opening_hours))}
+                      </span>
                     </div>
                   )}
 

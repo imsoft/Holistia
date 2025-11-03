@@ -51,7 +51,7 @@ interface HolisticCenter {
   website?: string;
   instagram?: string;
   image_url?: string;
-  opening_hours?: string;
+  opening_hours?: DaySchedule[] | string;
   is_active: boolean;
   created_at: string;
   updated_at: string;

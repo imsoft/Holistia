@@ -158,9 +158,6 @@ export default function AdminHolisticCenters() {
     try {
       setSaving(true);
 
-      // Convertir schedule a JSON string
-      const scheduleJson = JSON.stringify(formData.opening_hours);
-
       if (editingCenter) {
         const { error } = await supabase
           .from("holistic_centers")
@@ -172,7 +169,7 @@ export default function AdminHolisticCenters() {
             email: formData.email.trim() || null,
             website: formData.website.trim() || null,
             instagram: formData.instagram.trim() || null,
-            opening_hours: scheduleJson,
+            opening_hours: formData.opening_hours,
             is_active: formData.is_active,
           })
           .eq("id", editingCenter.id);
@@ -190,7 +187,7 @@ export default function AdminHolisticCenters() {
             email: formData.email.trim() || null,
             website: formData.website.trim() || null,
             instagram: formData.instagram.trim() || null,
-            opening_hours: scheduleJson,
+            opening_hours: formData.opening_hours,
             is_active: formData.is_active,
           });
 

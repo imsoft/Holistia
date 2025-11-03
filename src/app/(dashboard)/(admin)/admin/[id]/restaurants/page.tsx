@@ -194,9 +194,6 @@ export default function AdminRestaurants() {
     try {
       setSaving(true);
 
-      // Convertir schedule a JSON string
-      const scheduleJson = JSON.stringify(formData.opening_hours);
-
       if (editingRestaurant) {
         const { error } = await supabase
           .from("restaurants")
@@ -210,7 +207,7 @@ export default function AdminRestaurants() {
             instagram: formData.instagram.trim() || null,
             cuisine_type: formData.cuisine_type || null,
             price_range: formData.price_range || null,
-            opening_hours: scheduleJson,
+            opening_hours: formData.opening_hours,
             is_active: formData.is_active,
           })
           .eq("id", editingRestaurant.id);
@@ -230,7 +227,7 @@ export default function AdminRestaurants() {
             instagram: formData.instagram.trim() || null,
             cuisine_type: formData.cuisine_type || null,
             price_range: formData.price_range || null,
-            opening_hours: scheduleJson,
+            opening_hours: formData.opening_hours,
             is_active: formData.is_active,
           });
 

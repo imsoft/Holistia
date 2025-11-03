@@ -175,7 +175,7 @@ export function AdminSidebar() {
       icon: UtensilsCrossed,
     },
     {
-      title: "Agente IA (Pruebas)",
+      title: "Agente IA (Alpha)",
       url: `/admin/${userId}/ai-agent`,
       icon: Sparkles,
     },

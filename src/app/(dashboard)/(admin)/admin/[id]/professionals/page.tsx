@@ -46,6 +46,7 @@ import { Label } from "@/components/ui/label";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import Image from "next/image";
 import { createClient } from "@/utils/supabase/client";
+import { AdminRatingForm } from "@/components/ui/admin-rating-form";
 
 // Interfaces para los datos dinámicos
 interface Professional {
@@ -99,6 +100,8 @@ export default function AdminProfessionals() {
   const [isEditWellnessDialogOpen, setIsEditWellnessDialogOpen] = useState(false);
   const [editingWellnessAreas, setEditingWellnessAreas] = useState<string[]>([]);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [adminRating, setAdminRating] = useState<{rating: number; improvement_comments?: string | null; id?: string} | null>(null);
+  const [ratingRefreshKey, setRatingRefreshKey] = useState(0);
   const supabase = createClient();
 
   // Opciones de áreas de bienestar
@@ -390,9 +393,41 @@ export default function AdminProfessionals() {
   };
 
   // Función para ver el perfil del profesional
-  const handleViewProfile = (professional: Professional) => {
+  const handleViewProfile = async (professional: Professional) => {
     setSelectedProfessional(professional);
     setIsViewDialogOpen(true);
+    
+    // Cargar calificación existente del admin actual
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: ratingData, error } = await supabase
+          .from("admin_ratings")
+          .select("*")
+          .eq("professional_id", professional.id)
+          .eq("admin_id", user.id)
+          .single();
+        
+        if (error && error.code !== 'PGRST116') { // PGRST116 = no rows found
+          console.error("Error loading rating:", error);
+        } else if (ratingData) {
+          setAdminRating(ratingData);
+        } else {
+          setAdminRating(null);
+        }
+      }
+    } catch (error) {
+      console.error("Error loading rating:", error);
+      setAdminRating(null);
+    }
+  };
+  
+  // Función para refrescar la calificación después de guardar
+  const handleRatingSuccess = () => {
+    setRatingRefreshKey(prev => prev + 1);
+    if (selectedProfessional) {
+      handleViewProfile(selectedProfessional);
+    }
   };
 
   // Función para verificar un profesional
@@ -1198,6 +1233,17 @@ export default function AdminProfessionals() {
                   </div>
                 </div>
               </div>
+
+              {/* Calificación de administrador */}
+              {selectedProfessional.id && (
+                <AdminRatingForm
+                  key={ratingRefreshKey}
+                  professionalId={selectedProfessional.id}
+                  professionalName={`${selectedProfessional.first_name} ${selectedProfessional.last_name}`}
+                  existingRating={adminRating}
+                  onSuccess={handleRatingSuccess}
+                />
+              )}
 
               {/* Información de pagos (Stripe) */}
               <div className="bg-muted/50 rounded-lg p-4">

@@ -30,6 +30,7 @@ import ProfilePhotoUploader from "@/components/ui/profile-photo-uploader";
 import ProfessionalProfileEditor from "@/components/ui/professional-profile-editor";
 import { AccountDeactivation } from "@/components/ui/account-deactivation";
 import { StripeConnectButton } from "@/components/ui/stripe-connect-button";
+import { AdminRatingDisplay } from "@/components/ui/admin-rating-display";
 
 
 
@@ -624,6 +625,13 @@ export default function ProfessionalDashboard() {
               professionalId={professionalId}
               initialStatus={stripeStatus}
             />
+          </div>
+        )}
+
+        {/* Calificación de administrador */}
+        {professionalId && (
+          <div className="mt-6">
+            <AdminRatingDisplay professionalId={professionalId} />
           </div>
         )}
 

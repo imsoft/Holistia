@@ -46,6 +46,7 @@ interface Professional {
   imagePosition?: string; // Posición de la imagen en la card
   average_rating?: number; // Promedio de rating de reseñas
   total_reviews?: number; // Total de reseñas
+  admin_rating?: number; // Calificación de administradores (0-10)
 }
 
 const categories = [
@@ -119,7 +120,7 @@ const HomeUserPage = () => {
           return;
         }
 
-        // Obtener servicios y estadísticas de reseñas para cada profesional
+        // Obtener servicios, estadísticas de reseñas y calificación de admin para cada profesional
         const professionalsWithServices = await Promise.all(
           (professionalsData || []).map(async (prof) => {
             const { data: services } = await supabase
@@ -133,6 +134,13 @@ const HomeUserPage = () => {
               .from("professional_review_stats")
               .select("average_rating, total_reviews")
               .eq("professional_id", prof.user_id);
+
+            // Obtener calificación de administradores
+            const { data: adminRatingData } = await supabase
+              .from("professional_admin_rating_stats")
+              .select("average_admin_rating")
+              .eq("professional_id", prof.id)
+              .single();
 
             // Tomar el primer resultado si existe
             const reviewStats = reviewStatsData && reviewStatsData.length > 0 ? reviewStatsData[0] : null;
@@ -149,13 +157,31 @@ const HomeUserPage = () => {
               modality: professionalModality, // Agregar la modalidad calculada
               imagePosition: prof.image_position || "center center", // Agregar posición de imagen
               average_rating: reviewStats?.average_rating || undefined,
-              total_reviews: reviewStats?.total_reviews || undefined
+              total_reviews: reviewStats?.total_reviews || undefined,
+              admin_rating: adminRatingData?.average_admin_rating || undefined
             };
           })
         );
 
-        setProfessionals(professionalsWithServices);
-        setFilteredProfessionals(professionalsWithServices);
+        // Ordenar profesionales por calificación de admin (mayor primero), luego por fecha de creación
+        const sortedProfessionals = professionalsWithServices.sort((a, b) => {
+          // Si ambos tienen calificación de admin, ordenar por calificación descendente
+          if (a.admin_rating !== undefined && b.admin_rating !== undefined) {
+            return b.admin_rating - a.admin_rating;
+          }
+          // Si solo uno tiene calificación, poner el que tiene calificación primero
+          if (a.admin_rating !== undefined && b.admin_rating === undefined) {
+            return -1;
+          }
+          if (a.admin_rating === undefined && b.admin_rating !== undefined) {
+            return 1;
+          }
+          // Si ninguno tiene calificación, mantener orden por fecha de creación
+          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+        });
+
+        setProfessionals(sortedProfessionals);
+        setFilteredProfessionals(sortedProfessionals);
 
         // Obtener eventos activos
         const { data: eventsData, error: eventsError } = await supabase

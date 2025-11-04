@@ -161,3 +161,4 @@ COMMENT ON COLUMN public.admin_ratings.improvement_comments IS
 -- - Los profesionales pueden ver su propia calificación
 -- - La vista professional_admin_rating_stats proporciona estadísticas agregadas
 -- =====================================================
+

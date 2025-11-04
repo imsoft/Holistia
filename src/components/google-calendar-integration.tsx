@@ -134,7 +134,7 @@ export function GoogleCalendarIntegration({ userId }: { userId: string }) {
 
   if (loading) {
     return (
-      <Card>
+      <Card className="py-4">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Calendar className="h-5 w-5" />
@@ -151,7 +151,7 @@ export function GoogleCalendarIntegration({ userId }: { userId: string }) {
   }
 
   return (
-    <Card>
+    <Card className="py-4">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Calendar className="h-5 w-5" />

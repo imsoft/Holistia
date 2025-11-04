@@ -182,8 +182,9 @@ export function AdminRatingForm({
             <div className="flex items-center gap-1">
               {[1, 2, 3, 4, 5].map((starValue) => {
                 const displayRating = hoveredRating || rating;
-                const isFilled = starValue <= Math.floor(displayRating);
+                const isFilled = starValue < Math.ceil(displayRating) || (starValue === Math.ceil(displayRating) && displayRating % 1 === 0);
                 const isPartial = starValue === Math.ceil(displayRating) && displayRating % 1 !== 0;
+                const partialPercentage = isPartial ? (displayRating % 1) * 100 : 0;
                 
                 return (
                   <button
@@ -194,23 +195,22 @@ export function AdminRatingForm({
                     onMouseLeave={() => setHoveredRating(0)}
                     className="relative transition-transform hover:scale-110"
                   >
-                    {/* Estrella base (gris o amarilla completa) */}
+                    {/* Estrella base (gris) */}
                     <Star
-                      className={cn(
-                        "w-8 h-8 transition-colors",
-                        isFilled || isPartial
-                          ? "fill-yellow-400 text-yellow-400"
-                          : "fill-gray-200 text-gray-300"
-                      )}
+                      className="w-8 h-8 fill-gray-200 text-gray-300 transition-colors"
                     />
-                    {/* Media estrella (clipPath para mostrar solo la parte izquierda) */}
+                    {/* Estrella rellena completa (si está completamente seleccionada) */}
+                    {isFilled && (
+                      <Star
+                        className="absolute top-0 left-0 w-8 h-8 fill-yellow-400 text-yellow-400"
+                      />
+                    )}
+                    {/* Media estrella (clipPath para mostrar solo la parte izquierda cuando es parcial) */}
                     {isPartial && (
                       <Star
-                        className={cn(
-                          "absolute top-0 left-0 fill-yellow-400 text-yellow-400 w-8 h-8"
-                        )}
+                        className="absolute top-0 left-0 w-8 h-8 fill-yellow-400 text-yellow-400"
                         style={{
-                          clipPath: `inset(0 ${100 - (displayRating % 1) * 100}% 0 0)`,
+                          clipPath: `inset(0 ${100 - partialPercentage}% 0 0)`,
                         }}
                       />
                     )}

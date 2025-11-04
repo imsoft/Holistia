@@ -281,12 +281,18 @@ export function ProfessionalSidebar() {
               </div>
               <div className="border-t border-border" />
               <DropdownMenuItem asChild>
+                <Link href={`/professional/${id}/settings`} className="flex items-center gap-2">
+                  <Settings className="h-4 w-4" />
+                  <span>Configuración</span>
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
                 <Link href={`/patient/${id}/explore`} className="flex items-center gap-2">
                   <User className="h-4 w-4" />
                   <span>Vista de paciente</span>
                 </Link>
               </DropdownMenuItem>
-              <DropdownMenuItem 
+              <DropdownMenuItem
                 className="flex items-center gap-2 text-red-600 cursor-pointer"
                 onClick={handleLogout}
               >
@@ -332,12 +338,18 @@ export function ProfessionalSidebar() {
               </div>
               <div className="border-t border-border" />
               <DropdownMenuItem asChild>
+                <Link href={`/professional/${id}/settings`} className="flex items-center gap-2">
+                  <Settings className="h-4 w-4" />
+                  <span>Configuración</span>
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
                 <Link href={`/patient/${id}/explore`} className="flex items-center gap-2">
                   <User className="h-4 w-4" />
                   <span>Vista de paciente</span>
                 </Link>
               </DropdownMenuItem>
-              <DropdownMenuItem 
+              <DropdownMenuItem
                 className="flex items-center gap-2 text-red-600 cursor-pointer"
                 onClick={handleLogout}
               >

@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { Resend } from "resend";
 import fs from "fs";
 import path from "path";
+import { updateAppointmentInGoogleCalendar } from "@/actions/google-calendar";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -205,6 +206,17 @@ export async function POST(request: Request) {
     } catch (emailError) {
       console.error("Error al enviar emails:", emailError);
       // No fallar la operación si los emails no se envían
+    }
+
+    // Try to update event in Google Calendar (non-blocking)
+    try {
+      const professionalUserId = appointment.professional.user_id;
+      if (professionalUserId) {
+        await updateAppointmentInGoogleCalendar(appointmentId, professionalUserId);
+      }
+    } catch (calendarError) {
+      // Don't fail the request if Google Calendar sync fails
+      console.error("Error updating Google Calendar event:", calendarError);
     }
 
     return NextResponse.json({

@@ -4,6 +4,7 @@ import {
   sendAppointmentCancelledByPatient,
   sendAppointmentCancelledByProfessional
 } from '@/lib/email-sender';
+import { deleteAppointmentFromGoogleCalendar } from '@/actions/google-calendar';
 
 export async function POST(request: Request) {
   try {
@@ -177,6 +178,17 @@ export async function POST(request: Request) {
         cancellation_reason: cancellationReason,
         professional_url: `${process.env.NEXT_PUBLIC_APP_URL}/patient/${appointment.patient_id}/explore/professional/${professionalSlug}`
       });
+    }
+
+    // Try to delete event from Google Calendar (non-blocking)
+    try {
+      const professionalUserId = professionalData?.user_id;
+      if (professionalUserId) {
+        await deleteAppointmentFromGoogleCalendar(appointmentId, professionalUserId);
+      }
+    } catch (calendarError) {
+      // Don't fail the request if Google Calendar sync fails
+      console.error('Error deleting Google Calendar event:', calendarError);
     }
 
     return NextResponse.json({

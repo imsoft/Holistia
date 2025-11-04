@@ -1,0 +1,285 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Calendar, CheckCircle2, XCircle, Loader2, RefreshCw } from 'lucide-react';
+import { toast } from 'sonner';
+import { syncAllAppointmentsToGoogleCalendar } from '@/actions/google-calendar';
+import { syncAllEventsToGoogleCalendar } from '@/actions/google-calendar/events';
+
+interface GoogleCalendarStatus {
+  connected: boolean;
+  tokenExpired?: boolean;
+  hasAccess?: boolean;
+  expiresAt?: string;
+}
+
+export function GoogleCalendarIntegration({ userId }: { userId: string }) {
+  const [status, setStatus] = useState<GoogleCalendarStatus | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [connecting, setConnecting] = useState(false);
+  const [disconnecting, setDisconnecting] = useState(false);
+  const [syncing, setSyncing] = useState(false);
+
+  // Cargar el estado inicial
+  useEffect(() => {
+    fetchStatus();
+  }, []);
+
+  const fetchStatus = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch('/api/google-calendar/status');
+      const data = await response.json();
+      setStatus(data);
+    } catch (error) {
+      console.error('Error fetching status:', error);
+      toast.error('Error al verificar el estado de Google Calendar');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleConnect = async () => {
+    setConnecting(true);
+    try {
+      const response = await fetch('/api/google-calendar/auth');
+      const data = await response.json();
+
+      if (data.success && data.authUrl) {
+        // Redirigir a la página de autorización de Google
+        window.location.href = data.authUrl;
+      } else {
+        toast.error('Error al generar URL de autorización');
+      }
+    } catch (error) {
+      console.error('Error connecting:', error);
+      toast.error('Error al conectar con Google Calendar');
+      setConnecting(false);
+    }
+  };
+
+  const handleDisconnect = async () => {
+    if (
+      !confirm(
+        '¿Estás seguro de que deseas desconectar tu cuenta de Google Calendar? Esto eliminará la sincronización automática de tus eventos.'
+      )
+    ) {
+      return;
+    }
+
+    setDisconnecting(true);
+    try {
+      const response = await fetch('/api/google-calendar/disconnect', {
+        method: 'POST',
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        toast.success('Google Calendar desconectado exitosamente');
+        setStatus({ connected: false });
+      } else {
+        toast.error('Error al desconectar Google Calendar');
+      }
+    } catch (error) {
+      console.error('Error disconnecting:', error);
+      toast.error('Error al desconectar');
+    } finally {
+      setDisconnecting(false);
+    }
+  };
+
+  const handleSync = async () => {
+    setSyncing(true);
+    try {
+      // Sincronizar citas
+      const appointmentsResult =
+        await syncAllAppointmentsToGoogleCalendar(userId);
+
+      // Sincronizar eventos
+      const eventsResult = await syncAllEventsToGoogleCalendar(userId);
+
+      if (appointmentsResult.success && eventsResult.success) {
+        const totalSynced =
+          (appointmentsResult.syncedCount || 0) +
+          (eventsResult.syncedCount || 0);
+
+        if (totalSynced > 0) {
+          toast.success(
+            `Se sincronizaron ${totalSynced} eventos con Google Calendar`
+          );
+        } else {
+          toast.info('No hay eventos nuevos para sincronizar');
+        }
+      } else {
+        toast.error('Error al sincronizar algunos eventos');
+      }
+    } catch (error) {
+      console.error('Error syncing:', error);
+      toast.error('Error al sincronizar eventos');
+    } finally {
+      setSyncing(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Calendar className="h-5 w-5" />
+            Integración con Google Calendar
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-center py-8">
+            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Calendar className="h-5 w-5" />
+          Integración con Google Calendar
+        </CardTitle>
+        <CardDescription>
+          Sincroniza automáticamente tus citas y eventos con Google Calendar
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {/* Estado de conexión */}
+        <div className="flex items-center gap-3">
+          <div className="flex-1">
+            <div className="flex items-center gap-2">
+              {status?.connected ? (
+                <>
+                  <CheckCircle2 className="h-5 w-5 text-green-600" />
+                  <span className="font-medium">Conectado</span>
+                </>
+              ) : (
+                <>
+                  <XCircle className="h-5 w-5 text-gray-400" />
+                  <span className="font-medium text-muted-foreground">
+                    No conectado
+                  </span>
+                </>
+              )}
+            </div>
+            {status?.connected && status?.expiresAt && (
+              <p className="text-sm text-muted-foreground mt-1">
+                Token expira:{' '}
+                {new Date(status.expiresAt).toLocaleDateString('es-MX', {
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                })}
+              </p>
+            )}
+          </div>
+        </div>
+
+        {/* Alertas */}
+        {status?.connected && status?.tokenExpired && (
+          <Alert variant="destructive">
+            <AlertDescription>
+              Tu token de acceso ha expirado. Por favor, reconecta tu cuenta de
+              Google Calendar.
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {status?.connected && !status?.hasAccess && (
+          <Alert>
+            <AlertDescription>
+              No se pudo verificar el acceso a Google Calendar. Intenta
+              sincronizar tus eventos.
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {/* Información */}
+        <div className="rounded-lg bg-muted p-4 space-y-2">
+          <h4 className="font-medium text-sm">¿Qué se sincroniza?</h4>
+          <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
+            <li>Todas tus citas confirmadas con pacientes</li>
+            <li>Eventos y talleres que organices</li>
+            <li>Actualizaciones automáticas cuando cambies una cita</li>
+            <li>Eliminación cuando canceles una cita o evento</li>
+          </ul>
+        </div>
+      </CardContent>
+      <CardFooter className="flex gap-2">
+        {!status?.connected ? (
+          <Button
+            onClick={handleConnect}
+            disabled={connecting}
+            className="w-full"
+          >
+            {connecting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Conectando...
+              </>
+            ) : (
+              <>
+                <Calendar className="mr-2 h-4 w-4" />
+                Conectar Google Calendar
+              </>
+            )}
+          </Button>
+        ) : (
+          <>
+            <Button
+              onClick={handleSync}
+              disabled={syncing || status?.tokenExpired}
+              variant="default"
+            >
+              {syncing ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Sincronizando...
+                </>
+              ) : (
+                <>
+                  <RefreshCw className="mr-2 h-4 w-4" />
+                  Sincronizar ahora
+                </>
+              )}
+            </Button>
+            <Button
+              onClick={handleDisconnect}
+              disabled={disconnecting}
+              variant="outline"
+            >
+              {disconnecting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Desconectando...
+                </>
+              ) : (
+                'Desconectar'
+              )}
+            </Button>
+          </>
+        )}
+      </CardFooter>
+    </Card>
+  );
+}

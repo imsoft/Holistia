@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 import { sendAppointmentConfirmationToPatient } from '@/lib/email-sender';
+import { createAppointmentInGoogleCalendar } from '@/actions/google-calendar';
 
 export async function POST(request: NextRequest) {
   try {
@@ -140,6 +141,14 @@ export async function POST(request: NextRequest) {
           console.error('Error sending confirmation email to patient:', emailError);
         }
       }
+    }
+
+    // Try to create event in Google Calendar (non-blocking)
+    try {
+      await createAppointmentInGoogleCalendar(appointmentId, user.id);
+    } catch (calendarError) {
+      // Don't fail the request if Google Calendar sync fails
+      console.error('Error creating Google Calendar event:', calendarError);
     }
 
     return NextResponse.json({

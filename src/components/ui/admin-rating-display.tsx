@@ -106,7 +106,7 @@ export function AdminRatingDisplay({ professionalId }: AdminRatingDisplayProps) 
   };
 
   return (
-    <Card className="border-2">
+    <Card className="border-2 py-4">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Star className="h-5 w-5 text-yellow-500 fill-yellow-500" />

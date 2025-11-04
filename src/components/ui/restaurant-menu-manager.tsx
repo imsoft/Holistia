@@ -249,7 +249,7 @@ export function RestaurantMenuManager({ restaurantId }: RestaurantMenuManagerPro
       {/* Lista de menús */}
       {menus.length === 0 ? (
         <Card>
-          <CardContent className="pt-6">
+          <CardContent className="py-6">
             <div className="text-center text-muted-foreground">
               No hay menús registrados. Agrega el primero.
             </div>

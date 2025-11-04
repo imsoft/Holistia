@@ -500,7 +500,7 @@ export default function AdminRestaurants() {
 
       {/* Form Dialog */}
       <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
               {editingRestaurant ? "Editar Restaurante" : "Nuevo Restaurante"}
@@ -656,6 +656,16 @@ export default function AdminRestaurants() {
               />
             </div>
 
+            {/* Gestor de Menús */}
+            {(editingRestaurant || tempRestaurantId) && (
+              <div className="pt-4 border-t">
+                <Label className="text-base font-semibold mb-2 block">Menú del Restaurante</Label>
+                <RestaurantMenuManager 
+                  restaurantId={editingRestaurant?.id || tempRestaurantId || ""} 
+                />
+              </div>
+            )}
+
             <div className="flex items-center gap-2">
               <input
                 type="checkbox"
@@ -786,11 +796,6 @@ export default function AdminRestaurants() {
                   </div>
                 </div>
               )}
-
-              {/* Sección de Menús */}
-              <div className="pt-6 border-t">
-                <RestaurantMenuManager restaurantId={viewingRestaurant.id} />
-              </div>
             </div>
           )}
         </DialogContent>

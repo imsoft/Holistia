@@ -109,7 +109,11 @@ export async function createAppointmentInGoogleCalendar(
     }
 
     // Verificar que el usuario es el profesional de esta cita
-    if (appointment.professional.user_id !== userId) {
+    const professional = Array.isArray(appointment.professional)
+      ? appointment.professional[0]
+      : appointment.professional;
+
+    if (professional?.user_id !== userId) {
       return {
         success: false,
         error: 'No tienes permiso para crear este evento',
@@ -120,14 +124,14 @@ export async function createAppointmentInGoogleCalendar(
     const { accessToken, refreshToken } = await getUserGoogleTokens(userId);
 
     // Construir el evento de Google Calendar
-    const startDate = new Date(appointment.date);
+    const startDate = new Date(`${appointment.appointment_date}T${appointment.appointment_time}`);
     const endDate = new Date(
-      startDate.getTime() + appointment.duration * 60000
+      startDate.getTime() + appointment.duration_minutes * 60000
     );
 
     const event: GoogleCalendarEvent = {
       summary: `Cita con ${appointment.patient.first_name} ${appointment.patient.last_name}`,
-      description: `Cita de ${appointment.professional.profession}\n${
+      description: `Cita de ${professional.profession}\n${
         appointment.notes || ''
       }\n\nPaciente: ${appointment.patient.first_name} ${
         appointment.patient.last_name
@@ -155,9 +159,8 @@ export async function createAppointmentInGoogleCalendar(
       },
     };
 
-    // Si la cita es online, agregar link de video
-    if (appointment.session_type === 'online' && appointment.meeting_link) {
-      event.description += `\n\nEnlace de la sesión: ${appointment.meeting_link}`;
+    // Si la cita es online o presencial
+    if (appointment.appointment_type === 'online') {
       event.location = 'Sesión Online';
     } else if (appointment.location) {
       event.location = appointment.location;
@@ -230,7 +233,11 @@ export async function updateAppointmentInGoogleCalendar(
     }
 
     // Verificar que el usuario es el profesional de esta cita
-    if (appointment.professional.user_id !== userId) {
+    const professional = Array.isArray(appointment.professional)
+      ? appointment.professional[0]
+      : appointment.professional;
+
+    if (professional?.user_id !== userId) {
       return {
         success: false,
         error: 'No tienes permiso para actualizar este evento',
@@ -249,14 +256,14 @@ export async function updateAppointmentInGoogleCalendar(
     const { accessToken, refreshToken } = await getUserGoogleTokens(userId);
 
     // Construir el evento actualizado
-    const startDate = new Date(appointment.date);
+    const startDate = new Date(`${appointment.appointment_date}T${appointment.appointment_time}`);
     const endDate = new Date(
-      startDate.getTime() + appointment.duration * 60000
+      startDate.getTime() + appointment.duration_minutes * 60000
     );
 
     const eventUpdate: Partial<GoogleCalendarEvent> = {
       summary: `Cita con ${appointment.patient.first_name} ${appointment.patient.last_name}`,
-      description: `Cita de ${appointment.professional.profession}\n${
+      description: `Cita de ${professional.profession}\n${
         appointment.notes || ''
       }\n\nPaciente: ${appointment.patient.first_name} ${
         appointment.patient.last_name
@@ -271,8 +278,7 @@ export async function updateAppointmentInGoogleCalendar(
       },
     };
 
-    if (appointment.session_type === 'online' && appointment.meeting_link) {
-      eventUpdate.description += `\n\nEnlace de la sesión: ${appointment.meeting_link}`;
+    if (appointment.appointment_type === 'online') {
       eventUpdate.location = 'Sesión Online';
     } else if (appointment.location) {
       eventUpdate.location = appointment.location;

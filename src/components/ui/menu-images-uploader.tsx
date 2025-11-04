@@ -72,12 +72,13 @@ export function MenuImagesUploader({
           throw new Error(`El archivo ${file.name} es demasiado grande (máximo 5MB)`);
         }
 
-        // Generar nombre de archivo: imagen-{index}.{ext}
+        // Generar nombre de archivo único con timestamp para evitar conflictos
         const fileExt = file.name.split('.').pop();
-        const imageIndex = currentImages.length + i + 1;
-        const fileName = `imagen-${imageIndex}.${fileExt}`;
-        // Estructura: restaurants/<restaurant-id>/menus/<menu-id>/imagen-{index}.{ext}
-        const filePath = `${restaurantId}/menus/${menuId}/${fileName}`;
+        const timestamp = Date.now();
+        const random = Math.random().toString(36).substring(2, 8);
+        const fileName = `imagen-${timestamp}-${random}.${fileExt}`;
+        // Estructura: restaurants/<restaurant-id>/menu/imagenes/imagen-{timestamp}-{random}.{ext}
+        const filePath = `${restaurantId}/menu/imagenes/${fileName}`;
 
         // Subir archivo a Supabase Storage
         const { error: uploadError } = await supabase.storage

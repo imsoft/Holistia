@@ -142,7 +142,7 @@ export function AdminRatingForm({
   const displayRating = hoveredRating || rating;
 
   return (
-    <Card>
+    <Card className="py-4">
       <CardHeader>
         <CardTitle>
           {existingRating ? "Editar Calificación" : "Calificar Profesional"}

@@ -113,6 +113,7 @@ export default function AdminRestaurants() {
   const [viewingRestaurant, setViewingRestaurant] = useState<Restaurant | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [tempRestaurantId, setTempRestaurantId] = useState<string | null>(null); // ID temporal para nuevas creaciones
   const [formData, setFormData] = useState<FormData>({
     name: "",
     description: "",
@@ -155,6 +156,7 @@ export default function AdminRestaurants() {
   const handleOpenForm = (restaurant?: Restaurant) => {
     if (restaurant) {
       setEditingRestaurant(restaurant);
+      setTempRestaurantId(null); // No necesitamos ID temporal si estamos editando
       setFormData({
         name: restaurant.name,
         description: restaurant.description || "",
@@ -170,6 +172,9 @@ export default function AdminRestaurants() {
         is_active: restaurant.is_active,
       });
     } else {
+      // Generar ID temporal para nueva creación
+      const newTempId = crypto.randomUUID();
+      setTempRestaurantId(newTempId);
       setEditingRestaurant(null);
       setFormData({
         name: "",
@@ -192,7 +197,7 @@ export default function AdminRestaurants() {
   const handleImageUploaded = async (imageUrl: string) => {
     setFormData({ ...formData, image_url: imageUrl });
     
-    // Actualizar automáticamente en la base de datos si estamos editando
+    // Actualizar automáticamente en la base de datos solo si estamos editando un restaurante existente
     if (editingRestaurant) {
       try {
         const { error } = await supabase
@@ -208,12 +213,15 @@ export default function AdminRestaurants() {
         toast.error("Error al actualizar la imagen en la base de datos");
       }
     }
+    // Si estamos creando un nuevo restaurante (tempRestaurantId existe), 
+    // la imagen ya está subida al storage con el ID temporal,
+    // y se guardará cuando se cree el restaurante con ese mismo ID
   };
 
   const handleImageRemoved = async () => {
     setFormData({ ...formData, image_url: "" });
     
-    // Actualizar automáticamente en la base de datos si estamos editando
+    // Actualizar automáticamente en la base de datos solo si estamos editando un restaurante existente
     if (editingRestaurant) {
       try {
         const { error } = await supabase
@@ -229,6 +237,8 @@ export default function AdminRestaurants() {
         toast.error("Error al eliminar la imagen de la base de datos");
       }
     }
+    // Si estamos creando un nuevo restaurante, solo actualizamos el estado del formulario
+    // La imagen se elimina del storage pero no afecta la base de datos porque aún no existe el registro
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -266,9 +276,11 @@ export default function AdminRestaurants() {
         setIsFormOpen(false);
         fetchRestaurants();
       } else {
-        const { data: newRestaurant, error } = await supabase
+        // Usar el ID temporal para crear el restaurante con el mismo ID que usamos para la imagen
+        const { error } = await supabase
           .from("restaurants")
           .insert({
+            id: tempRestaurantId || undefined, // Usar el ID temporal si existe
             name: formData.name.trim(),
             description: formData.description.trim() || null,
             address: formData.address.trim() || null,
@@ -281,23 +293,15 @@ export default function AdminRestaurants() {
             price_range: formData.price_range || null,
             opening_hours: formData.opening_hours,
             is_active: formData.is_active,
-          })
-          .select()
-          .single();
+          });
 
         if (error) throw error;
         toast.success("Restaurante creado exitosamente");
         
-        // Si se creó exitosamente, abrir el formulario en modo edición para permitir subir imagen
-        if (newRestaurant) {
-          setEditingRestaurant(newRestaurant);
-          setFormData(prev => ({ ...prev, image_url: newRestaurant.image_url || "" }));
-          // No cerrar el formulario, mantenerlo abierto para que puedan subir la imagen
-          fetchRestaurants();
-        } else {
-          setIsFormOpen(false);
-          fetchRestaurants();
-        }
+        // Limpiar ID temporal
+        setTempRestaurantId(null);
+        setIsFormOpen(false);
+        fetchRestaurants();
       }
     } catch (error) {
       console.error("Error saving restaurant:", error);
@@ -625,9 +629,9 @@ export default function AdminRestaurants() {
               </div>
             </div>
 
-            {editingRestaurant ? (
+            {editingRestaurant || tempRestaurantId ? (
               <RestaurantCenterImageUploader
-                entityId={editingRestaurant.id}
+                entityId={editingRestaurant?.id || tempRestaurantId || ""}
                 bucketName="restaurants"
                 onImageUploaded={handleImageUploaded}
                 currentImageUrl={formData.image_url || undefined}
@@ -638,7 +642,7 @@ export default function AdminRestaurants() {
               <div className="space-y-2">
                 <Label>Imagen principal</Label>
                 <p className="text-xs text-muted-foreground mb-2">
-                  Guarda el restaurante primero, luego podrás subir una imagen editándolo
+                  Cargando...
                 </p>
               </div>
             )}

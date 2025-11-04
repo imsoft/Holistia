@@ -82,6 +82,7 @@ export default function AdminHolisticCenters() {
   const [viewingCenter, setViewingCenter] = useState<HolisticCenter | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [tempCenterId, setTempCenterId] = useState<string | null>(null); // ID temporal para nuevas creaciones
   const [formData, setFormData] = useState<FormData>({
     name: "",
     description: "",
@@ -122,6 +123,7 @@ export default function AdminHolisticCenters() {
   const handleOpenForm = (center?: HolisticCenter) => {
     if (center) {
       setEditingCenter(center);
+      setTempCenterId(null); // No necesitamos ID temporal si estamos editando
       setFormData({
         name: center.name,
         description: center.description || "",
@@ -135,6 +137,9 @@ export default function AdminHolisticCenters() {
         is_active: center.is_active,
       });
     } else {
+      // Generar ID temporal para nueva creación
+      const newTempId = crypto.randomUUID();
+      setTempCenterId(newTempId);
       setEditingCenter(null);
       setFormData({
         name: "",
@@ -155,7 +160,7 @@ export default function AdminHolisticCenters() {
   const handleImageUploaded = async (imageUrl: string) => {
     setFormData({ ...formData, image_url: imageUrl });
     
-    // Actualizar automáticamente en la base de datos si estamos editando
+    // Actualizar automáticamente en la base de datos solo si estamos editando un centro existente
     if (editingCenter) {
       try {
         const { error } = await supabase
@@ -171,12 +176,15 @@ export default function AdminHolisticCenters() {
         toast.error("Error al actualizar la imagen en la base de datos");
       }
     }
+    // Si estamos creando un nuevo centro (tempCenterId existe), 
+    // la imagen ya está subida al storage con el ID temporal,
+    // y se guardará cuando se cree el centro con ese mismo ID
   };
 
   const handleImageRemoved = async () => {
     setFormData({ ...formData, image_url: "" });
     
-    // Actualizar automáticamente en la base de datos si estamos editando
+    // Actualizar automáticamente en la base de datos solo si estamos editando un centro existente
     if (editingCenter) {
       try {
         const { error } = await supabase
@@ -192,6 +200,8 @@ export default function AdminHolisticCenters() {
         toast.error("Error al eliminar la imagen de la base de datos");
       }
     }
+    // Si estamos creando un nuevo centro, solo actualizamos el estado del formulario
+    // La imagen se elimina del storage pero no afecta la base de datos porque aún no existe el registro
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -227,9 +237,11 @@ export default function AdminHolisticCenters() {
         setIsFormOpen(false);
         fetchCenters();
       } else {
-        const { data: newCenter, error } = await supabase
+        // Usar el ID temporal para crear el centro con el mismo ID que usamos para la imagen
+        const { error } = await supabase
           .from("holistic_centers")
           .insert({
+            id: tempCenterId || undefined, // Usar el ID temporal si existe
             name: formData.name.trim(),
             description: formData.description.trim() || null,
             address: formData.address.trim() || null,
@@ -240,23 +252,15 @@ export default function AdminHolisticCenters() {
             image_url: formData.image_url.trim() || null,
             opening_hours: formData.opening_hours,
             is_active: formData.is_active,
-          })
-          .select()
-          .single();
+          });
 
         if (error) throw error;
         toast.success("Centro holístico creado exitosamente");
         
-        // Si se creó exitosamente, abrir el formulario en modo edición para permitir subir imagen
-        if (newCenter) {
-          setEditingCenter(newCenter);
-          setFormData(prev => ({ ...prev, image_url: newCenter.image_url || "" }));
-          // No cerrar el formulario, mantenerlo abierto para que puedan subir la imagen
-          fetchCenters();
-        } else {
-          setIsFormOpen(false);
-          fetchCenters();
-        }
+        // Limpiar ID temporal
+        setTempCenterId(null);
+        setIsFormOpen(false);
+        fetchCenters();
       }
     } catch (error) {
       console.error("Error saving center:", error);
@@ -539,9 +543,9 @@ export default function AdminHolisticCenters() {
               </div>
             </div>
 
-            {editingCenter ? (
+            {editingCenter || tempCenterId ? (
               <RestaurantCenterImageUploader
-                entityId={editingCenter.id}
+                entityId={editingCenter?.id || tempCenterId || ""}
                 bucketName="holistic-centers"
                 onImageUploaded={handleImageUploaded}
                 currentImageUrl={formData.image_url || undefined}
@@ -552,7 +556,7 @@ export default function AdminHolisticCenters() {
               <div className="space-y-2">
                 <Label>Imagen principal</Label>
                 <p className="text-xs text-muted-foreground mb-2">
-                  Guarda el centro primero, luego podrás subir una imagen editándolo
+                  Cargando...
                 </p>
               </div>
             )}

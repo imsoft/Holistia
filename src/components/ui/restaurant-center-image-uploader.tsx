@@ -55,6 +55,12 @@ export function RestaurantCenterImageUploader({
       return;
     }
 
+    // Validar que tenemos un entityId
+    if (!entityId) {
+      setError('No se puede subir la imagen: ID no válido');
+      return;
+    }
+
     setError(null);
     setSuccess(false);
 
@@ -65,11 +71,25 @@ export function RestaurantCenterImageUploader({
     try {
       setUploading(true);
 
+      // Verificar autenticación antes de subir
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      
+      if (authError || !user) {
+        throw new Error('Debes estar autenticado para subir imágenes');
+      }
+
       // Generar nombre de archivo: imagen.{ext}
       const fileExt = file.name.split('.').pop();
       const fileName = `imagen.${fileExt}`;
       // Estructura: <entity-id>/imagen.{ext}
       const filePath = `${entityId}/${fileName}`;
+
+      console.log('Uploading to:', {
+        bucket: bucketName,
+        path: filePath,
+        userId: user.id,
+        entityId
+      });
 
       // Subir archivo a Supabase Storage
       const { error: uploadError } = await supabase.storage
@@ -81,7 +101,23 @@ export function RestaurantCenterImageUploader({
 
       if (uploadError) {
         console.error('Error uploading image:', uploadError);
-        setError('Error al subir la imagen: ' + uploadError.message);
+        
+        // Mejorar mensajes de error
+        let errorMessage = 'Error al subir la imagen';
+        if (uploadError.message) {
+          errorMessage += ': ' + uploadError.message;
+          
+          // Verificar tipos específicos de error basándose en el mensaje
+          if (uploadError.message.includes('404') || uploadError.message.includes('not found')) {
+            errorMessage = 'El bucket de almacenamiento no existe. Contacta al administrador.';
+          } else if (uploadError.message.includes('403') || uploadError.message.includes('401') || uploadError.message.includes('permission') || uploadError.message.includes('policy')) {
+            errorMessage = 'No tienes permisos para subir imágenes. Verifica tu autenticación y las políticas RLS.';
+          } else if (uploadError.message.includes('500') || uploadError.message.includes('Internal')) {
+            errorMessage = 'Error del servidor al subir la imagen. Verifica que el bucket exista y las políticas RLS estén configuradas.';
+          }
+        }
+        
+        setError(errorMessage);
         return;
       }
 
@@ -102,7 +138,8 @@ export function RestaurantCenterImageUploader({
       }
     } catch (err) {
       console.error('Error:', err);
-      setError('Error inesperado al subir la imagen');
+      const errorMessage = err instanceof Error ? err.message : 'Error inesperado al subir la imagen';
+      setError(errorMessage);
     } finally {
       setUploading(false);
       // Limpiar el input

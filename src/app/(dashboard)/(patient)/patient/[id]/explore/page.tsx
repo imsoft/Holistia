@@ -136,11 +136,16 @@ const HomeUserPage = () => {
               .eq("professional_id", prof.user_id);
 
             // Obtener calificación de administradores
-            const { data: adminRatingData } = await supabase
+            const { data: adminRatingData, error: adminRatingError } = await supabase
               .from("professional_admin_rating_stats")
               .select("average_admin_rating")
               .eq("professional_id", prof.id)
               .single();
+
+            // Manejar error PGRST116 (no rows found) - esto es normal si no hay calificaciones
+            if (adminRatingError && adminRatingError.code !== 'PGRST116') {
+              console.error("Error loading admin rating:", adminRatingError);
+            }
 
             // Tomar el primer resultado si existe
             const reviewStats = reviewStatsData && reviewStatsData.length > 0 ? reviewStatsData[0] : null;

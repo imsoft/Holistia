@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { createClient } from "@/utils/supabase/client";
 import { cn } from "@/lib/utils";
 import { Star, AlertCircle } from "lucide-react";
+import { StarRating } from "@/components/reviews/star-rating";
 
 interface AdminRatingDisplayProps {
   professionalId: string;
@@ -92,16 +93,18 @@ export function AdminRatingDisplay({ professionalId }: AdminRatingDisplayProps) 
   }
 
   const getRatingColor = (rating: number) => {
-    if (rating >= 8) return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 border-green-300";
-    if (rating >= 6) return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200 border-yellow-300";
-    if (rating >= 4) return "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200 border-orange-300";
+    if (rating === 5) return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 border-green-300";
+    if (rating === 4) return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200 border-yellow-300";
+    if (rating === 3) return "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200 border-orange-300";
     return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200 border-red-300";
   };
 
   const getRatingLabel = (rating: number) => {
-    if (rating >= 8) return "Excelente";
-    if (rating >= 6) return "Bueno";
-    if (rating >= 4) return "Regular";
+    if (rating === 5) return "Excelente";
+    if (rating === 4) return "Bueno";
+    if (rating === 3) return "Regular";
+    if (rating === 2) return "Malo";
+    if (rating === 1) return "Muy malo";
     return "Necesita Mejora";
   };
 
@@ -123,10 +126,16 @@ export function AdminRatingDisplay({ professionalId }: AdminRatingDisplayProps) 
             "px-4 py-2 rounded-lg border-2 text-2xl font-bold",
             getRatingColor(rating.rating)
           )}>
-            {rating.rating.toFixed(1)}/10
+            {rating.rating.toFixed(1)}/5
           </div>
           <div className="flex-1">
-            <div className="flex items-center gap-2 mb-1">
+            <div className="flex items-center gap-3 mb-2">
+              <StarRating 
+                rating={rating.rating} 
+                maxRating={5}
+                size="lg"
+                showNumber={false}
+              />
               <Badge variant="outline" className={cn(getRatingColor(rating.rating))}>
                 {getRatingLabel(rating.rating)}
               </Badge>

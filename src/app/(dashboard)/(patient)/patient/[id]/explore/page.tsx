@@ -46,7 +46,7 @@ interface Professional {
   imagePosition?: string; // Posición de la imagen en la card
   average_rating?: number; // Promedio de rating de reseñas
   total_reviews?: number; // Total de reseñas
-  admin_rating?: number; // Calificación de administradores (0-10)
+  admin_rating?: number; // Calificación de administradores (0-5 estrellas)
 }
 
 const categories = [

@@ -148,17 +148,17 @@ export function AdminRatingForm({
           {existingRating ? "Editar Calificación" : "Calificar Profesional"}
         </CardTitle>
         <CardDescription>
-          Califica a {professionalName} con una escala del 0 al 10
+          Califica a {professionalName} con una escala de 0 a 5 estrellas
         </CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Rating Selection */}
           <div className="space-y-3">
-            <Label className="text-base font-semibold">Calificación (0-10) *</Label>
-            <div className="flex items-center gap-2 flex-wrap">
-              {Array.from({ length: 11 }, (_, index) => {
-                const value = index;
+            <Label className="text-base font-semibold">Calificación (0-5 estrellas) *</Label>
+            <div className="flex items-center gap-1">
+              {[1, 2, 3, 4, 5].map((value) => {
+                const displayRating = hoveredRating || rating;
                 const isFilled = value <= displayRating;
                 return (
                   <button
@@ -167,36 +167,45 @@ export function AdminRatingForm({
                     onClick={() => setRating(value)}
                     onMouseEnter={() => setHoveredRating(value)}
                     onMouseLeave={() => setHoveredRating(0)}
-                    className={cn(
-                      "relative w-10 h-10 rounded-lg border-2 transition-all",
-                      "flex items-center justify-center text-sm font-medium",
-                      isFilled
-                        ? "bg-primary text-primary-foreground border-primary"
-                        : "bg-background text-muted-foreground border-border hover:border-primary/50",
-                      "hover:scale-110 active:scale-95"
-                    )}
+                    className="transition-transform hover:scale-110"
                   >
-                    {value}
+                    <Star
+                      className={cn(
+                        "w-8 h-8 transition-colors",
+                        isFilled
+                          ? "fill-yellow-400 text-yellow-400"
+                          : "fill-gray-200 text-gray-300"
+                      )}
+                    />
                   </button>
                 );
               })}
+              {rating > 0 && (
+                <span className="ml-2 text-sm text-muted-foreground">
+                  {rating === 1 && "Muy malo"}
+                  {rating === 2 && "Malo"}
+                  {rating === 3 && "Regular"}
+                  {rating === 4 && "Bueno"}
+                  {rating === 5 && "Excelente"}
+                </span>
+              )}
             </div>
             {rating > 0 && (
               <div className="flex items-center gap-2 mt-2">
                 <div className={cn(
                   "px-3 py-1 rounded-full text-sm font-medium",
-                  rating >= 8 ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200" :
-                  rating >= 6 ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200" :
-                  rating >= 4 ? "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200" :
+                  rating === 5 ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200" :
+                  rating === 4 ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200" :
+                  rating === 3 ? "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200" :
                   "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
                 )}>
-                  {rating >= 8 && "Excelente"}
-                  {rating >= 6 && rating < 8 && "Bueno"}
-                  {rating >= 4 && rating < 6 && "Regular"}
-                  {rating < 4 && "Necesita Mejora"}
+                  {rating === 5 && "Excelente"}
+                  {rating === 4 && "Bueno"}
+                  {rating === 3 && "Regular"}
+                  {(rating === 1 || rating === 2) && "Necesita Mejora"}
                 </div>
                 <span className="text-sm text-muted-foreground">
-                  {rating}/10
+                  {rating}/5
                 </span>
               </div>
             )}

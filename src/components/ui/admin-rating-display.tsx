@@ -93,19 +93,19 @@ export function AdminRatingDisplay({ professionalId }: AdminRatingDisplayProps) 
   }
 
   const getRatingColor = (rating: number) => {
-    if (rating === 5) return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 border-green-300";
-    if (rating === 4) return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200 border-yellow-300";
-    if (rating === 3) return "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200 border-orange-300";
+    if (rating >= 4.5) return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 border-green-300";
+    if (rating >= 3.5) return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200 border-yellow-300";
+    if (rating >= 2.5) return "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200 border-orange-300";
     return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200 border-red-300";
   };
 
   const getRatingLabel = (rating: number) => {
-    if (rating === 5) return "Excelente";
-    if (rating === 4) return "Bueno";
-    if (rating === 3) return "Regular";
-    if (rating === 2) return "Malo";
-    if (rating === 1) return "Muy malo";
-    return "Necesita Mejora";
+    if (rating >= 4.5) return "Excelente";
+    if (rating >= 3.5) return "Muy bueno";
+    if (rating >= 2.5) return "Bueno";
+    if (rating >= 1.5) return "Regular";
+    if (rating >= 0.5) return "Necesita Mejora";
+    return "Sin calificación";
   };
 
   return (

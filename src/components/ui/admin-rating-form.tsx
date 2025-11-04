@@ -38,6 +38,29 @@ export function AdminRatingForm({
   const [isDeleting, setIsDeleting] = useState(false);
   const supabase = createClient();
 
+  // Función para manejar clic en estrella (permite medias estrellas)
+  const handleStarClick = (starValue: number, event: React.MouseEvent<HTMLButtonElement>) => {
+    const rect = event.currentTarget.getBoundingClientRect();
+    const clickX = event.clientX - rect.left;
+    const starWidth = rect.width;
+    const isLeftHalf = clickX < starWidth / 2;
+    
+    // Si es la mitad izquierda, dar media estrella menos; si es la derecha, dar el valor entero
+    const newRating = isLeftHalf ? starValue - 0.5 : starValue;
+    setRating(Math.max(0.5, Math.min(5, newRating))); // Limitar entre 0.5 y 5
+  };
+
+  // Función para manejar hover en estrella (muestra preview de medias estrellas)
+  const handleStarHover = (starValue: number, event: React.MouseEvent<HTMLButtonElement>) => {
+    const rect = event.currentTarget.getBoundingClientRect();
+    const hoverX = event.clientX - rect.left;
+    const starWidth = rect.width;
+    const isLeftHalf = hoverX < starWidth / 2;
+    
+    const previewRating = isLeftHalf ? starValue - 0.5 : starValue;
+    setHoveredRating(Math.max(0.5, Math.min(5, previewRating)));
+  };
+
   useEffect(() => {
     if (existingRating) {
       setRating(existingRating.rating);
@@ -48,8 +71,8 @@ export function AdminRatingForm({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (rating === 0) {
-      toast.error("Por favor selecciona una calificación");
+    if (rating < 0.5) {
+      toast.error("Por favor selecciona una calificación (mínimo 0.5 estrellas)");
       return;
     }
 
@@ -148,45 +171,59 @@ export function AdminRatingForm({
           {existingRating ? "Editar Calificación" : "Calificar Profesional"}
         </CardTitle>
         <CardDescription>
-          Califica a {professionalName} con una escala de 0 a 5 estrellas
+          Califica a {professionalName} con una escala de 0 a 5 estrellas (puedes usar medias estrellas)
         </CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Rating Selection */}
           <div className="space-y-3">
-            <Label className="text-base font-semibold">Calificación (0-5 estrellas) *</Label>
+            <Label className="text-base font-semibold">Calificación (0-5 estrellas, incluye medias) *</Label>
             <div className="flex items-center gap-1">
-              {[1, 2, 3, 4, 5].map((value) => {
+              {[1, 2, 3, 4, 5].map((starValue) => {
                 const displayRating = hoveredRating || rating;
-                const isFilled = value <= displayRating;
+                const isFilled = starValue <= Math.floor(displayRating);
+                const isPartial = starValue === Math.ceil(displayRating) && displayRating % 1 !== 0;
+                
                 return (
                   <button
-                    key={value}
+                    key={starValue}
                     type="button"
-                    onClick={() => setRating(value)}
-                    onMouseEnter={() => setHoveredRating(value)}
+                    onClick={(e) => handleStarClick(starValue, e)}
+                    onMouseMove={(e) => handleStarHover(starValue, e)}
                     onMouseLeave={() => setHoveredRating(0)}
-                    className="transition-transform hover:scale-110"
+                    className="relative transition-transform hover:scale-110"
                   >
+                    {/* Estrella base (gris o amarilla completa) */}
                     <Star
                       className={cn(
                         "w-8 h-8 transition-colors",
-                        isFilled
+                        isFilled || isPartial
                           ? "fill-yellow-400 text-yellow-400"
                           : "fill-gray-200 text-gray-300"
                       )}
                     />
+                    {/* Media estrella (clipPath para mostrar solo la parte izquierda) */}
+                    {isPartial && (
+                      <Star
+                        className={cn(
+                          "absolute top-0 left-0 fill-yellow-400 text-yellow-400 w-8 h-8"
+                        )}
+                        style={{
+                          clipPath: `inset(0 ${100 - (displayRating % 1) * 100}% 0 0)`,
+                        }}
+                      />
+                    )}
                   </button>
                 );
               })}
               {rating > 0 && (
                 <span className="ml-2 text-sm text-muted-foreground">
-                  {rating === 1 && "Muy malo"}
-                  {rating === 2 && "Malo"}
-                  {rating === 3 && "Regular"}
-                  {rating === 4 && "Bueno"}
-                  {rating === 5 && "Excelente"}
+                  {rating >= 4.5 && "Excelente"}
+                  {rating >= 3.5 && rating < 4.5 && "Muy bueno"}
+                  {rating >= 2.5 && rating < 3.5 && "Bueno"}
+                  {rating >= 1.5 && rating < 2.5 && "Regular"}
+                  {rating >= 0.5 && rating < 1.5 && "Malo"}
                 </span>
               )}
             </div>
@@ -194,18 +231,19 @@ export function AdminRatingForm({
               <div className="flex items-center gap-2 mt-2">
                 <div className={cn(
                   "px-3 py-1 rounded-full text-sm font-medium",
-                  rating === 5 ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200" :
-                  rating === 4 ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200" :
-                  rating === 3 ? "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200" :
+                  rating >= 4.5 ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200" :
+                  rating >= 3.5 ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200" :
+                  rating >= 2.5 ? "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200" :
                   "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
                 )}>
-                  {rating === 5 && "Excelente"}
-                  {rating === 4 && "Bueno"}
-                  {rating === 3 && "Regular"}
-                  {(rating === 1 || rating === 2) && "Necesita Mejora"}
+                  {rating >= 4.5 && "Excelente"}
+                  {rating >= 3.5 && rating < 4.5 && "Muy bueno"}
+                  {rating >= 2.5 && rating < 3.5 && "Bueno"}
+                  {rating >= 1.5 && rating < 2.5 && "Regular"}
+                  {rating >= 0.5 && rating < 1.5 && "Necesita Mejora"}
                 </div>
                 <span className="text-sm text-muted-foreground">
-                  {rating}/5
+                  {rating.toFixed(1)}/5
                 </span>
               </div>
             )}
@@ -247,7 +285,7 @@ export function AdminRatingForm({
             <div className="flex gap-2">
               <Button
                 type="submit"
-                disabled={isSubmitting || isDeleting || rating === 0}
+                disabled={isSubmitting || isDeleting || rating < 0.5}
               >
                 {isSubmitting ? "Guardando..." : existingRating ? "Actualizar" : "Guardar Calificación"}
               </Button>

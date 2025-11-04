@@ -240,7 +240,7 @@ export function RestaurantMenuManager({ restaurantId }: RestaurantMenuManagerPro
           <UtensilsCrossed className="h-5 w-5" />
           Menús del Restaurante
         </CardTitle>
-        <Button onClick={() => handleOpenForm()}>
+        <Button type="button" onClick={() => handleOpenForm()}>
           <Plus className="mr-2 h-4 w-4" />
           Agregar Menú
         </Button>
@@ -297,6 +297,7 @@ export function RestaurantMenuManager({ restaurantId }: RestaurantMenuManagerPro
                       </div>
                       <div className="flex items-center gap-2">
                         <Button
+                          type="button"
                           variant="outline"
                           size="sm"
                           onClick={() => handleOpenForm(menu)}
@@ -304,6 +305,7 @@ export function RestaurantMenuManager({ restaurantId }: RestaurantMenuManagerPro
                           <Edit className="h-4 w-4" />
                         </Button>
                         <Button
+                          type="button"
                           variant="outline"
                           size="sm"
                           onClick={() => {

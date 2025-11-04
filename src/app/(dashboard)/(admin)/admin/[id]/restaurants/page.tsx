@@ -49,6 +49,7 @@ import {
   formatScheduleForDisplay,
 } from "@/components/ui/schedule-editor";
 import { RestaurantCenterImageUploader } from "@/components/ui/restaurant-center-image-uploader";
+import { RestaurantMenuManager } from "@/components/ui/restaurant-menu-manager";
 
 interface Restaurant {
   id: string;
@@ -680,7 +681,7 @@ export default function AdminRestaurants() {
 
       {/* View Dialog */}
       <Dialog open={isViewOpen} onOpenChange={setIsViewOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{viewingRestaurant?.name}</DialogTitle>
             <DialogDescription>Detalles del restaurante</DialogDescription>
@@ -785,6 +786,11 @@ export default function AdminRestaurants() {
                   </div>
                 </div>
               )}
+
+              {/* Sección de Menús */}
+              <div className="pt-6 border-t">
+                <RestaurantMenuManager restaurantId={viewingRestaurant.id} />
+              </div>
             </div>
           )}
         </DialogContent>

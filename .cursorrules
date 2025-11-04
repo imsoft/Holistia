@@ -1,0 +1,221 @@
+# Cursor Rules para Holistia Platform
+
+## Stack Tecnológico Principal
+- Framework: Next.js 15.5.6 (App Router con Turbopack)
+- React: 19.2.0
+- TypeScript: 5 (strict mode habilitado)
+- Base de datos: Supabase (PostgreSQL con RLS)
+- Pagos: Stripe + Stripe Connect
+- Estilos: Tailwind CSS 4
+- Componentes UI: shadcn/ui + Radix UI
+- Email: Resend API
+- Mapas: Mapbox GL
+- Formularios: React Hook Form + Zod
+- Editor: Tiptap
+
+## Estructura de Directorios
+
+### Rutas y Páginas
+- `/src/app/` - App Router de Next.js
+  - `(auth)/` - Páginas de autenticación
+  - `(dashboard)/` - Dashboards por rol: `(admin)/`, `(professional)/`, `(patient)/`
+  - `(website)/` - Páginas públicas
+  - `api/` - API Routes (server-side)
+- Las rutas dinámicas usan `[id]`, `[slug]`, etc.
+- Los grupos de rutas usan paréntesis: `(dashboard)`, `(auth)`
+
+### Componentes
+- `/src/components/ui/` - Componentes reutilizables de UI (shadcn/ui)
+- `/src/components/appointments/` - Componentes específicos de citas
+- `/src/components/reviews/` - Componentes de reseñas
+- `/src/components/shared/` - Componentes compartidos
+- `/src/components/seo/` - Componentes SEO
+
+### Utilidades y Helpers
+- `/src/lib/` - Funciones helper y utilidades (ej: `lib/stripe.ts`, `lib/utils.ts`)
+- `/src/utils/supabase/` - Clientes de Supabase (server/client)
+- `/src/hooks/` - Custom React hooks
+- `/src/actions/` - Server actions
+- `/src/types/` - Definiciones de tipos TypeScript
+
+### Base de Datos
+- `/database/migrations/` - Migraciones SQL numeradas (ej: `01_`, `02_`, etc.)
+- `/database/scripts/` - Scripts SQL de utilidad y verificación
+
+## Convenciones de Código
+
+### TypeScript
+- Usar TypeScript estricto siempre
+- Evitar `any` - usar tipos específicos o `unknown` cuando sea necesario
+- Definir interfaces en `/src/types/` o inline si son muy específicas
+- Usar tipos union para estados: `'pending' | 'confirmed' | 'cancelled'`
+- Campos opcionales con `?` o `| null` según el caso
+
+### Componentes React
+- Usar `"use client"` solo cuando sea necesario (hooks, eventos, estado)
+- Componentes del servidor por defecto (React Server Components)
+- Nombres de componentes en PascalCase
+- Props interfaces con sufijo `Props`: `interface ButtonProps { ... }`
+- Usar `cn()` de `@/lib/utils` para clases condicionales de Tailwind
+
+### Estilos
+- Tailwind CSS 4 para todos los estilos
+- Usar variables CSS de shadcn/ui para temas
+- Componentes UI en `/src/components/ui/` deben seguir el patrón de shadcn/ui
+- Responsive: mobile-first con breakpoints de Tailwind
+
+### Supabase y Base de Datos
+- SIEMPRE usar RLS (Row Level Security) - nunca deshabilitar sin justificación
+- Verificar autenticación con `supabase.auth.getUser()` antes de operaciones
+- Usar tipos generados de Supabase cuando sea posible
+- Las migraciones deben ser idempotentes: usar `IF NOT EXISTS`, `DROP IF EXISTS`
+- Numerar migraciones secuencialmente: `107_`, `108_`, etc.
+- Agregar comentarios SQL explicativos en migraciones complejas
+
+### API Routes
+- Ubicación: `/src/app/api/`
+- Siempre verificar autenticación en API routes
+- Validar input con Zod antes de procesar
+- Usar `NextRequest` y `NextResponse` de Next.js
+- Manejar errores adecuadamente con try/catch
+- Retornar códigos HTTP apropiados (200, 400, 401, 404, 500)
+
+### Autenticación y Seguridad
+- Usar `createClient()` de `/utils/supabase/server` para server-side
+- Usar `createClient()` de `/utils/supabase/client` para client-side
+- NUNCA exponer `SUPABASE_SERVICE_ROLE_KEY` en el cliente
+- Variables de entorno públicas deben empezar con `NEXT_PUBLIC_`
+- Verificar permisos basados en `profiles.type` y `profiles.account_active`
+- Middleware en `/src/middleware.ts` maneja redirecciones por tipo de usuario
+
+### Stripe
+- Funciones helper en `/src/lib/stripe.ts`
+- Verificar que el profesional tenga `stripe_account_id` antes de crear transferencias
+- Calcular comisiones: 15% para citas, 20% para eventos
+- Manejar webhooks en `/src/app/api/stripe/webhook`
+- Siempre verificar firmas de webhooks con `STRIPE_WEBHOOK_SECRET`
+
+### Formularios
+- Usar React Hook Form con Zod resolver
+- Validación tanto en cliente como en servidor
+- Mostrar errores de validación de forma clara al usuario
+- Usar `toast` de `sonner` para feedback al usuario
+
+### Manejo de Errores
+- Usar `toast.error()` para errores del usuario
+- `console.error()` para logging de desarrollo
+- No exponer detalles de errores internos al usuario
+- Manejar errores específicos de Supabase (ej: PGRST116 para "no rows found")
+
+### Imágenes y Archivos
+- Usar Next.js Image component para optimización
+- Storage buckets en Supabase: `profiles`, `restaurants`, `holistic-centers`, `blog`
+- Rutas de storage: `/<entity-id>/imagen.{ext}`
+- Validar tipos de archivo y tamaño antes de subir
+
+### Variables de Entorno
+- Públicas (cliente): `NEXT_PUBLIC_*`
+- Privadas (servidor): `SUPABASE_SERVICE_ROLE_KEY`, `STRIPE_SECRET_KEY`, `RESEND_API_KEY`
+- Archivo `.env.local` NO se sube a git (está en .gitignore)
+
+### Email
+- Templates HTML en `/database/email-templates/`
+- Usar Resend API (`resend` package)
+- Función helper: `sendEmail()` con templates
+- Siempre incluir branding de Holistia en emails
+
+## Patrones Específicos del Proyecto
+
+### Dashboards por Rol
+- Rutas protegidas por middleware
+- Layouts específicos en `/app/(dashboard)/(admin|professional|patient)/`
+- Cada dashboard tiene su propio sidebar y navegación
+
+### Citas (Appointments)
+- Tabla: `appointments` con RLS habilitado
+- Estados: `'pending' | 'confirmed' | 'completed' | 'cancelled'`
+- Integración con Stripe para pagos
+- Notificaciones por email automáticas
+
+### Profesionales
+- Tabla principal: `professional_applications`
+- Campos de Stripe Connect: `stripe_account_id`, `stripe_account_status`
+- Campos de disponibilidad: `working_days`, `working_start_time`, `working_end_time`
+- Sistema de bloques de disponibilidad: `availability_blocks`
+
+### Eventos
+- Tabla: `events_workshops`
+- Registros: `event_registrations`
+- Integración con Stripe para pagos de eventos
+- Sistema de confirmación con códigos
+
+### Reseñas y Calificaciones
+- Tabla: `reviews` para calificaciones de pacientes
+- Tabla: `admin_ratings` para calificaciones de administradores (0-5 estrellas)
+- Vista agregada: `professional_review_stats`
+- Componente: `StarRating` para visualización
+
+### Blog
+- Tabla: `blog_posts`
+- Storage bucket: `blog` para imágenes
+- Editor: Tiptap con extensions
+- RLS para que solo admins puedan crear/editar
+
+## Buenas Prácticas
+
+### Performance
+- Usar React Server Components cuando sea posible
+- Lazy loading de componentes pesados
+- Optimizar imágenes con Next.js Image
+- Caché apropiado en Supabase queries cuando sea posible
+
+### Accesibilidad
+- Usar componentes de Radix UI (ya accesibles)
+- Labels apropiados en formularios
+- ARIA attributes cuando sea necesario
+- Navegación por teclado funcional
+
+### Testing y Debugging
+- Usar console.log con emojis para debugging: 🔍, ✅, ❌, ⚠️
+- Verificar errores en Supabase Dashboard
+- Revisar logs de Vercel en producción
+- Scripts de verificación en `/database/scripts/`
+
+### Git y Commits
+- Commits descriptivos en español
+- Separar cambios lógicos en commits diferentes
+- No commitear `.env.local` o archivos sensibles
+
+## Comandos Útiles
+
+```bash
+# Desarrollo
+pnpm dev
+
+# Build
+pnpm build
+
+# Linting
+pnpm lint
+
+# Migraciones (ejecutar manualmente en Supabase Dashboard)
+# Ver archivos en /database/migrations/
+```
+
+## Advertencias Importantes
+
+⚠️ **NUNCA:**
+- Deshabilitar RLS sin justificación técnica
+- Exponer service role keys en el cliente
+- Hacer commits de archivos `.env*`
+- Usar `any` en TypeScript sin comentar por qué
+- Crear migraciones que no sean idempotentes
+- Eliminar migraciones existentes (solo agregar nuevas)
+
+✅ **SIEMPRE:**
+- Verificar autenticación antes de operaciones sensibles
+- Validar input del usuario (cliente y servidor)
+- Manejar errores apropiadamente
+- Usar tipos TypeScript específicos
+- Seguir la estructura de directorios establecida
+- Documentar código complejo o no obvio

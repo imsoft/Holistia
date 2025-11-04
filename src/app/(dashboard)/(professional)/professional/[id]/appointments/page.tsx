@@ -43,6 +43,7 @@ import { Appointment } from "@/types";
 import { createClient } from "@/utils/supabase/client";
 import { AppointmentActionsDialog } from "@/components/appointments/appointment-actions-dialog";
 import { RescheduleAppointmentDialog } from "@/components/appointments/reschedule-appointment-dialog";
+import { CreateAppointmentDialog } from "@/components/appointments/create-appointment-dialog";
 import { toast } from "sonner";
 
 
@@ -59,6 +60,7 @@ export default function ProfessionalAppointments() {
   const [availableDates, setAvailableDates] = useState<string[]>([]);
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
+  const [professionalAppId, setProfessionalAppId] = useState<string>('');
   const [dialogState, setDialogState] = useState<{
     isOpen: boolean;
     appointmentId: string | null;
@@ -92,6 +94,8 @@ export default function ProfessionalAppointments() {
     currentTime: '',
   });
 
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+
   useEffect(() => {
     const fetchAppointments = async () => {
       try {
@@ -121,6 +125,9 @@ export default function ProfessionalAppointments() {
 
         console.log('✅ Professional app ID:', professionalApp.id);
         console.log('🔍 Buscando citas con professional_id:', professionalApp.id);
+
+        // Guardar el ID del profesional en el estado
+        setProfessionalAppId(professionalApp.id);
 
         // Obtener todas las citas del profesional con información de pagos
         const { data: appointmentsData, error: appointmentsError } = await supabase
@@ -334,8 +341,17 @@ export default function ProfessionalAppointments() {
 
   // Función para crear nueva cita
   const handleCreateAppointment = () => {
-    // Aquí podrías abrir un modal o navegar a una página de creación
-    console.log('Crear nueva cita');
+    setIsCreateDialogOpen(true);
+  };
+
+  const handleCreateDialogClose = () => {
+    setIsCreateDialogOpen(false);
+  };
+
+  const handleCreateSuccess = () => {
+    toast.success('Cita creada exitosamente');
+    // Recargar la página para actualizar las citas
+    window.location.reload();
   };
 
   const openCancelDialog = (appointment: Appointment) => {
@@ -795,6 +811,14 @@ export default function ProfessionalAppointments() {
           onSuccess={handleRescheduleSuccess}
         />
       )}
+
+      {/* Dialog para crear nueva cita */}
+      <CreateAppointmentDialog
+        isOpen={isCreateDialogOpen}
+        onClose={handleCreateDialogClose}
+        professionalId={professionalAppId}
+        onSuccess={handleCreateSuccess}
+      />
     </div>
   );
 }

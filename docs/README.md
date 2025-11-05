@@ -12,8 +12,7 @@ Bienvenido a la documentación técnica del proyecto Holistia - Plataforma de bi
 ### 🗺️ Mapas y Geolocalización
 | Documento | Descripción |
 |-----------|-------------|
-| **[MAPBOX_SETUP.md](./MAPBOX_SETUP.md)** | Configuración de Mapbox para servicios profesionales |
-| **[MAPBOX_PRODUCTION_SETUP.md](./MAPBOX_PRODUCTION_SETUP.md)** | Configuración de Mapbox para producción |
+| **[MAPBOX_PRODUCTION_SETUP.md](./MAPBOX_PRODUCTION_SETUP.md)** | Configuración completa de Mapbox (incluye setup y producción) |
 
 ### 🔐 Autenticación
 | Documento | Descripción |
@@ -81,10 +80,21 @@ holistia/
 ### 👨‍💼 Funcionalidades de Usuario
 - [PROFESSIONAL_DASHBOARD.md](./PROFESSIONAL_DASHBOARD.md) - Dashboard del profesional
 - [EVENT_EMAIL_SYSTEM.md](./EVENT_EMAIL_SYSTEM.md) - Sistema de emails de eventos
+- [STRIPE_CONNECT_SETUP.md](./STRIPE_CONNECT_SETUP.md) - Configuración de Stripe Connect
+- [REVIEWS_SYSTEM_SETUP.md](./REVIEWS_SYSTEM_SETUP.md) - Sistema de reseñas
+- [REGISTRATION_FEE_SYSTEM.md](./REGISTRATION_FEE_SYSTEM.md) - Sistema de inscripción anual
+- [FINANZAS_ADMIN.md](./FINANZAS_ADMIN.md) - Dashboard de finanzas para admin
 
 ### 📍 Mapas y Geolocalización
-- [MAPBOX_SETUP.md](./MAPBOX_SETUP.md) - Configuración de Mapbox para servicios profesionales
-- [MAPBOX_PRODUCTION_SETUP.md](./MAPBOX_PRODUCTION_SETUP.md) - Configuración de Mapbox para producción
+- [MAPBOX_PRODUCTION_SETUP.md](./MAPBOX_PRODUCTION_SETUP.md) - Configuración completa de Mapbox (setup y producción)
+
+### 📅 Google Calendar
+- [GOOGLE_CALENDAR.md](./GOOGLE_CALENDAR.md) - Configuración y uso de Google Calendar
+- [GOOGLE_CALENDAR_USAGE_EXAMPLES.md](./GOOGLE_CALENDAR_USAGE_EXAMPLES.md) - Ejemplos de código
+
+### 📧 Sistema de Emails
+- [EMAIL_SYSTEM.md](./EMAIL_SYSTEM.md) - Sistema completo de emails (configuración y uso)
+- [EMAIL_VERIFICATION_CHECKLIST.md](./EMAIL_VERIFICATION_CHECKLIST.md) - Checklist de verificación de emails
 
 ## 🔍 Recursos Adicionales
 
@@ -148,5 +158,5 @@ Al agregar nueva funcionalidad:
 ---
 
 **Proyecto**: Holistia  
-**Última actualización**: Octubre 2025  
-**Total de documentos**: 8
+**Última actualización**: Noviembre 2025  
+**Total de documentos**: ~30

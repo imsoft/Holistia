@@ -1,9 +1,52 @@
-# Configuración de Mapbox en Producción (Vercel)
+# Configuración Completa de Mapbox - Holistia
 
-## 🚨 Problema Actual
+Esta guía cubre la configuración completa de Mapbox tanto para desarrollo como para producción.
+
+## 📋 Tabla de Contenidos
+
+1. [Configuración Inicial](#configuración-inicial)
+2. [Configuración en Producción](#configuración-en-producción)
+3. [Configuración Local (Desarrollo)](#configuración-local-desarrollo)
+4. [Uso en la Aplicación](#uso-en-la-aplicación)
+5. [Troubleshooting](#troubleshooting)
+
+---
+
+## Configuración Inicial
+
+### 1. Crear Cuenta en Mapbox
+
+1. **Ve a Mapbox**:
+   - Ve a [mapbox.com](https://mapbox.com)
+   - Haz clic en "Sign up" 
+   - **Es completamente GRATUITO** - No necesitas tarjeta de crédito
+   - Verifica tu email
+
+2. **Obtener el Access Token**:
+   - Inicia sesión en [account.mapbox.com](https://account.mapbox.com)
+   - En la sección "Access tokens" verás tu token por defecto
+   - Copia el token (empieza con `pk.`)
+   - Ejemplo: `pk.eyJ1IjoianVhbiIsImEiOiJjbXh4eHh4eHh4In0.xxxxxxxxxxxxxxxxxxxxx`
+
+### 2. Configurar Restricciones de Token (Opcional pero Recomendado)
+
+Para mayor seguridad, puedes restringir el token:
+
+1. En Mapbox Dashboard → Access tokens
+2. Haz clic en tu token
+3. Configura restricciones:
+   - **URLs permitidas**: `https://holistia.io/*` (producción)
+   - **URLs permitidas**: `http://localhost:3000/*` (desarrollo)
+   - **Scopes**: `styles:read`, `fonts:read`, `datasets:read`
+
+---
+
+## Configuración en Producción
+
+### 🚨 Problema Común
 En producción aparece: **"Mapa no disponible - Mapbox access token no configurado"**
 
-## 🔧 Solución Completa
+### 🔧 Solución Completa
 
 ### 1. Obtener Access Token de Mapbox
 
@@ -41,7 +84,7 @@ En producción aparece: **"Mapa no disponible - Mapbox access token no configura
    - Después de agregar la variable, haz clic en **"Redeploy"** en la pestaña "Deployments"
    - O simplemente haz un nuevo push a GitHub
 
-### 3. Verificar Configuración Local (Desarrollo)
+## Configuración Local (Desarrollo)
 
 Crea el archivo `.env.local` en la raíz del proyecto:
 

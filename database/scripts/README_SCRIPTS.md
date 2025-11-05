@@ -44,14 +44,6 @@
 
 ---
 
-### 3. **diagnostico_y_correccion_completo.sql** (Legacy)
-
-**❌ NO compatible con Supabase SQL Editor**
-**✅ Solo funciona con terminal `psql`**
-
-Este es el script original que usa comandos `\echo` de psql. 
-Solo úsalo si tienes acceso a la terminal con `psql`.
-
 ---
 
 ## 🚀 Flujo Recomendado
@@ -191,10 +183,26 @@ Si necesitas scripts específicos para un profesional:
 
 - `fix_andrea_cerezo_appointment.sql` - Corrige cita de Andrea Cerezo
 - `fix_andrea_cerezo_payments.sql` - Crea/actualiza pagos de Andrea
+- `fix_andrea_complete.sql` - Corrección completa de Andrea
 - `marcar_pago_externo_lili_ruiz.sql` - Marca inscripción de Lili Ruiz
+- `marcar_pago_externo_maria_gomez.sql` - Marca inscripción de María Gómez
+- `mark_brenda_rodriguez_as_paid.sql` - Marca pago de Brenda Rodríguez
+- `mark_aura_stephany_brenda_as_paid.sql` - Marca pagos de varios profesionales
 - `mark_external_payments.sql` - Marca pagos externos de varios profesionales
+- `complete_mark_professionals_as_paid.sql` - Script completo para marcar profesionales como pagados
 
-Estos son scripts más antiguos y específicos. **Recomendamos usar los scripts universales** (`diagnostico_supabase.sql` y `correccion_automatica.sql`) en su lugar.
+**Nota:** Estos scripts son para casos específicos. Para problemas generales, usa los scripts universales (`diagnostico_supabase.sql` y `correccion_automatica.sql`).
+
+## 🔧 Scripts de Utilidad
+
+- `create_get_professional_availability_blocks_function.sql` - Crea función RPC para obtener bloqueos de disponibilidad
+- `security_audit.sql` - Auditoría completa de seguridad
+- `security_audit_simple.sql` - Auditoría simple de seguridad
+- `pre_migration_stats.sql` - Estadísticas antes de migraciones
+- `find_remaining_policies.sql` - Encuentra políticas restantes
+- `cleanup_orphan_restaurant_center_images.sql` - Limpia imágenes huérfanas
+- `fix_payment_dates_2024.sql` - Corrige fechas de pagos de 2024
+- `corregir_fechas_pagos_2025.sql` - Corrige fechas de pagos de 2025
 
 ---
 

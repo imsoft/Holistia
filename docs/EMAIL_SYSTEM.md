@@ -178,6 +178,63 @@ NEXT_PUBLIC_SITE_URL=https://holistia.io
 STRIPE_WEBHOOK_SECRET=whsec_xxxxxxxxxxxxx
 ```
 
+### Configuración Rápida (5 minutos)
+
+#### 1. Obtener API Key de Resend
+
+1. Ve a https://resend.com/signup
+2. Crea una cuenta (gratis, 3,000 emails/mes)
+3. Ve a "API Keys"
+4. Crea una nueva API Key
+5. Copia la key (empieza con `re_`)
+
+#### 2. Configurar en Local
+
+```bash
+# En .env.local (este archivo NO se sube a git)
+echo "RESEND_API_KEY=re_tu_key_aqui" >> .env.local
+
+# Reiniciar servidor
+npm run dev
+```
+
+#### 3. Configurar en Producción (Vercel)
+
+1. Ve a https://vercel.com/dashboard
+2. Tu proyecto → Settings → Environment Variables
+3. Agregar nueva variable:
+   - **Name:** `RESEND_API_KEY`
+   - **Value:** `re_tu_key_aqui`
+   - **Environments:** Production, Preview, Development
+4. Redeploy el proyecto
+
+#### 4. Configurar Emails de Supabase Auth (Opcional)
+
+Para cambiar el remitente de emails de autenticación:
+
+1. Ve a Supabase Dashboard → Authentication → Email Templates
+2. Para cada template (Confirm signup, Reset password, etc.):
+   - Cambia **"Sender name"** de `Supabase Auth` a `Holistia`
+   - Guarda cambios
+
+**Resultado:**
+- Antes: `Supabase Auth <noreply@mail.app.supabase...>`
+- Ahora: `Holistia <noreply@mail.app.supabase...>`
+
+#### 5. Configurar SMTP de Resend en Supabase (Opcional - Avanzado)
+
+Para usar dominio personalizado en emails de autenticación:
+
+1. Verifica tu dominio en Resend Dashboard
+2. Configura registros DNS (SPF, DKIM, DMARC)
+3. En Supabase → Project Settings → Auth → SMTP Settings:
+   - Habilita "Enable Custom SMTP"
+   - Host: `smtp.resend.com`
+   - Port: `465`
+   - Username: `resend`
+   - Password: Tu API Key de Resend
+   - Sender email: `noreply@holistia.io`
+
 ### Verificar Configuración
 
 ```bash
@@ -186,6 +243,13 @@ echo $RESEND_API_KEY
 
 # Verificar en Vercel Dashboard:
 # Settings > Environment Variables
+```
+
+### Probar que Funciona
+
+```bash
+# Ejecutar test (reemplaza con tu email real)
+npx ts-node scripts/test-emails.ts all tu-email@gmail.com
 ```
 
 ---

@@ -47,6 +47,7 @@ interface HolisticCenter {
   name: string;
   description?: string;
   address?: string;
+  city?: string;
   phone?: string;
   email?: string;
   website?: string;
@@ -62,6 +63,7 @@ interface FormData {
   name: string;
   description: string;
   address: string;
+  city: string;
   phone: string;
   email: string;
   website: string;
@@ -87,6 +89,7 @@ export default function AdminHolisticCenters() {
     name: "",
     description: "",
     address: "",
+    city: "",
     phone: "",
     email: "",
     website: "",
@@ -128,6 +131,7 @@ export default function AdminHolisticCenters() {
         name: center.name,
         description: center.description || "",
         address: center.address || "",
+        city: center.city || "",
         phone: center.phone || "",
         email: center.email || "",
         website: center.website || "",
@@ -145,6 +149,7 @@ export default function AdminHolisticCenters() {
         name: "",
         description: "",
         address: "",
+        city: "",
         phone: "",
         email: "",
         website: "",
@@ -222,6 +227,7 @@ export default function AdminHolisticCenters() {
             name: formData.name.trim(),
             description: formData.description.trim() || null,
             address: formData.address.trim() || null,
+            city: formData.city.trim() || null,
             phone: formData.phone.trim() || null,
             email: formData.email.trim() || null,
             website: formData.website.trim() || null,
@@ -245,6 +251,7 @@ export default function AdminHolisticCenters() {
             name: formData.name.trim(),
             description: formData.description.trim() || null,
             address: formData.address.trim() || null,
+            city: formData.city.trim() || null,
             phone: formData.phone.trim() || null,
             email: formData.email.trim() || null,
             website: formData.website.trim() || null,
@@ -292,7 +299,8 @@ export default function AdminHolisticCenters() {
 
   const filteredCenters = centers.filter((center) =>
     center.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    center.address?.toLowerCase().includes(searchTerm.toLowerCase())
+    center.address?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    center.city?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -386,9 +394,14 @@ export default function AdminHolisticCenters() {
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-3 py-4">
-                  {center.address && (
+                  {center.city && (
                     <div className="flex items-start gap-2 text-sm">
                       <MapPin className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+                      <span className="text-muted-foreground font-medium">{center.city}</span>
+                    </div>
+                  )}
+                  {center.address && (
+                    <div className="flex items-start gap-2 text-sm pl-6">
                       <span className="text-muted-foreground line-clamp-2">{center.address}</span>
                     </div>
                   )}
@@ -516,7 +529,17 @@ export default function AdminHolisticCenters() {
                 id="address"
                 value={formData.address}
                 onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                placeholder="Calle, número, colonia, ciudad"
+                placeholder="Calle, número, colonia"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="city">Ciudad</Label>
+              <Input
+                id="city"
+                value={formData.city}
+                onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                placeholder="Guadalajara, Jalisco"
               />
             </div>
 
@@ -617,13 +640,20 @@ export default function AdminHolisticCenters() {
                 </div>
               )}
 
+              {viewingCenter.city && (
+                <div>
+                  <Label className="text-muted-foreground">Ciudad</Label>
+                  <p className="mt-1 text-sm flex items-start gap-2">
+                    <MapPin className="w-4 h-4 mt-0.5" />
+                    {viewingCenter.city}
+                  </p>
+                </div>
+              )}
+
               {viewingCenter.address && (
                 <div>
                   <Label className="text-muted-foreground">Dirección</Label>
-                  <p className="mt-1 text-sm flex items-start gap-2">
-                    <MapPin className="w-4 h-4 mt-0.5" />
-                    {viewingCenter.address}
-                  </p>
+                  <p className="mt-1 text-sm">{viewingCenter.address}</p>
                 </div>
               )}
 

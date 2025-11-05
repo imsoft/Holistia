@@ -52,7 +52,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const registrationFeeAmount = application.registration_fee_amount || 1000.00;
+    const registrationFeeAmount = application.registration_fee_amount || 600.00;
     const currency = application.registration_fee_currency || "mxn";
 
     // Convertir a centavos para Stripe

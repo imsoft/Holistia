@@ -75,7 +75,7 @@ export default function FinancesPage() {
   const [selectedPeriod, setSelectedPeriod] = useState("month");
   const [exampleAmount, setExampleAmount] = useState(700);
   const [eventAmount, setEventAmount] = useState(500);
-  const [registrationAmount, setRegistrationAmount] = useState(1000);
+  const [registrationAmount, setRegistrationAmount] = useState(600);
   const supabase = createClient();
 
   // Función para obtener el nombre del período actual

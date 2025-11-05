@@ -33,6 +33,22 @@ interface CenterProfessional {
   is_active: boolean;
 }
 
+interface ProfessionalApplicationData {
+  id: string;
+  first_name: string;
+  last_name: string;
+  profession: string;
+  wellness_areas: string[];
+  email: string;
+}
+
+interface CenterProfessionalData {
+  id: string;
+  professional_id: string;
+  is_active: boolean;
+  professional_applications: ProfessionalApplicationData | ProfessionalApplicationData[] | null;
+}
+
 interface HolisticCenterProfessionalsManagerProps {
   centerId: string;
   centerName: string;
@@ -78,19 +94,29 @@ export function HolisticCenterProfessionalsManager({
 
       if (error) throw error;
 
-      const formatted = data?.map((item: any) => ({
-        id: item.id,
-        professional_id: item.professional_id,
-        is_active: item.is_active,
-        professional: {
-          id: item.professional_applications.id,
-          first_name: item.professional_applications.first_name,
-          last_name: item.professional_applications.last_name,
-          profession: item.professional_applications.profession,
-          wellness_areas: item.professional_applications.wellness_areas,
-          email: item.professional_applications.email,
-        },
-      })) || [];
+      const formatted = data?.map((item: CenterProfessionalData) => {
+        const prof = Array.isArray(item.professional_applications)
+          ? item.professional_applications[0]
+          : item.professional_applications;
+
+        if (!prof) {
+          throw new Error("Professional application data is missing");
+        }
+
+        return {
+          id: item.id,
+          professional_id: item.professional_id,
+          is_active: item.is_active,
+          professional: {
+            id: prof.id,
+            first_name: prof.first_name,
+            last_name: prof.last_name,
+            profession: prof.profession,
+            wellness_areas: prof.wellness_areas,
+            email: prof.email,
+          },
+        };
+      }) || [];
 
       setCenterProfessionals(formatted);
     } catch (error) {
@@ -147,9 +173,9 @@ export function HolisticCenterProfessionalsManager({
       fetchCenterProfessionals();
       setIsDialogOpen(false);
       setSearchTerm("");
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error adding professional:", error);
-      if (error.code === "23505") {
+      if (error && typeof error === "object" && "code" in error && error.code === "23505") {
         toast.error("Este profesional ya está asignado al centro");
       } else {
         toast.error("Error al agregar el profesional");

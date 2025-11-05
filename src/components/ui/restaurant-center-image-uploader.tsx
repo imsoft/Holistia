@@ -16,7 +16,7 @@ import Image from "next/image";
 
 interface RestaurantCenterImageUploaderProps {
   entityId: string;
-  bucketName: 'restaurants' | 'holistic-centers';
+  bucketName: 'restaurants' | 'holistic-centers' | 'shops';
   onImageUploaded: (imageUrl: string) => void;
   currentImageUrl?: string;
   onImageRemoved?: () => void;

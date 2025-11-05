@@ -18,6 +18,7 @@ import {
   Building2,
   UtensilsCrossed,
   Sparkles,
+  Store,
 } from "lucide-react";
 import {
   Sidebar,
@@ -173,6 +174,11 @@ export function AdminSidebar() {
       title: "Restaurantes",
       url: `/admin/${userId}/restaurants`,
       icon: UtensilsCrossed,
+    },
+    {
+      title: "Comercios",
+      url: `/admin/${userId}/shops`,
+      icon: Store,
     },
     {
       title: "Agente IA (Alpha)",

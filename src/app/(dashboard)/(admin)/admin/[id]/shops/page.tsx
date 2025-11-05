@@ -14,7 +14,6 @@ import {
   MapPin,
   Globe,
   Clock,
-  Settings,
   Package,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -44,7 +43,6 @@ import {
 } from "@/components/ui/schedule-editor";
 import { RestaurantCenterImageUploader } from "@/components/ui/restaurant-center-image-uploader";
 import { ShopProductsManager } from "@/components/ui/shop-products-manager";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface Shop {
   id: string;
@@ -103,6 +101,7 @@ export default function AdminShops() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [tempShopId, setTempShopId] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'basic' | 'products'>('basic');
   const [formData, setFormData] = useState<FormData>({
     name: "",
     description: "",
@@ -179,6 +178,7 @@ export default function AdminShops() {
         is_active: true,
       });
     }
+    setActiveTab('basic');
     setIsFormOpen(true);
   };
 
@@ -254,21 +254,30 @@ export default function AdminShops() {
 
         if (error) throw error;
         toast.success("Comercio actualizado exitosamente");
+        fetchShops();
       } else {
-        const { error } = await supabase
+        const newShopId = tempShopId || crypto.randomUUID();
+        const { data, error } = await supabase
           .from("shops")
           .insert({
-            id: tempShopId || undefined,
+            id: newShopId,
             ...shopData,
-          });
+          })
+          .select()
+          .single();
 
         if (error) throw error;
-        toast.success("Comercio creado exitosamente");
-        setTempShopId(null);
-      }
 
-      setIsFormOpen(false);
-      fetchShops();
+        toast.success("Comercio creado exitosamente. Ahora puedes agregar productos.");
+
+        // Cambiar al modo de edición con el nuevo shop
+        setEditingShop(data);
+        setTempShopId(null);
+        setActiveTab('products'); // Cambiar automáticamente al tab de productos
+
+        fetchShops();
+        return; // No cerrar el formulario
+      }
     } catch (error) {
       console.error("Error saving shop:", error);
       toast.error("Error al guardar el comercio");
@@ -475,18 +484,54 @@ export default function AdminShops() {
 
       {/* Form Dialog */}
       <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
           <DialogHeader>
             <DialogTitle>
               {editingShop ? "Editar Comercio" : "Nuevo Comercio"}
             </DialogTitle>
             <DialogDescription>
               {editingShop
-                ? "Modifica la información del comercio"
+                ? "Modifica la información del comercio y gestiona sus productos"
                 : "Agrega un nuevo comercio a la plataforma"}
             </DialogDescription>
           </DialogHeader>
-          <form onSubmit={handleSubmit} className="space-y-4">
+
+          <div className="flex-1 overflow-y-auto">
+            <div className="space-y-4 pb-4">
+              {/* Tabs for Basic Info and Products */}
+              <div className="border rounded-lg">
+                <div className="border-b">
+                  <div className="flex">
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab('basic')}
+                      className={`px-4 py-2 font-medium border-b-2 transition-colors ${
+                        activeTab === 'basic'
+                          ? 'border-primary text-primary'
+                          : 'border-transparent text-muted-foreground hover:text-foreground'
+                      }`}
+                    >
+                      Información Básica
+                    </button>
+                    {(editingShop || tempShopId) && (
+                      <button
+                        type="button"
+                        onClick={() => setActiveTab('products')}
+                        className={`px-4 py-2 font-medium border-b-2 transition-colors ${
+                          activeTab === 'products'
+                            ? 'border-primary text-primary'
+                            : 'border-transparent text-muted-foreground hover:text-foreground'
+                        }`}
+                      >
+                        Productos
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                <div className="p-4">
+                  {activeTab === 'basic' && (
+                    <form onSubmit={handleSubmit} className="space-y-4" id="shop-form">
             <div className="space-y-2">
               <Label htmlFor="name">Nombre *</Label>
               <Input
@@ -618,26 +663,45 @@ export default function AdminShops() {
               />
             </div>
 
-            <div className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                id="is_active"
-                checked={formData.is_active}
-                onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
-                className="rounded"
-              />
-              <Label htmlFor="is_active">Comercio activo</Label>
-            </div>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          id="is_active"
+                          checked={formData.is_active}
+                          onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
+                          className="rounded"
+                        />
+                        <Label htmlFor="is_active">Comercio activo</Label>
+                      </div>
+                    </form>
+                  )}
 
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setIsFormOpen(false)}>
-                Cancelar
-              </Button>
-              <Button type="submit" disabled={saving}>
-                {saving ? "Guardando..." : editingShop ? "Actualizar" : "Crear"}
-              </Button>
-            </DialogFooter>
-          </form>
+                  {activeTab === 'products' && (editingShop || tempShopId) && (
+                    <div className="min-h-[400px]">
+                      <ShopProductsManager
+                        shopId={editingShop?.id || tempShopId || ""}
+                        shopName={formData.name || "comercio"}
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter className="border-t pt-4">
+            <Button type="button" variant="outline" onClick={() => setIsFormOpen(false)}>
+              Cancelar
+            </Button>
+            <Button
+              type="submit"
+              form="shop-form"
+              disabled={saving || activeTab !== 'basic'}
+              className={activeTab !== 'basic' ? 'hidden' : ''}
+            >
+              {saving ? "Guardando..." : editingShop ? "Actualizar" : "Crear"}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 

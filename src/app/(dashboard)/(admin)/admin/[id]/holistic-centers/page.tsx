@@ -14,6 +14,7 @@ import {
   MapPin,
   Globe,
   Clock,
+  Settings,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -41,6 +42,10 @@ import {
   formatScheduleForDisplay,
 } from "@/components/ui/schedule-editor";
 import { RestaurantCenterImageUploader } from "@/components/ui/restaurant-center-image-uploader";
+import { HolisticCenterLicenseUploader } from "@/components/ui/holistic-center-license-uploader";
+import { HolisticCenterServicesManager } from "@/components/ui/holistic-center-services-manager";
+import { HolisticCenterProfessionalsManager } from "@/components/ui/holistic-center-professionals-manager";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface HolisticCenter {
   id: string;
@@ -80,8 +85,10 @@ export default function AdminHolisticCenters() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isViewOpen, setIsViewOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [isManageOpen, setIsManageOpen] = useState(false);
   const [editingCenter, setEditingCenter] = useState<HolisticCenter | null>(null);
   const [viewingCenter, setViewingCenter] = useState<HolisticCenter | null>(null);
+  const [managingCenter, setManagingCenter] = useState<HolisticCenter | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [tempCenterId, setTempCenterId] = useState<string | null>(null); // ID temporal para nuevas creaciones
@@ -442,6 +449,17 @@ export default function AdminHolisticCenters() {
                     <Button
                       variant="outline"
                       size="sm"
+                      onClick={() => {
+                        setManagingCenter(center);
+                        setIsManageOpen(true);
+                      }}
+                      title="Gestionar licencias, servicios y profesionales"
+                    >
+                      <Settings className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
                       onClick={() => handleOpenForm(center)}
                     >
                       <Edit className="w-4 h-4" />
@@ -725,6 +743,49 @@ export default function AdminHolisticCenters() {
                 </div>
               )}
             </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Manage Dialog - Licencias, Servicios y Profesionales */}
+      <Dialog open={isManageOpen} onOpenChange={setIsManageOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Gestionar {managingCenter?.name}</DialogTitle>
+            <DialogDescription>
+              Administra las licencias, servicios y profesionales del centro
+            </DialogDescription>
+          </DialogHeader>
+
+          {managingCenter && (
+            <Tabs defaultValue="licenses" className="w-full">
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="licenses">Licencias</TabsTrigger>
+                <TabsTrigger value="services">Servicios</TabsTrigger>
+                <TabsTrigger value="professionals">Profesionales</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="licenses" className="space-y-4 mt-4">
+                <HolisticCenterLicenseUploader
+                  centerId={managingCenter.id}
+                  centerName={managingCenter.name}
+                />
+              </TabsContent>
+
+              <TabsContent value="services" className="space-y-4 mt-4">
+                <HolisticCenterServicesManager
+                  centerId={managingCenter.id}
+                  centerName={managingCenter.name}
+                />
+              </TabsContent>
+
+              <TabsContent value="professionals" className="space-y-4 mt-4">
+                <HolisticCenterProfessionalsManager
+                  centerId={managingCenter.id}
+                  centerName={managingCenter.name}
+                />
+              </TabsContent>
+            </Tabs>
           )}
         </DialogContent>
       </Dialog>

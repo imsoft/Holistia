@@ -145,7 +145,7 @@ export function BlogPostClient({ post, relatedPosts }: BlogPostClientProps) {
 
             {/* Featured Image */}
             {post.featured_image && (
-              <div className="relative w-full h-48 sm:h-64 lg:h-80 mb-8 sm:mb-12 rounded-lg overflow-hidden">
+              <div className="relative w-full h-64 sm:h-80 lg:h-96 mb-8 sm:mb-12 rounded-lg overflow-hidden">
                 <Image
                   src={post.featured_image}
                   alt={post.title}

@@ -69,34 +69,36 @@ export default function NewBlogPostPage({ params }: { params: Promise<{ id: stri
       // Combinar y formatear autores
       const allAuthors: BlogAuthor[] = [];
 
-      // Agregar usuario actual como opción (administrador)
-      if (currentUser) {
-        // Obtener perfil del usuario actual
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('first_name, last_name, email, avatar_url')
-          .eq('id', currentUser.id)
-          .single();
+      // Obtener TODOS los administradores (profiles con type 'admin')
+      const { data: adminProfiles } = await supabase
+        .from('profiles')
+        .select('id, first_name, last_name, email, avatar_url, type')
+        .or('type.eq.admin,type.eq.Admin')
+        .not('first_name', 'is', null)
+        .not('last_name', 'is', null);
 
-        const name = profile?.first_name && profile?.last_name
-          ? `${profile.first_name} ${profile.last_name}`
-          : profile?.email?.split('@')[0] || currentUser.email?.split('@')[0] || 'Usuario';
+      if (adminProfiles && adminProfiles.length > 0) {
+        const adminAuthors = adminProfiles.map(admin => {
+          const name = `${admin.first_name} ${admin.last_name}`;
+          const isCurrentUser = admin.id === currentUser?.id;
 
-        allAuthors.push({
-          id: currentUser.id,
-          name: `${name} (Tú)`,
-          email: profile?.email || currentUser.email || '',
-          avatar: profile?.avatar_url,
-          profession: 'Administrador',
-          type: 'user' as const
+          return {
+            id: admin.id,
+            name: isCurrentUser ? `${name} (Tú - Admin)` : `${name} (Admin)`,
+            email: admin.email || '',
+            avatar: admin.avatar_url,
+            profession: 'Administrador',
+            type: 'user' as const
+          };
         });
+        allAuthors.push(...adminAuthors);
       }
 
-      // Agregar profesionales
+      // Agregar todos los profesionales aprobados
       if (professionals && professionals.length > 0) {
         const professionalAuthors = professionals.map(professional => ({
           id: professional.id,
-          name: `${professional.first_name} ${professional.last_name}`,
+          name: `${professional.first_name} ${professional.last_name} (Profesional)`,
           email: professional.email,
           avatar: professional.profile_photo,
           profession: professional.profession,
@@ -105,8 +107,13 @@ export default function NewBlogPostPage({ params }: { params: Promise<{ id: stri
         allAuthors.push(...professionalAuthors);
       }
 
-      // Ordenar por nombre
-      allAuthors.sort((a, b) => a.name.localeCompare(b.name));
+      // Ordenar: primero admins, luego profesionales, ambos alfabéticamente
+      allAuthors.sort((a, b) => {
+        if (a.type !== b.type) {
+          return a.type === 'user' ? -1 : 1; // Admins primero
+        }
+        return a.name.localeCompare(b.name);
+      });
 
       setAuthors(allAuthors);
     } catch (error) {
@@ -325,13 +332,13 @@ export default function NewBlogPostPage({ params }: { params: Promise<{ id: stri
                 <SelectTrigger>
                   <SelectValue placeholder={loadingAuthors ? "Cargando autores..." : "Selecciona un autor"} />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="max-h-[300px]">
                   {authors.map((author) => (
                     <SelectItem key={author.id} value={author.id}>
-                      <div className="flex items-center gap-2">
-                        <span>{author.name}</span>
+                      <div className="flex flex-col gap-0.5 py-1">
+                        <span className="font-medium">{author.name}</span>
                         <span className="text-xs text-muted-foreground">
-                          ({author.type === 'professional' ? author.profession : 'Usuario'})
+                          {author.profession}
                         </span>
                       </div>
                     </SelectItem>
@@ -339,7 +346,7 @@ export default function NewBlogPostPage({ params }: { params: Promise<{ id: stri
                 </SelectContent>
               </Select>
               <p className="text-xs sm:text-sm text-muted-foreground">
-                Selecciona el autor que aparecerá en el post
+                Muestra todos los administradores y profesionales aprobados. El nombre del autor aparecerá en el blog público.
               </p>
             </div>
           </CardContent>

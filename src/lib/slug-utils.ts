@@ -22,9 +22,9 @@ export function isValidSlug(slug: string): boolean {
   // - No estar vacío
   // - Solo contener letras minúsculas, números y guiones
   // - No empezar o terminar con guión
-  // - Tener entre 3 y 50 caracteres
+  // - Tener entre 3 y 200 caracteres
   const slugRegex = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
-  return slug.length >= 3 && slug.length <= 50 && slugRegex.test(slug);
+  return slug.length >= 3 && slug.length <= 200 && slugRegex.test(slug);
 }
 
 /**

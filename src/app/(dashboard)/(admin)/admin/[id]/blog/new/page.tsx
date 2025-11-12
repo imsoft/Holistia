@@ -140,7 +140,7 @@ export default function NewBlogPostPage({ params }: { params: Promise<{ id: stri
     const isValid = isValidSlug(newSlug);
     setSlugValidation({
       isValid,
-      message: isValid ? "Slug válido" : "El slug debe tener entre 3-50 caracteres y solo letras, números y guiones"
+      message: isValid ? "Slug válido" : "El slug debe tener entre 3-200 caracteres y solo letras, números y guiones"
     });
   };
 
@@ -243,19 +243,23 @@ export default function NewBlogPostPage({ params }: { params: Promise<{ id: stri
                 onChange={(e) => handleTitleChange(e.target.value)}
                 placeholder="Escribe el título del post..."
                 required
+                maxLength={200}
               />
+              <p className="text-xs text-muted-foreground">
+                {formData.title.length}/200 caracteres
+              </p>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="slug">Slug *</Label>
+              <Label htmlFor="slug">Slug (URL) *</Label>
               <div className="relative">
                 <Input
                   id="slug"
                   value={formData.slug}
-                  onChange={(e) => setFormData(prev => ({ ...prev, slug: e.target.value }))}
-                  placeholder="url-del-post"
-                  required
-                  className={slugValidation.isValid ? "" : "border-destructive"}
+                  readOnly
+                  disabled
+                  placeholder="se-genera-automaticamente"
+                  className="bg-muted cursor-not-allowed"
                 />
                 {formData.slug && (
                   <div className="absolute right-3 top-1/2 -translate-y-1/2">
@@ -268,10 +272,10 @@ export default function NewBlogPostPage({ params }: { params: Promise<{ id: stri
                 )}
               </div>
               <p className="text-xs sm:text-sm text-muted-foreground break-all">
-                Se genera automáticamente desde el título. URL: /blog/{formData.slug}
+                Se genera automáticamente desde el título. URL: /blog/{formData.slug || 'tu-titulo-aqui'}
               </p>
-              {formData.slug && (
-                <p className={`text-xs ${slugValidation.isValid ? "text-green-600" : "text-destructive"}`}>
+              {formData.slug && !slugValidation.isValid && (
+                <p className="text-xs text-destructive">
                   {slugValidation.message}
                 </p>
               )}

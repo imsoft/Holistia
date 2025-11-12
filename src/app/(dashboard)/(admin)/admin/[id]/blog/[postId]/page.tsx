@@ -458,12 +458,12 @@ export default function EditBlogPostPage({
                 <SelectTrigger>
                   <SelectValue placeholder={loadingAuthors ? "Cargando autores..." : "Selecciona un autor"} />
                 </SelectTrigger>
-                <SelectContent className="max-h-[300px]">
+                <SelectContent className="max-h-[300px] w-full">
                   {authors.map((author) => (
-                    <SelectItem key={author.id} value={author.id}>
-                      <div className="flex flex-col gap-0.5 py-1">
-                        <span className="font-medium">{author.name}</span>
-                        <span className="text-xs text-muted-foreground">
+                    <SelectItem key={author.id} value={author.id} className="w-full">
+                      <div className="flex flex-col gap-0.5 py-1 w-full">
+                        <span className="font-medium truncate">{author.name}</span>
+                        <span className="text-xs text-muted-foreground truncate">
                           {author.profession}
                         </span>
                       </div>

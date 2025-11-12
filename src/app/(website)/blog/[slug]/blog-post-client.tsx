@@ -24,6 +24,8 @@ interface BlogPostClientProps {
       name: string;
       profession: string;
       avatar?: string;
+      professionalSlug?: string;
+      isProfessional?: boolean;
     };
   };
   relatedPosts: {
@@ -126,8 +128,20 @@ export function BlogPostClient({ post, relatedPosts }: BlogPostClientProps) {
                 {post.author && (
                   <div className="flex items-center gap-2">
                     <User className="w-4 h-4" />
-                    <span>{post.author.name}</span>
-                    <span className="opacity-75">({post.author.profession})</span>
+                    {post.author.isProfessional && post.author.professionalSlug ? (
+                      <Link
+                        href={`/professional/${post.author.professionalSlug}`}
+                        className="hover:underline hover:text-foreground transition-colors"
+                      >
+                        <span className="font-medium">{post.author.name}</span>
+                        <span className="opacity-75 ml-1">({post.author.profession})</span>
+                      </Link>
+                    ) : (
+                      <>
+                        <span>{post.author.name}</span>
+                        <span className="opacity-75">({post.author.profession})</span>
+                      </>
+                    )}
                   </div>
                 )}
 

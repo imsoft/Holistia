@@ -5,7 +5,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { createClient } from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { BlogPost } from "@/types/blog";
+import { BlogPost, BlogAuthor } from "@/types/blog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -36,7 +36,9 @@ export default function EditBlogPostPage({
     message: string;
   }>({ isValid: true, message: "" });
   const [post, setPost] = useState<BlogPost | null>(null);
-  
+  const [authors, setAuthors] = useState<BlogAuthor[]>([]);
+  const [loadingAuthors, setLoadingAuthors] = useState(true);
+
   const [formData, setFormData] = useState({
     title: "",
     slug: "",
@@ -44,6 +46,7 @@ export default function EditBlogPostPage({
     content: "",
     status: "draft" as "draft" | "published",
     featured_image: "",
+    author_id: "",
   });
 
   const supabase = createClient();
@@ -51,8 +54,83 @@ export default function EditBlogPostPage({
   useEffect(() => {
     if (user && postId) {
       fetchPost();
+      fetchAuthors();
     }
   }, [user, postId]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const fetchAuthors = async () => {
+    try {
+      setLoadingAuthors(true);
+
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+
+      const { data: professionals, error: professionalsError } = await supabase
+        .from('professional_applications')
+        .select('id, first_name, last_name, email, profession, profile_photo, status')
+        .eq('status', 'approved')
+        .not('first_name', 'is', null)
+        .not('last_name', 'is', null);
+
+      if (professionalsError) {
+        console.error('Error fetching professionals:', professionalsError);
+        return;
+      }
+
+      const allAuthors: BlogAuthor[] = [];
+
+      // Obtener TODOS los administradores
+      const { data: adminProfiles } = await supabase
+        .from('profiles')
+        .select('id, first_name, last_name, email, avatar_url, type')
+        .or('type.eq.admin,type.eq.Admin')
+        .not('first_name', 'is', null)
+        .not('last_name', 'is', null);
+
+      if (adminProfiles && adminProfiles.length > 0) {
+        const adminAuthors = adminProfiles.map(admin => {
+          const name = `${admin.first_name} ${admin.last_name}`;
+          const isCurrentUser = admin.id === currentUser?.id;
+
+          return {
+            id: admin.id,
+            name: isCurrentUser ? `${name} (Tú - Admin)` : `${name} (Admin)`,
+            email: admin.email || '',
+            avatar: admin.avatar_url,
+            profession: 'Administrador',
+            type: 'user' as const
+          };
+        });
+        allAuthors.push(...adminAuthors);
+      }
+
+      // Agregar todos los profesionales aprobados
+      if (professionals && professionals.length > 0) {
+        const professionalAuthors = professionals.map(professional => ({
+          id: professional.id,
+          name: `${professional.first_name} ${professional.last_name} (Profesional)`,
+          email: professional.email,
+          avatar: professional.profile_photo,
+          profession: professional.profession,
+          type: 'professional' as const
+        }));
+        allAuthors.push(...professionalAuthors);
+      }
+
+      // Ordenar: primero admins, luego profesionales
+      allAuthors.sort((a, b) => {
+        if (a.type !== b.type) {
+          return a.type === 'user' ? -1 : 1;
+        }
+        return a.name.localeCompare(b.name);
+      });
+
+      setAuthors(allAuthors);
+    } catch (error) {
+      console.error('Error fetching authors:', error);
+    } finally {
+      setLoadingAuthors(false);
+    }
+  };
 
   const fetchPost = async () => {
     try {
@@ -84,6 +162,7 @@ export default function EditBlogPostPage({
         content: data.content,
         status: data.status,
         featured_image: data.featured_image || "",
+        author_id: data.author_id || "",
       });
     } catch (err) {
       console.error("Error:", err);
@@ -146,10 +225,11 @@ export default function EditBlogPostPage({
         excerpt: formData.excerpt.trim() || null,
         content: formData.content.trim(),
         status: formData.status,
-        published_at: formData.status === "published" && post.status === "draft" 
-          ? new Date().toISOString() 
+        published_at: formData.status === "published" && post.status === "draft"
+          ? new Date().toISOString()
           : post.published_at,
         featured_image: formData.featured_image || null,
+        author_id: formData.author_id || null,
       };
 
       const { error } = await supabase
@@ -352,7 +432,7 @@ export default function EditBlogPostPage({
               <Label htmlFor="status">Estado</Label>
               <Select
                 value={formData.status}
-                onValueChange={(value: "draft" | "published") => 
+                onValueChange={(value: "draft" | "published") =>
                   setFormData(prev => ({ ...prev, status: value }))
                 }
               >
@@ -364,6 +444,36 @@ export default function EditBlogPostPage({
                   <SelectItem value="published">Publicado</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="author">Autor *</Label>
+              <Select
+                value={formData.author_id}
+                onValueChange={(value) =>
+                  setFormData(prev => ({ ...prev, author_id: value }))
+                }
+                disabled={loadingAuthors}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder={loadingAuthors ? "Cargando autores..." : "Selecciona un autor"} />
+                </SelectTrigger>
+                <SelectContent className="max-h-[300px]">
+                  {authors.map((author) => (
+                    <SelectItem key={author.id} value={author.id}>
+                      <div className="flex flex-col gap-0.5 py-1">
+                        <span className="font-medium">{author.name}</span>
+                        <span className="text-xs text-muted-foreground">
+                          {author.profession}
+                        </span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs sm:text-sm text-muted-foreground">
+                Muestra todos los administradores y profesionales aprobados. El nombre del autor aparecerá en el blog público.
+              </p>
             </div>
           </CardContent>
         </Card>

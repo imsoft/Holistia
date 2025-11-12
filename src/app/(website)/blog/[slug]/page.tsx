@@ -100,7 +100,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
       // Try to get from professional_applications first
       const { data: professionalAuthor } = await supabase
         .from('professional_applications')
-        .select('id, first_name, last_name, profession, profile_photo')
+        .select('id, first_name, last_name, profession, profile_photo, slug')
         .eq('user_id', post.author_id)
         .eq('status', 'approved')
         .single();
@@ -110,6 +110,8 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
           name: `${professionalAuthor.first_name} ${professionalAuthor.last_name}`,
           profession: professionalAuthor.profession,
           avatar: professionalAuthor.profile_photo,
+          professionalSlug: professionalAuthor.slug,
+          isProfessional: true,
         };
       } else {
         // If not found in professionals, try to get from profiles table
@@ -124,6 +126,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
             name: `${profileData.first_name || ''} ${profileData.last_name || ''}`.trim() || 'Holistia',
             profession: profileData.type === 'Admin' || profileData.type === 'admin' ? 'Equipo Holistia' : 'Colaborador',
             avatar: undefined,
+            isProfessional: false,
           };
         } else {
           // Use default if not found anywhere
@@ -131,6 +134,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
             name: 'Holistia',
             profession: 'Equipo Holistia',
             avatar: undefined,
+            isProfessional: false,
           };
         }
       }

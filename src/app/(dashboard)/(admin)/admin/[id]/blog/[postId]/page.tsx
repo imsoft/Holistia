@@ -461,10 +461,10 @@ export default function EditBlogPostPage({
                 <SelectContent className="max-h-[300px] w-full">
                   {authors.map((author) => (
                     <SelectItem key={author.id} value={author.id} className="w-full">
-                      <div className="flex flex-col gap-0.5 py-1 w-full">
+                      <div className="flex items-center gap-2 w-full">
                         <span className="font-medium truncate">{author.name}</span>
                         <span className="text-xs text-muted-foreground truncate">
-                          {author.profession}
+                          - {author.profession}
                         </span>
                       </div>
                     </SelectItem>

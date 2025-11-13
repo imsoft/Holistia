@@ -436,10 +436,10 @@ export default function EditBlogPostPage({
                   setFormData(prev => ({ ...prev, status: value }))
                 }
               >
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="w-full">
                   <SelectItem value="draft">Borrador</SelectItem>
                   <SelectItem value="published">Publicado</SelectItem>
                 </SelectContent>
@@ -455,7 +455,7 @@ export default function EditBlogPostPage({
                 }
                 disabled={loadingAuthors}
               >
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder={loadingAuthors ? "Cargando autores..." : "Selecciona un autor"} />
                 </SelectTrigger>
                 <SelectContent className="max-h-[300px] w-full">

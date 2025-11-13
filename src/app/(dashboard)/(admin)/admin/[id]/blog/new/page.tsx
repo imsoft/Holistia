@@ -306,14 +306,14 @@ export default function NewBlogPostPage({ params }: { params: Promise<{ id: stri
               <Label htmlFor="status">Estado</Label>
               <Select
                 value={formData.status}
-                onValueChange={(value: "draft" | "published") => 
+                onValueChange={(value: "draft" | "published") =>
                   setFormData(prev => ({ ...prev, status: value }))
                 }
               >
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="w-full">
                   <SelectItem value="draft">Borrador</SelectItem>
                   <SelectItem value="published">Publicado</SelectItem>
                 </SelectContent>
@@ -324,12 +324,12 @@ export default function NewBlogPostPage({ params }: { params: Promise<{ id: stri
               <Label htmlFor="author">Autor *</Label>
               <Select
                 value={formData.author_id}
-                onValueChange={(value) => 
+                onValueChange={(value) =>
                   setFormData(prev => ({ ...prev, author_id: value }))
                 }
                 disabled={loadingAuthors}
               >
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder={loadingAuthors ? "Cargando autores..." : "Selecciona un autor"} />
                 </SelectTrigger>
                 <SelectContent className="max-h-[300px] w-full">

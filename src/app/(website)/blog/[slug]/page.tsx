@@ -117,7 +117,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
         // If not found in professionals, try to get from profiles table
         const { data: profileData } = await supabase
           .from('profiles')
-          .select('id, first_name, last_name, email, type')
+          .select('id, first_name, last_name, email, type, avatar_url')
           .eq('id', post.author_id)
           .single();
 
@@ -125,7 +125,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
           authorInfo = {
             name: `${profileData.first_name || ''} ${profileData.last_name || ''}`.trim() || 'Holistia',
             profession: profileData.type === 'Admin' || profileData.type === 'admin' ? 'Equipo Holistia' : 'Colaborador',
-            avatar: undefined,
+            avatar: profileData.avatar_url || undefined,
             isProfessional: false,
           };
         } else {

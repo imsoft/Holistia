@@ -55,7 +55,7 @@ export default function NewBlogPostPage({ params }: { params: Promise<{ id: stri
       // Obtener profesionales aprobados
       const { data: professionals, error: professionalsError } = await supabase
         .from('professional_applications')
-        .select('id, first_name, last_name, email, profession, profile_photo, status')
+        .select('id, user_id, first_name, last_name, email, profession, profile_photo, status')
         .eq('status', 'approved')
         .not('first_name', 'is', null)
         .not('last_name', 'is', null);
@@ -97,7 +97,7 @@ export default function NewBlogPostPage({ params }: { params: Promise<{ id: stri
       // Agregar todos los profesionales aprobados
       if (professionals && professionals.length > 0) {
         const professionalAuthors = professionals.map(professional => ({
-          id: professional.id,
+          id: professional.user_id, // Usar user_id en lugar de id
           name: `${professional.first_name} ${professional.last_name} (Profesional)`,
           email: professional.email,
           avatar: professional.profile_photo,

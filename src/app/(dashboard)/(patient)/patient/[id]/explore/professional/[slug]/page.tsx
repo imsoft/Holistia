@@ -981,10 +981,10 @@ export default function ProfessionalProfilePage() {
                       className="rounded-xl bg-gradient-to-r from-primary/5 to-primary/10 border border-primary/20 hover:border-primary/30 transition-all overflow-hidden"
                     >
                       {/* Grid: imagen a la izquierda, contenido a la derecha */}
-                      <div className="grid grid-cols-1 sm:grid-cols-[220px_1fr] gap-0">
+                      <div className="grid grid-cols-1 sm:grid-cols-[25%_1fr] gap-0">
                         {/* Imagen del servicio (si existe) */}
                         {service.image_url && (
-                          <div className="relative h-48 sm:h-full min-h-[200px]">
+                          <div className="relative h-48 sm:h-full">
                             <img
                               src={service.image_url}
                               alt={service.name}

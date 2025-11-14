@@ -110,6 +110,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
           name: `${professionalAuthor.first_name} ${professionalAuthor.last_name}`,
           profession: professionalAuthor.profession,
           avatar: professionalAuthor.profile_photo,
+          professionalId: professionalAuthor.id, // Usar ID en lugar de slug
           professionalSlug: professionalAuthor.slug,
           isProfessional: true,
         };

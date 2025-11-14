@@ -24,6 +24,7 @@ interface BlogPostClientProps {
       name: string;
       profession: string;
       avatar?: string;
+      professionalId?: string;
       professionalSlug?: string;
       isProfessional?: boolean;
     };
@@ -128,9 +129,9 @@ export function BlogPostClient({ post, relatedPosts }: BlogPostClientProps) {
                 {post.author && (
                   <div className="flex items-center gap-2">
                     <User className="w-4 h-4" />
-                    {post.author.isProfessional && post.author.professionalSlug ? (
+                    {post.author.isProfessional && post.author.professionalId ? (
                       <Link
-                        href={`/professional/${post.author.professionalSlug}`}
+                        href={`/explore/professional/${post.author.professionalId}`}
                         className="hover:underline hover:text-foreground transition-colors"
                       >
                         <span className="font-medium">{post.author.name}</span>
@@ -187,8 +188,8 @@ export function BlogPostClient({ post, relatedPosts }: BlogPostClientProps) {
           {post.author && (
             <div className="mt-12 pt-8 border-t border-border">
               <div className="flex items-start gap-4">
-                {post.author.isProfessional && post.author.professionalSlug ? (
-                  <Link href={`/professional/${post.author.professionalSlug}`}>
+                {post.author.isProfessional && post.author.professionalId ? (
+                  <Link href={`/explore/professional/${post.author.professionalId}`}>
                     {post.author.avatar ? (
                       <div className="relative w-16 h-16 rounded-full overflow-hidden flex-shrink-0 hover:opacity-80 transition-opacity cursor-pointer">
                         <Image
@@ -223,9 +224,12 @@ export function BlogPostClient({ post, relatedPosts }: BlogPostClientProps) {
                   </>
                 )}
                 <div className="flex-1">
-                  {post.author.isProfessional && post.author.professionalSlug ? (
-                    <Link href={`/professional/${post.author.professionalSlug}`}>
-                      <h3 className="text-lg font-semibold text-foreground mb-2 hover:text-primary transition-colors cursor-pointer">
+                  {post.author.isProfessional && post.author.professionalId ? (
+                    <Link
+                      href={`/explore/professional/${post.author.professionalId}`}
+                      className="block mb-2"
+                    >
+                      <h3 className="text-lg font-semibold text-foreground hover:text-primary transition-colors">
                         {post.author.name}
                       </h3>
                     </Link>

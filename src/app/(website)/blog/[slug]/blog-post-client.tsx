@@ -187,24 +187,53 @@ export function BlogPostClient({ post, relatedPosts }: BlogPostClientProps) {
           {post.author && (
             <div className="mt-12 pt-8 border-t border-border">
               <div className="flex items-start gap-4">
-                {post.author.avatar ? (
-                  <div className="relative w-16 h-16 rounded-full overflow-hidden flex-shrink-0">
-                    <Image
-                      src={post.author.avatar}
-                      alt={post.author.name}
-                      fill
-                      className="object-cover"
-                    />
-                  </div>
+                {post.author.isProfessional && post.author.professionalSlug ? (
+                  <Link href={`/professional/${post.author.professionalSlug}`}>
+                    {post.author.avatar ? (
+                      <div className="relative w-16 h-16 rounded-full overflow-hidden flex-shrink-0 hover:opacity-80 transition-opacity cursor-pointer">
+                        <Image
+                          src={post.author.avatar}
+                          alt={post.author.name}
+                          fill
+                          className="object-cover"
+                        />
+                      </div>
+                    ) : (
+                      <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center flex-shrink-0 hover:opacity-80 transition-opacity cursor-pointer">
+                        <User className="w-8 h-8 text-muted-foreground" />
+                      </div>
+                    )}
+                  </Link>
                 ) : (
-                  <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
-                    <User className="w-8 h-8 text-muted-foreground" />
-                  </div>
+                  <>
+                    {post.author.avatar ? (
+                      <div className="relative w-16 h-16 rounded-full overflow-hidden flex-shrink-0">
+                        <Image
+                          src={post.author.avatar}
+                          alt={post.author.name}
+                          fill
+                          className="object-cover"
+                        />
+                      </div>
+                    ) : (
+                      <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
+                        <User className="w-8 h-8 text-muted-foreground" />
+                      </div>
+                    )}
+                  </>
                 )}
                 <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-foreground mb-2">
-                    {post.author.name}
-                  </h3>
+                  {post.author.isProfessional && post.author.professionalSlug ? (
+                    <Link href={`/professional/${post.author.professionalSlug}`}>
+                      <h3 className="text-lg font-semibold text-foreground mb-2 hover:text-primary transition-colors cursor-pointer">
+                        {post.author.name}
+                      </h3>
+                    </Link>
+                  ) : (
+                    <h3 className="text-lg font-semibold text-foreground mb-2">
+                      {post.author.name}
+                    </h3>
+                  )}
                   <p className="text-sm text-muted-foreground mb-2">
                     {post.author.profession}
                   </p>

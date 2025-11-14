@@ -772,15 +772,15 @@ export default function ProfessionalProfilePage() {
                     </div>
                   )}
                 </div>
-                {/* Badges de servicios - Mostrar todos */}
-                {professional.services && professional.services.length > 0 && (
+                {/* Badges de especializaciones */}
+                {professional.specializations && professional.specializations.length > 0 && (
                   <div className="flex flex-wrap gap-1 sm:gap-2">
-                    {professional.services.map((service) => (
+                    {professional.specializations.map((specialization, index) => (
                       <span 
-                        key={service.name} 
-                        className="text-xs bg-primary/10 text-primary px-2 sm:px-3 py-1 rounded-full border border-primary/20"
+                        key={index} 
+                        className="text-xs bg-gradient-to-r from-blue-500 to-purple-500 text-white px-2 sm:px-3 py-1 rounded-full font-medium"
                       >
-                        {service.name}
+                        {specialization}
                       </span>
                     ))}
                   </div>

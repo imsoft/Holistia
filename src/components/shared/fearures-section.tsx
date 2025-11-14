@@ -1,10 +1,10 @@
 import {
-  Users,
-  Calendar,
-  Shield,
-  Heart,
-  MessageCircle,
-  CreditCard,
+  GraduationCap,
+  Sparkles,
+  Building2,
+  UtensilsCrossed,
+  Briefcase,
+  BookOpen,
 } from "lucide-react";
 
 const features = [
@@ -12,37 +12,37 @@ const features = [
     name: "Expertos",
     description:
       "Explora y reserva con expertos en diferentes áreas del bienestar holístico.",
-    icon: Users,
+    icon: GraduationCap,
   },
   {
     name: "Eventos y talleres",
     description:
       "Explora y reserva experiencias, talleres y eventos diseñados para tu crecimiento y transformación.",
-    icon: Calendar,
+    icon: Sparkles,
   },
   {
     name: "Centros",
     description:
       "Descubre centros especializados para explorar y potenciar tu bienestar integral.",
-    icon: Shield,
+    icon: Building2,
   },
   {
     name: "Restaurantes y comercios",
     description:
       "Descubre opciones de restaurantes y comercios que apoyan tu estilo de vida saludable.",
-    icon: Heart,
+    icon: UtensilsCrossed,
   },
   {
-    name: "Comunidades",
+    name: "Empresas",
     description:
-      "Explora y conecta con diferentes comunidades hasta encontrar la que resuene contigo.",
-    icon: MessageCircle,
+      "Conecta con empresas que ofrecen programas de bienestar integral para equipos y organizaciones.",
+    icon: Briefcase,
   },
   {
     name: "Blog",
     description:
       "Explora artículos, consejos y detalles sobre técnicas y herramientas de sanación de nuestros profesionales.",
-    icon: CreditCard,
+    icon: BookOpen,
   },
 ];
 
@@ -57,7 +57,7 @@ export const FeaturesSection = () => {
           ¿Cómo funciona Holistia?
         </p>
         <p className="mx-auto mt-5 max-w-prose text-xl text-muted-foreground">
-          Explora lo que más te interesa: terapias, talleres, comunidades o
+          Explora lo que más te interesa: terapias, talleres, empresas o
           experiencias únicas. Elige lo que resuene contigo, agenda en minutos y
           comienza a transformar tu vida con acompañamiento profesional y
           cercano.

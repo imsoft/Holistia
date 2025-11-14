@@ -778,7 +778,7 @@ export default function ProfessionalProfilePage() {
                     {professional.specializations.map((specialization, index) => (
                       <span 
                         key={index} 
-                        className="text-xs bg-gradient-to-r from-blue-500 to-purple-500 text-white px-2 sm:px-3 py-1 rounded-full font-medium"
+                        className="text-xs bg-primary text-white px-2 sm:px-3 py-1 rounded-full font-medium"
                       >
                         {specialization}
                       </span>

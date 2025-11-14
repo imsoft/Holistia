@@ -746,7 +746,7 @@ export default function ProfessionalProfilePage() {
                 <p className="text-base sm:text-lg text-primary font-medium mb-2 sm:mb-3">
                   {professional.profession}
                 </p>
-                <div className="flex items-center gap-2 sm:gap-4 flex-wrap">
+                <div className="flex items-center gap-2 sm:gap-4 flex-wrap mb-2 sm:mb-3">
                   <div className="flex items-center gap-1 px-2 sm:px-3 py-1 bg-primary/10 rounded-full">
                     {getServiceTypeIcon()}
                     <span className="text-xs sm:text-sm text-primary font-medium">
@@ -767,6 +767,19 @@ export default function ProfessionalProfilePage() {
                     </div>
                   )}
                 </div>
+                {/* Badges de servicios - Mostrar todos */}
+                {professional.services && professional.services.length > 0 && (
+                  <div className="flex flex-wrap gap-1 sm:gap-2">
+                    {professional.services.map((service) => (
+                      <span 
+                        key={service.name} 
+                        className="text-xs bg-primary/10 text-primary px-2 sm:px-3 py-1 rounded-full border border-primary/20"
+                      >
+                        {service.name}
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
             <div className="flex gap-2 w-full lg:w-auto justify-end">

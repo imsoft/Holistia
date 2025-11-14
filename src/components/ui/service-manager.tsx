@@ -36,6 +36,9 @@ import {
   Calendar,
   Package,
   Navigation,
+  Image as ImageIcon,
+  Upload,
+  X,
 } from "lucide-react";
 import { Service, ServiceFormData } from "@/types/service";
 import { createClient } from "@/utils/supabase/client";
@@ -69,6 +72,9 @@ export function ServiceManager({ professionalId, userId }: ServiceManagerProps) 
     value: 1,
     unit: "semanas" as "meses" | "semanas" | "dias" | "horas"
   });
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   const supabase = createClient();
 
@@ -93,6 +99,70 @@ export function ServiceManager({ professionalId, userId }: ServiceManagerProps) 
   useEffect(() => {
     fetchServices();
   }, [fetchServices]);
+
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validar tipo de archivo
+    if (!file.type.startsWith('image/')) {
+      toast.error('Por favor selecciona un archivo de imagen válido');
+      return;
+    }
+
+    // Validar tamaño (5MB máximo)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('La imagen es demasiado grande (máximo 5MB)');
+      return;
+    }
+
+    setImageFile(file);
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setImagePreview(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemoveImage = () => {
+    setImageFile(null);
+    setImagePreview(null);
+    setFormData({ ...formData, image_url: undefined });
+  };
+
+  const uploadServiceImage = async (serviceId: string): Promise<string | null> => {
+    if (!imageFile) return null;
+
+    try {
+      setUploadingImage(true);
+      const fileExt = imageFile.name.split('.').pop();
+      const fileName = `service-${serviceId}-${Date.now()}.${fileExt}`;
+      const filePath = `${professionalId}/services/${fileName}`;
+
+      // Subir imagen a Supabase Storage
+      const { error: uploadError } = await supabase.storage
+        .from('professional-services')
+        .upload(filePath, imageFile, {
+          cacheControl: '3600',
+          upsert: true,
+        });
+
+      if (uploadError) throw uploadError;
+
+      // Obtener URL pública
+      const { data: urlData } = supabase.storage
+        .from('professional-services')
+        .getPublicUrl(filePath);
+
+      return urlData.publicUrl;
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      toast.error('Error al subir la imagen');
+      return null;
+    } finally {
+      setUploadingImage(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -122,10 +192,19 @@ export function ServiceManager({ professionalId, userId }: ServiceManagerProps) 
         } : null,
         cost: formData.cost,
         address: formData.address?.trim() || null, // Guardar como null si está vacío
+        image_url: formData.image_url || null,
         isactive: true,
       };
 
       if (editingService) {
+        // Si hay una nueva imagen, subirla primero
+        if (imageFile) {
+          const imageUrl = await uploadServiceImage(editingService.id!);
+          if (imageUrl) {
+            serviceData.image_url = imageUrl;
+          }
+        }
+
         // Actualizar servicio existente
         const { error } = await supabase
           .from("professional_services")
@@ -135,12 +214,28 @@ export function ServiceManager({ professionalId, userId }: ServiceManagerProps) 
         if (error) throw error;
         toast.success("Servicio actualizado exitosamente");
       } else {
-        // Crear nuevo servicio
-        const { error } = await supabase
+        // Crear nuevo servicio y obtener el ID
+        const { data: newService, error: insertError } = await supabase
           .from("professional_services")
-          .insert(serviceData);
+          .insert(serviceData)
+          .select()
+          .single();
 
-        if (error) throw error;
+        if (insertError) throw insertError;
+
+        // Si hay imagen, subirla y actualizar el servicio
+        if (imageFile && newService) {
+          const imageUrl = await uploadServiceImage(newService.id);
+          if (imageUrl) {
+            const { error: updateError } = await supabase
+              .from("professional_services")
+              .update({ image_url: imageUrl })
+              .eq("id", newService.id);
+
+            if (updateError) throw updateError;
+          }
+        }
+
         toast.success("Servicio creado exitosamente");
       }
 
@@ -172,7 +267,13 @@ export function ServiceManager({ professionalId, userId }: ServiceManagerProps) 
       duration: service.duration,
       cost: serviceCost,
       address: service.address || "",
+      image_url: service.image_url,
     });
+
+    // Cargar imagen existente si hay
+    if (service.image_url) {
+      setImagePreview(service.image_url);
+    }
 
     // Si es un programa, intentar extraer la duración del programa
     if (service.type === "program") {
@@ -242,11 +343,14 @@ export function ServiceManager({ professionalId, userId }: ServiceManagerProps) 
       duration: 60,
       cost: undefined,
       address: "",
+      image_url: undefined,
     });
     setProgramDuration({
       value: 1,
       unit: "semanas"
     });
+    setImageFile(null);
+    setImagePreview(null);
     setEditingService(null);
   };
 
@@ -464,6 +568,52 @@ export function ServiceManager({ professionalId, userId }: ServiceManagerProps) 
                 </p>
               </div>
 
+              <div className="space-y-2">
+                <Label htmlFor="serviceImage">Imagen del Servicio (Opcional)</Label>
+                <div className="space-y-2">
+                  {imagePreview ? (
+                    <div className="relative">
+                      <img
+                        src={imagePreview}
+                        alt="Preview"
+                        className="w-full h-48 object-cover rounded-lg"
+                      />
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="icon"
+                        className="absolute top-2 right-2"
+                        onClick={handleRemoveImage}
+                      >
+                        <X className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-center w-full">
+                      <label
+                        htmlFor="serviceImage"
+                        className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer bg-muted/50 hover:bg-muted"
+                      >
+                        <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                          <Upload className="w-8 h-8 mb-2 text-muted-foreground" />
+                          <p className="text-sm text-muted-foreground">
+                            <span className="font-semibold">Click para subir</span> o arrastra una imagen
+                          </p>
+                          <p className="text-xs text-muted-foreground">PNG, JPG hasta 5MB</p>
+                        </div>
+                        <input
+                          id="serviceImage"
+                          type="file"
+                          className="hidden"
+                          accept="image/*"
+                          onChange={handleImageSelect}
+                        />
+                      </label>
+                    </div>
+                  )}
+                </div>
+              </div>
+
               <DialogFooter>
                 <Button
                   type="button"
@@ -498,93 +648,109 @@ export function ServiceManager({ professionalId, userId }: ServiceManagerProps) 
       ) : (
         <div className="grid gap-6">
           {services.map((service) => (
-            <Card key={service.id} className={!service.isactive ? "opacity-60 p-4" : "p-4"}>
-              <CardHeader className="pb-4">
-                <div className="flex justify-between items-start">
-                  <div className="flex-1">
-                    <CardTitle className="flex items-center gap-2">
-                      {getTypeIcon(service.type)}
-                      {service.name}
-                      {!service.isactive && (
-                        <Badge variant="secondary">Inactivo</Badge>
-                      )}
-                    </CardTitle>
-                    <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
-                      <div className="flex items-center gap-1">
-                        {getModalityIcon(service.modality)}
-                        <span className="capitalize">{service.modality}</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Clock className="w-4 h-4" />
-                        <span>
-                          {service.type === "session" 
-                            ? `${service.duration} min` 
-                            : service.program_duration 
-                              ? `${service.program_duration.value} ${service.program_duration.unit}`
-                              : "Duración no especificada"
-                          }
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        {getTypeIcon(service.type)}
-                        <span className="capitalize">
-                          {service.type === "session" ? "Sesión" : "Programa"}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Switch
-                      checked={service.isactive}
-                      onCheckedChange={() =>
-                        toggleServiceStatus(service.id!, service.isactive)
-                      }
+            <Card key={service.id} className={!service.isactive ? "opacity-60" : ""}>
+              <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] gap-4">
+                {/* Imagen del servicio */}
+                {service.image_url && (
+                  <div className="relative h-48 md:h-full">
+                    <img
+                      src={service.image_url}
+                      alt={service.name}
+                      className="w-full h-full object-cover rounded-l-lg"
                     />
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleEdit(service)}
-                    >
-                      <Edit className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleDelete(service.id!)}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
                   </div>
-                </div>
-              </CardHeader>
-              <CardContent className="p-4">
-                {service.description && (
-                  <p className="text-muted-foreground mb-4">{service.description}</p>
                 )}
-                <div className="space-y-2">
-                  <div className="flex items-center gap-1 text-sm">
-                    <DollarSign className="w-4 h-4" />
-                    <span>Costo: ${typeof service.cost === 'number' ? service.cost : (service.cost?.presencial || service.cost?.online || 0)}</span>
-                  </div>
-                  {service.address && (
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                        <MapPin className="w-4 h-4" />
-                        <span className="truncate flex-1">{service.address}</span>
+                
+                {/* Contenido del servicio */}
+                <div className={service.image_url ? "" : "col-span-1"}>
+                  <CardHeader className="pb-4">
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <CardTitle className="flex items-center gap-2">
+                          {getTypeIcon(service.type)}
+                          {service.name}
+                          {!service.isactive && (
+                            <Badge variant="secondary">Inactivo</Badge>
+                          )}
+                        </CardTitle>
+                        <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground flex-wrap">
+                          <div className="flex items-center gap-1">
+                            {getModalityIcon(service.modality)}
+                            <span className="capitalize">{service.modality}</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Clock className="w-4 h-4" />
+                            <span>
+                              {service.type === "session" 
+                                ? `${service.duration} min` 
+                                : service.program_duration 
+                                  ? `${service.program_duration.value} ${service.program_duration.unit}`
+                                  : "Duración no especificada"
+                              }
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            {getTypeIcon(service.type)}
+                            <span className="capitalize">
+                              {service.type === "session" ? "Sesión" : "Programa"}
+                            </span>
+                          </div>
+                        </div>
                       </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleOpenMap(service)}
-                        className="ml-2 h-6 px-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50"
-                      >
-                        <Navigation className="w-3 h-3 mr-1" />
-                        Ver mapa
-                      </Button>
+                      <div className="flex items-center gap-2">
+                        <Switch
+                          checked={service.isactive}
+                          onCheckedChange={() =>
+                            toggleServiceStatus(service.id!, service.isactive)
+                          }
+                        />
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleEdit(service)}
+                        >
+                          <Edit className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDelete(service.id!)}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
                     </div>
-                  )}
+                  </CardHeader>
+                  <CardContent className="p-4">
+                    {service.description && (
+                      <p className="text-muted-foreground mb-4">{service.description}</p>
+                    )}
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-1 text-sm">
+                        <DollarSign className="w-4 h-4" />
+                        <span>Costo: ${typeof service.cost === 'number' ? service.cost : (service.cost?.presencial || service.cost?.online || 0)}</span>
+                      </div>
+                      {service.address && (
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                            <MapPin className="w-4 h-4" />
+                            <span className="truncate flex-1">{service.address}</span>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleOpenMap(service)}
+                            className="ml-2 h-6 px-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50"
+                          >
+                            <Navigation className="w-3 h-3 mr-1" />
+                            Ver mapa
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
                 </div>
-              </CardContent>
+              </div>
             </Card>
           ))}
         </div>

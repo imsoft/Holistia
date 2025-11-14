@@ -67,6 +67,7 @@ interface Professional {
     description: string;
     presencialCost: string;
     onlineCost: string;
+    image_url?: string;
   }>;
   address: string;
   city: string;
@@ -99,6 +100,7 @@ interface ProfessionalService {
   updated_at: string;
   cost: number;
   program_duration: Record<string, unknown> | null;
+  image_url?: string | null;
 }
 
 interface CurrentUser {
@@ -235,6 +237,7 @@ export default function ProfessionalProfilePage() {
           description: string;
           presencialCost: string;
           onlineCost: string;
+          image_url?: string;
         }>();
 
         // Procesar servicios de la tabla professional_services
@@ -261,7 +264,8 @@ export default function ProfessionalProfilePage() {
               name: service.name,
               description: service.description || '',
               presencialCost: (service.modality === 'presencial' || service.modality === 'both') ? costStr : '',
-              onlineCost: (service.modality === 'online' || service.modality === 'both') ? costStr : ''
+              onlineCost: (service.modality === 'online' || service.modality === 'both') ? costStr : '',
+              image_url: service.image_url || undefined
             });
           }
         });
@@ -288,7 +292,8 @@ export default function ProfessionalProfilePage() {
                 name: service.name,
                 description: service.description || '',
                 presencialCost: service.presencialCost ? service.presencialCost.toString() : '',
-                onlineCost: service.onlineCost ? service.onlineCost.toString() : ''
+                onlineCost: service.onlineCost ? service.onlineCost.toString() : '',
+                image_url: undefined // Los servicios legacy no tienen imagen
               });
             }
           } else {
@@ -973,36 +978,53 @@ export default function ProfessionalProfilePage() {
                   ).map((service, index) => (
                     <div
                       key={index}
-                      className="p-3 sm:p-4 rounded-xl bg-gradient-to-r from-primary/5 to-primary/10 border border-primary/20 hover:border-primary/30 transition-all"
+                      className="rounded-xl bg-gradient-to-r from-primary/5 to-primary/10 border border-primary/20 hover:border-primary/30 transition-all overflow-hidden"
                     >
-                      <div className="flex items-start gap-2 sm:gap-3">
-                        <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0 mt-1">
-                          <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
-                        </div>
-                        <div className="flex-1">
-                          <h3 className="text-foreground font-semibold text-base sm:text-lg mb-1 sm:mb-2">
-                            {service.name}
-                          </h3>
-                          <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
-                            {service.description}
-                          </p>
-                          <div className="flex flex-wrap gap-2 sm:gap-4 mt-2 sm:mt-3">
-                            {service.presencialCost && service.presencialCost !== '' && (
-                              <div className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 bg-primary/10 rounded-full">
-                                <Users className="h-3 w-3 sm:h-4 sm:w-4 text-primary" />
-                                <span className="text-xs sm:text-sm text-primary font-medium">
-                                  Presencial: {formatPrice(parseInt(service.presencialCost))}
-                                </span>
+                      {/* Grid: imagen a la izquierda, contenido a la derecha */}
+                      <div className="grid grid-cols-1 sm:grid-cols-[180px_1fr] gap-0">
+                        {/* Imagen del servicio (si existe) */}
+                        {service.image_url && (
+                          <div className="relative h-48 sm:h-full min-h-[180px]">
+                            <img
+                              src={service.image_url}
+                              alt={service.name}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                        )}
+                        
+                        {/* Contenido del servicio */}
+                        <div className="p-3 sm:p-4">
+                          <div className="flex items-start gap-2 sm:gap-3">
+                            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0 mt-1">
+                              <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
+                            </div>
+                            <div className="flex-1">
+                              <h3 className="text-foreground font-semibold text-base sm:text-lg mb-1 sm:mb-2">
+                                {service.name}
+                              </h3>
+                              <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
+                                {service.description}
+                              </p>
+                              <div className="flex flex-wrap gap-2 sm:gap-4 mt-2 sm:mt-3">
+                                {service.presencialCost && service.presencialCost !== '' && (
+                                  <div className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 bg-primary/10 rounded-full">
+                                    <Users className="h-3 w-3 sm:h-4 sm:w-4 text-primary" />
+                                    <span className="text-xs sm:text-sm text-primary font-medium">
+                                      Presencial: {formatPrice(parseInt(service.presencialCost))}
+                                    </span>
+                                  </div>
+                                )}
+                                {service.onlineCost && service.onlineCost !== '' && (
+                                  <div className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 bg-primary/10 rounded-full">
+                                    <Monitor className="h-3 w-3 sm:h-4 sm:w-4 text-primary" />
+                                    <span className="text-xs sm:text-sm text-primary font-medium">
+                                      En línea: {formatPrice(parseInt(service.onlineCost))}
+                                    </span>
+                                  </div>
+                                )}
                               </div>
-                            )}
-                            {service.onlineCost && service.onlineCost !== '' && (
-                              <div className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 bg-primary/10 rounded-full">
-                                <Monitor className="h-3 w-3 sm:h-4 sm:w-4 text-primary" />
-                                <span className="text-xs sm:text-sm text-primary font-medium">
-                                  En línea: {formatPrice(parseInt(service.onlineCost))}
-                                </span>
-                              </div>
-                            )}
+                            </div>
                           </div>
                         </div>
                       </div>

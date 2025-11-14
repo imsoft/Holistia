@@ -11,6 +11,7 @@ export interface Service {
   };
   cost: number | { presencial?: number; online?: number }; // Temporal: puede ser number o jsonb
   address?: string; // Dirección específica del servicio (opcional)
+  image_url?: string; // URL de la imagen del servicio
   isactive: boolean; // Nombre del campo en la base de datos
   created_at?: string;
   updated_at?: string;
@@ -24,6 +25,7 @@ export interface ServiceFormData {
   duration: number;
   cost?: number; // Precio único
   address?: string; // Dirección específica del servicio (opcional)
+  image_url?: string; // URL de la imagen del servicio
 }
 
 export interface ProfessionalService extends Service {

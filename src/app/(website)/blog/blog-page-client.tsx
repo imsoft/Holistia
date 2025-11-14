@@ -87,7 +87,7 @@ export function BlogPageClient({ posts, error }: BlogPageClientProps) {
                   <Card className="py-3 sm:py-4 group hover:shadow-lg transition-all duration-300 hover:-translate-y-1 cursor-pointer">
                     <CardHeader className="pb-3 sm:pb-4 px-4 sm:px-6">
                       {post.featured_image && (
-                        <div className="relative w-full h-40 sm:h-48 mb-3 sm:mb-4 rounded-lg overflow-hidden">
+                        <div className="relative w-full h-56 sm:h-48 mb-3 sm:mb-4 rounded-lg overflow-hidden">
                           <Image
                             src={post.featured_image}
                             alt={post.title}

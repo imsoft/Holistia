@@ -266,7 +266,7 @@ export function BlogPostClient({ post, relatedPosts }: BlogPostClientProps) {
                     <Card className="h-full group hover:shadow-lg transition-all duration-300 hover:-translate-y-1 cursor-pointer">
                       <CardContent className="p-4 sm:p-6">
                         {relatedPost.featured_image && (
-                          <div className="relative w-full h-40 sm:h-48 mb-4 rounded-lg overflow-hidden">
+                          <div className="relative w-full h-56 sm:h-48 mb-4 rounded-lg overflow-hidden">
                             <Image
                               src={relatedPost.featured_image}
                               alt={relatedPost.title}

@@ -48,7 +48,7 @@ export function BlogPageClient({ posts, error }: BlogPageClientProps) {
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
-      <div className="py-8 sm:py-12 lg:py-16">
+      <div className="pt-8 sm:pt-12 lg:pt-16 pb-4 sm:pb-6">
         <div className="container mx-auto px-4 sm:px-6">
           <div className="max-w-3xl mx-auto text-center">
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground mb-4 sm:mb-6">
@@ -63,7 +63,7 @@ export function BlogPageClient({ posts, error }: BlogPageClientProps) {
       </div>
 
       {/* Main Content */}
-      <div className="container mx-auto px-4 sm:px-6 py-8 sm:py-12">
+      <div className="container mx-auto px-4 sm:px-6 pb-8 sm:pb-12">
         {error && (
           <div className="mb-6 sm:mb-8 p-3 sm:p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
             <p className="text-sm sm:text-base text-destructive">{error}</p>

@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
-import { Brain, Sparkles, Activity, Users, Apple, ChevronLeft, ChevronRight } from "lucide-react";
+import { Brain, Sparkles, Activity, Users, Apple } from "lucide-react";
 import { Filters } from "@/components/ui/filters";
 import { ProfessionalCard } from "@/components/ui/professional-card";
 import { createClient } from "@/utils/supabase/client";
@@ -83,7 +83,6 @@ export default function ProfessionalsPage() {
   const [filteredProfessionals, setFilteredProfessionals] = useState<Professional[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const supabase = createClient();
 
   useEffect(() => {
@@ -324,17 +323,6 @@ export default function ProfessionalsPage() {
     setFilteredProfessionals(filtered);
   };
 
-  const scrollLeft = () => {
-    if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollBy({ left: -400, behavior: 'smooth' });
-    }
-  };
-
-  const scrollRight = () => {
-    if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollBy({ left: 400, behavior: 'smooth' });
-    }
-  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -423,33 +411,12 @@ export default function ProfessionalsPage() {
                 </p>
               </div>
             ) : (
-              <div className="relative">
-                {/* Scroll buttons */}
-                <button
-                  onClick={scrollLeft}
-                  className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-background/80 backdrop-blur-sm rounded-full p-2 shadow-lg hover:bg-background transition-colors"
-                  aria-label="Scroll left"
-                >
-                  <ChevronLeft className="h-6 w-6" />
-                </button>
-                <button
-                  onClick={scrollRight}
-                  className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-background/80 backdrop-blur-sm rounded-full p-2 shadow-lg hover:bg-background transition-colors"
-                  aria-label="Scroll right"
-                >
-                  <ChevronRight className="h-6 w-6" />
-                </button>
-
-                {/* Horizontal scroll container */}
-                <div
-                  ref={scrollContainerRef}
-                  className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar"
-                >
-                  {filteredProfessionals.map((professional) => (
-                    <div key={professional.id} className="flex-shrink-0 w-80">
-                      <ProfessionalCard
-                        userId={userId}
-                        professional={{
+              <div className="grid grid-cols-1 gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                {filteredProfessionals.map((professional) => (
+                  <ProfessionalCard
+                    key={professional.id}
+                    userId={userId}
+                    professional={{
                           id: professional.id,
                           slug: `${professional.first_name.toLowerCase()}-${professional.last_name.toLowerCase()}`,
                           name: `${professional.first_name} ${professional.last_name}`,
@@ -512,9 +479,7 @@ export default function ProfessionalsPage() {
                           total_reviews: professional.total_reviews,
                         }}
                       />
-                    </div>
-                  ))}
-                </div>
+                ))}
               </div>
             )}
           </div>

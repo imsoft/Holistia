@@ -455,7 +455,7 @@ export function ServiceManager({ professionalId, userId }: ServiceManagerProps) 
                     setFormData({ ...formData, modality: value })
                   }
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="w-full">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -525,7 +525,7 @@ export function ServiceManager({ professionalId, userId }: ServiceManagerProps) 
                     setFormData({ ...formData, type: value })
                   }
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="w-full">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>

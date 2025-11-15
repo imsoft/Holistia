@@ -17,30 +17,77 @@ Debes ejecutar la migración `112_setup_professional_services_storage.sql` en Su
 
 ---
 
-## Pasos para Ejecutar la Migración
+## Pasos para Configurar el Storage
 
-### Opción 1: Supabase Dashboard (Recomendado)
+### Paso 1: Crear el Bucket
 
 1. **Ir a Supabase Dashboard**:
    - Ve a [https://app.supabase.com](https://app.supabase.com)
    - Selecciona tu proyecto Holistia
 
-2. **Abrir SQL Editor**:
-   - En el menú lateral, haz clic en **"SQL Editor"**
-   - Haz clic en **"New Query"**
+2. **Ir a Storage**:
+   - En el menú lateral, haz clic en **"Storage"**
+   - Haz clic en **"New bucket"**
 
-3. **Copiar y Pegar**:
-   - Abre el archivo: `database/migrations/112_setup_professional_services_storage.sql`
-   - Copia TODO el contenido
-   - Pégalo en el SQL Editor
+3. **Configurar el Bucket**:
+   - **Name**: `professional-services`
+   - **Public bucket**: ✅ Marcado (checked)
+   - Haz clic en **"Create bucket"**
 
-4. **Ejecutar**:
-   - Haz clic en **"Run"** (▶️) o presiona `Cmd/Ctrl + Enter`
-   - Espera a que termine (debería tomar 1-2 segundos)
+### Paso 2: Configurar Políticas RLS
 
-5. **Verificar**:
-   - Deberías ver mensajes de éxito
-   - Si ya existe el bucket, verás mensajes como "ON CONFLICT DO NOTHING" (está bien)
+1. **Abrir Políticas del Bucket**:
+   - En la lista de buckets, haz clic en `professional-services`
+   - Ve a la pestaña **"Policies"**
+   - Haz clic en **"New policy"**
+
+2. **Crear Política de Lectura Pública**:
+   - Haz clic en **"Create a policy from scratch"**
+   - **Policy name**: `Public can view service images`
+   - **Allowed operation**: `SELECT`
+   - **Policy definition**: 
+   ```sql
+   bucket_id = 'professional-services'
+   ```
+   - Haz clic en **"Review"** → **"Save policy"**
+
+3. **Crear Política de Subida**:
+   - Haz clic en **"New policy"** nuevamente
+   - **Policy name**: `Professionals can upload their service images`
+   - **Allowed operation**: `INSERT`
+   - **WITH CHECK expression**:
+   ```sql
+   bucket_id = 'professional-services' AND
+   (storage.foldername(name))[1] = auth.uid()::text
+   ```
+   - Haz clic en **"Review"** → **"Save policy"**
+
+4. **Crear Política de Actualización**:
+   - Haz clic en **"New policy"**
+   - **Policy name**: `Professionals can update their service images`
+   - **Allowed operation**: `UPDATE`
+   - **USING expression**:
+   ```sql
+   bucket_id = 'professional-services' AND
+   (storage.foldername(name))[1] = auth.uid()::text
+   ```
+   - **WITH CHECK expression**: (la misma)
+   ```sql
+   bucket_id = 'professional-services' AND
+   (storage.foldername(name))[1] = auth.uid()::text
+   ```
+   - Haz clic en **"Review"** → **"Save policy"**
+
+5. **Crear Política de Eliminación**:
+   - Haz clic en **"New policy"**
+   - **Policy name**: `Professionals can delete their service images`
+   - **Allowed operation**: `DELETE`
+   - **USING expression**:
+   ```sql
+   bucket_id = 'professional-services' AND
+   (storage.foldername(name))[1] = auth.uid()::text
+   ```
+   - Haz clic en **"Review"** → **"Save policy"**
 
 ---
 

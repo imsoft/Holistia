@@ -1,75 +1,15 @@
 -- ============================================================================
--- MIGRACIÓN: Configurar storage bucket para imágenes de servicios profesionales
+-- NOTA: Esta migración solo verifica que el bucket exista.
+-- Las políticas de storage se deben configurar desde Supabase Dashboard.
 -- ============================================================================
--- Este bucket almacenará las imágenes de los servicios que ofrecen los profesionales
+-- Ver instrucciones completas en: EJECUTAR_STORAGE_SERVICIOS.md
 -- ============================================================================
 
--- 1. Crear el bucket professional-services si no existe
-INSERT INTO storage.buckets (id, name, public)
-VALUES ('professional-services', 'professional-services', true)
-ON CONFLICT (id) DO NOTHING;
-
--- 2. Habilitar RLS en el bucket
-ALTER TABLE storage.objects ENABLE ROW LEVEL SECURITY;
-
--- 3. Eliminar políticas existentes si las hay
-DROP POLICY IF EXISTS "Public can view service images" ON storage.objects;
-DROP POLICY IF EXISTS "Professionals can upload their service images" ON storage.objects;
-DROP POLICY IF EXISTS "Professionals can update their service images" ON storage.objects;
-DROP POLICY IF EXISTS "Professionals can delete their service images" ON storage.objects;
-
--- 4. Política de lectura pública (cualquiera puede ver las imágenes de servicios)
-CREATE POLICY "Public can view service images"
-ON storage.objects FOR SELECT
-USING (bucket_id = 'professional-services');
-
--- 5. Política de subida (solo el profesional dueño del servicio puede subir)
-CREATE POLICY "Professionals can upload their service images"
-ON storage.objects FOR INSERT
-WITH CHECK (
-  bucket_id = 'professional-services' AND
-  (storage.foldername(name))[1] = auth.uid()::text
-);
-
--- 6. Política de actualización (solo el profesional dueño puede actualizar)
-CREATE POLICY "Professionals can update their service images"
-ON storage.objects FOR UPDATE
-USING (
-  bucket_id = 'professional-services' AND
-  (storage.foldername(name))[1] = auth.uid()::text
-)
-WITH CHECK (
-  bucket_id = 'professional-services' AND
-  (storage.foldername(name))[1] = auth.uid()::text
-);
-
--- 7. Política de eliminación (solo el profesional dueño puede eliminar)
-CREATE POLICY "Professionals can delete their service images"
-ON storage.objects FOR DELETE
-USING (
-  bucket_id = 'professional-services' AND
-  (storage.foldername(name))[1] = auth.uid()::text
-);
-
--- 8. Comentarios
-COMMENT ON TABLE storage.buckets IS 'Buckets de almacenamiento de archivos';
-
--- Verificación
+-- Verificar si el bucket existe
 SELECT 
-  '✅ Bucket professional-services creado y configurado' as status,
-  id,
-  name,
-  public
-FROM storage.buckets
-WHERE id = 'professional-services';
-
--- Ver políticas creadas
-SELECT 
-  '✅ Políticas RLS creadas para professional-services' as status,
-  policyname,
-  cmd
-FROM pg_policies
-WHERE schemaname = 'storage'
-  AND tablename = 'objects'
-  AND policyname LIKE '%service%';
+  CASE 
+    WHEN EXISTS (SELECT 1 FROM storage.buckets WHERE id = 'professional-services')
+    THEN '✅ El bucket professional-services ya existe'
+    ELSE '⚠️ El bucket professional-services NO existe - Créalo desde el Dashboard'
+  END as status;
 

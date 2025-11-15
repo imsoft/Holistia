@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -572,17 +573,18 @@ export function ServiceManager({ professionalId, userId }: ServiceManagerProps) 
                 <Label htmlFor="serviceImage">Imagen del Servicio (Opcional)</Label>
                 <div className="space-y-2">
                   {imagePreview ? (
-                    <div className="relative">
-                      <img
+                    <div className="relative h-48 w-full rounded-lg overflow-hidden">
+                      <Image
                         src={imagePreview}
                         alt="Preview"
-                        className="w-full h-48 object-cover rounded-lg"
+                        fill
+                        className="object-cover"
                       />
                       <Button
                         type="button"
                         variant="destructive"
                         size="icon"
-                        className="absolute top-2 right-2"
+                        className="absolute top-2 right-2 z-10"
                         onClick={handleRemoveImage}
                       >
                         <X className="w-4 h-4" />
@@ -651,11 +653,12 @@ export function ServiceManager({ professionalId, userId }: ServiceManagerProps) 
             <Card key={service.id} className={!service.isactive ? "opacity-60" : ""}>
               <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] gap-4">
                 {/* Imagen del servicio */}
-                <div className="relative h-48 md:h-full">
-                  <img
+                <div className="relative h-48 md:h-full overflow-hidden rounded-l-lg">
+                  <Image
                     src={service.image_url || "/logos/holistia-black.png"}
                     alt={service.name}
-                    className={`w-full h-full object-cover rounded-l-lg ${!service.image_url ? 'object-contain p-8 bg-muted' : ''}`}
+                    fill
+                    className={service.image_url ? 'object-cover' : 'object-contain p-8 bg-muted'}
                   />
                 </div>
                 

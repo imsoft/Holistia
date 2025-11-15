@@ -216,6 +216,16 @@ const HomeUserPage = () => {
     getData();
   }, [supabase]);
 
+  // Asegurar que los carruseles se muestren desde el inicio cuando cambian los datos
+  useEffect(() => {
+    if (professionalsScrollRef.current && filteredProfessionals.length > 0) {
+      professionalsScrollRef.current.scrollTo({ left: 0, behavior: 'auto' });
+    }
+    if (eventsScrollRef.current && filteredEvents.length > 0) {
+      eventsScrollRef.current.scrollTo({ left: 0, behavior: 'auto' });
+    }
+  }, [filteredProfessionals.length, filteredEvents.length]);
+
   const handleCategoryToggle = (categoryId: string) => {
     setSelectedCategories((prev) => {
       if (prev.includes(categoryId)) {
@@ -253,6 +263,11 @@ const HomeUserPage = () => {
       });
     }
     setFilteredProfessionals(filteredProfs);
+    
+    // Reiniciar scroll del carrusel de profesionales al inicio
+    if (professionalsScrollRef.current) {
+      professionalsScrollRef.current.scrollTo({ left: 0, behavior: 'smooth' });
+    }
 
     // Filtrar eventos
     let filteredEvts = [...events];
@@ -272,6 +287,11 @@ const HomeUserPage = () => {
       });
     }
     setFilteredEvents(filteredEvts);
+    
+    // Reiniciar scroll del carrusel de eventos al inicio
+    if (eventsScrollRef.current) {
+      eventsScrollRef.current.scrollTo({ left: 0, behavior: 'smooth' });
+    }
   };
 
   const scrollEventsLeft = () => {
@@ -288,13 +308,15 @@ const HomeUserPage = () => {
 
   const scrollProfessionalsLeft = () => {
     if (professionalsScrollRef.current) {
-      professionalsScrollRef.current.scrollBy({ left: -400, behavior: 'smooth' });
+      const scrollAmount = 400; // Ancho de la card (w-96 = 384px) + gap (16px)
+      professionalsScrollRef.current.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
     }
   };
 
   const scrollProfessionalsRight = () => {
     if (professionalsScrollRef.current) {
-      professionalsScrollRef.current.scrollBy({ left: 400, behavior: 'smooth' });
+      const scrollAmount = 400; // Ancho de la card (w-96 = 384px) + gap (16px)
+      professionalsScrollRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
     }
   };
 
@@ -498,7 +520,7 @@ const HomeUserPage = () => {
 
                 <div
                   ref={professionalsScrollRef}
-                  className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar justify-center"
+                  className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar"
                 >
                   {filteredProfessionals.map((professional) => (
                     <div key={professional.id} className="flex-shrink-0 w-96">

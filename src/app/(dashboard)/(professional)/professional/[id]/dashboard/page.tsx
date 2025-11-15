@@ -26,8 +26,6 @@ import {
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { DashboardStats, Appointment } from "@/types";
 import { createClient } from "@/utils/supabase/client";
-import ProfilePhotoUploader from "@/components/ui/profile-photo-uploader";
-import ProfessionalProfileEditor from "@/components/ui/professional-profile-editor";
 import { AccountDeactivation } from "@/components/ui/account-deactivation";
 import { StripeConnectButton } from "@/components/ui/stripe-connect-button";
 import { AdminRatingDisplay } from "@/components/ui/admin-rating-display";
@@ -475,23 +473,6 @@ export default function ProfessionalDashboard() {
           </CardContent>
         </Card>
 
-        {/* Foto de Perfil */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
-          <div className="lg:col-span-1">
-            <ProfilePhotoUploader
-              professionalId={userId}
-              currentPhoto={profilePhoto}
-              professionalName={professionalName}
-              onPhotoUpdate={(newPhotoUrl) => setProfilePhoto(newPhotoUrl)}
-            />
-          </div>
-          <div className="lg:col-span-2">
-            <ProfessionalProfileEditor
-              professionalId={userId}
-              onProfileUpdate={handleProfileUpdate}
-            />
-          </div>
-        </div>
 
         {/* Alerta de Estado de Inscripción */}
         {registrationFeeStatus && (

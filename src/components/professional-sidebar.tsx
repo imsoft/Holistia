@@ -95,6 +95,11 @@ const getNavItems = (id: string): { mainNavItems: ProfessionalNavItem[] } => {
       url: `/professional/${id}/my-events`,
       icon: CalendarCheck,
     },
+    {
+      title: "Mi perfil",
+      url: `/professional/${id}/profile`,
+      icon: User,
+    },
   ];
 
   return { mainNavItems: navItems };
@@ -263,12 +268,12 @@ export function ProfessionalSidebar() {
                 </div>
               </div>
               <div className="border-t border-border" />
-              {/* <DropdownMenuItem asChild>
+              <DropdownMenuItem asChild>
                 <Link href={`/professional/${id}/settings`} className="flex items-center gap-2">
                   <Settings className="h-4 w-4" />
                   <span>Configuración</span>
                 </Link>
-              </DropdownMenuItem> */}
+              </DropdownMenuItem>
               <DropdownMenuItem asChild>
                 <Link href={`/patient/${id}/explore`} className="flex items-center gap-2">
                   <User className="h-4 w-4" />
@@ -320,12 +325,12 @@ export function ProfessionalSidebar() {
                 </div>
               </div>
               <div className="border-t border-border" />
-              {/* <DropdownMenuItem asChild>
+              <DropdownMenuItem asChild>
                 <Link href={`/professional/${id}/settings`} className="flex items-center gap-2">
                   <Settings className="h-4 w-4" />
                   <span>Configuración</span>
                 </Link>
-              </DropdownMenuItem> */}
+              </DropdownMenuItem>
               <DropdownMenuItem asChild>
                 <Link href={`/patient/${id}/explore`} className="flex items-center gap-2">
                   <User className="h-4 w-4" />

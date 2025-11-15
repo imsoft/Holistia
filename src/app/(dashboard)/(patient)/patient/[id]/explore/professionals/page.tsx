@@ -411,12 +411,12 @@ export default function ProfessionalsPage() {
                 </p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-3 justify-items-center">
+              <div className="grid grid-cols-1 gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 justify-items-center">
                 {filteredProfessionals.map((professional) => (
-                  <ProfessionalCard
-                    key={professional.id}
-                    userId={userId}
-                    professional={{
+                  <div key={professional.id} className="w-full max-w-md">
+                    <ProfessionalCard
+                      userId={userId}
+                      professional={{
                           id: professional.id,
                           slug: `${professional.first_name.toLowerCase()}-${professional.last_name.toLowerCase()}`,
                           name: `${professional.first_name} ${professional.last_name}`,
@@ -479,6 +479,7 @@ export default function ProfessionalsPage() {
                           total_reviews: professional.total_reviews,
                         }}
                       />
+                  </div>
                 ))}
               </div>
             )}

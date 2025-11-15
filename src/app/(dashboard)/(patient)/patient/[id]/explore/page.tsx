@@ -501,7 +501,7 @@ const HomeUserPage = () => {
                   className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar justify-center"
                 >
                   {filteredProfessionals.map((professional) => (
-                    <div key={professional.id} className="flex-shrink-0 w-80">
+                    <div key={professional.id} className="flex-shrink-0 w-96">
                       <ProfessionalCard
                         userId={userId}
                         professional={{

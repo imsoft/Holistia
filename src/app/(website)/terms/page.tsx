@@ -1,4 +1,5 @@
 import { Metadata } from 'next';
+import Link from 'next/link';
 import { generateStaticMetadata } from '@/lib/seo';
 import { StructuredData } from '@/components/seo/structured-data';
 import { generateStructuredData } from '@/lib/seo';
@@ -129,9 +130,9 @@ export default function TermsPage() {
               <h2 className="text-2xl font-bold mb-4">8. Privacidad</h2>
               <p className="mb-4">
                 Su privacidad es importante para nosotros. Consulte nuestra 
-                <a href="/privacy" className="text-primary hover:underline ml-1">
+                <Link href="/privacy" className="text-primary hover:underline ml-1">
                   Política de Privacidad
-                </a> para entender cómo recopilamos, usamos y protegemos su información.
+                </Link> para entender cómo recopilamos, usamos y protegemos su información.
               </p>
             </section>
 

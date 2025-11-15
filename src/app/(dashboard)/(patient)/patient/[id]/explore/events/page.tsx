@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { useParams } from "next/navigation";
-import { Calendar, MapPin, Users, ChevronLeft, ChevronRight } from "lucide-react";
+import { Calendar, MapPin, Users, ChevronLeft, ChevronRight, Brain, Sparkles, Activity, Apple } from "lucide-react";
 import Link from "next/link";
 import { Filters } from "@/components/ui/filters";
 import { createClient } from "@/utils/supabase/client";
@@ -11,6 +11,39 @@ import { Badge } from "@/components/ui/badge";
 import { EventWorkshop } from "@/types/event";
 import { formatEventDate, formatEventTime } from "@/utils/date-utils";
 import { StableImage } from "@/components/ui/stable-image";
+
+const categories = [
+  {
+    id: "salud_mental",
+    name: "Salud mental",
+    icon: Brain,
+    description: "Expertos en salud mental",
+  },
+  {
+    id: "espiritualidad",
+    name: "Espiritualidad",
+    icon: Sparkles,
+    description: "Guías espirituales y terapeutas holísticos",
+  },
+  {
+    id: "salud_fisica",
+    name: "Actividad física",
+    icon: Activity,
+    description: "Entrenadores y terapeutas físicos",
+  },
+  {
+    id: "social",
+    name: "Social",
+    icon: Users,
+    description: "Especialistas en desarrollo social",
+  },
+  {
+    id: "alimentacion",
+    name: "Alimentación",
+    icon: Apple,
+    description: "Nutriólogos y especialistas en alimentación",
+  },
+];
 
 const getCategoryLabel = (category: string) => {
   const categories: Record<string, string> = {
@@ -38,6 +71,7 @@ export default function EventsPage() {
   const [events, setEvents] = useState<EventWorkshop[]>([]);
   const [filteredEvents, setFilteredEvents] = useState<EventWorkshop[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [eventFilters, setEventFilters] = useState({
     category: "all",
     price: "all",
@@ -81,10 +115,44 @@ export default function EventsPage() {
     getEvents();
   }, [supabase]);
 
-  const applyEventFilters = () => {
-    let filtered = [...events];
+  const handleCategoryToggle = (categoryId: string) => {
+    setSelectedCategories((prev) => {
+      if (prev.includes(categoryId)) {
+        const newCategories = prev.filter(id => id !== categoryId);
+        applyEventFilters(newCategories);
+        return newCategories;
+      } else {
+        const newCategories = [...prev, categoryId];
+        applyEventFilters(newCategories);
+        return newCategories;
+      }
+    });
+  };
 
-    if (eventFilters.category !== "all") {
+  const applyEventFilters = (categoryIds?: string[]) => {
+    let filtered = [...events];
+    const categoriesToUse = categoryIds !== undefined ? categoryIds : selectedCategories;
+
+    // Filtrar por categorías de bienestar seleccionadas
+    if (categoriesToUse.length > 0) {
+      filtered = filtered.filter(event => {
+        return categoriesToUse.some(categoryId => {
+          // Mapear categorías de bienestar a categorías de eventos
+          const categoryMap: Record<string, string> = {
+            "salud_mental": "salud_mental",
+            "espiritualidad": "espiritualidad",
+            "salud_fisica": "salud_fisica",
+            "social": "social",
+            "alimentacion": "alimentacion",
+          };
+          const eventCategory = categoryMap[categoryId];
+          return eventCategory && event.category === eventCategory;
+        });
+      });
+    }
+
+    // Filtrar por categoría del sidebar (si no hay categorías de bienestar seleccionadas)
+    if (categoriesToUse.length === 0 && eventFilters.category !== "all") {
       filtered = filtered.filter(event => event.category === eventFilters.category);
     }
 
@@ -127,7 +195,7 @@ export default function EventsPage() {
 
   useEffect(() => {
     applyEventFilters();
-  }, [eventFilters, events]);
+  }, [eventFilters, events, selectedCategories]);
 
   const scrollLeft = () => {
     if (scrollContainerRef.current) {
@@ -144,13 +212,52 @@ export default function EventsPage() {
   return (
     <div className="min-h-screen bg-background">
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-        <div className="mb-8">
+        <div className="mb-8 text-center">
           <h1 className="text-3xl sm:text-4xl font-bold text-foreground mb-2">
             Eventos y Talleres
           </h1>
           <p className="text-muted-foreground">
             Descubre eventos y talleres que transformarán tu bienestar
           </p>
+        </div>
+
+        {/* Categories */}
+        <div className="mb-6 sm:mb-8">
+          <div className="text-center mb-4 sm:mb-6">
+            <h3 className="text-base sm:text-lg font-semibold text-foreground mb-2">
+              Filtrar por categorías
+            </h3>
+            <p className="text-xs sm:text-sm text-muted-foreground">
+              Selecciona una categoría para filtrar eventos
+            </p>
+          </div>
+          <div className="flex gap-3 sm:gap-4 justify-center overflow-x-auto pb-2">
+            {categories.map((category) => (
+              <div
+                key={category.id}
+                onClick={() => handleCategoryToggle(category.id)}
+                className={`group flex flex-col items-center p-3 sm:p-4 rounded-xl border transition-all duration-200 min-w-[120px] sm:min-w-[140px] flex-shrink-0 cursor-pointer ${
+                  selectedCategories.includes(category.id)
+                    ? "bg-white text-primary border-primary shadow-md"
+                    : "bg-primary text-white border-primary/20 hover:border-primary hover:shadow-md"
+                }`}
+              >
+                <div className="mb-1 sm:mb-2">
+                  {category.id === "salud_mental" && <Brain className={`h-5 w-5 sm:h-6 sm:w-6 ${selectedCategories.includes(category.id) ? "text-primary" : "text-white"}`} />}
+                  {category.id === "espiritualidad" && <Sparkles className={`h-5 w-5 sm:h-6 sm:w-6 ${selectedCategories.includes(category.id) ? "text-primary" : "text-white"}`} />}
+                  {category.id === "salud_fisica" && <Activity className={`h-5 w-5 sm:h-6 sm:w-6 ${selectedCategories.includes(category.id) ? "text-primary" : "text-white"}`} />}
+                  {category.id === "social" && <Users className={`h-5 w-5 sm:h-6 sm:w-6 ${selectedCategories.includes(category.id) ? "text-primary" : "text-white"}`} />}
+                  {category.id === "alimentacion" && <Apple className={`h-5 w-5 sm:h-6 sm:w-6 ${selectedCategories.includes(category.id) ? "text-primary" : "text-white"}`} />}
+                </div>
+                <span className={`text-sm sm:text-base font-medium text-center ${selectedCategories.includes(category.id) ? "text-primary" : "text-white"}`}>
+                  {category.name}
+                </span>
+                <span className={`text-[10px] sm:text-xs mt-1 text-center leading-tight ${selectedCategories.includes(category.id) ? "text-primary/80" : "text-white/80"}`}>
+                  {category.description}
+                </span>
+              </div>
+            ))}
+          </div>
         </div>
 
         <div className="lg:grid lg:grid-cols-3 lg:gap-x-8">
@@ -210,7 +317,7 @@ export default function EventsPage() {
                 {/* Horizontal scroll container */}
                 <div
                   ref={scrollContainerRef}
-                  className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar"
+                  className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar justify-center"
                 >
                   {filteredEvents.map((event) => (
                     <Link 

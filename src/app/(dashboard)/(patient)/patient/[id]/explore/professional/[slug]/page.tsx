@@ -982,16 +982,14 @@ export default function ProfessionalProfilePage() {
                     >
                       {/* Grid: imagen a la izquierda, contenido a la derecha */}
                       <div className="grid grid-cols-1 sm:grid-cols-[25%_1fr] gap-0">
-                        {/* Imagen del servicio (si existe) */}
-                        {service.image_url && (
-                          <div className="relative h-48 sm:h-full">
-                            <img
-                              src={service.image_url}
-                              alt={service.name}
-                              className="w-full h-full object-cover"
-                            />
-                          </div>
-                        )}
+                        {/* Imagen del servicio */}
+                        <div className="relative h-48 sm:h-full">
+                          <img
+                            src={service.image_url || "/logos/holistia-black.png"}
+                            alt={service.name}
+                            className={`w-full h-full ${service.image_url ? 'object-cover' : 'object-contain p-6 bg-muted'}`}
+                          />
+                        </div>
                         
                         {/* Contenido del servicio */}
                         <div className="p-4 sm:p-6">

@@ -35,10 +35,15 @@ export function AdminRatingDisplay({ professionalId }: AdminRatingDisplayProps) 
           .from("professional_admin_rating_stats")
           .select("*")
           .eq("professional_id", professionalId)
-          .single();
+          .maybeSingle();
 
-        if (statsError && statsError.code !== 'PGRST116') {
-          console.error("Error loading rating stats:", statsError);
+        // Manejar errores (406 Not Acceptable puede ocurrir si la vista no tiene datos)
+        // PGRST116 también puede ocurrir, ambos son normales si no hay calificaciones
+        if (statsError) {
+          // Solo registrar errores que no sean "no rows found" o "not acceptable"
+          if (statsError.code !== 'PGRST116' && statsError.message !== 'Not Acceptable') {
+            console.error("Error loading rating stats:", statsError);
+          }
         }
 
         // Obtener todas las calificaciones (para mostrar comentarios)

@@ -140,11 +140,15 @@ const HomeUserPage = () => {
               .from("professional_admin_rating_stats")
               .select("average_admin_rating")
               .eq("professional_id", prof.id)
-              .single();
+              .maybeSingle();
 
-            // Manejar error PGRST116 (no rows found) - esto es normal si no hay calificaciones
-            if (adminRatingError && adminRatingError.code !== 'PGRST116') {
-              console.error("Error loading admin rating:", adminRatingError);
+            // Manejar errores (406 Not Acceptable puede ocurrir si la vista no tiene datos)
+            // PGRST116 también puede ocurrir, ambos son normales si no hay calificaciones
+            if (adminRatingError) {
+              // Solo registrar errores que no sean "no rows found" o "not acceptable"
+              if (adminRatingError.code !== 'PGRST116' && adminRatingError.message !== 'Not Acceptable') {
+                console.error("Error loading admin rating:", adminRatingError);
+              }
             }
 
             // Tomar el primer resultado si existe

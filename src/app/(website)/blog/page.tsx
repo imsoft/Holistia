@@ -60,8 +60,9 @@ export default async function BlogPage() {
             .select('id, first_name, last_name, email, profession, profile_photo')
             .eq('user_id', post.author_id)
             .eq('status', 'approved')
-            .single();
+            .maybeSingle();
 
+          // Manejar error PGRST116 (no rows found) - es normal si el autor no es un profesional
           if (professionalData) {
             authorInfo = {
               id: professionalData.id,
@@ -72,11 +73,16 @@ export default async function BlogPage() {
             };
           } else {
             // If not found in professionals, try to get from profiles table
-            const { data: profileData } = await supabase
+            const { data: profileData, error: profileError } = await supabase
               .from('profiles')
               .select('id, first_name, last_name, email, type')
               .eq('id', post.author_id)
-              .single();
+              .maybeSingle();
+
+            // Manejar error PGRST116 (no rows found) - es normal si el perfil no existe
+            if (profileError && profileError.code !== 'PGRST116') {
+              console.error('Error fetching profile:', profileError);
+            }
 
             if (profileData) {
               authorInfo = {

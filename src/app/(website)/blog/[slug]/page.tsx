@@ -98,12 +98,17 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
     let authorInfo = undefined;
     if (post.author_id) {
       // Try to get from professional_applications first
-      const { data: professionalAuthor } = await supabase
+      const { data: professionalAuthor, error: professionalAuthorError } = await supabase
         .from('professional_applications')
         .select('id, first_name, last_name, profession, profile_photo, slug')
         .eq('user_id', post.author_id)
         .eq('status', 'approved')
-        .single();
+        .maybeSingle();
+
+      // Manejar error PGRST116 (no rows found) - es normal si el autor no es un profesional
+      if (professionalAuthorError && professionalAuthorError.code !== 'PGRST116') {
+        console.error('Error fetching professional author:', professionalAuthorError);
+      }
 
       if (professionalAuthor) {
         authorInfo = {
@@ -116,11 +121,16 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
         };
       } else {
         // If not found in professionals, try to get from profiles table
-        const { data: profileData } = await supabase
+        const { data: profileData, error: profileError } = await supabase
           .from('profiles')
           .select('id, first_name, last_name, email, type, avatar_url')
           .eq('id', post.author_id)
-          .single();
+          .maybeSingle();
+
+        // Manejar error PGRST116 (no rows found) - es normal si el perfil no existe
+        if (profileError && profileError.code !== 'PGRST116') {
+          console.error('Error fetching profile:', profileError);
+        }
 
         if (profileData) {
           authorInfo = {
@@ -156,12 +166,17 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
         let relatedAuthorInfo = undefined;
 
         if (relatedPost.author_id) {
-          const { data: professionalAuthor } = await supabase
+          const { data: professionalAuthor, error: relatedProfessionalError } = await supabase
             .from('professional_applications')
             .select('first_name, last_name, profession')
             .eq('user_id', relatedPost.author_id)
             .eq('status', 'approved')
-            .single();
+            .maybeSingle();
+
+          // Manejar error PGRST116 (no rows found) - es normal si el autor no es un profesional
+          if (relatedProfessionalError && relatedProfessionalError.code !== 'PGRST116') {
+            console.error('Error fetching related professional author:', relatedProfessionalError);
+          }
 
           if (professionalAuthor) {
             relatedAuthorInfo = {
@@ -170,11 +185,16 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
             };
           } else {
             // If not found in professionals, try to get from profiles table
-            const { data: profileData } = await supabase
+            const { data: profileData, error: relatedProfileError } = await supabase
               .from('profiles')
               .select('id, first_name, last_name, type')
               .eq('id', relatedPost.author_id)
-              .single();
+              .maybeSingle();
+
+            // Manejar error PGRST116 (no rows found) - es normal si el perfil no existe
+            if (relatedProfileError && relatedProfileError.code !== 'PGRST116') {
+              console.error('Error fetching related profile:', relatedProfileError);
+            }
 
             if (profileData) {
               relatedAuthorInfo = {

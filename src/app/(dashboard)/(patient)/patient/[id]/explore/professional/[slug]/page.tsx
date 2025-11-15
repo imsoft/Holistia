@@ -257,6 +257,10 @@ export default function ProfessionalProfilePage() {
               existing.presencialCost = costStr;
               existing.onlineCost = costStr;
             }
+            // Actualizar imagen si existe y no estaba antes
+            if (service.image_url && !existing.image_url) {
+              existing.image_url = service.image_url;
+            }
           } else {
             // Crear nuevo servicio
             const costStr = service.cost ? service.cost.toString() : '';

@@ -214,8 +214,23 @@ export default function SettingsPage() {
 
 ---
 
+## Verificación de la App con Google
+
+Para eliminar la advertencia "Google no verificó esta app" y permitir que todos los usuarios conecten sin restricciones, consulta la guía completa:
+
+📖 **[Guía de Verificación de la App con Google](./GOOGLE_APP_VERIFICATION.md)**
+
+Esta guía incluye:
+- Requisitos previos
+- Pasos para solicitar la verificación
+- Documentación necesaria
+- Proceso de revisión de Google
+
+---
+
 ## Recursos
 
+- [Guía de Verificación de la App](./GOOGLE_APP_VERIFICATION.md)
 - [Ejemplos de Uso](./GOOGLE_CALENDAR_USAGE_EXAMPLES.md)
 - [Google Calendar API Docs](https://developers.google.com/calendar/api/v3/reference)
 - [Google OAuth 2.0 Docs](https://developers.google.com/identity/protocols/oauth2)

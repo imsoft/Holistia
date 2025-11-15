@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useLayoutEffect } from "react";
 import { useParams } from "next/navigation";
 import Image from "next/image";
 import { toast } from "sonner";
@@ -158,6 +158,11 @@ export default function ProfessionalProfilePage() {
   const patientId = params.id as string;
   const professionalId = params.slug as string; // Ahora es el ID del profesional, no un slug
 
+  // Scroll al inicio cuando se carga la página (usar useLayoutEffect para ejecutar antes del render)
+  useLayoutEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }, [professionalId]);
+
   // Obtener datos del profesional y usuario actual
   useEffect(() => {
     const getData = async () => {
@@ -257,8 +262,8 @@ export default function ProfessionalProfilePage() {
               existing.presencialCost = costStr;
               existing.onlineCost = costStr;
             }
-            // Actualizar imagen si existe y no estaba antes
-            if (service.image_url && !existing.image_url) {
+            // Priorizar imagen: si el servicio actual tiene imagen y el existente no, o si ambos tienen, usar la del servicio actual
+            if (service.image_url) {
               existing.image_url = service.image_url;
             }
           } else {
@@ -333,6 +338,15 @@ export default function ProfessionalProfilePage() {
 
         // Usar profile_photo de la aplicación profesional
         const finalProfilePhoto = professionalData.profile_photo;
+        
+        // Debug de imágenes de servicios
+        validServices.forEach((service, index) => {
+          console.log(`🖼️ Servicio ${index} (${service.name}):`, {
+            image_url: service.image_url,
+            hasImage: !!service.image_url,
+            imageType: service.image_url ? (service.image_url.startsWith('http') ? 'URL completa' : 'Ruta relativa') : 'Sin imagen'
+          });
+        });
         
         console.log('🎯 Estableciendo servicios en el estado:', validServices);
         console.log('🎯 Cantidad final de servicios:', validServices.length);
@@ -987,12 +1001,13 @@ export default function ProfessionalProfilePage() {
                       {/* Grid: imagen a la izquierda, contenido a la derecha */}
                       <div className="grid grid-cols-1 sm:grid-cols-[25%_1fr] gap-0">
                         {/* Imagen del servicio */}
-                        <div className="relative h-48 sm:h-full overflow-hidden">
+                        <div className="relative h-48 sm:h-full overflow-hidden rounded-l-lg">
                           <Image
                             src={service.image_url || "/logos/holistia-black.png"}
                             alt={service.name}
                             fill
                             className={`${service.image_url ? 'object-cover' : 'object-contain p-6 bg-muted'}`}
+                            unoptimized={service.image_url?.includes('supabase.co') || service.image_url?.includes('supabase.in')}
                           />
                         </div>
                         

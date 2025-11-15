@@ -1,7 +1,8 @@
 import { createClient } from '@/utils/supabase/server';
 import { redirect } from 'next/navigation';
 import { GoogleCalendarIntegration } from '@/components/google-calendar-integration';
-import { Settings as SettingsIcon, Calendar } from 'lucide-react';
+import { AccountDeactivation } from '@/components/ui/account-deactivation';
+import { Settings as SettingsIcon, Calendar, AlertTriangle } from 'lucide-react';
 
 export default async function ProfessionalSettingsPage({
   params,
@@ -57,8 +58,19 @@ export default async function ProfessionalSettingsPage({
           <GoogleCalendarIntegration userId={user.id} />
         </div>
 
-        {/* Puedes agregar más secciones aquí */}
-        {/* Ejemplo: Notificaciones, Preferencias de Email, etc. */}
+        {/* Zona de Peligro - Desactivación de Cuenta */}
+        <div className="space-y-4">
+          <div className="flex items-center gap-2">
+            <AlertTriangle className="h-5 w-5 text-destructive" />
+            <h2 className="text-xl font-semibold">Zona de Peligro</h2>
+          </div>
+
+          <AccountDeactivation
+            userId={user.id}
+            userEmail={user.email || ''}
+            accountType="professional"
+          />
+        </div>
       </div>
     </div>
   );

@@ -37,6 +37,14 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "raylqjmjdlojgkggvenq.supabase.co",
       },
+      {
+        protocol: "https",
+        hostname: "fbchqkbvlnkesyevkwoa.supabase.co",
+      },
+      {
+        protocol: "https",
+        hostname: "hdwyugqswocsfhzsrdxj.supabase.co",
+      },
     ],
     formats: ['image/webp', 'image/avif'],
     minimumCacheTTL: 31536000, // 1 year

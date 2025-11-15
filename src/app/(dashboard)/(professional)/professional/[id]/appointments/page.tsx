@@ -459,13 +459,6 @@ export default function ProfessionalAppointments() {
               </p>
             </div>
           </div>
-          <Button 
-            onClick={handleCreateAppointment}
-            className="w-full sm:w-auto"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Crear Cita
-          </Button>
         </div>
       </div>
 
@@ -687,13 +680,9 @@ export default function ProfessionalAppointments() {
               <h3 className="text-base sm:text-lg font-semibold text-foreground mb-2">
                 No se encontraron citas
               </h3>
-              <p className="text-xs sm:text-sm text-muted-foreground mb-4 max-w-md mx-auto">
+              <p className="text-xs sm:text-sm text-muted-foreground max-w-md mx-auto">
                 No hay citas que coincidan con los filtros seleccionados.
               </p>
-              <Button onClick={handleCreateAppointment} className="w-full sm:w-auto">
-                <Plus className="h-4 w-4 mr-2" />
-                Crear Nueva Cita
-              </Button>
             </CardContent>
           </Card>
           )}

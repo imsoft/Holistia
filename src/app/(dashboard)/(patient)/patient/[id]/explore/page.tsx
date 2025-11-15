@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { useParams } from "next/navigation";
-import { Calendar, MapPin, Users, ChevronLeft, ChevronRight, Brain } from "lucide-react";
+import { Calendar, MapPin, Users, ChevronLeft, ChevronRight, Brain, Sparkles, Activity, Apple } from "lucide-react";
 import Link from "next/link";
 import { ProfessionalCard } from "@/components/ui/professional-card";
 import { createClient } from "@/utils/supabase/client";
@@ -12,6 +12,39 @@ import { EventWorkshop } from "@/types/event";
 import { formatEventDate, formatEventTime } from "@/utils/date-utils";
 import { determineProfessionalModality, transformServicesFromDB } from "@/utils/professional-utils";
 import { StableImage } from "@/components/ui/stable-image";
+
+const categories = [
+  {
+    id: "professionals",
+    name: "Salud mental",
+    icon: Brain,
+    description: "Expertos en salud mental",
+  },
+  {
+    id: "spirituality",
+    name: "Espiritualidad",
+    icon: Sparkles,
+    description: "Guías espirituales y terapeutas holísticos",
+  },
+  {
+    id: "physical-activity",
+    name: "Actividad física",
+    icon: Activity,
+    description: "Entrenadores y terapeutas físicos",
+  },
+  {
+    id: "social",
+    name: "Social",
+    icon: Users,
+    description: "Especialistas en desarrollo social",
+  },
+  {
+    id: "nutrition",
+    name: "Alimentación",
+    icon: Apple,
+    description: "Nutriólogos y especialistas en alimentación",
+  },
+];
 
 interface Professional {
   id: string;
@@ -68,7 +101,10 @@ const HomeUserPage = () => {
   const params = useParams();
   const userId = params.id as string;
   const [professionals, setProfessionals] = useState<Professional[]>([]);
+  const [filteredProfessionals, setFilteredProfessionals] = useState<Professional[]>([]);
+  const [filteredEvents, setFilteredEvents] = useState<EventWorkshop[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [events, setEvents] = useState<EventWorkshop[]>([]);
   const eventsScrollRef = useRef<HTMLDivElement>(null);
   const professionalsScrollRef = useRef<HTMLDivElement>(null);
@@ -145,6 +181,7 @@ const HomeUserPage = () => {
           });
 
           setProfessionals(sortedProfessionals);
+          setFilteredProfessionals(sortedProfessionals);
         }
 
         // Obtener eventos
@@ -167,6 +204,7 @@ const HomeUserPage = () => {
           console.error("Error fetching events:", eventsError);
         } else {
           setEvents(eventsData || []);
+          setFilteredEvents(eventsData || []);
         }
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -177,6 +215,64 @@ const HomeUserPage = () => {
 
     getData();
   }, [supabase]);
+
+  const handleCategoryToggle = (categoryId: string) => {
+    setSelectedCategories((prev) => {
+      if (prev.includes(categoryId)) {
+        const newCategories = prev.filter(id => id !== categoryId);
+        applyFilters(newCategories);
+        return newCategories;
+      } else {
+        const newCategories = [...prev, categoryId];
+        applyFilters(newCategories);
+        return newCategories;
+      }
+    });
+  };
+
+  const applyFilters = (categoryIds: string[]) => {
+    // Filtrar profesionales
+    let filteredProfs = [...professionals];
+    if (categoryIds.length > 0) {
+      filteredProfs = filteredProfs.filter((professional) => {
+        return categoryIds.some((categoryId) => {
+          const categoryMap: Record<string, string[]> = {
+            professionals: ["Salud mental"],
+            spirituality: ["Espiritualidad"],
+            "physical-activity": ["Actividad física"],
+            social: ["Social"],
+            nutrition: ["Alimentación"],
+          };
+          const mappedAreas = categoryMap[categoryId] || [];
+          return (
+            mappedAreas.length > 0 &&
+            professional.wellness_areas &&
+            professional.wellness_areas.some((area) => mappedAreas.includes(area))
+          );
+        });
+      });
+    }
+    setFilteredProfessionals(filteredProfs);
+
+    // Filtrar eventos
+    let filteredEvts = [...events];
+    if (categoryIds.length > 0) {
+      filteredEvts = filteredEvts.filter(event => {
+        return categoryIds.some(categoryId => {
+          const categoryMap: Record<string, string> = {
+            professionals: "salud_mental",
+            spirituality: "espiritualidad",
+            "physical-activity": "salud_fisica",
+            social: "social",
+            nutrition: "alimentacion",
+          };
+          const eventCategory = categoryMap[categoryId];
+          return eventCategory && event.category === eventCategory;
+        });
+      });
+    }
+    setFilteredEvents(filteredEvts);
+  };
 
   const scrollEventsLeft = () => {
     if (eventsScrollRef.current) {
@@ -205,6 +301,45 @@ const HomeUserPage = () => {
   return (
     <div className="min-h-screen bg-background">
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+        {/* Categories Filter */}
+        <div className="mb-8 sm:mb-12">
+          <div className="text-center mb-4 sm:mb-6">
+            <h3 className="text-base sm:text-lg font-semibold text-foreground mb-2">
+              Filtrar por categorías
+            </h3>
+            <p className="text-xs sm:text-sm text-muted-foreground">
+              Selecciona una categoría para filtrar profesionales
+            </p>
+          </div>
+          <div className="flex gap-3 sm:gap-4 justify-center overflow-x-auto pb-2">
+            {categories.map((category) => (
+              <div
+                key={category.id}
+                onClick={() => handleCategoryToggle(category.id)}
+                className={`group flex flex-col items-center p-3 sm:p-4 rounded-xl border transition-all duration-200 min-w-[120px] sm:min-w-[140px] flex-shrink-0 cursor-pointer ${
+                  selectedCategories.includes(category.id)
+                    ? "bg-white text-primary border-primary shadow-md"
+                    : "bg-primary text-white border-primary/20 hover:border-primary hover:shadow-md"
+                }`}
+              >
+                <div className="mb-1 sm:mb-2">
+                  {category.id === "professionals" && <Brain className={`h-5 w-5 sm:h-6 sm:w-6 ${selectedCategories.includes(category.id) ? "text-primary" : "text-white"}`} />}
+                  {category.id === "spirituality" && <Sparkles className={`h-5 w-5 sm:h-6 sm:w-6 ${selectedCategories.includes(category.id) ? "text-primary" : "text-white"}`} />}
+                  {category.id === "physical-activity" && <Activity className={`h-5 w-5 sm:h-6 sm:w-6 ${selectedCategories.includes(category.id) ? "text-primary" : "text-white"}`} />}
+                  {category.id === "social" && <Users className={`h-5 w-5 sm:h-6 sm:w-6 ${selectedCategories.includes(category.id) ? "text-primary" : "text-white"}`} />}
+                  {category.id === "nutrition" && <Apple className={`h-5 w-5 sm:h-6 sm:w-6 ${selectedCategories.includes(category.id) ? "text-primary" : "text-white"}`} />}
+                </div>
+                <span className={`text-sm sm:text-base font-medium text-center ${selectedCategories.includes(category.id) ? "text-primary" : "text-white"}`}>
+                  {category.name}
+                </span>
+                <span className={`text-[10px] sm:text-xs mt-1 text-center leading-tight ${selectedCategories.includes(category.id) ? "text-primary/80" : "text-white/80"}`}>
+                  {category.description}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+
         <div className="space-y-12">
           {/* Sección de Eventos y Talleres */}
           <div>
@@ -223,10 +358,14 @@ const HomeUserPage = () => {
               <div className="flex items-center justify-center py-12">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
               </div>
-            ) : events.length === 0 ? (
+            ) : filteredEvents.length === 0 ? (
               <div className="text-center py-12">
                 <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <p className="text-muted-foreground">No hay eventos disponibles</p>
+                <p className="text-muted-foreground">
+                  {events.length === 0 
+                    ? "No hay eventos disponibles"
+                    : "No se encontraron eventos que coincidan con los filtros aplicados."}
+                </p>
               </div>
             ) : (
               <div className="relative">
@@ -247,9 +386,9 @@ const HomeUserPage = () => {
 
                 <div
                   ref={eventsScrollRef}
-                  className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar"
+                  className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar justify-center"
                 >
-                  {events.map((event) => (
+                  {filteredEvents.map((event) => (
                     <Link 
                       key={event.id} 
                       href={`/patient/${userId}/explore/event/${generateEventSlug(event.name, event.id!)}`}
@@ -331,10 +470,14 @@ const HomeUserPage = () => {
               <div className="flex items-center justify-center py-12">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
               </div>
-            ) : professionals.length === 0 ? (
+            ) : filteredProfessionals.length === 0 ? (
               <div className="text-center py-12">
                 <Brain className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <p className="text-muted-foreground">No hay profesionales disponibles</p>
+                <p className="text-muted-foreground">
+                  {professionals.length === 0
+                    ? "No hay profesionales disponibles"
+                    : "No se encontraron profesionales que coincidan con los filtros aplicados."}
+                </p>
               </div>
             ) : (
               <div className="relative">
@@ -355,9 +498,9 @@ const HomeUserPage = () => {
 
                 <div
                   ref={professionalsScrollRef}
-                  className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar"
+                  className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar justify-center"
                 >
-                  {professionals.map((professional) => (
+                  {filteredProfessionals.map((professional) => (
                     <div key={professional.id} className="flex-shrink-0 w-80">
                       <ProfessionalCard
                         userId={userId}

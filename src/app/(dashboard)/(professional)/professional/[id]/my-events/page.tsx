@@ -133,10 +133,16 @@ export default function MyEventsPage() {
         <Card>
           <CardContent className="py-12 text-center">
             <Calendar className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold mb-2">No tienes eventos</h3>
-            <p className="text-muted-foreground">
-              Un administrador debe crear eventos asignándote como dueño
+            <h3 className="text-lg font-semibold mb-2">No tienes eventos asignados</h3>
+            <p className="text-muted-foreground mb-4">
+              Para crear y gestionar eventos, por favor contacta a nuestro equipo
             </p>
+            <a 
+              href="mailto:hola@holistia.io" 
+              className="inline-flex items-center text-primary hover:underline font-medium"
+            >
+              hola@holistia.io
+            </a>
           </CardContent>
         </Card>
       ) : (

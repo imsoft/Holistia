@@ -48,7 +48,7 @@ interface UserData {
 }
 
 // Función para generar URLs con ID dinámico
-const getNavItems = (id: string, hasEvents: boolean = false): { mainNavItems: ProfessionalNavItem[] } => {
+const getNavItems = (id: string): { mainNavItems: ProfessionalNavItem[] } => {
   const navItems = [
     {
       title: "Dashboard",
@@ -90,16 +90,12 @@ const getNavItems = (id: string, hasEvents: boolean = false): { mainNavItems: Pr
       url: `/professional/${id}/finances`,
       icon: DollarSign,
     },
-  ];
-
-  // Agregar "Mis eventos" solo si el profesional tiene eventos asignados
-  if (hasEvents) {
-    navItems.push({
+    {
       title: "Mis eventos",
       url: `/professional/${id}/my-events`,
       icon: CalendarCheck,
-    });
-  }
+    },
+  ];
 
   return { mainNavItems: navItems };
 };
@@ -109,7 +105,6 @@ export function ProfessionalSidebar() {
   const [currentPathname, setCurrentPathname] = useState("");
   const [userData, setUserData] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [hasEvents, setHasEvents] = useState(false);
   const pathname = usePathname();
   const params = useParams();
   const router = useRouter();
@@ -156,18 +151,6 @@ export function ProfessionalSidebar() {
             profession: application.profession,
           });
         }
-
-        // Verificar si el profesional tiene eventos asignados
-        const { data: events, error: eventsError } = await supabase
-          .from('events_workshops')
-          .select('id')
-          .eq('owner_id', profile.id)
-          .eq('owner_type', 'professional')
-          .limit(1);
-
-        if (!eventsError && events && events.length > 0) {
-          setHasEvents(true);
-        }
       } catch (error) {
         console.error('Error inesperado:', error);
       } finally {
@@ -183,7 +166,7 @@ export function ProfessionalSidebar() {
     router.push('/login');
   };
 
-  const navItems = getNavItems(id, hasEvents);
+  const navItems = getNavItems(id);
 
   const isActive = (href: string) => {
     if (!currentPathname) return false;

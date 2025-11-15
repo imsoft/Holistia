@@ -12,21 +12,27 @@ ON CONFLICT (id) DO NOTHING;
 -- 2. Habilitar RLS en el bucket
 ALTER TABLE storage.objects ENABLE ROW LEVEL SECURITY;
 
--- 3. Política de lectura pública (cualquiera puede ver las imágenes de servicios)
-CREATE POLICY IF NOT EXISTS "Public can view service images"
+-- 3. Eliminar políticas existentes si las hay
+DROP POLICY IF EXISTS "Public can view service images" ON storage.objects;
+DROP POLICY IF EXISTS "Professionals can upload their service images" ON storage.objects;
+DROP POLICY IF EXISTS "Professionals can update their service images" ON storage.objects;
+DROP POLICY IF EXISTS "Professionals can delete their service images" ON storage.objects;
+
+-- 4. Política de lectura pública (cualquiera puede ver las imágenes de servicios)
+CREATE POLICY "Public can view service images"
 ON storage.objects FOR SELECT
 USING (bucket_id = 'professional-services');
 
--- 4. Política de subida (solo el profesional dueño del servicio puede subir)
-CREATE POLICY IF NOT EXISTS "Professionals can upload their service images"
+-- 5. Política de subida (solo el profesional dueño del servicio puede subir)
+CREATE POLICY "Professionals can upload their service images"
 ON storage.objects FOR INSERT
 WITH CHECK (
   bucket_id = 'professional-services' AND
   (storage.foldername(name))[1] = auth.uid()::text
 );
 
--- 5. Política de actualización (solo el profesional dueño puede actualizar)
-CREATE POLICY IF NOT EXISTS "Professionals can update their service images"
+-- 6. Política de actualización (solo el profesional dueño puede actualizar)
+CREATE POLICY "Professionals can update their service images"
 ON storage.objects FOR UPDATE
 USING (
   bucket_id = 'professional-services' AND
@@ -37,15 +43,15 @@ WITH CHECK (
   (storage.foldername(name))[1] = auth.uid()::text
 );
 
--- 6. Política de eliminación (solo el profesional dueño puede eliminar)
-CREATE POLICY IF NOT EXISTS "Professionals can delete their service images"
+-- 7. Política de eliminación (solo el profesional dueño puede eliminar)
+CREATE POLICY "Professionals can delete their service images"
 ON storage.objects FOR DELETE
 USING (
   bucket_id = 'professional-services' AND
   (storage.foldername(name))[1] = auth.uid()::text
 );
 
--- 7. Comentarios
+-- 8. Comentarios
 COMMENT ON TABLE storage.buckets IS 'Buckets de almacenamiento de archivos';
 
 -- Verificación

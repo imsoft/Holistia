@@ -235,7 +235,7 @@ export const ProfessionalCard = ({ professional, userId }: ProfessionalCardProps
 
           {/* Service Description */}
           {professional.serviceDescription && (
-            <p className="text-sm text-muted-foreground line-clamp-2 flex-grow">
+            <p className="text-sm text-muted-foreground line-clamp-3 overflow-hidden break-words">
               {professional.serviceDescription}
             </p>
           )}

@@ -651,19 +651,17 @@ export function ServiceManager({ professionalId, userId }: ServiceManagerProps) 
             <Card key={service.id} className={!service.isactive ? "opacity-60" : ""}>
               <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] gap-4">
                 {/* Imagen del servicio */}
-                {service.image_url && (
-                  <div className="relative h-48 md:h-full">
-                    <img
-                      src={service.image_url}
-                      alt={service.name}
-                      className="w-full h-full object-cover rounded-l-lg"
-                    />
-                  </div>
-                )}
+                <div className="relative h-48 md:h-full">
+                  <img
+                    src={service.image_url || "/logos/holistia-black.png"}
+                    alt={service.name}
+                    className={`w-full h-full object-cover rounded-l-lg ${!service.image_url ? 'object-contain p-8 bg-muted' : ''}`}
+                  />
+                </div>
                 
                 {/* Contenido del servicio */}
-                <div className={service.image_url ? "" : "col-span-1"}>
-                  <CardHeader className="pb-4">
+                <div>
+                  <CardHeader className="pb-4 pt-6">
                     <div className="flex justify-between items-start">
                       <div className="flex-1">
                         <CardTitle className="flex items-center gap-2">

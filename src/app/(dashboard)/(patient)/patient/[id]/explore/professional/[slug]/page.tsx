@@ -173,11 +173,16 @@ export default function ProfessionalProfilePage() {
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
           // Obtener perfil del usuario desde la tabla profiles
-          const { data: profile } = await supabase
+          const { data: profile, error: profileError } = await supabase
             .from('profiles')
             .select('first_name, last_name, email, phone')
             .eq('id', user.id)
-            .single();
+            .maybeSingle();
+          
+          // Manejar error PGRST116 (no rows found) - es normal si el perfil no existe aún
+          if (profileError && profileError.code !== 'PGRST116') {
+            console.error('Error fetching profile:', profileError);
+          }
           
           const fullName = profile?.first_name && profile?.last_name
             ? `${profile.first_name} ${profile.last_name}`.trim()
@@ -208,10 +213,24 @@ export default function ProfessionalProfilePage() {
           .eq('status', 'approved')
           .eq('registration_fee_paid', true)
           .gt('registration_fee_expires_at', new Date().toISOString())
-          .single();
+          .maybeSingle();
 
+        // Manejar error PGRST116 (no rows found) - profesional no encontrado o no cumple condiciones
         if (error) {
-          console.error('Error fetching professional:', error);
+          if (error.code === 'PGRST116') {
+            console.warn('⚠️ Profesional no encontrado o no cumple condiciones:', {
+              professionalId,
+              error: error.message
+            });
+            // No mostrar error al usuario, simplemente no cargar datos
+            return;
+          }
+          console.error('❌ Error fetching professional:', error);
+          return;
+        }
+
+        if (!professionalData) {
+          console.warn('⚠️ Profesional no encontrado:', professionalId);
           return;
         }
 
@@ -247,7 +266,11 @@ export default function ProfessionalProfilePage() {
 
         // Procesar servicios de la tabla professional_services
         (servicesData as ProfessionalService[] || []).forEach((service: ProfessionalService) => {
-          console.log('🔍 Procesando servicio de professional_services:', service);
+          console.log('🔍 Procesando servicio de professional_services:', {
+            name: service.name,
+            image_url: service.image_url,
+            hasImage: !!service.image_url
+          });
 
           const existing = servicesMap.get(service.name);
 
@@ -262,9 +285,11 @@ export default function ProfessionalProfilePage() {
               existing.presencialCost = costStr;
               existing.onlineCost = costStr;
             }
-            // Priorizar imagen: si el servicio actual tiene imagen y el existente no, o si ambos tienen, usar la del servicio actual
+            // Priorizar imagen: si el servicio actual tiene imagen, usarla (incluso si el existente ya tiene una)
+            // Esto asegura que siempre tengamos la imagen más reciente
             if (service.image_url) {
               existing.image_url = service.image_url;
+              console.log('✅ Actualizando imagen del servicio:', service.name, service.image_url);
             }
           } else {
             // Crear nuevo servicio
@@ -276,6 +301,9 @@ export default function ProfessionalProfilePage() {
               onlineCost: (service.modality === 'online' || service.modality === 'both') ? costStr : '',
               image_url: service.image_url || undefined
             });
+            if (service.image_url) {
+              console.log('✅ Agregando servicio con imagen:', service.name, service.image_url);
+            }
           }
         });
 

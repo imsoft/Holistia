@@ -137,7 +137,7 @@ export function ServiceManager({ professionalId, userId }: ServiceManagerProps) 
       setUploadingImage(true);
       const fileExt = imageFile.name.split('.').pop();
       const fileName = `service-${serviceId}-${Date.now()}.${fileExt}`;
-      const filePath = `${professionalId}/services/${fileName}`;
+      const filePath = `${userId}/services/${fileName}`;
 
       // Subir imagen a Supabase Storage
       const { error: uploadError } = await supabase.storage

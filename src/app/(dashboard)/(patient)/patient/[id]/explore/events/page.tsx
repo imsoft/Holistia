@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
-import { Calendar, MapPin, Users, ChevronLeft, ChevronRight, Brain, Sparkles, Activity, Apple } from "lucide-react";
+import { Calendar, MapPin, Users, Brain, Sparkles, Activity, Apple } from "lucide-react";
 import Link from "next/link";
 import { Filters } from "@/components/ui/filters";
 import { createClient } from "@/utils/supabase/client";
@@ -77,7 +77,6 @@ export default function EventsPage() {
     price: "all",
     date: "all"
   });
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const supabase = createClient();
 
   useEffect(() => {
@@ -197,18 +196,6 @@ export default function EventsPage() {
     applyEventFilters();
   }, [eventFilters, events, selectedCategories]);
 
-  const scrollLeft = () => {
-    if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollBy({ left: -400, behavior: 'smooth' });
-    }
-  };
-
-  const scrollRight = () => {
-    if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollBy({ left: 400, behavior: 'smooth' });
-    }
-  };
-
   return (
     <div className="min-h-screen bg-background">
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
@@ -297,34 +284,12 @@ export default function EventsPage() {
                 </p>
               </div>
             ) : (
-              <div className="relative">
-                {/* Scroll buttons */}
-                <button
-                  onClick={scrollLeft}
-                  className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-background/80 backdrop-blur-sm rounded-full p-2 shadow-lg hover:bg-background transition-colors"
-                  aria-label="Scroll left"
-                >
-                  <ChevronLeft className="h-6 w-6" />
-                </button>
-                <button
-                  onClick={scrollRight}
-                  className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-background/80 backdrop-blur-sm rounded-full p-2 shadow-lg hover:bg-background transition-colors"
-                  aria-label="Scroll right"
-                >
-                  <ChevronRight className="h-6 w-6" />
-                </button>
-
-                {/* Horizontal scroll container */}
-                <div
-                  ref={scrollContainerRef}
-                  className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar justify-center"
-                >
-                  {filteredEvents.map((event) => (
-                    <Link 
-                      key={event.id} 
-                      href={`/patient/${userId}/explore/event/${generateEventSlug(event.name, event.id!)}`}
-                      className="flex-shrink-0 w-80"
-                    >
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredEvents.map((event) => (
+                  <Link
+                    key={event.id}
+                    href={`/patient/${userId}/explore/event/${generateEventSlug(event.name, event.id!)}`}
+                  >
                       <Card className="hover:shadow-lg hover:-translate-y-2 transition-all duration-300 overflow-hidden cursor-pointer h-full flex flex-col">
                         <div className="relative w-full h-48">
                           <StableImage
@@ -381,7 +346,6 @@ export default function EventsPage() {
                       </Card>
                     </Link>
                   ))}
-                </div>
               </div>
             )}
           </div>

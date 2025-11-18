@@ -198,10 +198,10 @@ const EventDetailPage = () => {
           {/* Contenido principal */}
           <div className="lg:col-span-2 space-y-4 sm:space-y-6">
             {/* Imagen principal */}
-            {event.gallery_images && event.gallery_images.length > 0 && (
+            {(event.gallery_images?.[0] || event.image_url) && (
               <div className="relative w-full h-64 md:h-80 overflow-hidden rounded-lg">
                 <Image
-                  src={event.gallery_images[0]}
+                  src={event.gallery_images?.[0] || event.image_url || ""}
                   alt={event.name}
                   width={800}
                   height={400}

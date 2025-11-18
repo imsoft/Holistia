@@ -47,7 +47,9 @@ const EventDetailPage = () => {
 
   // Extraer ID del evento del slug
   // El slug tiene formato: "nombre-del-evento--uuid-del-evento"
-  const eventId = slug.includes('--') ? slug.split('--').pop() : slug;
+  // Usar regex para extraer el UUID (formato: 8-4-4-4-12 caracteres hexadecimales)
+  const uuidMatch = slug.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i);
+  const eventId = uuidMatch ? uuidMatch[0] : slug;
 
   const fetchEventDetails = React.useCallback(async () => {
     try {

@@ -417,19 +417,17 @@ const HomeUserPage = () => {
                       className="flex-shrink-0 w-80"
                     >
                       <Card className="hover:shadow-lg hover:-translate-y-2 transition-all duration-300 overflow-hidden cursor-pointer h-full flex flex-col">
-                        {event.gallery_images && event.gallery_images.length > 0 && (
-                          <div className="relative w-full h-48">
-                            <StableImage
-                              src={event.gallery_images[0]}
-                              alt={event.name}
-                              fill
-                              className="object-cover"
-                              objectFit="cover"
-                              objectPosition={event.image_position || "center center"}
-                              fallbackSrc="/logos/holistia-black.png"
-                            />
-                          </div>
-                        )}
+                        <div className="relative w-full h-48">
+                          <StableImage
+                            src={event.gallery_images?.[0] || ""}
+                            alt={event.name}
+                            fill
+                            className="object-cover"
+                            objectFit="cover"
+                            objectPosition={event.image_position || "center center"}
+                            fallbackSrc="/logos/holistia-black.png"
+                          />
+                        </div>
                         <CardHeader className="pb-3">
                           <CardTitle className="text-lg mb-2">{event.name}</CardTitle>
                           <div className="flex flex-wrap gap-2 mb-3">

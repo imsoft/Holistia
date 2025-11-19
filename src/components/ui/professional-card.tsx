@@ -252,20 +252,12 @@ export const ProfessionalCard = ({ professional, userId }: ProfessionalCardProps
             </div>
           </div>
 
-          {/* Price */}
-          {professional.costs && (professional.costs.presencial > 0 || professional.costs.online > 0) && (
-            <div className="flex justify-between items-center mt-2">
-              <div className="text-sm text-muted-foreground">
-                <span>Desde {formatPrice(Math.min(
-                  professional.costs.presencial || 0,
-                  professional.costs.online || 0
-                ))}</span>
-              </div>
-              {professional.bookingOption && (
-                <button className="text-xs bg-primary text-primary-foreground px-3 py-1 rounded-full hover:bg-primary/90 transition-colors">
-                  Reservar
-                </button>
-              )}
+          {/* Booking Button */}
+          {professional.bookingOption && (
+            <div className="flex justify-end items-center mt-2">
+              <button className="text-xs bg-primary text-primary-foreground px-3 py-1 rounded-full hover:bg-primary/90 transition-colors">
+                Reservar
+              </button>
             </div>
           )}
         </div>

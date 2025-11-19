@@ -1001,34 +1001,27 @@ export default function ProfessionalProfilePage() {
               </div>
 
               {/* Botón de reservar */}
-              <Button
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  setIsBookingModalOpen(true);
-                }}
-                onTouchStart={(e) => {
-                  e.stopPropagation();
-                }}
+              <button
+                type="button"
+                onClick={() => setIsBookingModalOpen(true)}
                 onTouchEnd={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
                   setIsBookingModalOpen(true);
                 }}
-                onMouseDown={(e) => {
-                  e.preventDefault();
-                }}
-                className="w-full h-11 sm:h-12 text-sm sm:text-base font-semibold rounded-xl bg-gradient-to-r from-green-300 to-green-400 hover:from-green-400 hover:to-green-500 shadow-lg text-white touch-manipulation"
+                className="w-full h-11 sm:h-12 text-sm sm:text-base font-semibold rounded-xl bg-gradient-to-r from-green-300 to-green-400 hover:from-green-400 hover:to-green-500 shadow-lg text-white touch-manipulation flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:pointer-events-none"
                 style={{ 
                   touchAction: 'manipulation', 
                   WebkitTapHighlightColor: 'transparent',
                   userSelect: 'none',
-                  WebkitUserSelect: 'none'
+                  WebkitUserSelect: 'none',
+                  WebkitTouchCallout: 'none',
+                  cursor: 'pointer'
                 }}
               >
-                <Calendar className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+                <Calendar className="h-4 w-4 sm:h-5 sm:w-5" />
                 Reservar cita
-              </Button>
+              </button>
             </div>
 
             {/* Servicios */}
@@ -1251,34 +1244,27 @@ export default function ProfessionalProfilePage() {
 
                 {/* Botones de acción */}
                 <div className="space-y-2 sm:space-y-3">
-                  <Button
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      setIsBookingModalOpen(true);
-                    }}
-                    onTouchStart={(e) => {
-                      e.stopPropagation();
-                    }}
+                  <button
+                    type="button"
+                    onClick={() => setIsBookingModalOpen(true)}
                     onTouchEnd={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
                       setIsBookingModalOpen(true);
                     }}
-                    onMouseDown={(e) => {
-                      e.preventDefault();
-                    }}
-                    className="w-full h-11 sm:h-12 text-sm sm:text-base font-semibold rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 shadow-lg text-white touch-manipulation"
+                    className="w-full h-11 sm:h-12 text-sm sm:text-base font-semibold rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 shadow-lg text-white touch-manipulation flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:pointer-events-none"
                     style={{ 
                       touchAction: 'manipulation', 
                       WebkitTapHighlightColor: 'transparent',
                       userSelect: 'none',
-                      WebkitUserSelect: 'none'
+                      WebkitUserSelect: 'none',
+                      WebkitTouchCallout: 'none',
+                      cursor: 'pointer'
                     }}
                   >
-                    <Calendar className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+                    <Calendar className="h-4 w-4 sm:h-5 sm:w-5" />
                     Reservar cita
-                  </Button>
+                  </button>
                   
                   <BookingDialog 
                     open={isBookingModalOpen} 

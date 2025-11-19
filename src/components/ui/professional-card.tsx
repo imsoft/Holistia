@@ -233,14 +233,6 @@ export const ProfessionalCard = ({ professional, userId }: ProfessionalCardProps
             </div>
           )}
 
-          {/* Service Description */}
-          {professional.serviceDescription && (
-            <div 
-              className="text-sm text-muted-foreground line-clamp-3 overflow-hidden break-words prose prose-sm max-w-none"
-              dangerouslySetInnerHTML={{ __html: professional.serviceDescription }}
-            />
-          )}
-
           {/* Location and Service Type */}
           <div className="space-y-1 mt-auto">
             <div className="flex items-center gap-2 text-sm text-muted-foreground">

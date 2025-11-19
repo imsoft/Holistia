@@ -211,6 +211,7 @@ export default function ProfessionalProfilePage() {
           .select('*')
           .eq('id', professionalId)
           .eq('status', 'approved')
+          .eq('is_active', true)
           .eq('registration_fee_paid', true)
           .gt('registration_fee_expires_at', new Date().toISOString())
           .maybeSingle();

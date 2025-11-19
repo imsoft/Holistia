@@ -104,6 +104,7 @@ const FavoritesPage = () => {
             .select('*')
             .in('id', professionalIds)
             .eq('status', 'approved')
+            .eq('is_active', true)
             .eq('registration_fee_paid', true)
             .gt('registration_fee_expires_at', new Date().toISOString());
 

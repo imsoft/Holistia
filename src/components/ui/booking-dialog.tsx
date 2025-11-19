@@ -1,6 +1,7 @@
 "use client";
 
 import { ReactNode, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import '@/styles/booking-dialog.css';
@@ -30,14 +31,9 @@ export function BookingDialog({ open, onOpenChange, children, title }: BookingDi
   }, [open]);
 
   console.log('🔵 BookingDialog render - open:', open);
-  if (!open) {
-    console.log('🔵 BookingDialog no renderizado porque open es false');
-    return null;
-  }
   
-  console.log('🔵 BookingDialog renderizando modal');
-
-  return (
+  // Usar portal para renderizar directamente en el body
+  const modalContent = open ? (
     <div 
       className="fixed inset-0 z-[9999] flex items-center justify-center p-0 sm:p-4"
       style={{ 
@@ -77,6 +73,7 @@ export function BookingDialog({ open, onOpenChange, children, title }: BookingDi
           backgroundColor: 'var(--background)',
           pointerEvents: 'auto'
         }}
+        onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
         <div className="flex items-center justify-between p-4 sm:p-6 border-b border-border flex-shrink-0">
@@ -97,5 +94,12 @@ export function BookingDialog({ open, onOpenChange, children, title }: BookingDi
         </div>
       </div>
     </div>
-  );
+  ) : null;
+
+  // Renderizar usando portal si está disponible (cliente), sino renderizar normalmente
+  if (typeof window !== 'undefined') {
+    return createPortal(modalContent, document.body);
+  }
+
+  return modalContent;
 }

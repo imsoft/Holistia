@@ -1291,238 +1291,6 @@ export default function ProfessionalProfilePage() {
                     <Calendar className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                     Reservar cita
                   </Button>
-                  
-                  <BookingDialog 
-                    open={isBookingModalOpen} 
-                    onOpenChange={(open) => {
-                      console.log('🔵 BookingDialog onOpenChange llamado con:', open);
-                      setIsBookingModalOpen(open);
-                    }}
-                    title={`Reservar cita con ${professional?.first_name} ${professional?.last_name}`}
-                  >
-                    <div className="p-6">
-                      <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
-                        {/* Selección de fecha y hora */}
-                        <div className="space-y-6">
-                          <div>
-                            <h3 className="text-xl font-bold text-foreground mb-4">Selecciona fecha y hora</h3>
-                            
-                            <WideCalendar
-                              professionalId={professional?.id || ''}
-                              onTimeSelect={(date, time) => {
-                                setSelectedDate(date);
-                                setSelectedTime(time);
-                              }}
-                              selectedDate={selectedDate}
-                              selectedTime={selectedTime}
-                              className="w-full"
-                            />
-                          </div>
-                        </div>
-
-                        {/* Formulario de información */}
-                        <div className="space-y-6">
-                          <div>
-                            <h3 className="text-xl font-bold text-foreground mb-4">Información</h3>
-                            
-                            {/* Tipo de servicio */}
-                            <div>
-                              <Label htmlFor="service" className="text-base font-semibold text-foreground">
-                                Tipo de servicio
-                              </Label>
-                              <Select value={selectedService} onValueChange={setSelectedService}>
-                                <SelectTrigger className="mt-3 h-12 text-base w-full">
-                                  <SelectValue placeholder="Selecciona el tipo de servicio" />
-                                </SelectTrigger>
-                                <SelectContent className="max-h-60">
-                                  {(() => {
-                                    console.log('🔍 Debug servicios:', {
-                                      professional: professional,
-                                      services: professional?.services,
-                                      servicesLength: professional?.services?.length
-                                    });
-                                    return null;
-                                  })()}
-                                  {professional?.services && professional.services.length > 0 ? (
-                                    professional.services.map((service, index) => {
-                                      const hasPresencial = service.presencialCost && service.presencialCost !== '' && service.presencialCost !== '0' && Number(service.presencialCost) > 0;
-                                      const hasOnline = service.onlineCost && service.onlineCost !== '' && service.onlineCost !== '0' && Number(service.onlineCost) > 0;
-
-                                      return (
-                                        <div key={index}>
-                                          {hasPresencial && (
-                                            <SelectItem value={`${service.name}-presencial`} className="text-base py-3">
-                                              {service.name} - Presencial - {formatPrice(parseInt(service.presencialCost))}
-                                            </SelectItem>
-                                          )}
-                                          {hasOnline && (
-                                            <SelectItem value={`${service.name}-online`} className="text-base py-3">
-                                              {service.name} - En línea - {formatPrice(parseInt(service.onlineCost))}
-                                            </SelectItem>
-                                          )}
-                                        </div>
-                                      );
-                                    })
-                                  ) : (
-                                    <div className="p-4 text-center text-muted-foreground">
-                                      No hay servicios disponibles
-                                    </div>
-                                  )}
-                                </SelectContent>
-                              </Select>
-                              {professional?.services && professional.services.length === 0 && (
-                                <p className="text-sm text-red-500 mt-2">
-                                  Este profesional no tiene servicios configurados
-                                </p>
-                              )}
-                            </div>
-
-                            {/* Campos del formulario */}
-                            <div className="mt-2 space-y-4">
-                              
-                              <div className="grid grid-cols-1 gap-4">
-                                <div>
-                                  <Label htmlFor="name" className="text-base font-semibold text-foreground">
-                                    Nombre
-                                  </Label>
-                                  <Input
-                                    id="name"
-                                    value={appointmentForm.name}
-                                    readOnly
-                                    className="mt-2 h-12 bg-muted/50 cursor-not-allowed text-base"
-                                    placeholder="Tu nombre completo"
-                                  />
-                                </div>
-
-                                <div>
-                                  <Label htmlFor="email" className="text-base font-semibold text-foreground">
-                                    Email
-                                  </Label>
-                                  <Input
-                                    id="email"
-                                    type="email"
-                                    value={appointmentForm.email}
-                                    readOnly
-                                    className="mt-2 h-12 bg-muted/50 cursor-not-allowed text-base"
-                                  />
-                                </div>
-
-                                <div>
-                                  <Label htmlFor="phone" className="text-base font-semibold text-foreground">
-                                    Teléfono
-                                  </Label>
-                                  <Input
-                                    id="phone"
-                                    type="tel"
-                                    value={appointmentForm.phone}
-                                    readOnly
-                                    className="mt-2 h-12 bg-muted/50 cursor-not-allowed text-base"
-                                    placeholder="+52 55 1234 5678"
-                                  />
-                                </div>
-
-                                <div>
-                                  <Label htmlFor="notes" className="text-base font-semibold text-foreground">
-                                    Notas (opcional)
-                                  </Label>
-                                  <Textarea
-                                    id="notes"
-                                    value={appointmentForm.notes}
-                                    onChange={(e) => setAppointmentForm(prev => ({ ...prev, notes: e.target.value }))}
-                                    className="mt-2 text-base"
-                                    placeholder="Cuéntanos sobre tu consulta..."
-                                    rows={4}
-                                  />
-                                </div>
-                              </div>
-                            </div>
-
-                            {/* Resumen de la cita y botones */}
-                            {(selectedDate || selectedTime || selectedService) && (
-                              <div className="border-t border-border pt-6 mt-6">
-                                <h4 className="text-xl font-bold text-foreground mb-4">Resumen</h4>
-                                <div className="bg-muted/50 rounded-xl p-6 space-y-3">
-                                  {selectedDate && (
-                                    <div className="flex justify-between items-center">
-                                      <span className="text-base text-muted-foreground">Fecha:</span>
-                                      <span className="text-base text-foreground font-semibold">
-                                        {(() => {
-                                          // Parsear la fecha manualmente para evitar problemas de zona horaria
-                                          const [year, month, day] = selectedDate.split('-').map(Number);
-                                          const date = new Date(year, month - 1, day);
-                                          return date.toLocaleDateString('es-ES', {
-                                            weekday: 'long',
-                                            year: 'numeric',
-                                            month: 'long',
-                                            day: 'numeric'
-                                          });
-                                        })()}
-                                      </span>
-                                    </div>
-                                  )}
-                                  {selectedTime && (
-                                    <div className="flex justify-between items-center">
-                                      <span className="text-base text-muted-foreground">Hora:</span>
-                                      <span className="text-base text-foreground font-semibold">{selectedTime}</span>
-                                    </div>
-                                  )}
-                                  {selectedService && (
-                                    <div className="flex justify-between items-center">
-                                      <span className="text-base text-muted-foreground">Servicio:</span>
-                                      <span className="text-base text-foreground font-semibold">
-                                        {(() => {
-                                          const [serviceName, serviceModality] = selectedService.split('-');
-                                          const service = professional?.services.find(s => s.name === serviceName);
-                                          const modalityText = serviceModality === 'presencial' ? 'Presencial' : 'En línea';
-                                          const cost = serviceModality === 'presencial' 
-                                            ? parseInt(service?.presencialCost || '0')
-                                            : parseInt(service?.onlineCost || '0');
-                                          return `${serviceName} - ${modalityText} - ${formatPrice(cost)}`;
-                                        })()}
-                                      </span>
-                                    </div>
-                                  )}
-                                </div>
-
-                                {/* Botones de acción */}
-                                <div className="flex flex-col sm:flex-row justify-end gap-3 sm:gap-4 pt-6 mt-6">
-                                  <Button
-                                    variant="outline"
-                                    size="lg"
-                                    onClick={() => setIsBookingModalOpen(false)}
-                                    onTouchEnd={(e) => {
-                                      e.preventDefault();
-                                      setIsBookingModalOpen(false);
-                                    }}
-                                    className="w-full sm:w-auto h-12 text-base order-2 sm:order-1 touch-manipulation"
-                                    style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
-                                  >
-                                    Cancelar
-                                  </Button>
-                                  <Button
-                                    size="lg"
-                                    onClick={handleBookingSubmit}
-                                    onTouchEnd={(e) => {
-                                      if (!selectedDate || !selectedTime || !selectedService || bookingLoading) {
-                                        return;
-                                      }
-                                      e.preventDefault();
-                                      handleBookingSubmit();
-                                    }}
-                                    disabled={!selectedDate || !selectedTime || !selectedService || bookingLoading}
-                                    className="w-full sm:w-auto h-12 text-base font-semibold order-1 sm:order-2 touch-manipulation"
-                                    style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
-                                  >
-                                    {bookingLoading ? 'Reservando...' : 'Confirmar reserva'}
-                                  </Button>
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </BookingDialog>
                 </div>
               </div>
             </div>
@@ -1838,6 +1606,239 @@ export default function ProfessionalProfilePage() {
           }}
         />
       )}
+
+      {/* Booking Dialog - Movido fuera de contenedores anidados */}
+      <BookingDialog 
+        open={isBookingModalOpen} 
+        onOpenChange={(open) => {
+          console.log('🔵 BookingDialog onOpenChange llamado con:', open);
+          setIsBookingModalOpen(open);
+        }}
+        title={`Reservar cita con ${professional?.first_name} ${professional?.last_name}`}
+      >
+        <div className="p-6">
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+            {/* Selección de fecha y hora */}
+            <div className="space-y-6">
+              <div>
+                <h3 className="text-xl font-bold text-foreground mb-4">Selecciona fecha y hora</h3>
+                
+                <WideCalendar
+                  professionalId={professional?.id || ''}
+                  onTimeSelect={(date, time) => {
+                    setSelectedDate(date);
+                    setSelectedTime(time);
+                  }}
+                  selectedDate={selectedDate}
+                  selectedTime={selectedTime}
+                  className="w-full"
+                />
+              </div>
+            </div>
+
+            {/* Formulario de información */}
+            <div className="space-y-6">
+              <div>
+                <h3 className="text-xl font-bold text-foreground mb-4">Información</h3>
+                
+                {/* Tipo de servicio */}
+                <div>
+                  <Label htmlFor="service" className="text-base font-semibold text-foreground">
+                    Tipo de servicio
+                  </Label>
+                  <Select value={selectedService} onValueChange={setSelectedService}>
+                    <SelectTrigger className="mt-3 h-12 text-base w-full">
+                      <SelectValue placeholder="Selecciona el tipo de servicio" />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-60">
+                      {(() => {
+                        console.log('🔍 Debug servicios:', {
+                          professional: professional,
+                          services: professional?.services,
+                          servicesLength: professional?.services?.length
+                        });
+                        return null;
+                      })()}
+                      {professional?.services && professional.services.length > 0 ? (
+                        professional.services.map((service, index) => {
+                          const hasPresencial = service.presencialCost && service.presencialCost !== '' && service.presencialCost !== '0' && Number(service.presencialCost) > 0;
+                          const hasOnline = service.onlineCost && service.onlineCost !== '' && service.onlineCost !== '0' && Number(service.onlineCost) > 0;
+
+                          return (
+                            <div key={index}>
+                              {hasPresencial && (
+                                <SelectItem value={`${service.name}-presencial`} className="text-base py-3">
+                                  {service.name} - Presencial - {formatPrice(parseInt(service.presencialCost))}
+                                </SelectItem>
+                              )}
+                              {hasOnline && (
+                                <SelectItem value={`${service.name}-online`} className="text-base py-3">
+                                  {service.name} - En línea - {formatPrice(parseInt(service.onlineCost))}
+                                </SelectItem>
+                              )}
+                            </div>
+                          );
+                        })
+                      ) : (
+                        <div className="p-4 text-center text-muted-foreground">
+                          No hay servicios disponibles
+                        </div>
+                      )}
+                    </SelectContent>
+                  </Select>
+                  {professional?.services && professional.services.length === 0 && (
+                    <p className="text-sm text-red-500 mt-2">
+                      Este profesional no tiene servicios configurados
+                    </p>
+                  )}
+                </div>
+
+                {/* Campos del formulario */}
+                <div className="mt-2 space-y-4">
+                  
+                  <div className="grid grid-cols-1 gap-4">
+                    <div>
+                      <Label htmlFor="name" className="text-base font-semibold text-foreground">
+                        Nombre
+                      </Label>
+                      <Input
+                        id="name"
+                        value={appointmentForm.name}
+                        readOnly
+                        className="mt-2 h-12 bg-muted/50 cursor-not-allowed text-base"
+                        placeholder="Tu nombre completo"
+                      />
+                    </div>
+
+                    <div>
+                      <Label htmlFor="email" className="text-base font-semibold text-foreground">
+                        Email
+                      </Label>
+                      <Input
+                        id="email"
+                        type="email"
+                        value={appointmentForm.email}
+                        readOnly
+                        className="mt-2 h-12 bg-muted/50 cursor-not-allowed text-base"
+                      />
+                    </div>
+
+                    <div>
+                      <Label htmlFor="phone" className="text-base font-semibold text-foreground">
+                        Teléfono
+                      </Label>
+                      <Input
+                        id="phone"
+                        type="tel"
+                        value={appointmentForm.phone}
+                        readOnly
+                        className="mt-2 h-12 bg-muted/50 cursor-not-allowed text-base"
+                        placeholder="+52 55 1234 5678"
+                      />
+                    </div>
+
+                    <div>
+                      <Label htmlFor="notes" className="text-base font-semibold text-foreground">
+                        Notas (opcional)
+                      </Label>
+                      <Textarea
+                        id="notes"
+                        value={appointmentForm.notes}
+                        onChange={(e) => setAppointmentForm(prev => ({ ...prev, notes: e.target.value }))}
+                        className="mt-2 text-base"
+                        placeholder="Cuéntanos sobre tu consulta..."
+                        rows={4}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Resumen de la cita y botones */}
+                {(selectedDate || selectedTime || selectedService) && (
+                  <div className="border-t border-border pt-6 mt-6">
+                    <h4 className="text-xl font-bold text-foreground mb-4">Resumen</h4>
+                    <div className="bg-muted/50 rounded-xl p-6 space-y-3">
+                      {selectedDate && (
+                        <div className="flex justify-between items-center">
+                          <span className="text-base text-muted-foreground">Fecha:</span>
+                          <span className="text-base text-foreground font-semibold">
+                            {(() => {
+                              // Parsear la fecha manualmente para evitar problemas de zona horaria
+                              const [year, month, day] = selectedDate.split('-').map(Number);
+                              const date = new Date(year, month - 1, day);
+                              return date.toLocaleDateString('es-ES', {
+                                weekday: 'long',
+                                year: 'numeric',
+                                month: 'long',
+                                day: 'numeric'
+                              });
+                            })()}
+                          </span>
+                        </div>
+                      )}
+                      {selectedTime && (
+                        <div className="flex justify-between items-center">
+                          <span className="text-base text-muted-foreground">Hora:</span>
+                          <span className="text-base text-foreground font-semibold">{selectedTime}</span>
+                        </div>
+                      )}
+                      {selectedService && (
+                        <div className="flex justify-between items-center">
+                          <span className="text-base text-muted-foreground">Servicio:</span>
+                          <span className="text-base text-foreground font-semibold">
+                            {(() => {
+                              const [serviceName, serviceModality] = selectedService.split('-');
+                              const service = professional?.services.find(s => s.name === serviceName);
+                              const modalityText = serviceModality === 'presencial' ? 'Presencial' : 'En línea';
+                              const cost = serviceModality === 'presencial' 
+                                ? parseInt(service?.presencialCost || '0')
+                                : parseInt(service?.onlineCost || '0');
+                              return `${serviceName} - ${modalityText} - ${formatPrice(cost)}`;
+                            })()}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Botones de acción */}
+                    <div className="flex flex-col sm:flex-row justify-end gap-3 sm:gap-4 pt-6 mt-6">
+                      <Button
+                        variant="outline"
+                        size="lg"
+                        onClick={() => setIsBookingModalOpen(false)}
+                        onTouchEnd={(e) => {
+                          e.preventDefault();
+                          setIsBookingModalOpen(false);
+                        }}
+                        className="w-full sm:w-auto h-12 text-base order-2 sm:order-1 touch-manipulation"
+                        style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
+                      >
+                        Cancelar
+                      </Button>
+                      <Button
+                        size="lg"
+                        onClick={handleBookingSubmit}
+                        onTouchEnd={(e) => {
+                          if (!selectedDate || !selectedTime || !selectedService || bookingLoading) {
+                            return;
+                          }
+                          e.preventDefault();
+                          handleBookingSubmit();
+                        }}
+                        disabled={!selectedDate || !selectedTime || !selectedService || bookingLoading}
+                        className="w-full sm:w-auto h-12 text-base font-semibold order-1 sm:order-2 touch-manipulation"
+                        style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
+                      >
+                        {bookingLoading ? 'Reservando...' : 'Confirmar reserva'}
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </BookingDialog>
     </div>
   );
 }

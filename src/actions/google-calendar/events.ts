@@ -64,8 +64,8 @@ export async function createEventWorkshopInGoogleCalendar(
       };
     }
 
-    // Verificar que el usuario es el creador del evento
-    if (event.created_by !== userId) {
+    // Verificar que el usuario es el dueño del evento (owner_id)
+    if (event.owner_id !== userId) {
       return {
         success: false,
         error: 'No tienes permiso para crear este evento en Google Calendar',
@@ -174,8 +174,8 @@ export async function updateEventWorkshopInGoogleCalendar(
       };
     }
 
-    // Verificar que el usuario es el creador del evento
-    if (event.created_by !== userId) {
+    // Verificar que el usuario es el dueño del evento (owner_id)
+    if (event.owner_id !== userId) {
       return {
         success: false,
         error: 'No tienes permiso para actualizar este evento',
@@ -260,7 +260,7 @@ export async function deleteEventWorkshopFromGoogleCalendar(
     // Obtener datos del evento
     const { data: event, error: eventError } = await supabase
       .from('events_workshops')
-      .select('google_calendar_event_id, created_by')
+      .select('google_calendar_event_id, owner_id')
       .eq('id', eventId)
       .single();
 
@@ -271,8 +271,8 @@ export async function deleteEventWorkshopFromGoogleCalendar(
       };
     }
 
-    // Verificar que el usuario es el creador del evento
-    if (event.created_by !== userId) {
+    // Verificar que el usuario es el dueño del evento (owner_id)
+    if (event.owner_id !== userId) {
       return {
         success: false,
         error: 'No tienes permiso para eliminar este evento',
@@ -338,12 +338,14 @@ export async function syncAllEventsToGoogleCalendar(userId: string) {
     const supabase = await createClient();
 
     // Obtener todos los eventos futuros del usuario que no tienen evento de Google
+    // Buscar por owner_id (el dueño del evento) en lugar de created_by
     const { data: events, error: eventsError } = await supabase
       .from('events_workshops')
-      .select('id')
-      .eq('created_by', userId)
+      .select('id, name, event_date')
+      .eq('owner_id', userId)
       .gte('event_date', new Date().toISOString().split('T')[0])
-      .is('google_calendar_event_id', null);
+      .is('google_calendar_event_id', null)
+      .eq('is_active', true);
 
     if (eventsError) {
       console.error('Error al obtener eventos de la base de datos:', eventsError);
@@ -354,12 +356,18 @@ export async function syncAllEventsToGoogleCalendar(userId: string) {
     }
 
     if (!events || events.length === 0) {
+      console.log('No se encontraron eventos para sincronizar. Verificando consulta...', {
+        userId,
+        eventDate: new Date().toISOString().split('T')[0],
+      });
       return {
         success: true,
         message: 'No hay eventos para sincronizar',
         syncedCount: 0,
       };
     }
+
+    console.log(`Encontrados ${events.length} eventos para sincronizar:`, events.map(e => ({ id: e.id, name: e.name, date: e.event_date })));
 
     // Sincronizar cada evento
     const results = await Promise.allSettled(

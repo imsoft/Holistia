@@ -22,8 +22,13 @@ import {
   addDays,
   addWeeks,
   subWeeks,
+  addYears,
+  subYears,
+  startOfYear,
+  endOfYear,
   parseISO,
   isToday,
+  getMonth,
 } from "date-fns";
 import { es } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
@@ -49,12 +54,13 @@ import { RescheduleAppointmentDialog } from "@/components/appointments/reschedul
 import { CreateAppointmentDialog } from "@/components/appointments/create-appointment-dialog";
 import { toast } from "sonner";
 
-type CalendarView = "day" | "week" | "month";
+type CalendarView = "day" | "week" | "month" | "year";
 
 const viewLabels = {
   day: "Vista de día",
   week: "Vista de semana",
   month: "Vista de mes",
+  year: "Vista de año",
 };
 
 export default function ProfessionalAppointments() {
@@ -206,8 +212,10 @@ export default function ProfessionalAppointments() {
       setCurrentDate((prev) => addDays(prev, -1));
     } else if (view === "week") {
       setCurrentDate((prev) => subWeeks(prev, 1));
-    } else {
+    } else if (view === "month") {
       setCurrentDate((prev) => subMonths(prev, 1));
+    } else {
+      setCurrentDate((prev) => subYears(prev, 1));
     }
   };
 
@@ -216,8 +224,10 @@ export default function ProfessionalAppointments() {
       setCurrentDate((prev) => addDays(prev, 1));
     } else if (view === "week") {
       setCurrentDate((prev) => addWeeks(prev, 1));
-    } else {
+    } else if (view === "month") {
       setCurrentDate((prev) => addMonths(prev, 1));
+    } else {
+      setCurrentDate((prev) => addYears(prev, 1));
     }
   };
 
@@ -237,6 +247,13 @@ export default function ProfessionalAppointments() {
       if (!isSameDay(parseISO(apt.date), date)) return false;
       const aptHour = parseInt(apt.time.split(":")[0]);
       return aptHour === hour;
+    });
+  };
+
+  const getAppointmentsForMonth = (year: number, month: number) => {
+    return appointments.filter((apt) => {
+      const aptDate = parseISO(apt.date);
+      return aptDate.getFullYear() === year && getMonth(aptDate) === month;
     });
   };
 
@@ -407,8 +424,10 @@ export default function ProfessionalAppointments() {
       const weekStart = startOfWeek(currentDate, { weekStartsOn: 0 });
       const weekEnd = endOfWeek(currentDate, { weekStartsOn: 0 });
       return `${format(weekStart, "d MMM", { locale: es })} - ${format(weekEnd, "d MMM yyyy", { locale: es })}`;
-    } else {
+    } else if (view === "month") {
       return format(currentDate, "MMMM yyyy", { locale: es });
+    } else {
+      return format(currentDate, "yyyy", { locale: es });
     }
   };
 
@@ -611,6 +630,95 @@ export default function ProfessionalAppointments() {
     );
   };
 
+  const renderYearView = () => {
+    const year = currentDate.getFullYear();
+    const months = Array.from({ length: 12 }, (_, i) => i);
+
+    return (
+      <div className="flex flex-col h-full overflow-auto p-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {months.map((monthIndex) => {
+            const monthDate = new Date(year, monthIndex, 1);
+            const monthStart = startOfMonth(monthDate);
+            const monthEnd = endOfMonth(monthDate);
+            const calendarStart = startOfWeek(monthStart, { weekStartsOn: 0 });
+            const calendarEnd = endOfWeek(monthEnd, { weekStartsOn: 0 });
+            const calendarDays = eachDayOfInterval({ start: calendarStart, end: calendarEnd });
+            const monthAppointments = getAppointmentsForMonth(year, monthIndex);
+
+            return (
+              <div key={monthIndex} className="border border-border rounded-lg p-3 bg-card">
+                <h3 className="text-sm font-semibold text-center mb-2 capitalize">
+                  {format(monthDate, "MMMM", { locale: es })}
+                </h3>
+
+                {/* Días de la semana */}
+                <div className="grid grid-cols-7 gap-1 mb-1">
+                  {["D", "L", "M", "M", "J", "V", "S"].map((day, idx) => (
+                    <div
+                      key={idx}
+                      className="text-center text-[10px] font-medium text-muted-foreground"
+                    >
+                      {day}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Días del mes */}
+                <div className="grid grid-cols-7 gap-1">
+                  {calendarDays.map((day, dayIdx) => {
+                    const dayAppointments = getAppointmentsForDate(day);
+                    const isCurrentMonth = isSameMonth(day, monthDate);
+                    const isDayToday = isToday(day);
+
+                    return (
+                      <button
+                        key={dayIdx}
+                        onClick={() => {
+                          if (dayAppointments.length > 0 && isCurrentMonth) {
+                            setCurrentDate(day);
+                            setView("day");
+                          }
+                        }}
+                        disabled={dayAppointments.length === 0 || !isCurrentMonth}
+                        className={`
+                          relative aspect-square flex items-center justify-center text-[11px] rounded
+                          ${!isCurrentMonth ? "text-muted-foreground/30" : ""}
+                          ${isDayToday ? "font-bold ring-2 ring-primary" : ""}
+                          ${
+                            dayAppointments.length > 0 && isCurrentMonth
+                              ? "bg-primary/10 hover:bg-primary/20 cursor-pointer"
+                              : ""
+                          }
+                          ${dayAppointments.length === 0 && isCurrentMonth ? "hover:bg-muted/50" : ""}
+                          transition-colors
+                        `}
+                      >
+                        {format(day, "d")}
+                        {dayAppointments.length > 0 && isCurrentMonth && (
+                          <div className="absolute bottom-0.5 left-1/2 transform -translate-x-1/2">
+                            <div className="h-1 w-1 rounded-full bg-primary" />
+                          </div>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Contador de citas del mes */}
+                {monthAppointments.length > 0 && (
+                  <div className="mt-2 text-center text-[10px] text-muted-foreground">
+                    {monthAppointments.length} cita{monthAppointments.length !== 1 ? "s" : ""}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -670,6 +778,9 @@ export default function ProfessionalAppointments() {
               <DropdownMenuItem onClick={() => setView("month")}>
                 Vista de mes
               </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setView("year")}>
+                Vista de año
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
@@ -681,6 +792,7 @@ export default function ProfessionalAppointments() {
           {view === "day" && renderDayView()}
           {view === "week" && renderWeekView()}
           {view === "month" && renderMonthView()}
+          {view === "year" && renderYearView()}
         </div>
       </div>
 

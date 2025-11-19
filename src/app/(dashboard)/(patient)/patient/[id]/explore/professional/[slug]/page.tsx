@@ -1001,9 +1001,8 @@ export default function ProfessionalProfilePage() {
               </div>
 
               {/* Botón de reservar */}
-              <div
-                role="button"
-                tabIndex={0}
+              <Button
+                type="button"
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
@@ -1021,28 +1020,21 @@ export default function ProfessionalProfilePage() {
                   setIsBookingModalOpen(true);
                   console.log('🔵 Estado isBookingModalOpen actualizado a:', true);
                 }}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    setIsBookingModalOpen(true);
-                  }
-                }}
-                className="w-full h-11 sm:h-12 text-sm sm:text-base font-semibold rounded-xl bg-gradient-to-r from-green-300 to-green-400 hover:from-green-400 hover:to-green-500 shadow-lg text-white touch-manipulation flex items-center justify-center gap-2 transition-all cursor-pointer select-none"
+                className="w-full h-11 sm:h-12 text-sm sm:text-base font-semibold rounded-xl bg-gradient-to-r from-green-300 to-green-400 hover:from-green-400 hover:to-green-500 shadow-lg text-white touch-manipulation"
                 style={{ 
                   touchAction: 'manipulation', 
                   WebkitTapHighlightColor: 'transparent',
                   userSelect: 'none',
                   WebkitUserSelect: 'none',
                   WebkitTouchCallout: 'none',
-                  cursor: 'pointer',
                   position: 'relative',
                   zIndex: 10,
                   pointerEvents: 'auto'
                 }}
               >
-                <Calendar className="h-4 w-4 sm:h-5 sm:w-5" />
+                <Calendar className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                 Reservar cita
-              </div>
+              </Button>
             </div>
 
             {/* Servicios */}
@@ -1265,9 +1257,8 @@ export default function ProfessionalProfilePage() {
 
                 {/* Botones de acción */}
                 <div className="space-y-2 sm:space-y-3">
-                  <div
-                    role="button"
-                    tabIndex={0}
+                  <Button
+                    type="button"
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
@@ -1285,28 +1276,21 @@ export default function ProfessionalProfilePage() {
                       setIsBookingModalOpen(true);
                       console.log('🔵 Estado isBookingModalOpen actualizado a:', true);
                     }}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        setIsBookingModalOpen(true);
-                      }
-                    }}
-                    className="w-full h-11 sm:h-12 text-sm sm:text-base font-semibold rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 shadow-lg text-white touch-manipulation flex items-center justify-center gap-2 transition-all cursor-pointer select-none"
+                    className="w-full h-11 sm:h-12 text-sm sm:text-base font-semibold rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 shadow-lg text-white touch-manipulation"
                     style={{ 
                       touchAction: 'manipulation', 
                       WebkitTapHighlightColor: 'transparent',
                       userSelect: 'none',
                       WebkitUserSelect: 'none',
                       WebkitTouchCallout: 'none',
-                      cursor: 'pointer',
                       position: 'relative',
                       zIndex: 10,
                       pointerEvents: 'auto'
                     }}
                   >
-                    <Calendar className="h-4 w-4 sm:h-5 sm:w-5" />
+                    <Calendar className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                     Reservar cita
-                  </div>
+                  </Button>
                   
                   <BookingDialog 
                     open={isBookingModalOpen} 

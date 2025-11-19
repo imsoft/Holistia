@@ -486,13 +486,13 @@ export default function ProfessionalAppointments() {
 
     return (
       <div className="flex flex-col h-full">
-        <div className="flex-1 overflow-auto">
-          <div className="grid grid-cols-[auto_1fr] gap-0">
+        <div className="flex-1 overflow-auto px-4">
+          <div className="grid grid-cols-[auto_1fr] gap-4">
             {hours.map((hour) => {
               const appointmentsAtHour = getAppointmentsForDateAndTime(currentDate, hour);
               return (
                 <div key={hour} className="contents">
-                  <div className="text-xs text-muted-foreground pr-8 py-4 text-right sticky left-0 bg-background">
+                  <div className="text-xs text-muted-foreground pr-4 py-4 text-right bg-background">
                     {format(new Date().setHours(hour, 0), "ha", { locale: es })}
                   </div>
                   <div className="border-t border-border py-4 min-h-[80px] relative">

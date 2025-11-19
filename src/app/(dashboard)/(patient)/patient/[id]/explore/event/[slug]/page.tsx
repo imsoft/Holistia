@@ -235,9 +235,10 @@ const EventDetailPage = () => {
                 {event.description && (
                   <div>
                     <h3 className="text-base sm:text-lg font-semibold mb-2 sm:mb-3">Descripción</h3>
-                    <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
-                      {event.description}
-                    </p>
+                    <div 
+                      className="text-sm sm:text-base text-muted-foreground leading-relaxed prose prose-sm sm:prose-base max-w-none"
+                      dangerouslySetInnerHTML={{ __html: event.description }}
+                    />
                   </div>
                 )}
 

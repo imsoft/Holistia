@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { RichTextEditor } from "@/components/ui/rich-text-editor";
 import { Switch } from "@/components/ui/switch";
 import {
   Select,
@@ -650,12 +651,10 @@ export function EventForm({ event, professionals, onSuccess, onCancel }: EventFo
 
           <div className="space-y-2">
             <Label htmlFor="description">Descripción</Label>
-            <Textarea
-              id="description"
-              value={formData.description}
-              onChange={(e) => handleInputChange('description', e.target.value)}
+            <RichTextEditor
+              content={formData.description || ""}
+              onChange={(content) => handleInputChange('description', content)}
               placeholder="Describe el contenido del evento..."
-              rows={3}
             />
           </div>
         </CardContent>

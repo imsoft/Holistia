@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { RichTextEditor } from "@/components/ui/rich-text-editor";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -437,14 +438,12 @@ export function ServiceManager({ professionalId, userId }: ServiceManagerProps) 
 
               <div className="space-y-2">
                 <Label htmlFor="description">Descripción</Label>
-                <Textarea
-                  id="description"
-                  value={formData.description}
-                  onChange={(e) =>
-                    setFormData({ ...formData, description: e.target.value })
+                <RichTextEditor
+                  content={formData.description || ""}
+                  onChange={(content) =>
+                    setFormData({ ...formData, description: content })
                   }
                   placeholder="Describe qué incluye este servicio..."
-                  rows={3}
                 />
               </div>
 
@@ -724,7 +723,10 @@ export function ServiceManager({ professionalId, userId }: ServiceManagerProps) 
                   </CardHeader>
                   <CardContent className="p-4">
                     {service.description && (
-                      <p className="text-muted-foreground mb-4">{service.description}</p>
+                      <div 
+                        className="text-muted-foreground mb-4 prose prose-sm max-w-none"
+                        dangerouslySetInnerHTML={{ __html: service.description }}
+                      />
                     )}
                     <div className="space-y-2">
                       <div className="flex items-center gap-1 text-sm">

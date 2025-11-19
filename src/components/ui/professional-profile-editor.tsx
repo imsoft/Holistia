@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { RichTextEditor } from "@/components/ui/rich-text-editor";
 import { Badge } from "@/components/ui/badge";
 import { PhoneInput } from "@/components/ui/phone-input";
 import { 
@@ -695,20 +696,19 @@ export default function ProfessionalProfileEditor({
           <div className="space-y-2">
             <Label htmlFor="biography">Descripción profesional</Label>
             {editingField === 'biography' ? (
-              <Textarea
-                id="biography"
-                value={formData.biography}
-                onChange={(e) => setFormData(prev => ({ ...prev, biography: e.target.value }))}
+              <RichTextEditor
+                content={formData.biography || ""}
+                onChange={(content) => setFormData(prev => ({ ...prev, biography: content }))}
                 placeholder="Cuéntanos sobre tu experiencia, enfoque terapéutico y cómo puedes ayudar a tus pacientes..."
-                rows={4}
               />
             ) : (
               <div 
-                className="p-3 border border-transparent hover:border-border rounded cursor-pointer min-h-[100px]"
+                className="p-3 border border-transparent hover:border-border rounded cursor-pointer min-h-[100px] prose prose-sm max-w-none"
                 onClick={() => startEditing('biography')}
-              >
-                {professionalData.biography || 'Haz clic para agregar una biografía...'}
-              </div>
+                dangerouslySetInnerHTML={{ 
+                  __html: professionalData.biography || '<p class="text-muted-foreground">Haz clic para agregar una biografía...</p>' 
+                }}
+              />
             )}
           </div>
 

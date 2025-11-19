@@ -139,9 +139,10 @@ export function ProfessionalServicesDisplay({
             </CardHeader>
             <CardContent className="space-y-3">
               {service.description && (
-                <p className="text-muted-foreground text-sm">
-                  {service.description}
-                </p>
+                <div 
+                  className="text-muted-foreground text-sm prose prose-sm max-w-none"
+                  dangerouslySetInnerHTML={{ __html: service.description }}
+                />
               )}
               
               <div className="flex items-center gap-4 text-sm text-muted-foreground">

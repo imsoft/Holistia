@@ -348,15 +348,17 @@ const EventsAdminPage = () => {
               <Card key={event.id} className={`${!event.is_active ? "opacity-60" : ""} overflow-hidden flex flex-col h-full`}>
                 {/* Event Image */}
                 {event.gallery_images && event.gallery_images.length > 0 && (
-                  <StableImage
-                    src={event.gallery_images[0]}
-                    alt={event.name}
-                    fill
-                    className="h-48 w-full"
-                    objectFit="cover"
-                    objectPosition={event.image_position || "center center"}
-                    fallbackSrc="/logos/holistia-black.png"
-                  />
+                  <div className="relative w-full h-48">
+                    <StableImage
+                      src={event.gallery_images[0]}
+                      alt={event.name}
+                      fill
+                      className="object-cover"
+                      objectFit="cover"
+                      objectPosition={event.image_position || "center center"}
+                      fallbackSrc="/logos/holistia-black.png"
+                    />
+                  </div>
                 )}
                 <CardHeader className="pb-6 pt-8">
                   <div className="flex justify-between items-start">

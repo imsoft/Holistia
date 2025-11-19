@@ -73,29 +73,42 @@ export async function createEventWorkshopInGoogleCalendar(
     }
 
     // Obtener tokens de Google
-    const { accessToken, refreshToken } = await getUserGoogleTokens(userId);
+    let accessToken: string;
+    let refreshToken: string;
+    try {
+      const tokens = await getUserGoogleTokens(userId);
+      accessToken = tokens.accessToken;
+      refreshToken = tokens.refreshToken;
+    } catch (tokenError) {
+      const errorMessage = tokenError instanceof Error ? tokenError.message : 'Error al obtener tokens de Google Calendar';
+      return {
+        success: false,
+        error: errorMessage,
+      };
+    }
 
     // Construir el evento de Google Calendar
-    const startDate = new Date(event.start_date);
-    const endDate = event.end_date
-      ? new Date(event.end_date)
-      : new Date(startDate.getTime() + 2 * 60 * 60 * 1000); // Por defecto 2 horas
+    const startDate = new Date(`${event.event_date}T${event.event_time}`);
+    const endDate = event.end_date && event.end_time
+      ? new Date(`${event.end_date}T${event.end_time}`)
+      : new Date(startDate.getTime() + (event.duration_hours || 2) * 60 * 60 * 1000);
 
     const calendarEvent: GoogleCalendarEvent = {
-      summary: event.title,
-      description: `${event.description}\n\nTipo: ${
-        event.event_type === 'unique' ? 'Evento Único' : 'Evento Recurrente'
-      }\n${event.is_online ? 'Modalidad: Online' : `Ubicación: ${event.location || 'Por definir'}`}\n\nCapacidad máxima: ${
+      summary: event.name,
+      description: `${event.description || ''}\n\nTipo: ${
+        event.session_type === 'unique' ? 'Evento Único' : 'Evento Recurrente'
+      }\nUbicación: ${event.location || 'Por definir'}\n\nCapacidad máxima: ${
         event.max_capacity
-      } personas\nPrecio: $${event.price} MXN`,
+      } personas\nPrecio: ${event.is_free ? 'Gratis' : `$${event.price} MXN`}`,
       start: {
         dateTime: startDate.toISOString(),
-        timeZone: event.timezone || 'America/Mexico_City',
+        timeZone: 'America/Mexico_City',
       },
       end: {
         dateTime: endDate.toISOString(),
-        timeZone: event.timezone || 'America/Mexico_City',
+        timeZone: 'America/Mexico_City',
       },
+      location: event.location || undefined,
       reminders: {
         useDefault: false,
         overrides: [
@@ -105,14 +118,6 @@ export async function createEventWorkshopInGoogleCalendar(
       },
       colorId: '10', // Verde para talleres/eventos
     };
-
-    // Agregar ubicación o link
-    if (event.is_online && event.meeting_link) {
-      calendarEvent.description += `\n\nEnlace del evento: ${event.meeting_link}`;
-      calendarEvent.location = 'Evento Online';
-    } else if (event.location) {
-      calendarEvent.location = event.location;
-    }
 
     // Crear evento en Google Calendar
     const result = await createCalendarEvent(
@@ -186,37 +191,43 @@ export async function updateEventWorkshopInGoogleCalendar(
     }
 
     // Obtener tokens de Google
-    const { accessToken, refreshToken } = await getUserGoogleTokens(userId);
+    let accessToken: string;
+    let refreshToken: string;
+    try {
+      const tokens = await getUserGoogleTokens(userId);
+      accessToken = tokens.accessToken;
+      refreshToken = tokens.refreshToken;
+    } catch (tokenError) {
+      const errorMessage = tokenError instanceof Error ? tokenError.message : 'Error al obtener tokens de Google Calendar';
+      return {
+        success: false,
+        error: errorMessage,
+      };
+    }
 
     // Construir el evento actualizado
-    const startDate = new Date(event.start_date);
-    const endDate = event.end_date
-      ? new Date(event.end_date)
-      : new Date(startDate.getTime() + 2 * 60 * 60 * 1000);
+    const startDate = new Date(`${event.event_date}T${event.event_time}`);
+    const endDate = event.end_date && event.end_time
+      ? new Date(`${event.end_date}T${event.end_time}`)
+      : new Date(startDate.getTime() + (event.duration_hours || 2) * 60 * 60 * 1000);
 
     const eventUpdate: Partial<GoogleCalendarEvent> = {
-      summary: event.title,
-      description: `${event.description}\n\nTipo: ${
-        event.event_type === 'unique' ? 'Evento Único' : 'Evento Recurrente'
-      }\n${event.is_online ? 'Modalidad: Online' : `Ubicación: ${event.location || 'Por definir'}`}\n\nCapacidad máxima: ${
+      summary: event.name,
+      description: `${event.description || ''}\n\nTipo: ${
+        event.session_type === 'unique' ? 'Evento Único' : 'Evento Recurrente'
+      }\nUbicación: ${event.location || 'Por definir'}\n\nCapacidad máxima: ${
         event.max_capacity
-      } personas\nPrecio: $${event.price} MXN`,
+      } personas\nPrecio: ${event.is_free ? 'Gratis' : `$${event.price} MXN`}`,
       start: {
         dateTime: startDate.toISOString(),
-        timeZone: event.timezone || 'America/Mexico_City',
+        timeZone: 'America/Mexico_City',
       },
       end: {
         dateTime: endDate.toISOString(),
-        timeZone: event.timezone || 'America/Mexico_City',
+        timeZone: 'America/Mexico_City',
       },
+      location: event.location || undefined,
     };
-
-    if (event.is_online && event.meeting_link) {
-      eventUpdate.description += `\n\nEnlace del evento: ${event.meeting_link}`;
-      eventUpdate.location = 'Evento Online';
-    } else if (event.location) {
-      eventUpdate.location = event.location;
-    }
 
     // Actualizar evento en Google Calendar
     const result = await updateCalendarEvent(
@@ -277,7 +288,19 @@ export async function deleteEventWorkshopFromGoogleCalendar(
     }
 
     // Obtener tokens de Google
-    const { accessToken, refreshToken } = await getUserGoogleTokens(userId);
+    let accessToken: string;
+    let refreshToken: string;
+    try {
+      const tokens = await getUserGoogleTokens(userId);
+      accessToken = tokens.accessToken;
+      refreshToken = tokens.refreshToken;
+    } catch (tokenError) {
+      const errorMessage = tokenError instanceof Error ? tokenError.message : 'Error al obtener tokens de Google Calendar';
+      return {
+        success: false,
+        error: errorMessage,
+      };
+    }
 
     // Eliminar evento de Google Calendar
     const result = await deleteCalendarEvent(
@@ -319,13 +342,14 @@ export async function syncAllEventsToGoogleCalendar(userId: string) {
       .from('events_workshops')
       .select('id')
       .eq('created_by', userId)
-      .gte('start_date', new Date().toISOString())
+      .gte('event_date', new Date().toISOString().split('T')[0])
       .is('google_calendar_event_id', null);
 
     if (eventsError) {
+      console.error('Error al obtener eventos de la base de datos:', eventsError);
       return {
         success: false,
-        error: 'Error al obtener eventos',
+        error: `Error al obtener eventos: ${eventsError.message || 'Error desconocido'}`,
       };
     }
 

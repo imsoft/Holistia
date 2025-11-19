@@ -483,40 +483,56 @@ export default function ProfessionalAppointments() {
   // Renderizar vistas
   const renderDayView = () => {
     const hours = Array.from({ length: 24 }, (_, i) => i);
+    const HOUR_HEIGHT = 80; // Altura de cada hora en píxeles
+
+    // Obtener citas del día actual
+    const dayAppointments = appointments.filter((apt) =>
+      isSameDay(parseISO(apt.date), currentDate)
+    );
 
     return (
       <div className="flex flex-col h-full">
         <div className="flex-1 overflow-auto">
           <div className="grid grid-cols-[80px_1fr]">
-            {hours.map((hour) => {
-              const appointmentsAtHour = getAppointmentsForDateAndTime(currentDate, hour);
-              return (
-                <div key={hour} className="contents">
-                  <div className="text-xs text-muted-foreground py-4 text-center bg-muted/30 border-r border-border">
-                    {format(new Date().setHours(hour, 0), "ha", { locale: es })}
-                  </div>
-                  <div className="border-t border-border py-4 min-h-[80px] relative px-4">
-                    {appointmentsAtHour.length > 0 && (
-                      <div className="space-y-1">
-                        {appointmentsAtHour.map((apt) => (
-                          <button
-                            key={apt.id}
-                            onClick={() => handleViewAppointment(apt)}
-                            className={`w-full text-left px-3 py-2 rounded-md text-sm border ${getStatusColor(apt.status)} hover:opacity-80 transition-opacity`}
-                          >
-                            <div className="font-semibold">{apt.patient.name}</div>
-                            <div className="text-xs mt-1">
-                              {apt.time} • {apt.duration} min
-                            </div>
-                            <div className="text-xs">{apt.type}</div>
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
+            {hours.map((hour) => (
+              <div key={hour} className="contents">
+                <div className="text-xs text-muted-foreground py-4 text-center bg-muted/30 border-r border-border" style={{ height: `${HOUR_HEIGHT}px` }}>
+                  {format(new Date().setHours(hour, 0), "ha", { locale: es })}
                 </div>
-              );
-            })}
+                <div className="border-t border-border relative" style={{ height: `${HOUR_HEIGHT}px` }}>
+                  {/* Renderizar citas que comienzan en esta hora */}
+                  {dayAppointments
+                    .filter((apt) => {
+                      const aptHour = parseInt(apt.time.split(":")[0]);
+                      return aptHour === hour;
+                    })
+                    .map((apt) => {
+                      const [startHour, startMinute] = apt.time.split(":").map(Number);
+                      const durationHours = apt.duration / 60;
+                      const heightInPixels = durationHours * HOUR_HEIGHT;
+                      const topOffset = (startMinute / 60) * HOUR_HEIGHT;
+
+                      return (
+                        <button
+                          key={apt.id}
+                          onClick={() => handleViewAppointment(apt)}
+                          className={`absolute left-1 right-1 px-3 py-2 rounded-md text-sm border ${getStatusColor(apt.status)} hover:opacity-80 transition-opacity overflow-hidden`}
+                          style={{
+                            top: `${topOffset}px`,
+                            height: `${Math.max(heightInPixels - 4, 40)}px`,
+                          }}
+                        >
+                          <div className="font-semibold truncate">{apt.patient.name}</div>
+                          <div className="text-xs mt-1">
+                            {apt.time} • {apt.duration} min
+                          </div>
+                          {heightInPixels > 60 && <div className="text-xs">{apt.type}</div>}
+                        </button>
+                      );
+                    })}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </div>
@@ -527,6 +543,7 @@ export default function ProfessionalAppointments() {
     const weekStart = startOfWeek(currentDate, { weekStartsOn: 0 });
     const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
     const hours = Array.from({ length: 24 }, (_, i) => i);
+    const HOUR_HEIGHT = 60; // Altura de cada hora en píxeles
 
     return (
       <div className="flex flex-col h-full">
@@ -559,34 +576,52 @@ export default function ProfessionalAppointments() {
           <div className="grid grid-cols-[auto_repeat(7,1fr)] gap-0">
             {hours.map((hour) => (
               <div key={hour} className="contents">
-                <div className="text-xs text-muted-foreground pr-2 py-2 text-right w-16 sticky left-0 bg-background border-r border-border">
+                <div className="text-xs text-muted-foreground pr-2 py-2 text-right w-16 sticky left-0 bg-background border-r border-border" style={{ height: `${HOUR_HEIGHT}px` }}>
                   {format(new Date().setHours(hour, 0), "ha", { locale: es })}
                 </div>
                 {weekDays.map((day, dayIdx) => {
-                  const appointmentsAtHour = getAppointmentsForDateAndTime(day, hour);
+                  // Obtener citas de este día
+                  const dayAppointments = appointments.filter((apt) =>
+                    isSameDay(parseISO(apt.date), day)
+                  );
+
                   return (
                     <div
                       key={dayIdx}
-                      className={`border-t border-l border-border min-h-[60px] p-1 ${
+                      className={`border-t border-l border-border relative ${
                         isToday(day) ? "bg-primary/5" : ""
                       }`}
+                      style={{ height: `${HOUR_HEIGHT}px` }}
                     >
-                      {appointmentsAtHour.length > 0 && (
-                        <div className="space-y-1">
-                          {appointmentsAtHour.map((apt) => (
+                      {/* Renderizar citas que comienzan en esta hora */}
+                      {dayAppointments
+                        .filter((apt) => {
+                          const aptHour = parseInt(apt.time.split(":")[0]);
+                          return aptHour === hour;
+                        })
+                        .map((apt) => {
+                          const [, startMinute] = apt.time.split(":").map(Number);
+                          const durationHours = apt.duration / 60;
+                          const heightInPixels = durationHours * HOUR_HEIGHT;
+                          const topOffset = (startMinute / 60) * HOUR_HEIGHT;
+
+                          return (
                             <button
                               key={apt.id}
                               onClick={() => handleViewAppointment(apt)}
-                              className={`w-full text-left px-2 py-1 rounded text-xs border ${getStatusColor(apt.status)} hover:opacity-80 transition-opacity`}
+                              className={`absolute left-0.5 right-0.5 px-2 py-1 rounded text-xs border ${getStatusColor(apt.status)} hover:opacity-80 transition-opacity overflow-hidden`}
+                              style={{
+                                top: `${topOffset}px`,
+                                height: `${Math.max(heightInPixels - 2, 30)}px`,
+                              }}
                             >
                               <div className="font-semibold truncate">
                                 {apt.patient.name}
                               </div>
                               <div className="truncate">{apt.time}</div>
                             </button>
-                          ))}
-                        </div>
-                      )}
+                          );
+                        })}
                     </div>
                   );
                 })}

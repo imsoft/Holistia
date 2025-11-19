@@ -1045,9 +1045,12 @@ export default function ProfessionalProfilePage() {
                           <h3 className="text-foreground font-semibold text-lg sm:text-xl mb-2 sm:mb-3">
                             {service.name}
                           </h3>
-                          <p className="text-sm sm:text-base text-muted-foreground leading-relaxed mb-3 sm:mb-4">
-                            {service.description}
-                          </p>
+                          {service.description && (
+                            <div 
+                              className="text-sm sm:text-base text-muted-foreground leading-relaxed mb-3 sm:mb-4 prose prose-sm sm:prose-base max-w-none"
+                              dangerouslySetInnerHTML={{ __html: service.description }}
+                            />
+                          )}
                           <div className="flex flex-wrap gap-2 sm:gap-3">
                             {service.presencialCost && service.presencialCost !== '' && (
                               <div className="flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-1.5 bg-primary/10 rounded-full">

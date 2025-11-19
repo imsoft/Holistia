@@ -235,9 +235,10 @@ export const ProfessionalCard = ({ professional, userId }: ProfessionalCardProps
 
           {/* Service Description */}
           {professional.serviceDescription && (
-            <p className="text-sm text-muted-foreground line-clamp-3 overflow-hidden break-words">
-              {professional.serviceDescription}
-            </p>
+            <div 
+              className="text-sm text-muted-foreground line-clamp-3 overflow-hidden break-words prose prose-sm max-w-none"
+              dangerouslySetInnerHTML={{ __html: professional.serviceDescription }}
+            />
           )}
 
           {/* Location and Service Type */}

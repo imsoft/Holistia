@@ -344,7 +344,10 @@ export function CreateAppointmentDialog({
                   <div className="bg-muted/50 p-3 rounded-lg text-sm">
                     <p className="font-medium">{selectedService.name}</p>
                     {selectedService.description && (
-                      <p className="text-muted-foreground mt-1">{selectedService.description}</p>
+                      <div 
+                        className="text-muted-foreground mt-1 prose prose-sm max-w-none"
+                        dangerouslySetInnerHTML={{ __html: selectedService.description }}
+                      />
                     )}
                     <div className="flex items-center gap-4 mt-2 text-xs">
                       <span>⏱️ {selectedService.duration} minutos</span>

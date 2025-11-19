@@ -356,7 +356,10 @@ export function HolisticCenterServicesManager({
               </CardHeader>
               <CardContent className="space-y-4">
                 {service.description && (
-                  <p className="text-sm text-muted-foreground">{service.description}</p>
+                  <div 
+                    className="text-sm text-muted-foreground prose prose-sm max-w-none"
+                    dangerouslySetInnerHTML={{ __html: service.description }}
+                  />
                 )}
 
                 {/* Images Section */}

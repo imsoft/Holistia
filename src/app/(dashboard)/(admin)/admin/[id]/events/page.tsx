@@ -406,9 +406,10 @@ const EventsAdminPage = () => {
                       <strong>Profesional:</strong> {getProfessionalName(event.professional_id)}
                     </div>
                     {event.description && (
-                      <p className="text-sm text-muted-foreground line-clamp-2">
-                        {event.description}
-                      </p>
+                      <div 
+                        className="text-sm text-muted-foreground line-clamp-2 prose prose-sm max-w-none"
+                        dangerouslySetInnerHTML={{ __html: event.description }}
+                      />
                     )}
                   </div>
 

@@ -103,7 +103,7 @@ export async function POST(request: NextRequest) {
     // 2. Obtener el user_id del profesional
     const { data: professionalApp, error: professionalAppError } = await supabase
       .from('professional_applications')
-      .select('user_id')
+      .select('user_id, id, first_name, last_name')
       .eq('id', professionalAppId)
       .single();
 
@@ -114,10 +114,20 @@ export async function POST(request: NextRequest) {
           success: true,
           appointment,
           warning: 'Cita creada/encontrada pero no se pudo obtener el profesional para sincronizar con Google Calendar',
+          debug: {
+            professionalAppId,
+            error: professionalAppError,
+          },
         },
         { status: 200 }
       );
     }
+
+    console.log('📋 Profesional obtenido:', {
+      professionalAppId: professionalApp.id,
+      userId: professionalApp.user_id,
+      name: `${professionalApp.first_name} ${professionalApp.last_name}`,
+    });
 
     // 3. Obtener datos del paciente y profesional para Google Calendar
     const { data: patientData, error: patientError } = await supabase
@@ -133,11 +143,21 @@ export async function POST(request: NextRequest) {
       .single();
 
     // 4. Obtener tokens de Google Calendar del profesional
+    console.log('🔍 Buscando perfil con user_id:', professionalApp.user_id);
     const { data: profileData, error: profileError } = await supabase
       .from('profiles')
-      .select('google_calendar_connected, google_access_token, google_refresh_token, google_token_expires_at')
+      .select('id, google_calendar_connected, google_access_token, google_refresh_token, google_token_expires_at')
       .eq('id', professionalApp.user_id)
       .single();
+
+    console.log('📊 Resultado de búsqueda de perfil:', {
+      found: !!profileData,
+      error: profileError,
+      profileId: profileData?.id,
+      googleCalendarConnected: profileData?.google_calendar_connected,
+      hasAccessToken: !!profileData?.google_access_token,
+      hasRefreshToken: !!profileData?.google_refresh_token,
+    });
 
     if (profileError || !profileData) {
       return NextResponse.json(
@@ -147,6 +167,10 @@ export async function POST(request: NextRequest) {
           googleCalendar: {
             synced: false,
             error: 'No se pudo obtener el perfil del profesional',
+            debug: {
+              userId: professionalApp.user_id,
+              profileError: profileError,
+            },
           },
         },
         { status: 200 }
@@ -161,6 +185,11 @@ export async function POST(request: NextRequest) {
           googleCalendar: {
             synced: false,
             error: 'Google Calendar no está conectado para este profesional',
+            debug: {
+              userId: professionalApp.user_id,
+              profileId: profileData.id,
+              googleCalendarConnected: profileData.google_calendar_connected,
+            },
           },
         },
         { status: 200 }

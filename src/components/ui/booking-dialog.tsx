@@ -73,7 +73,13 @@ export function BookingDialog({ open, onOpenChange, children, title }: BookingDi
           backgroundColor: 'var(--background)',
           pointerEvents: 'auto'
         }}
-        onClick={(e) => e.stopPropagation()}
+        onClick={(e) => {
+          // Solo prevenir propagación si el click no es en un elemento interactivo
+          const target = e.target as HTMLElement;
+          if (!target.closest('[role="button"], button, input, select, [data-radix-select-trigger]')) {
+            e.stopPropagation();
+          }
+        }}
       >
         {/* Header */}
         <div className="flex items-center justify-between p-4 sm:p-6 border-b border-border flex-shrink-0">

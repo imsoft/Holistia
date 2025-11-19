@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/utils/supabase/server';
+import { createClient } from '@supabase/supabase-js';
 import { createAppointmentInGoogleCalendar } from '@/actions/google-calendar';
 
 /**
@@ -23,7 +23,11 @@ export async function POST(request: NextRequest) {
       notes = 'Cita de prueba',
     } = body;
 
-    const supabase = await createClient();
+    // Usar service role key para evitar restricciones de RLS en ruta de test
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
     let appointment;
     let professionalAppId;
 

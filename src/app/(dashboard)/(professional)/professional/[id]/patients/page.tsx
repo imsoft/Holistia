@@ -36,7 +36,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { SidebarTrigger } from "@/components/ui/sidebar";
-import Image from "next/image";
+import { StableImage } from "@/components/ui/stable-image";
 import { Patient } from "@/types";
 import { createClient } from "@/utils/supabase/client";
 
@@ -97,30 +97,16 @@ export default function ProfessionalPatients() {
         // Obtener IDs únicos de pacientes
         const uniquePatientIds = [...new Set(appointments.map(apt => apt.patient_id))];
 
-        // Obtener información real de pacientes usando consulta directa a las tablas
-        // Usar consulta más específica para evitar problemas de RLS
+        // Obtener información completa de pacientes desde profiles (incluye avatar_url)
         const { data: patientsInfo, error: patientsInfoError } = await supabase
           .from('profiles')
-          .select('id, first_name, last_name, email, phone')
+          .select('id, first_name, last_name, email, phone, avatar_url')
           .in('id', uniquePatientIds)
           .eq('type', 'patient')
           .eq('account_active', true);
 
         if (patientsInfoError) {
           console.error('Error obteniendo información de pacientes:', patientsInfoError);
-          
-          // Intentar consulta alternativa si hay error de RLS
-          console.log('🔄 Intentando consulta alternativa...');
-          const { data: alternativePatientsInfo, error: alternativeError } = await supabase
-            .from('profiles')
-            .select('id, first_name, last_name, email, phone')
-            .in('id', uniquePatientIds);
-          
-          if (alternativeError) {
-            console.error('Error en consulta alternativa:', alternativeError);
-          } else {
-            console.log('✅ Consulta alternativa exitosa:', alternativePatientsInfo?.length || 0);
-          }
         }
 
         // Debug: Log de información de pacientes
@@ -169,25 +155,46 @@ export default function ProfessionalPatients() {
             constructedName: patientName
           });
 
+          // Obtener avatar del perfil o usar fallback
+          const avatarUrl = patientInfo?.avatar_url || 
+            (patientInfo?.email ? `https://ui-avatars.com/api/?name=${encodeURIComponent(patientName)}&background=random&color=fff&size=150` : 
+            '/logos/holistia-black.png');
+          
+          // Calcular información adicional útil
+          const firstAppointment = patientAppointments[patientAppointments.length - 1];
+          const joinDate = firstAppointment?.appointment_date || '';
+          
+          // Obtener información de contacto formateada
+          const formattedPhone = patientInfo?.phone ? 
+            (patientInfo.phone.startsWith('+') ? patientInfo.phone : `+52 ${patientInfo.phone}`) : 
+            'No disponible';
+          
+          // Calcular total de citas por tipo
+          const presencialCount = patientAppointments.filter(apt => apt.appointment_type === 'presencial').length;
+          const onlineCount = patientAppointments.filter(apt => apt.appointment_type === 'online').length;
+          
           return {
             id: patientId,
             name: patientName,
             email: patientInfo?.email || 'No disponible',
-            phone: patientInfo?.phone || 'No disponible',
+            phone: formattedPhone,
             location: 'No especificado',
             type: 'patient' as const,
-            joinDate: patientAppointments[patientAppointments.length - 1]?.appointment_date || '',
-            lastLogin: '',
+            joinDate,
+            lastLogin: lastSession || '',
             appointments: patientAppointments.length,
-            age: 0,
-            gender: 'No especificado',
+            age: 0, // No disponible en profiles actualmente
+            gender: 'No especificado', // No disponible en profiles actualmente
             status: status as 'active' | 'inactive' | 'suspended',
             lastSession,
             nextSession,
             totalSessions: patientAppointments.filter(apt => apt.status === 'completed').length,
             therapyType,
-            avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&q=80',
+            avatar: avatarUrl,
             notes: undefined,
+            // Información adicional útil
+            presencialAppointments: presencialCount,
+            onlineAppointments: onlineCount,
           };
         });
 
@@ -406,12 +413,13 @@ export default function ProfessionalPatients() {
               <CardContent className="px-4 sm:px-6 py-4 sm:py-6">
                 <div className="flex items-start gap-3 sm:gap-4 mb-3 sm:mb-4">
                   <div className="relative flex-shrink-0">
-                    <Image
+                    <StableImage
                       src={patient.avatar}
                       alt={patient.name}
                       width={60}
                       height={60}
                       className="h-12 w-12 sm:h-15 sm:w-15 aspect-square rounded-full object-cover border-2 border-border"
+                      fallbackSrc="/logos/holistia-black.png"
                     />
                   </div>
                   <div className="flex-1 min-w-0">
@@ -421,11 +429,16 @@ export default function ProfessionalPatients() {
                       </h3>
                     </div>
                     <p className="text-xs sm:text-sm text-muted-foreground">
-                      {patient.age} años • {patient.gender}
+                      {patient.appointments} {patient.appointments === 1 ? 'cita' : 'citas'} totales
                     </p>
                     <p className="text-xs sm:text-sm text-muted-foreground truncate">
                       {patient.therapyType}
                     </p>
+                    {patient.joinDate && (
+                      <p className="text-xs text-muted-foreground">
+                        Cliente desde {new Date(patient.joinDate).toLocaleDateString('es-ES', { month: 'short', year: 'numeric' })}
+                      </p>
+                    )}
                   </div>
                 </div>
 

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { createAppointmentInGoogleCalendar } from '@/actions/google-calendar';
+import { createCalendarEvent, type GoogleCalendarEvent } from '@/lib/google-calendar';
 
 /**
  * RUTA DE TESTING - SOLO PARA DESARROLLO
@@ -119,36 +119,163 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 3. Sincronizar con Google Calendar
-    const googleCalendarResult = await createAppointmentInGoogleCalendar(
-      appointment.id,
-      professionalApp.user_id
-    );
+    // 3. Obtener datos del paciente y profesional para Google Calendar
+    const { data: patientData, error: patientError } = await supabase
+      .from('profiles')
+      .select('email, first_name, last_name')
+      .eq('id', appointment.patient_id)
+      .single();
 
-    if (googleCalendarResult.success) {
-      console.log('✅ Cita sincronizada con Google Calendar:', googleCalendarResult.eventId);
-      return NextResponse.json(
-        {
-          success: true,
-          appointment,
-          googleCalendar: {
-            synced: true,
-            eventId: googleCalendarResult.eventId,
-            htmlLink: googleCalendarResult.htmlLink,
-          },
-        },
-        { status: 200 }
-      );
-    } else {
-      const errorMessage = 'error' in googleCalendarResult ? googleCalendarResult.error : 'Unknown error';
-      console.log('⚠️ Google Calendar sync failed:', errorMessage);
+    const { data: professionalData, error: professionalDataError } = await supabase
+      .from('professional_applications')
+      .select('first_name, last_name, profession')
+      .eq('id', professionalAppId)
+      .single();
+
+    // 4. Obtener tokens de Google Calendar del profesional
+    const { data: profileData, error: profileError } = await supabase
+      .from('profiles')
+      .select('google_calendar_connected, google_access_token, google_refresh_token, google_token_expires_at')
+      .eq('id', professionalApp.user_id)
+      .single();
+
+    if (profileError || !profileData) {
       return NextResponse.json(
         {
           success: true,
           appointment,
           googleCalendar: {
             synced: false,
-            error: errorMessage,
+            error: 'No se pudo obtener el perfil del profesional',
+          },
+        },
+        { status: 200 }
+      );
+    }
+
+    if (!profileData.google_calendar_connected) {
+      return NextResponse.json(
+        {
+          success: true,
+          appointment,
+          googleCalendar: {
+            synced: false,
+            error: 'Google Calendar no está conectado para este profesional',
+          },
+        },
+        { status: 200 }
+      );
+    }
+
+    if (!profileData.google_access_token || !profileData.google_refresh_token) {
+      return NextResponse.json(
+        {
+          success: true,
+          appointment,
+          googleCalendar: {
+            synced: false,
+            error: 'Tokens de Google Calendar no disponibles',
+          },
+        },
+        { status: 200 }
+      );
+    }
+
+    // 5. Sincronizar con Google Calendar usando los tokens
+    try {
+      const startDate = new Date(`${appointment.appointment_date}T${appointment.appointment_time}`);
+      const endDate = new Date(startDate.getTime() + appointment.duration_minutes * 60000);
+
+      const patientName = patientData 
+        ? `${patientData.first_name || ''} ${patientData.last_name || ''}`.trim() 
+        : 'Paciente';
+      const patientEmail = patientData?.email || '';
+
+      const professionalName = professionalData
+        ? `${professionalData.first_name || ''} ${professionalData.last_name || ''}`.trim()
+        : 'Profesional';
+      const profession = professionalData?.profession || 'Consulta';
+
+      const calendarEvent: GoogleCalendarEvent = {
+        summary: `Cita con ${patientName}`,
+        description: `Cita de ${profession}\n${appointment.notes || ''}\n\nPaciente: ${patientName}\nEmail: ${patientEmail}`,
+        start: {
+          dateTime: startDate.toISOString(),
+          timeZone: 'America/Mexico_City',
+        },
+        end: {
+          dateTime: endDate.toISOString(),
+          timeZone: 'America/Mexico_City',
+        },
+        attendees: patientEmail ? [{ email: patientEmail, displayName: patientName }] : [],
+        reminders: {
+          useDefault: false,
+          overrides: [
+            { method: 'email', minutes: 24 * 60 }, // 1 día antes
+            { method: 'popup', minutes: 30 }, // 30 minutos antes
+          ],
+        },
+      };
+
+      if (appointment.appointment_type === 'online') {
+        calendarEvent.location = 'Sesión Online';
+      } else if (appointment.location) {
+        calendarEvent.location = appointment.location;
+      }
+
+      const result = await createCalendarEvent(
+        profileData.google_access_token,
+        profileData.google_refresh_token,
+        calendarEvent
+      );
+
+      if (result.success) {
+        // Actualizar el appointment con el event ID
+        await supabase
+          .from('appointments')
+          .update({ google_calendar_event_id: result.eventId })
+          .eq('id', appointment.id);
+
+        console.log('✅ Cita sincronizada con Google Calendar:', result.eventId);
+        return NextResponse.json(
+          {
+            success: true,
+            appointment: {
+              ...appointment,
+              google_calendar_event_id: result.eventId,
+            },
+            googleCalendar: {
+              synced: true,
+              eventId: result.eventId,
+              htmlLink: result.htmlLink,
+            },
+          },
+          { status: 200 }
+        );
+      } else {
+        const errorMessage = 'error' in result ? result.error : 'Unknown error';
+        console.log('⚠️ Google Calendar sync failed:', errorMessage);
+        return NextResponse.json(
+          {
+            success: true,
+            appointment,
+            googleCalendar: {
+              synced: false,
+              error: errorMessage,
+            },
+          },
+          { status: 200 }
+        );
+      }
+    } catch (calendarError) {
+      console.error('Error creating calendar event:', calendarError);
+      return NextResponse.json(
+        {
+          success: true,
+          appointment,
+          googleCalendar: {
+            synced: false,
+            error: calendarError instanceof Error ? calendarError.message : String(calendarError),
           },
         },
         { status: 200 }

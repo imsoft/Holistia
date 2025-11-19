@@ -133,10 +133,24 @@ export default function ProfessionalDashboard() {
             return;
           }
 
-          // Ya no necesitamos los pagos aquí porque ahora contamos todas las citas confirmadas
+          // Obtener información de los pacientes usando la vista professional_patient_info
+          let patientsData: { patient_id: string; full_name: string; email: string; phone: string }[] = [];
+          if (appointmentsData && appointmentsData.length > 0) {
+            const patientIds = [...new Set(appointmentsData.map(apt => apt.patient_id))];
+            
+            // Obtener datos de pacientes desde la vista professional_patient_info
+            const { data: patientsInfo } = await supabase
+              .from('professional_patient_info')
+              .select('patient_id, full_name, phone, email')
+              .eq('professional_id', professionalApp.id)
+              .in('patient_id', patientIds);
 
-          // Formatear citas sin información de pacientes (temporal)
-          // CAMBIO: Mostrar todas las citas confirmadas o completadas (con o sin pago)
+            if (patientsInfo) {
+              patientsData = patientsInfo;
+            }
+          }
+
+          // Formatear citas con información real de pacientes
           if (appointmentsData && appointmentsData.length > 0) {
             const formattedAppointments: Appointment[] = appointmentsData
               .filter(apt => {
@@ -144,12 +158,14 @@ export default function ProfessionalDashboard() {
                 return apt.status === 'confirmed' || apt.status === 'completed';
               })
               .map(apt => {
+                const patient = patientsData.find(p => p.patient_id === apt.patient_id);
+                
                 return {
                   id: apt.id,
                   patient: {
-                    name: `Paciente ${apt.patient_id.slice(0, 8)}`,
-                    email: 'No disponible',
-                    phone: 'No disponible',
+                    name: patient?.full_name || `Paciente`,
+                    email: patient?.email || 'No disponible',
+                    phone: patient?.phone || 'No disponible',
                   },
                   date: apt.appointment_date,
                   time: apt.appointment_time.substring(0, 5),

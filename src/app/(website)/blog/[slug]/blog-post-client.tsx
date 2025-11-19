@@ -160,7 +160,7 @@ export function BlogPostClient({ post, relatedPosts }: BlogPostClientProps) {
 
             {/* Featured Image */}
             {post.featured_image && (
-              <div className="relative w-full h-64 sm:h-80 lg:h-96 mb-8 sm:mb-12 rounded-lg overflow-hidden">
+              <div className="relative w-full h-64 sm:h-80 lg:h-96 mb-6 rounded-lg overflow-hidden">
                 <Image
                   src={post.featured_image}
                   alt={post.title}
@@ -175,7 +175,7 @@ export function BlogPostClient({ post, relatedPosts }: BlogPostClientProps) {
       </div>
 
       {/* Article Content */}
-      <div className="container mx-auto px-4 sm:px-6 py-8 sm:py-12">
+      <div className="container mx-auto px-4 sm:px-6 pt-4 pb-8 sm:pb-12">
         <div className="max-w-4xl mx-auto">
           <div className="prose prose-lg max-w-none prose-p:my-4 prose-p:leading-relaxed prose-headings:mt-8 prose-headings:mb-4 prose-ul:my-4 prose-ol:my-4 prose-li:my-2">
             <div 

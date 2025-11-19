@@ -250,10 +250,10 @@ export default function NewBlogPostPage({ params }: { params: Promise<{ id: stri
                 onChange={(e) => handleTitleChange(e.target.value)}
                 placeholder="Escribe el título del post..."
                 required
-                maxLength={200}
+                maxLength={250}
               />
               <p className="text-xs text-muted-foreground">
-                {formData.title.length}/200 caracteres
+                {formData.title.length}/250 caracteres
               </p>
             </div>
 

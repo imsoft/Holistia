@@ -22,6 +22,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { RichTextEditor } from "@/components/ui/rich-text-editor";
 import {
   Dialog,
   DialogContent,
@@ -509,12 +510,10 @@ export default function AdminHolisticCenters() {
 
             <div className="space-y-2">
               <Label htmlFor="description">Descripción</Label>
-              <Textarea
-                id="description"
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              <RichTextEditor
+                content={formData.description || ""}
+                onChange={(content) => setFormData({ ...formData, description: content })}
                 placeholder="Descripción del centro"
-                rows={3}
               />
             </div>
 
@@ -654,7 +653,10 @@ export default function AdminHolisticCenters() {
               {viewingCenter.description && (
                 <div>
                   <Label className="text-muted-foreground">Descripción</Label>
-                  <p className="mt-1 text-sm">{viewingCenter.description}</p>
+                  <div 
+                    className="mt-1 text-sm prose prose-sm max-w-none"
+                    dangerouslySetInnerHTML={{ __html: viewingCenter.description }}
+                  />
                 </div>
               )}
 

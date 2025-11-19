@@ -177,9 +177,9 @@ export function BlogPostClient({ post, relatedPosts }: BlogPostClientProps) {
       {/* Article Content */}
       <div className="container mx-auto px-4 sm:px-6 py-8 sm:py-12">
         <div className="max-w-4xl mx-auto">
-          <div className="prose prose-lg max-w-none">
+          <div className="prose prose-lg max-w-none prose-p:my-4 prose-p:leading-relaxed prose-headings:mt-8 prose-headings:mb-4 prose-ul:my-4 prose-ol:my-4 prose-li:my-2">
             <div 
-              className="text-base sm:text-lg leading-relaxed text-foreground"
+              className="text-base sm:text-lg leading-relaxed text-foreground [&>p]:mb-4 [&>p:last-child]:mb-0 [&>h1]:mt-8 [&>h1]:mb-4 [&>h2]:mt-8 [&>h2]:mb-4 [&>h3]:mt-6 [&>h3]:mb-4 [&>ul]:my-4 [&>ol]:my-4 [&>li]:my-2 [&>blockquote]:my-4"
               dangerouslySetInnerHTML={{ __html: post.content }}
             />
           </div>

@@ -58,6 +58,17 @@ export function RichTextEditor({
           className
         ),
       },
+      handleKeyDown: (view, event) => {
+        // Permitir que Shift+Enter cree un <br> en lugar de un nuevo párrafo
+        if (event.key === 'Enter' && event.shiftKey) {
+          const { state, dispatch } = view;
+          const { tr } = state;
+          tr.replaceSelectionWith(state.schema.nodes.hardBreak.create());
+          dispatch(tr);
+          return true;
+        }
+        return false;
+      },
     },
     immediatelyRender: false,
   });

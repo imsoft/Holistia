@@ -874,9 +874,10 @@ export default function ProfessionalProfilePage() {
                 <h2 className="text-lg sm:text-xl font-bold text-foreground mb-3 sm:mb-4">
                   Acerca de {professional.first_name}
                 </h2>
-                <p className="text-sm sm:text-base text-muted-foreground leading-relaxed max-w-3xl">
-                  {professional.biography}
-                </p>
+                <div 
+                  className="text-sm sm:text-base text-muted-foreground leading-relaxed max-w-3xl prose prose-sm sm:prose-base max-w-none"
+                  dangerouslySetInnerHTML={{ __html: professional.biography }}
+                />
               </div>
             )}
 

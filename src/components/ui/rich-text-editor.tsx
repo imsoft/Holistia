@@ -34,6 +34,7 @@ export function RichTextEditor({
   className 
 }: RichTextEditorProps) {
   const [isMounted, setIsMounted] = useState(false);
+  const [, forceUpdate] = useState({});
 
   const editor = useEditor({
     extensions: [
@@ -50,6 +51,12 @@ export function RichTextEditor({
     content,
     onUpdate: ({ editor }) => {
       onChange(editor.getHTML());
+      // Forzar actualización para reflejar cambios en el estado activo de los botones
+      forceUpdate({});
+    },
+    onSelectionUpdate: () => {
+      // Actualizar estado cuando cambia la selección
+      forceUpdate({});
     },
     editorProps: {
       attributes: {
@@ -115,6 +122,17 @@ export function RichTextEditor({
     setIsMounted(true);
   }, []);
 
+  // Actualizar el contenido del editor cuando cambia la prop content (solo si es diferente)
+  useEffect(() => {
+    if (editor && content !== editor.getHTML()) {
+      const currentContent = editor.getHTML();
+      // Solo actualizar si el contenido realmente cambió (evitar loops)
+      if (content !== currentContent && content !== '<p></p>') {
+        editor.commands.setContent(content, { emitUpdate: false });
+      }
+    }
+  }, [content, editor]);
+
   if (!editor || !isMounted) {
     return (
       <div className="border rounded-lg overflow-hidden">
@@ -136,11 +154,13 @@ export function RichTextEditor({
   const ToolbarButton = ({ 
     onClick, 
     isActive = false, 
+    isDisabled = false,
     children, 
     title 
   }: { 
-    onClick: () => void; 
-    isActive?: boolean; 
+    onClick: (e: React.MouseEvent) => void; 
+    isActive?: boolean;
+    isDisabled?: boolean;
     children: React.ReactNode;
     title: string;
   }) => (
@@ -150,6 +170,7 @@ export function RichTextEditor({
       size="sm"
       onClick={onClick}
       title={title}
+      disabled={isDisabled}
       className="h-8 w-8 p-0"
     >
       {children}
@@ -159,19 +180,25 @@ export function RichTextEditor({
   return (
     <div className="border rounded-lg overflow-hidden">
       {/* Toolbar */}
-      <div className="flex items-center gap-1 p-2 border-b bg-muted/50">
+      <div className="flex items-center gap-1 p-2 border-b bg-muted/50 flex-wrap">
         <ToolbarButton
-          onClick={() => editor.chain().focus().toggleBold().run()}
+          onClick={(e) => {
+            e.preventDefault();
+            editor.chain().focus().toggleBold().run();
+          }}
           isActive={editor.isActive('bold')}
-          title="Negrita"
+          title="Negrita (Ctrl+B)"
         >
           <Bold className="h-4 w-4" />
         </ToolbarButton>
         
         <ToolbarButton
-          onClick={() => editor.chain().focus().toggleItalic().run()}
+          onClick={(e) => {
+            e.preventDefault();
+            editor.chain().focus().toggleItalic().run();
+          }}
           isActive={editor.isActive('italic')}
-          title="Cursiva"
+          title="Cursiva (Ctrl+I)"
         >
           <Italic className="h-4 w-4" />
         </ToolbarButton>
@@ -179,7 +206,10 @@ export function RichTextEditor({
         <div className="w-px h-6 bg-border mx-1" />
 
         <ToolbarButton
-          onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
+          onClick={(e) => {
+            e.preventDefault();
+            editor.chain().focus().toggleHeading({ level: 1 }).run();
+          }}
           isActive={editor.isActive('heading', { level: 1 })}
           title="Título 1"
         >
@@ -187,7 +217,10 @@ export function RichTextEditor({
         </ToolbarButton>
 
         <ToolbarButton
-          onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
+          onClick={(e) => {
+            e.preventDefault();
+            editor.chain().focus().toggleHeading({ level: 2 }).run();
+          }}
           isActive={editor.isActive('heading', { level: 2 })}
           title="Título 2"
         >
@@ -195,7 +228,10 @@ export function RichTextEditor({
         </ToolbarButton>
 
         <ToolbarButton
-          onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
+          onClick={(e) => {
+            e.preventDefault();
+            editor.chain().focus().toggleHeading({ level: 3 }).run();
+          }}
           isActive={editor.isActive('heading', { level: 3 })}
           title="Título 3"
         >
@@ -205,7 +241,10 @@ export function RichTextEditor({
         <div className="w-px h-6 bg-border mx-1" />
 
         <ToolbarButton
-          onClick={() => editor.chain().focus().toggleBulletList().run()}
+          onClick={(e) => {
+            e.preventDefault();
+            editor.chain().focus().toggleBulletList().run();
+          }}
           isActive={editor.isActive('bulletList')}
           title="Lista con viñetas"
         >
@@ -213,7 +252,10 @@ export function RichTextEditor({
         </ToolbarButton>
 
         <ToolbarButton
-          onClick={() => editor.chain().focus().toggleOrderedList().run()}
+          onClick={(e) => {
+            e.preventDefault();
+            editor.chain().focus().toggleOrderedList().run();
+          }}
           isActive={editor.isActive('orderedList')}
           title="Lista numerada"
         >
@@ -221,7 +263,10 @@ export function RichTextEditor({
         </ToolbarButton>
 
         <ToolbarButton
-          onClick={() => editor.chain().focus().toggleBlockquote().run()}
+          onClick={(e) => {
+            e.preventDefault();
+            editor.chain().focus().toggleBlockquote().run();
+          }}
           isActive={editor.isActive('blockquote')}
           title="Cita"
         >
@@ -231,15 +276,27 @@ export function RichTextEditor({
         <div className="w-px h-6 bg-border mx-1" />
 
         <ToolbarButton
-          onClick={() => editor.chain().focus().undo().run()}
-          title="Deshacer"
+          onClick={(e) => {
+            e.preventDefault();
+            if (editor.can().undo()) {
+              editor.chain().focus().undo().run();
+            }
+          }}
+          isDisabled={!editor.can().undo()}
+          title="Deshacer (Ctrl+Z)"
         >
           <Undo className="h-4 w-4" />
         </ToolbarButton>
 
         <ToolbarButton
-          onClick={() => editor.chain().focus().redo().run()}
-          title="Rehacer"
+          onClick={(e) => {
+            e.preventDefault();
+            if (editor.can().redo()) {
+              editor.chain().focus().redo().run();
+            }
+          }}
+          isDisabled={!editor.can().redo()}
+          title="Rehacer (Ctrl+Shift+Z)"
         >
           <Redo className="h-4 w-4" />
         </ToolbarButton>

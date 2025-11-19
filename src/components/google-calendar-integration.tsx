@@ -109,24 +109,57 @@ export function GoogleCalendarIntegration({ userId }: { userId: string }) {
       // Sincronizar eventos
       const eventsResult = await syncAllEventsToGoogleCalendar(userId);
 
-      if (appointmentsResult.success && eventsResult.success) {
-        const totalSynced =
-          (appointmentsResult.syncedCount || 0) +
-          (eventsResult.syncedCount || 0);
+      const appointmentsSynced = appointmentsResult.syncedCount || 0;
+      const eventsSynced = eventsResult.syncedCount || 0;
+      const totalSynced = appointmentsSynced + eventsSynced;
 
-        if (totalSynced > 0) {
+      // Construir mensajes de error específicos
+      const errors: string[] = [];
+      if (!appointmentsResult.success) {
+        const errorMsg = 'error' in appointmentsResult ? appointmentsResult.error : 'Error desconocido al sincronizar citas';
+        errors.push(`Citas: ${errorMsg}`);
+      }
+      if (!eventsResult.success) {
+        const errorMsg = 'error' in eventsResult ? eventsResult.error : 'Error desconocido al sincronizar eventos';
+        errors.push(`Eventos: ${errorMsg}`);
+      }
+
+      // Mostrar resultados
+      if (totalSynced > 0) {
+        if (errors.length > 0) {
+          // Algunas se sincronizaron pero hubo errores
+          toast.success(
+            `Se sincronizaron ${totalSynced} eventos con Google Calendar`,
+            {
+              description: errors.join('. '),
+              duration: 5000,
+            }
+          );
+        } else {
+          // Todo salió bien
           toast.success(
             `Se sincronizaron ${totalSynced} eventos con Google Calendar`
           );
-        } else {
-          toast.info('No hay eventos nuevos para sincronizar');
         }
       } else {
-        toast.error('Error al sincronizar algunos eventos');
+        if (errors.length > 0) {
+          // Hubo errores y no se sincronizó nada
+          toast.error('Error al sincronizar eventos', {
+            description: errors.join('. '),
+            duration: 5000,
+          });
+        } else {
+          // No hay nada para sincronizar
+          toast.info('No hay eventos nuevos para sincronizar');
+        }
       }
     } catch (error) {
       console.error('Error syncing:', error);
-      toast.error('Error al sincronizar eventos');
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
+      toast.error('Error al sincronizar eventos', {
+        description: errorMessage,
+        duration: 5000,
+      });
     } finally {
       setSyncing(false);
     }

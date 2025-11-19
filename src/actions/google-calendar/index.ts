@@ -121,7 +121,19 @@ export async function createAppointmentInGoogleCalendar(
     }
 
     // Obtener tokens de Google
-    const { accessToken, refreshToken } = await getUserGoogleTokens(userId);
+    let accessToken: string;
+    let refreshToken: string;
+    try {
+      const tokens = await getUserGoogleTokens(userId);
+      accessToken = tokens.accessToken;
+      refreshToken = tokens.refreshToken;
+    } catch (tokenError) {
+      const errorMessage = tokenError instanceof Error ? tokenError.message : 'Error al obtener tokens de Google Calendar';
+      return {
+        success: false,
+        error: errorMessage,
+      };
+    }
 
     // Construir el evento de Google Calendar
     const startDate = new Date(`${appointment.appointment_date}T${appointment.appointment_time}`);
@@ -253,7 +265,19 @@ export async function updateAppointmentInGoogleCalendar(
     }
 
     // Obtener tokens de Google
-    const { accessToken, refreshToken } = await getUserGoogleTokens(userId);
+    let accessToken: string;
+    let refreshToken: string;
+    try {
+      const tokens = await getUserGoogleTokens(userId);
+      accessToken = tokens.accessToken;
+      refreshToken = tokens.refreshToken;
+    } catch (tokenError) {
+      const errorMessage = tokenError instanceof Error ? tokenError.message : 'Error al obtener tokens de Google Calendar';
+      return {
+        success: false,
+        error: errorMessage,
+      };
+    }
 
     // Construir el evento actualizado
     const startDate = new Date(`${appointment.appointment_date}T${appointment.appointment_time}`);
@@ -352,7 +376,19 @@ export async function deleteAppointmentFromGoogleCalendar(
     }
 
     // Obtener tokens de Google
-    const { accessToken, refreshToken } = await getUserGoogleTokens(userId);
+    let accessToken: string;
+    let refreshToken: string;
+    try {
+      const tokens = await getUserGoogleTokens(userId);
+      accessToken = tokens.accessToken;
+      refreshToken = tokens.refreshToken;
+    } catch (tokenError) {
+      const errorMessage = tokenError instanceof Error ? tokenError.message : 'Error al obtener tokens de Google Calendar';
+      return {
+        success: false,
+        error: errorMessage,
+      };
+    }
 
     // Eliminar evento de Google Calendar
     const result = await deleteCalendarEvent(
@@ -384,7 +420,20 @@ export async function deleteAppointmentFromGoogleCalendar(
  */
 export async function listUserGoogleCalendarEvents(userId: string) {
   try {
-    const { accessToken, refreshToken } = await getUserGoogleTokens(userId);
+    // Obtener tokens de Google
+    let accessToken: string;
+    let refreshToken: string;
+    try {
+      const tokens = await getUserGoogleTokens(userId);
+      accessToken = tokens.accessToken;
+      refreshToken = tokens.refreshToken;
+    } catch (tokenError) {
+      const errorMessage = tokenError instanceof Error ? tokenError.message : 'Error al obtener tokens de Google Calendar';
+      return {
+        success: false,
+        error: errorMessage,
+      };
+    }
 
     // Listar eventos de los próximos 30 días
     const timeMin = new Date().toISOString();
@@ -418,7 +467,20 @@ export async function getGoogleCalendarEvent(
   eventId: string
 ) {
   try {
-    const { accessToken, refreshToken } = await getUserGoogleTokens(userId);
+    // Obtener tokens de Google
+    let accessToken: string;
+    let refreshToken: string;
+    try {
+      const tokens = await getUserGoogleTokens(userId);
+      accessToken = tokens.accessToken;
+      refreshToken = tokens.refreshToken;
+    } catch (tokenError) {
+      const errorMessage = tokenError instanceof Error ? tokenError.message : 'Error al obtener tokens de Google Calendar';
+      return {
+        success: false,
+        error: errorMessage,
+      };
+    }
 
     const result = await getCalendarEvent(accessToken, refreshToken, eventId);
 

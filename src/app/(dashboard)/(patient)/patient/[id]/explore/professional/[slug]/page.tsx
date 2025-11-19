@@ -1003,11 +1003,19 @@ export default function ProfessionalProfilePage() {
               {/* Botón de reservar */}
               <button
                 type="button"
-                onClick={() => setIsBookingModalOpen(true)}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  console.log('🔵 Click en botón Reservar cita');
+                  setIsBookingModalOpen(true);
+                  console.log('🔵 Estado isBookingModalOpen actualizado a:', true);
+                }}
                 onTouchEnd={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
+                  console.log('🔵 TouchEnd en botón Reservar cita');
                   setIsBookingModalOpen(true);
+                  console.log('🔵 Estado isBookingModalOpen actualizado a:', true);
                 }}
                 className="w-full h-11 sm:h-12 text-sm sm:text-base font-semibold rounded-xl bg-gradient-to-r from-green-300 to-green-400 hover:from-green-400 hover:to-green-500 shadow-lg text-white touch-manipulation flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:pointer-events-none"
                 style={{ 
@@ -1268,7 +1276,10 @@ export default function ProfessionalProfilePage() {
                   
                   <BookingDialog 
                     open={isBookingModalOpen} 
-                    onOpenChange={setIsBookingModalOpen}
+                    onOpenChange={(open) => {
+                      console.log('🔵 BookingDialog onOpenChange llamado con:', open);
+                      setIsBookingModalOpen(open);
+                    }}
                     title={`Reservar cita con ${professional?.first_name} ${professional?.last_name}`}
                   >
                     <div className="p-6">

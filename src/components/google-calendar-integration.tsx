@@ -85,11 +85,21 @@ export function GoogleCalendarIntegration({ userId }: { userId: string }) {
 
       const data = await response.json();
 
+      if (!response.ok) {
+        const errorMessage = data.details || data.error || 'Error desconocido';
+        console.error('Error al desconectar:', errorMessage);
+        toast.error(`Error al desconectar Google Calendar: ${errorMessage}`);
+        return;
+      }
+
       if (data.success) {
         toast.success('Google Calendar desconectado exitosamente');
         setStatus({ connected: false });
+        // Recargar el estado después de desconectar
+        fetchStatus();
       } else {
-        toast.error('Error al desconectar Google Calendar');
+        const errorMessage = data.details || data.error || 'Error desconocido';
+        toast.error(`Error al desconectar Google Calendar: ${errorMessage}`);
       }
     } catch (error) {
       console.error('Error disconnecting:', error);

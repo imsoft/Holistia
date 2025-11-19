@@ -26,7 +26,6 @@ import {
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { DashboardStats, Appointment } from "@/types";
 import { createClient } from "@/utils/supabase/client";
-import { AccountDeactivation } from "@/components/ui/account-deactivation";
 import { StripeConnectButton } from "@/components/ui/stripe-connect-button";
 import { AdminRatingDisplay } from "@/components/ui/admin-rating-display";
 
@@ -613,17 +612,6 @@ export default function ProfessionalDashboard() {
         {professionalId && (
           <div className="mt-6">
             <AdminRatingDisplay professionalId={professionalId} />
-          </div>
-        )}
-
-        {/* Desactivar cuenta */}
-        {professionalEmail && (
-          <div className="mt-8">
-            <AccountDeactivation
-              userId={userId}
-              userEmail={professionalEmail}
-              accountType="professional"
-            />
           </div>
         )}
 

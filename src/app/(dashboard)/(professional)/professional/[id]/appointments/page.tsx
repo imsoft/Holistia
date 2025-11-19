@@ -3,24 +3,10 @@
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import {
-  Calendar,
-  CalendarClock,
-  Clock,
-  User,
-  Phone,
-  Mail,
-  MapPin,
-  Filter,
-  Search,
-  Plus,
-  Eye,
-  CheckCircle,
-  XCircle,
-  AlertCircle,
-  Ban,
-  UserX,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
+  Plus,
 } from "lucide-react";
 import {
   startOfMonth,
@@ -33,19 +19,21 @@ import {
   subMonths,
   startOfWeek,
   endOfWeek,
+  addDays,
+  addWeeks,
+  subWeeks,
+  parseISO,
+  isToday,
 } from "date-fns";
 import { es } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Dialog,
   DialogContent,
@@ -61,27 +49,30 @@ import { RescheduleAppointmentDialog } from "@/components/appointments/reschedul
 import { CreateAppointmentDialog } from "@/components/appointments/create-appointment-dialog";
 import { toast } from "sonner";
 
+type CalendarView = "day" | "week" | "month";
+
+const viewLabels = {
+  day: "Vista de día",
+  week: "Vista de semana",
+  month: "Vista de mes",
+};
 
 export default function ProfessionalAppointments() {
   const params = useParams();
   const userId = params.id as string;
   const supabase = createClient();
-  
-  const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [dateFilter, setDateFilter] = useState("all");
+
+  const [view, setView] = useState<CalendarView>("month");
+  const [currentDate, setCurrentDate] = useState(new Date());
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
-  const [availableDates, setAvailableDates] = useState<string[]>([]);
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
-  const [professionalAppId, setProfessionalAppId] = useState<string>('');
-  const [currentMonth, setCurrentMonth] = useState(new Date());
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [professionalAppId, setProfessionalAppId] = useState<string>("");
   const [dialogState, setDialogState] = useState<{
     isOpen: boolean;
     appointmentId: string | null;
-    actionType: 'cancel' | 'no-show' | null;
+    actionType: "cancel" | "no-show" | null;
     appointmentDetails?: {
       professionalName?: string;
       patientName?: string;
@@ -107,8 +98,8 @@ export default function ProfessionalAppointments() {
   }>({
     isOpen: false,
     appointmentId: null,
-    currentDate: '',
-    currentTime: '',
+    currentDate: "",
+    currentTime: "",
   });
 
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -116,40 +107,24 @@ export default function ProfessionalAppointments() {
   useEffect(() => {
     const fetchAppointments = async () => {
       try {
-        // Obtener la aplicación profesional del usuario
         const { data: professionalApp, error: profError } = await supabase
-          .from('professional_applications')
-          .select('id')
-          .eq('user_id', userId)
-          .eq('status', 'approved')
+          .from("professional_applications")
+          .select("id")
+          .eq("user_id", userId)
+          .eq("status", "approved")
           .single();
 
-        if (profError) {
-          console.error('❌ Error obteniendo profesional:', profError);
-          console.error('❌ Detalles del error:', {
-            message: profError.message,
-            details: profError.details,
-            hint: profError.hint,
-            code: profError.code
-          });
+        if (profError || !professionalApp) {
+          console.error("Error obteniendo profesional:", profError);
           return;
         }
 
-        if (!professionalApp) {
-          console.error('❌ No se encontró aplicación profesional aprobada para user_id:', userId);
-          return;
-        }
-
-        console.log('✅ Professional app ID:', professionalApp.id);
-        console.log('🔍 Buscando citas con professional_id:', professionalApp.id);
-
-        // Guardar el ID del profesional en el estado
         setProfessionalAppId(professionalApp.id);
 
-        // Obtener todas las citas del profesional con información de pagos
         const { data: appointmentsData, error: appointmentsError } = await supabase
-          .from('appointments')
-          .select(`
+          .from("appointments")
+          .select(
+            `
             id,
             appointment_date,
             appointment_time,
@@ -162,97 +137,61 @@ export default function ProfessionalAppointments() {
             patient_id,
             professional_id,
             created_at
-          `)
-          .eq('professional_id', professionalApp.id)
-          .order('appointment_date', { ascending: true })
-          .order('appointment_time', { ascending: true });
+          `
+          )
+          .eq("professional_id", professionalApp.id)
+          .order("appointment_date", { ascending: true })
+          .order("appointment_time", { ascending: true });
 
-        if (appointmentsError) {
-          console.error('❌ Error obteniendo citas:', appointmentsError);
-          console.error('❌ Detalles del error:', {
-            message: appointmentsError.message,
-            details: appointmentsError.details,
-            hint: appointmentsError.hint,
-            code: appointmentsError.code
-          });
+        if (appointmentsError || !appointmentsData) {
+          console.error("Error obteniendo citas:", appointmentsError);
           return;
         }
 
-        console.log('📊 Appointments found:', appointmentsData?.length || 0);
-        if (appointmentsData && appointmentsData.length > 0) {
-          console.log('📋 Primera cita encontrada:', appointmentsData[0]);
-        }
+        const patientIds = [...new Set(appointmentsData.map((apt) => apt.patient_id))];
 
-        if (!appointmentsData || appointmentsData.length === 0) {
-          setAppointments([]);
-          setAvailableDates([]);
-          return;
-        }
+        const { data: patientsData } = await supabase
+          .from("professional_patient_info")
+          .select("patient_id, full_name, phone, email")
+          .eq("professional_id", professionalApp.id)
+          .in("patient_id", patientIds);
 
-        // Obtener fechas únicas para el filtro
-        const uniqueDates = [...new Set(appointmentsData.map(apt => apt.appointment_date))];
-        setAvailableDates(uniqueDates);
-
-        // Obtener información de los pacientes usando la vista segura
-        const patientIds = [...new Set(appointmentsData.map(apt => apt.patient_id))];
-        
-        const { data: patientsData, error: patientsError } = await supabase
-          .from('professional_patient_info')
-          .select('patient_id, full_name, phone, email')
-          .eq('professional_id', professionalApp.id)
-          .in('patient_id', patientIds);
-
-        if (patientsError) {
-          console.error('Error obteniendo información de pacientes:', patientsError);
-          console.error('Detalles:', {
-            message: patientsError.message,
-            details: patientsError.details,
-            hint: patientsError.hint,
-            code: patientsError.code
-          });
-        }
-
-        console.log('👥 Pacientes encontrados:', patientsData?.length || 0);
-
-        // Obtener información de pagos para todas las citas
-        const appointmentIds = appointmentsData.map(apt => apt.id);
+        const appointmentIds = appointmentsData.map((apt) => apt.id);
         const { data: paymentsData } = await supabase
-          .from('payments')
-          .select('appointment_id, status, amount')
-          .in('appointment_id', appointmentIds);
+          .from("payments")
+          .select("appointment_id, status, amount")
+          .in("appointment_id", appointmentIds);
 
-        console.log('💳 Pagos encontrados:', paymentsData?.length || 0);
+        const formattedAppointments: Appointment[] = appointmentsData.map((apt) => {
+          const patient = patientsData?.find((p) => p.patient_id === apt.patient_id);
 
-        // Formatear citas con información de pacientes y pagos
-        const formattedAppointments: Appointment[] = appointmentsData.map(apt => {
-          const patient = patientsData?.find(p => p.patient_id === apt.patient_id);
-          
-          // Verificar si tiene algún pago exitoso
-          const hasSuccessfulPayment = paymentsData?.some(
-            p => p.appointment_id === apt.id && p.status === 'succeeded'
-          ) || false;
-          
+          const hasSuccessfulPayment =
+            paymentsData?.some(
+              (p) => p.appointment_id === apt.id && p.status === "succeeded"
+            ) || false;
+
           return {
             id: apt.id,
             patient: {
               name: patient?.full_name || `Paciente`,
-              email: patient?.email || 'No disponible',
-              phone: patient?.phone || 'No disponible',
+              email: patient?.email || "No disponible",
+              phone: patient?.phone || "No disponible",
             },
             date: apt.appointment_date,
             time: apt.appointment_time.substring(0, 5),
             duration: apt.duration_minutes,
-            type: apt.appointment_type === 'presencial' ? 'Presencial' : 'Online',
+            type: apt.appointment_type === "presencial" ? "Presencial" : "Online",
             status: apt.status as "confirmed" | "pending" | "cancelled" | "completed",
-            location: apt.location || (apt.appointment_type === 'online' ? 'Online' : 'Sin especificar'),
+            location:
+              apt.location || (apt.appointment_type === "online" ? "Online" : "Sin especificar"),
             notes: apt.notes || undefined,
-            isPaid: hasSuccessfulPayment, // Nuevo campo
+            isPaid: hasSuccessfulPayment,
           };
         });
 
         setAppointments(formattedAppointments);
       } catch (error) {
-        console.error('Error inesperado:', error);
+        console.error("Error inesperado:", error);
       } finally {
         setLoading(false);
       }
@@ -261,18 +200,187 @@ export default function ProfessionalAppointments() {
     fetchAppointments();
   }, [userId, supabase]);
 
+  // Navegación
+  const handlePrevious = () => {
+    if (view === "day") {
+      setCurrentDate((prev) => addDays(prev, -1));
+    } else if (view === "week") {
+      setCurrentDate((prev) => subWeeks(prev, 1));
+    } else {
+      setCurrentDate((prev) => subMonths(prev, 1));
+    }
+  };
+
+  const handleNext = () => {
+    if (view === "day") {
+      setCurrentDate((prev) => addDays(prev, 1));
+    } else if (view === "week") {
+      setCurrentDate((prev) => addWeeks(prev, 1));
+    } else {
+      setCurrentDate((prev) => addMonths(prev, 1));
+    }
+  };
+
+  const handleToday = () => {
+    setCurrentDate(new Date());
+  };
+
+  // Funciones de citas
+  const getAppointmentsForDate = (date: Date) => {
+    return appointments.filter((apt) =>
+      isSameDay(parseISO(apt.date), date)
+    );
+  };
+
+  const getAppointmentsForDateAndTime = (date: Date, hour: number) => {
+    return appointments.filter((apt) => {
+      if (!isSameDay(parseISO(apt.date), date)) return false;
+      const aptHour = parseInt(apt.time.split(":")[0]);
+      return aptHour === hour;
+    });
+  };
+
+  const handleViewAppointment = (appointment: Appointment) => {
+    setSelectedAppointment(appointment);
+    setIsViewDialogOpen(true);
+  };
+
+  const handleConfirmAppointment = async (appointmentId: string) => {
+    try {
+      const response = await fetch("/api/appointments/confirm", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ appointmentId }),
+      });
+
+      if (!response.ok) {
+        console.error("Error confirmando cita");
+        return;
+      }
+
+      const result = await response.json();
+
+      if (result.success) {
+        setAppointments((prev) =>
+          prev.map((apt) =>
+            apt.id === appointmentId ? { ...apt, status: "confirmed" as const } : apt
+          )
+        );
+        console.log("Cita confirmada y email enviado al paciente");
+      }
+    } catch (error) {
+      console.error("Error inesperado:", error);
+    }
+  };
+
+  const openCancelDialog = (appointment: Appointment) => {
+    const patientName = appointment.patient?.name || "Paciente";
+    setDialogState({
+      isOpen: true,
+      appointmentId: appointment.id,
+      actionType: "cancel",
+      appointmentDetails: {
+        patientName: patientName,
+        date: new Date(appointment.date).toLocaleDateString("es-MX", {
+          weekday: "long",
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        }),
+        time: appointment.time.substring(0, 5),
+        cost: appointment.cost || 0,
+      },
+    });
+  };
+
+  const openNoShowDialog = (appointment: Appointment) => {
+    const patientName = appointment.patient?.name || "Paciente";
+    setDialogState({
+      isOpen: true,
+      appointmentId: appointment.id,
+      actionType: "no-show",
+      appointmentDetails: {
+        patientName: patientName,
+        date: new Date(appointment.date).toLocaleDateString("es-MX", {
+          weekday: "long",
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        }),
+        time: appointment.time.substring(0, 5),
+        cost: appointment.cost || 0,
+      },
+    });
+  };
+
+  const closeDialog = () => {
+    setDialogState({
+      isOpen: false,
+      appointmentId: null,
+      actionType: null,
+    });
+  };
+
+  const openRescheduleDialog = (appointment: Appointment) => {
+    const patientName = appointment.patient?.name || "Paciente";
+    setRescheduleDialogState({
+      isOpen: true,
+      appointmentId: appointment.id,
+      currentDate: appointment.date,
+      currentTime: appointment.time,
+      appointmentDetails: {
+        patientName: patientName,
+        cost: appointment.cost || 0,
+      },
+    });
+  };
+
+  const closeRescheduleDialog = () => {
+    setRescheduleDialogState({
+      isOpen: false,
+      appointmentId: null,
+      currentDate: "",
+      currentTime: "",
+    });
+  };
+
+  const handleRescheduleSuccess = () => {
+    closeRescheduleDialog();
+    window.location.reload();
+  };
+
+  const handleDialogSuccess = () => {
+    toast.success(
+      dialogState.actionType === "cancel"
+        ? "Cita cancelada exitosamente. El paciente recibirá un crédito."
+        : "Inasistencia reportada exitosamente."
+    );
+    window.location.reload();
+  };
+
+  const handleCreateDialogClose = () => {
+    setIsCreateDialogOpen(false);
+  };
+
+  const handleCreateSuccess = () => {
+    toast.success("Cita creada exitosamente");
+    window.location.reload();
+  };
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case "confirmed":
-        return "bg-green-100 text-green-800";
+        return "bg-green-100 text-green-800 border-green-200";
       case "pending":
-        return "bg-yellow-100 text-yellow-800";
+        return "bg-yellow-100 text-yellow-800 border-yellow-200";
       case "cancelled":
-        return "bg-red-100 text-red-800";
+        return "bg-red-100 text-red-800 border-red-200";
       case "completed":
-        return "bg-blue-100 text-blue-800";
+        return "bg-blue-100 text-blue-800 border-blue-200";
       default:
-        return "bg-gray-100 text-gray-800";
+        return "bg-gray-100 text-gray-800 border-gray-200";
     }
   };
 
@@ -291,655 +399,389 @@ export default function ProfessionalAppointments() {
     }
   };
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case "confirmed":
-        return <CheckCircle className="h-4 w-4" />;
-      case "pending":
-        return <AlertCircle className="h-4 w-4" />;
-      case "cancelled":
-        return <XCircle className="h-4 w-4" />;
-      case "completed":
-        return <CheckCircle className="h-4 w-4" />;
-      default:
-        return <AlertCircle className="h-4 w-4" />;
+  // Generar título según la vista
+  const getTitle = () => {
+    if (view === "day") {
+      return format(currentDate, "d 'de' MMMM, yyyy", { locale: es });
+    } else if (view === "week") {
+      const weekStart = startOfWeek(currentDate, { weekStartsOn: 0 });
+      const weekEnd = endOfWeek(currentDate, { weekStartsOn: 0 });
+      return `${format(weekStart, "d MMM", { locale: es })} - ${format(weekEnd, "d MMM yyyy", { locale: es })}`;
+    } else {
+      return format(currentDate, "MMMM yyyy", { locale: es });
     }
   };
 
-  const filteredAppointments = appointments.filter((appointment) => {
-    const matchesSearch = appointment.patient.name
-      .toLowerCase()
-      .includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === "all" || appointment.status === statusFilter;
+  // Renderizar vistas
+  const renderDayView = () => {
+    const hours = Array.from({ length: 24 }, (_, i) => i);
 
-    // Si hay una fecha seleccionada del calendario, usar esa
-    let matchesDate = true;
-    if (selectedDate) {
-      matchesDate = isSameDay(new Date(appointment.date), selectedDate);
-    } else if (dateFilter !== "all") {
-      matchesDate = appointment.date === dateFilter;
-    }
-
-    return matchesSearch && matchesStatus && matchesDate;
-  });
-
-  // Obtener días del mes actual para el calendario
-  const monthStart = startOfMonth(currentMonth);
-  const monthEnd = endOfMonth(currentMonth);
-  const calendarStart = startOfWeek(monthStart, { weekStartsOn: 0 });
-  const calendarEnd = endOfWeek(monthEnd, { weekStartsOn: 0 });
-  const calendarDays = eachDayOfInterval({ start: calendarStart, end: calendarEnd });
-
-  // Función para verificar si un día tiene citas
-  const getDayAppointmentCount = (day: Date) => {
-    return appointments.filter(apt => isSameDay(new Date(apt.date), day)).length;
-  };
-
-  // Función para manejar click en día del calendario
-  const handleDayClick = (day: Date) => {
-    if (isSameMonth(day, currentMonth)) {
-      const appointmentCount = getDayAppointmentCount(day);
-      if (appointmentCount > 0) {
-        setSelectedDate(day);
-        setDateFilter("all"); // Resetear filtro de fecha cuando se usa el calendario
-      }
-    }
-  };
-
-  // Función para navegar meses
-  const handlePreviousMonth = () => {
-    setCurrentMonth(prev => subMonths(prev, 1));
-  };
-
-  const handleNextMonth = () => {
-    setCurrentMonth(prev => addMonths(prev, 1));
-  };
-
-  // Función para limpiar selección de fecha
-  const handleClearDateSelection = () => {
-    setSelectedDate(null);
-  };
-
-  // Función para ver detalles de la cita
-  const handleViewAppointment = (appointment: Appointment) => {
-    setSelectedAppointment(appointment);
-    setIsViewDialogOpen(true);
-  };
-
-  // Función para confirmar una cita - usa el endpoint API que envía email al paciente
-  const handleConfirmAppointment = async (appointmentId: string) => {
-    try {
-      const response = await fetch('/api/appointments/confirm', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ appointmentId })
-      });
-
-      if (!response.ok) {
-        console.error('Error confirmando cita');
-        return;
-      }
-
-      const result = await response.json();
-
-      if (result.success) {
-        // Actualizar el estado local
-        setAppointments(prev =>
-          prev.map(apt =>
-            apt.id === appointmentId
-              ? { ...apt, status: 'confirmed' as const }
-              : apt
-          )
-        );
-        console.log('Cita confirmada y email enviado al paciente');
-      }
-    } catch (error) {
-      console.error('Error inesperado:', error);
-    }
-  };
-
-  // Función para crear nueva cita
-  const handleCreateAppointment = () => {
-    setIsCreateDialogOpen(true);
-  };
-
-  const handleCreateDialogClose = () => {
-    setIsCreateDialogOpen(false);
-  };
-
-  const handleCreateSuccess = () => {
-    toast.success('Cita creada exitosamente');
-    // Recargar la página para actualizar las citas
-    window.location.reload();
-  };
-
-  const openCancelDialog = (appointment: Appointment) => {
-    const patientName = appointment.patient?.name || 'Paciente';
-    setDialogState({
-      isOpen: true,
-      appointmentId: appointment.id,
-      actionType: 'cancel',
-      appointmentDetails: {
-        patientName: patientName,
-        date: new Date(appointment.date).toLocaleDateString('es-MX', {
-          weekday: 'long',
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric'
-        }),
-        time: appointment.time.substring(0, 5),
-        cost: appointment.cost || 0,
-      },
-    });
-  };
-
-  const openNoShowDialog = (appointment: Appointment) => {
-    const patientName = appointment.patient?.name || 'Paciente';
-    setDialogState({
-      isOpen: true,
-      appointmentId: appointment.id,
-      actionType: 'no-show',
-      appointmentDetails: {
-        patientName: patientName,
-        date: new Date(appointment.date).toLocaleDateString('es-MX', {
-          weekday: 'long',
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric'
-        }),
-        time: appointment.time.substring(0, 5),
-        cost: appointment.cost || 0,
-      },
-    });
-  };
-
-  const closeDialog = () => {
-    setDialogState({
-      isOpen: false,
-      appointmentId: null,
-      actionType: null,
-    });
-  };
-
-  const openRescheduleDialog = (appointment: Appointment) => {
-    const patientName = appointment.patient?.name || 'Paciente';
-    setRescheduleDialogState({
-      isOpen: true,
-      appointmentId: appointment.id,
-      currentDate: appointment.date,
-      currentTime: appointment.time,
-      appointmentDetails: {
-        patientName: patientName,
-        cost: appointment.cost || 0,
-      },
-    });
-  };
-
-  const closeRescheduleDialog = () => {
-    setRescheduleDialogState({
-      isOpen: false,
-      appointmentId: null,
-      currentDate: '',
-      currentTime: '',
-    });
-  };
-
-  const handleRescheduleSuccess = () => {
-    // Recargar las citas después de reprogramar
-    closeRescheduleDialog();
-
-    // Recargar la página para actualizar las citas
-    window.location.reload();
-  };
-
-  const handleDialogSuccess = () => {
-    // Recargar las citas después de una acción exitosa
-    toast.success(
-      dialogState.actionType === 'cancel'
-        ? 'Cita cancelada exitosamente. El paciente recibirá un crédito.'
-        : 'Inasistencia reportada exitosamente.'
-    );
-
-    // Recargar la página para actualizar las citas
-    window.location.reload();
-  };
-
-  return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="border-b border-border bg-card">
-        <div className="flex flex-col sm:flex-row sm:h-16 sm:items-center justify-between px-4 sm:px-6 py-4 sm:py-0 gap-3 sm:gap-0">
-          <div className="flex items-center gap-3 sm:gap-4">
-            <SidebarTrigger />
-            <div>
-              <h1 className="text-xl sm:text-2xl font-bold text-foreground">Citas</h1>
-              <p className="text-xs sm:text-sm text-muted-foreground">
-                Gestiona tus citas y horarios
-              </p>
-            </div>
+    return (
+      <div className="flex flex-col h-full">
+        <div className="flex-1 overflow-auto">
+          <div className="grid grid-cols-[auto_1fr] gap-0">
+            {hours.map((hour) => {
+              const appointmentsAtHour = getAppointmentsForDateAndTime(currentDate, hour);
+              return (
+                <div key={hour} className="contents">
+                  <div className="text-xs text-muted-foreground pr-4 py-2 text-right sticky left-0 bg-background">
+                    {format(new Date().setHours(hour, 0), "ha", { locale: es })}
+                  </div>
+                  <div className="border-t border-border py-2 min-h-[60px] relative">
+                    {appointmentsAtHour.length > 0 && (
+                      <div className="space-y-1">
+                        {appointmentsAtHour.map((apt) => (
+                          <button
+                            key={apt.id}
+                            onClick={() => handleViewAppointment(apt)}
+                            className={`w-full text-left px-3 py-2 rounded-md text-sm border ${getStatusColor(apt.status)} hover:opacity-80 transition-opacity`}
+                          >
+                            <div className="font-semibold">{apt.patient.name}</div>
+                            <div className="text-xs mt-1">
+                              {apt.time} • {apt.duration} min
+                            </div>
+                            <div className="text-xs">{apt.type}</div>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>
+    );
+  };
 
-      {/* Main Content */}
-      <div className="p-4 sm:p-6 space-y-6 sm:space-y-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Calendario */}
-          <div className="lg:col-span-1">
-            <Card>
-              <CardHeader className="px-4 sm:px-6 pt-4 sm:pt-6">
-                <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
-                  <Calendar className="h-4 w-4 sm:h-5 sm:w-5" />
-                  Calendario
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="px-4 sm:px-6 pb-4 sm:pb-6">
-                {/* Navegación del mes */}
-                <div className="flex items-center justify-between mb-4">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handlePreviousMonth}
-                  >
-                    <ChevronLeft className="h-4 w-4" />
-                  </Button>
-                  <h3 className="text-sm font-semibold capitalize">
-                    {format(currentMonth, 'MMMM yyyy', { locale: es })}
-                  </h3>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleNextMonth}
-                  >
-                    <ChevronRight className="h-4 w-4" />
-                  </Button>
+  const renderWeekView = () => {
+    const weekStart = startOfWeek(currentDate, { weekStartsOn: 0 });
+    const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
+    const hours = Array.from({ length: 24 }, (_, i) => i);
+
+    return (
+      <div className="flex flex-col h-full">
+        {/* Días de la semana */}
+        <div className="grid grid-cols-[auto_repeat(7,1fr)] gap-0 border-b border-border sticky top-0 bg-background z-10">
+          <div className="w-16" />
+          {weekDays.map((day, idx) => (
+            <div
+              key={idx}
+              className={`text-center py-3 border-l border-border ${
+                isToday(day) ? "bg-primary/5" : ""
+              }`}
+            >
+              <div className="text-xs text-muted-foreground uppercase">
+                {format(day, "EEE", { locale: es })}
+              </div>
+              <div
+                className={`text-2xl font-semibold ${
+                  isToday(day) ? "text-primary" : ""
+                }`}
+              >
+                {format(day, "d")}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Grid de horas */}
+        <div className="flex-1 overflow-auto">
+          <div className="grid grid-cols-[auto_repeat(7,1fr)] gap-0">
+            {hours.map((hour) => (
+              <div key={hour} className="contents">
+                <div className="text-xs text-muted-foreground pr-2 py-2 text-right w-16 sticky left-0 bg-background border-r border-border">
+                  {format(new Date().setHours(hour, 0), "ha", { locale: es })}
                 </div>
-
-                {/* Días de la semana */}
-                <div className="grid grid-cols-7 gap-1 mb-2">
-                  {['D', 'L', 'M', 'M', 'J', 'V', 'S'].map((day, idx) => (
+                {weekDays.map((day, dayIdx) => {
+                  const appointmentsAtHour = getAppointmentsForDateAndTime(day, hour);
+                  return (
                     <div
-                      key={idx}
-                      className="text-center text-xs font-medium text-muted-foreground p-2"
+                      key={dayIdx}
+                      className={`border-t border-l border-border min-h-[60px] p-1 ${
+                        isToday(day) ? "bg-primary/5" : ""
+                      }`}
                     >
-                      {day}
+                      {appointmentsAtHour.length > 0 && (
+                        <div className="space-y-1">
+                          {appointmentsAtHour.map((apt) => (
+                            <button
+                              key={apt.id}
+                              onClick={() => handleViewAppointment(apt)}
+                              className={`w-full text-left px-2 py-1 rounded text-xs border ${getStatusColor(apt.status)} hover:opacity-80 transition-opacity`}
+                            >
+                              <div className="font-semibold truncate">
+                                {apt.patient.name}
+                              </div>
+                              <div className="truncate">{apt.time}</div>
+                            </button>
+                          ))}
+                        </div>
+                      )}
                     </div>
-                  ))}
-                </div>
-
-                {/* Días del mes */}
-                <div className="grid grid-cols-7 gap-1">
-                  {calendarDays.map((day, idx) => {
-                    const appointmentCount = getDayAppointmentCount(day);
-                    const isCurrentMonth = isSameMonth(day, currentMonth);
-                    const isSelected = selectedDate && isSameDay(day, selectedDate);
-                    const isToday = isSameDay(day, new Date());
-
-                    return (
-                      <button
-                        key={idx}
-                        onClick={() => handleDayClick(day)}
-                        disabled={!isCurrentMonth || appointmentCount === 0}
-                        className={`
-                          relative p-2 text-sm rounded-md transition-colors
-                          ${!isCurrentMonth ? 'text-muted-foreground/30' : ''}
-                          ${isToday ? 'font-bold' : ''}
-                          ${isSelected ? 'bg-primary text-primary-foreground' : ''}
-                          ${appointmentCount > 0 && isCurrentMonth && !isSelected ? 'bg-blue-50 hover:bg-blue-100 text-blue-900 cursor-pointer' : ''}
-                          ${appointmentCount === 0 && isCurrentMonth ? 'hover:bg-muted/50 cursor-default' : ''}
-                          ${!isCurrentMonth ? 'cursor-default' : ''}
-                        `}
-                      >
-                        <span className="relative z-10">{format(day, 'd')}</span>
-                        {appointmentCount > 0 && isCurrentMonth && (
-                          <div className="absolute bottom-0.5 left-1/2 transform -translate-x-1/2 flex gap-0.5">
-                            {Array.from({ length: Math.min(appointmentCount, 3) }).map((_, i) => (
-                              <div
-                                key={i}
-                                className={`h-1 w-1 rounded-full ${
-                                  isSelected ? 'bg-primary-foreground' : 'bg-primary'
-                                }`}
-                              />
-                            ))}
-                          </div>
-                        )}
-                      </button>
-                    );
-                  })}
-                </div>
-
-                {/* Botón para limpiar selección */}
-                {selectedDate && (
-                  <div className="mt-4 pt-4 border-t">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleClearDateSelection}
-                      className="w-full"
-                    >
-                      Ver todas las citas
-                    </Button>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+                  );
+                })}
+              </div>
+            ))}
           </div>
+        </div>
+      </div>
+    );
+  };
 
-          {/* Filtros y lista de citas */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Filtros */}
-            <Card>
-              <CardHeader className="px-4 sm:px-6 pt-4 sm:pt-6">
-                <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
-                  <Filter className="h-4 w-4 sm:h-5 sm:w-5" />
-                  Filtros
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="px-4 sm:px-6 pb-4 sm:pb-6">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      placeholder="Buscar paciente..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-10 w-full"
-                    />
-                  </div>
-                  <Select value={statusFilter} onValueChange={setStatusFilter}>
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Estado" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Todos los estados</SelectItem>
-                      <SelectItem value="confirmed">Confirmada</SelectItem>
-                      <SelectItem value="pending">Pendiente</SelectItem>
-                      <SelectItem value="cancelled">Cancelada</SelectItem>
-                      <SelectItem value="completed">Completada</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                {selectedDate && (
-                  <div className="mt-3 text-sm text-muted-foreground">
-                    Mostrando citas del:{' '}
-                    <span className="font-semibold text-foreground">
-                      {format(selectedDate, "d 'de' MMMM, yyyy", { locale: es })}
-                    </span>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+  const renderMonthView = () => {
+    const monthStart = startOfMonth(currentDate);
+    const monthEnd = endOfMonth(currentDate);
+    const calendarStart = startOfWeek(monthStart, { weekStartsOn: 0 });
+    const calendarEnd = endOfWeek(monthEnd, { weekStartsOn: 0 });
+    const calendarDays = eachDayOfInterval({ start: calendarStart, end: calendarEnd });
 
-            {/* Appointments List */}
-            <div className="space-y-4 sm:space-y-6">
-              {loading ? (
-                <div className="text-center py-12">
-                  <div className="text-xs sm:text-sm text-muted-foreground">Cargando citas...</div>
-                </div>
-              ) : filteredAppointments.length > 0 ? (
-                filteredAppointments.map((appointment) => (
-                <Card key={appointment.id}>
-              <CardContent className="px-4 sm:px-6 py-4 sm:py-6">
-                <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
-                  <div className="flex items-start gap-3 sm:gap-4 flex-1">
-                    <div className="flex flex-col items-center gap-1 flex-shrink-0">
-                      <div className="flex items-center gap-2">
-                        <Clock className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
-                        <span className="text-xs sm:text-sm font-medium text-foreground">
-                          {appointment.time}
-                        </span>
-                      </div>
-                      <span className="text-[10px] sm:text-xs text-muted-foreground">
-                        {appointment.duration} min
-                      </span>
+    const weeks: Date[][] = [];
+    for (let i = 0; i < calendarDays.length; i += 7) {
+      weeks.push(calendarDays.slice(i, i + 7));
+    }
+
+    return (
+      <div className="flex flex-col h-full">
+        {/* Días de la semana */}
+        <div className="grid grid-cols-7 gap-0 border-b border-border">
+          {["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"].map((day, idx) => (
+            <div
+              key={idx}
+              className="text-center text-xs font-semibold text-muted-foreground py-3 border-r last:border-r-0 border-border"
+            >
+              {day}
+            </div>
+          ))}
+        </div>
+
+        {/* Días del mes */}
+        <div className="flex-1 grid grid-rows-[repeat(auto-fit,minmax(0,1fr))]">
+          {weeks.map((week, weekIdx) => (
+            <div key={weekIdx} className="grid grid-cols-7 gap-0 border-b last:border-b-0 border-border">
+              {week.map((day, dayIdx) => {
+                const dayAppointments = getAppointmentsForDate(day);
+                const isCurrentMonth = isSameMonth(day, currentDate);
+                const isDayToday = isToday(day);
+
+                return (
+                  <div
+                    key={dayIdx}
+                    className={`min-h-[120px] border-r last:border-r-0 border-border p-2 ${
+                      !isCurrentMonth ? "bg-muted/20" : ""
+                    } ${isDayToday ? "bg-primary/5" : ""}`}
+                  >
+                    <div
+                      className={`text-sm font-semibold mb-1 ${
+                        !isCurrentMonth
+                          ? "text-muted-foreground"
+                          : isDayToday
+                          ? "text-primary"
+                          : ""
+                      }`}
+                    >
+                      {format(day, "d")}
                     </div>
-                    
-                    <div className="flex-1 min-w-0">
-                      <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-3">
-                        <h3 className="text-base sm:text-lg font-semibold text-foreground truncate">
-                          {appointment.patient.name}
-                        </h3>
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <Badge className={`${getStatusColor(appointment.status)} text-xs`}>
-                            <div className="flex items-center gap-1">
-                              {getStatusIcon(appointment.status)}
-                              {getStatusText(appointment.status)}
-                            </div>
-                          </Badge>
-                          {/* Indicador de pago */}
-                          {appointment.isPaid ? (
-                            <Badge className="bg-green-500 hover:bg-green-600 text-white text-xs">
-                              <div className="flex items-center gap-1">
-                                <CheckCircle className="h-3 w-3" />
-                                Pagado
-                              </div>
-                            </Badge>
-                          ) : (
-                            <Badge variant="outline" className="border-amber-500 text-amber-700 text-xs">
-                              <div className="flex items-center gap-1">
-                                <AlertCircle className="h-3 w-3" />
-                                Sin pago
-                              </div>
-                            </Badge>
-                          )}
-                        </div>
-                      </div>
-                      
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 mb-3 sm:mb-4">
-                        <div className="space-y-2">
-                          <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
-                            <User className="h-3.5 w-3.5 sm:h-4 sm:w-4 flex-shrink-0" />
-                            <span>{appointment.type}</span>
+                    <div className="space-y-1">
+                      {dayAppointments.slice(0, 3).map((apt) => (
+                        <button
+                          key={apt.id}
+                          onClick={() => handleViewAppointment(apt)}
+                          className={`w-full text-left px-2 py-1 rounded text-xs border ${getStatusColor(apt.status)} hover:opacity-80 transition-opacity truncate`}
+                        >
+                          <div className="font-medium truncate">
+                            {apt.time} {apt.patient.name}
                           </div>
-                          <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
-                            <MapPin className="h-3.5 w-3.5 sm:h-4 sm:w-4 flex-shrink-0" />
-                            <span className="truncate">{appointment.location}</span>
-                          </div>
-                          <div className="flex items-start gap-2 text-xs sm:text-sm text-muted-foreground">
-                            <Calendar className="h-3.5 w-3.5 sm:h-4 sm:w-4 flex-shrink-0 mt-0.5" />
-                            <span>{new Date(appointment.date).toLocaleDateString('es-ES', {
-                              weekday: 'long',
-                              year: 'numeric',
-                              month: 'long',
-                              day: 'numeric'
-                            })}</span>
-                          </div>
-                        </div>
-                        
-                        <div className="space-y-2">
-                          <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
-                            <Phone className="h-3.5 w-3.5 sm:h-4 sm:w-4 flex-shrink-0" />
-                            <span>{appointment.patient.phone}</span>
-                          </div>
-                          <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
-                            <Mail className="h-3.5 w-3.5 sm:h-4 sm:w-4 flex-shrink-0" />
-                            <span className="truncate">{appointment.patient.email}</span>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      {appointment.notes && (
-                        <div className="bg-muted/50 rounded-lg p-2 sm:p-3">
-                          <p className="text-xs sm:text-sm text-muted-foreground">
-                            <strong>Notas:</strong> {appointment.notes}
-                          </p>
+                        </button>
+                      ))}
+                      {dayAppointments.length > 3 && (
+                        <div className="text-xs text-muted-foreground px-2">
+                          +{dayAppointments.length - 3} más
                         </div>
                       )}
                     </div>
                   </div>
-                  
-                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 lg:flex-col lg:items-end">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleViewAppointment(appointment)}
-                      className="w-full sm:w-auto"
-                    >
-                      <Eye className="h-3.5 w-3.5 sm:h-4 sm:w-4 sm:mr-2" />
-                      <span className="sm:inline">Ver</span>
-                    </Button>
-                    {appointment.status === "pending" && (
-                      <Button
-                        size="sm"
-                        onClick={() => handleConfirmAppointment(appointment.id)}
-                        className="w-full sm:w-auto"
-                      >
-                        <CheckCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 sm:mr-2" />
-                        <span className="sm:inline">Confirmar</span>
-                      </Button>
-                    )}
-                    {appointment.status === "confirmed" && (
-                      <>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => openRescheduleDialog(appointment)}
-                          className="w-full sm:w-auto"
-                        >
-                          <CalendarClock className="h-3.5 w-3.5 sm:h-4 sm:w-4 sm:mr-2" />
-                          <span className="sm:inline">Reprogramar</span>
-                        </Button>
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          onClick={() => openCancelDialog(appointment)}
-                          className="w-full sm:w-auto"
-                        >
-                          <Ban className="h-3.5 w-3.5 sm:h-4 sm:w-4 sm:mr-2" />
-                          <span className="sm:inline">Cancelar</span>
-                        </Button>
-                        {/* Mostrar botón de no-show solo si la cita ya pasó */}
-                        {new Date(`${appointment.date}T${appointment.time}`) < new Date() && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => openNoShowDialog(appointment)}
-                            className="w-full sm:w-auto"
-                          >
-                            <UserX className="h-3.5 w-3.5 sm:h-4 sm:w-4 sm:mr-2" />
-                            <span className="sm:inline">No asistió</span>
-                          </Button>
-                        )}
-                      </>
-                    )}
-                  </div>
-                </div>
-              </CardContent>
-                </Card>
-              ))
-              ) : (
-              <Card>
-                <CardContent className="px-4 sm:px-8 py-12 text-center">
-                  <Calendar className="h-10 w-10 sm:h-12 sm:w-12 text-muted-foreground mx-auto mb-3 sm:mb-4" />
-                  <h3 className="text-base sm:text-lg font-semibold text-foreground mb-2">
-                    No se encontraron citas
-                  </h3>
-                  <p className="text-xs sm:text-sm text-muted-foreground max-w-md mx-auto">
-                    No hay citas que coincidan con los filtros seleccionados.
-                  </p>
-                </CardContent>
-              </Card>
-              )}
+                );
+              })}
             </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-muted-foreground">Cargando calendario...</div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col h-screen bg-background">
+      {/* Header */}
+      <div className="border-b border-border bg-card">
+        <div className="flex h-16 items-center justify-between px-6">
+          <div className="flex items-center gap-4">
+            <SidebarTrigger />
+            <h1 className="text-2xl font-bold">Calendario de Citas</h1>
           </div>
+          <Button onClick={() => setIsCreateDialogOpen(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            Nueva cita
+          </Button>
         </div>
       </div>
 
-      {/* Modal para ver detalles de la cita */}
+      {/* Toolbar */}
+      <div className="border-b border-border bg-card">
+        <div className="flex items-center justify-between px-6 py-4">
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <Button variant="outline" size="sm" onClick={handlePrevious}>
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <Button variant="outline" size="sm" onClick={handleToday}>
+                Hoy
+              </Button>
+              <Button variant="outline" size="sm" onClick={handleNext}>
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+            <h2 className="text-lg font-semibold capitalize">{getTitle()}</h2>
+          </div>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline">
+                {viewLabels[view]}
+                <ChevronDown className="ml-2 h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => setView("day")}>
+                Vista de día
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setView("week")}>
+                Vista de semana
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setView("month")}>
+                Vista de mes
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      </div>
+
+      {/* Calendar */}
+      <div className="flex-1 overflow-hidden p-6">
+        <div className="h-full bg-card border border-border rounded-lg overflow-hidden">
+          {view === "day" && renderDayView()}
+          {view === "week" && renderWeekView()}
+          {view === "month" && renderMonthView()}
+        </div>
+      </div>
+
+      {/* Dialogs */}
       <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle className="text-base sm:text-lg">Detalles de la Cita</DialogTitle>
-            <DialogDescription className="text-xs sm:text-sm">
+            <DialogTitle>Detalles de la Cita</DialogTitle>
+            <DialogDescription>
               Información completa de la cita seleccionada
             </DialogDescription>
           </DialogHeader>
-          
+
           {selectedAppointment && (
-            <div className="space-y-4 sm:space-y-6">
-              {/* Información del paciente */}
-              <div className="bg-muted/50 rounded-lg p-3 sm:p-4">
-                <h3 className="text-base sm:text-lg font-semibold mb-2 sm:mb-3">Información del Paciente</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
-                  <div className="flex items-center gap-2 text-xs sm:text-sm">
-                    <User className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
-                    <span className="font-medium">Nombre:</span>
-                    <span className="truncate">{selectedAppointment.patient.name}</span>
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <div className="text-sm font-medium text-muted-foreground">
+                    Paciente
                   </div>
-                  <div className="flex items-center gap-2 text-xs sm:text-sm">
-                    <Mail className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
-                    <span className="font-medium">Email:</span>
-                    <span className="truncate">{selectedAppointment.patient.email}</span>
+                  <div className="text-base">{selectedAppointment.patient.name}</div>
+                </div>
+                <div>
+                  <div className="text-sm font-medium text-muted-foreground">
+                    Estado
                   </div>
-                  <div className="flex items-center gap-2 text-xs sm:text-sm">
-                    <Phone className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
-                    <span className="font-medium">Teléfono:</span>
-                    <span>{selectedAppointment.patient.phone}</span>
+                  <Badge className={getStatusColor(selectedAppointment.status)}>
+                    {getStatusText(selectedAppointment.status)}
+                  </Badge>
+                </div>
+                <div>
+                  <div className="text-sm font-medium text-muted-foreground">Fecha</div>
+                  <div className="text-base">
+                    {format(parseISO(selectedAppointment.date), "d 'de' MMMM, yyyy", {
+                      locale: es,
+                    })}
                   </div>
                 </div>
-              </div>
-
-              {/* Información de la cita */}
-              <div className="bg-muted/50 rounded-lg p-3 sm:p-4">
-                <h3 className="text-base sm:text-lg font-semibold mb-2 sm:mb-3">Información de la Cita</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
-                  <div className="flex items-start gap-2 text-xs sm:text-sm">
-                    <Calendar className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0 mt-0.5" />
-                    <div className="flex flex-col sm:flex-row sm:gap-1">
-                      <span className="font-medium">Fecha:</span>
-                      <span className="text-muted-foreground">{new Date(selectedAppointment.date).toLocaleDateString('es-ES', {
-                        weekday: 'long',
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric'
-                      })}</span>
+                <div>
+                  <div className="text-sm font-medium text-muted-foreground">Hora</div>
+                  <div className="text-base">{selectedAppointment.time}</div>
+                </div>
+                <div>
+                  <div className="text-sm font-medium text-muted-foreground">
+                    Duración
+                  </div>
+                  <div className="text-base">{selectedAppointment.duration} minutos</div>
+                </div>
+                <div>
+                  <div className="text-sm font-medium text-muted-foreground">Tipo</div>
+                  <div className="text-base">{selectedAppointment.type}</div>
+                </div>
+                <div className="col-span-2">
+                  <div className="text-sm font-medium text-muted-foreground">
+                    Ubicación
+                  </div>
+                  <div className="text-base">{selectedAppointment.location}</div>
+                </div>
+                {selectedAppointment.notes && (
+                  <div className="col-span-2">
+                    <div className="text-sm font-medium text-muted-foreground">
+                      Notas
                     </div>
+                    <div className="text-base">{selectedAppointment.notes}</div>
                   </div>
-                  <div className="flex items-center gap-2 text-xs sm:text-sm">
-                    <Clock className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
-                    <span className="font-medium">Hora:</span>
-                    <span>{selectedAppointment.time}</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-xs sm:text-sm">
-                    <span className="font-medium">Duración:</span>
-                    <span>{selectedAppointment.duration} minutos</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-xs sm:text-sm">
-                    <span className="font-medium">Tipo:</span>
-                    <span>{selectedAppointment.type}</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-xs sm:text-sm">
-                    <MapPin className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0" />
-                    <span className="font-medium">Ubicación:</span>
-                    <span className="truncate">{selectedAppointment.location}</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-xs sm:text-sm">
-                    <span className="font-medium">Estado:</span>
-                    <Badge className={`${getStatusColor(selectedAppointment.status)} text-xs`}>
-                      <div className="flex items-center gap-1">
-                        {getStatusIcon(selectedAppointment.status)}
-                        {getStatusText(selectedAppointment.status)}
-                      </div>
-                    </Badge>
-                  </div>
-                </div>
+                )}
               </div>
 
-              {/* Notas */}
-              {selectedAppointment.notes && (
-                <div className="bg-muted/50 rounded-lg p-3 sm:p-4">
-                  <h3 className="text-base sm:text-lg font-semibold mb-2 sm:mb-3">Notas</h3>
-                  <p className="text-xs sm:text-sm text-muted-foreground">{selectedAppointment.notes}</p>
-                </div>
-              )}
+              <div className="flex gap-2 pt-4 border-t">
+                {selectedAppointment.status === "pending" && (
+                  <Button
+                    onClick={() => handleConfirmAppointment(selectedAppointment.id)}
+                    className="flex-1"
+                  >
+                    Confirmar cita
+                  </Button>
+                )}
+                {selectedAppointment.status === "confirmed" && (
+                  <>
+                    <Button
+                      variant="outline"
+                      onClick={() => openRescheduleDialog(selectedAppointment)}
+                      className="flex-1"
+                    >
+                      Reprogramar
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      onClick={() => openCancelDialog(selectedAppointment)}
+                      className="flex-1"
+                    >
+                      Cancelar cita
+                    </Button>
+                  </>
+                )}
+              </div>
             </div>
           )}
         </DialogContent>
       </Dialog>
 
-      {/* Dialog para cancelar o marcar no-show */}
       {dialogState.isOpen && dialogState.appointmentId && dialogState.actionType && (
         <AppointmentActionsDialog
           isOpen={dialogState.isOpen}
@@ -952,7 +794,6 @@ export default function ProfessionalAppointments() {
         />
       )}
 
-      {/* Dialog para reprogramar */}
       {rescheduleDialogState.isOpen && rescheduleDialogState.appointmentId && (
         <RescheduleAppointmentDialog
           isOpen={rescheduleDialogState.isOpen}
@@ -966,7 +807,6 @@ export default function ProfessionalAppointments() {
         />
       )}
 
-      {/* Dialog para crear nueva cita */}
       <CreateAppointmentDialog
         isOpen={isCreateDialogOpen}
         onClose={handleCreateDialogClose}

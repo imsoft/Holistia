@@ -1002,7 +1002,12 @@ export default function ProfessionalProfilePage() {
               {/* Botón de reservar */}
               <Button
                 onClick={() => setIsBookingModalOpen(true)}
-                className="w-full h-11 sm:h-12 text-sm sm:text-base font-semibold rounded-xl bg-gradient-to-r from-green-300 to-green-400 hover:from-green-400 hover:to-green-500 shadow-lg text-white"
+                onTouchEnd={(e) => {
+                  e.preventDefault();
+                  setIsBookingModalOpen(true);
+                }}
+                className="w-full h-11 sm:h-12 text-sm sm:text-base font-semibold rounded-xl bg-gradient-to-r from-green-300 to-green-400 hover:from-green-400 hover:to-green-500 shadow-lg text-white touch-manipulation"
+                style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
               >
                 <Calendar className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                 Reservar cita
@@ -1231,7 +1236,12 @@ export default function ProfessionalProfilePage() {
                 <div className="space-y-2 sm:space-y-3">
                   <Button
                     onClick={() => setIsBookingModalOpen(true)}
-                    className="w-full h-11 sm:h-12 text-sm sm:text-base font-semibold rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 shadow-lg text-white"
+                    onTouchEnd={(e) => {
+                      e.preventDefault();
+                      setIsBookingModalOpen(true);
+                    }}
+                    className="w-full h-11 sm:h-12 text-sm sm:text-base font-semibold rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 shadow-lg text-white touch-manipulation"
+                    style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
                   >
                     <Calendar className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                     Reservar cita
@@ -1432,15 +1442,28 @@ export default function ProfessionalProfilePage() {
                                     variant="outline"
                                     size="lg"
                                     onClick={() => setIsBookingModalOpen(false)}
-                                    className="w-full sm:w-auto h-12 text-base order-2 sm:order-1"
+                                    onTouchEnd={(e) => {
+                                      e.preventDefault();
+                                      setIsBookingModalOpen(false);
+                                    }}
+                                    className="w-full sm:w-auto h-12 text-base order-2 sm:order-1 touch-manipulation"
+                                    style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
                                   >
                                     Cancelar
                                   </Button>
                                   <Button
                                     size="lg"
                                     onClick={handleBookingSubmit}
+                                    onTouchEnd={(e) => {
+                                      if (!selectedDate || !selectedTime || !selectedService || bookingLoading) {
+                                        return;
+                                      }
+                                      e.preventDefault();
+                                      handleBookingSubmit();
+                                    }}
                                     disabled={!selectedDate || !selectedTime || !selectedService || bookingLoading}
-                                    className="w-full sm:w-auto h-12 text-base font-semibold order-1 sm:order-2"
+                                    className="w-full sm:w-auto h-12 text-base font-semibold order-1 sm:order-2 touch-manipulation"
+                                    style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
                                   >
                                     {bookingLoading ? 'Reservando...' : 'Confirmar reserva'}
                                   </Button>

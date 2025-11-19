@@ -122,8 +122,7 @@ const HomeUserPage = () => {
           .eq("status", "approved")
           .eq("registration_fee_paid", true)
           .gt("registration_fee_expires_at", new Date().toISOString())
-          .order("created_at", { ascending: false })
-          .limit(20);
+          .order("created_at", { ascending: false });
 
         if (professionalsError) {
           console.error("Error fetching professionals:", professionalsError);
@@ -419,7 +418,7 @@ const HomeUserPage = () => {
                       <Card className="hover:shadow-lg hover:-translate-y-2 transition-all duration-300 overflow-hidden cursor-pointer h-full flex flex-col">
                         <div className="relative w-full h-48">
                           <StableImage
-                            src={event.gallery_images?.[0] || event.image_url || ""}
+                            src={(event.gallery_images && event.gallery_images.length > 0 && event.gallery_images[0]) || event.image_url || ""}
                             alt={event.name}
                             fill
                             className="object-cover"

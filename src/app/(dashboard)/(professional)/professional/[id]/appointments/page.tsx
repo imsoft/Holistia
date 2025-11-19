@@ -19,7 +19,22 @@ import {
   AlertCircle,
   Ban,
   UserX,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
+import {
+  startOfMonth,
+  endOfMonth,
+  eachDayOfInterval,
+  format,
+  isSameMonth,
+  isSameDay,
+  addMonths,
+  subMonths,
+  startOfWeek,
+  endOfWeek,
+} from "date-fns";
+import { es } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -61,6 +76,8 @@ export default function ProfessionalAppointments() {
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [professionalAppId, setProfessionalAppId] = useState<string>('');
+  const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [dialogState, setDialogState] = useState<{
     isOpen: boolean;
     appointmentId: string | null;
@@ -294,10 +311,54 @@ export default function ProfessionalAppointments() {
       .toLowerCase()
       .includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === "all" || appointment.status === statusFilter;
-    const matchesDate = dateFilter === "all" || appointment.date === dateFilter;
-    
+
+    // Si hay una fecha seleccionada del calendario, usar esa
+    let matchesDate = true;
+    if (selectedDate) {
+      matchesDate = isSameDay(new Date(appointment.date), selectedDate);
+    } else if (dateFilter !== "all") {
+      matchesDate = appointment.date === dateFilter;
+    }
+
     return matchesSearch && matchesStatus && matchesDate;
   });
+
+  // Obtener días del mes actual para el calendario
+  const monthStart = startOfMonth(currentMonth);
+  const monthEnd = endOfMonth(currentMonth);
+  const calendarStart = startOfWeek(monthStart, { weekStartsOn: 0 });
+  const calendarEnd = endOfWeek(monthEnd, { weekStartsOn: 0 });
+  const calendarDays = eachDayOfInterval({ start: calendarStart, end: calendarEnd });
+
+  // Función para verificar si un día tiene citas
+  const getDayAppointmentCount = (day: Date) => {
+    return appointments.filter(apt => isSameDay(new Date(apt.date), day)).length;
+  };
+
+  // Función para manejar click en día del calendario
+  const handleDayClick = (day: Date) => {
+    if (isSameMonth(day, currentMonth)) {
+      const appointmentCount = getDayAppointmentCount(day);
+      if (appointmentCount > 0) {
+        setSelectedDate(day);
+        setDateFilter("all"); // Resetear filtro de fecha cuando se usa el calendario
+      }
+    }
+  };
+
+  // Función para navegar meses
+  const handlePreviousMonth = () => {
+    setCurrentMonth(prev => subMonths(prev, 1));
+  };
+
+  const handleNextMonth = () => {
+    setCurrentMonth(prev => addMonths(prev, 1));
+  };
+
+  // Función para limpiar selección de fecha
+  const handleClearDateSelection = () => {
+    setSelectedDate(null);
+  };
 
   // Función para ver detalles de la cita
   const handleViewAppointment = (appointment: Appointment) => {
@@ -464,67 +525,162 @@ export default function ProfessionalAppointments() {
 
       {/* Main Content */}
       <div className="p-4 sm:p-6 space-y-6 sm:space-y-8">
-        {/* Filters */}
-        <Card>
-          <CardHeader className="px-4 sm:px-6 pt-4 sm:pt-6">
-            <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
-              <Filter className="h-4 w-4 sm:h-5 sm:w-5" />
-              Filtros
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="px-4 sm:px-6 pb-4 sm:pb-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Buscar paciente..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 w-full"
-                />
-              </div>
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Estado" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos los estados</SelectItem>
-                  <SelectItem value="confirmed">Confirmada</SelectItem>
-                  <SelectItem value="pending">Pendiente</SelectItem>
-                  <SelectItem value="cancelled">Cancelada</SelectItem>
-                  <SelectItem value="completed">Completada</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select value={dateFilter} onValueChange={setDateFilter}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Fecha" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todas las fechas</SelectItem>
-                  {availableDates.map(date => (
-                    <SelectItem key={date} value={date}>
-                      {new Date(date).toLocaleDateString('es-ES', {
-                        day: 'numeric',
-                        month: 'short',
-                        year: 'numeric'
-                      })}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </CardContent>
-        </Card>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Calendario */}
+          <div className="lg:col-span-1">
+            <Card>
+              <CardHeader className="px-4 sm:px-6 pt-4 sm:pt-6">
+                <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                  <Calendar className="h-4 w-4 sm:h-5 sm:w-5" />
+                  Calendario
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="px-4 sm:px-6 pb-4 sm:pb-6">
+                {/* Navegación del mes */}
+                <div className="flex items-center justify-between mb-4">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handlePreviousMonth}
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  <h3 className="text-sm font-semibold capitalize">
+                    {format(currentMonth, 'MMMM yyyy', { locale: es })}
+                  </h3>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleNextMonth}
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
 
-        {/* Appointments List */}
-        <div className="space-y-4 sm:space-y-6">
-          {loading ? (
-            <div className="text-center py-12">
-              <div className="text-xs sm:text-sm text-muted-foreground">Cargando citas...</div>
-            </div>
-          ) : filteredAppointments.length > 0 ? (
-            filteredAppointments.map((appointment) => (
-            <Card key={appointment.id}>
+                {/* Días de la semana */}
+                <div className="grid grid-cols-7 gap-1 mb-2">
+                  {['D', 'L', 'M', 'M', 'J', 'V', 'S'].map((day, idx) => (
+                    <div
+                      key={idx}
+                      className="text-center text-xs font-medium text-muted-foreground p-2"
+                    >
+                      {day}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Días del mes */}
+                <div className="grid grid-cols-7 gap-1">
+                  {calendarDays.map((day, idx) => {
+                    const appointmentCount = getDayAppointmentCount(day);
+                    const isCurrentMonth = isSameMonth(day, currentMonth);
+                    const isSelected = selectedDate && isSameDay(day, selectedDate);
+                    const isToday = isSameDay(day, new Date());
+
+                    return (
+                      <button
+                        key={idx}
+                        onClick={() => handleDayClick(day)}
+                        disabled={!isCurrentMonth || appointmentCount === 0}
+                        className={`
+                          relative p-2 text-sm rounded-md transition-colors
+                          ${!isCurrentMonth ? 'text-muted-foreground/30' : ''}
+                          ${isToday ? 'font-bold' : ''}
+                          ${isSelected ? 'bg-primary text-primary-foreground' : ''}
+                          ${appointmentCount > 0 && isCurrentMonth && !isSelected ? 'bg-blue-50 hover:bg-blue-100 text-blue-900 cursor-pointer' : ''}
+                          ${appointmentCount === 0 && isCurrentMonth ? 'hover:bg-muted/50 cursor-default' : ''}
+                          ${!isCurrentMonth ? 'cursor-default' : ''}
+                        `}
+                      >
+                        <span className="relative z-10">{format(day, 'd')}</span>
+                        {appointmentCount > 0 && isCurrentMonth && (
+                          <div className="absolute bottom-0.5 left-1/2 transform -translate-x-1/2 flex gap-0.5">
+                            {Array.from({ length: Math.min(appointmentCount, 3) }).map((_, i) => (
+                              <div
+                                key={i}
+                                className={`h-1 w-1 rounded-full ${
+                                  isSelected ? 'bg-primary-foreground' : 'bg-primary'
+                                }`}
+                              />
+                            ))}
+                          </div>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Botón para limpiar selección */}
+                {selectedDate && (
+                  <div className="mt-4 pt-4 border-t">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleClearDateSelection}
+                      className="w-full"
+                    >
+                      Ver todas las citas
+                    </Button>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Filtros y lista de citas */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Filtros */}
+            <Card>
+              <CardHeader className="px-4 sm:px-6 pt-4 sm:pt-6">
+                <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                  <Filter className="h-4 w-4 sm:h-5 sm:w-5" />
+                  Filtros
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="px-4 sm:px-6 pb-4 sm:pb-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Buscar paciente..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-10 w-full"
+                    />
+                  </div>
+                  <Select value={statusFilter} onValueChange={setStatusFilter}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Estado" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos los estados</SelectItem>
+                      <SelectItem value="confirmed">Confirmada</SelectItem>
+                      <SelectItem value="pending">Pendiente</SelectItem>
+                      <SelectItem value="cancelled">Cancelada</SelectItem>
+                      <SelectItem value="completed">Completada</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                {selectedDate && (
+                  <div className="mt-3 text-sm text-muted-foreground">
+                    Mostrando citas del:{' '}
+                    <span className="font-semibold text-foreground">
+                      {format(selectedDate, "d 'de' MMMM, yyyy", { locale: es })}
+                    </span>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Appointments List */}
+            <div className="space-y-4 sm:space-y-6">
+              {loading ? (
+                <div className="text-center py-12">
+                  <div className="text-xs sm:text-sm text-muted-foreground">Cargando citas...</div>
+                </div>
+              ) : filteredAppointments.length > 0 ? (
+                filteredAppointments.map((appointment) => (
+                <Card key={appointment.id}>
               <CardContent className="px-4 sm:px-6 py-4 sm:py-6">
                 <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
                   <div className="flex items-start gap-3 sm:gap-4 flex-1">
@@ -671,21 +827,23 @@ export default function ProfessionalAppointments() {
                   </div>
                 </div>
               </CardContent>
-            </Card>
-          ))
-          ) : (
-          <Card>
-            <CardContent className="px-4 sm:px-8 py-12 text-center">
-              <Calendar className="h-10 w-10 sm:h-12 sm:w-12 text-muted-foreground mx-auto mb-3 sm:mb-4" />
-              <h3 className="text-base sm:text-lg font-semibold text-foreground mb-2">
-                No se encontraron citas
-              </h3>
-              <p className="text-xs sm:text-sm text-muted-foreground max-w-md mx-auto">
-                No hay citas que coincidan con los filtros seleccionados.
-              </p>
-            </CardContent>
-          </Card>
-          )}
+                </Card>
+              ))
+              ) : (
+              <Card>
+                <CardContent className="px-4 sm:px-8 py-12 text-center">
+                  <Calendar className="h-10 w-10 sm:h-12 sm:w-12 text-muted-foreground mx-auto mb-3 sm:mb-4" />
+                  <h3 className="text-base sm:text-lg font-semibold text-foreground mb-2">
+                    No se encontraron citas
+                  </h3>
+                  <p className="text-xs sm:text-sm text-muted-foreground max-w-md mx-auto">
+                    No hay citas que coincidan con los filtros seleccionados.
+                  </p>
+                </CardContent>
+              </Card>
+              )}
+            </div>
+          </div>
         </div>
       </div>
 

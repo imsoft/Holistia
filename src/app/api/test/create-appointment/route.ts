@@ -23,11 +23,22 @@ export async function POST(request: NextRequest) {
       notes = 'Cita de prueba',
     } = body;
 
+    // Verificar que las variables de entorno estén configuradas
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+    if (!supabaseUrl || !serviceRoleKey) {
+      return NextResponse.json(
+        { 
+          error: 'Configuración faltante', 
+          details: 'NEXT_PUBLIC_SUPABASE_URL o SUPABASE_SERVICE_ROLE_KEY no están configuradas' 
+        },
+        { status: 500 }
+      );
+    }
+
     // Usar service role key para evitar restricciones de RLS en ruta de test
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
+    const supabase = createClient(supabaseUrl, serviceRoleKey);
     let appointment;
     let professionalAppId;
 

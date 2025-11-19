@@ -7,6 +7,7 @@ import { Filters } from "@/components/ui/filters";
 import { ProfessionalCard } from "@/components/ui/professional-card";
 import { createClient } from "@/utils/supabase/client";
 import { determineProfessionalModality, transformServicesFromDB } from "@/utils/professional-utils";
+import { sortProfessionalsByRanking, type ProfessionalRankingData } from "@/utils/professional-ranking";
 
 interface Professional {
   id: string;
@@ -123,6 +124,13 @@ export default function ProfessionalsPage() {
               .eq("professional_id", prof.id)
               .maybeSingle();
 
+            // Obtener número de citas completadas para el ranking
+            const { count: completedAppointmentsCount } = await supabase
+              .from("appointments")
+              .select("*", { count: "exact", head: true })
+              .eq("professional_id", prof.id)
+              .eq("status", "completed");
+
             if (adminRatingError && adminRatingError.code !== 'PGRST116' && adminRatingError.message !== 'Not Acceptable') {
               console.error("Error loading admin rating:", adminRatingError);
             }
@@ -138,23 +146,15 @@ export default function ProfessionalsPage() {
               imagePosition: prof.image_position || "center center",
               average_rating: reviewStats?.average_rating || undefined,
               total_reviews: reviewStats?.total_reviews || undefined,
-              admin_rating: adminRatingData?.average_admin_rating || undefined
+              admin_rating: adminRatingData?.average_admin_rating || undefined,
+              completed_appointments: completedAppointmentsCount || 0,
+              is_active: prof.is_active !== false
             };
           })
         );
 
-        const sortedProfessionals = professionalsWithServices.sort((a, b) => {
-          if (a.admin_rating !== undefined && b.admin_rating !== undefined) {
-            return b.admin_rating - a.admin_rating;
-          }
-          if (a.admin_rating !== undefined && b.admin_rating === undefined) {
-            return -1;
-          }
-          if (a.admin_rating === undefined && b.admin_rating !== undefined) {
-            return 1;
-          }
-          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-        });
+        // Usar algoritmo de ranking para ordenar profesionales
+        const sortedProfessionals = sortProfessionalsByRanking(professionalsWithServices);
 
         setProfessionals(sortedProfessionals);
         setFilteredProfessionals(sortedProfessionals);

@@ -1001,14 +1001,18 @@ export default function ProfessionalProfilePage() {
               </div>
 
               {/* Botón de reservar */}
-              <button
-                type="button"
+              <div
+                role="button"
+                tabIndex={0}
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
                   console.log('🔵 Click en botón Reservar cita');
                   setIsBookingModalOpen(true);
                   console.log('🔵 Estado isBookingModalOpen actualizado a:', true);
+                }}
+                onTouchStart={(e) => {
+                  e.stopPropagation();
                 }}
                 onTouchEnd={(e) => {
                   e.preventDefault();
@@ -1017,19 +1021,28 @@ export default function ProfessionalProfilePage() {
                   setIsBookingModalOpen(true);
                   console.log('🔵 Estado isBookingModalOpen actualizado a:', true);
                 }}
-                className="w-full h-11 sm:h-12 text-sm sm:text-base font-semibold rounded-xl bg-gradient-to-r from-green-300 to-green-400 hover:from-green-400 hover:to-green-500 shadow-lg text-white touch-manipulation flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:pointer-events-none"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    setIsBookingModalOpen(true);
+                  }
+                }}
+                className="w-full h-11 sm:h-12 text-sm sm:text-base font-semibold rounded-xl bg-gradient-to-r from-green-300 to-green-400 hover:from-green-400 hover:to-green-500 shadow-lg text-white touch-manipulation flex items-center justify-center gap-2 transition-all cursor-pointer select-none"
                 style={{ 
                   touchAction: 'manipulation', 
                   WebkitTapHighlightColor: 'transparent',
                   userSelect: 'none',
                   WebkitUserSelect: 'none',
                   WebkitTouchCallout: 'none',
-                  cursor: 'pointer'
+                  cursor: 'pointer',
+                  position: 'relative',
+                  zIndex: 10,
+                  pointerEvents: 'auto'
                 }}
               >
                 <Calendar className="h-4 w-4 sm:h-5 sm:w-5" />
                 Reservar cita
-              </button>
+              </div>
             </div>
 
             {/* Servicios */}
@@ -1252,27 +1265,48 @@ export default function ProfessionalProfilePage() {
 
                 {/* Botones de acción */}
                 <div className="space-y-2 sm:space-y-3">
-                  <button
-                    type="button"
-                    onClick={() => setIsBookingModalOpen(true)}
+                  <div
+                    role="button"
+                    tabIndex={0}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      console.log('🔵 Click en botón Reservar cita (servicios)');
+                      setIsBookingModalOpen(true);
+                      console.log('🔵 Estado isBookingModalOpen actualizado a:', true);
+                    }}
+                    onTouchStart={(e) => {
+                      e.stopPropagation();
+                    }}
                     onTouchEnd={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
+                      console.log('🔵 TouchEnd en botón Reservar cita (servicios)');
                       setIsBookingModalOpen(true);
+                      console.log('🔵 Estado isBookingModalOpen actualizado a:', true);
                     }}
-                    className="w-full h-11 sm:h-12 text-sm sm:text-base font-semibold rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 shadow-lg text-white touch-manipulation flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:pointer-events-none"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        setIsBookingModalOpen(true);
+                      }
+                    }}
+                    className="w-full h-11 sm:h-12 text-sm sm:text-base font-semibold rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 shadow-lg text-white touch-manipulation flex items-center justify-center gap-2 transition-all cursor-pointer select-none"
                     style={{ 
                       touchAction: 'manipulation', 
                       WebkitTapHighlightColor: 'transparent',
                       userSelect: 'none',
                       WebkitUserSelect: 'none',
                       WebkitTouchCallout: 'none',
-                      cursor: 'pointer'
+                      cursor: 'pointer',
+                      position: 'relative',
+                      zIndex: 10,
+                      pointerEvents: 'auto'
                     }}
                   >
                     <Calendar className="h-4 w-4 sm:h-5 sm:w-5" />
                     Reservar cita
-                  </button>
+                  </div>
                   
                   <BookingDialog 
                     open={isBookingModalOpen} 

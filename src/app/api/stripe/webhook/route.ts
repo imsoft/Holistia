@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe';
 import { createClient } from '@/utils/supabase/server';
-import { 
-  sendEventConfirmationEmailSimple, 
+import {
+  sendEventConfirmationEmailSimple,
   sendAppointmentNotificationToProfessional,
   sendAppointmentPaymentConfirmation,
   sendRegistrationPaymentConfirmation
 } from '@/lib/email-sender';
+import { createAppointmentInGoogleCalendar } from '@/actions/google-calendar';
 import Stripe from 'stripe';
 
 async function sendEventConfirmationEmail(eventRegistrationId: string) {
@@ -533,6 +534,43 @@ export async function POST(request: NextRequest) {
             console.error('Error updating appointment:', appointmentUpdateError);
           } else {
             console.log('Payment processed successfully - appointment marked as paid');
+
+            // Get appointment details to find the professional's user_id
+            const { data: appointment, error: appointmentFetchError } = await supabase
+              .from('appointments')
+              .select('professional_id')
+              .eq('id', appointment_id)
+              .single();
+
+            if (!appointmentFetchError && appointment) {
+              // Get professional's user_id from professional_applications
+              const { data: professionalApp, error: professionalAppError } = await supabase
+                .from('professional_applications')
+                .select('user_id')
+                .eq('id', appointment.professional_id)
+                .single();
+
+              if (!professionalAppError && professionalApp) {
+                // Try to sync with Google Calendar
+                try {
+                  const googleCalendarResult = await createAppointmentInGoogleCalendar(
+                    appointment_id,
+                    professionalApp.user_id
+                  );
+
+                  if (googleCalendarResult.success) {
+                    console.log('Appointment synced to Google Calendar successfully:', googleCalendarResult.eventId);
+                  } else {
+                    const errorMessage = 'error' in googleCalendarResult ? googleCalendarResult.error : 'Unknown error';
+                    console.log('Google Calendar sync skipped or failed:', errorMessage);
+                    // This is not critical - the appointment is still valid in our DB
+                  }
+                } catch (googleError) {
+                  console.error('Error syncing to Google Calendar:', googleError);
+                  // Don't fail the webhook if Google Calendar sync fails
+                }
+              }
+            }
 
             // Send notification email to professional (they need to confirm)
             try {

@@ -458,7 +458,7 @@ export async function syncAllAppointmentsToGoogleCalendar(userId: string) {
       .from('appointments')
       .select('id')
       .eq('professional_id', professional.id)
-      .gte('date', new Date().toISOString())
+      .gte('appointment_date', new Date().toISOString().split('T')[0])
       .is('google_calendar_event_id', null)
       .in('status', ['confirmed', 'pending']);
 

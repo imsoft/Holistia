@@ -43,28 +43,26 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if already confirmed
-    if (appointment.status === 'confirmed') {
-      return NextResponse.json(
-        { message: 'Appointment is already confirmed' },
-        { status: 200 }
-      );
-    }
+    const isAlreadyConfirmed = appointment.status === 'confirmed';
+    const needsGoogleCalendarSync = !appointment.google_calendar_event_id;
 
-    // Update appointment status to confirmed
-    const { error: updateError } = await supabase
-      .from('appointments')
-      .update({
-        status: 'confirmed',
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', appointmentId);
+    // Update appointment status to confirmed (if not already confirmed)
+    if (!isAlreadyConfirmed) {
+      const { error: updateError } = await supabase
+        .from('appointments')
+        .update({
+          status: 'confirmed',
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', appointmentId);
 
-    if (updateError) {
-      console.error('Error confirming appointment:', updateError);
-      return NextResponse.json(
-        { error: 'Failed to confirm appointment' },
-        { status: 500 }
-      );
+      if (updateError) {
+        console.error('Error confirming appointment:', updateError);
+        return NextResponse.json(
+          { error: 'Failed to confirm appointment' },
+          { status: 500 }
+        );
+      }
     }
 
     // Get patient details for the email
@@ -144,11 +142,22 @@ export async function POST(request: NextRequest) {
     }
 
     // Try to create event in Google Calendar (non-blocking)
-    try {
-      await createAppointmentInGoogleCalendar(appointmentId, user.id);
-    } catch (calendarError) {
-      // Don't fail the request if Google Calendar sync fails
-      console.error('Error creating Google Calendar event:', calendarError);
+    // Only sync if the appointment doesn't already have a Google Calendar event ID
+    if (needsGoogleCalendarSync) {
+      try {
+        const calendarResult = await createAppointmentInGoogleCalendar(appointmentId, user.id);
+        if (calendarResult.success) {
+          console.log('✅ Google Calendar event created successfully:', calendarResult.eventId);
+        } else {
+          const errorMessage = 'error' in calendarResult ? calendarResult.error : 'Unknown error';
+          console.error('❌ Failed to create Google Calendar event:', errorMessage);
+        }
+      } catch (calendarError) {
+        // Don't fail the request if Google Calendar sync fails
+        console.error('Error creating Google Calendar event:', calendarError);
+      }
+    } else {
+      console.log('ℹ️ Appointment already has Google Calendar event ID, skipping sync');
     }
 
     return NextResponse.json({

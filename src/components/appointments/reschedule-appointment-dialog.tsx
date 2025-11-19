@@ -132,13 +132,29 @@ export function RescheduleAppointmentDialog({
 
   // Formatear fecha actual para mostrar
   const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr);
-    return date.toLocaleDateString("es-MX", {
-      weekday: "long",
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
+    if (!dateStr) return "No especificada";
+    try {
+      const date = new Date(dateStr);
+      if (isNaN(date.getTime())) return "Fecha inválida";
+      return date.toLocaleDateString("es-MX", {
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      });
+    } catch (error) {
+      return "Fecha inválida";
+    }
+  };
+
+  // Formatear hora para mostrar
+  const formatTime = (timeStr: string) => {
+    if (!timeStr) return "No especificada";
+    // Si viene con segundos (HH:MM:SS), tomar solo HH:MM
+    if (timeStr.includes(':') && timeStr.split(':').length === 3) {
+      return timeStr.substring(0, 5);
+    }
+    return timeStr;
   };
 
   return (
@@ -171,7 +187,7 @@ export function RescheduleAppointmentDialog({
               </div>
               <div>
                 <p className="text-muted-foreground">Hora:</p>
-                <p className="font-medium">{currentTime}</p>
+                <p className="font-medium">{formatTime(currentTime)}</p>
               </div>
             </div>
           </div>
@@ -185,7 +201,7 @@ export function RescheduleAppointmentDialog({
             <Input
               id="newDate"
               type="date"
-              value={newDate}
+              value={newDate || ""}
               onChange={(e) => setNewDate(e.target.value)}
               min={minDate}
               disabled={isSubmitting}
@@ -202,10 +218,11 @@ export function RescheduleAppointmentDialog({
             <Input
               id="newTime"
               type="time"
-              value={newTime}
+              value={newTime || ""}
               onChange={(e) => setNewTime(e.target.value)}
               disabled={isSubmitting}
               className="w-full"
+              placeholder="--:--"
             />
             <p className="text-xs text-muted-foreground">
               * Selecciona la hora de inicio de la cita

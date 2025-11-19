@@ -181,14 +181,32 @@ export default function AdminProfessionals() {
             const monthlyUniquePatients = new Set(monthlyAppointmentsData?.map(apt => apt.patient_id) || []);
             const monthlyPatientsCount = monthlyUniquePatients.size;
 
-            // Determinar el estado basado en la fecha de revisión
-            const reviewedAt = prof.reviewed_at ? new Date(prof.reviewed_at) : new Date(prof.submitted_at);
-            const thirtyDaysAgo = new Date();
-            thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+            // Determinar el estado basado en:
+            // 1. Si está aprobado
+            // 2. Si tiene la cuota pagada y no expirada
+            // 3. Si is_active está en true
+            const now = new Date();
+            const registrationExpired = prof.registration_fee_expires_at 
+              ? new Date(prof.registration_fee_expires_at) <= now
+              : false;
             
             let status: 'active' | 'inactive' | 'suspended' = 'active';
-            if (reviewedAt < thirtyDaysAgo) {
+            
+            // Si no está aprobado, está inactivo
+            if (prof.status !== 'approved') {
               status = 'inactive';
+            }
+            // Si la cuota de registro expiró o no está pagada, está inactivo
+            else if (!prof.registration_fee_paid || registrationExpired) {
+              status = 'inactive';
+            }
+            // Si is_active es false, está inactivo
+            else if (!prof.is_active) {
+              status = 'inactive';
+            }
+            // Si está aprobado, tiene cuota pagada y no expirada, y is_active es true, está activo
+            else {
+              status = 'active';
             }
 
             return {

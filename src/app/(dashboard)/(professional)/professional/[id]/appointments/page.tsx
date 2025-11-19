@@ -6,7 +6,6 @@ import {
   ChevronLeft,
   ChevronRight,
   ChevronDown,
-  Plus,
 } from "lucide-react";
 import {
   startOfMonth,
@@ -53,6 +52,7 @@ import { AppointmentActionsDialog } from "@/components/appointments/appointment-
 import { RescheduleAppointmentDialog } from "@/components/appointments/reschedule-appointment-dialog";
 import { CreateAppointmentDialog } from "@/components/appointments/create-appointment-dialog";
 import { toast } from "sonner";
+import { listUserGoogleCalendarEvents } from "@/actions/google-calendar";
 
 type CalendarView = "day" | "week" | "month" | "year";
 
@@ -195,7 +195,56 @@ export default function ProfessionalAppointments() {
           };
         });
 
-        setAppointments(formattedAppointments);
+        // Intentar obtener eventos de Google Calendar
+        try {
+          const googleEventsResult = await listUserGoogleCalendarEvents(userId);
+
+          if (googleEventsResult.success && googleEventsResult.events) {
+            // Convertir eventos de Google Calendar a formato Appointment
+            const googleAppointments: Appointment[] = googleEventsResult.events
+              .filter((event: any) => event.start?.dateTime) // Solo eventos con hora específica
+              .map((event: any) => {
+                const startDate = new Date(event.start.dateTime);
+                const endDate = new Date(event.end.dateTime);
+                const durationMinutes = Math.round((endDate.getTime() - startDate.getTime()) / 60000);
+
+                return {
+                  id: `google-${event.id}`,
+                  patient: {
+                    name: event.summary || "Evento de Google Calendar",
+                    email: event.attendees?.[0]?.email || "",
+                    phone: "",
+                  },
+                  date: startDate.toISOString().split('T')[0],
+                  time: startDate.toTimeString().substring(0, 5),
+                  duration: durationMinutes,
+                  type: event.location?.includes("Online") ? "Online" : "Presencial",
+                  status: "confirmed" as const,
+                  location: event.location || "Google Calendar",
+                  notes: event.description,
+                  isPaid: false,
+                };
+              });
+
+            // Combinar citas de Holistia con eventos de Google Calendar
+            const allAppointments = [...formattedAppointments, ...googleAppointments];
+
+            // Ordenar por fecha y hora
+            allAppointments.sort((a, b) => {
+              const dateCompare = a.date.localeCompare(b.date);
+              if (dateCompare !== 0) return dateCompare;
+              return a.time.localeCompare(b.time);
+            });
+
+            setAppointments(allAppointments);
+          } else {
+            setAppointments(formattedAppointments);
+          }
+        } catch (googleError) {
+          console.log("No se pudieron cargar eventos de Google Calendar:", googleError);
+          // Si falla Google Calendar, solo mostrar las citas de Holistia
+          setAppointments(formattedAppointments);
+        }
       } catch (error) {
         console.error("Error inesperado:", error);
       } finally {
@@ -731,15 +780,11 @@ export default function ProfessionalAppointments() {
     <div className="flex flex-col h-screen bg-background">
       {/* Header */}
       <div className="border-b border-border bg-card">
-        <div className="flex h-16 items-center justify-between px-6">
+        <div className="flex h-16 items-center px-6">
           <div className="flex items-center gap-4">
             <SidebarTrigger />
             <h1 className="text-2xl font-bold">Calendario de Citas</h1>
           </div>
-          <Button onClick={() => setIsCreateDialogOpen(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            Nueva cita
-          </Button>
         </div>
       </div>
 
@@ -806,91 +851,106 @@ export default function ProfessionalAppointments() {
             </DialogDescription>
           </DialogHeader>
 
-          {selectedAppointment && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <div className="text-sm font-medium text-muted-foreground">
-                    Paciente
+          {selectedAppointment && (() => {
+            const isGoogleCalendarEvent = selectedAppointment.id.startsWith('google-');
+
+            return (
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <div className="text-sm font-medium text-muted-foreground">
+                      Paciente
+                    </div>
+                    <div className="text-base">{selectedAppointment.patient.name}</div>
                   </div>
-                  <div className="text-base">{selectedAppointment.patient.name}</div>
-                </div>
-                <div>
-                  <div className="text-sm font-medium text-muted-foreground">
-                    Estado
+                  <div>
+                    <div className="text-sm font-medium text-muted-foreground">
+                      Estado
+                    </div>
+                    <Badge className={getStatusColor(selectedAppointment.status)}>
+                      {getStatusText(selectedAppointment.status)}
+                    </Badge>
                   </div>
-                  <Badge className={getStatusColor(selectedAppointment.status)}>
-                    {getStatusText(selectedAppointment.status)}
-                  </Badge>
-                </div>
-                <div>
-                  <div className="text-sm font-medium text-muted-foreground">Fecha</div>
-                  <div className="text-base">
-                    {format(parseISO(selectedAppointment.date), "d 'de' MMMM, yyyy", {
-                      locale: es,
-                    })}
+                  <div>
+                    <div className="text-sm font-medium text-muted-foreground">Fecha</div>
+                    <div className="text-base">
+                      {format(parseISO(selectedAppointment.date), "d 'de' MMMM, yyyy", {
+                        locale: es,
+                      })}
+                    </div>
                   </div>
-                </div>
-                <div>
-                  <div className="text-sm font-medium text-muted-foreground">Hora</div>
-                  <div className="text-base">{selectedAppointment.time}</div>
-                </div>
-                <div>
-                  <div className="text-sm font-medium text-muted-foreground">
-                    Duración
+                  <div>
+                    <div className="text-sm font-medium text-muted-foreground">Hora</div>
+                    <div className="text-base">{selectedAppointment.time}</div>
                   </div>
-                  <div className="text-base">{selectedAppointment.duration} minutos</div>
-                </div>
-                <div>
-                  <div className="text-sm font-medium text-muted-foreground">Tipo</div>
-                  <div className="text-base">{selectedAppointment.type}</div>
-                </div>
-                <div className="col-span-2">
-                  <div className="text-sm font-medium text-muted-foreground">
-                    Ubicación
+                  <div>
+                    <div className="text-sm font-medium text-muted-foreground">
+                      Duración
+                    </div>
+                    <div className="text-base">{selectedAppointment.duration} minutos</div>
                   </div>
-                  <div className="text-base">{selectedAppointment.location}</div>
-                </div>
-                {selectedAppointment.notes && (
+                  <div>
+                    <div className="text-sm font-medium text-muted-foreground">Tipo</div>
+                    <div className="text-base">{selectedAppointment.type}</div>
+                  </div>
                   <div className="col-span-2">
                     <div className="text-sm font-medium text-muted-foreground">
-                      Notas
+                      Ubicación
                     </div>
-                    <div className="text-base">{selectedAppointment.notes}</div>
+                    <div className="text-base">{selectedAppointment.location}</div>
+                  </div>
+                  {selectedAppointment.notes && (
+                    <div className="col-span-2">
+                      <div className="text-sm font-medium text-muted-foreground">
+                        Notas
+                      </div>
+                      <div className="text-base">{selectedAppointment.notes}</div>
+                    </div>
+                  )}
+                  {isGoogleCalendarEvent && (
+                    <div className="col-span-2">
+                      <div className="px-3 py-2 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-md">
+                        <p className="text-sm text-blue-800 dark:text-blue-200">
+                          Este evento proviene de Google Calendar y no puede ser modificado desde aquí.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {!isGoogleCalendarEvent && (
+                  <div className="flex gap-2 pt-4 border-t">
+                    {selectedAppointment.status === "pending" && (
+                      <Button
+                        onClick={() => handleConfirmAppointment(selectedAppointment.id)}
+                        className="flex-1"
+                      >
+                        Confirmar cita
+                      </Button>
+                    )}
+                    {selectedAppointment.status === "confirmed" && (
+                      <>
+                        <Button
+                          variant="outline"
+                          onClick={() => openRescheduleDialog(selectedAppointment)}
+                          className="flex-1"
+                        >
+                          Reprogramar
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          onClick={() => openCancelDialog(selectedAppointment)}
+                          className="flex-1"
+                        >
+                          Cancelar cita
+                        </Button>
+                      </>
+                    )}
                   </div>
                 )}
               </div>
-
-              <div className="flex gap-2 pt-4 border-t">
-                {selectedAppointment.status === "pending" && (
-                  <Button
-                    onClick={() => handleConfirmAppointment(selectedAppointment.id)}
-                    className="flex-1"
-                  >
-                    Confirmar cita
-                  </Button>
-                )}
-                {selectedAppointment.status === "confirmed" && (
-                  <>
-                    <Button
-                      variant="outline"
-                      onClick={() => openRescheduleDialog(selectedAppointment)}
-                      className="flex-1"
-                    >
-                      Reprogramar
-                    </Button>
-                    <Button
-                      variant="destructive"
-                      onClick={() => openCancelDialog(selectedAppointment)}
-                      className="flex-1"
-                    >
-                      Cancelar cita
-                    </Button>
-                  </>
-                )}
-              </div>
-            </div>
-          )}
+            );
+          })()}
         </DialogContent>
       </Dialog>
 

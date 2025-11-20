@@ -120,9 +120,8 @@ export default function ShopsPage() {
     <div className="min-h-screen bg-background">
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl sm:text-4xl font-bold text-foreground flex items-center gap-3 mb-2">
-            <Store className="h-10 w-10 text-primary" />
+        <div className="mb-8 text-center">
+          <h1 className="text-3xl sm:text-4xl font-bold text-foreground mb-2">
             Comercios
           </h1>
           <p className="text-muted-foreground">
@@ -130,45 +129,120 @@ export default function ShopsPage() {
           </p>
         </div>
 
-        {/* Filtros */}
-        <div className="mb-8 space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Búsqueda */}
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-              <Input
-                type="text"
-                placeholder="Buscar comercios..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
+        <div className="lg:grid lg:grid-cols-3 lg:gap-x-8">
+          {/* Sidebar con filtros */}
+          <aside className="lg:col-span-1 mb-6 lg:mb-0">
+            <div className="hidden lg:block">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-lg font-medium text-foreground">Filtros</h2>
+              </div>
+              <form className="divide-y divide-border">
+                {/* Búsqueda */}
+                <div className="py-8 first:pt-0 last:pb-0">
+                  <fieldset>
+                    <legend className="block text-sm font-medium text-foreground mb-6">
+                      Búsqueda
+                    </legend>
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                      <Input
+                        type="text"
+                        placeholder="Buscar comercios..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="pl-10"
+                      />
+                    </div>
+                  </fieldset>
+                </div>
+
+                {/* Categoría */}
+                <div className="py-8 first:pt-0 last:pb-0">
+                  <fieldset>
+                    <legend className="block text-sm font-medium text-foreground mb-6">
+                      Categoría
+                    </legend>
+                    <div className="space-y-4">
+                      {[
+                        { value: "all", label: "Todas las categorías" },
+                        ...SHOP_CATEGORIES.map((category) => ({ value: category, label: category }))
+                      ].map((option, optionIdx) => (
+                        <div key={option.value} className="flex gap-3">
+                          <div className="flex h-5 shrink-0 items-center">
+                            <div className="group grid size-4 grid-cols-1">
+                              <input
+                                checked={selectedCategory === option.value}
+                                onChange={() => setSelectedCategory(option.value)}
+                                id={`category-${optionIdx}`}
+                                name="category"
+                                type="radio"
+                                className="col-start-1 row-start-1 appearance-none rounded-sm border border-border bg-background checked:border-primary checked:bg-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:border-border disabled:bg-muted disabled:checked:bg-muted"
+                              />
+                              <svg
+                                fill="none"
+                                viewBox="0 0 14 14"
+                                className="pointer-events-none col-start-1 row-start-1 size-3.5 self-center justify-self-center stroke-primary-foreground group-has-disabled:stroke-muted-foreground"
+                              >
+                                <circle
+                                  cx="7"
+                                  cy="7"
+                                  r="3"
+                                  className="opacity-0 group-has-checked:opacity-100"
+                                />
+                              </svg>
+                            </div>
+                          </div>
+                          <label htmlFor={`category-${optionIdx}`} className="text-sm text-muted-foreground cursor-pointer">
+                            {option.label}
+                          </label>
+                        </div>
+                      ))}
+                    </div>
+                  </fieldset>
+                </div>
+
+                {/* Resultados */}
+                <div className="py-8 first:pt-0 last:pb-0">
+                  <div className="text-sm text-muted-foreground">
+                    {filteredShops.length} {filteredShops.length === 1 ? "comercio encontrado" : "comercios encontrados"}
+                  </div>
+                </div>
+              </form>
             </div>
 
-            {/* Filtro por categoría */}
-            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-              <SelectTrigger>
-                <SelectValue placeholder="Categoría" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todas las categorías</SelectItem>
-                {SHOP_CATEGORIES.map((category) => (
-                  <SelectItem key={category} value={category}>
-                    {category}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+            {/* Mobile filters */}
+            <div className="lg:hidden mb-6">
+              <div className="space-y-4">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                  <Input
+                    type="text"
+                    placeholder="Buscar comercios..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+                <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Categoría" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todas las categorías</SelectItem>
+                    {SHOP_CATEGORIES.map((category) => (
+                      <SelectItem key={category} value={category}>
+                        {category}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </aside>
 
-          {/* Resultados */}
-          <div className="text-sm text-muted-foreground">
-            {filteredShops.length} {filteredShops.length === 1 ? "comercio encontrado" : "comercios encontrados"}
-          </div>
-        </div>
-
-        {/* Lista de comercios */}
-        {filteredShops.length === 0 ? (
+          {/* Contenido principal */}
+          <div className="lg:col-span-2">
+            {filteredShops.length === 0 ? (
           <div className="text-center py-12">
             <Store className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
             <h3 className="text-lg font-semibold text-foreground mb-2">
@@ -228,6 +302,8 @@ export default function ShopsPage() {
             ))}
           </div>
         )}
+          </div>
+        </div>
       </main>
     </div>
   );

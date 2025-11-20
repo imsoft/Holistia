@@ -9,7 +9,6 @@ import {
   Mail,
   Globe,
   Instagram,
-  Clock,
   ArrowLeft,
   ExternalLink,
   FileText,
@@ -21,7 +20,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { StableImage } from "@/components/ui/stable-image";
 import { Separator } from "@/components/ui/separator";
-import { DaySchedule, parseScheduleFromString, formatScheduleForDisplay } from "@/components/ui/schedule-editor";
 
 interface Shop {
   id: string;
@@ -34,7 +32,6 @@ interface Shop {
   website?: string;
   instagram?: string;
   image_url?: string;
-  opening_hours?: DaySchedule[] | string;
   category?: string;
   catalog_pdf_url?: string;
   gallery?: string[];
@@ -190,18 +187,15 @@ export default function ShopDetailPage() {
 
           {/* Información principal */}
           <div>
-            <div className="flex items-start gap-3 mb-4">
-              <Store className="h-10 w-10 text-primary flex-shrink-0 mt-1" />
-              <div>
-                <h1 className="text-3xl sm:text-4xl font-bold text-foreground mb-2">
-                  {shop.name}
-                </h1>
-                {shop.category && (
-                  <Badge variant="secondary" className="w-fit">
-                    {shop.category}
-                  </Badge>
-                )}
-              </div>
+            <div className="mb-4">
+              <h1 className="text-3xl sm:text-4xl font-bold text-foreground mb-2">
+                {shop.name}
+              </h1>
+              {shop.category && (
+                <Badge variant="secondary" className="w-fit">
+                  {shop.category}
+                </Badge>
+              )}
             </div>
 
             {shop.description && (
@@ -293,23 +287,6 @@ export default function ShopDetailPage() {
               ))}
             </div>
           </div>
-        )}
-
-        {/* Horarios de atención */}
-        {shop.opening_hours && (
-          <Card className="mb-8">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Clock className="h-5 w-5" />
-                Horarios de Atención
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="whitespace-pre-line">
-                {formatScheduleForDisplay(parseScheduleFromString(shop.opening_hours))}
-              </div>
-            </CardContent>
-          </Card>
         )}
 
         {/* Catálogo en PDF */}

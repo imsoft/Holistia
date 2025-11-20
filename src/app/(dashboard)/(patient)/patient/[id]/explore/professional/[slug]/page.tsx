@@ -1027,9 +1027,9 @@ export default function ProfessionalProfilePage() {
                           <div className="flex flex-wrap gap-2 sm:gap-3">
                             {service.presencialCost && service.presencialCost !== '' && (
                               <div className="flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-1.5 bg-primary/10 rounded-full">
-                                <Monitor className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary" />
+                                <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary" />
                                 <span className="text-xs sm:text-sm text-primary font-medium">
-                                  En línea: {formatPrice(parseInt(service.presencialCost))}
+                                  Presencial: {formatPrice(parseInt(service.presencialCost))}
                                 </span>
                               </div>
                             )}

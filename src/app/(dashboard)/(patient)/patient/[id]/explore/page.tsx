@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { useParams } from "next/navigation";
-import { Calendar, MapPin, Users, ChevronLeft, ChevronRight, Brain, Sparkles, Activity, Apple } from "lucide-react";
+import { Calendar, MapPin, Users, ChevronLeft, ChevronRight, Brain, Sparkles, Activity, Apple, UtensilsCrossed, Store } from "lucide-react";
 import Link from "next/link";
 import { ProfessionalCard } from "@/components/ui/professional-card";
 import { createClient } from "@/utils/supabase/client";
@@ -78,6 +78,38 @@ interface Professional {
   admin_rating?: number;
 }
 
+interface Restaurant {
+  id: string;
+  name: string;
+  description?: string;
+  address?: string;
+  phone?: string;
+  email?: string;
+  website?: string;
+  instagram?: string;
+  image_url?: string;
+  cuisine_type?: string;
+  price_range?: string;
+  is_active: boolean;
+  created_at: string;
+}
+
+interface Shop {
+  id: string;
+  name: string;
+  description?: string;
+  address?: string;
+  city?: string;
+  phone?: string;
+  email?: string;
+  website?: string;
+  instagram?: string;
+  image_url?: string;
+  category?: string;
+  is_active: boolean;
+  created_at: string;
+}
+
 const getCategoryLabel = (category: string) => {
   const categories: Record<string, string> = {
     espiritualidad: "Espiritualidad",
@@ -107,8 +139,12 @@ const HomeUserPage = () => {
   const [loading, setLoading] = useState(true);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [events, setEvents] = useState<EventWorkshop[]>([]);
+  const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
+  const [shops, setShops] = useState<Shop[]>([]);
   const eventsScrollRef = useRef<HTMLDivElement>(null);
   const professionalsScrollRef = useRef<HTMLDivElement>(null);
+  const restaurantsScrollRef = useRef<HTMLDivElement>(null);
+  const shopsScrollRef = useRef<HTMLDivElement>(null);
   const supabase = createClient();
 
   useEffect(() => {
@@ -205,6 +241,34 @@ const HomeUserPage = () => {
         } else {
           setEvents(eventsData || []);
           setFilteredEvents(eventsData || []);
+        }
+
+        // Obtener restaurantes
+        const { data: restaurantsData, error: restaurantsError } = await supabase
+          .from("restaurants")
+          .select("*")
+          .eq("is_active", true)
+          .order("created_at", { ascending: false })
+          .limit(10);
+
+        if (restaurantsError) {
+          console.error("Error fetching restaurants:", restaurantsError);
+        } else {
+          setRestaurants(restaurantsData || []);
+        }
+
+        // Obtener comercios
+        const { data: shopsData, error: shopsError } = await supabase
+          .from("shops")
+          .select("*")
+          .eq("is_active", true)
+          .order("created_at", { ascending: false })
+          .limit(10);
+
+        if (shopsError) {
+          console.error("Error fetching shops:", shopsError);
+        } else {
+          setShops(shopsData || []);
         }
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -317,6 +381,30 @@ const HomeUserPage = () => {
     if (professionalsScrollRef.current) {
       const scrollAmount = 400; // Ancho de la card (w-96 = 384px) + gap (16px)
       professionalsScrollRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+    }
+  };
+
+  const scrollRestaurantsLeft = () => {
+    if (restaurantsScrollRef.current) {
+      restaurantsScrollRef.current.scrollBy({ left: -400, behavior: 'smooth' });
+    }
+  };
+
+  const scrollRestaurantsRight = () => {
+    if (restaurantsScrollRef.current) {
+      restaurantsScrollRef.current.scrollBy({ left: 400, behavior: 'smooth' });
+    }
+  };
+
+  const scrollShopsLeft = () => {
+    if (shopsScrollRef.current) {
+      shopsScrollRef.current.scrollBy({ left: -400, behavior: 'smooth' });
+    }
+  };
+
+  const scrollShopsRight = () => {
+    if (shopsScrollRef.current) {
+      shopsScrollRef.current.scrollBy({ left: 400, behavior: 'smooth' });
     }
   };
 
@@ -589,6 +677,197 @@ const HomeUserPage = () => {
                         }}
                       />
                     </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Sección de Restaurantes */}
+          <div>
+            <div className="flex items-center justify-between mb-6">
+              <Link
+                href={`/patient/${userId}/explore/restaurants`}
+                className="group"
+              >
+                <h2 className="text-3xl sm:text-4xl font-bold text-foreground group-hover:text-primary transition-colors flex items-center gap-2">
+                  <UtensilsCrossed className="h-8 w-8" />
+                  Restaurantes
+                </h2>
+              </Link>
+            </div>
+
+            {loading ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+              </div>
+            ) : restaurants.length === 0 ? (
+              <div className="text-center py-12">
+                <UtensilsCrossed className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <p className="text-muted-foreground">No hay restaurantes disponibles</p>
+              </div>
+            ) : (
+              <div className="relative">
+                <button
+                  onClick={scrollRestaurantsLeft}
+                  className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-background/80 backdrop-blur-sm rounded-full p-2 shadow-lg hover:bg-background transition-colors"
+                  aria-label="Scroll left"
+                >
+                  <ChevronLeft className="h-6 w-6" />
+                </button>
+                <button
+                  onClick={scrollRestaurantsRight}
+                  className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-background/80 backdrop-blur-sm rounded-full p-2 shadow-lg hover:bg-background transition-colors"
+                  aria-label="Scroll right"
+                >
+                  <ChevronRight className="h-6 w-6" />
+                </button>
+
+                <div
+                  ref={restaurantsScrollRef}
+                  className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar justify-center"
+                >
+                  {restaurants.map((restaurant) => (
+                    <Link
+                      key={restaurant.id}
+                      href={`/patient/${userId}/explore/restaurant/${restaurant.id}`}
+                      className="flex-shrink-0 w-80"
+                    >
+                      <Card className="hover:shadow-lg hover:-translate-y-2 transition-all duration-300 overflow-hidden cursor-pointer h-full flex flex-col">
+                        <div className="relative w-full h-48">
+                          {restaurant.image_url ? (
+                            <StableImage
+                              src={restaurant.image_url}
+                              alt={restaurant.name}
+                              fill
+                              className="object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center">
+                              <UtensilsCrossed className="h-16 w-16 text-primary/40" />
+                            </div>
+                          )}
+                        </div>
+                        <CardHeader>
+                          <CardTitle className="line-clamp-2">{restaurant.name}</CardTitle>
+                          <div className="flex gap-2 mt-2">
+                            {restaurant.cuisine_type && (
+                              <Badge variant="secondary">{restaurant.cuisine_type}</Badge>
+                            )}
+                            {restaurant.price_range && (
+                              <Badge variant="outline">{restaurant.price_range}</Badge>
+                            )}
+                          </div>
+                        </CardHeader>
+                        <CardContent className="flex-1">
+                          {restaurant.description && (
+                            <p className="text-sm text-muted-foreground line-clamp-3">
+                              {restaurant.description}
+                            </p>
+                          )}
+                          {restaurant.address && (
+                            <div className="flex items-start gap-2 mt-3 text-sm text-muted-foreground">
+                              <MapPin className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                              <span className="line-clamp-2">{restaurant.address}</span>
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Sección de Comercios */}
+          <div>
+            <div className="flex items-center justify-between mb-6">
+              <Link
+                href={`/patient/${userId}/explore/shops`}
+                className="group"
+              >
+                <h2 className="text-3xl sm:text-4xl font-bold text-foreground group-hover:text-primary transition-colors flex items-center gap-2">
+                  <Store className="h-8 w-8" />
+                  Comercios
+                </h2>
+              </Link>
+            </div>
+
+            {loading ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+              </div>
+            ) : shops.length === 0 ? (
+              <div className="text-center py-12">
+                <Store className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <p className="text-muted-foreground">No hay comercios disponibles</p>
+              </div>
+            ) : (
+              <div className="relative">
+                <button
+                  onClick={scrollShopsLeft}
+                  className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-background/80 backdrop-blur-sm rounded-full p-2 shadow-lg hover:bg-background transition-colors"
+                  aria-label="Scroll left"
+                >
+                  <ChevronLeft className="h-6 w-6" />
+                </button>
+                <button
+                  onClick={scrollShopsRight}
+                  className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-background/80 backdrop-blur-sm rounded-full p-2 shadow-lg hover:bg-background transition-colors"
+                  aria-label="Scroll right"
+                >
+                  <ChevronRight className="h-6 w-6" />
+                </button>
+
+                <div
+                  ref={shopsScrollRef}
+                  className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar justify-center"
+                >
+                  {shops.map((shop) => (
+                    <Link
+                      key={shop.id}
+                      href={`/patient/${userId}/explore/shop/${shop.id}`}
+                      className="flex-shrink-0 w-80"
+                    >
+                      <Card className="hover:shadow-lg hover:-translate-y-2 transition-all duration-300 overflow-hidden cursor-pointer h-full flex flex-col">
+                        <div className="relative w-full h-48">
+                          {shop.image_url ? (
+                            <StableImage
+                              src={shop.image_url}
+                              alt={shop.name}
+                              fill
+                              className="object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center">
+                              <Store className="h-16 w-16 text-primary/40" />
+                            </div>
+                          )}
+                        </div>
+                        <CardHeader>
+                          <CardTitle className="line-clamp-2">{shop.name}</CardTitle>
+                          {shop.category && (
+                            <Badge variant="secondary" className="w-fit mt-2">{shop.category}</Badge>
+                          )}
+                        </CardHeader>
+                        <CardContent className="flex-1">
+                          {shop.description && (
+                            <p className="text-sm text-muted-foreground line-clamp-3">
+                              {shop.description}
+                            </p>
+                          )}
+                          {(shop.address || shop.city) && (
+                            <div className="flex items-start gap-2 mt-3 text-sm text-muted-foreground">
+                              <MapPin className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                              <span className="line-clamp-2">
+                                {shop.address && shop.city ? `${shop.address}, ${shop.city}` : shop.address || shop.city}
+                              </span>
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
+                    </Link>
                   ))}
                 </div>
               </div>

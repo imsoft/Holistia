@@ -517,8 +517,8 @@ const HomeUserPage = () => {
                           />
                         </div>
                         <CardHeader className="pb-3">
-                          <CardTitle className="text-lg mb-2">{event.name}</CardTitle>
-                          <div className="flex flex-wrap gap-2 mb-3">
+                          <CardTitle className="text-lg mb-1.5">{event.name}</CardTitle>
+                          <div className="flex flex-wrap gap-2 mb-2">
                             <Badge variant="secondary">
                               {getCategoryLabel(event.category)}
                             </Badge>
@@ -749,7 +749,7 @@ const HomeUserPage = () => {
                         </div>
                         <CardHeader className="pb-3">
                           <CardTitle className="line-clamp-2">{restaurant.name}</CardTitle>
-                          <div className="flex gap-2 mt-2">
+                          <div className="flex gap-2 mt-1.5">
                             {restaurant.cuisine_type && (
                               <Badge variant="secondary">{restaurant.cuisine_type}</Badge>
                             )}
@@ -847,7 +847,7 @@ const HomeUserPage = () => {
                         <CardHeader className="pb-3">
                           <CardTitle className="line-clamp-2">{shop.name}</CardTitle>
                           {shop.category && (
-                            <Badge variant="secondary" className="w-fit mt-2">{shop.category}</Badge>
+                            <Badge variant="secondary" className="w-fit mt-1.5">{shop.category}</Badge>
                           )}
                         </CardHeader>
                         <CardContent className="flex-1 pb-4">

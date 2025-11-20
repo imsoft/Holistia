@@ -174,7 +174,7 @@ export const ProfessionalCard = ({ professional, userId }: ProfessionalCardProps
       </div>
       
       <CardContent className="p-4 flex flex-col flex-grow">
-        <div className="space-y-3 flex flex-col flex-grow">
+        <div className="space-y-2 flex flex-col flex-grow">
           {/* Header - Intercambiado: Especialidad arriba, Nombre abajo */}
           <div>
             <h3 className="text-lg font-semibold text-foreground group-hover:text-primary transition-colors">
@@ -185,7 +185,7 @@ export const ProfessionalCard = ({ professional, userId }: ProfessionalCardProps
             </p>
             {/* Rating */}
             {professional.average_rating && professional.total_reviews && professional.total_reviews > 0 && (
-              <div className="mt-1">
+              <div className="mt-0.5">
                 <StarRating 
                   rating={professional.average_rating} 
                   size="sm" 

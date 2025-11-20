@@ -303,8 +303,8 @@ export default function EventsPage() {
                           />
                         </div>
                         <CardHeader className="pb-3">
-                          <CardTitle className="text-lg mb-2">{event.name}</CardTitle>
-                          <div className="flex flex-wrap gap-2 mb-3">
+                          <CardTitle className="text-lg mb-1.5">{event.name}</CardTitle>
+                          <div className="flex flex-wrap gap-2 mb-2">
                             <Badge variant="secondary">
                               {getCategoryLabel(event.category)}
                             </Badge>

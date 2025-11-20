@@ -1015,12 +1015,12 @@ export default function ProfessionalProfilePage() {
                         
                         {/* Contenido del servicio */}
                         <div className="p-4 sm:p-6">
-                          <h3 className="text-foreground font-semibold text-lg sm:text-xl mb-2 sm:mb-3">
+                          <h3 className="text-foreground font-semibold text-lg sm:text-xl mb-2">
                             {service.name}
                           </h3>
                           {service.description && (
-                            <div 
-                              className="text-sm sm:text-base text-muted-foreground leading-relaxed mb-3 sm:mb-4 prose prose-sm sm:prose-base max-w-none"
+                            <div
+                              className="text-sm sm:text-base text-muted-foreground leading-relaxed mb-2 prose prose-sm sm:prose-base max-w-none"
                               dangerouslySetInnerHTML={{ __html: service.description }}
                             />
                           )}

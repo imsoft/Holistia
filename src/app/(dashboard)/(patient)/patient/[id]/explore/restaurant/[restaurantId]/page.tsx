@@ -9,7 +9,6 @@ import {
   Mail,
   Globe,
   Instagram,
-  Clock,
   ArrowLeft,
   ExternalLink,
   FileText
@@ -20,7 +19,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { StableImage } from "@/components/ui/stable-image";
 import { Separator } from "@/components/ui/separator";
-import { DaySchedule, parseScheduleFromString, formatScheduleForDisplay } from "@/components/ui/schedule-editor";
 
 interface Restaurant {
   id: string;
@@ -34,7 +32,6 @@ interface Restaurant {
   image_url?: string;
   cuisine_type?: string;
   price_range?: string;
-  opening_hours?: DaySchedule[] | string;
   menu_pdf_url?: string;
   is_active: boolean;
   created_at: string;
@@ -167,20 +164,17 @@ export default function RestaurantDetailPage() {
 
           {/* Información principal */}
           <div>
-            <div className="flex items-start gap-3 mb-4">
-              <UtensilsCrossed className="h-10 w-10 text-primary flex-shrink-0 mt-1" />
-              <div>
-                <h1 className="text-3xl sm:text-4xl font-bold text-foreground mb-2">
-                  {restaurant.name}
-                </h1>
-                <div className="flex flex-wrap gap-2">
-                  {restaurant.cuisine_type && (
-                    <Badge variant="secondary">{restaurant.cuisine_type}</Badge>
-                  )}
-                  {restaurant.price_range && (
-                    <Badge variant="outline">{restaurant.price_range}</Badge>
-                  )}
-                </div>
+            <div className="mb-4">
+              <h1 className="text-3xl sm:text-4xl font-bold text-foreground mb-2">
+                {restaurant.name}
+              </h1>
+              <div className="flex flex-wrap gap-2">
+                {restaurant.cuisine_type && (
+                  <Badge variant="secondary">{restaurant.cuisine_type}</Badge>
+                )}
+                {restaurant.price_range && (
+                  <Badge variant="outline">{restaurant.price_range}</Badge>
+                )}
               </div>
             </div>
 
@@ -252,23 +246,6 @@ export default function RestaurantDetailPage() {
             </div>
           </div>
         </div>
-
-        {/* Horarios de atención */}
-        {restaurant.opening_hours && (
-          <Card className="mb-8">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Clock className="h-5 w-5" />
-                Horarios de Atención
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="whitespace-pre-line">
-                {formatScheduleForDisplay(parseScheduleFromString(restaurant.opening_hours))}
-              </div>
-            </CardContent>
-          </Card>
-        )}
 
         {/* Menú en PDF */}
         {restaurant.menu_pdf_url && (

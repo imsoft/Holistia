@@ -382,6 +382,19 @@ export function ServiceManager({ professionalId, userId }: ServiceManagerProps) 
     );
   };
 
+  const getModalityLabel = (modality: string) => {
+    switch (modality) {
+      case "presencial":
+        return "Presencial";
+      case "online":
+        return "En línea";
+      case "both":
+        return "Presencial y en línea";
+      default:
+        return modality;
+    }
+  };
+
   if (loading) {
     return (
       <div className="space-y-4">
@@ -676,14 +689,14 @@ export function ServiceManager({ professionalId, userId }: ServiceManagerProps) 
                         <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground flex-wrap">
                           <div className="flex items-center gap-1">
                             {getModalityIcon(service.modality)}
-                            <span className="capitalize">{service.modality}</span>
+                            <span>{getModalityLabel(service.modality)}</span>
                           </div>
                           <div className="flex items-center gap-1">
                             <Clock className="w-4 h-4" />
                             <span>
-                              {service.type === "session" 
-                                ? `${service.duration} min` 
-                                : service.program_duration 
+                              {service.type === "session"
+                                ? `${service.duration} min`
+                                : service.program_duration
                                   ? `${service.program_duration.value} ${service.program_duration.unit}`
                                   : "Duración no especificada"
                               }

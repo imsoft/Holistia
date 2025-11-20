@@ -321,7 +321,7 @@ export function ShopProductsManager({
 
         <TabsContent value="pdf" className="space-y-4">
           <Card>
-            <CardContent className="pt-6">
+            <CardContent className="p-6">
               <PDFUploader
                 entityType="shop"
                 entityId={shopId}

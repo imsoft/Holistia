@@ -258,7 +258,7 @@ export function RestaurantMenuManager({
 
         <TabsContent value="pdf" className="space-y-4">
           <Card>
-            <CardContent className="pt-6">
+            <CardContent className="p-6">
               <PDFUploader
                 entityType="restaurant"
                 entityId={restaurantId}

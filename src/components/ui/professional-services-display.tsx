@@ -71,6 +71,19 @@ export function ProfessionalServicesDisplay({
     }
   };
 
+  const getModalityLabel = (modality: string) => {
+    switch (modality) {
+      case "presencial":
+        return "Presencial";
+      case "online":
+        return "En línea";
+      case "both":
+        return "Presencial y en línea";
+      default:
+        return modality;
+    }
+  };
+
   const getTypeIcon = (type: string) => {
     return type === "program" ? (
       <Package className="w-4 h-4" />
@@ -148,7 +161,7 @@ export function ProfessionalServicesDisplay({
               <div className="flex items-center gap-4 text-sm text-muted-foreground">
                 <div className="flex items-center gap-1">
                   {getModalityIcon(service.modality)}
-                  <span className="capitalize">{service.modality}</span>
+                  <span>{getModalityLabel(service.modality)}</span>
                 </div>
                 <div className="flex items-center gap-1">
                   <Clock className="w-4 h-4" />

@@ -760,9 +760,10 @@ const HomeUserPage = () => {
                         </CardHeader>
                         <CardContent className="flex-1 pb-4">
                           {restaurant.description && (
-                            <p className="text-sm text-muted-foreground line-clamp-3">
-                              {restaurant.description}
-                            </p>
+                            <div 
+                              className="text-sm text-muted-foreground line-clamp-3 prose prose-sm max-w-none"
+                              dangerouslySetInnerHTML={{ __html: restaurant.description }}
+                            />
                           )}
                           {restaurant.address && (
                             <div className="flex items-start gap-2 mt-3 text-sm text-muted-foreground">
@@ -851,9 +852,10 @@ const HomeUserPage = () => {
                         </CardHeader>
                         <CardContent className="flex-1 pb-4">
                           {shop.description && (
-                            <p className="text-sm text-muted-foreground line-clamp-3">
-                              {shop.description}
-                            </p>
+                            <div 
+                              className="text-sm text-muted-foreground line-clamp-3 prose prose-sm max-w-none"
+                              dangerouslySetInnerHTML={{ __html: shop.description }}
+                            />
                           )}
                           {(shop.address || shop.city) && (
                             <div className="flex items-start gap-2 mt-3 text-sm text-muted-foreground">

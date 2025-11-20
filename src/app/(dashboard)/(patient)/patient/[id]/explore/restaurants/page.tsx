@@ -352,7 +352,7 @@ export default function RestaurantsPage() {
                       )}
                     </div>
                   </CardHeader>
-                  <CardContent className="flex-1">
+                  <CardContent className="flex-1 pb-6">
                     {restaurant.description && (
                       <div 
                         className="text-sm text-muted-foreground line-clamp-3 prose prose-sm max-w-none"

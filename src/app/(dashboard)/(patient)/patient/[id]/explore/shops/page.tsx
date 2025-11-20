@@ -275,7 +275,7 @@ export default function ShopsPage() {
                       </Badge>
                     )}
                   </CardHeader>
-                  <CardContent className="flex-1">
+                  <CardContent className="flex-1 pb-6">
                     {shop.description && (
                       <div 
                         className="text-sm text-muted-foreground line-clamp-3 prose prose-sm max-w-none"

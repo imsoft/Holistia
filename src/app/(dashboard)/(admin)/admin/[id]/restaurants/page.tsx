@@ -51,6 +51,7 @@ import {
 } from "@/components/ui/schedule-editor";
 import { RestaurantCenterImageUploader } from "@/components/ui/restaurant-center-image-uploader";
 import { RestaurantMenuManager } from "@/components/ui/restaurant-menu-manager";
+import { RestaurantGalleryManager } from "@/components/ui/restaurant-gallery-manager";
 
 interface Restaurant {
   id: string;
@@ -67,6 +68,7 @@ interface Restaurant {
   opening_hours?: DaySchedule[] | string;
   rating?: number;
   menu_pdf_url?: string | null;
+  gallery?: string[];
   is_active: boolean;
   created_at: string;
   updated_at: string;
@@ -85,6 +87,7 @@ interface FormData {
   price_range: string;
   opening_hours: DaySchedule[];
   menu_pdf_url: string | null;
+  gallery: string[];
   is_active: boolean;
 }
 
@@ -131,6 +134,7 @@ export default function AdminRestaurants() {
     price_range: "",
     opening_hours: createEmptySchedule(),
     menu_pdf_url: null,
+    gallery: [],
     is_active: true,
   });
 
@@ -175,6 +179,7 @@ export default function AdminRestaurants() {
         price_range: restaurant.price_range || "",
         opening_hours: parseScheduleFromString(restaurant.opening_hours),
         menu_pdf_url: restaurant.menu_pdf_url || null,
+        gallery: restaurant.gallery || [],
         is_active: restaurant.is_active,
       });
     } else {
@@ -195,6 +200,7 @@ export default function AdminRestaurants() {
         price_range: "",
         opening_hours: createEmptySchedule(),
         menu_pdf_url: null,
+        gallery: [],
         is_active: true,
       });
     }
@@ -298,6 +304,7 @@ export default function AdminRestaurants() {
             price_range: formData.price_range || null,
             opening_hours: formData.opening_hours,
             menu_pdf_url: formData.menu_pdf_url,
+            gallery: formData.gallery,
             is_active: formData.is_active,
           })
           .eq("id", editingRestaurant.id);
@@ -324,6 +331,7 @@ export default function AdminRestaurants() {
             price_range: formData.price_range || null,
             opening_hours: formData.opening_hours,
             menu_pdf_url: formData.menu_pdf_url,
+            gallery: formData.gallery,
             is_active: formData.is_active,
           });
 
@@ -674,6 +682,33 @@ export default function AdminRestaurants() {
                 <p className="text-xs text-muted-foreground mb-2">
                   Cargando...
                 </p>
+              </div>
+            )}
+
+            {/* Galería de imágenes */}
+            {(editingRestaurant || tempRestaurantId) && (
+              <div className="py-4 border-t">
+                <RestaurantGalleryManager
+                  restaurantId={editingRestaurant?.id || tempRestaurantId || ""}
+                  currentImages={formData.gallery}
+                  onImagesUpdate={(images) => {
+                    setFormData({ ...formData, gallery: images });
+                    // Actualizar automáticamente en la base de datos si estamos editando
+                    if (editingRestaurant) {
+                      supabase
+                        .from("restaurants")
+                        .update({ gallery: images })
+                        .eq("id", editingRestaurant.id)
+                        .then(({ error }) => {
+                          if (error) {
+                            console.error("Error updating gallery:", error);
+                            toast.error("Error al actualizar la galería");
+                          }
+                        });
+                    }
+                  }}
+                  maxImages={4}
+                />
               </div>
             )}
 

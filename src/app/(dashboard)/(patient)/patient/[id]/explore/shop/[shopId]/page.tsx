@@ -37,6 +37,7 @@ interface Shop {
   opening_hours?: DaySchedule[] | string;
   category?: string;
   catalog_pdf_url?: string;
+  gallery?: string[];
   is_active: boolean;
   created_at: string;
 }
@@ -273,6 +274,26 @@ export default function ShopDetailPage() {
             </div>
           </div>
         </div>
+
+        {/* Galería de imágenes */}
+        {shop.gallery && shop.gallery.length > 0 && (
+          <div className="mb-8">
+            <h2 className="text-2xl font-bold text-foreground mb-6">Galería</h2>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {shop.gallery.map((imageUrl, index) => (
+                <div key={index} className="relative aspect-square rounded-lg overflow-hidden">
+                  <StableImage
+                    src={imageUrl}
+                    alt={`Imagen ${index + 1} de ${shop.name}`}
+                    fill
+                    className="object-cover hover:scale-105 transition-transform duration-300 cursor-pointer"
+                    fallbackSrc="/logos/holistia-black.png"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Horarios de atención */}
         {shop.opening_hours && (

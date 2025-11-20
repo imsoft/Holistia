@@ -33,6 +33,7 @@ interface Restaurant {
   cuisine_type?: string;
   price_range?: string;
   menu_pdf_url?: string;
+  gallery?: string[];
   is_active: boolean;
   created_at: string;
 }
@@ -246,6 +247,26 @@ export default function RestaurantDetailPage() {
             </div>
           </div>
         </div>
+
+        {/* Galería de imágenes */}
+        {restaurant.gallery && restaurant.gallery.length > 0 && (
+          <div className="mb-8">
+            <h2 className="text-2xl font-bold text-foreground mb-6">Galería</h2>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {restaurant.gallery.map((imageUrl, index) => (
+                <div key={index} className="relative aspect-square rounded-lg overflow-hidden">
+                  <StableImage
+                    src={imageUrl}
+                    alt={`Imagen ${index + 1} de ${restaurant.name}`}
+                    fill
+                    className="object-cover hover:scale-105 transition-transform duration-300 cursor-pointer"
+                    fallbackSrc="/logos/holistia-black.png"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Menú en PDF */}
         {restaurant.menu_pdf_url && (

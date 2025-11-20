@@ -51,6 +51,7 @@ import {
 } from "@/components/ui/schedule-editor";
 import { RestaurantCenterImageUploader } from "@/components/ui/restaurant-center-image-uploader";
 import { ShopProductsManager } from "@/components/ui/shop-products-manager";
+import { ShopGalleryManager } from "@/components/ui/shop-gallery-manager";
 
 interface Shop {
   id: string;
@@ -66,6 +67,7 @@ interface Shop {
   opening_hours?: DaySchedule[] | string;
   category?: string;
   catalog_pdf_url?: string | null;
+  gallery?: string[];
   is_active: boolean;
   created_at: string;
   updated_at: string;
@@ -84,6 +86,7 @@ interface FormData {
   opening_hours: DaySchedule[];
   category: string;
   catalog_pdf_url: string | null;
+  gallery: string[];
   is_active: boolean;
 }
 
@@ -124,6 +127,7 @@ export default function AdminShops() {
     opening_hours: createEmptySchedule(),
     category: "",
     catalog_pdf_url: null,
+    gallery: [],
     is_active: true,
   });
 
@@ -168,6 +172,7 @@ export default function AdminShops() {
         opening_hours: parseScheduleFromString(shop.opening_hours),
         category: shop.category || "",
         catalog_pdf_url: shop.catalog_pdf_url || null,
+        gallery: shop.gallery || [],
         is_active: shop.is_active,
       });
     } else {
@@ -187,6 +192,7 @@ export default function AdminShops() {
         opening_hours: createEmptySchedule(),
         category: "",
         catalog_pdf_url: null,
+        gallery: [],
         is_active: true,
       });
     }
@@ -274,6 +280,7 @@ export default function AdminShops() {
         opening_hours: formData.opening_hours,
         category: formData.category || null,
         catalog_pdf_url: formData.catalog_pdf_url,
+        gallery: formData.gallery,
         is_active: formData.is_active,
       };
 
@@ -646,6 +653,33 @@ export default function AdminShops() {
                 <p className="text-xs text-muted-foreground mb-2">
                   Cargando...
                 </p>
+              </div>
+            )}
+
+            {/* Galería de imágenes */}
+            {(editingShop || tempShopId) && (
+              <div className="py-4 border-t">
+                <ShopGalleryManager
+                  shopId={editingShop?.id || tempShopId || ""}
+                  currentImages={formData.gallery}
+                  onImagesUpdate={(images) => {
+                    setFormData({ ...formData, gallery: images });
+                    // Actualizar automáticamente en la base de datos si estamos editando
+                    if (editingShop) {
+                      supabase
+                        .from("shops")
+                        .update({ gallery: images })
+                        .eq("id", editingShop.id)
+                        .then(({ error }) => {
+                          if (error) {
+                            console.error("Error updating gallery:", error);
+                            toast.error("Error al actualizar la galería");
+                          }
+                        });
+                    }
+                  }}
+                  maxImages={4}
+                />
               </div>
             )}
 

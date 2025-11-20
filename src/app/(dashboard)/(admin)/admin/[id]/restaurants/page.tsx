@@ -563,14 +563,14 @@ export default function AdminRestaurants() {
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="cuisine_type">Tipo de cocina</Label>
                 <Select
                   value={formData.cuisine_type}
                   onValueChange={(value) => setFormData({ ...formData, cuisine_type: value })}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="w-full">
                     <SelectValue placeholder="Seleccionar tipo" />
                   </SelectTrigger>
                   <SelectContent>
@@ -589,7 +589,7 @@ export default function AdminRestaurants() {
                   value={formData.price_range}
                   onValueChange={(value) => setFormData({ ...formData, price_range: value })}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="w-full">
                     <SelectValue placeholder="Seleccionar rango" />
                   </SelectTrigger>
                   <SelectContent>
@@ -687,7 +687,7 @@ export default function AdminRestaurants() {
 
             {/* Gestor de Menús */}
             {(editingRestaurant || tempRestaurantId) && (
-              <div className="pt-4 border-t">
+              <div className="py-4 border-t">
                 <RestaurantMenuManager
                   restaurantId={editingRestaurant?.id || tempRestaurantId || ""}
                   restaurantName={formData.name || "restaurante"}

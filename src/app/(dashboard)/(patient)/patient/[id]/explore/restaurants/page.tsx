@@ -259,13 +259,6 @@ export default function RestaurantsPage() {
                     </div>
                   </fieldset>
                 </div>
-
-                {/* Resultados */}
-                <div className="py-8 first:pt-0 last:pb-0">
-                  <div className="text-sm text-muted-foreground">
-                    {filteredRestaurants.length} {filteredRestaurants.length === 1 ? "restaurante encontrado" : "restaurantes encontrados"}
-                  </div>
-                </div>
               </form>
             </div>
 
@@ -361,9 +354,10 @@ export default function RestaurantsPage() {
                   </CardHeader>
                   <CardContent className="flex-1">
                     {restaurant.description && (
-                      <p className="text-sm text-muted-foreground line-clamp-3">
-                        {restaurant.description}
-                      </p>
+                      <div 
+                        className="text-sm text-muted-foreground line-clamp-3 prose prose-sm max-w-none"
+                        dangerouslySetInnerHTML={{ __html: restaurant.description }}
+                      />
                     )}
                     {restaurant.address && (
                       <div className="flex items-start gap-2 mt-3 text-sm text-muted-foreground">

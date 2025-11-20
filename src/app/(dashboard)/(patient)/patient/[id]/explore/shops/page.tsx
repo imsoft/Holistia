@@ -200,13 +200,6 @@ export default function ShopsPage() {
                     </div>
                   </fieldset>
                 </div>
-
-                {/* Resultados */}
-                <div className="py-8 first:pt-0 last:pb-0">
-                  <div className="text-sm text-muted-foreground">
-                    {filteredShops.length} {filteredShops.length === 1 ? "comercio encontrado" : "comercios encontrados"}
-                  </div>
-                </div>
               </form>
             </div>
 
@@ -284,9 +277,10 @@ export default function ShopsPage() {
                   </CardHeader>
                   <CardContent className="flex-1">
                     {shop.description && (
-                      <p className="text-sm text-muted-foreground line-clamp-3">
-                        {shop.description}
-                      </p>
+                      <div 
+                        className="text-sm text-muted-foreground line-clamp-3 prose prose-sm max-w-none"
+                        dangerouslySetInnerHTML={{ __html: shop.description }}
+                      />
                     )}
                     {(shop.address || shop.city) && (
                       <div className="flex items-start gap-2 mt-3 text-sm text-muted-foreground">

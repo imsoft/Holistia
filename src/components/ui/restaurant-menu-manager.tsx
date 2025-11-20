@@ -20,10 +20,12 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { MenuImagesUploader } from "@/components/ui/menu-images-uploader";
+import { PDFUploader } from "@/components/ui/pdf-uploader";
 import { Plus, Edit, Trash2, UtensilsCrossed } from "lucide-react";
 import { toast } from "sonner";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import Image from "next/image";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface RestaurantMenu {
   id: string;
@@ -40,9 +42,17 @@ interface RestaurantMenu {
 
 interface RestaurantMenuManagerProps {
   restaurantId: string;
+  restaurantName: string;
+  menuPdfUrl?: string | null;
+  onPdfUpdated?: (pdfUrl: string | null) => void;
 }
 
-export function RestaurantMenuManager({ restaurantId }: RestaurantMenuManagerProps) {
+export function RestaurantMenuManager({
+  restaurantId,
+  restaurantName,
+  menuPdfUrl,
+  onPdfUpdated
+}: RestaurantMenuManagerProps) {
   const [menus, setMenus] = useState<RestaurantMenu[]>([]);
   const [loading, setLoading] = useState(true);
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -235,16 +245,43 @@ export function RestaurantMenuManager({ restaurantId }: RestaurantMenuManagerPro
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <CardTitle className="flex items-center gap-2">
-          <UtensilsCrossed className="h-5 w-5" />
-          Menús del Restaurante
-        </CardTitle>
-        <Button type="button" onClick={() => handleOpenForm()}>
-          <Plus className="mr-2 h-4 w-4" />
-          Agregar Menú
-        </Button>
-      </div>
+      <CardTitle className="flex items-center gap-2 mb-4">
+        <UtensilsCrossed className="h-5 w-5" />
+        Menú del Restaurante
+      </CardTitle>
+
+      <Tabs defaultValue="pdf" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="pdf">Menú en PDF</TabsTrigger>
+          <TabsTrigger value="individual">Platillos Individuales</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="pdf" className="space-y-4">
+          <Card>
+            <CardContent className="pt-6">
+              <PDFUploader
+                entityType="restaurant"
+                entityId={restaurantId}
+                entityName={restaurantName}
+                currentPdfUrl={menuPdfUrl}
+                onPdfUpdated={(url) => onPdfUpdated?.(url)}
+                label="Menú Completo en PDF"
+                description="Sube tu menú completo en formato PDF (máximo 10MB). Esta es la forma más rápida de mostrar tu menú."
+              />
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="individual" className="space-y-4">
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-muted-foreground">
+              Agrega platillos individuales con imágenes y descripciones
+            </p>
+            <Button type="button" onClick={() => handleOpenForm()}>
+              <Plus className="mr-2 h-4 w-4" />
+              Agregar Platillo
+            </Button>
+          </div>
 
       {/* Lista de menús */}
       {menus.length === 0 ? (
@@ -324,6 +361,8 @@ export function RestaurantMenuManager({ restaurantId }: RestaurantMenuManagerPro
           ))}
         </div>
       )}
+        </TabsContent>
+      </Tabs>
 
       {/* Dialog de formulario */}
       <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>

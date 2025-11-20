@@ -58,6 +58,7 @@ interface Shop {
   image_url?: string;
   opening_hours?: DaySchedule[] | string;
   category?: string;
+  catalog_pdf_url?: string | null;
   is_active: boolean;
   created_at: string;
   updated_at: string;
@@ -75,6 +76,7 @@ interface FormData {
   image_url: string;
   opening_hours: DaySchedule[];
   category: string;
+  catalog_pdf_url: string | null;
   is_active: boolean;
 }
 
@@ -115,6 +117,7 @@ export default function AdminShops() {
     image_url: "",
     opening_hours: createEmptySchedule(),
     category: "",
+    catalog_pdf_url: null,
     is_active: true,
   });
 
@@ -158,6 +161,7 @@ export default function AdminShops() {
         image_url: shop.image_url || "",
         opening_hours: parseScheduleFromString(shop.opening_hours),
         category: shop.category || "",
+        catalog_pdf_url: shop.catalog_pdf_url || null,
         is_active: shop.is_active,
       });
     } else {
@@ -176,6 +180,7 @@ export default function AdminShops() {
         image_url: "",
         opening_hours: createEmptySchedule(),
         category: "",
+        catalog_pdf_url: null,
         is_active: true,
       });
     }
@@ -221,6 +226,25 @@ export default function AdminShops() {
     }
   };
 
+  const handlePdfUpdated = async (pdfUrl: string | null) => {
+    setFormData({ ...formData, catalog_pdf_url: pdfUrl });
+
+    if (editingShop) {
+      try {
+        const { error } = await supabase
+          .from("shops")
+          .update({ catalog_pdf_url: pdfUrl })
+          .eq("id", editingShop.id);
+
+        if (error) throw error;
+        setEditingShop({ ...editingShop, catalog_pdf_url: pdfUrl });
+      } catch (error) {
+        console.error("Error updating PDF:", error);
+        toast.error("Error al actualizar el PDF");
+      }
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -244,6 +268,7 @@ export default function AdminShops() {
         image_url: formData.image_url.trim() || null,
         opening_hours: formData.opening_hours,
         category: formData.category || null,
+        catalog_pdf_url: formData.catalog_pdf_url,
         is_active: formData.is_active,
       };
 
@@ -680,6 +705,8 @@ export default function AdminShops() {
                       <ShopProductsManager
                         shopId={editingShop?.id || tempShopId || ""}
                         shopName={formData.name || "comercio"}
+                        catalogPdfUrl={formData.catalog_pdf_url}
+                        onPdfUpdated={handlePdfUpdated}
                       />
                     </div>
                   )}
@@ -840,6 +867,8 @@ export default function AdminShops() {
             <ShopProductsManager
               shopId={managingShop.id}
               shopName={managingShop.name}
+              catalogPdfUrl={managingShop.catalog_pdf_url}
+              onPdfUpdated={handlePdfUpdated}
             />
           )}
         </DialogContent>

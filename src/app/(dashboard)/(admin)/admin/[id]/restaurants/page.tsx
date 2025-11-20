@@ -66,6 +66,7 @@ interface Restaurant {
   price_range?: string;
   opening_hours?: DaySchedule[] | string;
   rating?: number;
+  menu_pdf_url?: string | null;
   is_active: boolean;
   created_at: string;
   updated_at: string;
@@ -83,6 +84,7 @@ interface FormData {
   cuisine_type: string;
   price_range: string;
   opening_hours: DaySchedule[];
+  menu_pdf_url: string | null;
   is_active: boolean;
 }
 
@@ -128,6 +130,7 @@ export default function AdminRestaurants() {
     cuisine_type: "",
     price_range: "",
     opening_hours: createEmptySchedule(),
+    menu_pdf_url: null,
     is_active: true,
   });
 
@@ -171,6 +174,7 @@ export default function AdminRestaurants() {
         cuisine_type: restaurant.cuisine_type || "",
         price_range: restaurant.price_range || "",
         opening_hours: parseScheduleFromString(restaurant.opening_hours),
+        menu_pdf_url: restaurant.menu_pdf_url || null,
         is_active: restaurant.is_active,
       });
     } else {
@@ -190,6 +194,7 @@ export default function AdminRestaurants() {
         cuisine_type: "",
         price_range: "",
         opening_hours: createEmptySchedule(),
+        menu_pdf_url: null,
         is_active: true,
       });
     }
@@ -222,7 +227,7 @@ export default function AdminRestaurants() {
 
   const handleImageRemoved = async () => {
     setFormData({ ...formData, image_url: "" });
-    
+
     // Actualizar automáticamente en la base de datos solo si estamos editando un restaurante existente
     if (editingRestaurant) {
       try {
@@ -230,7 +235,7 @@ export default function AdminRestaurants() {
           .from("restaurants")
           .update({ image_url: null })
           .eq("id", editingRestaurant.id);
-        
+
         if (error) throw error;
         // Actualizar el estado local
         setEditingRestaurant({ ...editingRestaurant, image_url: undefined });
@@ -241,6 +246,29 @@ export default function AdminRestaurants() {
     }
     // Si estamos creando un nuevo restaurante, solo actualizamos el estado del formulario
     // La imagen se elimina del storage pero no afecta la base de datos porque aún no existe el registro
+  };
+
+  const handlePdfUpdated = async (pdfUrl: string | null) => {
+    setFormData({ ...formData, menu_pdf_url: pdfUrl });
+
+    // Actualizar automáticamente en la base de datos solo si estamos editando un restaurante existente
+    if (editingRestaurant) {
+      try {
+        const { error } = await supabase
+          .from("restaurants")
+          .update({ menu_pdf_url: pdfUrl })
+          .eq("id", editingRestaurant.id);
+
+        if (error) throw error;
+        // Actualizar el estado local
+        setEditingRestaurant({ ...editingRestaurant, menu_pdf_url: pdfUrl });
+      } catch (error) {
+        console.error("Error updating PDF in database:", error);
+        toast.error("Error al actualizar el PDF en la base de datos");
+      }
+    }
+    // Si estamos creando un nuevo restaurante, el PDF ya está subido al storage con el ID temporal,
+    // y se guardará cuando se cree el restaurante con ese mismo ID
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -269,6 +297,7 @@ export default function AdminRestaurants() {
             cuisine_type: formData.cuisine_type || null,
             price_range: formData.price_range || null,
             opening_hours: formData.opening_hours,
+            menu_pdf_url: formData.menu_pdf_url,
             is_active: formData.is_active,
           })
           .eq("id", editingRestaurant.id);
@@ -294,6 +323,7 @@ export default function AdminRestaurants() {
             cuisine_type: formData.cuisine_type || null,
             price_range: formData.price_range || null,
             opening_hours: formData.opening_hours,
+            menu_pdf_url: formData.menu_pdf_url,
             is_active: formData.is_active,
           });
 
@@ -658,9 +688,11 @@ export default function AdminRestaurants() {
             {/* Gestor de Menús */}
             {(editingRestaurant || tempRestaurantId) && (
               <div className="pt-4 border-t">
-                <Label className="text-base font-semibold mb-2 block">Menú del Restaurante</Label>
-                <RestaurantMenuManager 
-                  restaurantId={editingRestaurant?.id || tempRestaurantId || ""} 
+                <RestaurantMenuManager
+                  restaurantId={editingRestaurant?.id || tempRestaurantId || ""}
+                  restaurantName={formData.name || "restaurante"}
+                  menuPdfUrl={formData.menu_pdf_url}
+                  onPdfUpdated={handlePdfUpdated}
                 />
               </div>
             )}

@@ -16,9 +16,11 @@ import {
 } from "@/components/ui/dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Edit, Trash2, Upload, X, Loader2, Tag, Star } from "lucide-react";
+import { Plus, Edit, Trash2, Upload, X, Loader2, Tag, Star, Package } from "lucide-react";
 import { toast } from "sonner";
 import Image from "next/image";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { PDFUploader } from "@/components/ui/pdf-uploader";
 
 interface Product {
   id: string;
@@ -55,11 +57,15 @@ interface FormData {
 interface ShopProductsManagerProps {
   shopId: string;
   shopName: string;
+  catalogPdfUrl?: string | null;
+  onPdfUpdated?: (pdfUrl: string | null) => void;
 }
 
 export function ShopProductsManager({
   shopId,
   shopName,
+  catalogPdfUrl,
+  onPdfUpdated
 }: ShopProductsManagerProps) {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -302,18 +308,43 @@ export function ShopProductsManager({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <Label className="text-base font-semibold">Productos del Comercio</Label>
-          <p className="text-sm text-muted-foreground mt-1">
-            Gestiona el catálogo de productos
-          </p>
-        </div>
-        <Button onClick={() => handleOpenForm()}>
-          <Plus className="w-4 h-4 mr-2" />
-          Agregar Producto
-        </Button>
-      </div>
+      <CardTitle className="flex items-center gap-2 mb-4">
+        <Package className="h-5 w-5" />
+        Catálogo del Comercio
+      </CardTitle>
+
+      <Tabs defaultValue="pdf" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="pdf">Catálogo en PDF</TabsTrigger>
+          <TabsTrigger value="individual">Productos Individuales</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="pdf" className="space-y-4">
+          <Card>
+            <CardContent className="pt-6">
+              <PDFUploader
+                entityType="shop"
+                entityId={shopId}
+                entityName={shopName}
+                currentPdfUrl={catalogPdfUrl}
+                onPdfUpdated={(url) => onPdfUpdated?.(url)}
+                label="Catálogo Completo en PDF"
+                description="Sube tu catálogo completo en formato PDF (máximo 10MB). Esta es la forma más rápida de mostrar tus productos."
+              />
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="individual" className="space-y-4">
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-muted-foreground">
+              Agrega productos individuales con imágenes y descripciones
+            </p>
+            <Button onClick={() => handleOpenForm()}>
+              <Plus className="w-4 h-4 mr-2" />
+              Agregar Producto
+            </Button>
+          </div>
 
       {loading ? (
         <div className="flex items-center justify-center py-8">
@@ -574,6 +605,8 @@ export function ShopProductsManager({
           </form>
         </DialogContent>
       </Dialog>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

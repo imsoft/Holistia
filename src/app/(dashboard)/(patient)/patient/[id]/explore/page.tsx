@@ -690,8 +690,7 @@ const HomeUserPage = () => {
                 href={`/patient/${userId}/explore/restaurants`}
                 className="group"
               >
-                <h2 className="text-3xl sm:text-4xl font-bold text-foreground group-hover:text-primary transition-colors flex items-center gap-2">
-                  <UtensilsCrossed className="h-8 w-8" />
+                <h2 className="text-3xl sm:text-4xl font-bold text-foreground group-hover:text-primary transition-colors">
                   Restaurantes
                 </h2>
               </Link>
@@ -748,7 +747,7 @@ const HomeUserPage = () => {
                             </div>
                           )}
                         </div>
-                        <CardHeader>
+                        <CardHeader className="pb-3">
                           <CardTitle className="line-clamp-2">{restaurant.name}</CardTitle>
                           <div className="flex gap-2 mt-2">
                             {restaurant.cuisine_type && (
@@ -759,7 +758,7 @@ const HomeUserPage = () => {
                             )}
                           </div>
                         </CardHeader>
-                        <CardContent className="flex-1">
+                        <CardContent className="flex-1 pb-4">
                           {restaurant.description && (
                             <p className="text-sm text-muted-foreground line-clamp-3">
                               {restaurant.description}
@@ -787,8 +786,7 @@ const HomeUserPage = () => {
                 href={`/patient/${userId}/explore/shops`}
                 className="group"
               >
-                <h2 className="text-3xl sm:text-4xl font-bold text-foreground group-hover:text-primary transition-colors flex items-center gap-2">
-                  <Store className="h-8 w-8" />
+                <h2 className="text-3xl sm:text-4xl font-bold text-foreground group-hover:text-primary transition-colors">
                   Comercios
                 </h2>
               </Link>
@@ -845,13 +843,13 @@ const HomeUserPage = () => {
                             </div>
                           )}
                         </div>
-                        <CardHeader>
+                        <CardHeader className="pb-3">
                           <CardTitle className="line-clamp-2">{shop.name}</CardTitle>
                           {shop.category && (
                             <Badge variant="secondary" className="w-fit mt-2">{shop.category}</Badge>
                           )}
                         </CardHeader>
-                        <CardContent className="flex-1">
+                        <CardContent className="flex-1 pb-4">
                           {shop.description && (
                             <p className="text-sm text-muted-foreground line-clamp-3">
                               {shop.description}

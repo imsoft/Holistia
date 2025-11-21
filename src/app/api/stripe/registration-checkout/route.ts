@@ -129,6 +129,13 @@ export async function POST(request: Request) {
     console.log('✅ [Registration Checkout] Pago creado:', payment.id);
     console.log('🔵 [Registration Checkout] Creando sesión de Stripe Checkout');
 
+    // Asegurar que la URL base tenga el esquema correcto
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://www.holistia.io';
+    const successUrl = `${baseUrl}/patient/${user.id}/explore/become-professional?payment=success`;
+    const cancelUrl = `${baseUrl}/patient/${user.id}/explore/become-professional?payment=cancelled`;
+
+    console.log('🔵 [Registration Checkout] URLs:', { successUrl, cancelUrl });
+
     // Crear sesión de Stripe Checkout
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
@@ -147,8 +154,8 @@ export async function POST(request: Request) {
         },
       ],
       mode: "payment",
-      success_url: `${process.env.NEXT_PUBLIC_BASE_URL}/patient/${user.id}/explore/become-professional?payment=success`,
-      cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL}/patient/${user.id}/explore/become-professional?payment=cancelled`,
+      success_url: successUrl,
+      cancel_url: cancelUrl,
       client_reference_id: professional_application_id,
       metadata: {
         payment_id: payment.id,

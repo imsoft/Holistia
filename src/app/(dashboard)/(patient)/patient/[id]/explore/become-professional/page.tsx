@@ -1091,10 +1091,15 @@ export default function BecomeProfessionalPage() {
     };
 
     const formatDate = (dateString: string) => {
-      // Crear la fecha usando componentes individuales para evitar problemas de zona horaria
-      const [year, month, day] = dateString.split('-').map(Number);
-      const date = new Date(year, month - 1, day); // month es 0-indexado
-      
+      // Crear la fecha desde el timestamp de Supabase
+      const date = new Date(dateString);
+
+      // Verificar que la fecha sea válida
+      if (isNaN(date.getTime())) {
+        console.error('❌ [Fecha inválida]:', dateString);
+        return 'Fecha no disponible';
+      }
+
       return date.toLocaleDateString('es-ES', {
         year: 'numeric',
         month: 'long',

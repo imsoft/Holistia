@@ -298,6 +298,12 @@ export default function BecomeProfessionalPage() {
 
     setSubmitting(true);
     try {
+      // Verificar nuevamente si existe una aplicación antes de enviar
+      const { data: checkExisting } = await supabase
+        .from("professional_applications")
+        .select("*")
+        .eq("user_id", profile.id)
+        .maybeSingle();
 
       // Obtener la foto de perfil del usuario actual
       const userProfilePhoto = profile.avatar_url;
@@ -326,22 +332,56 @@ export default function BecomeProfessionalPage() {
         status: "pending",
       };
 
-      if (existingApplication) {
+      // Usar checkExisting en lugar de existingApplication para estar seguros
+      if (checkExisting || existingApplication) {
+        const appId = checkExisting?.id || existingApplication?.id;
+        console.log('🔵 Actualizando aplicación existente:', appId);
+
         const { error } = await supabase
           .from("professional_applications")
           .update(applicationData)
-          .eq("id", existingApplication.id);
+          .eq("id", appId);
 
-        if (error) throw error;
+        if (error) {
+          console.error('❌ Error al actualizar:', error);
+          throw error;
+        }
+        toast.success("¡Solicitud actualizada exitosamente!");
       } else {
+        console.log('🔵 Creando nueva aplicación');
+
         const { error } = await supabase
           .from("professional_applications")
           .insert([applicationData]);
 
-        if (error) throw error;
+        if (error) {
+          console.error('❌ Error al insertar:', error);
+          // Si falla por duplicado, intentar actualizar
+          if (error.code === '23505') {
+            console.log('⚠️ Detectado duplicado, intentando actualizar...');
+            const { data: existingByEmail } = await supabase
+              .from("professional_applications")
+              .select("*")
+              .eq("email", formData.email)
+              .maybeSingle();
+
+            if (existingByEmail) {
+              const { error: updateError } = await supabase
+                .from("professional_applications")
+                .update(applicationData)
+                .eq("id", existingByEmail.id);
+
+              if (updateError) throw updateError;
+              setExistingApplication(existingByEmail);
+              toast.success("¡Solicitud actualizada exitosamente!");
+              return;
+            }
+          }
+          throw error;
+        }
+        toast.success("¡Solicitud enviada exitosamente!");
       }
 
-      toast.success("¡Solicitud enviada exitosamente!");
       // Recargar los datos en lugar de recargar toda la página
       const { data: updatedApp } = await supabase
         .from("professional_applications")
@@ -353,8 +393,9 @@ export default function BecomeProfessionalPage() {
         setExistingApplication(updatedApp);
       }
     } catch (error) {
-      console.error("Error submitting application:", error);
-      toast.error("Error al enviar la solicitud. Inténtalo de nuevo.");
+      console.error("❌ Error submitting application:", error);
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
+      toast.error(`Error al enviar la solicitud: ${errorMessage}`);
     } finally {
       setSubmitting(false);
     }

@@ -172,8 +172,8 @@ export const ProfessionalCard = ({ professional, userId }: ProfessionalCardProps
           <Heart className={`h-4 w-4 transition-colors ${isFavorite ? 'text-red-500 fill-red-500' : 'text-muted-foreground hover:text-red-500 hover:fill-red-500'}`} />
         </button>
       </div>
-      
-      <CardContent className="p-4 flex flex-col flex-grow">
+
+      <CardContent className="px-4 pt-3 pb-4 flex flex-col flex-grow">
         <div className="space-y-2 flex flex-col flex-grow">
           {/* Header - Intercambiado: Especialidad arriba, Nombre abajo */}
           <div>
@@ -238,9 +238,9 @@ export const ProfessionalCard = ({ professional, userId }: ProfessionalCardProps
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <MapPin className="h-3 w-3" />
               <span>
-                {professional.location 
-                  ? (typeof professional.location === 'string' 
-                      ? professional.location 
+                {professional.location
+                  ? (typeof professional.location === 'string'
+                      ? professional.location
                       : `${professional.location.city}, ${professional.location.state}`)
                   : `${professional.city || ''}, ${professional.state || ''}`.replace(/^,\s*|,\s*$/g, '')
                 }
@@ -251,15 +251,6 @@ export const ProfessionalCard = ({ professional, userId }: ProfessionalCardProps
               <span>{getServiceTypeText()}</span>
             </div>
           </div>
-
-          {/* Booking Button */}
-          {professional.bookingOption && (
-            <div className="flex justify-end items-center mt-2">
-              <button className="text-xs bg-primary text-primary-foreground px-3 py-1 rounded-full hover:bg-primary/90 transition-colors">
-                Reservar
-              </button>
-            </div>
-          )}
         </div>
       </CardContent>
     </Card>

@@ -361,10 +361,15 @@ export default function BecomeProfessionalPage() {
   };
 
   const handleRegistrationPayment = async () => {
-    if (!existingApplication) return;
+    if (!existingApplication) {
+      toast.error('No se encontró la aplicación profesional');
+      return;
+    }
 
     setProcessingPayment(true);
     try {
+      console.log('🔵 Iniciando pago de inscripción para:', existingApplication.id);
+
       const response = await fetch('/api/stripe/registration-checkout', {
         method: 'POST',
         headers: {
@@ -375,17 +380,28 @@ export default function BecomeProfessionalPage() {
         }),
       });
 
+      console.log('🔵 Respuesta del servidor:', response.status);
+
       if (!response.ok) {
-        throw new Error('Error al crear la sesión de pago');
+        const errorData = await response.json();
+        console.error('❌ Error del servidor:', errorData);
+        throw new Error(errorData.error || 'Error al crear la sesión de pago');
       }
 
-      const { url } = await response.json();
-      
+      const data = await response.json();
+      console.log('✅ Sesión creada:', data);
+
+      if (!data.url) {
+        throw new Error('No se recibió la URL de pago');
+      }
+
       // Redirigir a Stripe Checkout
-      window.location.href = url;
+      console.log('🔵 Redirigiendo a:', data.url);
+      window.location.href = data.url;
     } catch (error) {
-      console.error('Error processing payment:', error);
-      toast.error('Error al procesar el pago. Inténtalo de nuevo.');
+      console.error('❌ Error processing payment:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
+      toast.error(`Error al procesar el pago: ${errorMessage}`);
       setProcessingPayment(false);
     }
   };

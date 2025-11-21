@@ -138,13 +138,15 @@ export default function BecomeProfessionalPage() {
     const getUserData = async () => {
       try {
         if (!profile) {
-          console.error("No profile loaded");
+          console.log("⏳ Esperando a que el profile se cargue...");
           return;
         }
-        
+
+        console.log("🔵 Cargando datos para usuario:", profile.id);
+
         // Obtener foto de perfil del usuario
         setUserProfilePhoto(profile.avatar_url || null);
-        
+
         // Pre-llenar el formulario con los datos del usuario
         setFormData((prev) => ({
           ...prev,
@@ -155,6 +157,7 @@ export default function BecomeProfessionalPage() {
         }));
 
         // Verificar si ya existe una aplicación
+        console.log("🔍 Buscando aplicación existente para:", profile.id);
         const { data: existingApp, error: appError } = await supabase
           .from("professional_applications")
           .select("*")
@@ -162,8 +165,9 @@ export default function BecomeProfessionalPage() {
           .maybeSingle();
 
         if (appError) {
-          console.error("Error checking existing application:", appError);
+          console.error("❌ Error checking existing application:", appError);
         } else if (existingApp) {
+          console.log("✅ Aplicación existente encontrada:", existingApp.id);
           setExistingApplication(existingApp);
           setFormData({
             first_name: existingApp.first_name || "",
@@ -187,16 +191,18 @@ export default function BecomeProfessionalPage() {
             terms_accepted: existingApp.terms_accepted || false,
             privacy_accepted: existingApp.privacy_accepted || false,
           });
+        } else {
+          console.log("ℹ️ No se encontró aplicación existente");
         }
       } catch (err) {
-        console.error("Error:", err);
+        console.error("❌ Error en getUserData:", err);
       } finally {
         setLoading(false);
       }
     };
 
     getUserData();
-  }, [userId, supabase]);
+  }, [profile, supabase]);
 
   const handleInputChange = (field: string, value: string | boolean) => {
     // Para campos de texto, guardar el valor sin normalizar

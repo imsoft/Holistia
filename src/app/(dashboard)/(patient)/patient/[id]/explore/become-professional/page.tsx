@@ -1252,10 +1252,10 @@ export default function BecomeProfessionalPage() {
                                         Tu inscripción expira en {feeStatus.daysRemaining} día{feeStatus.daysRemaining !== 1 ? 's' : ''}. 
                                         Renueva tu pago para seguir apareciendo en la plataforma.
                                       </p>
-                                      <Button 
+                                      <Button
                                         onClick={handleRegistrationPayment}
                                         disabled={processingPayment}
-                                        className="w-full sm:w-auto"
+                                        className="w-full"
                                         size="sm"
                                       >
                                         <CreditCard className="h-4 w-4 mr-2" />
@@ -1278,10 +1278,10 @@ export default function BecomeProfessionalPage() {
                                         Tu inscripción ha expirado. Debes renovar tu pago de ${existingApplication.registration_fee_amount?.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} MXN 
                                         para volver a aparecer en la plataforma.
                                       </p>
-                                      <Button 
+                                      <Button
                                         onClick={handleRegistrationPayment}
                                         disabled={processingPayment}
-                                        className="w-full sm:w-auto bg-red-600 hover:bg-red-700"
+                                        className="w-full bg-red-600 hover:bg-red-700"
                                         size="sm"
                                       >
                                         <CreditCard className="h-4 w-4 mr-2" />
@@ -1305,10 +1305,10 @@ export default function BecomeProfessionalPage() {
                                         debes pagar la cuota de inscripción anual de ${existingApplication.registration_fee_amount?.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} MXN. 
                                         Puedes realizar el pago ahora o más tarde, pero sin él no podrás aparecer en la plataforma.
                                       </p>
-                                      <Button 
+                                      <Button
                                         onClick={handleRegistrationPayment}
                                         disabled={processingPayment}
-                                        className="w-full sm:w-auto"
+                                        className="w-full"
                                         size="sm"
                                       >
                                         <CreditCard className="h-4 w-4 mr-2" />

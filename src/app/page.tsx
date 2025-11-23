@@ -7,6 +7,7 @@ import { Footer } from "@/components/shared/footer";
 import { HeroSection } from "@/components/shared/hero-section";
 import { LogoClouds } from "@/components/shared/logo-clouds";
 import { TestimonialsSection } from "@/components/shared/testimonials-section";
+import { ExploreSection } from "@/components/shared/explore-section";
 
 const Home = () => {
   useEffect(() => {
@@ -37,6 +38,7 @@ const Home = () => {
     <>
       <HeroSection />
       <FeaturesSection />
+      <ExploreSection />
       <TestimonialsSection />
       <LogoClouds />
       <Footer />

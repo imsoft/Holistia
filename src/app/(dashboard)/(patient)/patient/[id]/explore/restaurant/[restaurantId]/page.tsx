@@ -11,8 +11,10 @@ import {
   Instagram,
   ArrowLeft,
   ExternalLink,
-  FileText
+  FileText,
+  Share2
 } from "lucide-react";
+import { toast } from "sonner";
 import { createClient } from "@/utils/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -57,6 +59,31 @@ export default function RestaurantDetailPage() {
   const [menus, setMenus] = useState<RestaurantMenu[]>([]);
   const [loading, setLoading] = useState(true);
   const supabase = createClient();
+
+  const handleShare = async () => {
+    const publicUrl = `${window.location.origin}/restaurant/${restaurantId}`;
+
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: `${restaurant?.name} - Holistia`,
+          text: `Conoce ${restaurant?.name} en Holistia`,
+          url: publicUrl,
+        });
+      } else {
+        await navigator.clipboard.writeText(publicUrl);
+        toast.success("Enlace copiado al portapapeles");
+      }
+    } catch (error) {
+      console.error("Error sharing:", error);
+      try {
+        await navigator.clipboard.writeText(publicUrl);
+        toast.success("Enlace copiado al portapapeles");
+      } catch (clipboardError) {
+        toast.error("No se pudo copiar el enlace");
+      }
+    }
+  };
 
   useEffect(() => {
     const getRestaurantData = async () => {
@@ -166,9 +193,15 @@ export default function RestaurantDetailPage() {
           {/* Información principal */}
           <div>
             <div className="mb-4">
-              <h1 className="text-3xl sm:text-4xl font-bold text-foreground mb-2">
-                {restaurant.name}
-              </h1>
+              <div className="flex items-start justify-between gap-4 mb-2">
+                <h1 className="text-3xl sm:text-4xl font-bold text-foreground flex-1">
+                  {restaurant.name}
+                </h1>
+                <Button variant="outline" size="sm" onClick={handleShare}>
+                  <Share2 className="w-4 h-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Compartir</span>
+                </Button>
+              </div>
               <div className="flex flex-wrap gap-2">
                 {restaurant.cuisine_type && (
                   <Badge variant="secondary">{restaurant.cuisine_type}</Badge>

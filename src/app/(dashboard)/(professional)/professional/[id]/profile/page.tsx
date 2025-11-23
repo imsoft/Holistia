@@ -6,7 +6,9 @@ import { createClient } from "@/utils/supabase/client";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import ProfilePhotoUploader from "@/components/ui/profile-photo-uploader";
 import ProfessionalProfileEditor from "@/components/ui/professional-profile-editor";
-import { User, Camera } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { User, Camera, Share2 } from "lucide-react";
+import { toast } from "sonner";
 
 export default function ProfessionalProfilePage() {
   const params = useParams();
@@ -17,6 +19,8 @@ export default function ProfessionalProfilePage() {
   const [loading, setLoading] = useState(true);
   const [professionalName, setProfessionalName] = useState<string>("");
   const [profilePhoto, setProfilePhoto] = useState<string>("");
+  const [firstName, setFirstName] = useState<string>("");
+  const [lastName, setLastName] = useState<string>("");
 
   useEffect(() => {
     const fetchProfessionalData = async () => {
@@ -35,6 +39,8 @@ export default function ProfessionalProfilePage() {
 
         if (professionalApp) {
           setProfessionalName(`${professionalApp.first_name} ${professionalApp.last_name}`);
+          setFirstName(professionalApp.first_name);
+          setLastName(professionalApp.last_name);
           setProfilePhoto(professionalApp.profile_photo || '');
         }
       } catch (error) {
@@ -46,6 +52,33 @@ export default function ProfessionalProfilePage() {
 
     fetchProfessionalData();
   }, [userId, supabase]);
+
+  const handleShare = async () => {
+    // Crear slug: nombre-apellido-id
+    const slug = `${firstName.toLowerCase()}-${lastName.toLowerCase()}-${userId}`;
+    const publicUrl = `${window.location.origin}/professional/${slug}`;
+
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: `${professionalName} - Holistia`,
+          text: `Conoce mi perfil profesional en Holistia`,
+          url: publicUrl,
+        });
+      } else {
+        await navigator.clipboard.writeText(publicUrl);
+        toast.success("Enlace copiado al portapapeles");
+      }
+    } catch (error) {
+      console.error("Error sharing:", error);
+      try {
+        await navigator.clipboard.writeText(publicUrl);
+        toast.success("Enlace copiado al portapapeles");
+      } catch (clipboardError) {
+        toast.error("No se pudo copiar el enlace");
+      }
+    }
+  };
 
   const handleProfileUpdate = () => {
     // Recargar datos después de actualizar
@@ -77,6 +110,10 @@ export default function ProfessionalProfilePage() {
               </p>
             </div>
           </div>
+          <Button variant="outline" size="sm" onClick={handleShare}>
+            <Share2 className="w-4 h-4 sm:mr-2" />
+            <span className="hidden sm:inline">Compartir</span>
+          </Button>
         </div>
       </div>
 

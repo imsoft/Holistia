@@ -283,7 +283,7 @@ export function ExploreSection() {
               {professionals.map((prof) => {
                 const slug = `${prof.first_name.toLowerCase()}-${prof.last_name.toLowerCase()}-${prof.id}`;
                 return (
-                  <Card key={prof.id} className="flex-shrink-0 w-[280px] sm:w-[320px] h-[460px] flex flex-col overflow-hidden hover:shadow-lg transition-shadow">
+                  <Card key={prof.id} className="flex-shrink-0 w-[280px] sm:w-[320px] h-[520px] flex flex-col overflow-hidden hover:shadow-lg transition-shadow">
                     <div className="relative w-full h-48 flex-shrink-0">
                       {prof.avatar_url ? (
                         <StableImage
@@ -321,8 +321,8 @@ export function ExploreSection() {
                         )}
                       </div>
                     </CardHeader>
-                    <CardContent className="flex-1 flex flex-col pt-0 pb-4">
-                      <div className="flex-1 space-y-3">
+                    <CardContent className="flex-1 flex flex-col justify-end pt-0 pb-4">
+                      <div className="flex-1 space-y-3 mb-4">
                         {prof.specializations && prof.specializations.length > 0 && (
                           <div className="flex flex-wrap gap-2">
                             {prof.specializations.slice(0, 2).map((spec, index) => (
@@ -344,7 +344,7 @@ export function ExploreSection() {
                           </div>
                         )}
                       </div>
-                      <Button variant="default" size="sm" className="w-full mt-4" asChild>
+                      <Button variant="default" size="sm" className="w-full" asChild>
                         <Link href={`/public/professional/${slug}`}>
                           Ver perfil
                         </Link>
@@ -404,7 +404,7 @@ export function ExploreSection() {
               }}
             >
               {shops.map((shop) => (
-                <Card key={shop.id} className="flex-shrink-0 w-[280px] sm:w-[320px] h-[380px] flex flex-col overflow-hidden hover:shadow-lg transition-shadow">
+                <Card key={shop.id} className="flex-shrink-0 w-[280px] sm:w-[320px] h-[520px] flex flex-col overflow-hidden hover:shadow-lg transition-shadow">
                   <div className="relative w-full h-48 flex-shrink-0">
                     {shop.image_url ? (
                       <StableImage
@@ -486,7 +486,7 @@ export function ExploreSection() {
               }}
             >
               {restaurants.map((restaurant) => (
-                <Card key={restaurant.id} className="flex-shrink-0 w-[280px] sm:w-[320px] h-[420px] flex flex-col overflow-hidden hover:shadow-lg transition-shadow">
+                <Card key={restaurant.id} className="flex-shrink-0 w-[280px] sm:w-[320px] h-[520px] flex flex-col overflow-hidden hover:shadow-lg transition-shadow">
                   <div className="relative w-full h-48 flex-shrink-0">
                     {restaurant.image_url ? (
                       <StableImage
@@ -512,15 +512,15 @@ export function ExploreSection() {
                       )}
                     </div>
                   </CardHeader>
-                  <CardContent className="flex-1 flex flex-col pt-0 pb-4">
-                    <div className="flex-1">
+                  <CardContent className="flex-1 flex flex-col justify-end pt-0 pb-4">
+                    <div className="flex-1 mb-4">
                       {restaurant.address && (
                         <p className="text-sm text-muted-foreground line-clamp-2">
                           {restaurant.address}
                         </p>
                       )}
                     </div>
-                    <Button variant="default" size="sm" className="w-full mt-4" asChild>
+                    <Button variant="default" size="sm" className="w-full" asChild>
                       <Link href={`/public/restaurant/${restaurant.id}`}>
                         Ver restaurante
                       </Link>
@@ -573,7 +573,7 @@ export function ExploreSection() {
             >
               {events.map((event) => {
                 return (
-                  <Card key={event.id} className="flex-shrink-0 w-[280px] sm:w-[320px] h-[460px] flex flex-col overflow-hidden hover:shadow-lg transition-shadow">
+                  <Card key={event.id} className="flex-shrink-0 w-[280px] sm:w-[320px] h-[520px] flex flex-col overflow-hidden hover:shadow-lg transition-shadow">
                     <div className="relative w-full h-48 flex-shrink-0">
                       {event.image_url ? (
                         <StableImage
@@ -601,8 +601,8 @@ export function ExploreSection() {
                         )}
                       </div>
                     </CardHeader>
-                    <CardContent className="flex-1 flex flex-col pt-0 pb-4">
-                      <div className="flex-1 space-y-2">
+                    <CardContent className="flex-1 flex flex-col justify-end pt-0 pb-4">
+                      <div className="flex-1 space-y-2 mb-4">
                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
                           <Calendar className="w-4 h-4 flex-shrink-0" />
                           <span className="line-clamp-1">{formatDate(event.event_date)}</span>
@@ -614,7 +614,7 @@ export function ExploreSection() {
                           </div>
                         )}
                       </div>
-                      <Button variant="default" size="sm" className="w-full mt-4" asChild>
+                      <Button variant="default" size="sm" className="w-full" asChild>
                         <Link href={`/public/event/${event.id}`}>
                           Ver evento
                         </Link>

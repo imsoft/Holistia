@@ -257,38 +257,34 @@ export default function PublicShopPage({
                     </div>
                   )}
                 </div>
+
+                {/* Horarios */}
+                {shop.opening_hours && Object.keys(shop.opening_hours).length > 0 && (
+                  <div className="mt-6 pt-6 border-t border-border">
+                    <div className="flex items-center gap-2 mb-4">
+                      <Clock className="w-5 h-5 text-primary" />
+                      <h3 className="font-semibold text-foreground">Horarios de Atención</h3>
+                    </div>
+                    <ul className="space-y-2">
+                      {Object.entries(shop.opening_hours).map(([day, hours]: [string, any]) => (
+                        <li key={day} className="flex items-center justify-between text-sm">
+                          <span className="font-medium capitalize text-foreground">{day}</span>
+                          <span className="text-muted-foreground">
+                            {typeof hours === 'object' && hours !== null && 'open' in hours && 'close' in hours
+                              ? `${hours.open} - ${hours.close}`
+                              : typeof hours === 'string'
+                              ? hours
+                              : 'No disponible'}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
               </div>
             </div>
           </CardContent>
         </Card>
-
-        {/* Horarios */}
-        {shop.opening_hours && Object.keys(shop.opening_hours).length > 0 && (
-          <Card className="mb-8 shadow-lg py-4">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-xl">
-                <Clock className="w-5 h-5 text-primary" />
-                Horarios de Atención
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ul className="space-y-2">
-                {Object.entries(shop.opening_hours).map(([day, hours]: [string, any]) => (
-                  <li key={day} className="flex items-center justify-between p-3 rounded-lg hover:bg-accent/50 transition-colors">
-                    <span className="font-medium capitalize text-foreground">{day}</span>
-                    <span className="text-muted-foreground">
-                      {typeof hours === 'object' && hours !== null && 'open' in hours && 'close' in hours
-                        ? `${hours.open} - ${hours.close}`
-                        : typeof hours === 'string'
-                        ? hours
-                        : 'No disponible'}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </CardContent>
-          </Card>
-        )}
 
         {/* Productos (vista previa) */}
         {products.length > 0 && (

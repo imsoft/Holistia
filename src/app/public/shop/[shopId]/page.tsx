@@ -97,6 +97,18 @@ export default function PublicShopPage({
         }
       }
 
+      // Debug: ver el formato de opening_hours
+      if (shopData.opening_hours) {
+        console.log('🔍 Opening hours format:', shopData.opening_hours);
+        console.log('🔍 Opening hours type:', typeof shopData.opening_hours);
+        if (typeof shopData.opening_hours === 'object') {
+          console.log('🔍 Opening hours keys:', Object.keys(shopData.opening_hours));
+          Object.entries(shopData.opening_hours).forEach(([day, hours]) => {
+            console.log(`🔍 ${day}:`, hours, 'type:', typeof hours);
+          });
+        }
+      }
+
       setShop(shopData);
 
       // Cargar solo algunos productos (vista previa)
@@ -221,17 +233,42 @@ export default function PublicShopPage({
               <CardContent>
                 <ul className="space-y-3">
                   {Object.entries(shop.opening_hours).map(([day, hours]: [string, any]) => {
-                    let hoursText = 'Cerrado';
+                    let hoursText = null;
                     
-                    if (hours && typeof hours === 'object' && hours !== null) {
-                      if ('open' in hours && 'close' in hours && hours.open && hours.close) {
-                        hoursText = `${hours.open} - ${hours.close}`;
-                      } else if ('closed' in hours && hours.closed === true) {
-                        hoursText = 'Cerrado';
+                    // Si es un objeto con propiedades open y close
+                    if (hours && typeof hours === 'object' && hours !== null && !Array.isArray(hours)) {
+                      // Formato: { open: "09:00", close: "18:00" }
+                      if ('open' in hours && 'close' in hours) {
+                        const openTime = hours.open;
+                        const closeTime = hours.close;
+                        // Solo mostrar si tiene valores válidos (no null, no undefined, no vacío, no false)
+                        if (openTime && closeTime && 
+                            openTime !== 'null' && closeTime !== 'null' &&
+                            String(openTime).trim() !== '' && String(closeTime).trim() !== '') {
+                          hoursText = `${String(openTime).trim()} - ${String(closeTime).trim()}`;
+                        }
                       }
-                    } else if (typeof hours === 'string' && hours.trim() !== '') {
-                      hoursText = hours;
+                      // Formato: { start: "09:00", end: "18:00" }
+                      else if ('start' in hours && 'end' in hours) {
+                        const startTime = hours.start;
+                        const endTime = hours.end;
+                        if (startTime && endTime && 
+                            String(startTime).trim() !== '' && String(endTime).trim() !== '') {
+                          hoursText = `${String(startTime).trim()} - ${String(endTime).trim()}`;
+                        }
+                      }
+                    } 
+                    // Si es directamente un string
+                    else if (typeof hours === 'string' && hours.trim() !== '' && hours.trim() !== 'null') {
+                      hoursText = hours.trim();
                     }
+                    // Si es un número (hora), convertir a string
+                    else if (typeof hours === 'number') {
+                      hoursText = hours.toString();
+                    }
+                    
+                    // Solo renderizar si hay un horario válido
+                    if (!hoursText) return null;
                     
                     return (
                       <li key={day} className="flex items-center justify-between text-sm py-2 border-b border-border last:border-0">

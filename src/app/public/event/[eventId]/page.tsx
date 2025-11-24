@@ -146,20 +146,20 @@ export default function PublicEventPage({
     <div className="min-h-screen bg-background">
       {/* Hero Section con imagen de portada */}
       {(event.gallery_images?.[0] || event.image_url) && (
-        <div className="relative h-64 md:h-96 w-full overflow-hidden">
-          <Image
-            src={event.gallery_images?.[0] || event.image_url || ""}
-            alt={event.name}
-            fill
-            className="object-cover"
-            style={{
-              objectPosition: event.image_position || 'center center'
-            }}
-            priority
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
-          <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8">
-            <div className="container mx-auto">
+        <div className="container mx-auto px-4 py-8 max-w-6xl">
+          <div className="relative h-64 md:h-96 w-full overflow-hidden rounded-lg">
+            <Image
+              src={event.gallery_images?.[0] || event.image_url || ""}
+              alt={event.name}
+              fill
+              className="object-cover"
+              style={{
+                objectPosition: event.image_position || 'center center'
+              }}
+              priority
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
+            <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8">
               <div className="flex items-center justify-between">
                 <h1 className="text-3xl md:text-4xl font-bold text-foreground drop-shadow-lg">
                   {event.name}
@@ -179,7 +179,7 @@ export default function PublicEventPage({
           {/* Contenido principal */}
           <div className="lg:col-span-2 space-y-8">
             {/* Información del evento */}
-            <Card className="shadow-lg">
+            <Card className="shadow-lg py-4">
               <CardHeader>
                 <div className="flex flex-wrap gap-2 mb-4">
                   <Badge variant="secondary">
@@ -288,14 +288,18 @@ export default function PublicEventPage({
 
             {/* Galería de imágenes */}
             {event.gallery_images && event.gallery_images.length > 1 && (
-              <Card className="shadow-lg">
+              <Card className="shadow-lg py-4">
                 <CardHeader>
                   <CardTitle className="text-xl">Galería de imágenes</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                     {event.gallery_images.slice(1).map((image, index) => (
-                      <div key={index} className="relative aspect-video rounded-lg overflow-hidden group cursor-pointer hover:scale-105 transition-transform">
+                      <div
+                        key={index}
+                        className="relative aspect-video rounded-lg overflow-hidden group cursor-pointer hover:scale-105 transition-transform"
+                        onClick={() => window.open(image, '_blank')}
+                      >
                         <Image
                           src={image}
                           alt={`${event.name} - Imagen ${index + 2}`}
@@ -315,7 +319,7 @@ export default function PublicEventPage({
           <div className="lg:sticky lg:top-6 lg:self-start space-y-8">
             {/* Información del profesional */}
             {professional && (
-              <Card className="shadow-lg">
+              <Card className="shadow-lg py-4">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <User className="w-5 h-5" />
@@ -351,7 +355,7 @@ export default function PublicEventPage({
             )}
 
             {/* Información del precio y registro */}
-            <Card className="shadow-lg">
+            <Card className="shadow-lg py-4">
               <CardHeader>
                 <CardTitle>Registro al evento</CardTitle>
               </CardHeader>

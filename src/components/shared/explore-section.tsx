@@ -248,13 +248,17 @@ export function ExploreSection() {
             </div>
             <div
               ref={professionalsRef}
-              className="flex gap-6 overflow-x-auto scrollbar-hide pb-4"
-              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+              className="flex gap-6 overflow-x-auto pb-4"
+              style={{
+                scrollbarWidth: 'none',
+                msOverflowStyle: 'none',
+                WebkitOverflowScrolling: 'touch'
+              }}
             >
               {professionals.map((prof) => {
                 const slug = `${prof.first_name.toLowerCase()}-${prof.last_name.toLowerCase()}-${prof.id}`;
                 return (
-                  <Card key={prof.id} className="flex-shrink-0 w-[320px] overflow-hidden hover:shadow-lg transition-shadow py-4">
+                  <Card key={prof.id} className="flex-shrink-0 w-[280px] sm:w-[320px] overflow-hidden hover:shadow-lg transition-shadow py-4">
                     <CardHeader>
                       <div className="flex items-start gap-4">
                         <div className="w-16 h-16 relative rounded-full overflow-hidden flex-shrink-0 bg-muted">
@@ -326,11 +330,18 @@ export function ExploreSection() {
         {/* Comercios */}
         {shops.length > 0 && (
           <div className="mb-16">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-2xl font-bold flex items-center gap-2">
-                <Store className="w-6 h-6 text-primary" />
-                Comercios Holísticos
-              </h3>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-2">
+              <div>
+                <h3 className="text-2xl font-bold flex items-center gap-2">
+                  <Store className="w-6 h-6 text-primary" />
+                  Comercios Holísticos
+                </h3>
+                {shops.length > 1 && (
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Desliza para ver más →
+                  </p>
+                )}
+              </div>
               <div className="flex items-center gap-2">
                 <Button
                   variant="outline"
@@ -355,11 +366,15 @@ export function ExploreSection() {
             </div>
             <div
               ref={shopsRef}
-              className="flex gap-6 overflow-x-auto scrollbar-hide pb-4"
-              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+              className="flex gap-6 overflow-x-auto pb-4"
+              style={{
+                scrollbarWidth: 'none',
+                msOverflowStyle: 'none',
+                WebkitOverflowScrolling: 'touch'
+              }}
             >
               {shops.map((shop) => (
-                <Card key={shop.id} className="flex-shrink-0 w-[320px] overflow-hidden hover:shadow-lg transition-shadow py-4">
+                <Card key={shop.id} className="flex-shrink-0 w-[280px] sm:w-[320px] overflow-hidden hover:shadow-lg transition-shadow py-4">
                   <div className="relative w-full h-48">
                     {shop.image_url ? (
                       <StableImage
@@ -433,11 +448,15 @@ export function ExploreSection() {
             </div>
             <div
               ref={restaurantsRef}
-              className="flex gap-6 overflow-x-auto scrollbar-hide pb-4"
-              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+              className="flex gap-6 overflow-x-auto pb-4"
+              style={{
+                scrollbarWidth: 'none',
+                msOverflowStyle: 'none',
+                WebkitOverflowScrolling: 'touch'
+              }}
             >
               {restaurants.map((restaurant) => (
-                <Card key={restaurant.id} className="flex-shrink-0 w-[320px] overflow-hidden hover:shadow-lg transition-shadow py-4">
+                <Card key={restaurant.id} className="flex-shrink-0 w-[280px] sm:w-[320px] overflow-hidden hover:shadow-lg transition-shadow py-4">
                   <div className="relative w-full h-48">
                     {restaurant.image_url ? (
                       <StableImage
@@ -513,13 +532,17 @@ export function ExploreSection() {
             </div>
             <div
               ref={eventsRef}
-              className="flex gap-6 overflow-x-auto scrollbar-hide pb-4"
-              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+              className="flex gap-6 overflow-x-auto pb-4"
+              style={{
+                scrollbarWidth: 'none',
+                msOverflowStyle: 'none',
+                WebkitOverflowScrolling: 'touch'
+              }}
             >
               {events.map((event) => {
                 const slug = generateEventSlug(event.name, event.id);
                 return (
-                  <Card key={event.id} className="flex-shrink-0 w-[320px] overflow-hidden hover:shadow-lg transition-shadow py-4">
+                  <Card key={event.id} className="flex-shrink-0 w-[280px] sm:w-[320px] overflow-hidden hover:shadow-lg transition-shadow py-4">
                     <div className="relative w-full h-48">
                       {event.image_url ? (
                         <StableImage

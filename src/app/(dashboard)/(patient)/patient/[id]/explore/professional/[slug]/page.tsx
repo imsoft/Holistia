@@ -578,10 +578,10 @@ export default function ProfessionalProfilePage() {
   const handleShare = async () => {
     if (!professional) return;
 
-    const url = window.location.href;
+    const publicUrl = `${window.location.origin}/public/professional/${professional.id}`;
 
     try {
-      await navigator.clipboard.writeText(url);
+      await navigator.clipboard.writeText(publicUrl);
       toast.success('Enlace copiado al portapapeles');
     } catch (error) {
       console.error('Error al copiar enlace:', error);

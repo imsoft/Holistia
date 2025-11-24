@@ -321,7 +321,7 @@ export function ExploreSection() {
                         )}
                       </div>
                     </CardHeader>
-                    <CardContent className="flex-1 flex flex-col pt-0">
+                    <CardContent className="flex-1 flex flex-col pt-0 pb-4">
                       <div className="flex-1 space-y-3">
                         {prof.specializations && prof.specializations.length > 0 && (
                           <div className="flex flex-wrap gap-2">
@@ -433,7 +433,7 @@ export function ExploreSection() {
                       )}
                     </div>
                   </CardHeader>
-                  <CardContent className="flex-1 flex flex-col justify-end pt-0">
+                  <CardContent className="flex-1 flex flex-col justify-end pt-0 pb-4">
                     <Button variant="default" size="sm" className="w-full" asChild>
                       <Link href={`/public/shop/${shop.id}`}>
                         Ver comercio
@@ -512,7 +512,7 @@ export function ExploreSection() {
                       )}
                     </div>
                   </CardHeader>
-                  <CardContent className="flex-1 flex flex-col pt-0">
+                  <CardContent className="flex-1 flex flex-col pt-0 pb-4">
                     <div className="flex-1">
                       {restaurant.address && (
                         <p className="text-sm text-muted-foreground line-clamp-2">
@@ -601,7 +601,7 @@ export function ExploreSection() {
                         )}
                       </div>
                     </CardHeader>
-                    <CardContent className="flex-1 flex flex-col pt-0">
+                    <CardContent className="flex-1 flex flex-col pt-0 pb-4">
                       <div className="flex-1 space-y-2">
                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
                           <Calendar className="w-4 h-4 flex-shrink-0" />

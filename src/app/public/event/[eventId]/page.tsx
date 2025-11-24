@@ -175,9 +175,9 @@ export default function PublicEventPage({
       )}
 
       <div className="container mx-auto px-4 py-8 max-w-6xl">
-        <div className="grid gap-6 lg:grid-cols-3">
+        <div className="grid gap-8 lg:grid-cols-3">
           {/* Contenido principal */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="lg:col-span-2 space-y-8">
             {/* Información del evento */}
             <Card className="shadow-lg">
               <CardHeader>
@@ -312,7 +312,7 @@ export default function PublicEventPage({
           </div>
 
           {/* Sidebar */}
-          <div className="lg:sticky lg:top-6 lg:self-start space-y-6">
+          <div className="lg:sticky lg:top-6 lg:self-start space-y-8">
             {/* Información del profesional */}
             {professional && (
               <Card className="shadow-lg">

@@ -28,12 +28,16 @@ interface Shop {
   name: string;
   description: string | null;
   address: string | null;
+  city: string | null;
   phone: string | null;
   email: string | null;
+  website: string | null;
+  instagram: string | null;
   opening_hours: any;
-  logo_url: string | null;
+  image_url: string | null;
   gallery: string[];
-  categories: string[];
+  category: string | null;
+  catalog_pdf_url: string | null;
 }
 
 interface Product {
@@ -195,10 +199,10 @@ export default function PublicShopPage({
         <Card className="mb-8 shadow-lg">
           <CardContent className="pt-6">
             <div className="flex flex-col md:flex-row gap-6">
-              {shop.logo_url && (
+              {shop.image_url && (
                 <div className="w-32 h-32 relative rounded-lg overflow-hidden flex-shrink-0 border-2 border-border">
                   <Image
-                    src={shop.logo_url}
+                    src={shop.image_url}
                     alt={shop.name}
                     fill
                     className="object-cover"
@@ -213,13 +217,11 @@ export default function PublicShopPage({
                   </h1>
                 )}
 
-                {shop.categories && shop.categories.length > 0 && (
+                {shop.category && (
                   <div className="flex flex-wrap gap-2 mb-4">
-                    {shop.categories.map((category, index) => (
-                      <Badge key={index} variant="secondary" className="text-sm">
-                        {category}
-                      </Badge>
-                    ))}
+                    <Badge variant="secondary" className="text-sm">
+                      {shop.category}
+                    </Badge>
                   </div>
                 )}
 

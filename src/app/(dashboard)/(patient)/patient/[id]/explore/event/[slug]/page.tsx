@@ -8,16 +8,17 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { 
-  Calendar, 
-  MapPin, 
-  Clock, 
-  Users, 
+import {
+  Calendar,
+  MapPin,
+  Clock,
+  Users,
   ArrowLeft,
   User,
   Car,
   CheckCircle,
-  XCircle
+  XCircle,
+  Share2
 } from "lucide-react";
 import Image from "next/image";
 import { toast } from "sonner";
@@ -157,6 +158,18 @@ const EventDetailPage = () => {
     return levels[level as keyof typeof levels] || level;
   };
 
+  const handleShare = async () => {
+    const publicUrl = `${window.location.origin}/public/event/${eventId}`;
+
+    try {
+      await navigator.clipboard.writeText(publicUrl);
+      toast.success("Enlace copiado al portapapeles");
+    } catch (error) {
+      console.error("Error copying to clipboard:", error);
+      toast.error("No se pudo copiar el enlace");
+    }
+  };
+
 
   if (loading) {
     return (
@@ -197,7 +210,7 @@ const EventDetailPage = () => {
         <div className="grid gap-6 sm:gap-8 lg:grid-cols-3">
           {/* Contenido principal */}
           <div className="lg:col-span-2 space-y-4 sm:space-y-6">
-            {/* Imagen principal */}
+            {/* Imagen principal con botón de compartir */}
             {(event.gallery_images?.[0] || event.image_url) && (
               <div className="relative w-full h-64 md:h-80 overflow-hidden rounded-lg">
                 <Image
@@ -211,6 +224,12 @@ const EventDetailPage = () => {
                   }}
                   priority
                 />
+                <div className="absolute top-4 right-4">
+                  <Button variant="secondary" size="sm" onClick={handleShare} className="shadow-lg">
+                    <Share2 className="w-4 h-4 mr-2" />
+                    Compartir
+                  </Button>
+                </div>
               </div>
             )}
 

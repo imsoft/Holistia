@@ -283,49 +283,46 @@ export function ExploreSection() {
               {professionals.map((prof) => {
                 const slug = `${prof.first_name.toLowerCase()}-${prof.last_name.toLowerCase()}-${prof.id}`;
                 return (
-                  <Card key={prof.id} className="flex-shrink-0 w-[280px] sm:w-[320px] h-[320px] flex flex-col overflow-hidden hover:shadow-lg transition-shadow py-4">
-                    <CardHeader className="pb-4">
-                      <div className="flex items-start gap-4">
-                        <div className="w-16 h-16 relative rounded-full overflow-hidden flex-shrink-0 bg-muted">
-                          {prof.avatar_url ? (
-                            <StableImage
-                              src={prof.avatar_url}
-                              alt={`${prof.first_name} ${prof.last_name}`}
-                              fill
-                              className="object-cover"
-                            />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center text-xl font-bold">
-                              {prof.first_name[0]}
-                              {prof.last_name[0]}
-                            </div>
-                          )}
+                  <Card key={prof.id} className="flex-shrink-0 w-[280px] sm:w-[320px] h-[420px] flex flex-col overflow-hidden hover:shadow-lg transition-shadow">
+                    <div className="relative w-full h-48 flex-shrink-0">
+                      {prof.avatar_url ? (
+                        <StableImage
+                          src={prof.avatar_url}
+                          alt={`${prof.first_name} ${prof.last_name}`}
+                          fill
+                          className="object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center">
+                          <User className="h-16 w-16 text-primary/40" />
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <CardTitle className="text-lg truncate">
-                            {prof.first_name} {prof.last_name}
-                          </CardTitle>
-                          {prof.average_rating > 0 && (
-                            <div className="flex items-center gap-1 mt-1">
-                              <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                              <span className="text-sm font-medium">
-                                {prof.average_rating.toFixed(1)}
-                              </span>
-                              <span className="text-xs text-muted-foreground">
-                                ({prof.total_reviews})
-                              </span>
-                            </div>
-                          )}
-                        </div>
+                      )}
+                    </div>
+                    <CardHeader className="pb-3">
+                      {prof.profession && (
+                        <CardTitle className="text-xl font-bold line-clamp-1">
+                          {prof.profession}
+                        </CardTitle>
+                      )}
+                      <div className="flex items-center justify-between gap-2 mt-2">
+                        <p className="text-sm text-muted-foreground truncate">
+                          {prof.first_name} {prof.last_name}
+                        </p>
+                        {prof.average_rating > 0 && (
+                          <div className="flex items-center gap-1 flex-shrink-0">
+                            <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                            <span className="text-sm font-medium">
+                              {prof.average_rating.toFixed(1)}
+                            </span>
+                            <span className="text-xs text-muted-foreground">
+                              ({prof.total_reviews})
+                            </span>
+                          </div>
+                        )}
                       </div>
                     </CardHeader>
-                    <CardContent className="flex-1 flex flex-col">
+                    <CardContent className="flex-1 flex flex-col pt-0">
                       <div className="flex-1 space-y-3">
-                        {prof.profession && (
-                          <p className="text-sm font-medium text-foreground">
-                            {prof.profession}
-                          </p>
-                        )}
                         {prof.specializations && prof.specializations.length > 0 && (
                           <div className="flex flex-wrap gap-2">
                             {prof.specializations.slice(0, 2).map((spec, index) => (

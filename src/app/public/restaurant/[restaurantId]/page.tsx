@@ -12,13 +12,13 @@ import {
   Mail,
   Share2,
   LogIn,
-  ShoppingBag,
+  UtensilsCrossed,
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { toast } from "sonner";
 
-interface Shop {
+interface Restaurant {
   id: string;
   name: string;
   description: string | null;
@@ -28,31 +28,31 @@ interface Shop {
   opening_hours: any;
   logo_url: string | null;
   gallery: string[];
-  categories: string[];
+  cuisine_types: string[];
 }
 
-interface Product {
+interface MenuItem {
   id: string;
   name: string;
   description: string | null;
   price: number;
-  image_url: string | null;
   category: string | null;
+  image_url: string | null;
 }
 
-export default function PublicShopPage({
+export default function PublicRestaurantPage({
   params,
 }: {
-  params: { shopId: string };
+  params: { restaurantId: string };
 }) {
-  const [shop, setShop] = useState<Shop | null>(null);
-  const [products, setProducts] = useState<Product[]>([]);
+  const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
+  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const { shopId } = params;
+  const { restaurantId } = params;
 
   useEffect(() => {
-    async function loadShop() {
+    async function loadRestaurant() {
       const supabase = createClient();
 
       // Verificar si el usuario está autenticado
@@ -61,46 +61,46 @@ export default function PublicShopPage({
       } = await supabase.auth.getUser();
       setIsAuthenticated(!!user);
 
-      const { data: shopData, error } = await supabase
-        .from("shops")
+      const { data: restaurantData, error } = await supabase
+        .from("restaurants")
         .select("*")
-        .eq("id", shopId)
+        .eq("id", restaurantId)
         .single();
 
       if (error) {
-        console.error("Error loading shop:", error);
-        toast.error("No se pudo cargar la información del comercio");
+        console.error("Error loading restaurant:", error);
+        toast.error("No se pudo cargar la información del restaurante");
         setLoading(false);
         return;
       }
 
-      setShop(shopData);
+      setRestaurant(restaurantData);
 
-      // Cargar solo algunos productos (vista previa)
-      const { data: productsData } = await supabase
-        .from("shop_products")
+      // Cargar solo algunos platos del menú (vista previa)
+      const { data: menuData } = await supabase
+        .from("restaurant_menu_items")
         .select("*")
-        .eq("shop_id", shopId)
+        .eq("restaurant_id", restaurantId)
         .limit(6);
 
-      if (productsData) {
-        setProducts(productsData);
+      if (menuData) {
+        setMenuItems(menuData);
       }
 
       setLoading(false);
     }
 
-    loadShop();
-  }, [shopId]);
+    loadRestaurant();
+  }, [restaurantId]);
 
   const handleShare = async () => {
-    const publicUrl = `${window.location.origin}/shop/${shopId}`;
+    const publicUrl = `${window.location.origin}/public/restaurant/${restaurantId}`;
 
     try {
       if (navigator.share) {
         await navigator.share({
-          title: `${shop?.name} - Holistia`,
-          text: `Conoce ${shop?.name} en Holistia`,
+          title: `${restaurant?.name} - Holistia`,
+          text: `Conoce ${restaurant?.name} en Holistia`,
           url: publicUrl,
         });
       } else {
@@ -129,11 +129,11 @@ export default function PublicShopPage({
     );
   }
 
-  if (!shop) {
+  if (!restaurant) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <p className="text-xl font-semibold">Comercio no encontrado</p>
+          <p className="text-xl font-semibold">Restaurante no encontrado</p>
           <Link href="/" className="text-primary hover:underline mt-4 inline-block">
             Volver al inicio
           </Link>
@@ -170,15 +170,15 @@ export default function PublicShopPage({
       </div>
 
       <div className="container mx-auto px-4 py-8">
-        {/* Información del comercio */}
+        {/* Información del restaurante */}
         <Card className="mb-6">
           <CardContent className="pt-6">
             <div className="flex flex-col md:flex-row gap-6">
-              {shop.logo_url && (
+              {restaurant.logo_url && (
                 <div className="w-32 h-32 relative rounded-lg overflow-hidden flex-shrink-0">
                   <Image
-                    src={shop.logo_url}
-                    alt={shop.name}
+                    src={restaurant.logo_url}
+                    alt={restaurant.name}
                     fill
                     className="object-cover"
                   />
@@ -187,44 +187,44 @@ export default function PublicShopPage({
 
               <div className="flex-1">
                 <h1 className="text-3xl font-bold mb-2 flex items-center gap-2">
-                  <ShoppingBag className="w-8 h-8" />
-                  {shop.name}
+                  <UtensilsCrossed className="w-8 h-8" />
+                  {restaurant.name}
                 </h1>
 
-                {shop.categories && shop.categories.length > 0 && (
+                {restaurant.cuisine_types && restaurant.cuisine_types.length > 0 && (
                   <div className="flex flex-wrap gap-2 mb-4">
-                    {shop.categories.map((category, index) => (
+                    {restaurant.cuisine_types.map((cuisine, index) => (
                       <Badge key={index} variant="secondary">
-                        {category}
+                        {cuisine}
                       </Badge>
                     ))}
                   </div>
                 )}
 
-                {shop.description && (
-                  <p className="text-muted-foreground mb-4">{shop.description}</p>
+                {restaurant.description && (
+                  <p className="text-muted-foreground mb-4">{restaurant.description}</p>
                 )}
 
                 <div className="space-y-2 text-sm">
-                  {shop.address && (
+                  {restaurant.address && (
                     <div className="flex items-start gap-2">
                       <MapPin className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                      <span>{shop.address}</span>
+                      <span>{restaurant.address}</span>
                     </div>
                   )}
-                  {shop.phone && (
+                  {restaurant.phone && (
                     <div className="flex items-center gap-2">
                       <Phone className="w-4 h-4" />
-                      <a href={`tel:${shop.phone}`} className="hover:underline">
-                        {shop.phone}
+                      <a href={`tel:${restaurant.phone}`} className="hover:underline">
+                        {restaurant.phone}
                       </a>
                     </div>
                   )}
-                  {shop.email && (
+                  {restaurant.email && (
                     <div className="flex items-center gap-2">
                       <Mail className="w-4 h-4" />
-                      <a href={`mailto:${shop.email}`} className="hover:underline">
-                        {shop.email}
+                      <a href={`mailto:${restaurant.email}`} className="hover:underline">
+                        {restaurant.email}
                       </a>
                     </div>
                   )}
@@ -235,7 +235,7 @@ export default function PublicShopPage({
         </Card>
 
         {/* Horarios */}
-        {shop.opening_hours && (
+        {restaurant.opening_hours && (
           <Card className="mb-6">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -245,7 +245,7 @@ export default function PublicShopPage({
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {Object.entries(shop.opening_hours).map(([day, hours]: [string, any]) => (
+                {Object.entries(restaurant.opening_hours).map(([day, hours]: [string, any]) => (
                   <div key={day} className="flex justify-between">
                     <span className="font-medium capitalize">{day}:</span>
                     <span className="text-muted-foreground">
@@ -258,35 +258,42 @@ export default function PublicShopPage({
           </Card>
         )}
 
-        {/* Productos (vista previa) */}
-        {products.length > 0 && (
+        {/* Menú (vista previa) */}
+        {menuItems.length > 0 && (
           <Card className="mb-6">
             <CardHeader>
-              <CardTitle>Productos</CardTitle>
+              <CardTitle>Menú</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {products.slice(0, 3).map((product) => (
-                  <div key={product.id} className="border rounded-lg p-4">
-                    {product.image_url && (
-                      <div className="relative w-full h-40 mb-3 rounded-lg overflow-hidden">
+              <div className="space-y-4">
+                {menuItems.slice(0, 3).map((item) => (
+                  <div key={item.id} className="border rounded-lg p-4 flex gap-4">
+                    {item.image_url && (
+                      <div className="relative w-24 h-24 rounded-lg overflow-hidden flex-shrink-0">
                         <Image
-                          src={product.image_url}
-                          alt={product.name}
+                          src={item.image_url}
+                          alt={item.name}
                           fill
                           className="object-cover"
                         />
                       </div>
                     )}
-                    <h3 className="font-semibold mb-1">{product.name}</h3>
-                    {product.description && (
-                      <p className="text-sm text-muted-foreground mb-2 line-clamp-2">
-                        {product.description}
-                      </p>
-                    )}
-                    <p className="text-lg font-bold text-primary">
-                      ${product.price.toFixed(2)} MXN
-                    </p>
+                    <div className="flex-1">
+                      <div className="flex justify-between items-start mb-1">
+                        <h3 className="font-semibold">{item.name}</h3>
+                        <span className="text-lg font-bold text-primary">
+                          ${item.price.toFixed(2)}
+                        </span>
+                      </div>
+                      {item.category && (
+                        <Badge variant="outline" className="mb-2">
+                          {item.category}
+                        </Badge>
+                      )}
+                      {item.description && (
+                        <p className="text-sm text-muted-foreground">{item.description}</p>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>
@@ -295,14 +302,14 @@ export default function PublicShopPage({
         )}
 
         {/* Galería (vista previa) */}
-        {shop.gallery && shop.gallery.length > 0 && (
+        {restaurant.gallery && restaurant.gallery.length > 0 && (
           <Card className="mb-6">
             <CardHeader>
               <CardTitle>Galería</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                {shop.gallery.slice(0, 6).map((imageUrl, index) => (
+                {restaurant.gallery.slice(0, 6).map((imageUrl, index) => (
                   <div
                     key={index}
                     className="relative aspect-square rounded-lg overflow-hidden"
@@ -325,7 +332,7 @@ export default function PublicShopPage({
           <Card className="bg-primary/5 border-primary/20">
             <CardContent className="pt-6 text-center">
               <h3 className="text-xl font-semibold mb-2">
-                ¿Quieres ver todos los productos y contactar al comercio?
+                ¿Quieres ver el menú completo y hacer una reservación?
               </h3>
               <p className="text-muted-foreground mb-4">
                 Regístrate o inicia sesión para acceder a toda la información

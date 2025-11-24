@@ -72,7 +72,7 @@ export default function ShopDetailPage() {
   const supabase = createClient();
 
   const handleShare = async () => {
-    const publicUrl = `${window.location.origin}/shop/${shopId}`;
+    const publicUrl = `${window.location.origin}/public/shop/${shopId}`;
 
     try {
       if (navigator.share) {

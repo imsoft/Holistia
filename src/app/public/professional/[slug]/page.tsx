@@ -101,7 +101,7 @@ export default function PublicProfessionalPage({
   }, [slug]);
 
   const handleShare = async () => {
-    const publicUrl = `${window.location.origin}/professional/${slug}`;
+    const publicUrl = `${window.location.origin}/public/professional/${slug}`;
 
     try {
       if (navigator.share) {

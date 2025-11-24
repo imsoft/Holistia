@@ -215,7 +215,7 @@ export function ExploreSection() {
                         </p>
                       )}
                       <Button variant="default" size="sm" className="w-full" asChild>
-                        <Link href={`/professional/${slug}`}>
+                        <Link href={`/public/professional/${slug}`}>
                           Ver perfil
                         </Link>
                       </Button>
@@ -274,7 +274,7 @@ export function ExploreSection() {
                   </CardHeader>
                   <CardContent>
                     <Button variant="default" size="sm" className="w-full" asChild>
-                      <Link href={`/shop/${shop.id}`}>
+                      <Link href={`/public/shop/${shop.id}`}>
                         Ver comercio
                       </Link>
                     </Button>
@@ -334,7 +334,7 @@ export function ExploreSection() {
                       </p>
                     )}
                     <Button variant="default" size="sm" className="w-full" asChild>
-                      <Link href={`/restaurant/${restaurant.id}`}>
+                      <Link href={`/public/restaurant/${restaurant.id}`}>
                         Ver restaurante
                       </Link>
                     </Button>

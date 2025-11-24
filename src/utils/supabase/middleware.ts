@@ -47,9 +47,7 @@ export async function updateSession(request: NextRequest) {
       '/account-deactivated',
       '/error',
       '/auth',
-      '/professional', // Páginas públicas de profesionales
-      '/shop', // Páginas públicas de comercios
-      '/restaurant', // Páginas públicas de restaurantes
+      '/public', // Páginas públicas (profesionales, comercios, restaurantes)
       '/_next',
       '/favicon.ico',
       '/api'

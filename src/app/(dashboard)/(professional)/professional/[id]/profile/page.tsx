@@ -56,7 +56,7 @@ export default function ProfessionalProfilePage() {
   const handleShare = async () => {
     // Crear slug: nombre-apellido-id
     const slug = `${firstName.toLowerCase()}-${lastName.toLowerCase()}-${userId}`;
-    const publicUrl = `${window.location.origin}/professional/${slug}`;
+    const publicUrl = `${window.location.origin}/public/professional/${slug}`;
 
     try {
       if (navigator.share) {

@@ -61,7 +61,7 @@ export default function RestaurantDetailPage() {
   const supabase = createClient();
 
   const handleShare = async () => {
-    const publicUrl = `${window.location.origin}/restaurant/${restaurantId}`;
+    const publicUrl = `${window.location.origin}/public/restaurant/${restaurantId}`;
 
     try {
       if (navigator.share) {

@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
     if (error) {
       return NextResponse.redirect(
         new URL(
-          `/dashboard?error=google_calendar_denied`,
+          `/google-calendar-error?message=${encodeURIComponent('Permisos denegados. Por favor, autoriza el acceso a Google Calendar.')}`,
           request.url
         )
       );
@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
     if (!code) {
       return NextResponse.redirect(
         new URL(
-          `/dashboard?error=missing_code`,
+          `/google-calendar-error?message=${encodeURIComponent('Código de autorización no encontrado.')}`,
           request.url
         )
       );
@@ -49,7 +49,7 @@ export async function GET(request: NextRequest) {
     } catch (error) {
       return NextResponse.redirect(
         new URL(
-          `/dashboard?error=invalid_state`,
+          `/google-calendar-error?message=${encodeURIComponent('Sesión inválida o expirada. Por favor, intenta nuevamente.')}`,
           request.url
         )
       );
@@ -61,7 +61,7 @@ export async function GET(request: NextRequest) {
     if (!tokens.access_token || !tokens.refresh_token) {
       return NextResponse.redirect(
         new URL(
-          `/dashboard?error=missing_tokens`,
+          `/google-calendar-error?message=${encodeURIComponent('No se pudieron obtener los tokens de autorización.')}`,
           request.url
         )
       );
@@ -90,24 +90,25 @@ export async function GET(request: NextRequest) {
       console.error('Error saving Google tokens:', updateError);
       return NextResponse.redirect(
         new URL(
-          `/dashboard?error=save_tokens_failed`,
+          `/google-calendar-error?message=${encodeURIComponent('No se pudieron guardar los tokens. Por favor, intenta nuevamente.')}`,
           request.url
         )
       );
     }
 
-    // Redirigir al dashboard con mensaje de éxito
+    // Redirigir a la página de éxito
     return NextResponse.redirect(
       new URL(
-        `/dashboard/professional/settings?success=google_calendar_connected`,
+        `/google-calendar-success`,
         request.url
       )
     );
   } catch (error: unknown) {
     console.error('Error in Google Calendar callback:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
     return NextResponse.redirect(
       new URL(
-        `/dashboard?error=callback_failed&details=${encodeURIComponent((error instanceof Error ? error.message : String(error)))}`,
+        `/google-calendar-error?message=${encodeURIComponent(`Error en la conexión: ${errorMessage}`)}`,
         request.url
       )
     );

@@ -219,151 +219,144 @@ export default function PublicShopPage({
       )}
 
       <div className="container mx-auto px-4 py-8 max-w-6xl">
-        {/* Layout de dos columnas: Horarios a la izquierda, Información a la derecha */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-          {/* Columna izquierda: Horarios */}
-          {shop.opening_hours && shop.opening_hours !== null && typeof shop.opening_hours === 'object' && Object.keys(shop.opening_hours).length > 0 && (
-            <Card className="lg:col-span-1 shadow-lg">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-xl">
-                  <Clock className="w-5 h-5 text-primary" />
-                  Horarios de Atención
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-3">
-                  {Object.entries(shop.opening_hours).map(([day, hours]: [string, any]) => {
-                    let hoursText = null;
-                    
-                    // Si es un objeto con propiedades open y close
-                    if (hours && typeof hours === 'object' && hours !== null && !Array.isArray(hours)) {
-                      // Formato: { open: "09:00", close: "18:00" }
-                      if ('open' in hours && 'close' in hours) {
-                        const openTime = hours.open;
-                        const closeTime = hours.close;
-                        // Solo mostrar si tiene valores válidos (no null, no undefined, no vacío, no false)
-                        if (openTime && closeTime && 
-                            openTime !== 'null' && closeTime !== 'null' &&
-                            String(openTime).trim() !== '' && String(closeTime).trim() !== '') {
-                          hoursText = `${String(openTime).trim()} - ${String(closeTime).trim()}`;
-                        }
-                      }
-                      // Formato: { start: "09:00", end: "18:00" }
-                      else if ('start' in hours && 'end' in hours) {
-                        const startTime = hours.start;
-                        const endTime = hours.end;
-                        if (startTime && endTime && 
-                            String(startTime).trim() !== '' && String(endTime).trim() !== '') {
-                          hoursText = `${String(startTime).trim()} - ${String(endTime).trim()}`;
-                        }
-                      }
-                    } 
-                    // Si es directamente un string
-                    else if (typeof hours === 'string' && hours.trim() !== '' && hours.trim() !== 'null') {
-                      hoursText = hours.trim();
-                    }
-                    // Si es un número (hora), convertir a string
-                    else if (typeof hours === 'number') {
-                      hoursText = hours.toString();
-                    }
-                    
-                    // Solo renderizar si hay un horario válido
-                    if (!hoursText) return null;
-                    
-                    return (
-                      <li key={day} className="flex items-center justify-between text-sm py-2 border-b border-border last:border-0">
-                        <span className="font-medium capitalize text-foreground">{day}</span>
-                        <span className="text-muted-foreground">{hoursText}</span>
-                      </li>
-                    );
-                  })}
-                </ul>
-              </CardContent>
-            </Card>
-          )}
+        {/* Información del comercio */}
+        <Card className="mb-8 shadow-lg py-4">
+          <CardContent>
+            <div className="flex flex-col md:flex-row gap-6">
+              {shop.image_url && (
+                <div className="w-32 h-32 relative rounded-lg overflow-hidden flex-shrink-0 border-2 border-border">
+                  <Image
+                    src={shop.image_url}
+                    alt={shop.name}
+                    fill
+                    className="object-cover"
+                  />
+                </div>
+              )}
 
-          {/* Columna derecha: Información del comercio */}
-          <Card className={shop.opening_hours && Object.keys(shop.opening_hours).length > 0 ? "lg:col-span-2 shadow-lg py-4" : "lg:col-span-3 shadow-lg py-4"}>
-            <CardContent>
-              <div className="flex flex-col md:flex-row gap-6">
-                {shop.image_url && (
-                  <div className="w-32 h-32 relative rounded-lg overflow-hidden flex-shrink-0 border-2 border-border">
-                    <Image
-                      src={shop.image_url}
-                      alt={shop.name}
-                      fill
-                      className="object-cover"
-                    />
+              <div className="flex-1">
+                {(!shop.gallery || shop.gallery.length === 0) && (
+                  <h1 className="text-3xl md:text-4xl font-bold mb-4">
+                    {shop.name}
+                  </h1>
+                )}
+
+                {shop.category && (
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    <Badge variant="secondary" className="text-sm">
+                      {shop.category}
+                    </Badge>
                   </div>
                 )}
 
-                <div className="flex-1">
-                  {(!shop.gallery || shop.gallery.length === 0) && (
-                    <h1 className="text-3xl md:text-4xl font-bold mb-4">
-                      {shop.name}
-                    </h1>
-                  )}
+                {shop.description && (
+                  <div
+                    className="text-muted-foreground mb-6 prose prose-sm max-w-none prose-headings:text-foreground prose-p:text-muted-foreground prose-a:text-primary prose-strong:text-foreground"
+                    dangerouslySetInnerHTML={{ __html: shop.description }}
+                  />
+                )}
 
-                  {shop.category && (
-                    <div className="flex flex-wrap gap-2 mb-4">
-                      <Badge variant="secondary" className="text-sm">
-                        {shop.category}
-                      </Badge>
+                <div className="space-y-3 text-sm">
+                  {shop.address && (
+                    <div className="flex items-start gap-3">
+                      <MapPin className="w-5 h-5 mt-0.5 flex-shrink-0 text-primary" />
+                      <span className="text-foreground">{shop.address}</span>
                     </div>
                   )}
-
-                  {shop.description && (
-                    <div
-                      className="text-muted-foreground mb-6 prose prose-sm max-w-none prose-headings:text-foreground prose-p:text-muted-foreground prose-a:text-primary prose-strong:text-foreground"
-                      dangerouslySetInnerHTML={{ __html: shop.description }}
-                    />
+                  {shop.phone && (
+                    <div className="flex items-center gap-3">
+                      <Phone className="w-5 h-5 flex-shrink-0 text-primary" />
+                      <a href={`tel:${shop.phone}`} className="hover:underline text-foreground">
+                        {shop.phone}
+                      </a>
+                    </div>
                   )}
-
-                  <div className="space-y-3 text-sm">
-                    {shop.address && (
-                      <div className="flex items-start gap-3">
-                        <MapPin className="w-5 h-5 mt-0.5 flex-shrink-0 text-primary" />
-                        <span className="text-foreground">{shop.address}</span>
-                      </div>
-                    )}
-                    {shop.phone && (
-                      <div className="flex items-center gap-3">
-                        <Phone className="w-5 h-5 flex-shrink-0 text-primary" />
-                        <a href={`tel:${shop.phone}`} className="hover:underline text-foreground">
-                          {shop.phone}
-                        </a>
-                      </div>
-                    )}
-                    {shop.email && (
-                      <div className="flex items-center gap-3">
-                        <Mail className="w-5 h-5 flex-shrink-0 text-primary" />
-                        <a href={`mailto:${shop.email}`} className="hover:underline text-foreground">
-                          {shop.email}
-                        </a>
-                      </div>
-                    )}
-                    {shop.website && (
-                      <div className="flex items-center gap-3">
-                        <Globe className="w-5 h-5 flex-shrink-0 text-primary" />
-                        <a href={shop.website} target="_blank" rel="noopener noreferrer" className="hover:underline text-foreground">
-                          {shop.website}
-                        </a>
-                      </div>
-                    )}
-                    {shop.instagram && (
-                      <div className="flex items-center gap-3">
-                        <Instagram className="w-5 h-5 flex-shrink-0 text-primary" />
-                        <a href={shop.instagram} target="_blank" rel="noopener noreferrer" className="hover:underline text-foreground">
-                          {shop.instagram}
-                        </a>
-                      </div>
-                    )}
-                  </div>
+                  {shop.email && (
+                    <div className="flex items-center gap-3">
+                      <Mail className="w-5 h-5 flex-shrink-0 text-primary" />
+                      <a href={`mailto:${shop.email}`} className="hover:underline text-foreground">
+                        {shop.email}
+                      </a>
+                    </div>
+                  )}
+                  {shop.website && (
+                    <div className="flex items-center gap-3">
+                      <Globe className="w-5 h-5 flex-shrink-0 text-primary" />
+                      <a href={shop.website} target="_blank" rel="noopener noreferrer" className="hover:underline text-foreground">
+                        {shop.website}
+                      </a>
+                    </div>
+                  )}
+                  {shop.instagram && (
+                    <div className="flex items-center gap-3">
+                      <Instagram className="w-5 h-5 flex-shrink-0 text-primary" />
+                      <a href={shop.instagram} target="_blank" rel="noopener noreferrer" className="hover:underline text-foreground">
+                        {shop.instagram}
+                      </a>
+                    </div>
+                  )}
                 </div>
+
+                {/* Horarios debajo del correo */}
+                {shop.opening_hours && shop.opening_hours !== null && typeof shop.opening_hours === 'object' && Object.keys(shop.opening_hours).length > 0 && (
+                  <div className="mt-6 pt-6 border-t border-border">
+                    <div className="flex items-center gap-2 mb-4">
+                      <Clock className="w-5 h-5 text-primary" />
+                      <h3 className="font-semibold text-foreground">Horarios de Atención</h3>
+                    </div>
+                    <ul className="space-y-2">
+                      {Object.entries(shop.opening_hours).map(([day, hours]: [string, any]) => {
+                        let hoursText = null;
+
+                        // Si es un objeto con propiedades open y close
+                        if (hours && typeof hours === 'object' && hours !== null && !Array.isArray(hours)) {
+                          // Formato: { open: "09:00", close: "18:00" }
+                          if ('open' in hours && 'close' in hours) {
+                            const openTime = hours.open;
+                            const closeTime = hours.close;
+                            // Solo mostrar si tiene valores válidos (no null, no undefined, no vacío, no false)
+                            if (openTime && closeTime &&
+                                openTime !== 'null' && closeTime !== 'null' &&
+                                String(openTime).trim() !== '' && String(closeTime).trim() !== '') {
+                              hoursText = `${String(openTime).trim()} - ${String(closeTime).trim()}`;
+                            }
+                          }
+                          // Formato: { start: "09:00", end: "18:00" }
+                          else if ('start' in hours && 'end' in hours) {
+                            const startTime = hours.start;
+                            const endTime = hours.end;
+                            if (startTime && endTime &&
+                                String(startTime).trim() !== '' && String(endTime).trim() !== '') {
+                              hoursText = `${String(startTime).trim()} - ${String(endTime).trim()}`;
+                            }
+                          }
+                        }
+                        // Si es directamente un string
+                        else if (typeof hours === 'string' && hours.trim() !== '' && hours.trim() !== 'null') {
+                          hoursText = hours.trim();
+                        }
+                        // Si es un número (hora), convertir a string
+                        else if (typeof hours === 'number') {
+                          hoursText = hours.toString();
+                        }
+
+                        // Solo renderizar si hay un horario válido
+                        if (!hoursText) return null;
+
+                        return (
+                          <li key={day} className="flex items-center gap-3 text-sm">
+                            <span className="font-medium capitalize text-foreground">{day}:</span>
+                            <span className="text-muted-foreground">{hoursText}</span>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </div>
+                )}
               </div>
-            </CardContent>
-          </Card>
-        </div>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Productos (vista previa) */}
         {products.length > 0 && (

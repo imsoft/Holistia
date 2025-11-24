@@ -76,6 +76,7 @@ export default function PublicShopPage({
         .from("shops")
         .select("*")
         .eq("id", shopId)
+        .eq("is_active", true)
         .single();
 
       if (error) {

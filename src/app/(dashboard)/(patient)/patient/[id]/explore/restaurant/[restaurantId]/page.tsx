@@ -64,24 +64,11 @@ export default function RestaurantDetailPage() {
     const publicUrl = `${window.location.origin}/public/restaurant/${restaurantId}`;
 
     try {
-      if (navigator.share) {
-        await navigator.share({
-          title: `${restaurant?.name} - Holistia`,
-          text: `Conoce ${restaurant?.name} en Holistia`,
-          url: publicUrl,
-        });
-      } else {
-        await navigator.clipboard.writeText(publicUrl);
-        toast.success("Enlace copiado al portapapeles");
-      }
+      await navigator.clipboard.writeText(publicUrl);
+      toast.success("Enlace copiado al portapapeles");
     } catch (error) {
-      console.error("Error sharing:", error);
-      try {
-        await navigator.clipboard.writeText(publicUrl);
-        toast.success("Enlace copiado al portapapeles");
-      } catch (clipboardError) {
-        toast.error("No se pudo copiar el enlace");
-      }
+      console.error("Error copying to clipboard:", error);
+      toast.error("No se pudo copiar el enlace");
     }
   };
 

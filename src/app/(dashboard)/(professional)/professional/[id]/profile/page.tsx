@@ -59,24 +59,11 @@ export default function ProfessionalProfilePage() {
     const publicUrl = `${window.location.origin}/public/professional/${slug}`;
 
     try {
-      if (navigator.share) {
-        await navigator.share({
-          title: `${professionalName} - Holistia`,
-          text: `Conoce mi perfil profesional en Holistia`,
-          url: publicUrl,
-        });
-      } else {
-        await navigator.clipboard.writeText(publicUrl);
-        toast.success("Enlace copiado al portapapeles");
-      }
+      await navigator.clipboard.writeText(publicUrl);
+      toast.success("Enlace copiado al portapapeles");
     } catch (error) {
-      console.error("Error sharing:", error);
-      try {
-        await navigator.clipboard.writeText(publicUrl);
-        toast.success("Enlace copiado al portapapeles");
-      } catch (clipboardError) {
-        toast.error("No se pudo copiar el enlace");
-      }
+      console.error("Error copying to clipboard:", error);
+      toast.error("No se pudo copiar el enlace");
     }
   };
 

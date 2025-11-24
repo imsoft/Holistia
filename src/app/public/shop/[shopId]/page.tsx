@@ -197,8 +197,8 @@ export default function PublicShopPage({
 
       <div className="container mx-auto px-4 py-8 max-w-6xl">
         {/* Información del comercio */}
-        <Card className="mb-8 shadow-lg">
-          <CardContent className="pt-6">
+        <Card className="mb-8 shadow-lg py-4">
+          <CardContent>
             <div className="flex flex-col md:flex-row gap-6">
               {shop.image_url && (
                 <div className="w-32 h-32 relative rounded-lg overflow-hidden flex-shrink-0 border-2 border-border">
@@ -272,10 +272,10 @@ export default function PublicShopPage({
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <ul className="space-y-2">
                 {Object.entries(shop.opening_hours).map(([day, hours]: [string, any]) => (
-                  <div key={day} className="flex justify-between items-center p-2 rounded-lg hover:bg-accent/50 transition-colors">
-                    <span className="font-medium capitalize text-foreground">{day}:</span>
+                  <li key={day} className="flex items-center justify-between p-3 rounded-lg hover:bg-accent/50 transition-colors">
+                    <span className="font-medium capitalize text-foreground">{day}</span>
                     <span className="text-muted-foreground">
                       {typeof hours === 'object' && hours !== null && 'open' in hours && 'close' in hours
                         ? `${hours.open} - ${hours.close}`
@@ -283,9 +283,9 @@ export default function PublicShopPage({
                         ? hours
                         : 'No disponible'}
                     </span>
-                  </div>
+                  </li>
                 ))}
-              </div>
+              </ul>
             </CardContent>
           </Card>
         )}

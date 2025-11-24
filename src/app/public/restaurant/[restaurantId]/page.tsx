@@ -11,8 +11,6 @@ import {
   Phone,
   Mail,
   Share2,
-  LogIn,
-  UtensilsCrossed,
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
@@ -131,38 +129,40 @@ export default function PublicRestaurantPage({
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="bg-card border-b">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <Link href="/" className="text-primary hover:underline">
-              ← Volver
-            </Link>
-            <div className="flex items-center gap-2">
-              <Button variant="ghost" size="sm" onClick={handleShare}>
-                <Share2 className="w-4 h-4 sm:mr-2" />
-                <span className="hidden sm:inline">Compartir</span>
-              </Button>
-              {!isAuthenticated && (
-                <Button asChild variant="outline" size="sm">
-                  <Link href="/login">
-                    <LogIn className="w-4 h-4 mr-2" />
-                    Iniciar sesión
-                  </Link>
+      {/* Hero Section con imagen de portada */}
+      {restaurant.gallery && restaurant.gallery.length > 0 && (
+        <div className="relative h-64 md:h-96 w-full overflow-hidden">
+          <Image
+            src={restaurant.gallery[0]}
+            alt={restaurant.name}
+            fill
+            className="object-cover"
+            priority
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
+          <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8">
+            <div className="container mx-auto">
+              <div className="flex items-center justify-between">
+                <h1 className="text-3xl md:text-4xl font-bold text-foreground drop-shadow-lg">
+                  {restaurant.name}
+                </h1>
+                <Button variant="secondary" size="sm" onClick={handleShare} className="shadow-lg">
+                  <Share2 className="w-4 h-4 mr-2" />
+                  Compartir
                 </Button>
-              )}
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
 
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-8 max-w-6xl">
         {/* Información del restaurante */}
-        <Card className="mb-6">
+        <Card className="mb-8 shadow-lg">
           <CardContent className="pt-6">
             <div className="flex flex-col md:flex-row gap-6">
               {restaurant.logo_url && (
-                <div className="w-32 h-32 relative rounded-lg overflow-hidden flex-shrink-0">
+                <div className="w-32 h-32 relative rounded-lg overflow-hidden flex-shrink-0 border-2 border-border">
                   <Image
                     src={restaurant.logo_url}
                     alt={restaurant.name}
@@ -173,15 +173,16 @@ export default function PublicRestaurantPage({
               )}
 
               <div className="flex-1">
-                <h1 className="text-3xl font-bold mb-2 flex items-center gap-2">
-                  <UtensilsCrossed className="w-8 h-8" />
-                  {restaurant.name}
-                </h1>
+                {(!restaurant.gallery || restaurant.gallery.length === 0) && (
+                  <h1 className="text-3xl md:text-4xl font-bold mb-4">
+                    {restaurant.name}
+                  </h1>
+                )}
 
                 {restaurant.cuisine_types && restaurant.cuisine_types.length > 0 && (
                   <div className="flex flex-wrap gap-2 mb-4">
                     {restaurant.cuisine_types.map((cuisine, index) => (
-                      <Badge key={index} variant="secondary">
+                      <Badge key={index} variant="secondary" className="text-sm">
                         {cuisine}
                       </Badge>
                     ))}
@@ -189,28 +190,31 @@ export default function PublicRestaurantPage({
                 )}
 
                 {restaurant.description && (
-                  <p className="text-muted-foreground mb-4">{restaurant.description}</p>
+                  <div
+                    className="text-muted-foreground mb-6 prose prose-sm max-w-none prose-headings:text-foreground prose-p:text-muted-foreground prose-a:text-primary prose-strong:text-foreground"
+                    dangerouslySetInnerHTML={{ __html: restaurant.description }}
+                  />
                 )}
 
-                <div className="space-y-2 text-sm">
+                <div className="space-y-3 text-sm">
                   {restaurant.address && (
-                    <div className="flex items-start gap-2">
-                      <MapPin className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                      <span>{restaurant.address}</span>
+                    <div className="flex items-start gap-3">
+                      <MapPin className="w-5 h-5 mt-0.5 flex-shrink-0 text-primary" />
+                      <span className="text-foreground">{restaurant.address}</span>
                     </div>
                   )}
                   {restaurant.phone && (
-                    <div className="flex items-center gap-2">
-                      <Phone className="w-4 h-4" />
-                      <a href={`tel:${restaurant.phone}`} className="hover:underline">
+                    <div className="flex items-center gap-3">
+                      <Phone className="w-5 h-5 flex-shrink-0 text-primary" />
+                      <a href={`tel:${restaurant.phone}`} className="hover:underline text-foreground">
                         {restaurant.phone}
                       </a>
                     </div>
                   )}
                   {restaurant.email && (
-                    <div className="flex items-center gap-2">
-                      <Mail className="w-4 h-4" />
-                      <a href={`mailto:${restaurant.email}`} className="hover:underline">
+                    <div className="flex items-center gap-3">
+                      <Mail className="w-5 h-5 flex-shrink-0 text-primary" />
+                      <a href={`mailto:${restaurant.email}`} className="hover:underline text-foreground">
                         {restaurant.email}
                       </a>
                     </div>
@@ -223,18 +227,18 @@ export default function PublicRestaurantPage({
 
         {/* Horarios */}
         {restaurant.opening_hours && (
-          <Card className="mb-6">
+          <Card className="mb-8 shadow-lg">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Clock className="w-5 h-5" />
-                Horarios
+              <CardTitle className="flex items-center gap-2 text-xl">
+                <Clock className="w-5 h-5 text-primary" />
+                Horarios de Atención
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {Object.entries(restaurant.opening_hours).map(([day, hours]: [string, any]) => (
-                  <div key={day} className="flex justify-between">
-                    <span className="font-medium capitalize">{day}:</span>
+                  <div key={day} className="flex justify-between items-center p-2 rounded-lg hover:bg-accent/50 transition-colors">
+                    <span className="font-medium capitalize text-foreground">{day}:</span>
                     <span className="text-muted-foreground">
                       {hours.open} - {hours.close}
                     </span>
@@ -247,16 +251,16 @@ export default function PublicRestaurantPage({
 
         {/* Menú (vista previa) */}
         {menuItems.length > 0 && (
-          <Card className="mb-6">
+          <Card className="mb-8 shadow-lg">
             <CardHeader>
-              <CardTitle>Menú</CardTitle>
+              <CardTitle className="text-xl">Menú Destacado</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                {menuItems.slice(0, 3).map((item) => (
-                  <div key={item.id} className="border rounded-lg p-4 flex gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {menuItems.slice(0, 6).map((item) => (
+                  <div key={item.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow bg-card">
                     {item.image_url && (
-                      <div className="relative w-24 h-24 rounded-lg overflow-hidden flex-shrink-0">
+                      <div className="relative w-full h-40 rounded-lg overflow-hidden mb-3">
                         <Image
                           src={item.image_url}
                           alt={item.name}
@@ -266,19 +270,19 @@ export default function PublicRestaurantPage({
                       </div>
                     )}
                     <div className="flex-1">
-                      <div className="flex justify-between items-start mb-1">
-                        <h3 className="font-semibold">{item.name}</h3>
-                        <span className="text-lg font-bold text-primary">
+                      <div className="flex justify-between items-start mb-2">
+                        <h3 className="font-semibold text-foreground">{item.name}</h3>
+                        <span className="text-lg font-bold text-primary ml-2">
                           ${item.price.toFixed(2)}
                         </span>
                       </div>
                       {item.category && (
-                        <Badge variant="outline" className="mb-2">
+                        <Badge variant="outline" className="mb-2 text-xs">
                           {item.category}
                         </Badge>
                       )}
                       {item.description && (
-                        <p className="text-sm text-muted-foreground">{item.description}</p>
+                        <p className="text-sm text-muted-foreground line-clamp-2">{item.description}</p>
                       )}
                     </div>
                   </div>
@@ -289,17 +293,17 @@ export default function PublicRestaurantPage({
         )}
 
         {/* Galería (vista previa) */}
-        {restaurant.gallery && restaurant.gallery.length > 0 && (
-          <Card className="mb-6">
+        {restaurant.gallery && restaurant.gallery.length > 1 && (
+          <Card className="mb-8 shadow-lg">
             <CardHeader>
-              <CardTitle>Galería</CardTitle>
+              <CardTitle className="text-xl">Galería</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                {restaurant.gallery.slice(0, 6).map((imageUrl, index) => (
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {restaurant.gallery.slice(1, 9).map((imageUrl, index) => (
                   <div
                     key={index}
-                    className="relative aspect-square rounded-lg overflow-hidden"
+                    className="relative aspect-square rounded-lg overflow-hidden group cursor-pointer hover:scale-105 transition-transform"
                   >
                     <Image
                       src={imageUrl}
@@ -307,6 +311,7 @@ export default function PublicRestaurantPage({
                       fill
                       className="object-cover"
                     />
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
                   </div>
                 ))}
               </div>
@@ -316,19 +321,19 @@ export default function PublicRestaurantPage({
 
         {/* Call to action */}
         {!isAuthenticated && (
-          <Card className="bg-primary/5 border-primary/20">
-            <CardContent className="pt-6 text-center">
-              <h3 className="text-xl font-semibold mb-2">
+          <Card className="bg-primary/5 border-primary/20 shadow-lg">
+            <CardContent className="pt-8 pb-8 text-center">
+              <h3 className="text-2xl font-semibold mb-3 text-foreground">
                 ¿Quieres ver el menú completo y hacer una reservación?
               </h3>
-              <p className="text-muted-foreground mb-4">
+              <p className="text-muted-foreground mb-6 text-lg">
                 Regístrate o inicia sesión para acceder a toda la información
               </p>
-              <div className="flex gap-4 justify-center">
-                <Button asChild>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Button asChild size="lg" className="text-base">
                   <Link href="/signup">Registrarse</Link>
                 </Button>
-                <Button asChild variant="outline">
+                <Button asChild variant="outline" size="lg" className="text-base">
                   <Link href="/login">Iniciar sesión</Link>
                 </Button>
               </div>

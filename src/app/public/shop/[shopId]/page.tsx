@@ -11,8 +11,6 @@ import {
   Phone,
   Mail,
   Share2,
-  LogIn,
-  ShoppingBag,
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
@@ -131,38 +129,40 @@ export default function PublicShopPage({
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="bg-card border-b">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <Link href="/" className="text-primary hover:underline">
-              ← Volver
-            </Link>
-            <div className="flex items-center gap-2">
-              <Button variant="ghost" size="sm" onClick={handleShare}>
-                <Share2 className="w-4 h-4 sm:mr-2" />
-                <span className="hidden sm:inline">Compartir</span>
-              </Button>
-              {!isAuthenticated && (
-                <Button asChild variant="outline" size="sm">
-                  <Link href="/login">
-                    <LogIn className="w-4 h-4 mr-2" />
-                    Iniciar sesión
-                  </Link>
+      {/* Hero Section con imagen de portada */}
+      {shop.gallery && shop.gallery.length > 0 && (
+        <div className="relative h-64 md:h-96 w-full overflow-hidden">
+          <Image
+            src={shop.gallery[0]}
+            alt={shop.name}
+            fill
+            className="object-cover"
+            priority
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
+          <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8">
+            <div className="container mx-auto">
+              <div className="flex items-center justify-between">
+                <h1 className="text-3xl md:text-4xl font-bold text-foreground drop-shadow-lg">
+                  {shop.name}
+                </h1>
+                <Button variant="secondary" size="sm" onClick={handleShare} className="shadow-lg">
+                  <Share2 className="w-4 h-4 mr-2" />
+                  Compartir
                 </Button>
-              )}
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
 
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-8 max-w-6xl">
         {/* Información del comercio */}
-        <Card className="mb-6">
+        <Card className="mb-8 shadow-lg">
           <CardContent className="pt-6">
             <div className="flex flex-col md:flex-row gap-6">
               {shop.logo_url && (
-                <div className="w-32 h-32 relative rounded-lg overflow-hidden flex-shrink-0">
+                <div className="w-32 h-32 relative rounded-lg overflow-hidden flex-shrink-0 border-2 border-border">
                   <Image
                     src={shop.logo_url}
                     alt={shop.name}
@@ -173,15 +173,16 @@ export default function PublicShopPage({
               )}
 
               <div className="flex-1">
-                <h1 className="text-3xl font-bold mb-2 flex items-center gap-2">
-                  <ShoppingBag className="w-8 h-8" />
-                  {shop.name}
-                </h1>
+                {(!shop.gallery || shop.gallery.length === 0) && (
+                  <h1 className="text-3xl md:text-4xl font-bold mb-4">
+                    {shop.name}
+                  </h1>
+                )}
 
                 {shop.categories && shop.categories.length > 0 && (
                   <div className="flex flex-wrap gap-2 mb-4">
                     {shop.categories.map((category, index) => (
-                      <Badge key={index} variant="secondary">
+                      <Badge key={index} variant="secondary" className="text-sm">
                         {category}
                       </Badge>
                     ))}
@@ -189,28 +190,31 @@ export default function PublicShopPage({
                 )}
 
                 {shop.description && (
-                  <p className="text-muted-foreground mb-4">{shop.description}</p>
+                  <div
+                    className="text-muted-foreground mb-6 prose prose-sm max-w-none prose-headings:text-foreground prose-p:text-muted-foreground prose-a:text-primary prose-strong:text-foreground"
+                    dangerouslySetInnerHTML={{ __html: shop.description }}
+                  />
                 )}
 
-                <div className="space-y-2 text-sm">
+                <div className="space-y-3 text-sm">
                   {shop.address && (
-                    <div className="flex items-start gap-2">
-                      <MapPin className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                      <span>{shop.address}</span>
+                    <div className="flex items-start gap-3">
+                      <MapPin className="w-5 h-5 mt-0.5 flex-shrink-0 text-primary" />
+                      <span className="text-foreground">{shop.address}</span>
                     </div>
                   )}
                   {shop.phone && (
-                    <div className="flex items-center gap-2">
-                      <Phone className="w-4 h-4" />
-                      <a href={`tel:${shop.phone}`} className="hover:underline">
+                    <div className="flex items-center gap-3">
+                      <Phone className="w-5 h-5 flex-shrink-0 text-primary" />
+                      <a href={`tel:${shop.phone}`} className="hover:underline text-foreground">
                         {shop.phone}
                       </a>
                     </div>
                   )}
                   {shop.email && (
-                    <div className="flex items-center gap-2">
-                      <Mail className="w-4 h-4" />
-                      <a href={`mailto:${shop.email}`} className="hover:underline">
+                    <div className="flex items-center gap-3">
+                      <Mail className="w-5 h-5 flex-shrink-0 text-primary" />
+                      <a href={`mailto:${shop.email}`} className="hover:underline text-foreground">
                         {shop.email}
                       </a>
                     </div>
@@ -223,18 +227,18 @@ export default function PublicShopPage({
 
         {/* Horarios */}
         {shop.opening_hours && (
-          <Card className="mb-6">
+          <Card className="mb-8 shadow-lg">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Clock className="w-5 h-5" />
-                Horarios
+              <CardTitle className="flex items-center gap-2 text-xl">
+                <Clock className="w-5 h-5 text-primary" />
+                Horarios de Atención
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {Object.entries(shop.opening_hours).map(([day, hours]: [string, any]) => (
-                  <div key={day} className="flex justify-between">
-                    <span className="font-medium capitalize">{day}:</span>
+                  <div key={day} className="flex justify-between items-center p-2 rounded-lg hover:bg-accent/50 transition-colors">
+                    <span className="font-medium capitalize text-foreground">{day}:</span>
                     <span className="text-muted-foreground">
                       {hours.open} - {hours.close}
                     </span>
@@ -247,14 +251,14 @@ export default function PublicShopPage({
 
         {/* Productos (vista previa) */}
         {products.length > 0 && (
-          <Card className="mb-6">
+          <Card className="mb-8 shadow-lg">
             <CardHeader>
-              <CardTitle>Productos</CardTitle>
+              <CardTitle className="text-xl">Productos Destacados</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {products.slice(0, 3).map((product) => (
-                  <div key={product.id} className="border rounded-lg p-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {products.slice(0, 6).map((product) => (
+                  <div key={product.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow bg-card">
                     {product.image_url && (
                       <div className="relative w-full h-40 mb-3 rounded-lg overflow-hidden">
                         <Image
@@ -265,9 +269,9 @@ export default function PublicShopPage({
                         />
                       </div>
                     )}
-                    <h3 className="font-semibold mb-1">{product.name}</h3>
+                    <h3 className="font-semibold mb-2 text-foreground">{product.name}</h3>
                     {product.description && (
-                      <p className="text-sm text-muted-foreground mb-2 line-clamp-2">
+                      <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
                         {product.description}
                       </p>
                     )}
@@ -282,17 +286,17 @@ export default function PublicShopPage({
         )}
 
         {/* Galería (vista previa) */}
-        {shop.gallery && shop.gallery.length > 0 && (
-          <Card className="mb-6">
+        {shop.gallery && shop.gallery.length > 1 && (
+          <Card className="mb-8 shadow-lg">
             <CardHeader>
-              <CardTitle>Galería</CardTitle>
+              <CardTitle className="text-xl">Galería</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                {shop.gallery.slice(0, 6).map((imageUrl, index) => (
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {shop.gallery.slice(1, 9).map((imageUrl, index) => (
                   <div
                     key={index}
-                    className="relative aspect-square rounded-lg overflow-hidden"
+                    className="relative aspect-square rounded-lg overflow-hidden group cursor-pointer hover:scale-105 transition-transform"
                   >
                     <Image
                       src={imageUrl}
@@ -300,6 +304,7 @@ export default function PublicShopPage({
                       fill
                       className="object-cover"
                     />
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
                   </div>
                 ))}
               </div>
@@ -309,19 +314,19 @@ export default function PublicShopPage({
 
         {/* Call to action */}
         {!isAuthenticated && (
-          <Card className="bg-primary/5 border-primary/20">
-            <CardContent className="pt-6 text-center">
-              <h3 className="text-xl font-semibold mb-2">
+          <Card className="bg-primary/5 border-primary/20 shadow-lg">
+            <CardContent className="pt-8 pb-8 text-center">
+              <h3 className="text-2xl font-semibold mb-3 text-foreground">
                 ¿Quieres ver todos los productos y contactar al comercio?
               </h3>
-              <p className="text-muted-foreground mb-4">
+              <p className="text-muted-foreground mb-6 text-lg">
                 Regístrate o inicia sesión para acceder a toda la información
               </p>
-              <div className="flex gap-4 justify-center">
-                <Button asChild>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Button asChild size="lg" className="text-base">
                   <Link href="/signup">Registrarse</Link>
                 </Button>
-                <Button asChild variant="outline">
+                <Button asChild variant="outline" size="lg" className="text-base">
                   <Link href="/login">Iniciar sesión</Link>
                 </Button>
               </div>

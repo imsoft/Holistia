@@ -8,12 +8,9 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import Image from "next/image";
 import {
-  MapPin,
   Star,
   Award,
-  Calendar,
   Share2,
-  LogIn,
 } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
@@ -138,121 +135,104 @@ export default function PublicProfessionalPage({
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header con botones */}
-      <div className="bg-card border-b">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <Link href="/" className="text-primary hover:underline">
-              ← Volver
-            </Link>
-            <div className="flex items-center gap-2">
-              <Button variant="ghost" size="sm" onClick={handleShare}>
-                <Share2 className="w-4 h-4 sm:mr-2" />
-                <span className="hidden sm:inline">Compartir</span>
-              </Button>
-              {!isAuthenticated && (
-                <Button asChild variant="outline" size="sm">
-                  <Link href="/login">
-                    <LogIn className="w-4 h-4 mr-2" />
-                    Iniciar sesión
-                  </Link>
-                </Button>
+      {/* Hero Section con avatar */}
+      <div className="relative bg-gradient-to-br from-primary/10 via-primary/5 to-background py-12 md:py-16">
+        <div className="container mx-auto px-4 max-w-6xl">
+          <div className="flex flex-col md:flex-row items-center gap-6 md:gap-8">
+            <div className="w-32 h-32 md:w-40 md:h-40 relative rounded-full overflow-hidden flex-shrink-0 bg-muted border-4 border-background shadow-lg">
+              {professional.avatar_url ? (
+                <Image
+                  src={professional.avatar_url}
+                  alt={`${professional.first_name} ${professional.last_name}`}
+                  fill
+                  className="object-cover"
+                  priority
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-4xl md:text-5xl font-bold text-primary">
+                  {professional.first_name[0]}
+                  {professional.last_name[0]}
+                </div>
               )}
             </div>
+            <div className="flex-1 text-center md:text-left">
+              <h1 className="text-3xl md:text-4xl font-bold mb-3 text-foreground">
+                {professional.first_name} {professional.last_name}
+              </h1>
+              {professional.specializations && professional.specializations.length > 0 && (
+                <div className="flex flex-wrap gap-2 justify-center md:justify-start mb-4">
+                  {professional.specializations.map((spec, index) => (
+                    <Badge key={index} variant="secondary" className="text-sm">
+                      {spec}
+                    </Badge>
+                  ))}
+                </div>
+              )}
+              <div className="flex flex-wrap items-center gap-4 justify-center md:justify-start text-sm text-muted-foreground">
+                {professional.average_rating > 0 && (
+                  <div className="flex items-center gap-1">
+                    <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                    <span className="font-medium text-foreground">
+                      {professional.average_rating.toFixed(1)}
+                    </span>
+                    <span>({professional.total_reviews} reseñas)</span>
+                  </div>
+                )}
+                {professional.years_of_experience && (
+                  <div className="flex items-center gap-1">
+                    <Award className="w-4 h-4 text-primary" />
+                    <span>{professional.years_of_experience} años de experiencia</span>
+                  </div>
+                )}
+              </div>
+            </div>
+            <Button variant="secondary" size="sm" onClick={handleShare} className="shadow-lg">
+              <Share2 className="w-4 h-4 mr-2" />
+              Compartir
+            </Button>
           </div>
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-8">
-        {/* Perfil del profesional */}
-        <Card className="mb-6">
+      <div className="container mx-auto px-4 py-8 max-w-6xl">
+        {/* Información del profesional */}
+        <Card className="mb-8 shadow-lg">
           <CardContent className="pt-6">
-            <div className="flex flex-col md:flex-row gap-6">
-              <div className="w-32 h-32 relative rounded-full overflow-hidden flex-shrink-0 bg-muted">
-                {professional.avatar_url ? (
-                  <Image
-                    src={professional.avatar_url}
-                    alt={`${professional.first_name} ${professional.last_name}`}
-                    fill
-                    className="object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-3xl font-bold">
-                    {professional.first_name[0]}
-                    {professional.last_name[0]}
-                  </div>
-                )}
+            {professional.bio && (
+              <div
+                className="text-muted-foreground mb-6 prose prose-sm max-w-none prose-headings:text-foreground prose-p:text-muted-foreground prose-a:text-primary prose-strong:text-foreground"
+                dangerouslySetInnerHTML={{ __html: professional.bio }}
+              />
+            )}
+
+            {professional.consultation_price && (
+              <div className="flex items-center justify-between p-4 bg-primary/5 rounded-lg border border-primary/20">
+                <span className="text-sm font-medium text-foreground">
+                  Precio de consulta:
+                </span>
+                <span className="text-2xl font-bold text-primary">
+                  ${professional.consultation_price.toFixed(2)} MXN
+                </span>
               </div>
-
-              <div className="flex-1">
-                <h1 className="text-3xl font-bold mb-2">
-                  {professional.first_name} {professional.last_name}
-                </h1>
-
-                {professional.specializations &&
-                  professional.specializations.length > 0 && (
-                    <div className="flex flex-wrap gap-2 mb-4">
-                      {professional.specializations.map((spec, index) => (
-                        <Badge key={index} variant="secondary">
-                          {spec}
-                        </Badge>
-                      ))}
-                    </div>
-                  )}
-
-                <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
-                  {professional.average_rating > 0 && (
-                    <div className="flex items-center gap-1">
-                      <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                      <span className="font-medium text-foreground">
-                        {professional.average_rating.toFixed(1)}
-                      </span>
-                      <span>({professional.total_reviews} reseñas)</span>
-                    </div>
-                  )}
-
-                  {professional.years_of_experience && (
-                    <div className="flex items-center gap-1">
-                      <Award className="w-4 h-4" />
-                      <span>{professional.years_of_experience} años de experiencia</span>
-                    </div>
-                  )}
-                </div>
-
-                {professional.bio && (
-                  <p className="text-muted-foreground mb-4">{professional.bio}</p>
-                )}
-
-                {professional.consultation_price && (
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm text-muted-foreground">
-                      Precio de consulta:
-                    </span>
-                    <span className="text-xl font-bold text-primary">
-                      ${professional.consultation_price.toFixed(2)} MXN
-                    </span>
-                  </div>
-                )}
-              </div>
-            </div>
+            )}
           </CardContent>
         </Card>
 
         {/* Certificaciones */}
         {professional.certifications && professional.certifications.length > 0 && (
-          <Card className="mb-6">
+          <Card className="mb-8 shadow-lg">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Award className="w-5 h-5" />
+              <CardTitle className="flex items-center gap-2 text-xl">
+                <Award className="w-5 h-5 text-primary" />
                 Certificaciones
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <ul className="space-y-2">
+              <ul className="space-y-3">
                 {professional.certifications.map((cert, index) => (
-                  <li key={index} className="flex items-start gap-2">
-                    <span className="text-primary mt-1">•</span>
-                    <span>{cert}</span>
+                  <li key={index} className="flex items-start gap-3 p-2 rounded-lg hover:bg-accent/50 transition-colors">
+                    <Award className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
+                    <span className="text-foreground">{cert}</span>
                   </li>
                 ))}
               </ul>
@@ -262,19 +242,19 @@ export default function PublicProfessionalPage({
 
         {/* Call to action para usuarios no autenticados */}
         {!isAuthenticated && (
-          <Card className="bg-primary/5 border-primary/20">
-            <CardContent className="pt-6 text-center">
-              <h3 className="text-xl font-semibold mb-2">
+          <Card className="bg-primary/5 border-primary/20 shadow-lg">
+            <CardContent className="pt-8 pb-8 text-center">
+              <h3 className="text-2xl font-semibold mb-3 text-foreground">
                 ¿Quieres agendar una cita con este profesional?
               </h3>
-              <p className="text-muted-foreground mb-4">
+              <p className="text-muted-foreground mb-6 text-lg">
                 Regístrate o inicia sesión para ver más información y agendar una cita
               </p>
-              <div className="flex gap-4 justify-center">
-                <Button asChild>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Button asChild size="lg" className="text-base">
                   <Link href="/signup">Registrarse</Link>
                 </Button>
-                <Button asChild variant="outline">
+                <Button asChild variant="outline" size="lg" className="text-base">
                   <Link href="/login">Iniciar sesión</Link>
                 </Button>
               </div>

@@ -184,8 +184,9 @@ export default function PublicEventPage({
           <Image
             src={event.gallery_images?.[0] || event.image_url || ""}
             alt={event.name}
-            fill
-            className="object-cover"
+            width={1920}
+            height={1080}
+            className="object-cover w-full h-full"
             style={{
               objectPosition: event.image_position || 'center center'
             }}
@@ -327,7 +328,7 @@ export default function PublicEventPage({
                   <CardTitle className="text-xl">Galería de imágenes</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                     {event.gallery_images.map((image, index) => (
                       <div
                         key={index}

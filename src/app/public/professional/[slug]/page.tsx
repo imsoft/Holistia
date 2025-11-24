@@ -138,126 +138,192 @@ export default function PublicProfessionalPage({
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Hero Section con avatar */}
-      <div className="relative bg-gradient-to-br from-primary/10 via-primary/5 to-background py-12 md:py-16">
-        <div className="container mx-auto px-4 max-w-6xl">
-          <div className="flex flex-col md:flex-row items-center gap-6 md:gap-8">
-            <div className="w-32 h-32 md:w-40 md:h-40 relative rounded-full overflow-hidden flex-shrink-0 bg-muted border-4 border-background shadow-lg">
-              {professional.profile_photo ? (
-                <Image
-                  src={professional.profile_photo}
-                  alt={`${professional.first_name} ${professional.last_name}`}
-                  fill
-                  className="object-cover"
-                  priority
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-4xl md:text-5xl font-bold text-primary">
-                  {professional.first_name[0]}
-                  {professional.last_name[0]}
+      {/* Hero Section con imagen de portada */}
+      {professional.profile_photo && (
+        <div className="relative h-64 md:h-96 w-full overflow-hidden">
+          <Image
+            src={professional.profile_photo}
+            alt={`${professional.first_name} ${professional.last_name}`}
+            width={5760}
+            height={3240}
+            className="object-cover w-full h-full"
+            priority
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
+          <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8">
+            <div className="container mx-auto max-w-6xl">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h1 className="text-3xl md:text-4xl font-bold text-foreground drop-shadow-lg mb-2">
+                    {professional.first_name} {professional.last_name}
+                  </h1>
+                  {professional.profession && (
+                    <p className="text-xl text-foreground/90 drop-shadow-lg">
+                      {professional.profession}
+                    </p>
+                  )}
                 </div>
-              )}
-            </div>
-            <div className="flex-1 text-center md:text-left">
-              <h1 className="text-3xl md:text-4xl font-bold mb-3 text-foreground">
-                {professional.first_name} {professional.last_name}
-              </h1>
-              {professional.specializations && professional.specializations.length > 0 && (
-                <div className="flex flex-wrap gap-2 justify-center md:justify-start mb-4">
-                  {professional.specializations.map((spec, index) => (
-                    <Badge key={index} variant="secondary" className="text-sm">
-                      {spec}
-                    </Badge>
-                  ))}
-                </div>
-              )}
-              <div className="flex flex-wrap items-center gap-4 justify-center md:justify-start text-sm text-muted-foreground">
-                {professional.average_rating > 0 && (
-                  <div className="flex items-center gap-1">
-                    <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                    <span className="font-medium text-foreground">
-                      {professional.average_rating.toFixed(1)}
-                    </span>
-                    <span>({professional.total_reviews} reseñas)</span>
-                  </div>
-                )}
-                {professional.experience && (
-                  <div className="flex items-center gap-1">
-                    <Award className="w-4 h-4 text-primary" />
-                    <span>{professional.experience} de experiencia</span>
-                  </div>
-                )}
-                {professional.profession && (
-                  <Badge variant="outline" className="text-sm">
-                    {professional.profession}
-                  </Badge>
-                )}
+                <Button variant="secondary" size="sm" onClick={handleShare} className="shadow-lg">
+                  <Share2 className="w-4 h-4 mr-2" />
+                  Compartir
+                </Button>
               </div>
             </div>
-            <Button variant="secondary" size="sm" onClick={handleShare} className="shadow-lg">
-              <Share2 className="w-4 h-4 mr-2" />
-              Compartir
-            </Button>
           </div>
         </div>
-      </div>
+      )}
 
       <div className="container mx-auto px-4 py-8 max-w-6xl">
-        {/* Información del profesional */}
-        {professional.biography && (
-          <Card className="mb-8 shadow-lg">
-            <CardContent className="pt-6">
-              <div
-                className="text-muted-foreground prose prose-sm max-w-none prose-headings:text-foreground prose-p:text-muted-foreground prose-a:text-primary prose-strong:text-foreground"
-                dangerouslySetInnerHTML={{ __html: professional.biography }}
-              />
-            </CardContent>
-          </Card>
-        )}
+        <div className="grid gap-8 lg:grid-cols-3">
+          {/* Contenido principal */}
+          <div className="lg:col-span-2 space-y-8">
+            {/* Información del profesional */}
+            <Card className="shadow-lg py-4">
+              <CardHeader>
+                {(!professional.profile_photo) && (
+                  <div className="mb-4">
+                    <h1 className="text-3xl md:text-4xl font-bold mb-2">
+                      {professional.first_name} {professional.last_name}
+                    </h1>
+                    {professional.profession && (
+                      <p className="text-xl text-muted-foreground">
+                        {professional.profession}
+                      </p>
+                    )}
+                  </div>
+                )}
+                <div className="flex flex-wrap gap-2">
+                  {professional.specializations && professional.specializations.length > 0 && (
+                    professional.specializations.map((spec, index) => (
+                      <Badge key={index} variant="secondary" className="text-sm">
+                        {spec}
+                      </Badge>
+                    ))
+                  )}
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Biografía */}
+                {professional.biography && (
+                  <div>
+                    <h3 className="text-lg font-semibold mb-3">Acerca de mí</h3>
+                    <div
+                      className="text-muted-foreground leading-relaxed prose prose-sm max-w-none prose-headings:text-foreground prose-p:text-muted-foreground prose-a:text-primary prose-strong:text-foreground"
+                      dangerouslySetInnerHTML={{ __html: professional.biography }}
+                    />
+                  </div>
+                )}
 
-        {/* Certificaciones */}
-        {professional.certifications && professional.certifications.length > 0 && (
-          <Card className="mb-8 shadow-lg">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-xl">
-                <Award className="w-5 h-5 text-primary" />
-                Certificaciones
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ul className="space-y-3">
-                {professional.certifications.map((cert, index) => (
-                  <li key={index} className="flex items-start gap-3 p-2 rounded-lg hover:bg-accent/50 transition-colors">
-                    <Award className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
-                    <span className="text-foreground">{cert}</span>
-                  </li>
-                ))}
-              </ul>
-            </CardContent>
-          </Card>
-        )}
+                <Separator />
 
-        {/* Call to action para usuarios no autenticados */}
-        {!isAuthenticated && (
-          <Card className="bg-primary/5 border-primary/20 shadow-lg">
-            <CardContent className="pt-8 pb-8 text-center">
-              <h3 className="text-2xl font-semibold mb-3 text-foreground">
-                ¿Quieres agendar una cita con este profesional?
-              </h3>
-              <p className="text-muted-foreground mb-6 text-lg">
-                Regístrate o inicia sesión para ver más información y agendar una cita
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Button asChild size="lg" className="text-base">
-                  <Link href="/signup">Registrarse</Link>
-                </Button>
-                <Button asChild variant="outline" size="lg" className="text-base">
-                  <Link href="/login">Iniciar sesión</Link>
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        )}
+                {/* Experiencia y calificación */}
+                <div className="grid gap-4 sm:grid-cols-2">
+                  {professional.experience && (
+                    <div className="flex items-center gap-3">
+                      <Award className="w-5 h-5 text-primary flex-shrink-0" />
+                      <div>
+                        <p className="font-medium">{professional.experience}</p>
+                        <p className="text-sm text-muted-foreground">Experiencia</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {professional.average_rating > 0 && (
+                    <div className="flex items-center gap-3">
+                      <Star className="w-5 h-5 fill-yellow-400 text-yellow-400 flex-shrink-0" />
+                      <div>
+                        <p className="font-medium">
+                          {professional.average_rating.toFixed(1)} ({professional.total_reviews} reseñas)
+                        </p>
+                        <p className="text-sm text-muted-foreground">Calificación</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Certificaciones */}
+            {professional.certifications && professional.certifications.length > 0 && (
+              <Card className="shadow-lg py-4">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-xl">
+                    <Award className="w-5 h-5 text-primary" />
+                    Certificaciones
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ul className="space-y-3">
+                    {professional.certifications.map((cert, index) => (
+                      <li key={index} className="flex items-start gap-3 p-3 rounded-lg hover:bg-accent/50 transition-colors">
+                        <Award className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
+                        <span className="text-foreground">{cert}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+
+          {/* Sidebar */}
+          <div className="lg:sticky lg:top-6 lg:self-start space-y-8">
+            {/* Información de contacto / agendar cita */}
+            <Card className="shadow-lg py-4">
+              <CardHeader>
+                <CardTitle>Agendar una cita</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {!isAuthenticated && (
+                  <div className="space-y-4">
+                    <p className="text-sm text-muted-foreground text-center">
+                      Para agendar una cita con este profesional, necesitas iniciar sesión o crear una cuenta
+                    </p>
+                    <div className="flex flex-col gap-2">
+                      <Button asChild size="lg" className="w-full">
+                        <Link href="/signup">Registrarse</Link>
+                      </Button>
+                      <Button asChild variant="outline" size="lg" className="w-full">
+                        <Link href="/login">Iniciar sesión</Link>
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
+                {isAuthenticated && (
+                  <div className="space-y-4">
+                    <Button asChild size="lg" className="w-full">
+                      <Link href={`/patient/${professional.id}/explore/professional/${slug}`}>
+                        Ver perfil completo
+                      </Link>
+                    </Button>
+                    <p className="text-xs text-muted-foreground text-center">
+                      Accede al perfil completo para ver servicios, horarios y agendar una cita
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Especialidades destacadas */}
+            {professional.specializations && professional.specializations.length > 0 && (
+              <Card className="shadow-lg py-4">
+                <CardHeader>
+                  <CardTitle className="text-lg">Especialidades</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex flex-wrap gap-2">
+                    {professional.specializations.map((spec, index) => (
+                      <Badge key={index} variant="outline" className="text-sm">
+                        {spec}
+                      </Badge>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );

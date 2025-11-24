@@ -14,10 +14,17 @@ import {
   Share2,
   User,
   Car,
+  X,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { toast } from "sonner";
+import {
+  Dialog,
+  DialogContent,
+} from "@/components/ui/dialog";
 import { EventWorkshop } from "@/types/event";
 import { formatEventDate, formatEventTime } from "@/utils/date-utils";
 
@@ -36,6 +43,8 @@ export default function PublicEventPage({
   } | null>(null);
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isGalleryOpen, setIsGalleryOpen] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const { eventId } = params;
 
   useEffect(() => {
@@ -118,6 +127,31 @@ export default function PublicEventPage({
     return levels[level as keyof typeof levels] || level;
   };
 
+  const openGallery = (index: number) => {
+    setCurrentImageIndex(index);
+    setIsGalleryOpen(true);
+  };
+
+  const closeGallery = () => {
+    setIsGalleryOpen(false);
+  };
+
+  const nextImage = () => {
+    if (event?.gallery_images) {
+      setCurrentImageIndex((prev) =>
+        prev === event.gallery_images!.length - 1 ? 0 : prev + 1
+      );
+    }
+  };
+
+  const prevImage = () => {
+    if (event?.gallery_images) {
+      setCurrentImageIndex((prev) =>
+        prev === 0 ? event.gallery_images!.length - 1 : prev - 1
+      );
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -146,20 +180,20 @@ export default function PublicEventPage({
     <div className="min-h-screen bg-background">
       {/* Hero Section con imagen de portada */}
       {(event.gallery_images?.[0] || event.image_url) && (
-        <div className="container mx-auto px-4 py-8 max-w-6xl">
-          <div className="relative h-64 md:h-96 w-full overflow-hidden rounded-lg">
-            <Image
-              src={event.gallery_images?.[0] || event.image_url || ""}
-              alt={event.name}
-              fill
-              className="object-cover"
-              style={{
-                objectPosition: event.image_position || 'center center'
-              }}
-              priority
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
-            <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8">
+        <div className="relative h-64 md:h-96 w-full overflow-hidden">
+          <Image
+            src={event.gallery_images?.[0] || event.image_url || ""}
+            alt={event.name}
+            fill
+            className="object-cover"
+            style={{
+              objectPosition: event.image_position || 'center center'
+            }}
+            priority
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
+          <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8">
+            <div className="container mx-auto max-w-6xl">
               <div className="flex items-center justify-between">
                 <h1 className="text-3xl md:text-4xl font-bold text-foreground drop-shadow-lg">
                   {event.name}
@@ -287,22 +321,22 @@ export default function PublicEventPage({
             </Card>
 
             {/* Galería de imágenes */}
-            {event.gallery_images && event.gallery_images.length > 1 && (
+            {event.gallery_images && event.gallery_images.length > 0 && (
               <Card className="shadow-lg py-4">
                 <CardHeader>
                   <CardTitle className="text-xl">Galería de imágenes</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                    {event.gallery_images.slice(1).map((image, index) => (
+                    {event.gallery_images.map((image, index) => (
                       <div
                         key={index}
                         className="relative aspect-video rounded-lg overflow-hidden group cursor-pointer hover:scale-105 transition-transform"
-                        onClick={() => window.open(image, '_blank')}
+                        onClick={() => openGallery(index)}
                       >
                         <Image
                           src={image}
-                          alt={`${event.name} - Imagen ${index + 2}`}
+                          alt={`${event.name} - Imagen ${index + 1}`}
                           fill
                           className="object-cover"
                         />
@@ -402,6 +436,64 @@ export default function PublicEventPage({
           </div>
         </div>
       </div>
+
+      {/* Dialog del Carousel */}
+      <Dialog open={isGalleryOpen} onOpenChange={setIsGalleryOpen}>
+        <DialogContent className="max-w-7xl w-full p-0 bg-black/95">
+          <div className="relative w-full h-[80vh]">
+            {event?.gallery_images && (
+              <>
+                <Image
+                  src={event.gallery_images[currentImageIndex]}
+                  alt={`${event.name} - Imagen ${currentImageIndex + 1}`}
+                  fill
+                  className="object-contain"
+                  priority
+                />
+
+                {/* Botón cerrar */}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="absolute top-4 right-4 text-white hover:bg-white/20 z-50"
+                  onClick={closeGallery}
+                >
+                  <X className="h-6 w-6" />
+                </Button>
+
+                {/* Botón anterior */}
+                {event.gallery_images.length > 1 && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="absolute left-4 top-1/2 -translate-y-1/2 text-white hover:bg-white/20 z-50"
+                    onClick={prevImage}
+                  >
+                    <ChevronLeft className="h-8 w-8" />
+                  </Button>
+                )}
+
+                {/* Botón siguiente */}
+                {event.gallery_images.length > 1 && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-white hover:bg-white/20 z-50"
+                    onClick={nextImage}
+                  >
+                    <ChevronRight className="h-8 w-8" />
+                  </Button>
+                )}
+
+                {/* Contador de imágenes */}
+                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/70 text-white px-4 py-2 rounded-full text-sm">
+                  {currentImageIndex + 1} / {event.gallery_images.length}
+                </div>
+              </>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

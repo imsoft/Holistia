@@ -14,6 +14,8 @@ import {
   X,
   ChevronLeft,
   ChevronRight,
+  Globe,
+  Instagram,
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
@@ -84,6 +86,15 @@ export default function PublicShopPage({
         toast.error("No se pudo cargar la información del comercio");
         setLoading(false);
         return;
+      }
+
+      // Asegurarse de que opening_hours se parsea correctamente si viene como string
+      if (shopData.opening_hours && typeof shopData.opening_hours === 'string') {
+        try {
+          shopData.opening_hours = JSON.parse(shopData.opening_hours);
+        } catch (e) {
+          console.error('Error parsing opening_hours:', e);
+        }
       }
 
       setShop(shopData);
@@ -196,95 +207,126 @@ export default function PublicShopPage({
       )}
 
       <div className="container mx-auto px-4 py-8 max-w-6xl">
-        {/* Información del comercio */}
-        <Card className="mb-8 shadow-lg py-4">
-          <CardContent>
-            <div className="flex flex-col md:flex-row gap-6">
-              {shop.image_url && (
-                <div className="w-32 h-32 relative rounded-lg overflow-hidden flex-shrink-0 border-2 border-border">
-                  <Image
-                    src={shop.image_url}
-                    alt={shop.name}
-                    fill
-                    className="object-cover"
-                  />
-                </div>
-              )}
+        {/* Layout de dos columnas: Horarios a la izquierda, Información a la derecha */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+          {/* Columna izquierda: Horarios */}
+          {shop.opening_hours && shop.opening_hours !== null && typeof shop.opening_hours === 'object' && Object.keys(shop.opening_hours).length > 0 && (
+            <Card className="lg:col-span-1 shadow-lg">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-xl">
+                  <Clock className="w-5 h-5 text-primary" />
+                  Horarios de Atención
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-3">
+                  {Object.entries(shop.opening_hours).map(([day, hours]: [string, any]) => {
+                    let hoursText = 'Cerrado';
+                    
+                    if (hours && typeof hours === 'object' && hours !== null) {
+                      if ('open' in hours && 'close' in hours && hours.open && hours.close) {
+                        hoursText = `${hours.open} - ${hours.close}`;
+                      } else if ('closed' in hours && hours.closed === true) {
+                        hoursText = 'Cerrado';
+                      }
+                    } else if (typeof hours === 'string' && hours.trim() !== '') {
+                      hoursText = hours;
+                    }
+                    
+                    return (
+                      <li key={day} className="flex items-center justify-between text-sm py-2 border-b border-border last:border-0">
+                        <span className="font-medium capitalize text-foreground">{day}</span>
+                        <span className="text-muted-foreground">{hoursText}</span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </CardContent>
+            </Card>
+          )}
 
-              <div className="flex-1">
-                {(!shop.gallery || shop.gallery.length === 0) && (
-                  <h1 className="text-3xl md:text-4xl font-bold mb-4">
-                    {shop.name}
-                  </h1>
-                )}
-
-                {shop.category && (
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    <Badge variant="secondary" className="text-sm">
-                      {shop.category}
-                    </Badge>
+          {/* Columna derecha: Información del comercio */}
+          <Card className={shop.opening_hours && Object.keys(shop.opening_hours).length > 0 ? "lg:col-span-2 shadow-lg py-4" : "lg:col-span-3 shadow-lg py-4"}>
+            <CardContent>
+              <div className="flex flex-col md:flex-row gap-6">
+                {shop.image_url && (
+                  <div className="w-32 h-32 relative rounded-lg overflow-hidden flex-shrink-0 border-2 border-border">
+                    <Image
+                      src={shop.image_url}
+                      alt={shop.name}
+                      fill
+                      className="object-cover"
+                    />
                   </div>
                 )}
 
-                {shop.description && (
-                  <div
-                    className="text-muted-foreground mb-6 prose prose-sm max-w-none prose-headings:text-foreground prose-p:text-muted-foreground prose-a:text-primary prose-strong:text-foreground"
-                    dangerouslySetInnerHTML={{ __html: shop.description }}
-                  />
-                )}
+                <div className="flex-1">
+                  {(!shop.gallery || shop.gallery.length === 0) && (
+                    <h1 className="text-3xl md:text-4xl font-bold mb-4">
+                      {shop.name}
+                    </h1>
+                  )}
 
-                <div className="space-y-3 text-sm">
-                  {shop.address && (
-                    <div className="flex items-start gap-3">
-                      <MapPin className="w-5 h-5 mt-0.5 flex-shrink-0 text-primary" />
-                      <span className="text-foreground">{shop.address}</span>
+                  {shop.category && (
+                    <div className="flex flex-wrap gap-2 mb-4">
+                      <Badge variant="secondary" className="text-sm">
+                        {shop.category}
+                      </Badge>
                     </div>
                   )}
-                  {shop.phone && (
-                    <div className="flex items-center gap-3">
-                      <Phone className="w-5 h-5 flex-shrink-0 text-primary" />
-                      <a href={`tel:${shop.phone}`} className="hover:underline text-foreground">
-                        {shop.phone}
-                      </a>
-                    </div>
-                  )}
-                  {shop.email && (
-                    <div className="flex items-center gap-3">
-                      <Mail className="w-5 h-5 flex-shrink-0 text-primary" />
-                      <a href={`mailto:${shop.email}`} className="hover:underline text-foreground">
-                        {shop.email}
-                      </a>
-                    </div>
-                  )}
-                </div>
 
-                {/* Horarios */}
-                {shop.opening_hours && Object.keys(shop.opening_hours).length > 0 && (
-                  <div className="mt-6 pt-6 border-t border-border">
-                    <div className="flex items-center gap-2 mb-4">
-                      <Clock className="w-5 h-5 text-primary" />
-                      <h3 className="font-semibold text-foreground">Horarios de Atención</h3>
-                    </div>
-                    <ul className="space-y-2">
-                      {Object.entries(shop.opening_hours).map(([day, hours]: [string, any]) => (
-                        <li key={day} className="flex items-center justify-between text-sm">
-                          <span className="font-medium capitalize text-foreground">{day}</span>
-                          <span className="text-muted-foreground">
-                            {typeof hours === 'object' && hours !== null && 'open' in hours && 'close' in hours
-                              ? `${hours.open} - ${hours.close}`
-                              : typeof hours === 'string'
-                              ? hours
-                              : 'No disponible'}
-                          </span>
-                        </li>
-                      ))}
-                    </ul>
+                  {shop.description && (
+                    <div
+                      className="text-muted-foreground mb-6 prose prose-sm max-w-none prose-headings:text-foreground prose-p:text-muted-foreground prose-a:text-primary prose-strong:text-foreground"
+                      dangerouslySetInnerHTML={{ __html: shop.description }}
+                    />
+                  )}
+
+                  <div className="space-y-3 text-sm">
+                    {shop.address && (
+                      <div className="flex items-start gap-3">
+                        <MapPin className="w-5 h-5 mt-0.5 flex-shrink-0 text-primary" />
+                        <span className="text-foreground">{shop.address}</span>
+                      </div>
+                    )}
+                    {shop.phone && (
+                      <div className="flex items-center gap-3">
+                        <Phone className="w-5 h-5 flex-shrink-0 text-primary" />
+                        <a href={`tel:${shop.phone}`} className="hover:underline text-foreground">
+                          {shop.phone}
+                        </a>
+                      </div>
+                    )}
+                    {shop.email && (
+                      <div className="flex items-center gap-3">
+                        <Mail className="w-5 h-5 flex-shrink-0 text-primary" />
+                        <a href={`mailto:${shop.email}`} className="hover:underline text-foreground">
+                          {shop.email}
+                        </a>
+                      </div>
+                    )}
+                    {shop.website && (
+                      <div className="flex items-center gap-3">
+                        <Globe className="w-5 h-5 flex-shrink-0 text-primary" />
+                        <a href={shop.website} target="_blank" rel="noopener noreferrer" className="hover:underline text-foreground">
+                          {shop.website}
+                        </a>
+                      </div>
+                    )}
+                    {shop.instagram && (
+                      <div className="flex items-center gap-3">
+                        <Instagram className="w-5 h-5 flex-shrink-0 text-primary" />
+                        <a href={shop.instagram} target="_blank" rel="noopener noreferrer" className="hover:underline text-foreground">
+                          {shop.instagram}
+                        </a>
+                      </div>
+                    )}
                   </div>
-                )}
+                </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </div>
 
         {/* Productos (vista previa) */}
         {products.length > 0 && (
@@ -421,10 +463,6 @@ export default function PublicShopPage({
                   </Button>
                 )}
 
-                {/* Contador de imágenes */}
-                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/70 text-white px-4 py-2 rounded-full text-sm">
-                  {currentImageIndex + 1} / {shop.gallery.length}
-                </div>
               </>
             )}
           </div>

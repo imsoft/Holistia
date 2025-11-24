@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { createClient } from "@/utils/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -14,6 +14,9 @@ import {
   MapPin,
   Star,
   ArrowRight,
+  Calendar,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 
 interface Professional {
@@ -44,24 +47,41 @@ interface Restaurant {
   address: string | null;
 }
 
+interface Event {
+  id: string;
+  name: string;
+  image_url: string | null;
+  category: string | null;
+  event_date: string;
+  event_time: string | null;
+  price: number | null;
+  location: string | null;
+}
+
 export function ExploreSection() {
   const [professionals, setProfessionals] = useState<Professional[]>([]);
   const [shops, setShops] = useState<Shop[]>([]);
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
+  const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const professionalsRef = useRef<HTMLDivElement>(null);
+  const shopsRef = useRef<HTMLDivElement>(null);
+  const restaurantsRef = useRef<HTMLDivElement>(null);
+  const eventsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     async function loadData() {
       const supabase = createClient();
 
       try {
-        // Cargar profesionales (solo 3)
+        // Cargar profesionales (6 para el carousel)
         const { data: professionalsData } = await supabase
           .from("profiles")
           .select("id, first_name, last_name, avatar_url, specializations, years_of_experience")
           .eq("type", "professional")
           .eq("status", "active")
-          .limit(3);
+          .limit(6);
 
         if (professionalsData) {
           // Para cada profesional, obtener calificaciones
@@ -83,26 +103,39 @@ export function ExploreSection() {
           setProfessionals(professionalsWithRatings);
         }
 
-        // Cargar comercios (solo 3)
+        // Cargar comercios (6 para el carousel)
         const { data: shopsData } = await supabase
           .from("shops")
           .select("id, name, image_url, category, city")
           .eq("is_active", true)
-          .limit(3);
+          .limit(6);
 
         if (shopsData) {
           setShops(shopsData);
         }
 
-        // Cargar restaurantes (solo 3)
+        // Cargar restaurantes (6 para el carousel)
         const { data: restaurantsData } = await supabase
           .from("restaurants")
           .select("id, name, image_url, cuisine_type, price_range, address")
           .eq("is_active", true)
-          .limit(3);
+          .limit(6);
 
         if (restaurantsData) {
           setRestaurants(restaurantsData);
+        }
+
+        // Cargar eventos (6 para el carousel)
+        const { data: eventsData } = await supabase
+          .from("events_workshops")
+          .select("id, name, image_url, category, event_date, event_time, price, location")
+          .eq("is_active", true)
+          .gte("event_date", new Date().toISOString().split('T')[0])
+          .order("event_date", { ascending: true })
+          .limit(6);
+
+        if (eventsData) {
+          setEvents(eventsData);
         }
       } catch (error) {
         console.error("Error loading explore data:", error);
@@ -113,6 +146,49 @@ export function ExploreSection() {
 
     loadData();
   }, []);
+
+  const scroll = (ref: React.RefObject<HTMLDivElement | null>, direction: 'left' | 'right') => {
+    if (ref.current) {
+      const scrollAmount = 400;
+      const newScrollPosition = direction === 'left'
+        ? ref.current.scrollLeft - scrollAmount
+        : ref.current.scrollLeft + scrollAmount;
+
+      ref.current.scrollTo({
+        left: newScrollPosition,
+        behavior: 'smooth'
+      });
+    }
+  };
+
+  const getCategoryLabel = (category: string) => {
+    const categories: Record<string, string> = {
+      espiritualidad: "Espiritualidad",
+      salud_mental: "Salud Mental",
+      salud_fisica: "Salud Física",
+      alimentacion: "Alimentación",
+      social: "Social"
+    };
+    return categories[category] || category;
+  };
+
+  const generateEventSlug = (eventName: string, eventId: string) => {
+    const slug = eventName
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .trim();
+    return `${slug}--${eventId}`;
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('es-MX', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
 
   if (loading) {
     return (
@@ -136,7 +212,7 @@ export function ExploreSection() {
             Explora Nuestros Servicios
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Descubre profesionales certificados, comercios holísticos y restaurantes saludables
+            Descubre profesionales certificados, comercios holísticos, restaurantes saludables y eventos
           </p>
         </div>
 
@@ -148,17 +224,37 @@ export function ExploreSection() {
                 <User className="w-6 h-6 text-primary" />
                 Profesionales
               </h3>
-              <Button variant="outline" size="sm" asChild>
-                <Link href="/signup">
-                  Ver más <ArrowRight className="w-4 h-4 ml-2" />
-                </Link>
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => scroll(professionalsRef, 'left')}
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => scroll(professionalsRef, 'right')}
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </Button>
+                <Button variant="outline" size="sm" asChild className="ml-2">
+                  <Link href="/signup">
+                    Ver más <ArrowRight className="w-4 h-4 ml-2" />
+                  </Link>
+                </Button>
+              </div>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div
+              ref={professionalsRef}
+              className="flex gap-6 overflow-x-auto scrollbar-hide pb-4"
+              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+            >
               {professionals.map((prof) => {
                 const slug = `${prof.first_name.toLowerCase()}-${prof.last_name.toLowerCase()}-${prof.id}`;
                 return (
-                  <Card key={prof.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+                  <Card key={prof.id} className="flex-shrink-0 w-[320px] overflow-hidden hover:shadow-lg transition-shadow py-4">
                     <CardHeader>
                       <div className="flex items-start gap-4">
                         <div className="w-16 h-16 relative rounded-full overflow-hidden flex-shrink-0 bg-muted">
@@ -235,15 +331,35 @@ export function ExploreSection() {
                 <Store className="w-6 h-6 text-primary" />
                 Comercios Holísticos
               </h3>
-              <Button variant="outline" size="sm" asChild>
-                <Link href="/signup">
-                  Ver más <ArrowRight className="w-4 h-4 ml-2" />
-                </Link>
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => scroll(shopsRef, 'left')}
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => scroll(shopsRef, 'right')}
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </Button>
+                <Button variant="outline" size="sm" asChild className="ml-2">
+                  <Link href="/signup">
+                    Ver más <ArrowRight className="w-4 h-4 ml-2" />
+                  </Link>
+                </Button>
+              </div>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div
+              ref={shopsRef}
+              className="flex gap-6 overflow-x-auto scrollbar-hide pb-4"
+              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+            >
               {shops.map((shop) => (
-                <Card key={shop.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+                <Card key={shop.id} className="flex-shrink-0 w-[320px] overflow-hidden hover:shadow-lg transition-shadow py-4">
                   <div className="relative w-full h-48">
                     {shop.image_url ? (
                       <StableImage
@@ -287,21 +403,41 @@ export function ExploreSection() {
 
         {/* Restaurantes */}
         {restaurants.length > 0 && (
-          <div>
+          <div className="mb-16">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-2xl font-bold flex items-center gap-2">
                 <UtensilsCrossed className="w-6 h-6 text-primary" />
                 Restaurantes Saludables
               </h3>
-              <Button variant="outline" size="sm" asChild>
-                <Link href="/signup">
-                  Ver más <ArrowRight className="w-4 h-4 ml-2" />
-                </Link>
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => scroll(restaurantsRef, 'left')}
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => scroll(restaurantsRef, 'right')}
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </Button>
+                <Button variant="outline" size="sm" asChild className="ml-2">
+                  <Link href="/signup">
+                    Ver más <ArrowRight className="w-4 h-4 ml-2" />
+                  </Link>
+                </Button>
+              </div>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div
+              ref={restaurantsRef}
+              className="flex gap-6 overflow-x-auto scrollbar-hide pb-4"
+              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+            >
               {restaurants.map((restaurant) => (
-                <Card key={restaurant.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+                <Card key={restaurant.id} className="flex-shrink-0 w-[320px] overflow-hidden hover:shadow-lg transition-shadow py-4">
                   <div className="relative w-full h-48">
                     {restaurant.image_url ? (
                       <StableImage
@@ -345,9 +481,101 @@ export function ExploreSection() {
           </div>
         )}
 
+        {/* Eventos */}
+        {events.length > 0 && (
+          <div className="mb-16">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-2xl font-bold flex items-center gap-2">
+                <Calendar className="w-6 h-6 text-primary" />
+                Eventos y Talleres
+              </h3>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => scroll(eventsRef, 'left')}
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => scroll(eventsRef, 'right')}
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </Button>
+                <Button variant="outline" size="sm" asChild className="ml-2">
+                  <Link href="/signup">
+                    Ver más <ArrowRight className="w-4 h-4 ml-2" />
+                  </Link>
+                </Button>
+              </div>
+            </div>
+            <div
+              ref={eventsRef}
+              className="flex gap-6 overflow-x-auto scrollbar-hide pb-4"
+              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+            >
+              {events.map((event) => {
+                const slug = generateEventSlug(event.name, event.id);
+                return (
+                  <Card key={event.id} className="flex-shrink-0 w-[320px] overflow-hidden hover:shadow-lg transition-shadow py-4">
+                    <div className="relative w-full h-48">
+                      {event.image_url ? (
+                        <StableImage
+                          src={event.image_url}
+                          alt={event.name}
+                          fill
+                          className="object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center">
+                          <Calendar className="h-16 w-16 text-primary/40" />
+                        </div>
+                      )}
+                    </div>
+                    <CardHeader>
+                      <CardTitle className="text-lg line-clamp-2">{event.name}</CardTitle>
+                      <div className="flex flex-wrap gap-2">
+                        {event.category && (
+                          <Badge variant="secondary">{getCategoryLabel(event.category)}</Badge>
+                        )}
+                        {event.price !== null && (
+                          <Badge variant="outline">
+                            {event.price === 0 ? 'Gratis' : `$${event.price}`}
+                          </Badge>
+                        )}
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-2 mb-4">
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <Calendar className="w-4 h-4" />
+                          {formatDate(event.event_date)}
+                        </div>
+                        {event.location && (
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground line-clamp-1">
+                            <MapPin className="w-4 h-4 flex-shrink-0" />
+                            {event.location}
+                          </div>
+                        )}
+                      </div>
+                      <Button variant="default" size="sm" className="w-full" asChild>
+                        <Link href={`/public/event/${event.id}`}>
+                          Ver evento
+                        </Link>
+                      </Button>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
         {/* Call to action */}
         <div className="mt-12 text-center">
-          <Card className="bg-primary/5 border-primary/20 max-w-2xl mx-auto">
+          <Card className="bg-primary/5 border-primary/20 max-w-2xl mx-auto py-4">
             <CardContent className="pt-6">
               <h3 className="text-2xl font-bold mb-2">
                 ¿Quieres ver más?

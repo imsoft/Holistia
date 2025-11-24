@@ -19,12 +19,12 @@ interface Professional {
   id: string;
   first_name: string;
   last_name: string;
-  bio: string | null;
-  avatar_url: string | null;
+  biography: string | null;
+  profile_photo: string | null;
   specializations: string[];
-  years_of_experience: number | null;
+  experience: string | null;
   certifications: string[];
-  consultation_price: number | null;
+  profession: string;
   average_rating: number;
   total_reviews: number;
 }
@@ -54,22 +54,23 @@ export default function PublicProfessionalPage({
       const id = parts[parts.length - 1];
 
       const { data, error } = await supabase
-        .from("profiles")
+        .from("professional_applications")
         .select(
           `
           id,
           first_name,
           last_name,
-          bio,
-          avatar_url,
+          biography,
+          profile_photo,
           specializations,
-          years_of_experience,
+          experience,
           certifications,
-          consultation_price
+          profession
         `
         )
         .eq("id", id)
-        .eq("type", "professional")
+        .eq("status", "approved")
+        .eq("is_active", true)
         .single();
 
       if (error) {
@@ -140,9 +141,9 @@ export default function PublicProfessionalPage({
         <div className="container mx-auto px-4 max-w-6xl">
           <div className="flex flex-col md:flex-row items-center gap-6 md:gap-8">
             <div className="w-32 h-32 md:w-40 md:h-40 relative rounded-full overflow-hidden flex-shrink-0 bg-muted border-4 border-background shadow-lg">
-              {professional.avatar_url ? (
+              {professional.profile_photo ? (
                 <Image
-                  src={professional.avatar_url}
+                  src={professional.profile_photo}
                   alt={`${professional.first_name} ${professional.last_name}`}
                   fill
                   className="object-cover"
@@ -178,11 +179,16 @@ export default function PublicProfessionalPage({
                     <span>({professional.total_reviews} reseñas)</span>
                   </div>
                 )}
-                {professional.years_of_experience && (
+                {professional.experience && (
                   <div className="flex items-center gap-1">
                     <Award className="w-4 h-4 text-primary" />
-                    <span>{professional.years_of_experience} años de experiencia</span>
+                    <span>{professional.experience} de experiencia</span>
                   </div>
+                )}
+                {professional.profession && (
+                  <Badge variant="outline" className="text-sm">
+                    {professional.profession}
+                  </Badge>
                 )}
               </div>
             </div>
@@ -196,27 +202,16 @@ export default function PublicProfessionalPage({
 
       <div className="container mx-auto px-4 py-8 max-w-6xl">
         {/* Información del profesional */}
-        <Card className="mb-8 shadow-lg">
-          <CardContent className="pt-6">
-            {professional.bio && (
+        {professional.biography && (
+          <Card className="mb-8 shadow-lg">
+            <CardContent className="pt-6">
               <div
-                className="text-muted-foreground mb-6 prose prose-sm max-w-none prose-headings:text-foreground prose-p:text-muted-foreground prose-a:text-primary prose-strong:text-foreground"
-                dangerouslySetInnerHTML={{ __html: professional.bio }}
+                className="text-muted-foreground prose prose-sm max-w-none prose-headings:text-foreground prose-p:text-muted-foreground prose-a:text-primary prose-strong:text-foreground"
+                dangerouslySetInnerHTML={{ __html: professional.biography }}
               />
-            )}
-
-            {professional.consultation_price && (
-              <div className="flex items-center justify-between p-4 bg-primary/5 rounded-lg border border-primary/20">
-                <span className="text-sm font-medium text-foreground">
-                  Precio de consulta:
-                </span>
-                <span className="text-2xl font-bold text-primary">
-                  ${professional.consultation_price.toFixed(2)} MXN
-                </span>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Certificaciones */}
         {professional.certifications && professional.certifications.length > 0 && (

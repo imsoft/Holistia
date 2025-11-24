@@ -29,6 +29,8 @@ interface Professional {
   average_rating: number;
   total_reviews: number;
   user_id: string;
+  profession: string;
+  city: string | null;
 }
 
 interface Shop {
@@ -77,11 +79,14 @@ export function ExploreSection() {
 
       try {
         // Cargar profesionales (6 para el carousel)
+        // Solo profesionales con foto de perfil y al menos una especialización
         const { data: professionalsData } = await supabase
           .from("professional_applications")
-          .select("id, first_name, last_name, profile_photo, specializations, experience, user_id")
+          .select("id, first_name, last_name, profile_photo, specializations, experience, user_id, profession, city")
           .eq("status", "approved")
           .eq("is_active", true)
+          .not("profile_photo", "is", null)
+          .order("created_at", { ascending: false })
           .limit(6);
 
         if (professionalsData) {
@@ -104,6 +109,8 @@ export function ExploreSection() {
                 average_rating: reviewStats?.average_rating || 0,
                 total_reviews: reviewStats?.total_reviews || 0,
                 user_id: prof.user_id,
+                profession: prof.profession,
+                city: prof.city,
               };
             })
           );
@@ -313,9 +320,14 @@ export function ExploreSection() {
                       </div>
                     </CardHeader>
                     <CardContent className="flex-1 flex flex-col">
-                      <div className="flex-1">
+                      <div className="flex-1 space-y-3">
+                        {prof.profession && (
+                          <p className="text-sm font-medium text-foreground">
+                            {prof.profession}
+                          </p>
+                        )}
                         {prof.specializations && prof.specializations.length > 0 && (
-                          <div className="flex flex-wrap gap-2 mb-3">
+                          <div className="flex flex-wrap gap-2">
                             {prof.specializations.slice(0, 2).map((spec, index) => (
                               <Badge key={index} variant="secondary" className="text-xs">
                                 {spec}
@@ -328,10 +340,11 @@ export function ExploreSection() {
                             )}
                           </div>
                         )}
-                        {prof.years_of_experience && (
-                          <p className="text-sm text-muted-foreground line-clamp-2">
-                            {prof.years_of_experience}
-                          </p>
+                        {prof.city && (
+                          <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                            <MapPin className="w-3 h-3 flex-shrink-0" />
+                            <span>{prof.city}</span>
+                          </div>
                         )}
                       </div>
                       <Button variant="default" size="sm" className="w-full mt-4" asChild>

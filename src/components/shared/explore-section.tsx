@@ -283,7 +283,7 @@ export function ExploreSection() {
               {professionals.map((prof) => {
                 const slug = `${prof.first_name.toLowerCase()}-${prof.last_name.toLowerCase()}-${prof.id}`;
                 return (
-                  <Card key={prof.id} className="flex-shrink-0 w-[280px] sm:w-[320px] h-[420px] flex flex-col overflow-hidden hover:shadow-lg transition-shadow">
+                  <Card key={prof.id} className="flex-shrink-0 w-[280px] sm:w-[320px] h-[460px] flex flex-col overflow-hidden hover:shadow-lg transition-shadow">
                     <div className="relative w-full h-48 flex-shrink-0">
                       {prof.avatar_url ? (
                         <StableImage
@@ -298,7 +298,7 @@ export function ExploreSection() {
                         </div>
                       )}
                     </div>
-                    <CardHeader className="pb-3">
+                    <CardHeader className="pb-4">
                       {prof.profession && (
                         <CardTitle className="text-xl font-bold line-clamp-1">
                           {prof.profession}

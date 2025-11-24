@@ -11,10 +11,17 @@ import {
   Phone,
   Mail,
   Share2,
+  X,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { toast } from "sonner";
+import {
+  Dialog,
+  DialogContent,
+} from "@/components/ui/dialog";
 
 interface Shop {
   id: string;
@@ -47,6 +54,8 @@ export default function PublicShopPage({
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isGalleryOpen, setIsGalleryOpen] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const { shopId } = params;
 
   useEffect(() => {
@@ -100,6 +109,31 @@ export default function PublicShopPage({
     } catch (error) {
       console.error("Error copying to clipboard:", error);
       toast.error("No se pudo copiar el enlace");
+    }
+  };
+
+  const openGallery = (index: number) => {
+    setCurrentImageIndex(index);
+    setIsGalleryOpen(true);
+  };
+
+  const closeGallery = () => {
+    setIsGalleryOpen(false);
+  };
+
+  const nextImage = () => {
+    if (shop?.gallery) {
+      setCurrentImageIndex((prev) =>
+        prev === shop.gallery.length - 1 ? 0 : prev + 1
+      );
+    }
+  };
+
+  const prevImage = () => {
+    if (shop?.gallery) {
+      setCurrentImageIndex((prev) =>
+        prev === 0 ? shop.gallery.length - 1 : prev - 1
+      );
     }
   };
 
@@ -226,8 +260,8 @@ export default function PublicShopPage({
         </Card>
 
         {/* Horarios */}
-        {shop.opening_hours && (
-          <Card className="mb-8 shadow-lg">
+        {shop.opening_hours && Object.keys(shop.opening_hours).length > 0 && (
+          <Card className="mb-8 shadow-lg py-4">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-xl">
                 <Clock className="w-5 h-5 text-primary" />
@@ -240,7 +274,11 @@ export default function PublicShopPage({
                   <div key={day} className="flex justify-between items-center p-2 rounded-lg hover:bg-accent/50 transition-colors">
                     <span className="font-medium capitalize text-foreground">{day}:</span>
                     <span className="text-muted-foreground">
-                      {hours.open} - {hours.close}
+                      {typeof hours === 'object' && hours !== null && 'open' in hours && 'close' in hours
+                        ? `${hours.open} - ${hours.close}`
+                        : typeof hours === 'string'
+                        ? hours
+                        : 'No disponible'}
                     </span>
                   </div>
                 ))}
@@ -251,7 +289,7 @@ export default function PublicShopPage({
 
         {/* Productos (vista previa) */}
         {products.length > 0 && (
-          <Card className="mb-8 shadow-lg">
+          <Card className="mb-8 shadow-lg py-4">
             <CardHeader>
               <CardTitle className="text-xl">Productos Destacados</CardTitle>
             </CardHeader>
@@ -285,22 +323,23 @@ export default function PublicShopPage({
           </Card>
         )}
 
-        {/* Galería (vista previa) */}
-        {shop.gallery && shop.gallery.length > 1 && (
-          <Card className="mb-8 shadow-lg">
+        {/* Galería */}
+        {shop.gallery && shop.gallery.length > 0 && (
+          <Card className="mb-8 shadow-lg py-4">
             <CardHeader>
               <CardTitle className="text-xl">Galería</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {shop.gallery.slice(1, 9).map((imageUrl, index) => (
+                {shop.gallery.map((imageUrl, index) => (
                   <div
                     key={index}
                     className="relative aspect-square rounded-lg overflow-hidden group cursor-pointer hover:scale-105 transition-transform"
+                    onClick={() => openGallery(index)}
                   >
                     <Image
                       src={imageUrl}
-                      alt={`Galería ${index + 1}`}
+                      alt={`${shop.name} - Imagen ${index + 1}`}
                       fill
                       className="object-cover"
                     />
@@ -334,6 +373,64 @@ export default function PublicShopPage({
           </Card>
         )}
       </div>
+
+      {/* Dialog del Carousel */}
+      <Dialog open={isGalleryOpen} onOpenChange={setIsGalleryOpen}>
+        <DialogContent className="max-w-7xl w-full p-0 bg-black/95">
+          <div className="relative w-full h-[80vh]">
+            {shop?.gallery && (
+              <>
+                <Image
+                  src={shop.gallery[currentImageIndex]}
+                  alt={`${shop.name} - Imagen ${currentImageIndex + 1}`}
+                  fill
+                  className="object-contain"
+                  priority
+                />
+
+                {/* Botón cerrar */}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="absolute top-4 right-4 text-white hover:bg-white/20 z-50"
+                  onClick={closeGallery}
+                >
+                  <X className="h-6 w-6" />
+                </Button>
+
+                {/* Botón anterior */}
+                {shop.gallery.length > 1 && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="absolute left-4 top-1/2 -translate-y-1/2 text-white hover:bg-white/20 z-50"
+                    onClick={prevImage}
+                  >
+                    <ChevronLeft className="h-8 w-8" />
+                  </Button>
+                )}
+
+                {/* Botón siguiente */}
+                {shop.gallery.length > 1 && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-white hover:bg-white/20 z-50"
+                    onClick={nextImage}
+                  >
+                    <ChevronRight className="h-8 w-8" />
+                  </Button>
+                )}
+
+                {/* Contador de imágenes */}
+                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/70 text-white px-4 py-2 rounded-full text-sm">
+                  {currentImageIndex + 1} / {shop.gallery.length}
+                </div>
+              </>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

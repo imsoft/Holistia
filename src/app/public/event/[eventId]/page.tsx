@@ -184,8 +184,8 @@ export default function PublicEventPage({
           <Image
             src={event.gallery_images?.[0] || event.image_url || ""}
             alt={event.name}
-            width={1920}
-            height={1080}
+            width={5760}
+            height={3240}
             className="object-cover w-full h-full"
             style={{
               objectPosition: event.image_position || 'center center'

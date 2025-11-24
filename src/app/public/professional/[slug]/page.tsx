@@ -49,9 +49,11 @@ export default function PublicProfessionalPage({
       } = await supabase.auth.getUser();
       setIsAuthenticated(!!user);
 
-      // Extraer el ID del slug (formato: nombre-apellido-id)
-      const parts = slug.split("-");
-      const id = parts[parts.length - 1];
+      // Extraer el ID del slug
+      // El slug puede ser solo el UUID o un formato "nombre-apellido--uuid"
+      // Los UUIDs tienen formato: 8-4-4-4-12 caracteres hexadecimales
+      const uuidMatch = slug.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i);
+      const id = uuidMatch ? uuidMatch[0] : slug;
 
       const { data, error } = await supabase
         .from("professional_applications")

@@ -25,9 +25,10 @@ interface Professional {
   last_name: string;
   avatar_url: string | null;
   specializations: string[];
-  years_of_experience: number | null;
+  years_of_experience: string | null;
   average_rating: number;
   total_reviews: number;
+  user_id: string;
 }
 
 interface Shop {
@@ -77,10 +78,10 @@ export function ExploreSection() {
       try {
         // Cargar profesionales (6 para el carousel)
         const { data: professionalsData } = await supabase
-          .from("profiles")
-          .select("id, first_name, last_name, avatar_url, specializations, years_of_experience")
-          .eq("type", "professional")
-          .eq("status", "active")
+          .from("professional_applications")
+          .select("id, first_name, last_name, profile_photo, specializations, experience, user_id")
+          .eq("status", "approved")
+          .eq("is_active", true)
           .limit(6);
 
         if (professionalsData) {
@@ -94,9 +95,15 @@ export function ExploreSection() {
                 .maybeSingle();
 
               return {
-                ...prof,
+                id: prof.id,
+                first_name: prof.first_name,
+                last_name: prof.last_name,
+                avatar_url: prof.profile_photo,
+                specializations: prof.specializations || [],
+                years_of_experience: prof.experience,
                 average_rating: reviewStats?.average_rating || 0,
                 total_reviews: reviewStats?.total_reviews || 0,
+                user_id: prof.user_id,
               };
             })
           );
@@ -128,14 +135,25 @@ export function ExploreSection() {
         // Cargar eventos (6 para el carousel)
         const { data: eventsData } = await supabase
           .from("events_workshops")
-          .select("id, name, image_url, category, event_date, event_time, price, location")
+          .select("id, name, gallery_images, category, event_date, event_time, price, location")
           .eq("is_active", true)
           .gte("event_date", new Date().toISOString().split('T')[0])
           .order("event_date", { ascending: true })
           .limit(6);
 
         if (eventsData) {
-          setEvents(eventsData);
+          // Mapear gallery_images[0] a image_url
+          const mappedEvents = eventsData.map(event => ({
+            id: event.id,
+            name: event.name,
+            image_url: event.gallery_images?.[0] || null,
+            category: event.category,
+            event_date: event.event_date,
+            event_time: event.event_time,
+            price: event.price,
+            location: event.location,
+          }));
+          setEvents(mappedEvents);
         }
       } catch (error) {
         console.error("Error loading explore data:", error);
@@ -311,7 +329,7 @@ export function ExploreSection() {
                       )}
                       {prof.years_of_experience && (
                         <p className="text-sm text-muted-foreground mb-4">
-                          {prof.years_of_experience} años de experiencia
+                          {prof.years_of_experience}
                         </p>
                       )}
                       <Button variant="default" size="sm" className="w-full" asChild>

@@ -118,14 +118,23 @@ export function ExploreSection() {
         }
 
         // Cargar comercios (6 para el carousel)
-        const { data: shopsData } = await supabase
+        const { data: shopsData, error: shopsError } = await supabase
           .from("shops")
           .select("id, name, image_url, category, city")
           .eq("is_active", true)
+          .order("created_at", { ascending: false })
           .limit(6);
 
-        if (shopsData) {
+        if (shopsError) {
+          console.error("❌ Error loading shops:", shopsError);
+        }
+
+        if (shopsData && shopsData.length > 0) {
+          console.log("✅ Shops loaded:", shopsData.length, shopsData);
           setShops(shopsData);
+        } else {
+          console.log("⚠️ No shops found or shops array is empty");
+          setShops([]);
         }
 
         // Cargar restaurantes (6 para el carousel)

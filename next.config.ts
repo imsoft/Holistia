@@ -1,11 +1,6 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Disable ESLint during builds (warnings cause Vercel to fail)
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
-
   // Optimizaciones de build
   reactStrictMode: true,
 

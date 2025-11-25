@@ -54,17 +54,17 @@ export const AnimatedMarqueeHero: React.FC<AnimatedMarqueeHeroProps> = ({
     },
   };
 
-  // Duplicate images for a seamless loop
-  const duplicatedImages = [...images, ...images];
+  // Duplicate images multiple times for a seamless infinite loop
+  const duplicatedImages = [...images, ...images, ...images, ...images];
 
   return (
     <section
       className={cn(
-        "relative w-full h-screen overflow-hidden bg-background flex flex-col items-center justify-center text-center px-4",
+        "relative w-full h-screen overflow-hidden bg-background flex flex-col items-center justify-start text-center px-4 pt-20 md:pt-32",
         className
       )}
     >
-      <div className="z-10 flex flex-col items-center">
+      <div className="z-10 flex flex-col items-center pt-8 md:pt-12">
         {/* Tagline */}
         <motion.div
           initial="hidden"
@@ -131,11 +131,12 @@ export const AnimatedMarqueeHero: React.FC<AnimatedMarqueeHeroProps> = ({
         <motion.div
           className="flex gap-4"
           animate={{
-            x: ["-100%", "0%"],
+            x: ["0%", "-50%"],
             transition: {
               ease: "linear",
-              duration: 40,
+              duration: 30,
               repeat: Infinity,
+              repeatType: "loop",
             },
           }}
         >
@@ -149,7 +150,7 @@ export const AnimatedMarqueeHero: React.FC<AnimatedMarqueeHeroProps> = ({
             >
               <Image
                 src={src}
-                alt={`Showcase image ${index + 1}`}
+                alt={`Showcase image ${(index % images.length) + 1}`}
                 fill
                 className="object-cover rounded-2xl shadow-md"
               />

@@ -47,6 +47,7 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 import Image from "next/image";
 import { createClient } from "@/utils/supabase/client";
 import { AdminRatingForm } from "@/components/ui/admin-rating-form";
+import { getRegistrationFeeStatus } from "@/utils/registration-utils";
 
 // Interfaces para los datos dinámicos
 interface Professional {
@@ -1142,31 +1143,30 @@ export default function AdminProfessionals() {
               </div>
 
               {/* Información de pago de inscripción */}
-              <div className={`rounded-lg p-4 border-2 ${
-                selectedProfessional.registration_fee_paid && 
-                selectedProfessional.registration_fee_expires_at && 
-                new Date(selectedProfessional.registration_fee_expires_at) > new Date()
-                  ? 'bg-green-50 border-green-200' 
-                  : selectedProfessional.registration_fee_paid && 
-                    selectedProfessional.registration_fee_expires_at && 
-                    new Date(selectedProfessional.registration_fee_expires_at) <= new Date()
-                    ? 'bg-red-50 border-red-200'
-                    : 'bg-yellow-50 border-yellow-200'
-              }`}>
-                <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                  <span>Cuota de Inscripción Anual</span>
-                  {selectedProfessional.registration_fee_paid && 
-                   selectedProfessional.registration_fee_expires_at && 
-                   new Date(selectedProfessional.registration_fee_expires_at) > new Date() ? (
-                    <Badge className="bg-green-600">Vigente</Badge>
-                  ) : selectedProfessional.registration_fee_paid && 
-                     selectedProfessional.registration_fee_expires_at && 
-                     new Date(selectedProfessional.registration_fee_expires_at) <= new Date() ? (
-                    <Badge variant="destructive">Expirado</Badge>
-                  ) : (
-                    <Badge variant="destructive">Pendiente</Badge>
-                  )}
-                </h3>
+              {(() => {
+                const feeStatus = getRegistrationFeeStatus(
+                  selectedProfessional.registration_fee_paid,
+                  selectedProfessional.registration_fee_expires_at
+                );
+
+                return (
+                  <div className={`rounded-lg p-4 border-2 ${
+                    feeStatus.color === 'green' ? 'bg-green-50 border-green-200' :
+                    feeStatus.color === 'yellow' ? 'bg-yellow-50 border-yellow-200' :
+                    feeStatus.color === 'red' ? 'bg-red-50 border-red-200' :
+                    'bg-gray-50 border-gray-200'
+                  }`}>
+                    <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                      <span>Cuota de Inscripción Anual</span>
+                      <Badge className={
+                        feeStatus.color === 'green' ? 'bg-green-600' :
+                        feeStatus.color === 'yellow' ? 'bg-yellow-600' :
+                        feeStatus.color === 'red' ? 'bg-red-600' :
+                        'bg-gray-600'
+                      }>
+                        {feeStatus.message}
+                      </Badge>
+                    </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="flex flex-col gap-1">
                     <span className="text-sm text-muted-foreground">Monto</span>
@@ -1229,7 +1229,9 @@ export default function AdminProfessionals() {
                     </p>
                   </div>
                 )}
-              </div>
+                  </div>
+                );
+              })()}
 
               {/* Información de verificación */}
               <div className="bg-muted/50 rounded-lg p-4">

@@ -11,7 +11,7 @@ export const HeroSection = () => {
         <div className="relative isolate w-full">
           <div
             aria-hidden="true"
-            className="absolute top-0 right-0 left-1/2 z-[9999] -ml-24 transform-gpu overflow-hidden blur-3xl lg:ml-24 xl:ml-48"
+            className="absolute top-0 right-0 left-1/2 z-9999 -ml-24 transform-gpu overflow-hidden blur-3xl lg:ml-24 xl:ml-48"
           >
             <div
               style={{
@@ -26,7 +26,7 @@ export const HeroSection = () => {
               <div className="mx-auto max-w-2xl gap-x-14 lg:mx-0 lg:flex lg:max-w-none lg:items-center">
                 <div className="relative w-full lg:max-w-xl lg:shrink-0 xl:max-w-2xl">
                   <h1 className="text-5xl font-semibold tracking-tight text-pretty text-foreground sm:text-7xl animate-in slide-in-from-bottom-12 fade-in duration-1200 delay-200 fill-mode-both">
-                    Tu acceso al wellness integral, en un solo lugar
+                    ¿Por dónde quieres empezar a sanar hoy?
                   </h1>
                   <p className="mt-8 text-lg font-medium text-pretty text-muted-foreground sm:max-w-md sm:text-xl/8 lg:max-w-none animate-in slide-in-from-bottom-12 fade-in duration-1200 delay-500 fill-mode-both">
                     Encuentra expertos, experiencias, talleres, centros,
@@ -35,16 +35,16 @@ export const HeroSection = () => {
                   </p>
                   <div className="mt-10 flex items-center gap-x-6 animate-in slide-in-from-bottom-12 fade-in duration-1200 delay-800 fill-mode-both">
                     <Link
-                      href="/signup"
+                      href="/explore"
                       className="rounded-md bg-primary px-3.5 py-2.5 text-sm font-semibold text-primary-foreground shadow-xs hover:bg-primary/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
                     >
-                      Crear cuenta
+                      Encuentra a tu experto
                     </Link>
                     <Link
-                      href="/signup"
+                      href="/blog"
                       className="text-sm/6 font-semibold text-foreground"
                     >
-                      Explorar expertos <span aria-hidden="true">→</span>
+                      Blog <span aria-hidden="true">→</span>
                     </Link>
                   </div>
                 </div>

@@ -31,6 +31,7 @@ interface Professional {
   user_id: string;
   profession: string;
   city: string | null;
+  admin_rating: number | null;
 }
 
 interface Shop {
@@ -79,20 +80,27 @@ export function ExploreSection() {
 
       try {
         // Cargar profesionales (6 para el carousel)
-        // Solo profesionales con foto de perfil y al menos una especialización
+        // Solo profesionales con foto de perfil, aprobados, activos y con calificación de admin > 4.5
         const { data: professionalsData } = await supabase
           .from("professional_applications")
           .select("id, first_name, last_name, profile_photo, specializations, experience, user_id, profession, city")
           .eq("status", "approved")
           .eq("is_active", true)
           .not("profile_photo", "is", null)
-          .order("created_at", { ascending: false })
-          .limit(6);
+          .order("created_at", { ascending: false });
 
         if (professionalsData) {
-          // Para cada profesional, obtener calificaciones
+          // Para cada profesional, obtener calificaciones de admin y de pacientes
           const professionalsWithRatings = await Promise.all(
             professionalsData.map(async (prof) => {
+              // Obtener calificación de administrador
+              const { data: adminRatingStats } = await supabase
+                .from("professional_admin_rating_stats")
+                .select("average_admin_rating")
+                .eq("professional_id", prof.id)
+                .maybeSingle();
+
+              // Obtener calificaciones de pacientes
               const { data: reviewStats } = await supabase
                 .from("review_stats")
                 .select("average_rating, total_reviews")
@@ -111,10 +119,22 @@ export function ExploreSection() {
                 user_id: prof.user_id,
                 profession: prof.profession,
                 city: prof.city,
+                admin_rating: adminRatingStats?.average_admin_rating || null,
               };
             })
           );
-          setProfessionals(professionalsWithRatings);
+
+          // Filtrar solo profesionales con calificación de admin > 4.5
+          const filteredProfessionals = professionalsWithRatings.filter(
+            (prof) => prof.admin_rating !== null && prof.admin_rating > 4.5
+          );
+
+          // Limitar a 6 y ordenar por calificación de admin descendente
+          const sortedProfessionals = filteredProfessionals
+            .sort((a, b) => (b.admin_rating || 0) - (a.admin_rating || 0))
+            .slice(0, 6);
+
+          setProfessionals(sortedProfessionals);
         }
 
         // Cargar comercios (6 para el carousel)

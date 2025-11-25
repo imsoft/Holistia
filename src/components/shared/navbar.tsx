@@ -81,7 +81,7 @@ export const Navbar = () => {
                 <div className="mt-6 pt-6 border-t border-border space-y-1">
                   <Link
                     href="/become-professional"
-                    className="block rounded-lg px-3 py-3 text-base font-semibold text-foreground hover:bg-accent transition-colors"
+                    className="block rounded-lg px-3 py-3 text-base font-semibold text-center bg-primary text-primary-foreground hover:bg-primary/90 transition-colors shadow-sm"
                   >
                     ¿Eres profesional?
                   </Link>
@@ -110,7 +110,7 @@ export const Navbar = () => {
         <div className="hidden lg:flex lg:flex-1 lg:justify-end lg:items-center lg:gap-4">
           <Link 
             href="/become-professional" 
-            className="text-sm/6 font-semibold text-primary-foreground hover:opacity-80 transition-opacity"
+            className="rounded-md bg-primary-foreground px-4 py-2 text-sm font-semibold text-primary shadow-sm hover:bg-primary-foreground/90 transition-colors"
           >
             ¿Eres profesional?
           </Link>

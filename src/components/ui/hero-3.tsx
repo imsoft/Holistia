@@ -60,11 +60,11 @@ export const AnimatedMarqueeHero: React.FC<AnimatedMarqueeHeroProps> = ({
   return (
     <section
       className={cn(
-        "relative w-full h-screen overflow-hidden bg-background flex flex-col items-center justify-start text-center px-4 pt-2 sm:pt-12 md:pt-20 lg:pt-32",
+        "relative w-full h-screen overflow-hidden bg-background flex flex-col items-center justify-start text-center px-4 pt-2 sm:pt-8 md:pt-12 lg:pt-20 xl:pt-32",
         className
       )}
     >
-      <div className="z-10 flex flex-col items-center pt-0 sm:pt-2 md:pt-6 lg:pt-12">
+      <div className="z-10 flex flex-col items-center pt-0 sm:pt-1 md:pt-3 lg:pt-6 xl:pt-12">
         {/* Tagline */}
         <motion.div
           initial="hidden"

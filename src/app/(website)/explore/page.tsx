@@ -14,7 +14,7 @@ export default function ExplorePage() {
             Descubre profesionales certificados, comercios holísticos, restaurantes saludables y eventos
           </p>
         </div>
-        <ExploreSection />
+        <ExploreSection hideHeader={true} />
       </div>
     </div>
   );

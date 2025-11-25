@@ -62,7 +62,11 @@ interface Event {
   location: string | null;
 }
 
-export function ExploreSection() {
+interface ExploreSectionProps {
+  hideHeader?: boolean;
+}
+
+export function ExploreSection({ hideHeader = false }: ExploreSectionProps) {
   const [professionals, setProfessionals] = useState<Professional[]>([]);
   const [shops, setShops] = useState<Shop[]>([]);
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
@@ -261,14 +265,16 @@ export function ExploreSection() {
     <section className="py-16 bg-muted/30">
       <div className="container mx-auto px-4">
         {/* Header */}
-        <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Explora Nuestros Servicios
-          </h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Descubre profesionales certificados, comercios holísticos, restaurantes saludables y eventos
-          </p>
-        </div>
+        {!hideHeader && (
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              Explora Nuestros Servicios
+            </h2>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Descubre profesionales certificados, comercios holísticos, restaurantes saludables y eventos
+            </p>
+          </div>
+        )}
 
         {/* Profesionales */}
         {professionals.length > 0 && (

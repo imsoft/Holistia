@@ -572,40 +572,73 @@ export default function BecomeProfessionalPage() {
 
             <div className="space-y-3">
               <Label>Especializaciones *</Label>
-              <Input
-                placeholder="Ej: Psicología Clínica, Terapia Cognitivo-Conductual, Ansiedad..."
-                value={specializationInput}
-                onChange={(e) => setSpecializationInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ',') {
-                    e.preventDefault();
-                    if (specializationInput.trim()) {
-                      // En móviles y tabletas, requerir doble Enter
-                      if (window.innerWidth <= 1024 && e.key === 'Enter') {
-                        // Verificar si es el segundo Enter consecutivo
-                        const now = Date.now();
-                        if (!lastEnterTime || now - lastEnterTime > 1000) {
-                          setLastEnterTime(now);
-                          return; // Primer Enter, no hacer nada
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Ej: Psicología Clínica, Terapia Cognitivo-Conductual, Ansiedad..."
+                  value={specializationInput}
+                  onChange={(e) => setSpecializationInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ',') {
+                      e.preventDefault();
+                      if (specializationInput.trim()) {
+                        // En móviles y tabletas, requerir doble Enter
+                        if (window.innerWidth <= 1024 && e.key === 'Enter') {
+                          // Verificar si es el segundo Enter consecutivo
+                          const now = Date.now();
+                          if (!lastEnterTime || now - lastEnterTime > 1000) {
+                            setLastEnterTime(now);
+                            return; // Primer Enter, no hacer nada
+                          }
+                          // Segundo Enter dentro de 1 segundo, proceder
+                          setLastEnterTime(null);
                         }
-                        // Segundo Enter dentro de 1 segundo, proceder
-                        setLastEnterTime(null);
+
+                        setFormData((prev) => ({
+                          ...prev,
+                          specializations: [...prev.specializations, specializationInput.trim()]
+                        }));
+                        setSpecializationInput('');
                       }
-                      
+                    }
+                  }}
+                  className={errors.specializations ? "border-red-500" : ""}
+                />
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="outline"
+                  onClick={() => {
+                    if (specializationInput.trim()) {
                       setFormData((prev) => ({
                         ...prev,
                         specializations: [...prev.specializations, specializationInput.trim()]
                       }));
                       setSpecializationInput('');
                     }
-                  }
-                }}
-                className={errors.specializations ? "border-red-500" : ""}
-              />
+                  }}
+                  disabled={!specializationInput.trim()}
+                  className="flex-shrink-0"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                  </svg>
+                </Button>
+              </div>
               <p className="text-xs text-muted-foreground">
-                {window.innerWidth <= 1024 
-                  ? "Presiona Enter dos veces o escribe una coma para agregar. Ejemplos: Psicología Clínica, Terapia de Pareja, Depresión"
-                  : "Presiona Enter o escribe una coma para agregar. Ejemplos: Psicología Clínica, Terapia de Pareja, Depresión"
+                {window.innerWidth <= 1024
+                  ? "Presiona Enter dos veces, escribe una coma o haz clic en el botón + para agregar. Ejemplos: Psicología Clínica, Terapia de Pareja, Depresión"
+                  : "Presiona Enter, escribe una coma o haz clic en el botón + para agregar. Ejemplos: Psicología Clínica, Terapia de Pareja, Depresión"
                 }
               </p>
               {formData.specializations.length > 0 && (

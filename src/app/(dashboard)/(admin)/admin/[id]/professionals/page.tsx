@@ -411,6 +411,34 @@ export default function AdminProfessionals() {
     document.body.removeChild(link);
   };
 
+  // Función para sincronizar pagos pendientes con Stripe
+  const handleSyncPayments = async () => {
+    try {
+      setActionLoading('sync-payments');
+
+      const response = await fetch('/api/admin/sync-registration-payments', {
+        method: 'POST',
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        toast.error(data.error || 'Error al sincronizar pagos');
+        return;
+      }
+
+      toast.success(`Sincronización completada: ${data.synced} pagos actualizados de ${data.total} revisados`);
+
+      // Recargar la página para ver los cambios
+      window.location.reload();
+    } catch (error) {
+      console.error('Error syncing payments:', error);
+      toast.error('Error al sincronizar pagos');
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
   // Función para ver el perfil del profesional
   const handleViewProfile = async (professional: Professional) => {
     setSelectedProfessional(professional);
@@ -654,7 +682,17 @@ export default function AdminProfessionals() {
             </div>
           </div>
           <div className="flex items-center gap-2 sm:gap-3">
-            <Button 
+            <Button
+              variant="outline"
+              size="sm"
+              className="sm:size-default w-full sm:w-auto"
+              onClick={handleSyncPayments}
+              disabled={actionLoading === 'sync-payments'}
+            >
+              <CreditCard className="h-4 w-4 mr-2" />
+              <span>{actionLoading === 'sync-payments' ? 'Sincronizando...' : 'Sincronizar Pagos'}</span>
+            </Button>
+            <Button
               variant="outline"
               size="sm"
               className="sm:size-default w-full sm:w-auto"

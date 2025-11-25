@@ -18,8 +18,8 @@ import { PasswordInput } from "@/components/ui/password-input";
 import { GoogleButton } from "@/components/ui/google-button";
 import { useForm } from "react-hook-form";
 import { signup } from "@/actions/auth/actions";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { normalizeName } from "@/lib/text-utils";
 import { toast } from "sonner";
 
@@ -30,11 +30,13 @@ const formSchema = z.object({
   password: z.string().min(8, "La contraseña debe tener al menos 8 caracteres"),
 });
 
-const RegisterPage = () => {
+const RegisterPageContent = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const becomeProfessional = searchParams.get("becomeProfessional") === "true";
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -56,6 +58,9 @@ const RegisterPage = () => {
       formData.append("lastName", normalizeName(values.lastName));
       formData.append("email", values.email.toLowerCase());
       formData.append("password", values.password);
+      if (becomeProfessional) {
+        formData.append("becomeProfessional", "true");
+      }
 
       const result = await signup(formData);
 
@@ -246,6 +251,21 @@ const RegisterPage = () => {
         </div>
       </div>
     </>
+  );
+};
+
+const RegisterPage = () => {
+  return (
+    <Suspense fallback={
+      <div className="flex min-h-screen flex-col justify-center py-4 sm:py-8 px-4 sm:px-6 lg:px-8">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Cargando...</p>
+        </div>
+      </div>
+    }>
+      <RegisterPageContent />
+    </Suspense>
   );
 };
 

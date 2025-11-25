@@ -95,6 +95,7 @@ export async function login(formData: FormData) {
 
 export async function signup(formData: FormData) {
   const supabase = await createClient();
+  const becomeProfessional = formData.get("becomeProfessional") === "true";
 
   const data = {
     email: formData.get("email") as string,

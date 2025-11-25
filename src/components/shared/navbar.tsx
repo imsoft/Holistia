@@ -78,7 +78,13 @@ export const Navbar = () => {
                     </Link>
                   ))}
                 </div>
-                <div className="mt-6 pt-6 border-t border-border">
+                <div className="mt-6 pt-6 border-t border-border space-y-1">
+                  <Link
+                    href="/become-professional"
+                    className="block rounded-lg px-3 py-3 text-base font-semibold text-foreground hover:bg-accent transition-colors"
+                  >
+                    ¿Eres profesional?
+                  </Link>
                   <Link
                     href="/login"
                     className="block rounded-lg px-3 py-3 text-base font-semibold text-foreground hover:bg-accent transition-colors"
@@ -101,7 +107,13 @@ export const Navbar = () => {
             </Link>
           ))}
         </div>
-        <div className="hidden lg:flex lg:flex-1 lg:justify-end">
+        <div className="hidden lg:flex lg:flex-1 lg:justify-end lg:items-center lg:gap-4">
+          <Link 
+            href="/become-professional" 
+            className="text-sm/6 font-semibold text-primary-foreground hover:opacity-80 transition-opacity"
+          >
+            ¿Eres profesional?
+          </Link>
           <Link href="/login" className="text-sm/6 font-semibold text-primary-foreground">
             Iniciar sesión <span aria-hidden="true">&rarr;</span>
           </Link>

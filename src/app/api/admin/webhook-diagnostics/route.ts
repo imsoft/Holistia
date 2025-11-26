@@ -63,7 +63,24 @@ export async function GET() {
       'charge.refunded',
     ];
 
-    const diagnostics = {
+    const diagnostics: {
+      webhook_configured: boolean;
+      webhook_url: string | null;
+      webhook_status: string | null;
+      webhook_id: string | null;
+      enabled_events: string[];
+      missing_events: string[];
+      api_version: string | null;
+      total_webhooks: number;
+      all_webhooks: typeof webhookInfo;
+      recent_events_count?: number;
+      recent_events?: Array<{
+        id: string;
+        type: string;
+        created: string;
+        pending_webhooks: number;
+      }>;
+    } = {
       webhook_configured: !!productionWebhook,
       webhook_url: productionWebhook?.url || null,
       webhook_status: productionWebhook?.status || null,

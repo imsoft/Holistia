@@ -60,11 +60,14 @@ export const AnimatedMarqueeHero: React.FC<AnimatedMarqueeHeroProps> = ({
   return (
     <section
       className={cn(
-        "relative w-full h-screen overflow-hidden bg-background flex flex-col items-center justify-start text-center px-4 pt-2 sm:pt-8 md:-mt-24 lg:-mt-24 xl:pt-32",
+        "relative w-full h-screen overflow-hidden bg-background flex flex-col items-center justify-center text-center px-4",
+        "md:justify-start md:pt-16",
+        "lg:justify-center lg:pt-0",
+        "xl:justify-center xl:pt-0",
         className
       )}
     >
-      <div className="z-10 flex flex-col items-center pt-0 sm:pt-1 md:pt-0 lg:pt-0 xl:pt-12">
+      <div className="z-10 flex flex-col items-center w-full max-w-4xl pb-32 md:pb-40 lg:pb-48 xl:pb-56">
         {/* Tagline */}
         <motion.div
           initial="hidden"
@@ -127,11 +130,11 @@ export const AnimatedMarqueeHero: React.FC<AnimatedMarqueeHeroProps> = ({
       </div>
 
       {/* Animated Image Marquee */}
-      <div className="absolute bottom-0 left-0 w-full h-1/3 md:h-2/5 [mask-image:linear-gradient(to_bottom,transparent,black_20%,black_80%,transparent)]">
+      <div className="absolute bottom-0 left-0 w-full h-1/4 md:h-1/3 lg:h-2/5 [mask-image:linear-gradient(to_bottom,transparent,black_20%,black_80%,transparent)]">
         <motion.div
           className="flex gap-4"
           animate={{
-            x: ["0%", "-50%"],
+            x: ["-100%", "0%"],
             transition: {
               ease: "linear",
               duration: 30,

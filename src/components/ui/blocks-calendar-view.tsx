@@ -4,13 +4,13 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, Clock, Edit, Trash2, Plus, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Calendar, Clock, Edit, Trash2, Plus, ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { createClient } from '@/utils/supabase/client';
 import { toast } from 'sonner';
 import { formatDate, parseLocalDate, formatLocalDate } from '@/lib/date-utils';
 import type { AvailabilityBlock } from '@/types/availability';
-import { deleteBlockFromGoogleCalendar } from '@/actions/google-calendar';
+import { deleteBlockFromGoogleCalendar, syncAllBlocksToGoogleCalendar } from '@/actions/google-calendar';
 
 interface BlocksCalendarViewProps {
   professionalId: string;
@@ -30,6 +30,7 @@ export function BlocksCalendarView({
   const [blocks, setBlocks] = useState<AvailabilityBlock[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [syncing, setSyncing] = useState(false);
 
   // Cargar bloqueos
   const fetchBlocks = useCallback(async () => {
@@ -208,6 +209,36 @@ export function BlocksCalendarView({
     setCurrentMonth(new Date());
   };
 
+  // Sincronizar bloqueos con Google Calendar
+  const handleSyncWithGoogleCalendar = async () => {
+    if (!userId) {
+      toast.error('No se pudo identificar el usuario');
+      return;
+    }
+
+    setSyncing(true);
+    try {
+      const result = await syncAllBlocksToGoogleCalendar(userId);
+
+      if (result.success) {
+        if (result.syncedCount && result.syncedCount > 0) {
+          toast.success(`✅ ${result.syncedCount} bloqueo(s) sincronizado(s) con Google Calendar`);
+          fetchBlocks(); // Recargar para mostrar los IDs actualizados
+        } else {
+          toast.info('ℹ️ No hay bloqueos pendientes de sincronizar');
+        }
+      } else {
+        const errorMsg = 'error' in result ? result.error : 'Error desconocido';
+        toast.error(`Error: ${errorMsg}`);
+      }
+    } catch (error) {
+      console.error('Error syncing blocks:', error);
+      toast.error('Error al sincronizar con Google Calendar');
+    } finally {
+      setSyncing(false);
+    }
+  };
+
   // Eliminar bloqueo
   const handleDeleteBlock = async (blockId: string) => {
     if (!confirm('¿Estás seguro de que quieres eliminar este bloqueo?')) {
@@ -284,10 +315,22 @@ export function BlocksCalendarView({
             Gestiona tus días y horarios no disponibles
           </p>
         </div>
-        <Button onClick={onCreateBlock}>
-          <Plus className="w-4 h-4 mr-2" />
-          Nuevo Bloqueo
-        </Button>
+        <div className="flex items-center gap-2">
+          {userId && (
+            <Button
+              variant="outline"
+              onClick={handleSyncWithGoogleCalendar}
+              disabled={syncing}
+            >
+              <RefreshCw className={`w-4 h-4 mr-2 ${syncing ? 'animate-spin' : ''}`} />
+              {syncing ? 'Sincronizando...' : 'Sincronizar con Google Calendar'}
+            </Button>
+          )}
+          <Button onClick={onCreateBlock}>
+            <Plus className="w-4 h-4 mr-2" />
+            Nuevo Bloqueo
+          </Button>
+        </div>
       </div>
 
       {/* Calendar */}

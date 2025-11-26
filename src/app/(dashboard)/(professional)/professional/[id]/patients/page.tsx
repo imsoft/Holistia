@@ -14,6 +14,7 @@ import {
   User,
   MapPin,
   Briefcase,
+  Activity,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -541,6 +542,7 @@ export default function ProfessionalPatients() {
                     <span>{selectedPatient.name}</span>
                   </div>
                   <div className="flex items-center gap-2">
+                    <Activity className="h-4 w-4 text-muted-foreground" />
                     <span className="font-medium">Estado:</span>
                     <span className={`px-2 py-1 rounded-full text-xs ${
                       selectedPatient.status === 'active'

@@ -100,6 +100,21 @@ const CATEGORIES = [
   { value: "otros", label: "Otros" },
 ];
 
+// Función para normalizar URLs: agrega https:// si no tiene protocolo
+const normalizeWebsiteUrl = (url: string): string | null => {
+  if (!url || !url.trim()) return null;
+  
+  const trimmed = url.trim();
+  
+  // Si ya tiene protocolo (http:// o https://), devolverlo tal cual
+  if (trimmed.match(/^https?:\/\//i)) {
+    return trimmed;
+  }
+  
+  // Si no tiene protocolo, agregar https://
+  return `https://${trimmed}`;
+};
+
 export default function AdminShops() {
   const [shops, setShops] = useState<Shop[]>([]);
   const [loading, setLoading] = useState(true);
@@ -274,7 +289,7 @@ export default function AdminShops() {
         city: formData.city.trim() || null,
         phone: formData.phone.trim() || null,
         email: formData.email.trim() || null,
-        website: formData.website.trim() || null,
+        website: normalizeWebsiteUrl(formData.website),
         instagram: formData.instagram.trim() || null,
         image_url: formData.image_url.trim() || null,
         opening_hours: formData.opening_hours,
@@ -584,7 +599,7 @@ export default function AdminShops() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email">Email (opcional)</Label>
                 <Input
                   id="email"
                   type="email"
@@ -617,13 +632,13 @@ export default function AdminShops() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="website">Sitio web</Label>
+                <Label htmlFor="website">Sitio web (opcional)</Label>
                 <Input
                   id="website"
-                  type="url"
+                  type="text"
                   value={formData.website}
                   onChange={(e) => setFormData({ ...formData, website: e.target.value })}
-                  placeholder="https://www.comercio.com"
+                  placeholder="comercio.com o www.comercio.com"
                 />
               </div>
 

@@ -109,6 +109,21 @@ const PRICE_RANGES = [
   { value: "$$$$", label: "$$$$ - Muy costoso" },
 ];
 
+// Función para normalizar URLs: agrega https:// si no tiene protocolo
+const normalizeWebsiteUrl = (url: string): string | null => {
+  if (!url || !url.trim()) return null;
+  
+  const trimmed = url.trim();
+  
+  // Si ya tiene protocolo (http:// o https://), devolverlo tal cual
+  if (trimmed.match(/^https?:\/\//i)) {
+    return trimmed;
+  }
+  
+  // Si no tiene protocolo, agregar https://
+  return `https://${trimmed}`;
+};
+
 export default function AdminRestaurants() {
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [loading, setLoading] = useState(true);
@@ -297,7 +312,7 @@ export default function AdminRestaurants() {
             address: formData.address.trim() || null,
             phone: formData.phone.trim() || null,
             email: formData.email.trim() || null,
-            website: formData.website.trim() || null,
+            website: normalizeWebsiteUrl(formData.website),
             instagram: formData.instagram.trim() || null,
             image_url: formData.image_url.trim() || null,
             cuisine_type: formData.cuisine_type || null,
@@ -324,7 +339,7 @@ export default function AdminRestaurants() {
             address: formData.address.trim() || null,
             phone: formData.phone.trim() || null,
             email: formData.email.trim() || null,
-            website: formData.website.trim() || null,
+            website: normalizeWebsiteUrl(formData.website),
             instagram: formData.instagram.trim() || null,
             image_url: formData.image_url.trim() || null,
             cuisine_type: formData.cuisine_type || null,
@@ -623,7 +638,7 @@ export default function AdminRestaurants() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email">Email (opcional)</Label>
                 <Input
                   id="email"
                   type="email"
@@ -646,13 +661,13 @@ export default function AdminRestaurants() {
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="website">Sitio web</Label>
+                <Label htmlFor="website">Sitio web (opcional)</Label>
                 <Input
                   id="website"
-                  type="url"
+                  type="text"
                   value={formData.website}
                   onChange={(e) => setFormData({ ...formData, website: e.target.value })}
-                  placeholder="https://www.restaurante.com"
+                  placeholder="restaurante.com o www.restaurante.com"
                 />
               </div>
 

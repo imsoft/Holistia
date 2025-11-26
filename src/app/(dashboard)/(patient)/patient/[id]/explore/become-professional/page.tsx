@@ -1370,26 +1370,13 @@ export default function BecomeProfessionalPage() {
                                   Ir al Dashboard Profesional
                                 </Link>
                               </Button>
-                              <Button 
+                              <Button
                                 onClick={async () => {
                                   if (!confirm('¿Estás seguro de que quieres dar de baja tu perfil profesional? Se eliminará tu solicitud y dejarás de aparecer en la plataforma. Podrás volver a aplicar cuando quieras.')) {
                                     return;
                                   }
-                                  
+
                                   try {
-                                    // Primero eliminar los pagos asociados (si existen)
-                                    const { error: paymentsError } = await supabase
-                                      .from('payments')
-                                      .delete()
-                                      .eq('professional_application_id', existingApplication.id)
-                                      .eq('payment_type', 'registration');
-
-                                    if (paymentsError) {
-                                      console.error('Error deleting payments:', paymentsError);
-                                      // Continuar con la eliminación de la solicitud aunque falle la eliminación de pagos
-                                    }
-
-                                    // Luego eliminar la solicitud
                                     const { error } = await supabase
                                       .from('professional_applications')
                                       .delete()
@@ -1451,26 +1438,13 @@ export default function BecomeProfessionalPage() {
                             >
                               Editar y Reenviar Solicitud
                             </Button>
-                            <Button 
+                            <Button
                               onClick={async () => {
                                 if (!confirm('¿Estás seguro de que quieres eliminar tu solicitud actual? Esta acción no se puede deshacer. Podrás crear una nueva solicitud desde cero.')) {
                                   return;
                                 }
-                                
+
                                 try {
-                                  // Primero eliminar los pagos asociados (si existen)
-                                  const { error: paymentsError } = await supabase
-                                    .from('payments')
-                                    .delete()
-                                    .eq('professional_application_id', existingApplication.id)
-                                    .eq('payment_type', 'registration');
-
-                                  if (paymentsError) {
-                                    console.error('Error deleting payments:', paymentsError);
-                                    // Continuar con la eliminación de la solicitud aunque falle la eliminación de pagos
-                                  }
-
-                                  // Luego eliminar la solicitud
                                   const { error } = await supabase
                                     .from('professional_applications')
                                     .delete()
@@ -1510,26 +1484,13 @@ export default function BecomeProfessionalPage() {
                               Actualizar Estado
                             </Button>
                           </div>
-                          <Button 
+                          <Button
                             onClick={async () => {
                               if (!confirm('¿Estás seguro de que quieres cancelar tu solicitud? Podrás crear una nueva solicitud cuando quieras.')) {
                                 return;
                               }
-                              
+
                               try {
-                                // Primero eliminar los pagos asociados (si existen)
-                                const { error: paymentsError } = await supabase
-                                  .from('payments')
-                                  .delete()
-                                  .eq('professional_application_id', existingApplication.id)
-                                  .eq('payment_type', 'registration');
-
-                                if (paymentsError) {
-                                  console.error('Error deleting payments:', paymentsError);
-                                  // Continuar con la eliminación de la solicitud aunque falle la eliminación de pagos
-                                }
-
-                                // Luego eliminar la solicitud
                                 const { error } = await supabase
                                   .from('professional_applications')
                                   .delete()

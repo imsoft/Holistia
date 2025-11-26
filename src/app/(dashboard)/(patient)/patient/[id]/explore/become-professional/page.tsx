@@ -1372,7 +1372,7 @@ export default function BecomeProfessionalPage() {
                               </Button>
                               <Button
                                 onClick={async () => {
-                                  if (!confirm('¿Estás seguro de que quieres dar de baja tu perfil profesional? Se eliminará tu solicitud y dejarás de aparecer en la plataforma. Podrás volver a aplicar cuando quieras.')) {
+                                  if (!confirm('¿Estás seguro de que quieres dar de baja tu perfil profesional? Esto eliminará tu solicitud y dejarás de aparecer en la plataforma. Podrás volver a aplicar cuando quieras.')) {
                                     return;
                                   }
 
@@ -1382,7 +1382,14 @@ export default function BecomeProfessionalPage() {
                                       .delete()
                                       .eq('id', existingApplication.id);
 
-                                    if (error) throw error;
+                                    if (error) {
+                                      // Si el error es por el constraint de pagos, dar un mensaje más claro
+                                      if (error.code === '23514') {
+                                        toast.error('No se puede eliminar la solicitud. Contacta a soporte para ayuda.');
+                                        return;
+                                      }
+                                      throw error;
+                                    }
 
                                     toast.success('Perfil profesional dado de baja exitosamente.');
                                     window.location.reload();

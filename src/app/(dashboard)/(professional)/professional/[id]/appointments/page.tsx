@@ -56,6 +56,18 @@ import { listUserGoogleCalendarEvents } from "@/actions/google-calendar";
 
 type CalendarView = "day" | "week" | "month" | "year";
 
+interface AvailabilityBlock {
+  id: string;
+  title: string;
+  block_type: string;
+  start_date: string;
+  end_date?: string;
+  start_time?: string;
+  end_time?: string;
+  day_of_week?: number;
+  is_recurring?: boolean;
+}
+
 const viewLabels = {
   day: "Vista de día",
   week: "Vista de semana",
@@ -71,6 +83,7 @@ export default function ProfessionalAppointments() {
   const [view, setView] = useState<CalendarView>("month");
   const [currentDate, setCurrentDate] = useState(new Date());
   const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [availabilityBlocks, setAvailabilityBlocks] = useState<AvailabilityBlock[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
@@ -126,6 +139,16 @@ export default function ProfessionalAppointments() {
         }
 
         setProfessionalAppId(professionalApp.id);
+
+        // Obtener bloqueos de disponibilidad
+        const { data: blocksData } = await supabase
+          .from("availability_blocks")
+          .select("*")
+          .eq("professional_id", professionalApp.id);
+
+        if (blocksData) {
+          setAvailabilityBlocks(blocksData);
+        }
 
         const { data: appointmentsData, error: appointmentsError } = await supabase
           .from("appointments")
@@ -199,7 +222,7 @@ export default function ProfessionalAppointments() {
         try {
           const googleEventsResult = await listUserGoogleCalendarEvents(userId);
 
-          if (googleEventsResult.success && googleEventsResult.events) {
+          if (googleEventsResult.success && 'events' in googleEventsResult && googleEventsResult.events) {
             // Convertir eventos de Google Calendar a formato Appointment
             const googleAppointments: Appointment[] = googleEventsResult.events
               .filter((event: any) => event.start?.dateTime) // Solo eventos con hora específica
@@ -303,6 +326,58 @@ export default function ProfessionalAppointments() {
     return appointments.filter((apt) => {
       const aptDate = parseISO(apt.date);
       return aptDate.getFullYear() === year && getMonth(aptDate) === month;
+    });
+  };
+
+  // Funciones de bloqueos
+  const getBlocksForDate = (date: Date) => {
+    return availabilityBlocks.filter((block) => {
+      const blockStart = parseISO(block.start_date);
+      const blockEnd = block.end_date ? parseISO(block.end_date) : blockStart;
+
+      // Normalizar fechas
+      blockStart.setHours(0, 0, 0, 0);
+      blockEnd.setHours(0, 0, 0, 0);
+      const checkDate = new Date(date);
+      checkDate.setHours(0, 0, 0, 0);
+
+      // Para bloqueos recurrentes por día de semana
+      if (block.is_recurring && block.block_type === 'weekly_day') {
+        const dayOfWeek = date.getDay() === 0 ? 7 : date.getDay();
+        return block.day_of_week === dayOfWeek;
+      }
+
+      // Para bloqueos recurrentes de rango de horas
+      if (block.is_recurring && block.block_type === 'weekly_range') {
+        const dayOfWeek = date.getDay() === 0 ? 7 : date.getDay();
+        const startDayOfWeek = blockStart.getDay() === 0 ? 7 : blockStart.getDay();
+        const endDayOfWeek = blockEnd.getDay() === 0 ? 7 : blockEnd.getDay();
+        return dayOfWeek >= startDayOfWeek && dayOfWeek <= endDayOfWeek;
+      }
+
+      // Para bloqueos no recurrentes
+      return checkDate >= blockStart && checkDate <= blockEnd;
+    });
+  };
+
+  const isTimeBlocked = (date: Date, hour: number) => {
+    const dayBlocks = getBlocksForDate(date);
+    const timeString = `${hour.toString().padStart(2, '0')}:00`;
+
+    // Verificar si hay bloqueo de día completo
+    const hasFullDayBlock = dayBlocks.some(block =>
+      block.block_type === 'full_day' || block.block_type === 'weekly_day'
+    );
+
+    if (hasFullDayBlock) return true;
+
+    // Verificar si hay bloqueo de rango de horas
+    return dayBlocks.some(block => {
+      if ((block.block_type === 'time_range' || block.block_type === 'weekly_range') &&
+          block.start_time && block.end_time) {
+        return timeString >= block.start_time && timeString < block.end_time;
+      }
+      return false;
     });
   };
 
@@ -490,6 +565,9 @@ export default function ProfessionalAppointments() {
       isSameDay(parseISO(apt.date), currentDate)
     );
 
+    // Obtener bloqueos del día actual
+    const dayBlocks = getBlocksForDate(currentDate);
+
     return (
       <div className="flex flex-col h-full">
         <div className="flex-1 overflow-auto">
@@ -499,7 +577,14 @@ export default function ProfessionalAppointments() {
                 <div className="text-xs text-muted-foreground py-4 text-center bg-muted/30 border-r border-border" style={{ height: `${HOUR_HEIGHT}px` }}>
                   {format(new Date().setHours(hour, 0), "ha", { locale: es })}
                 </div>
-                <div className="border-t border-border relative" style={{ height: `${HOUR_HEIGHT}px` }}>
+                <div className={`border-t border-border relative ${isTimeBlocked(currentDate, hour) ? 'bg-gray-100 dark:bg-gray-800' : ''}`} style={{ height: `${HOUR_HEIGHT}px` }}>
+                  {/* Renderizar indicador de bloqueo */}
+                  {isTimeBlocked(currentDate, hour) && (
+                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                      <div className="text-xs text-gray-400 dark:text-gray-500 font-medium">Bloqueado</div>
+                    </div>
+                  )}
+
                   {/* Renderizar citas que comienzan en esta hora */}
                   {dayAppointments
                     .filter((apt) => {
@@ -507,7 +592,7 @@ export default function ProfessionalAppointments() {
                       return aptHour === hour;
                     })
                     .map((apt) => {
-                      const [startHour, startMinute] = apt.time.split(":").map(Number);
+                      const [, startMinute] = apt.time.split(":").map(Number);
                       const durationHours = apt.duration / 60;
                       const heightInPixels = durationHours * HOUR_HEIGHT;
                       const topOffset = (startMinute / 60) * HOUR_HEIGHT;
@@ -516,7 +601,7 @@ export default function ProfessionalAppointments() {
                         <button
                           key={apt.id}
                           onClick={() => handleViewAppointment(apt)}
-                          className={`absolute left-1 right-1 px-3 py-2 rounded-md text-sm border ${getStatusColor(apt.status)} hover:opacity-80 transition-opacity overflow-hidden`}
+                          className={`absolute left-1 right-1 px-3 py-2 rounded-md text-sm border ${getStatusColor(apt.status)} hover:opacity-80 transition-opacity overflow-hidden z-10`}
                           style={{
                             top: `${topOffset}px`,
                             height: `${Math.max(heightInPixels - 4, 40)}px`,
@@ -528,6 +613,38 @@ export default function ProfessionalAppointments() {
                           </div>
                           {heightInPixels > 60 && <div className="text-xs">{apt.type}</div>}
                         </button>
+                      );
+                    })}
+
+                  {/* Renderizar bloqueos específicos de tiempo */}
+                  {dayBlocks
+                    .filter(block =>
+                      (block.block_type === 'time_range' || block.block_type === 'weekly_range') &&
+                      block.start_time && block.end_time
+                    )
+                    .map((block) => {
+                      if (!block.start_time || !block.end_time) return null;
+
+                      const [startHour, startMinute] = block.start_time.split(":").map(Number);
+                      const [endHour, endMinute] = block.end_time.split(":").map(Number);
+
+                      if (startHour !== hour && !(hour >= startHour && hour < endHour)) return null;
+
+                      const topOffset = hour === startHour ? (startMinute / 60) * HOUR_HEIGHT : 0;
+                      const endOffset = hour === endHour - 1 ? (endMinute / 60) * HOUR_HEIGHT : HOUR_HEIGHT;
+                      const heightInPixels = endOffset - topOffset;
+
+                      return (
+                        <div
+                          key={block.id}
+                          className="absolute left-1 right-1 px-2 py-1 rounded-md text-xs bg-gray-200 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300"
+                          style={{
+                            top: `${topOffset}px`,
+                            height: `${heightInPixels - 4}px`,
+                          }}
+                        >
+                          <div className="font-medium truncate">{block.title || 'Bloqueado'}</div>
+                        </div>
                       );
                     })}
                 </div>
@@ -585,14 +702,25 @@ export default function ProfessionalAppointments() {
                     isSameDay(parseISO(apt.date), day)
                   );
 
+                  // Obtener bloqueos de este día
+                  const dayBlocks = getBlocksForDate(day);
+                  const isHourBlocked = isTimeBlocked(day, hour);
+
                   return (
                     <div
                       key={dayIdx}
                       className={`border-t border-l border-border relative ${
-                        isToday(day) ? "bg-primary/5" : ""
+                        isToday(day) ? "bg-primary/5" : isHourBlocked ? "bg-gray-50 dark:bg-gray-900" : ""
                       }`}
                       style={{ height: `${HOUR_HEIGHT}px` }}
                     >
+                      {/* Indicador de bloqueo */}
+                      {isHourBlocked && (
+                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-30">
+                          <div className="text-[10px] text-gray-500 dark:text-gray-400">🔒</div>
+                        </div>
+                      )}
+
                       {/* Renderizar citas que comienzan en esta hora */}
                       {dayAppointments
                         .filter((apt) => {
@@ -609,7 +737,7 @@ export default function ProfessionalAppointments() {
                             <button
                               key={apt.id}
                               onClick={() => handleViewAppointment(apt)}
-                              className={`absolute left-0.5 right-0.5 px-2 py-1 rounded text-xs border ${getStatusColor(apt.status)} hover:opacity-80 transition-opacity overflow-hidden`}
+                              className={`absolute left-0.5 right-0.5 px-2 py-1 rounded text-xs border ${getStatusColor(apt.status)} hover:opacity-80 transition-opacity overflow-hidden z-10`}
                               style={{
                                 top: `${topOffset}px`,
                                 height: `${Math.max(heightInPixels - 2, 30)}px`,
@@ -620,6 +748,38 @@ export default function ProfessionalAppointments() {
                               </div>
                               <div className="truncate">{apt.time}</div>
                             </button>
+                          );
+                        })}
+
+                      {/* Renderizar bloqueos específicos de tiempo */}
+                      {dayBlocks
+                        .filter(block =>
+                          (block.block_type === 'time_range' || block.block_type === 'weekly_range') &&
+                          block.start_time && block.end_time
+                        )
+                        .map((block) => {
+                          if (!block.start_time || !block.end_time) return null;
+
+                          const [startHour, startMinute] = block.start_time.split(":").map(Number);
+                          const [endHour] = block.end_time.split(":").map(Number);
+
+                          if (startHour !== hour && !(hour >= startHour && hour < endHour)) return null;
+
+                          const topOffset = hour === startHour ? (startMinute / 60) * HOUR_HEIGHT : 0;
+                          const heightInPixels = HOUR_HEIGHT - topOffset;
+
+                          return (
+                            <div
+                              key={block.id}
+                              className="absolute left-0.5 right-0.5 px-1 py-0.5 rounded text-[10px] bg-gray-200 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 truncate"
+                              style={{
+                                top: `${topOffset}px`,
+                                height: `${Math.max(heightInPixels - 2, 20)}px`,
+                              }}
+                              title={block.title || 'Bloqueado'}
+                            >
+                              {block.title || 'Bloqueado'}
+                            </div>
                           );
                         })}
                     </div>
@@ -665,6 +825,10 @@ export default function ProfessionalAppointments() {
             <div key={weekIdx} className="grid grid-cols-7 gap-0 border-b last:border-b-0 border-border">
               {week.map((day, dayIdx) => {
                 const dayAppointments = getAppointmentsForDate(day);
+                const dayBlocks = getBlocksForDate(day);
+                const hasFullDayBlock = dayBlocks.some(block =>
+                  block.block_type === 'full_day' || block.block_type === 'weekly_day'
+                );
                 const isCurrentMonth = isSameMonth(day, currentDate);
                 const isDayToday = isToday(day);
 
@@ -672,22 +836,27 @@ export default function ProfessionalAppointments() {
                   <div
                     key={dayIdx}
                     className={`min-h-[120px] border-r last:border-r-0 border-border p-2 ${
-                      !isCurrentMonth ? "bg-muted/20" : ""
+                      !isCurrentMonth ? "bg-muted/20" : hasFullDayBlock ? "bg-gray-50 dark:bg-gray-900" : ""
                     } ${isDayToday ? "bg-primary/5" : ""}`}
                   >
-                    <div
-                      className={`text-sm font-semibold mb-1 ${
-                        !isCurrentMonth
-                          ? "text-muted-foreground"
-                          : isDayToday
-                          ? "text-primary"
-                          : ""
-                      }`}
-                    >
-                      {format(day, "d")}
+                    <div className="flex items-center justify-between mb-1">
+                      <div
+                        className={`text-sm font-semibold ${
+                          !isCurrentMonth
+                            ? "text-muted-foreground"
+                            : isDayToday
+                            ? "text-primary"
+                            : ""
+                        }`}
+                      >
+                        {format(day, "d")}
+                      </div>
+                      {hasFullDayBlock && (
+                        <div className="text-xs text-gray-500 dark:text-gray-400" title="Día bloqueado">🔒</div>
+                      )}
                     </div>
                     <div className="space-y-1">
-                      {dayAppointments.slice(0, 3).map((apt) => (
+                      {dayAppointments.slice(0, 2).map((apt) => (
                         <button
                           key={apt.id}
                           onClick={() => handleViewAppointment(apt)}
@@ -698,9 +867,16 @@ export default function ProfessionalAppointments() {
                           </div>
                         </button>
                       ))}
-                      {dayAppointments.length > 3 && (
+                      {dayBlocks.length > 0 && !hasFullDayBlock && dayAppointments.length < 2 && (
+                        <div className="px-2 py-1 rounded text-xs bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 truncate">
+                          <div className="font-medium truncate">
+                            {dayBlocks[0].title || 'Bloqueado'}
+                          </div>
+                        </div>
+                      )}
+                      {dayAppointments.length > 2 && (
                         <div className="text-xs text-muted-foreground px-2">
-                          +{dayAppointments.length - 3} más
+                          +{dayAppointments.length - 2} más
                         </div>
                       )}
                     </div>
@@ -825,8 +1001,8 @@ export default function ProfessionalAppointments() {
 
       {/* Toolbar */}
       <div className="border-b border-border bg-card">
-        <div className="flex items-center justify-between px-6 py-4">
-          <div className="flex items-center gap-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 px-4 sm:px-6 py-3 sm:py-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 w-full sm:w-auto">
             <div className="flex items-center gap-2">
               <Button variant="outline" size="sm" onClick={handlePrevious}>
                 <ChevronLeft className="h-4 w-4" />
@@ -838,12 +1014,12 @@ export default function ProfessionalAppointments() {
                 <ChevronRight className="h-4 w-4" />
               </Button>
             </div>
-            <h2 className="text-lg font-semibold capitalize">{getTitle()}</h2>
+            <h2 className="text-base sm:text-lg font-semibold capitalize">{getTitle()}</h2>
           </div>
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline">
+              <Button variant="outline" size="sm" className="w-full sm:w-auto">
                 {viewLabels[view]}
                 <ChevronDown className="ml-2 h-4 w-4" />
               </Button>

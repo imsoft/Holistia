@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Image from "next/image";
 import {
   Store,
   Search,
@@ -16,6 +15,7 @@ import {
   Clock,
   Package,
 } from "lucide-react";
+import { StableImage } from "@/components/ui/stable-image";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -425,12 +425,12 @@ export default function AdminShops() {
               <Card key={shop.id} className="hover:shadow-lg transition-shadow overflow-hidden">
                 {shop.image_url && (
                   <div className="relative w-full h-48 bg-muted">
-                    <Image
+                    <StableImage
                       src={shop.image_url}
                       alt={shop.name}
                       fill
                       className="object-cover"
-                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                      objectFit="cover"
                     />
                   </div>
                 )}

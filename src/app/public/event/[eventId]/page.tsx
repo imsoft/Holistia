@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, use } from "react";
 import { createClient } from "@/utils/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -31,8 +31,9 @@ import { formatEventDate, formatEventTime } from "@/utils/date-utils";
 export default function PublicEventPage({
   params,
 }: {
-  params: { eventId: string };
+  params: Promise<{ eventId: string }>;
 }) {
+  const { eventId } = use(params);
   const [event, setEvent] = useState<EventWorkshop | null>(null);
   const [professional, setProfessional] = useState<{
     id: string;
@@ -45,7 +46,6 @@ export default function PublicEventPage({
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const { eventId } = params;
 
   useEffect(() => {
     async function loadEvent() {

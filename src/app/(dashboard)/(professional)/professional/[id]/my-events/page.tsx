@@ -12,6 +12,7 @@ import Image from "next/image";
 import { EventWorkshop } from "@/types/event";
 import { StripeConnectSetup } from "@/components/ui/stripe-connect-setup";
 import { EventRegistrationsList } from "@/components/ui/event-registrations-list";
+import { SidebarTrigger } from "@/components/ui/sidebar";
 
 export default function MyEventsPage() {
   const params = useParams();
@@ -88,7 +89,24 @@ export default function MyEventsPage() {
   }
 
   return (
-    <div className="container mx-auto py-8 px-4 max-w-7xl">
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <div className="border-b border-border bg-card">
+        <div className="flex flex-col sm:flex-row sm:h-16 sm:items-center justify-between px-4 sm:px-6 py-4 sm:py-0 gap-4 sm:gap-0">
+          <div className="flex items-center gap-3 sm:gap-4">
+            <SidebarTrigger />
+            <div>
+              <h1 className="text-xl sm:text-2xl font-bold text-foreground">Mis Eventos</h1>
+              <p className="text-xs sm:text-sm text-muted-foreground">
+                Gestiona tus eventos y visualiza las registraciones
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="p-4 sm:p-6 space-y-6">
       {/* Stripe Connect Setup */}
       {!stripeConnected && (
         <Card className="mb-6 border-primary">
@@ -202,6 +220,7 @@ export default function MyEventsPage() {
           ))}
         </div>
       )}
+      </div>
     </div>
   );
 }

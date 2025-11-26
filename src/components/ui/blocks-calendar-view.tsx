@@ -308,29 +308,21 @@ export function BlocksCalendarView({
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold">Bloqueos de Disponibilidad</h2>
-          <p className="text-muted-foreground">
-            Gestiona tus días y horarios no disponibles
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          {userId && (
-            <Button
-              variant="outline"
-              onClick={handleSyncWithGoogleCalendar}
-              disabled={syncing}
-            >
-              <RefreshCw className={`w-4 h-4 mr-2 ${syncing ? 'animate-spin' : ''}`} />
-              {syncing ? 'Sincronizando...' : 'Sincronizar con Google Calendar'}
-            </Button>
-          )}
-          <Button onClick={onCreateBlock}>
-            <Plus className="w-4 h-4 mr-2" />
-            Nuevo Bloqueo
+      <div className="flex items-center justify-end gap-2">
+        {userId && (
+          <Button
+            variant="outline"
+            onClick={handleSyncWithGoogleCalendar}
+            disabled={syncing}
+          >
+            <RefreshCw className={`w-4 h-4 mr-2 ${syncing ? 'animate-spin' : ''}`} />
+            {syncing ? 'Sincronizando...' : 'Sincronizar con Google Calendar'}
           </Button>
-        </div>
+        )}
+        <Button onClick={onCreateBlock}>
+          <Plus className="w-4 h-4 mr-2" />
+          Nuevo Bloqueo
+        </Button>
       </div>
 
       {/* Calendar */}

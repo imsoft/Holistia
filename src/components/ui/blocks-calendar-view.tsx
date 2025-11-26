@@ -10,9 +10,11 @@ import { createClient } from '@/utils/supabase/client';
 import { toast } from 'sonner';
 import { formatDate, parseLocalDate, formatLocalDate } from '@/lib/date-utils';
 import type { AvailabilityBlock } from '@/types/availability';
+import { deleteBlockFromGoogleCalendar } from '@/actions/google-calendar';
 
 interface BlocksCalendarViewProps {
   professionalId: string;
+  userId?: string;
   onEditBlock?: (block: AvailabilityBlock) => void;
   onDeleteBlock?: (blockId: string) => void;
   onCreateBlock?: () => void;
@@ -20,6 +22,7 @@ interface BlocksCalendarViewProps {
 
 export function BlocksCalendarView({
   professionalId,
+  userId,
   onEditBlock,
   onDeleteBlock,
   onCreateBlock
@@ -213,6 +216,24 @@ export function BlocksCalendarView({
 
     try {
       const supabase = createClient();
+
+      // Intentar sincronizar eliminación con Google Calendar (si tiene userId)
+      if (userId) {
+        deleteBlockFromGoogleCalendar(blockId, userId)
+          .then((result) => {
+            if (result.success) {
+              console.log('✅ Bloqueo eliminado de Google Calendar');
+            } else {
+              const errorMsg = 'error' in result ? result.error : ('message' in result ? result.message : 'Error desconocido');
+              console.warn('⚠️ No se pudo eliminar de Google Calendar:', errorMsg);
+            }
+          })
+          .catch((err) => {
+            console.error('❌ Error al eliminar de Google Calendar:', err);
+          });
+      }
+
+      // Eliminar de la base de datos
       const { error } = await supabase
         .from('availability_blocks')
         .delete()

@@ -13,6 +13,7 @@ import { Calendar } from 'lucide-react';
 import { createClient } from '@/utils/supabase/client';
 import { toast } from 'sonner';
 import type { AvailabilityBlock, AvailabilityBlockFormData } from '@/types/availability';
+import { createBlockInGoogleCalendar } from '@/actions/google-calendar';
 
 interface BlockCreatorTabsProps {
   professionalId: string;
@@ -181,12 +182,31 @@ export function BlockCreatorTabs({
 
         onBlockUpdated?.();
       } else {
-        const { error } = await supabase
+        const { data: newBlock, error } = await supabase
           .from('availability_blocks')
-          .insert(blockData);
+          .insert(blockData)
+          .select('id')
+          .single();
 
         if (error) throw error;
+
         toast.success('Bloqueo creado correctamente');
+
+        // Intentar sincronizar con Google Calendar (no bloqueante)
+        if (newBlock?.id) {
+          createBlockInGoogleCalendar(newBlock.id, userId)
+            .then((result) => {
+              if (result.success) {
+                console.log('✅ Bloqueo sincronizado con Google Calendar');
+              } else {
+                const errorMsg = 'error' in result ? result.error : 'Error desconocido';
+                console.warn('⚠️ No se pudo sincronizar con Google Calendar:', errorMsg);
+              }
+            })
+            .catch((err) => {
+              console.error('❌ Error al sincronizar con Google Calendar:', err);
+            });
+        }
 
         // Emitir evento para recargar el calendario
         window.dispatchEvent(new Event('reload-calendar'));

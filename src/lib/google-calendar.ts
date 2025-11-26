@@ -76,11 +76,13 @@ export interface GoogleCalendarEvent {
   description?: string;
   location?: string;
   start: {
-    dateTime: string;
+    dateTime?: string;
+    date?: string;
     timeZone: string;
   };
   end: {
-    dateTime: string;
+    dateTime?: string;
+    date?: string;
     timeZone: string;
   };
   attendees?: Array<{
@@ -95,6 +97,8 @@ export interface GoogleCalendarEvent {
     }>;
   };
   colorId?: string;
+  transparency?: 'opaque' | 'transparent';
+  recurrence?: string[];
   conferenceData?: {
     createRequest?: {
       requestId: string;

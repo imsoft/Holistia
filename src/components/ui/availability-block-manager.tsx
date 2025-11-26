@@ -74,6 +74,7 @@ export default function AvailabilityBlockManager({ professionalId, userId: propU
     <div className="space-y-6">
       <BlocksCalendarView
         professionalId={professionalId}
+        userId={userId}
         onEditBlock={handleEditBlock}
         onDeleteBlock={handleDeleteBlock}
         onCreateBlock={handleCreateBlock}

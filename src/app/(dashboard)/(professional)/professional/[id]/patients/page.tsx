@@ -12,6 +12,8 @@ import {
   Mail,
   Clock,
   User,
+  MapPin,
+  Briefcase,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -568,6 +570,7 @@ export default function ProfessionalPatients() {
                     <span>{selectedPatient.phone}</span>
                   </div>
                   <div className="flex items-center gap-2">
+                    <MapPin className="h-4 w-4 text-muted-foreground" />
                     <span className="font-medium">Ubicación:</span>
                     <span>{selectedPatient.location}</span>
                   </div>
@@ -584,6 +587,7 @@ export default function ProfessionalPatients() {
                     <span>{selectedPatient.totalSessions}</span>
                   </div>
                   <div className="flex items-center gap-2">
+                    <Briefcase className="h-4 w-4 text-muted-foreground" />
                     <span className="font-medium">Tipo de terapia:</span>
                     <span>{selectedPatient.therapyType}</span>
                   </div>

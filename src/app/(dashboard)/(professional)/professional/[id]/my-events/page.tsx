@@ -1,12 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Calendar, Users, DollarSign, MapPin, ArrowLeft } from "lucide-react";
+import { Loader2, Calendar, Users, DollarSign, MapPin } from "lucide-react";
 import { toast } from "sonner";
 import Image from "next/image";
 import { EventWorkshop } from "@/types/event";
@@ -15,7 +15,6 @@ import { EventRegistrationsList } from "@/components/ui/event-registrations-list
 
 export default function MyEventsPage() {
   const params = useParams();
-  const router = useRouter();
   const userId = params.id as string;
   const supabase = createClient();
 
@@ -90,22 +89,6 @@ export default function MyEventsPage() {
 
   return (
     <div className="container mx-auto py-8 px-4 max-w-7xl">
-      <Button
-        variant="ghost"
-        onClick={() => router.back()}
-        className="mb-6"
-      >
-        <ArrowLeft className="h-4 w-4 mr-2" />
-        Volver
-      </Button>
-
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Mis Eventos</h1>
-        <p className="text-muted-foreground">
-          Gestiona tus eventos y visualiza las registraciones
-        </p>
-      </div>
-
       {/* Stripe Connect Setup */}
       {!stripeConnected && (
         <Card className="mb-6 border-primary">

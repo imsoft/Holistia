@@ -532,25 +532,17 @@ export default function ProfessionalPatients() {
               {/* Información personal */}
               <div className="bg-muted/50 rounded-lg p-4">
                 <h3 className="text-lg font-semibold mb-3">Información Personal</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-3">
                   <div className="flex items-center gap-2">
                     <User className="h-4 w-4 text-muted-foreground" />
                     <span className="font-medium">Nombre:</span>
                     <span>{selectedPatient.name}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="font-medium">Edad:</span>
-                    <span>{selectedPatient.age} años</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium">Género:</span>
-                    <span>{selectedPatient.gender}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
                     <span className="font-medium">Estado:</span>
                     <span className={`px-2 py-1 rounded-full text-xs ${
-                      selectedPatient.status === 'active' 
-                        ? 'bg-green-100 text-green-800' 
+                      selectedPatient.status === 'active'
+                        ? 'bg-green-100 text-green-800'
                         : selectedPatient.status === 'inactive'
                         ? 'bg-yellow-100 text-yellow-800'
                         : 'bg-red-100 text-red-800'
@@ -564,11 +556,11 @@ export default function ProfessionalPatients() {
               {/* Información de contacto */}
               <div className="bg-muted/50 rounded-lg p-4">
                 <h3 className="text-lg font-semibold mb-3">Información de Contacto</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-3">
                   <div className="flex items-center gap-2">
                     <Mail className="h-4 w-4 text-muted-foreground" />
                     <span className="font-medium">Email:</span>
-                    <span>{selectedPatient.email}</span>
+                    <span className="break-all">{selectedPatient.email}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <Phone className="h-4 w-4 text-muted-foreground" />
@@ -585,7 +577,7 @@ export default function ProfessionalPatients() {
               {/* Información de terapia */}
               <div className="bg-muted/50 rounded-lg p-4">
                 <h3 className="text-lg font-semibold mb-3">Información de Terapia</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-3">
                   <div className="flex items-center gap-2">
                     <Calendar className="h-4 w-4 text-muted-foreground" />
                     <span className="font-medium">Total de sesiones:</span>

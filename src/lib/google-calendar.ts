@@ -354,3 +354,104 @@ export async function verifyCalendarAccess(
     return false;
   }
 }
+
+/**
+ * Suscribirse a notificaciones de cambios en Google Calendar
+ * Documentación: https://developers.google.com/calendar/api/guides/push
+ */
+export async function watchCalendar(
+  accessToken: string,
+  refreshToken: string,
+  channelId: string,
+  webhookUrl: string,
+  calendarId: string = 'primary'
+) {
+  try {
+    const { calendar } = getCalendarClient(accessToken, refreshToken);
+
+    // La suscripción expira en máximo 7 días (604800 segundos)
+    // Configuramos 6 días para renovar antes de que expire
+    const expiration = Date.now() + (6 * 24 * 60 * 60 * 1000);
+
+    const response = await calendar.events.watch({
+      calendarId,
+      requestBody: {
+        id: channelId,
+        type: 'web_hook',
+        address: webhookUrl,
+        expiration: expiration.toString(),
+      },
+    });
+
+    return {
+      success: true,
+      channelId: response.data.id,
+      resourceId: response.data.resourceId,
+      expiration: response.data.expiration,
+    };
+  } catch (error: unknown) {
+    // Si el token expiró, intentar refrescarlo
+    if (error instanceof Error && "code" in error && (error as { code?: number }).code === 401) {
+      const newCredentials = await refreshAccessToken(refreshToken);
+      if (newCredentials.access_token) {
+        return watchCalendar(
+          newCredentials.access_token,
+          refreshToken,
+          channelId,
+          webhookUrl,
+          calendarId
+        );
+      }
+    }
+
+    console.error('Error watching calendar:', error);
+    return {
+      success: false,
+      error: (error instanceof Error ? error.message : String(error)),
+    };
+  }
+}
+
+/**
+ * Detener la suscripción a notificaciones de Google Calendar
+ */
+export async function stopWatchingCalendar(
+  accessToken: string,
+  refreshToken: string,
+  channelId: string,
+  resourceId: string
+) {
+  try {
+    const { calendar } = getCalendarClient(accessToken, refreshToken);
+
+    await calendar.channels.stop({
+      requestBody: {
+        id: channelId,
+        resourceId: resourceId,
+      },
+    });
+
+    return {
+      success: true,
+    };
+  } catch (error: unknown) {
+    // Si el token expiró, intentar refrescarlo
+    if (error instanceof Error && "code" in error && (error as { code?: number }).code === 401) {
+      const newCredentials = await refreshAccessToken(refreshToken);
+      if (newCredentials.access_token) {
+        return stopWatchingCalendar(
+          newCredentials.access_token,
+          refreshToken,
+          channelId,
+          resourceId
+        );
+      }
+    }
+
+    console.error('Error stopping calendar watch:', error);
+    return {
+      success: false,
+      error: (error instanceof Error ? error.message : String(error)),
+    };
+  }
+}

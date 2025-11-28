@@ -15,6 +15,11 @@ import { Calendar, CheckCircle2, XCircle, Loader2, RefreshCw } from 'lucide-reac
 import { toast } from 'sonner';
 import { syncAllAppointmentsToGoogleCalendar } from '@/actions/google-calendar';
 import { syncAllEventsToGoogleCalendar } from '@/actions/google-calendar/events';
+import {
+  syncGoogleCalendarEvents,
+  subscribeToCalendarNotifications,
+  unsubscribeFromCalendarNotifications,
+} from '@/actions/google-calendar/sync';
 
 interface GoogleCalendarStatus {
   connected: boolean;
@@ -29,6 +34,7 @@ export function GoogleCalendarIntegration({ userId }: { userId: string }) {
   const [connecting, setConnecting] = useState(false);
   const [disconnecting, setDisconnecting] = useState(false);
   const [syncing, setSyncing] = useState(false);
+  const [syncingFromGoogle, setSyncingFromGoogle] = useState(false);
 
   // Cargar el estado inicial
   useEffect(() => {
@@ -175,6 +181,49 @@ export function GoogleCalendarIntegration({ userId }: { userId: string }) {
     }
   };
 
+  const handleSyncFromGoogle = async () => {
+    setSyncingFromGoogle(true);
+    try {
+      // Sincronizar eventos desde Google Calendar a Holistia (crear bloques)
+      const result = await syncGoogleCalendarEvents(userId);
+
+      if (result.success) {
+        const created = result.created || 0;
+        const deleted = result.deleted || 0;
+
+        if (created > 0 || deleted > 0) {
+          toast.success(
+            `Sincronización completada`,
+            {
+              description: `${created} eventos bloqueados, ${deleted} eventos eliminados`,
+              duration: 5000,
+            }
+          );
+        } else {
+          toast.info('No hay eventos nuevos en Google Calendar para sincronizar');
+        }
+
+        // Activar suscripción automática si no está activa
+        await subscribeToCalendarNotifications(userId);
+      } else {
+        const errorMsg = 'error' in result ? result.error : 'Error desconocido';
+        toast.error('Error al sincronizar desde Google Calendar', {
+          description: errorMsg,
+          duration: 5000,
+        });
+      }
+    } catch (error) {
+      console.error('Error syncing from Google:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
+      toast.error('Error al sincronizar desde Google Calendar', {
+        description: errorMessage,
+        duration: 5000,
+      });
+    } finally {
+      setSyncingFromGoogle(false);
+    }
+  };
+
   if (loading) {
     return (
       <Card className="py-4">
@@ -261,14 +310,14 @@ export function GoogleCalendarIntegration({ userId }: { userId: string }) {
         <div className="rounded-lg bg-muted p-4 space-y-2">
           <h4 className="font-medium text-sm">¿Qué se sincroniza?</h4>
           <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
-            <li>Todas tus citas confirmadas con pacientes</li>
-            <li>Eventos y talleres que organices</li>
+            <li>Holistia → Google: Tus citas y eventos se crean en Google Calendar</li>
+            <li>Google → Holistia: Eventos externos se bloquean en tu disponibilidad</li>
             <li>Actualizaciones automáticas cuando cambies una cita</li>
             <li>Eliminación cuando canceles una cita o evento</li>
           </ul>
         </div>
       </CardContent>
-      <CardFooter className="flex gap-2">
+      <CardFooter className="flex flex-col gap-2">
         {!status?.connected ? (
           <Button
             onClick={handleConnect}
@@ -289,27 +338,49 @@ export function GoogleCalendarIntegration({ userId }: { userId: string }) {
           </Button>
         ) : (
           <>
-            <Button
-              onClick={handleSync}
-              disabled={syncing || status?.tokenExpired}
-              variant="default"
-            >
-              {syncing ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Sincronizando...
-                </>
-              ) : (
-                <>
-                  <RefreshCw className="mr-2 h-4 w-4" />
-                  Sincronizar ahora
-                </>
-              )}
-            </Button>
+            <div className="flex gap-2 w-full">
+              <Button
+                onClick={handleSync}
+                disabled={syncing || status?.tokenExpired}
+                variant="default"
+                className="flex-1"
+              >
+                {syncing ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Enviando...
+                  </>
+                ) : (
+                  <>
+                    <RefreshCw className="mr-2 h-4 w-4" />
+                    Enviar a Google
+                  </>
+                )}
+              </Button>
+              <Button
+                onClick={handleSyncFromGoogle}
+                disabled={syncingFromGoogle || status?.tokenExpired}
+                variant="secondary"
+                className="flex-1"
+              >
+                {syncingFromGoogle ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Importando...
+                  </>
+                ) : (
+                  <>
+                    <RefreshCw className="mr-2 h-4 w-4" />
+                    Importar de Google
+                  </>
+                )}
+              </Button>
+            </div>
             <Button
               onClick={handleDisconnect}
               disabled={disconnecting}
               variant="outline"
+              className="w-full"
             >
               {disconnecting ? (
                 <>

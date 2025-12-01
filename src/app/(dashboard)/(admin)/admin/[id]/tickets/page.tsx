@@ -39,6 +39,10 @@ import {
   User,
   Calendar,
   Plus,
+  Upload,
+  X,
+  FileImage,
+  FileVideo,
 } from "lucide-react";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
@@ -91,6 +95,16 @@ interface TicketComment {
   updated_at: string;
 }
 
+interface TicketAttachment {
+  id: string;
+  ticket_id: string;
+  file_name: string;
+  file_url: string;
+  file_type: string;
+  file_size: number;
+  created_at: string;
+}
+
 export default function TicketsPage() {
   const [tickets, setTickets] = useState<SupportTicket[]>([]);
   const [filteredTickets, setFilteredTickets] = useState<SupportTicket[]>([]);
@@ -101,6 +115,7 @@ export default function TicketsPage() {
   const [priorityFilter, setPriorityFilter] = useState<string>("all");
   const [selectedTicket, setSelectedTicket] = useState<SupportTicket | null>(null);
   const [ticketComments, setTicketComments] = useState<TicketComment[]>([]);
+  const [ticketAttachments, setTicketAttachments] = useState<TicketAttachment[]>([]);
   const [newComment, setNewComment] = useState("");
   const [isInternalComment, setIsInternalComment] = useState(false);
   const [loadingComments, setLoadingComments] = useState(false);
@@ -116,6 +131,8 @@ export default function TicketsPage() {
     expected_behavior: "",
     actual_behavior: "",
   });
+  const [attachments, setAttachments] = useState<File[]>([]);
+  const [uploadingAttachments, setUploadingAttachments] = useState(false);
   const supabase = createClient();
 
   useEffect(() => {
@@ -218,9 +235,26 @@ export default function TicketsPage() {
     }
   };
 
+  const loadTicketAttachments = async (ticketId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from("support_ticket_attachments")
+        .select("*")
+        .eq("ticket_id", ticketId)
+        .order("created_at", { ascending: true });
+
+      if (error) throw error;
+      setTicketAttachments(data || []);
+    } catch (error) {
+      console.error("Error loading attachments:", error);
+      toast.error("Error al cargar los archivos adjuntos");
+    }
+  };
+
   const handleTicketClick = async (ticket: SupportTicket) => {
     setSelectedTicket(ticket);
     await loadTicketComments(ticket.id);
+    await loadTicketAttachments(ticket.id);
   };
 
   const handleStatusChange = async (ticketId: string, newStatus: string) => {
@@ -313,6 +347,96 @@ export default function TicketsPage() {
     }
   };
 
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    const validFiles = files.filter((file) => {
+      const isImage = file.type.startsWith("image/");
+      const isVideo = file.type.startsWith("video/");
+      const maxSize = 50 * 1024 * 1024; // 50MB
+
+      if (!isImage && !isVideo) {
+        toast.error(`${file.name} no es un archivo válido. Solo se permiten imágenes y videos.`);
+        return false;
+      }
+
+      if (file.size > maxSize) {
+        toast.error(`${file.name} es demasiado grande. El tamaño máximo es 50MB.`);
+        return false;
+      }
+
+      return true;
+    });
+
+    setAttachments((prev) => [...prev, ...validFiles]);
+  };
+
+  const removeAttachment = (index: number) => {
+    setAttachments((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const uploadAttachments = async (ticketId: string, userId: string) => {
+    if (attachments.length === 0) return;
+
+    setUploadingAttachments(true);
+    const uploadedFiles: Array<{
+      file_name: string;
+      file_url: string;
+      file_type: string;
+      file_size: number;
+    }> = [];
+
+    try {
+      for (const file of attachments) {
+        const fileExt = file.name.split(".").pop();
+        const fileName = `${ticketId}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+        const filePath = `ticket-attachments/${fileName}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from("support-tickets")
+          .upload(filePath, file);
+
+        if (uploadError) {
+          console.error("Error uploading file:", uploadError);
+          toast.error(`Error al subir ${file.name}`);
+          continue;
+        }
+
+        const { data: urlData } = supabase.storage
+          .from("support-tickets")
+          .getPublicUrl(filePath);
+
+        uploadedFiles.push({
+          file_name: file.name,
+          file_url: urlData.publicUrl,
+          file_type: file.type,
+          file_size: file.size,
+        });
+      }
+
+      if (uploadedFiles.length > 0) {
+        const { error: insertError } = await supabase
+          .from("support_ticket_attachments")
+          .insert(
+            uploadedFiles.map((file) => ({
+              ticket_id: ticketId,
+              uploaded_by: userId,
+              ...file,
+            }))
+          );
+
+        if (insertError) {
+          console.error("Error saving attachments:", insertError);
+          toast.error("Error al guardar los archivos adjuntos");
+        }
+      }
+    } catch (error) {
+      console.error("Error in uploadAttachments:", error);
+      toast.error("Error al procesar los archivos");
+    } finally {
+      setUploadingAttachments(false);
+    }
+  };
+
   const handleCreateTicket = async () => {
     if (!newTicket.title || !newTicket.description || !newTicket.category) {
       toast.error("Por favor completa los campos requeridos");
@@ -333,7 +457,7 @@ export default function TicketsPage() {
         ? `${profile.first_name} ${profile.last_name}`.trim()
         : user.email?.split("@")[0] || "Admin";
 
-      const { error } = await supabase
+      const { data: ticketData, error } = await supabase
         .from("support_tickets")
         .insert({
           title: newTicket.title,
@@ -349,9 +473,16 @@ export default function TicketsPage() {
           expected_behavior: newTicket.expected_behavior || null,
           actual_behavior: newTicket.actual_behavior || null,
           status: "open",
-        });
+        })
+        .select()
+        .single();
 
       if (error) throw error;
+
+      // Subir archivos adjuntos si hay
+      if (attachments.length > 0 && ticketData) {
+        await uploadAttachments(ticketData.id, user.id);
+      }
 
       toast.success("Ticket creado correctamente");
       setShowNewTicketDialog(false);
@@ -366,6 +497,7 @@ export default function TicketsPage() {
         expected_behavior: "",
         actual_behavior: "",
       });
+      setAttachments([]);
       await loadTickets();
       await loadStats();
     } catch (error) {
@@ -779,6 +911,36 @@ export default function TicketsPage() {
                   </div>
                 )}
 
+                {/* Archivos adjuntos */}
+                {ticketAttachments.length > 0 && (
+                  <div className="border-t pt-4">
+                    <h4 className="font-semibold mb-4">Archivos Adjuntos</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {ticketAttachments.map((attachment) => (
+                        <a
+                          key={attachment.id}
+                          href={attachment.file_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-3 p-3 border rounded-lg hover:bg-accent/50 transition-colors"
+                        >
+                          {attachment.file_type.startsWith("image/") ? (
+                            <FileImage className="h-5 w-5 text-blue-500 flex-shrink-0" />
+                          ) : (
+                            <FileVideo className="h-5 w-5 text-purple-500 flex-shrink-0" />
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium truncate">{attachment.file_name}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {(attachment.file_size / 1024 / 1024).toFixed(2)} MB
+                            </p>
+                          </div>
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 {/* Comentarios */}
                 <div className="border-t pt-4">
                   <h4 className="font-semibold mb-4">Comentarios</h4>
@@ -981,6 +1143,63 @@ export default function TicketsPage() {
                   onChange={(e) => setNewTicket({ ...newTicket, actual_behavior: e.target.value })}
                 />
               </div>
+
+              {/* Archivos adjuntos */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Archivos adjuntos (opcional)</label>
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
+                  <input
+                    type="file"
+                    id="file-upload"
+                    multiple
+                    accept="image/*,video/*"
+                    onChange={handleFileSelect}
+                    className="hidden"
+                  />
+                  <label
+                    htmlFor="file-upload"
+                    className="flex flex-col items-center justify-center cursor-pointer"
+                  >
+                    <Upload className="h-8 w-8 text-gray-400 mb-2" />
+                    <span className="text-sm text-gray-600">
+                      Haz clic para subir imágenes o videos
+                    </span>
+                    <span className="text-xs text-gray-400 mt-1">
+                      Máximo 50MB por archivo
+                    </span>
+                  </label>
+
+                  {attachments.length > 0 && (
+                    <div className="mt-4 space-y-2">
+                      {attachments.map((file, index) => (
+                        <div
+                          key={index}
+                          className="flex items-center justify-between p-2 bg-gray-50 rounded-lg"
+                        >
+                          <div className="flex items-center gap-2">
+                            {file.type.startsWith("image/") ? (
+                              <FileImage className="h-4 w-4 text-blue-500" />
+                            ) : (
+                              <FileVideo className="h-4 w-4 text-purple-500" />
+                            )}
+                            <span className="text-sm truncate max-w-xs">{file.name}</span>
+                            <span className="text-xs text-gray-400">
+                              ({(file.size / 1024 / 1024).toFixed(2)} MB)
+                            </span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => removeAttachment(index)}
+                            className="text-red-500 hover:text-red-700"
+                          >
+                            <X className="h-4 w-4" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
 
             <div className="flex justify-end gap-2 pt-4 border-t">
@@ -999,15 +1218,16 @@ export default function TicketsPage() {
                     expected_behavior: "",
                     actual_behavior: "",
                   });
+                  setAttachments([]);
                 }}
               >
                 Cancelar
               </Button>
               <Button
                 onClick={handleCreateTicket}
-                disabled={!newTicket.title || !newTicket.description || !newTicket.category}
+                disabled={!newTicket.title || !newTicket.description || !newTicket.category || uploadingAttachments}
               >
-                Crear Ticket
+                {uploadingAttachments ? "Subiendo archivos..." : "Crear Ticket"}
               </Button>
             </div>
           </div>

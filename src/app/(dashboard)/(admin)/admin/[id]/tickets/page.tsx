@@ -30,6 +30,15 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
+  FullScreenDialog,
+  FullScreenDialogContent,
+  FullScreenDialogHeader,
+  FullScreenDialogBody,
+  FullScreenDialogTitle,
+  FullScreenDialogDescription,
+  FullScreenDialogClose,
+} from "@/components/ui/full-screen-dialog";
+import {
   Ticket,
   Search,
   AlertCircle,
@@ -1238,47 +1247,49 @@ export default function TicketsPage() {
       </Dialog>
 
       {/* Attachment Viewer Modal */}
-      <Dialog open={showAttachmentModal} onOpenChange={setShowAttachmentModal}>
-        <DialogContent className="max-w-[98vw] w-[98vw] h-[98vh] p-0 gap-0 overflow-hidden">
-          <DialogHeader className="p-3 border-b flex flex-row items-center justify-between space-y-0 bg-background">
-            <div className="flex-1">
-              <DialogTitle className="text-sm font-medium truncate">
+      <FullScreenDialog open={showAttachmentModal} onOpenChange={setShowAttachmentModal}>
+        <FullScreenDialogContent>
+          <FullScreenDialogHeader>
+            <div className="flex-1 min-w-0">
+              <FullScreenDialogTitle>
                 {selectedAttachment?.file_name}
-              </DialogTitle>
-              <DialogDescription className="text-xs">
+              </FullScreenDialogTitle>
+              <FullScreenDialogDescription>
                 {selectedAttachment && (
                   <span>
                     {(selectedAttachment.file_size / 1024 / 1024).toFixed(2)} MB
                   </span>
                 )}
-              </DialogDescription>
+              </FullScreenDialogDescription>
             </div>
-          </DialogHeader>
-          <div className="flex-1 overflow-hidden bg-black flex items-center justify-center">
+            <FullScreenDialogClose className="rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
+              <X className="h-4 w-4" />
+              <span className="sr-only">Close</span>
+            </FullScreenDialogClose>
+          </FullScreenDialogHeader>
+          <FullScreenDialogBody className="flex items-center justify-center p-4">
             {selectedAttachment && (
               <>
                 {selectedAttachment.file_type.startsWith("image/") ? (
                   <img
                     src={selectedAttachment.file_url}
                     alt={selectedAttachment.file_name}
-                    className="max-w-full max-h-full object-contain"
-                    style={{ maxHeight: 'calc(98vh - 60px)' }}
+                    className="w-full h-full object-contain"
                   />
                 ) : (
                   <video
                     src={selectedAttachment.file_url}
                     controls
-                    className="max-w-full max-h-full object-contain"
-                    style={{ maxHeight: 'calc(98vh - 60px)' }}
+                    className="w-full h-full object-contain"
                   >
                     Tu navegador no soporta el elemento de video.
                   </video>
                 )}
               </>
             )}
-          </div>
-        </DialogContent>
-      </Dialog>
+          </FullScreenDialogBody>
+        </FullScreenDialogContent>
+      </FullScreenDialog>
     </div>
   );
 }

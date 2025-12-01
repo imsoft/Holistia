@@ -1239,38 +1239,42 @@ export default function TicketsPage() {
 
       {/* Attachment Viewer Modal */}
       <Dialog open={showAttachmentModal} onOpenChange={setShowAttachmentModal}>
-        <DialogContent className="max-w-[90vw] max-h-[90vh] w-[75vw] h-[75vh] p-0">
-          <DialogHeader className="p-6 pb-4">
-            <DialogTitle>
-              {selectedAttachment?.file_name}
-            </DialogTitle>
-            <DialogDescription>
-              {selectedAttachment && (
-                <span>
-                  {(selectedAttachment.file_size / 1024 / 1024).toFixed(2)} MB
-                </span>
-              )}
-            </DialogDescription>
+        <DialogContent className="max-w-[95vw] max-h-[95vh] w-full h-full p-0 gap-0">
+          <DialogHeader className="p-4 border-b flex flex-row items-center justify-between space-y-0">
+            <div className="flex-1">
+              <DialogTitle className="text-base">
+                {selectedAttachment?.file_name}
+              </DialogTitle>
+              <DialogDescription className="text-xs">
+                {selectedAttachment && (
+                  <span>
+                    {(selectedAttachment.file_size / 1024 / 1024).toFixed(2)} MB
+                  </span>
+                )}
+              </DialogDescription>
+            </div>
           </DialogHeader>
-          <div className="flex-1 overflow-auto p-6 pt-0">
+          <div className="flex-1 overflow-hidden bg-black/95 flex items-center justify-center p-4">
             {selectedAttachment && (
-              <div className="flex items-center justify-center min-h-full">
+              <>
                 {selectedAttachment.file_type.startsWith("image/") ? (
                   <img
                     src={selectedAttachment.file_url}
                     alt={selectedAttachment.file_name}
-                    className="max-w-full max-h-full object-contain"
+                    className="w-full h-full object-contain"
+                    style={{ maxHeight: 'calc(95vh - 80px)' }}
                   />
                 ) : (
                   <video
                     src={selectedAttachment.file_url}
                     controls
-                    className="max-w-full max-h-full"
+                    className="w-full h-full object-contain"
+                    style={{ maxHeight: 'calc(95vh - 80px)' }}
                   >
                     Tu navegador no soporta el elemento de video.
                   </video>
                 )}
-              </div>
+              </>
             )}
           </div>
         </DialogContent>

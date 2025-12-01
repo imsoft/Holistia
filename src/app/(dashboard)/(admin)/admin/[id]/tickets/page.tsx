@@ -283,7 +283,8 @@ export default function TicketsPage() {
       if (error) throw error;
 
       toast.success("Estado actualizado correctamente");
-      loadTickets();
+      await loadTickets();
+      await loadStats();
 
       // Actualizar ticket seleccionado
       if (selectedTicket && selectedTicket.id === ticketId) {
@@ -305,7 +306,8 @@ export default function TicketsPage() {
       if (error) throw error;
 
       toast.success("Prioridad actualizada correctamente");
-      loadTickets();
+      await loadTickets();
+      await loadStats();
 
       // Actualizar ticket seleccionado
       if (selectedTicket && selectedTicket.id === ticketId) {

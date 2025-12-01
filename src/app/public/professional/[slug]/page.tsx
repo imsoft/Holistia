@@ -38,6 +38,7 @@ export default function PublicProfessionalPage({
   const [professional, setProfessional] = useState<Professional | null>(null);
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
 
   useEffect(() => {
     async function loadProfessional() {
@@ -48,6 +49,7 @@ export default function PublicProfessionalPage({
         data: { user },
       } = await supabase.auth.getUser();
       setIsAuthenticated(!!user);
+      setUserId(user?.id || null);
 
       // Extraer el ID del slug
       // El slug puede ser solo el UUID o un formato "nombre-apellido--uuid"
@@ -149,7 +151,6 @@ export default function PublicProfessionalPage({
             className="object-cover w-full h-full"
             priority
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
           <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8">
             <div className="container mx-auto max-w-6xl">
               <div className="flex items-center justify-between">
@@ -290,10 +291,10 @@ export default function PublicProfessionalPage({
                   </div>
                 )}
 
-                {isAuthenticated && (
+                {isAuthenticated && userId && (
                   <div className="space-y-4">
                     <Button asChild size="lg" className="w-full">
-                      <Link href={`/patient/${professional.id}/explore/professional/${slug}`}>
+                      <Link href={`/patient/${userId}/explore/professional/${slug}`}>
                         Ver perfil completo
                       </Link>
                     </Button>

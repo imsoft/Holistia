@@ -48,6 +48,7 @@ export default function PublicRestaurantPage({
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
   const { restaurantId } = params;
 
   useEffect(() => {
@@ -59,6 +60,7 @@ export default function PublicRestaurantPage({
         data: { user },
       } = await supabase.auth.getUser();
       setIsAuthenticated(!!user);
+      setUserId(user?.id || null);
 
       const { data: restaurantData, error } = await supabase
         .from("restaurants")
@@ -140,7 +142,6 @@ export default function PublicRestaurantPage({
             className="object-cover"
             priority
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
           <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8">
             <div className="container mx-auto">
               <div className="flex items-center justify-between">
@@ -347,10 +348,10 @@ export default function PublicRestaurantPage({
                   </div>
                 )}
 
-                {isAuthenticated && (
+                {isAuthenticated && userId && (
                   <div className="space-y-4">
                     <Button asChild size="lg" className="w-full">
-                      <Link href={`/patient/${restaurantId}/explore/restaurant/${restaurantId}`}>
+                      <Link href={`/patient/${userId}/explore/restaurant/${restaurantId}`}>
                         Ver detalles completos
                       </Link>
                     </Button>

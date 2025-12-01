@@ -1239,10 +1239,10 @@ export default function TicketsPage() {
 
       {/* Attachment Viewer Modal */}
       <Dialog open={showAttachmentModal} onOpenChange={setShowAttachmentModal}>
-        <DialogContent className="max-w-[95vw] max-h-[95vh] w-full h-full p-0 gap-0">
-          <DialogHeader className="p-4 border-b flex flex-row items-center justify-between space-y-0">
+        <DialogContent className="max-w-[98vw] w-[98vw] h-[98vh] p-0 gap-0 overflow-hidden">
+          <DialogHeader className="p-3 border-b flex flex-row items-center justify-between space-y-0 bg-background">
             <div className="flex-1">
-              <DialogTitle className="text-base">
+              <DialogTitle className="text-sm font-medium truncate">
                 {selectedAttachment?.file_name}
               </DialogTitle>
               <DialogDescription className="text-xs">
@@ -1254,22 +1254,22 @@ export default function TicketsPage() {
               </DialogDescription>
             </div>
           </DialogHeader>
-          <div className="flex-1 overflow-hidden bg-black/95 flex items-center justify-center p-4">
+          <div className="flex-1 overflow-hidden bg-black flex items-center justify-center">
             {selectedAttachment && (
               <>
                 {selectedAttachment.file_type.startsWith("image/") ? (
                   <img
                     src={selectedAttachment.file_url}
                     alt={selectedAttachment.file_name}
-                    className="w-full h-full object-contain"
-                    style={{ maxHeight: 'calc(95vh - 80px)' }}
+                    className="max-w-full max-h-full object-contain"
+                    style={{ maxHeight: 'calc(98vh - 60px)' }}
                   />
                 ) : (
                   <video
                     src={selectedAttachment.file_url}
                     controls
-                    className="w-full h-full object-contain"
-                    style={{ maxHeight: 'calc(95vh - 80px)' }}
+                    className="max-w-full max-h-full object-contain"
+                    style={{ maxHeight: 'calc(98vh - 60px)' }}
                   >
                     Tu navegador no soporta el elemento de video.
                   </video>

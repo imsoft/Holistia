@@ -32,15 +32,13 @@ import {
 import {
   Ticket,
   Search,
-  Filter,
   AlertCircle,
   CheckCircle,
   Clock,
   MessageSquare,
-  Paperclip,
   User,
   Calendar,
-  ArrowUpDown,
+  Plus,
 } from "lucide-react";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
@@ -106,6 +104,18 @@ export default function TicketsPage() {
   const [newComment, setNewComment] = useState("");
   const [isInternalComment, setIsInternalComment] = useState(false);
   const [loadingComments, setLoadingComments] = useState(false);
+  const [showNewTicketDialog, setShowNewTicketDialog] = useState(false);
+  const [newTicket, setNewTicket] = useState({
+    title: "",
+    description: "",
+    category: "",
+    priority: "medium" as "low" | "medium" | "high" | "urgent",
+    url: "",
+    environment: "",
+    steps_to_reproduce: "",
+    expected_behavior: "",
+    actual_behavior: "",
+  });
   const supabase = createClient();
 
   useEffect(() => {
@@ -303,6 +313,67 @@ export default function TicketsPage() {
     }
   };
 
+  const handleCreateTicket = async () => {
+    if (!newTicket.title || !newTicket.description || !newTicket.category) {
+      toast.error("Por favor completa los campos requeridos");
+      return;
+    }
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("No user found");
+
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("first_name, last_name, email")
+        .eq("id", user.id)
+        .single();
+
+      const reporterName = profile
+        ? `${profile.first_name} ${profile.last_name}`.trim()
+        : user.email?.split("@")[0] || "Admin";
+
+      const { error } = await supabase
+        .from("support_tickets")
+        .insert({
+          title: newTicket.title,
+          description: newTicket.description,
+          category: newTicket.category,
+          priority: newTicket.priority,
+          reporter_id: user.id,
+          reporter_email: user.email || "",
+          reporter_name: reporterName,
+          url: newTicket.url || null,
+          environment: newTicket.environment || null,
+          steps_to_reproduce: newTicket.steps_to_reproduce || null,
+          expected_behavior: newTicket.expected_behavior || null,
+          actual_behavior: newTicket.actual_behavior || null,
+          status: "open",
+        });
+
+      if (error) throw error;
+
+      toast.success("Ticket creado correctamente");
+      setShowNewTicketDialog(false);
+      setNewTicket({
+        title: "",
+        description: "",
+        category: "",
+        priority: "medium",
+        url: "",
+        environment: "",
+        steps_to_reproduce: "",
+        expected_behavior: "",
+        actual_behavior: "",
+      });
+      await loadTickets();
+      await loadStats();
+    } catch (error) {
+      console.error("Error creating ticket:", error);
+      toast.error("Error al crear el ticket");
+    }
+  };
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case "open":
@@ -406,6 +477,10 @@ export default function TicketsPage() {
               </p>
             </div>
           </div>
+          <Button onClick={() => setShowNewTicketDialog(true)} size="sm" className="sm:size-default">
+            <Plus className="h-4 w-4 mr-2" />
+            Nuevo Ticket
+          </Button>
         </div>
       </div>
 
@@ -414,7 +489,7 @@ export default function TicketsPage() {
         {/* Stats Cards */}
         {stats && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <Card>
+            <Card className="py-4">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Tickets Abiertos</CardTitle>
                 <AlertCircle className="h-4 w-4 text-blue-600" />
@@ -423,7 +498,7 @@ export default function TicketsPage() {
                 <div className="text-2xl font-bold">{stats.open_tickets}</div>
               </CardContent>
             </Card>
-            <Card>
+            <Card className="py-4">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">En Progreso</CardTitle>
                 <Clock className="h-4 w-4 text-yellow-600" />
@@ -432,7 +507,7 @@ export default function TicketsPage() {
                 <div className="text-2xl font-bold">{stats.in_progress_tickets}</div>
               </CardContent>
             </Card>
-            <Card>
+            <Card className="py-4">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Resueltos</CardTitle>
                 <CheckCircle className="h-4 w-4 text-green-600" />
@@ -441,7 +516,7 @@ export default function TicketsPage() {
                 <div className="text-2xl font-bold">{stats.resolved_tickets}</div>
               </CardContent>
             </Card>
-            <Card>
+            <Card className="py-4">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Urgentes</CardTitle>
                 <AlertCircle className="h-4 w-4 text-red-600" />
@@ -454,7 +529,7 @@ export default function TicketsPage() {
         )}
 
         {/* Filters */}
-        <Card>
+        <Card className="py-4">
           <CardHeader>
             <CardTitle>Filtros</CardTitle>
           </CardHeader>
@@ -499,7 +574,7 @@ export default function TicketsPage() {
         </Card>
 
         {/* Tickets Table */}
-        <Card>
+        <Card className="py-4">
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
@@ -776,6 +851,150 @@ export default function TicketsPage() {
               </div>
             </>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* New Ticket Dialog */}
+      <Dialog open={showNewTicketDialog} onOpenChange={setShowNewTicketDialog}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Crear Nuevo Ticket</DialogTitle>
+            <DialogDescription>
+              Reporta un bug o problema técnico en la plataforma
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 mt-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2 md:col-span-2">
+                <label className="text-sm font-medium">
+                  Título <span className="text-red-500">*</span>
+                </label>
+                <Input
+                  placeholder="Ej: Error al cargar la página de perfil"
+                  value={newTicket.title}
+                  onChange={(e) => setNewTicket({ ...newTicket, title: e.target.value })}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">
+                  Categoría <span className="text-red-500">*</span>
+                </label>
+                <Input
+                  placeholder="Ej: UI/UX, Backend, Base de datos"
+                  value={newTicket.category}
+                  onChange={(e) => setNewTicket({ ...newTicket, category: e.target.value })}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Prioridad</label>
+                <Select
+                  value={newTicket.priority}
+                  onValueChange={(value: any) => setNewTicket({ ...newTicket, priority: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="low">Baja</SelectItem>
+                    <SelectItem value="medium">Media</SelectItem>
+                    <SelectItem value="high">Alta</SelectItem>
+                    <SelectItem value="urgent">Urgente</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2 md:col-span-2">
+                <label className="text-sm font-medium">
+                  Descripción <span className="text-red-500">*</span>
+                </label>
+                <textarea
+                  className="w-full min-h-[100px] p-3 border rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-primary"
+                  placeholder="Describe el problema en detalle..."
+                  value={newTicket.description}
+                  onChange={(e) => setNewTicket({ ...newTicket, description: e.target.value })}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">URL (opcional)</label>
+                <Input
+                  placeholder="https://ejemplo.com/pagina"
+                  value={newTicket.url}
+                  onChange={(e) => setNewTicket({ ...newTicket, url: e.target.value })}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Entorno (opcional)</label>
+                <Input
+                  placeholder="Ej: Chrome 120, Windows 11"
+                  value={newTicket.environment}
+                  onChange={(e) => setNewTicket({ ...newTicket, environment: e.target.value })}
+                />
+              </div>
+
+              <div className="space-y-2 md:col-span-2">
+                <label className="text-sm font-medium">Pasos para reproducir (opcional)</label>
+                <textarea
+                  className="w-full min-h-[80px] p-3 border rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-primary"
+                  placeholder="1. Ir a la página X&#10;2. Hacer clic en el botón Y&#10;3. Observar el error"
+                  value={newTicket.steps_to_reproduce}
+                  onChange={(e) => setNewTicket({ ...newTicket, steps_to_reproduce: e.target.value })}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Comportamiento esperado (opcional)</label>
+                <textarea
+                  className="w-full min-h-[80px] p-3 border rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-primary"
+                  placeholder="Qué debería pasar..."
+                  value={newTicket.expected_behavior}
+                  onChange={(e) => setNewTicket({ ...newTicket, expected_behavior: e.target.value })}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Comportamiento actual (opcional)</label>
+                <textarea
+                  className="w-full min-h-[80px] p-3 border rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-primary"
+                  placeholder="Qué está pasando..."
+                  value={newTicket.actual_behavior}
+                  onChange={(e) => setNewTicket({ ...newTicket, actual_behavior: e.target.value })}
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-4 border-t">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setShowNewTicketDialog(false);
+                  setNewTicket({
+                    title: "",
+                    description: "",
+                    category: "",
+                    priority: "medium",
+                    url: "",
+                    environment: "",
+                    steps_to_reproduce: "",
+                    expected_behavior: "",
+                    actual_behavior: "",
+                  });
+                }}
+              >
+                Cancelar
+              </Button>
+              <Button
+                onClick={handleCreateTicket}
+                disabled={!newTicket.title || !newTicket.description || !newTicket.category}
+              >
+                Crear Ticket
+              </Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

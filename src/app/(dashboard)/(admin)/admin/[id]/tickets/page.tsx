@@ -133,6 +133,8 @@ export default function TicketsPage() {
   });
   const [attachments, setAttachments] = useState<File[]>([]);
   const [uploadingAttachments, setUploadingAttachments] = useState(false);
+  const [selectedAttachment, setSelectedAttachment] = useState<TicketAttachment | null>(null);
+  const [showAttachmentModal, setShowAttachmentModal] = useState(false);
   const supabase = createClient();
 
   useEffect(() => {
@@ -917,12 +919,13 @@ export default function TicketsPage() {
                     <h4 className="font-semibold mb-4">Archivos Adjuntos</h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       {ticketAttachments.map((attachment) => (
-                        <a
+                        <button
                           key={attachment.id}
-                          href={attachment.file_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-3 p-3 border rounded-lg hover:bg-accent/50 transition-colors"
+                          onClick={() => {
+                            setSelectedAttachment(attachment);
+                            setShowAttachmentModal(true);
+                          }}
+                          className="flex items-center gap-3 p-3 border rounded-lg hover:bg-accent/50 transition-colors text-left w-full"
                         >
                           {attachment.file_type.startsWith("image/") ? (
                             <FileImage className="h-5 w-5 text-blue-500 flex-shrink-0" />
@@ -935,7 +938,7 @@ export default function TicketsPage() {
                               {(attachment.file_size / 1024 / 1024).toFixed(2)} MB
                             </p>
                           </div>
-                        </a>
+                        </button>
                       ))}
                     </div>
                   </div>
@@ -1230,6 +1233,45 @@ export default function TicketsPage() {
                 {uploadingAttachments ? "Subiendo archivos..." : "Crear Ticket"}
               </Button>
             </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Attachment Viewer Modal */}
+      <Dialog open={showAttachmentModal} onOpenChange={setShowAttachmentModal}>
+        <DialogContent className="max-w-[90vw] max-h-[90vh] w-[75vw] h-[75vh] p-0">
+          <DialogHeader className="p-6 pb-4">
+            <DialogTitle>
+              {selectedAttachment?.file_name}
+            </DialogTitle>
+            <DialogDescription>
+              {selectedAttachment && (
+                <span>
+                  {(selectedAttachment.file_size / 1024 / 1024).toFixed(2)} MB
+                </span>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex-1 overflow-auto p-6 pt-0">
+            {selectedAttachment && (
+              <div className="flex items-center justify-center min-h-full">
+                {selectedAttachment.file_type.startsWith("image/") ? (
+                  <img
+                    src={selectedAttachment.file_url}
+                    alt={selectedAttachment.file_name}
+                    className="max-w-full max-h-full object-contain"
+                  />
+                ) : (
+                  <video
+                    src={selectedAttachment.file_url}
+                    controls
+                    className="max-w-full max-h-full"
+                  >
+                    Tu navegador no soporta el elemento de video.
+                  </video>
+                )}
+              </div>
+            )}
           </div>
         </DialogContent>
       </Dialog>

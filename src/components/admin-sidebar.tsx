@@ -19,6 +19,7 @@ import {
   UtensilsCrossed,
   Sparkles,
   Store,
+  Ticket,
 } from "lucide-react";
 import {
   Sidebar,
@@ -179,6 +180,11 @@ export function AdminSidebar() {
       title: "Comercios",
       url: `/admin/${userId}/shops`,
       icon: Store,
+    },
+    {
+      title: "Tickets de Soporte",
+      url: `/admin/${userId}/tickets`,
+      icon: Ticket,
     },
     {
       title: "Agente IA (Alpha)",

@@ -806,12 +806,12 @@ export default function TicketsPage() {
                       {getStatusIcon(selectedTicket.status)}
                       <span>{selectedTicket.title}</span>
                     </div>
-                    <div className="flex flex-wrap gap-2 mt-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2">
                       <Select
                         value={selectedTicket.status}
                         onValueChange={(value) => handleStatusChange(selectedTicket.id, value)}
                       >
-                        <SelectTrigger className="w-[180px]">
+                        <SelectTrigger className="w-full">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -826,7 +826,7 @@ export default function TicketsPage() {
                         value={selectedTicket.priority}
                         onValueChange={(value) => handlePriorityChange(selectedTicket.id, value)}
                       >
-                        <SelectTrigger className="w-[140px]">
+                        <SelectTrigger className="w-full">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>

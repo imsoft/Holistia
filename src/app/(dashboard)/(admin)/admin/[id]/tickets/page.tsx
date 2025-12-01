@@ -52,6 +52,7 @@ import {
   X,
   FileImage,
   FileVideo,
+  Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
@@ -450,6 +451,62 @@ export default function TicketsPage() {
     }
   };
 
+  const handleDeleteTicket = async (ticketId: string) => {
+    if (!confirm("¿Estás seguro de que deseas eliminar este ticket? Esta acción no se puede deshacer.")) {
+      return;
+    }
+
+    try {
+      // 1. Obtener todos los archivos adjuntos del ticket
+      const { data: attachments, error: fetchError } = await supabase
+        .from("support_ticket_attachments")
+        .select("file_url")
+        .eq("ticket_id", ticketId);
+
+      if (fetchError) throw fetchError;
+
+      // 2. Eliminar archivos del storage
+      if (attachments && attachments.length > 0) {
+        const filePaths = attachments.map((attachment) => {
+          // Extraer la ruta del archivo desde la URL pública
+          const url = new URL(attachment.file_url);
+          const pathParts = url.pathname.split("/");
+          const bucketIndex = pathParts.findIndex((part) => part === "support-tickets");
+          if (bucketIndex !== -1) {
+            return pathParts.slice(bucketIndex + 1).join("/");
+          }
+          return null;
+        }).filter((path): path is string => path !== null);
+
+        if (filePaths.length > 0) {
+          const { error: storageError } = await supabase.storage
+            .from("support-tickets")
+            .remove(filePaths);
+
+          if (storageError) {
+            console.error("Error deleting files from storage:", storageError);
+          }
+        }
+      }
+
+      // 3. Eliminar el ticket (esto eliminará automáticamente comentarios y attachments por CASCADE)
+      const { error: deleteError } = await supabase
+        .from("support_tickets")
+        .delete()
+        .eq("id", ticketId);
+
+      if (deleteError) throw deleteError;
+
+      toast.success("Ticket eliminado correctamente");
+      setSelectedTicket(null);
+      await loadTickets();
+      await loadStats();
+    } catch (error) {
+      console.error("Error deleting ticket:", error);
+      toast.error("Error al eliminar el ticket");
+    }
+  };
+
   const handleCreateTicket = async () => {
     if (!newTicket.title || !newTicket.description || !newTicket.category) {
       toast.error("Por favor completa los campos requeridos");
@@ -840,6 +897,14 @@ export default function TicketsPage() {
                       </Select>
                     </div>
                   </div>
+                  <Button
+                    variant="destructive"
+                    size="icon"
+                    onClick={() => handleDeleteTicket(selectedTicket.id)}
+                    className="shrink-0"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
                 </DialogTitle>
                 <DialogDescription>
                   <div className="space-y-3 text-sm">

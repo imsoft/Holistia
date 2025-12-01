@@ -865,8 +865,8 @@ export default function TicketsPage() {
           </DialogHeader>
 
           <div className="space-y-4 mt-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2 md:col-span-2">
+            <div className="grid grid-cols-1 gap-4">
+              <div className="space-y-2">
                 <label className="text-sm font-medium">
                   Título <span className="text-red-500">*</span>
                 </label>
@@ -881,11 +881,27 @@ export default function TicketsPage() {
                 <label className="text-sm font-medium">
                   Categoría <span className="text-red-500">*</span>
                 </label>
-                <Input
-                  placeholder="Ej: UI/UX, Backend, Base de datos"
+                <Select
                   value={newTicket.category}
-                  onChange={(e) => setNewTicket({ ...newTicket, category: e.target.value })}
-                />
+                  onValueChange={(value) => setNewTicket({ ...newTicket, category: value })}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Selecciona una categoría" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="UI/UX">UI/UX</SelectItem>
+                    <SelectItem value="Frontend">Frontend</SelectItem>
+                    <SelectItem value="Backend">Backend</SelectItem>
+                    <SelectItem value="Base de datos">Base de datos</SelectItem>
+                    <SelectItem value="API">API</SelectItem>
+                    <SelectItem value="Autenticación">Autenticación</SelectItem>
+                    <SelectItem value="Rendimiento">Rendimiento</SelectItem>
+                    <SelectItem value="Seguridad">Seguridad</SelectItem>
+                    <SelectItem value="Pagos">Pagos</SelectItem>
+                    <SelectItem value="Email/Notificaciones">Email/Notificaciones</SelectItem>
+                    <SelectItem value="Otro">Otro</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="space-y-2">
@@ -894,7 +910,7 @@ export default function TicketsPage() {
                   value={newTicket.priority}
                   onValueChange={(value: any) => setNewTicket({ ...newTicket, priority: value })}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="w-full">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -906,7 +922,7 @@ export default function TicketsPage() {
                 </Select>
               </div>
 
-              <div className="space-y-2 md:col-span-2">
+              <div className="space-y-2">
                 <label className="text-sm font-medium">
                   Descripción <span className="text-red-500">*</span>
                 </label>
@@ -936,7 +952,7 @@ export default function TicketsPage() {
                 />
               </div>
 
-              <div className="space-y-2 md:col-span-2">
+              <div className="space-y-2">
                 <label className="text-sm font-medium">Pasos para reproducir (opcional)</label>
                 <textarea
                   className="w-full min-h-[80px] p-3 border rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-primary"

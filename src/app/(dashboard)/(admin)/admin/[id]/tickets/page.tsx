@@ -901,7 +901,7 @@ export default function TicketsPage() {
                     variant="destructive"
                     size="icon"
                     onClick={() => handleDeleteTicket(selectedTicket.id)}
-                    className="shrink-0"
+                    className="shrink-0 self-start"
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>

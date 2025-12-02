@@ -42,6 +42,7 @@ export default function PublicProfessionalPage({
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
+  const [professionalId, setProfessionalId] = useState<string>("");
   const [activeTab, setActiveTab] = useState<'about' | 'certifications' | 'highlights'>('about');
 
   useEffect(() => {
@@ -56,6 +57,7 @@ export default function PublicProfessionalPage({
 
       const uuidMatch = slug.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i);
       const id = uuidMatch ? uuidMatch[0] : slug;
+      setProfessionalId(id);
 
       const { data, error } = await supabase
         .from("professional_applications")
@@ -264,7 +266,7 @@ export default function PublicProfessionalPage({
                     size="lg"
                     className="w-full bg-purple-600 hover:bg-purple-700 text-white sm:col-span-2"
                   >
-                    <Link href={`/patient/${userId}/explore/professional/${slug}`}>
+                    <Link href={`/patient/${userId}/explore/professional/${professionalId}`}>
                       <Calendar className="w-5 h-5 mr-2" />
                       Agendar Cita
                     </Link>

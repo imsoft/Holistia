@@ -450,9 +450,9 @@ const HomeUserPage = () => {
           </div>
         </div>
 
-        <div className="space-y-12">
+        <div className="space-y-12 relative">
           {/* Sección de Eventos y Talleres */}
-          <div>
+          <div className="relative z-0">
             <div className="flex items-center justify-between mb-6">
               <Link 
                 href={`/patient/${userId}/explore/events`}
@@ -496,7 +496,8 @@ const HomeUserPage = () => {
 
                 <div
                   ref={eventsScrollRef}
-                  className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar justify-center"
+                  className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar"
+                  style={{ scrollPaddingLeft: '1rem', scrollPaddingRight: '1rem' }}
                 >
                   {filteredEvents.map((event) => (
                     <Link 
@@ -563,7 +564,7 @@ const HomeUserPage = () => {
           </div>
 
           {/* Sección de Expertos */}
-          <div>
+          <div className="relative z-10">
             <div className="flex items-center justify-between mb-6">
               <Link 
                 href={`/patient/${userId}/explore/professionals`}
@@ -608,6 +609,7 @@ const HomeUserPage = () => {
                 <div
                   ref={professionalsScrollRef}
                   className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar"
+                  style={{ scrollPaddingLeft: '1rem', scrollPaddingRight: '1rem' }}
                 >
                   {filteredProfessionals.map((professional) => (
                     <div key={professional.id} className="flex-shrink-0 w-96">

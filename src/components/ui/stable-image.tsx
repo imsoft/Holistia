@@ -71,8 +71,12 @@ export function StableImage({
     );
   }
 
+  const containerClass = fill 
+    ? `relative ${className}`
+    : className;
+
   return (
-    <>
+    <div className={containerClass}>
       {isLoading && (
         <div className="absolute inset-0 bg-gradient-to-br from-gray-50 to-gray-100 animate-pulse flex items-center justify-center z-10">
           <div className="w-8 h-8 border-2 border-gray-300 border-t-primary rounded-full animate-spin"></div>
@@ -83,8 +87,13 @@ export function StableImage({
         src={imageSrc}
         alt={alt}
         {...imageProps}
-        className={className}
-        style={{
+        className={fill ? "object-cover" : className}
+        style={fill ? {
+          objectFit,
+          objectPosition,
+          opacity: isLoading ? 0 : 1,
+          transition: 'opacity 200ms'
+        } : {
           objectFit,
           objectPosition,
           opacity: isLoading ? 0 : 1,
@@ -94,6 +103,6 @@ export function StableImage({
         onLoad={handleImageLoad}
         priority={priority}
       />
-    </>
+    </div>
   );
 }

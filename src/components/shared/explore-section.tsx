@@ -18,6 +18,7 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
+import { stripHtml } from "@/lib/text-utils";
 
 interface Professional {
   id: string;
@@ -438,7 +439,23 @@ export function ExploreSection({ hideHeader = false }: ExploreSectionProps) {
             >
               {shops.map((shop) => {
                 // Obtener la imagen principal: primero image_url, luego gallery[0], luego null
-                const mainImage = shop.image_url || (shop.gallery && shop.gallery.length > 0 ? shop.gallery[0] : null);
+                // Verificar si gallery es un array o string
+                let galleryArray: string[] = [];
+                if (Array.isArray(shop.gallery)) {
+                  galleryArray = shop.gallery;
+                } else if (typeof shop.gallery === 'string') {
+                  try {
+                    galleryArray = JSON.parse(shop.gallery);
+                  } catch (e) {
+                    // Si no es JSON válido, tratar como string único
+                    galleryArray = shop.gallery ? [shop.gallery] : [];
+                  }
+                }
+                
+                const mainImage = shop.image_url || (galleryArray && galleryArray.length > 0 ? galleryArray[0] : null);
+                
+                // Limpiar HTML de la descripción
+                const cleanDescription = shop.description ? stripHtml(shop.description) : null;
                 
                 return (
                   <Card key={shop.id} className="flex-shrink-0 w-[280px] sm:w-[320px] h-[520px] flex flex-col overflow-hidden hover:shadow-lg transition-shadow">
@@ -472,9 +489,9 @@ export function ExploreSection({ hideHeader = false }: ExploreSectionProps) {
                     </CardHeader>
                     <CardContent className="flex-1 flex flex-col justify-end pt-0 pb-4">
                       <div className="flex-1 flex flex-col gap-2 mb-4 min-h-0">
-                        {shop.description && (
+                        {cleanDescription && (
                           <p className="text-sm text-muted-foreground line-clamp-2">
-                            {shop.description}
+                            {cleanDescription}
                           </p>
                         )}
                         {shop.address && (

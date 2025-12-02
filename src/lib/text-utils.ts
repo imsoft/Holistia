@@ -2,6 +2,31 @@
  * Normaliza texto a formato "Título de Oración"
  * Convierte la primera letra de cada palabra en mayúscula y el resto en minúsculas
  */
+/**
+ * Removes HTML tags from a string and returns plain text
+ * Works in both server and client environments
+ */
+export function stripHtml(html: string): string {
+  if (!html) return '';
+  
+  // Remove HTML tags using regex (works in both server and client)
+  let text = html
+    .replace(/<[^>]*>/g, '') // Remove HTML tags
+    .replace(/&nbsp;/g, ' ') // Replace &nbsp; with space
+    .replace(/&amp;/g, '&') // Replace &amp; with &
+    .replace(/&lt;/g, '<') // Replace &lt; with <
+    .replace(/&gt;/g, '>') // Replace &gt; with >
+    .replace(/&quot;/g, '"') // Replace &quot; with "
+    .replace(/&#39;/g, "'") // Replace &#39; with '
+    .replace(/&apos;/g, "'") // Replace &apos; with '
+    .trim();
+  
+  // Clean up multiple spaces
+  text = text.replace(/\s+/g, ' ');
+  
+  return text;
+}
+
 export function toTitleCase(text: string): string {
   if (!text || typeof text !== 'string') return '';
   

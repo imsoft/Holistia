@@ -26,18 +26,25 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get professional
+    // Get professional by ID first
     const { data: professional, error: professionalError } = await supabase
       .from('professional_applications')
       .select('*')
       .eq('id', professional_id)
-      .eq('user_id', user.id)
       .single();
 
     if (professionalError || !professional) {
       return NextResponse.json(
         { error: 'Profesional no encontrado' },
         { status: 404 }
+      );
+    }
+
+    // Verify that the professional belongs to the authenticated user
+    if (professional.user_id !== user.id) {
+      return NextResponse.json(
+        { error: 'No tienes permiso para acceder a este profesional' },
+        { status: 403 }
       );
     }
 

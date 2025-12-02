@@ -2,15 +2,12 @@
 
 import { useEffect, useState, use } from "react";
 import { createClient } from "@/utils/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import Image from "next/image";
 import {
   Star,
   Award,
-  Share2,
   CheckCircle2,
   Calendar,
 } from "lucide-react";
@@ -31,6 +28,10 @@ interface Professional {
   total_reviews: number;
 }
 
+function classNames(...classes: string[]) {
+  return classes.filter(Boolean).join(" ");
+}
+
 export default function PublicProfessionalPage({
   params,
 }: {
@@ -41,21 +42,18 @@ export default function PublicProfessionalPage({
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'about' | 'certifications' | 'highlights'>('about');
 
   useEffect(() => {
     async function loadProfessional() {
       const supabase = createClient();
 
-      // Verificar si el usuario está autenticado
       const {
         data: { user },
       } = await supabase.auth.getUser();
       setIsAuthenticated(!!user);
       setUserId(user?.id || null);
 
-      // Extraer el ID del slug
-      // El slug puede ser solo el UUID o un formato "nombre-apellido--uuid"
-      // Los UUIDs tienen formato: 8-4-4-4-12 caracteres hexadecimales
       const uuidMatch = slug.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i);
       const id = uuidMatch ? uuidMatch[0] : slug;
 
@@ -86,7 +84,6 @@ export default function PublicProfessionalPage({
         return;
       }
 
-      // Obtener calificaciones
       const { data: reviewStats } = await supabase
         .from("review_stats")
         .select("average_rating, total_reviews")
@@ -118,10 +115,10 @@ export default function PublicProfessionalPage({
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-600 via-purple-500 to-blue-500">
+      <div className="min-h-screen flex items-center justify-center bg-white">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto"></div>
-          <p className="mt-4 text-white">Cargando...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto"></div>
+          <p className="mt-4 text-gray-500">Cargando...</p>
         </div>
       </div>
     );
@@ -129,10 +126,10 @@ export default function PublicProfessionalPage({
 
   if (!professional) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-600 via-purple-500 to-blue-500">
-        <div className="text-center text-white">
-          <p className="text-xl font-semibold">Profesional no encontrado</p>
-          <Link href="/" className="text-white/90 hover:underline mt-4 inline-block">
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <div className="text-center">
+          <p className="text-xl font-semibold text-gray-900">Profesional no encontrado</p>
+          <Link href="/" className="text-purple-600 hover:text-purple-700 mt-4 inline-block">
             Volver al inicio
           </Link>
         </div>
@@ -140,283 +137,334 @@ export default function PublicProfessionalPage({
     );
   }
 
+  const highlights = [
+    professional.experience && `${professional.experience} de experiencia profesional`,
+    professional.certifications.length > 0 && `${professional.certifications.length} certificación${professional.certifications.length !== 1 ? 'es' : ''} verificada${professional.certifications.length !== 1 ? 's' : ''}`,
+    professional.average_rating > 0 && `Calificación de ${professional.average_rating.toFixed(1)} estrellas`,
+  ].filter(Boolean) as string[];
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Hero Section con gradiente moderno */}
-      <div className="relative bg-gradient-to-br from-purple-600 via-purple-500 to-blue-500 text-white">
-        <div className="container mx-auto px-4 py-16 md:py-24 max-w-6xl">
-          <div className="grid md:grid-cols-3 gap-8 items-start">
-            {/* Información principal */}
-            <div className="md:col-span-2">
-              <div className="flex items-start gap-6">
-                {/* Foto de perfil */}
-                {professional.profile_photo && (
-                  <div className="relative w-32 h-32 md:w-40 md:h-40 rounded-full overflow-hidden ring-4 ring-white/20 flex-shrink-0">
-                    <Image
-                      src={professional.profile_photo}
-                      alt={`${professional.first_name} ${professional.last_name}`}
-                      width={160}
-                      height={160}
-                      className="object-cover w-full h-full"
-                      priority
-                    />
+    <div className="bg-white">
+      <main className="mx-auto px-4 pt-14 pb-24 sm:px-6 sm:pt-16 sm:pb-32 lg:max-w-7xl lg:px-8">
+        {/* Product */}
+        <div className="lg:grid lg:grid-cols-7 lg:grid-rows-1 lg:gap-x-8 lg:gap-y-10 xl:gap-x-16">
+          {/* Product image */}
+          <div className="lg:col-span-4 lg:row-end-1">
+            {professional.profile_photo ? (
+              <div className="aspect-[4/3] w-full overflow-hidden rounded-lg bg-gray-100">
+                <Image
+                  alt={`${professional.first_name} ${professional.last_name}`}
+                  src={professional.profile_photo}
+                  width={800}
+                  height={600}
+                  className="h-full w-full object-cover object-center"
+                  priority
+                />
+              </div>
+            ) : (
+              <div className="aspect-[4/3] w-full rounded-lg bg-gradient-to-br from-purple-100 to-blue-100 flex items-center justify-center">
+                <div className="text-center">
+                  <div className="w-32 h-32 rounded-full bg-white/50 mx-auto mb-4 flex items-center justify-center">
+                    <span className="text-6xl font-bold text-purple-600">
+                      {professional.first_name[0]}{professional.last_name[0]}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Product details */}
+          <div className="mx-auto mt-14 max-w-2xl sm:mt-16 lg:col-span-3 lg:row-span-2 lg:row-end-2 lg:mt-0 lg:max-w-none">
+            <div className="flex flex-col-reverse">
+              <div className="mt-4">
+                <h1 className="text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl">
+                  {professional.first_name} {professional.last_name}
+                </h1>
+
+                <h2 id="information-heading" className="sr-only">
+                  Información del profesional
+                </h2>
+                {professional.profession && (
+                  <p className="mt-2 text-lg text-gray-500">
+                    {professional.profession}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <h3 className="sr-only">Reseñas</h3>
+                {professional.average_rating > 0 && (
+                  <div className="flex items-center">
+                    {[0, 1, 2, 3, 4].map((rating) => (
+                      <Star
+                        key={rating}
+                        aria-hidden="true"
+                        className={classNames(
+                          professional.average_rating > rating ? "fill-yellow-400 text-yellow-400" : "text-gray-300",
+                          "h-5 w-5 shrink-0"
+                        )}
+                      />
+                    ))}
+                    <p className="ml-3 text-sm text-gray-700">
+                      {professional.average_rating.toFixed(1)} de 5 estrellas
+                    </p>
+                    <p className="ml-2 text-sm text-gray-500">
+                      ({professional.total_reviews} reseñas)
+                    </p>
                   </div>
                 )}
-
-                <div className="flex-1 pt-2">
-                  <h1 className="text-3xl md:text-5xl font-bold mb-3">
-                    {professional.first_name} {professional.last_name}
-                  </h1>
-                  {professional.profession && (
-                    <p className="text-xl md:text-2xl text-white/90 mb-4">
-                      {professional.profession}
-                    </p>
-                  )}
-
-                  {/* Calificación */}
-                  {professional.average_rating > 0 && (
-                    <div className="flex items-center gap-2 mb-4">
-                      <div className="flex items-center gap-1 bg-white/20 rounded-full px-3 py-1.5 backdrop-blur-sm">
-                        <Star className="w-5 h-5 fill-yellow-300 text-yellow-300" />
-                        <span className="font-semibold text-lg">
-                          {professional.average_rating.toFixed(1)}
-                        </span>
-                      </div>
-                      <span className="text-white/80">
-                        ({professional.total_reviews} reseñas)
-                      </span>
-                    </div>
-                  )}
-
-                  {/* Experiencia */}
-                  {professional.experience && (
-                    <div className="flex items-center gap-2 mb-4">
-                      <Award className="w-5 h-5 text-white/80" />
-                      <span className="text-white/90">{professional.experience} de experiencia</span>
-                    </div>
-                  )}
-
-                  {/* Especialidades */}
-                  {professional.specializations && professional.specializations.length > 0 && (
-                    <div className="flex flex-wrap gap-2 mt-4">
-                      {professional.specializations.slice(0, 4).map((spec, index) => (
-                        <Badge
-                          key={index}
-                          className="bg-white/20 hover:bg-white/30 text-white border-white/30 backdrop-blur-sm"
-                        >
-                          {spec}
-                        </Badge>
-                      ))}
-                    </div>
-                  )}
-                </div>
               </div>
             </div>
 
-            {/* Card de acción - Sidebar en hero */}
-            <div className="md:col-span-1">
-              <Card className="shadow-2xl border-0">
-                <CardContent className="p-6 space-y-4">
-                  {!isAuthenticated ? (
-                    <>
-                      <div className="text-center mb-4">
-                        <Calendar className="w-12 h-12 text-purple-600 mx-auto mb-3" />
-                        <h3 className="font-semibold text-lg mb-2">Agenda tu cita</h3>
-                        <p className="text-sm text-muted-foreground">
-                          Inicia sesión para agendar
-                        </p>
-                      </div>
-                      <Button asChild size="lg" className="w-full bg-purple-600 hover:bg-purple-700">
-                        <Link href="/signup">Registrarse</Link>
-                      </Button>
-                      <Button asChild variant="outline" size="lg" className="w-full">
-                        <Link href="/login">Iniciar sesión</Link>
-                      </Button>
-                    </>
-                  ) : (
-                    <>
-                      <div className="text-center mb-4">
-                        <Calendar className="w-12 h-12 text-purple-600 mx-auto mb-3" />
-                        <h3 className="font-semibold text-lg">Reserva tu cita</h3>
-                      </div>
-                      <Button asChild size="lg" className="w-full bg-purple-600 hover:bg-purple-700">
-                        <Link href={`/patient/${userId}/explore/professional/${slug}`}>
-                          Ver perfil completo
-                        </Link>
-                      </Button>
-                      <p className="text-xs text-muted-foreground text-center">
-                        Accede para ver servicios y horarios
-                      </p>
-                    </>
-                  )}
-
-                  <Separator />
-
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={handleShare}
-                    className="w-full"
-                  >
-                    <Share2 className="w-4 h-4 mr-2" />
-                    Compartir perfil
-                  </Button>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Contenido principal */}
-      <div className="container mx-auto px-4 py-12 max-w-6xl">
-        <div className="grid gap-8 lg:grid-cols-3">
-          {/* Columna principal */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Acerca de */}
-            {professional.biography && (
-              <Card className="shadow-lg border-0">
-                <CardHeader>
-                  <CardTitle className="text-2xl">Acerca de mí</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div
-                    className="text-muted-foreground leading-relaxed prose prose-sm max-w-none prose-headings:text-foreground prose-p:text-muted-foreground prose-a:text-primary prose-strong:text-foreground"
-                    dangerouslySetInnerHTML={{ __html: professional.biography }}
-                  />
-                </CardContent>
-              </Card>
+            {/* Especialidades */}
+            {professional.specializations && professional.specializations.length > 0 && (
+              <div className="mt-6">
+                <div className="flex flex-wrap gap-2">
+                  {professional.specializations.map((spec, index) => (
+                    <Badge
+                      key={index}
+                      variant="secondary"
+                      className="bg-purple-100 text-purple-700 hover:bg-purple-200 px-3 py-1"
+                    >
+                      {spec}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
             )}
 
-            {/* Certificaciones */}
-            {professional.certifications && professional.certifications.length > 0 && (
-              <Card className="shadow-lg border-0">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-2xl">
-                    <Award className="w-6 h-6 text-purple-600" />
-                    Certificaciones y Formación
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ul className="space-y-3">
-                    {professional.certifications.map((cert, index) => (
-                      <li
-                        key={index}
-                        className="flex items-start gap-3 p-4 rounded-lg bg-purple-50/50 hover:bg-purple-50 transition-colors border border-purple-100"
-                      >
-                        <CheckCircle2 className="w-5 h-5 text-purple-600 mt-0.5 flex-shrink-0" />
-                        <span className="text-foreground font-medium">{cert}</span>
+            {/* Action buttons */}
+            <div className="mt-10 grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
+              {!isAuthenticated ? (
+                <>
+                  <Button
+                    asChild
+                    size="lg"
+                    className="w-full bg-purple-600 hover:bg-purple-700 text-white"
+                  >
+                    <Link href="/signup">
+                      <Calendar className="w-5 h-5 mr-2" />
+                      Registrarse
+                    </Link>
+                  </Button>
+                  <Button
+                    asChild
+                    variant="outline"
+                    size="lg"
+                    className="w-full border-purple-600 text-purple-600 hover:bg-purple-50"
+                  >
+                    <Link href="/login">Iniciar sesión</Link>
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button
+                    asChild
+                    size="lg"
+                    className="w-full bg-purple-600 hover:bg-purple-700 text-white sm:col-span-2"
+                  >
+                    <Link href={`/patient/${userId}/explore/professional/${slug}`}>
+                      <Calendar className="w-5 h-5 mr-2" />
+                      Agendar Cita
+                    </Link>
+                  </Button>
+                </>
+              )}
+            </div>
+
+            {/* Highlights */}
+            {highlights.length > 0 && (
+              <div className="mt-10 border-t border-gray-200 pt-10">
+                <h3 className="text-sm font-medium text-gray-900">Destacados</h3>
+                <div className="mt-4">
+                  <ul role="list" className="list-disc space-y-2 pl-5 text-sm text-gray-500 marker:text-purple-300">
+                    {highlights.map((highlight, index) => (
+                      <li key={index} className="pl-2">
+                        <span className="text-gray-700">{highlight}</span>
                       </li>
                     ))}
                   </ul>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             )}
 
-            {/* Destacados */}
-            <Card className="shadow-lg border-0">
-              <CardHeader>
-                <CardTitle className="text-2xl">Puntos Destacados</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-4">
-                  {professional.experience && (
-                    <li className="flex items-start gap-3">
-                      <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center flex-shrink-0">
-                        <Award className="w-5 h-5 text-purple-600" />
-                      </div>
-                      <div>
-                        <h4 className="font-semibold mb-1">Experiencia Profesional</h4>
-                        <p className="text-muted-foreground">{professional.experience}</p>
-                      </div>
-                    </li>
-                  )}
-
-                  {professional.average_rating > 0 && (
-                    <li className="flex items-start gap-3">
-                      <div className="w-10 h-10 rounded-full bg-yellow-100 flex items-center justify-center flex-shrink-0">
-                        <Star className="w-5 h-5 text-yellow-600" />
-                      </div>
-                      <div>
-                        <h4 className="font-semibold mb-1">Excelente Calificación</h4>
-                        <p className="text-muted-foreground">
-                          {professional.average_rating.toFixed(1)} estrellas basado en {professional.total_reviews} reseñas
-                        </p>
-                      </div>
-                    </li>
-                  )}
-
-                  {professional.certifications && professional.certifications.length > 0 && (
-                    <li className="flex items-start gap-3">
-                      <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
-                        <CheckCircle2 className="w-5 h-5 text-blue-600" />
-                      </div>
-                      <div>
-                        <h4 className="font-semibold mb-1">Certificado y Verificado</h4>
-                        <p className="text-muted-foreground">
-                          {professional.certifications.length} certificación{professional.certifications.length !== 1 ? 'es' : ''} profesional{professional.certifications.length !== 1 ? 'es' : ''}
-                        </p>
-                      </div>
-                    </li>
-                  )}
-                </ul>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Sidebar */}
-          <div className="lg:col-span-1 space-y-6">
-            {/* Especialidades */}
-            {professional.specializations && professional.specializations.length > 0 && (
-              <Card className="shadow-lg border-0">
-                <CardHeader>
-                  <CardTitle className="text-lg">Especialidades</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex flex-wrap gap-2">
-                    {professional.specializations.map((spec, index) => (
-                      <Badge
-                        key={index}
-                        variant="secondary"
-                        className="bg-purple-100 text-purple-700 hover:bg-purple-200"
-                      >
-                        {spec}
-                      </Badge>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Info adicional */}
-            <Card className="shadow-lg border-0 bg-gradient-to-br from-purple-50 to-blue-50">
-              <CardHeader>
-                <CardTitle className="text-lg">¿Por qué elegirme?</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
+            {/* Por qué elegirme */}
+            <div className="mt-10 border-t border-gray-200 pt-10">
+              <h3 className="text-sm font-medium text-gray-900">¿Por qué elegirme?</h3>
+              <div className="mt-4 space-y-3">
                 <div className="flex items-start gap-3">
-                  <CheckCircle2 className="w-5 h-5 text-purple-600 flex-shrink-0 mt-0.5" />
-                  <p className="text-sm text-muted-foreground">
+                  <CheckCircle2 className="w-5 h-5 text-purple-600 shrink-0 mt-0.5" />
+                  <p className="text-sm text-gray-500">
                     Profesional verificado y certificado
                   </p>
                 </div>
                 <div className="flex items-start gap-3">
-                  <CheckCircle2 className="w-5 h-5 text-purple-600 flex-shrink-0 mt-0.5" />
-                  <p className="text-sm text-muted-foreground">
+                  <CheckCircle2 className="w-5 h-5 text-purple-600 shrink-0 mt-0.5" />
+                  <p className="text-sm text-gray-500">
                     Atención personalizada y profesional
                   </p>
                 </div>
                 <div className="flex items-start gap-3">
-                  <CheckCircle2 className="w-5 h-5 text-purple-600 flex-shrink-0 mt-0.5" />
-                  <p className="text-sm text-muted-foreground">
+                  <CheckCircle2 className="w-5 h-5 text-purple-600 shrink-0 mt-0.5" />
+                  <p className="text-sm text-gray-500">
                     Reserva fácil y flexible
                   </p>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
+
+            {/* Share */}
+            <div className="mt-10 border-t border-gray-200 pt-10">
+              <h3 className="text-sm font-medium text-gray-900">Compartir perfil</h3>
+              <div className="mt-4">
+                <Button
+                  onClick={handleShare}
+                  variant="outline"
+                  size="sm"
+                  className="w-full sm:w-auto"
+                >
+                  Copiar enlace
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          {/* Tabs section */}
+          <div className="mx-auto mt-16 w-full max-w-2xl lg:col-span-4 lg:mt-0 lg:max-w-none">
+            <div className="border-b border-gray-200">
+              <div className="-mb-px flex space-x-8">
+                <button
+                  onClick={() => setActiveTab('about')}
+                  className={classNames(
+                    activeTab === 'about'
+                      ? "border-purple-600 text-purple-600"
+                      : "border-transparent text-gray-700 hover:border-gray-300 hover:text-gray-800",
+                    "whitespace-nowrap border-b-2 py-6 text-sm font-medium"
+                  )}
+                >
+                  Acerca de mí
+                </button>
+                {professional.certifications && professional.certifications.length > 0 && (
+                  <button
+                    onClick={() => setActiveTab('certifications')}
+                    className={classNames(
+                      activeTab === 'certifications'
+                        ? "border-purple-600 text-purple-600"
+                        : "border-transparent text-gray-700 hover:border-gray-300 hover:text-gray-800",
+                      "whitespace-nowrap border-b-2 py-6 text-sm font-medium"
+                    )}
+                  >
+                    Certificaciones
+                  </button>
+                )}
+                <button
+                  onClick={() => setActiveTab('highlights')}
+                  className={classNames(
+                    activeTab === 'highlights'
+                      ? "border-purple-600 text-purple-600"
+                      : "border-transparent text-gray-700 hover:border-gray-300 hover:text-gray-800",
+                    "whitespace-nowrap border-b-2 py-6 text-sm font-medium"
+                  )}
+                >
+                  Información
+                </button>
+              </div>
+            </div>
+
+            {/* Tab panels */}
+            <div className="mt-10">
+              {activeTab === 'about' && professional.biography && (
+                <div className="text-sm text-gray-500">
+                  <div
+                    className="prose prose-sm max-w-none prose-headings:text-gray-900 prose-p:text-gray-500 prose-a:text-purple-600 prose-strong:text-gray-900"
+                    dangerouslySetInnerHTML={{ __html: professional.biography }}
+                  />
+                </div>
+              )}
+
+              {activeTab === 'certifications' && professional.certifications && professional.certifications.length > 0 && (
+                <div>
+                  <h3 className="sr-only">Certificaciones</h3>
+                  <ul role="list" className="space-y-4">
+                    {professional.certifications.map((cert, index) => (
+                      <li
+                        key={index}
+                        className="flex items-start gap-4 p-4 rounded-lg bg-gray-50 border border-gray-200 hover:bg-gray-100 transition-colors"
+                      >
+                        <div className="shrink-0">
+                          <Award className="h-6 w-6 text-purple-600" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-gray-900">{cert}</p>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {activeTab === 'highlights' && (
+                <div className="space-y-6">
+                  {professional.experience && (
+                    <div className="flex items-start gap-4">
+                      <div className="h-10 w-10 shrink-0 rounded-full bg-purple-100 flex items-center justify-center">
+                        <Award className="h-5 w-5 text-purple-600" />
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-medium text-gray-900">Experiencia Profesional</h4>
+                        <p className="mt-1 text-sm text-gray-500">{professional.experience}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {professional.average_rating > 0 && (
+                    <div className="flex items-start gap-4">
+                      <div className="h-10 w-10 shrink-0 rounded-full bg-yellow-100 flex items-center justify-center">
+                        <Star className="h-5 w-5 text-yellow-600" />
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-medium text-gray-900">Excelente Calificación</h4>
+                        <p className="mt-1 text-sm text-gray-500">
+                          {professional.average_rating.toFixed(1)} estrellas basado en {professional.total_reviews} reseñas
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {professional.certifications && professional.certifications.length > 0 && (
+                    <div className="flex items-start gap-4">
+                      <div className="h-10 w-10 shrink-0 rounded-full bg-blue-100 flex items-center justify-center">
+                        <CheckCircle2 className="h-5 w-5 text-blue-600" />
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-medium text-gray-900">Certificado y Verificado</h4>
+                        <p className="mt-1 text-sm text-gray-500">
+                          {professional.certifications.length} certificación{professional.certifications.length !== 1 ? 'es' : ''} profesional{professional.certifications.length !== 1 ? 'es' : ''}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {professional.specializations && professional.specializations.length > 0 && (
+                    <div className="flex items-start gap-4">
+                      <div className="h-10 w-10 shrink-0 rounded-full bg-green-100 flex items-center justify-center">
+                        <CheckCircle2 className="h-5 w-5 text-green-600" />
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-medium text-gray-900">Especialidades</h4>
+                        <p className="mt-1 text-sm text-gray-500">
+                          {professional.specializations.join(", ")}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 }

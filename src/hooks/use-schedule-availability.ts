@@ -161,6 +161,7 @@ export function useScheduleAvailability(professionalId: string) {
       // Consulta para obtener TODOS los bloqueos del profesional
       // NO filtramos por fechas en SQL porque los bloqueos recurrentes deben incluirse siempre
       // El filtrado por fechas se hace en JavaScript después
+      // Incluimos bloqueos externos de Google Calendar (is_external_event = true)
       const { data, error } = await supabase
         .from('availability_blocks')
         .select('*')
@@ -413,9 +414,20 @@ export function useScheduleAvailability(professionalId: string) {
         console.log('📅 Bloqueo de día completo aplica:', applies);
         return applies;
       } else if (block.block_type === 'time_range') {
-        // Bloqueo de rango de tiempo (legacy)
+        // Bloqueo de rango de tiempo (legacy o de Google Calendar)
+        // Verificar si es un bloqueo externo de Google Calendar
+        const blockData = block as any;
+        const isGoogleCalendarBlock = blockData.is_external_event === true && 
+                                      blockData.external_event_source === 'google_calendar';
+        
         const applies = isInDateRange;
-        console.log('⏰ Bloqueo de rango de tiempo aplica (fecha):', applies);
+        console.log('⏰ Bloqueo de rango de tiempo aplica (fecha):', {
+          applies,
+          isGoogleCalendarBlock,
+          blockTitle: block.title,
+          start_time: block.start_time,
+          end_time: block.end_time
+        });
         return applies;
       }
       
@@ -448,31 +460,41 @@ export function useScheduleAvailability(professionalId: string) {
       else if (appointmentTimes.has(timeString)) {
         status = 'occupied';
       }
-      // Verificar si está bloqueado por rango de horas
+      // Verificar si está bloqueado por rango de horas (incluyendo eventos de Google Calendar)
       else if (dayBlocks.some(block => {
+        const blockData = block as any;
+        const isGoogleCalendarBlock = blockData.is_external_event === true && 
+                                      blockData.external_event_source === 'google_calendar';
+        
         if (block.block_type === 'time_range' && block.start_time && block.end_time) {
           const blockStart = block.start_time;
           const blockEnd = block.end_time;
           const isBlocked = timeString >= blockStart && timeString < blockEnd;
-          console.log('⏰ Verificando bloqueo de tiempo (legacy):', {
-            timeString,
-            blockStart,
-            blockEnd,
-            isBlocked,
-            blockId: block.id
-          });
+          if (isBlocked) {
+            console.log('⏰ Horario bloqueado:', {
+              timeString,
+              blockStart,
+              blockEnd,
+              blockId: block.id,
+              isGoogleCalendarBlock,
+              blockTitle: block.title
+            });
+          }
           return isBlocked;
         } else if (block.block_type === 'weekly_range' && block.start_time && block.end_time) {
           const blockStart = block.start_time;
           const blockEnd = block.end_time;
           const isBlocked = timeString >= blockStart && timeString < blockEnd;
-          console.log('⏰ Verificando bloqueo semanal de tiempo:', {
-            timeString,
-            blockStart,
-            blockEnd,
-            isBlocked,
-            blockId: block.id
-          });
+          if (isBlocked) {
+            console.log('⏰ Horario bloqueado (semanal):', {
+              timeString,
+              blockStart,
+              blockEnd,
+              blockId: block.id,
+              isGoogleCalendarBlock,
+              blockTitle: block.title
+            });
+          }
           return isBlocked;
         }
         return false;

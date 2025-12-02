@@ -116,6 +116,45 @@ export async function GET(request: NextRequest) {
 }
 
 // También permitir POST para compatibilidad con diferentes servicios de cron
+// Si se envía un userId en el body, sincroniza solo ese profesional
 export async function POST(request: NextRequest) {
-  return GET(request);
+  try {
+    const body = await request.json().catch(() => ({}));
+    const { userId } = body;
+    
+    // Si se especifica un userId, sincronizar solo ese profesional
+    if (userId) {
+      console.log(`🔄 Syncing Google Calendar for specific user ${userId}`);
+      const result = await syncGoogleCalendarEvents(userId);
+      
+      if (result.success) {
+        return NextResponse.json({
+          success: true,
+          message: result.message || 'Google Calendar sincronizado correctamente',
+          created: result.created || 0,
+          deleted: result.deleted || 0
+        });
+      } else {
+        return NextResponse.json(
+          {
+            success: false,
+            error: result.error || 'Error al sincronizar Google Calendar'
+          },
+          { status: 400 }
+        );
+      }
+    }
+    
+    // Si no se especifica userId, usar la lógica del GET (sincronizar todos)
+    return GET(request);
+  } catch (error) {
+    console.error('Error in Google Calendar sync POST:', error);
+    return NextResponse.json(
+      {
+        error: 'Error al procesar la solicitud',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      },
+      { status: 500 }
+    );
+  }
 }

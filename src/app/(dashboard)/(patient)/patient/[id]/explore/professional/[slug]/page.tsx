@@ -404,6 +404,41 @@ export default function ProfessionalProfilePage() {
     };
 
     getData();
+    
+    // Sincronizar Google Calendar del profesional para asegurar que los eventos estén actualizados
+    const syncGoogleCalendar = async () => {
+      try {
+        // Obtener el user_id del profesional
+        const { data: professionalData } = await supabase
+          .from('professional_applications')
+          .select('user_id')
+          .eq('id', professionalId)
+          .single();
+        
+        if (professionalData?.user_id) {
+          // Llamar a la API para sincronizar Google Calendar
+          const response = await fetch('/api/cron/sync-google-calendar', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ userId: professionalData.user_id }),
+          });
+          
+          if (response.ok) {
+            console.log('✅ Google Calendar sincronizado para el profesional');
+          } else {
+            console.log('⚠️ No se pudo sincronizar Google Calendar (puede que no esté conectado)');
+          }
+        }
+      } catch (error) {
+        // No mostrar error al usuario, solo loguear
+        console.log('⚠️ Error al sincronizar Google Calendar:', error);
+      }
+    };
+    
+    // Sincronizar en segundo plano sin bloquear la carga
+    syncGoogleCalendar();
   }, [professionalId, patientId, supabase]);
 
   // No establecer fecha inicial - el usuario debe seleccionar una fecha primero

@@ -38,8 +38,11 @@ interface Shop {
   id: string;
   name: string;
   image_url: string | null;
+  gallery: string[] | null;
   category: string | null;
   city: string | null;
+  description: string | null;
+  address: string | null;
 }
 
 interface Restaurant {
@@ -144,7 +147,7 @@ export function ExploreSection({ hideHeader = false }: ExploreSectionProps) {
         // Cargar comercios (6 para el carousel)
         const { data: shopsData, error: shopsError } = await supabase
           .from("shops")
-          .select("id, name, image_url, category, city")
+          .select("id, name, image_url, gallery, category, city, description, address")
           .eq("is_active", true)
           .order("created_at", { ascending: false })
           .limit(6);
@@ -433,45 +436,63 @@ export function ExploreSection({ hideHeader = false }: ExploreSectionProps) {
                 WebkitOverflowScrolling: 'touch'
               }}
             >
-              {shops.map((shop) => (
-                <Card key={shop.id} className="flex-shrink-0 w-[280px] sm:w-[320px] h-[520px] flex flex-col overflow-hidden hover:shadow-lg transition-shadow">
-                  <div className="relative w-full h-48 flex-shrink-0">
-                    {shop.image_url ? (
-                      <StableImage
-                        src={shop.image_url}
-                        alt={shop.name}
-                        fill
-                        className="object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center">
-                        <Store className="h-16 w-16 text-primary/40" />
-                      </div>
-                    )}
-                  </div>
-                  <CardHeader className="pb-4">
-                    <CardTitle className="text-lg line-clamp-2">{shop.name}</CardTitle>
-                    <div className="flex flex-wrap gap-2 mt-2">
-                      {shop.category && (
-                        <Badge variant="secondary" className="text-xs">{shop.category}</Badge>
-                      )}
-                      {shop.city && (
-                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                          <MapPin className="w-3 h-3" />
-                          {shop.city}
+              {shops.map((shop) => {
+                // Obtener la imagen principal: primero image_url, luego gallery[0], luego null
+                const mainImage = shop.image_url || (shop.gallery && shop.gallery.length > 0 ? shop.gallery[0] : null);
+                
+                return (
+                  <Card key={shop.id} className="flex-shrink-0 w-[280px] sm:w-[320px] h-[520px] flex flex-col overflow-hidden hover:shadow-lg transition-shadow">
+                    <div className="relative w-full h-48 flex-shrink-0">
+                      {mainImage ? (
+                        <StableImage
+                          src={mainImage}
+                          alt={shop.name}
+                          fill
+                          className="object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center">
+                          <Store className="h-16 w-16 text-primary/40" />
                         </div>
                       )}
                     </div>
-                  </CardHeader>
-                  <CardContent className="flex-1 flex flex-col justify-end pt-0 pb-4">
-                    <Button variant="default" size="sm" className="w-full" asChild>
-                      <Link href={`/public/shop/${shop.id}`}>
-                        Ver comercio
-                      </Link>
-                    </Button>
-                  </CardContent>
-                </Card>
-              ))}
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-lg line-clamp-2">{shop.name}</CardTitle>
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {shop.category && (
+                          <Badge variant="secondary" className="text-xs">{shop.category}</Badge>
+                        )}
+                        {shop.city && (
+                          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                            <MapPin className="w-3 h-3 flex-shrink-0" />
+                            <span>{shop.city}</span>
+                          </div>
+                        )}
+                      </div>
+                    </CardHeader>
+                    <CardContent className="flex-1 flex flex-col justify-end pt-0 pb-4">
+                      <div className="flex-1 flex flex-col gap-2 mb-4 min-h-0">
+                        {shop.description && (
+                          <p className="text-sm text-muted-foreground line-clamp-2">
+                            {shop.description}
+                          </p>
+                        )}
+                        {shop.address && (
+                          <div className="flex items-start gap-1 text-xs text-muted-foreground">
+                            <MapPin className="w-3 h-3 flex-shrink-0 mt-0.5" />
+                            <span className="line-clamp-1">{shop.address}</span>
+                          </div>
+                        )}
+                      </div>
+                      <Button variant="default" size="sm" className="w-full mt-auto" asChild>
+                        <Link href={`/public/shop/${shop.id}`}>
+                          Ver comercio
+                        </Link>
+                      </Button>
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </div>
           </div>
         )}

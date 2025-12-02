@@ -739,6 +739,159 @@ export async function deleteBlockFromGoogleCalendar(
 }
 
 /**
+ * Actualizar un bloqueo de disponibilidad en Google Calendar
+ */
+export async function updateBlockInGoogleCalendar(
+  blockId: string,
+  userId: string
+) {
+  try {
+    const supabase = await createClient();
+
+    // Obtener datos del bloqueo actualizado
+    const { data: block, error: blockError } = await supabase
+      .from('availability_blocks')
+      .select('*, professional_id')
+      .eq('id', blockId)
+      .single();
+
+    if (blockError || !block) {
+      return {
+        success: false,
+        error: 'No se pudo obtener el bloqueo',
+      };
+    }
+
+    // Verificar que el usuario es el profesional de este bloqueo
+    const { data: professional, error: profError } = await supabase
+      .from('professional_applications')
+      .select('user_id')
+      .eq('id', block.professional_id)
+      .single();
+
+    if (profError || !professional || professional.user_id !== userId) {
+      return {
+        success: false,
+        error: 'No tienes permiso para actualizar este evento',
+      };
+    }
+
+    // Si no tiene evento de Google Calendar, crear uno nuevo
+    if (!block.google_calendar_event_id) {
+      return await createBlockInGoogleCalendar(blockId, userId);
+    }
+
+    // Obtener tokens de Google
+    let accessToken: string;
+    let refreshToken: string;
+    try {
+      const tokens = await getUserGoogleTokens(userId);
+      accessToken = tokens.accessToken;
+      refreshToken = tokens.refreshToken;
+    } catch (tokenError) {
+      const errorMessage = tokenError instanceof Error ? tokenError.message : 'Error al obtener tokens de Google Calendar';
+      return {
+        success: false,
+        error: errorMessage,
+      };
+    }
+
+    // Construir el evento actualizado según el tipo de bloqueo
+    let eventUpdate: Partial<GoogleCalendarEvent>;
+
+    if (block.block_type === 'full_day' || block.block_type === 'weekly_day') {
+      // Bloqueo de día completo
+      const startDate = new Date(block.start_date);
+      const endDate = block.end_date ? new Date(block.end_date) : startDate;
+
+      // Agregar un día a la fecha final porque Google Calendar usa fechas exclusivas
+      endDate.setDate(endDate.getDate() + 1);
+
+      eventUpdate = {
+        summary: block.title || 'Bloqueado',
+        description: `Bloqueo de disponibilidad en Holistia${block.is_recurring ? ' (Recurrente)' : ''}`,
+        start: {
+          date: startDate.toISOString().split('T')[0],
+          timeZone: 'America/Mexico_City',
+        },
+        end: {
+          date: endDate.toISOString().split('T')[0],
+          timeZone: 'America/Mexico_City',
+        },
+        transparency: 'opaque',
+        colorId: '11',
+      };
+
+      // Para bloqueos recurrentes por día de semana
+      if (block.is_recurring && block.day_of_week) {
+        const daysOfWeek = ['SU', 'MO', 'TU', 'WE', 'TH', 'FR', 'SA'];
+        const dayIndex = block.day_of_week === 7 ? 0 : block.day_of_week;
+        eventUpdate.recurrence = [
+          `RRULE:FREQ=WEEKLY;BYDAY=${daysOfWeek[dayIndex]}`
+        ];
+      } else {
+        eventUpdate.recurrence = undefined; // Eliminar recurrencia si no es recurrente
+      }
+    } else {
+      // Bloqueo de rango de horas
+      const startDateTime = new Date(`${block.start_date}T${block.start_time}`);
+      const endDateTime = new Date(`${block.start_date}T${block.end_time}`);
+
+      eventUpdate = {
+        summary: block.title || 'Bloqueado',
+        description: `Bloqueo de disponibilidad en Holistia${block.is_recurring ? ' (Recurrente)' : ''}`,
+        start: {
+          dateTime: startDateTime.toISOString(),
+          timeZone: 'America/Mexico_City',
+        },
+        end: {
+          dateTime: endDateTime.toISOString(),
+          timeZone: 'America/Mexico_City',
+        },
+        transparency: 'opaque',
+        colorId: '11',
+      };
+
+      // Para bloqueos recurrentes de rango de horas
+      if (block.is_recurring && block.block_type === 'weekly_range') {
+        const daysOfWeek = ['SU', 'MO', 'TU', 'WE', 'TH', 'FR', 'SA'];
+        const startDate = new Date(block.start_date);
+        const endDate = block.end_date ? new Date(block.end_date) : startDate;
+        const startDayIndex = startDate.getDay();
+        const endDayIndex = endDate.getDay();
+
+        const days = [];
+        for (let i = startDayIndex; i <= endDayIndex; i++) {
+          days.push(daysOfWeek[i]);
+        }
+
+        eventUpdate.recurrence = [
+          `RRULE:FREQ=WEEKLY;BYDAY=${days.join(',')}`
+        ];
+      } else {
+        eventUpdate.recurrence = undefined; // Eliminar recurrencia si no es recurrente
+      }
+    }
+
+    // Actualizar evento en Google Calendar
+    const result = await updateCalendarEvent(
+      accessToken,
+      refreshToken,
+      block.google_calendar_event_id,
+      eventUpdate
+    );
+
+    return result;
+  } catch (error: unknown) {
+    console.error('Error updating block in Google Calendar:', error);
+    return {
+      success: false,
+      error: (error instanceof Error ? error.message : String(error)),
+    };
+  }
+}
+
+/**
  * Sincronizar todos los bloqueos actuales con Google Calendar
  */
 export async function syncAllBlocksToGoogleCalendar(userId: string) {

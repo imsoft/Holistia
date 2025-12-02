@@ -2,31 +2,27 @@
 
 import { useEffect, useState, use } from "react";
 import { createClient } from "@/utils/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import {
   MapPin,
   Clock,
   Calendar,
   Users,
-  Share2,
   User,
   Car,
-  X,
-  ChevronLeft,
-  ChevronRight,
+  CheckCircle2,
+  CalendarCheck,
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { toast } from "sonner";
-import {
-  Dialog,
-  DialogContent,
-} from "@/components/ui/dialog";
 import { EventWorkshop } from "@/types/event";
 import { formatEventDate, formatEventTime } from "@/utils/date-utils";
+
+function classNames(...classes: string[]) {
+  return classes.filter(Boolean).join(" ");
+}
 
 export default function PublicEventPage({
   params,
@@ -44,20 +40,17 @@ export default function PublicEventPage({
   } | null>(null);
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isGalleryOpen, setIsGalleryOpen] = useState(false);
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [activeTab, setActiveTab] = useState<'about' | 'details' | 'instructor'>('about');
 
   useEffect(() => {
     async function loadEvent() {
       const supabase = createClient();
 
-      // Verificar si el usuario está autenticado
       const {
         data: { user },
       } = await supabase.auth.getUser();
       setIsAuthenticated(!!user);
 
-      // Obtener detalles del evento
       const { data: eventData, error: eventError } = await supabase
         .from("events_workshops")
         .select("*")
@@ -74,7 +67,6 @@ export default function PublicEventPage({
 
       setEvent(eventData);
 
-      // Si hay un profesional asignado, obtener sus datos
       if (eventData?.professional_id) {
         const { data: professionalData, error: professionalError } = await supabase
           .from("professional_applications")
@@ -127,37 +119,12 @@ export default function PublicEventPage({
     return levels[level as keyof typeof levels] || level;
   };
 
-  const openGallery = (index: number) => {
-    setCurrentImageIndex(index);
-    setIsGalleryOpen(true);
-  };
-
-  const closeGallery = () => {
-    setIsGalleryOpen(false);
-  };
-
-  const nextImage = () => {
-    if (event?.gallery_images) {
-      setCurrentImageIndex((prev) =>
-        prev === event.gallery_images!.length - 1 ? 0 : prev + 1
-      );
-    }
-  };
-
-  const prevImage = () => {
-    if (event?.gallery_images) {
-      setCurrentImageIndex((prev) =>
-        prev === 0 ? event.gallery_images!.length - 1 : prev - 1
-      );
-    }
-  };
-
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-white">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-4 text-muted-foreground">Cargando...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto"></div>
+          <p className="mt-4 text-gray-500">Cargando...</p>
         </div>
       </div>
     );
@@ -165,10 +132,10 @@ export default function PublicEventPage({
 
   if (!event) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-white">
         <div className="text-center">
-          <p className="text-xl font-semibold">Evento no encontrado</p>
-          <Link href="/" className="text-primary hover:underline mt-4 inline-block">
+          <p className="text-xl font-semibold text-gray-900">Evento no encontrado</p>
+          <Link href="/" className="text-purple-600 hover:text-purple-700 mt-4 inline-block">
             Volver al inicio
           </Link>
         </div>
@@ -176,325 +143,333 @@ export default function PublicEventPage({
     );
   }
 
+  const highlights = [
+    `${formatEventDate(event.event_date)} a las ${formatEventTime(event.event_time)}`,
+    `${event.max_capacity} personas máximo`,
+    `Duración: ${event.duration_hours} horas`,
+    event.has_parking && 'Estacionamiento disponible',
+  ].filter(Boolean) as string[];
+
   return (
-    <div className="min-h-screen bg-background">
-      {/* Hero Section con imagen de portada */}
-      {(event.gallery_images?.[0] || event.image_url) && (
-        <div className="relative h-64 md:h-96 w-full overflow-hidden">
-          <Image
-            src={event.gallery_images?.[0] || event.image_url || ""}
-            alt={event.name}
-            width={5760}
-            height={3240}
-            className="object-cover w-full h-full"
-            style={{
-              objectPosition: event.image_position || 'center center'
-            }}
-            priority
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
-          <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8">
-            <div className="container mx-auto max-w-6xl">
-              <div className="flex items-center justify-between">
-                <h1 className="text-3xl md:text-4xl font-bold text-foreground drop-shadow-lg">
+    <div className="bg-white">
+      <main className="mx-auto px-4 pt-14 pb-24 sm:px-6 sm:pt-16 sm:pb-32 lg:max-w-7xl lg:px-8">
+        <div className="lg:grid lg:grid-cols-7 lg:grid-rows-1 lg:gap-x-8 lg:gap-y-10 xl:gap-x-16">
+          {/* Event image */}
+          <div className="lg:col-span-4 lg:row-end-1">
+            {(event.gallery_images?.[0] || event.image_url) ? (
+              <div className="aspect-[4/3] w-full overflow-hidden rounded-lg bg-gray-100">
+                <Image
+                  alt={event.name}
+                  src={event.gallery_images?.[0] || event.image_url || ""}
+                  width={800}
+                  height={600}
+                  className="h-full w-full object-cover object-center"
+                  style={{
+                    objectPosition: event.image_position || 'center center'
+                  }}
+                  priority
+                />
+              </div>
+            ) : (
+              <div className="aspect-[4/3] w-full rounded-lg bg-gradient-to-br from-purple-100 to-blue-100 flex items-center justify-center">
+                <div className="text-center">
+                  <div className="w-32 h-32 rounded-full bg-white/50 mx-auto mb-4 flex items-center justify-center">
+                    <CalendarCheck className="w-16 h-16 text-purple-600" />
+                  </div>
+                  <p className="text-xl font-semibold text-purple-900">{event.name}</p>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Event details */}
+          <div className="mx-auto mt-14 max-w-2xl sm:mt-16 lg:col-span-3 lg:row-span-2 lg:row-end-2 lg:mt-0 lg:max-w-none">
+            <div className="flex flex-col-reverse">
+              <div className="mt-4">
+                <h1 className="text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl">
                   {event.name}
                 </h1>
-                <Button variant="secondary" size="sm" onClick={handleShare} className="shadow-lg">
-                  <Share2 className="w-4 h-4 mr-2" />
-                  Compartir
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
-      <div className="container mx-auto px-4 py-8 max-w-6xl">
-        <div className="grid gap-8 lg:grid-cols-3">
-          {/* Contenido principal */}
-          <div className="lg:col-span-2 space-y-8">
-            {/* Información del evento */}
-            <Card className="shadow-lg py-4">
-              <CardHeader>
-                <div className="flex flex-wrap gap-2 mb-4">
-                  <Badge variant="secondary">
+                <h2 id="information-heading" className="sr-only">
+                  Información del evento
+                </h2>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <Badge className="bg-purple-100 text-purple-700 hover:bg-purple-200">
                     {getCategoryLabel(event.category)}
                   </Badge>
                   <Badge variant={event.is_free ? "default" : "outline"}>
-                    {event.is_free ? "Gratuito" : `$${event.price}`}
+                    {event.is_free ? "Gratuito" : `$${event.price} MXN`}
                   </Badge>
                   <Badge variant="outline">
                     {event.session_type === 'unique' ? 'Evento único' : 'Evento recurrente'}
                   </Badge>
                 </div>
-                {(!event.gallery_images?.[0] && !event.image_url) && (
-                  <CardTitle className="text-3xl md:text-4xl font-bold">
-                    {event.name}
-                  </CardTitle>
-                )}
-              </CardHeader>
-              <CardContent className="space-y-6">
-                {/* Descripción */}
-                {event.description && (
-                  <div>
-                    <h3 className="text-lg font-semibold mb-3">Descripción</h3>
-                    <div
-                      className="text-muted-foreground leading-relaxed prose prose-sm max-w-none prose-headings:text-foreground prose-p:text-muted-foreground prose-a:text-primary prose-strong:text-foreground"
-                      dangerouslySetInnerHTML={{ __html: event.description }}
-                    />
-                  </div>
-                )}
+              </div>
+            </div>
 
-                <Separator />
+            {/* Action buttons */}
+            <div className="mt-10 grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
+              {!isAuthenticated ? (
+                <>
+                  <Button
+                    asChild
+                    size="lg"
+                    className="w-full bg-purple-600 hover:bg-purple-700 text-white"
+                  >
+                    <Link href="/signup">
+                      <Calendar className="w-5 h-5 mr-2" />
+                      Registrarse
+                    </Link>
+                  </Button>
+                  <Button
+                    asChild
+                    variant="outline"
+                    size="lg"
+                    className="w-full border-purple-600 text-purple-600 hover:bg-purple-50"
+                  >
+                    <Link href="/login">Iniciar sesión</Link>
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button
+                    asChild
+                    size="lg"
+                    className="w-full bg-purple-600 hover:bg-purple-700 text-white sm:col-span-2"
+                  >
+                    <Link href={`/patient/${event.id}/explore/event/${event.id}`}>
+                      <Calendar className="w-5 h-5 mr-2" />
+                      Registrarme en el evento
+                    </Link>
+                  </Button>
+                </>
+              )}
+            </div>
 
-                {/* Detalles del evento */}
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="flex items-center gap-3">
-                    <Calendar className="w-5 h-5 text-primary flex-shrink-0" />
+            {/* Highlights */}
+            {highlights.length > 0 && (
+              <div className="mt-10 border-t border-gray-200 pt-10">
+                <h3 className="text-sm font-medium text-gray-900">Información destacada</h3>
+                <div className="mt-4">
+                  <ul role="list" className="list-disc space-y-2 pl-5 text-sm text-gray-500 marker:text-purple-300">
+                    {highlights.map((highlight, index) => (
+                      <li key={index} className="pl-2">
+                        <span className="text-gray-700">{highlight}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            )}
+
+            {/* Precio */}
+            <div className="mt-10 border-t border-gray-200 pt-10">
+              <h3 className="text-sm font-medium text-gray-900">Precio</h3>
+              <div className="mt-4">
+                <p className="text-2xl font-bold text-purple-600">
+                  {event.is_free ? "Gratuito" : `$${event.price} MXN`}
+                </p>
+                <p className="mt-1 text-sm text-gray-500">
+                  {event.is_free ? "Evento sin costo" : "Costo por persona"}
+                </p>
+              </div>
+            </div>
+
+            {/* Share */}
+            <div className="mt-10 border-t border-gray-200 pt-10">
+              <h3 className="text-sm font-medium text-gray-900">Compartir evento</h3>
+              <div className="mt-4">
+                <Button
+                  onClick={handleShare}
+                  variant="outline"
+                  size="sm"
+                  className="w-full sm:w-auto"
+                >
+                  Copiar enlace
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          {/* Tabs section */}
+          <div className="mx-auto mt-16 w-full max-w-2xl lg:col-span-4 lg:mt-0 lg:max-w-none">
+            <div className="border-b border-gray-200">
+              <div className="-mb-px flex space-x-8">
+                <button
+                  onClick={() => setActiveTab('about')}
+                  className={classNames(
+                    activeTab === 'about'
+                      ? "border-purple-600 text-purple-600"
+                      : "border-transparent text-gray-700 hover:border-gray-300 hover:text-gray-800",
+                    "whitespace-nowrap border-b-2 py-6 text-sm font-medium"
+                  )}
+                >
+                  Descripción
+                </button>
+                <button
+                  onClick={() => setActiveTab('details')}
+                  className={classNames(
+                    activeTab === 'details'
+                      ? "border-purple-600 text-purple-600"
+                      : "border-transparent text-gray-700 hover:border-gray-300 hover:text-gray-800",
+                    "whitespace-nowrap border-b-2 py-6 text-sm font-medium"
+                  )}
+                >
+                  Detalles
+                </button>
+                {professional && (
+                  <button
+                    onClick={() => setActiveTab('instructor')}
+                    className={classNames(
+                      activeTab === 'instructor'
+                        ? "border-purple-600 text-purple-600"
+                        : "border-transparent text-gray-700 hover:border-gray-300 hover:text-gray-800",
+                      "whitespace-nowrap border-b-2 py-6 text-sm font-medium"
+                    )}
+                  >
+                    Instructor
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Tab panels */}
+            <div className="mt-10">
+              {activeTab === 'about' && event.description && (
+                <div className="text-sm text-gray-500">
+                  <div
+                    className="prose prose-sm max-w-none prose-headings:text-gray-900 prose-p:text-gray-500 prose-a:text-purple-600 prose-strong:text-gray-900"
+                    dangerouslySetInnerHTML={{ __html: event.description }}
+                  />
+                </div>
+              )}
+
+              {activeTab === 'details' && (
+                <div className="space-y-6">
+                  <div className="flex items-start gap-4">
+                    <div className="h-10 w-10 shrink-0 rounded-full bg-purple-100 flex items-center justify-center">
+                      <Calendar className="h-5 w-5 text-purple-600" />
+                    </div>
                     <div>
-                      <p className="font-medium">
+                      <h4 className="text-sm font-medium text-gray-900">Fecha y hora</h4>
+                      <p className="mt-1 text-sm text-gray-500">
                         {event.end_date && event.event_date !== event.end_date
                           ? `${formatEventDate(event.event_date)} - ${formatEventDate(event.end_date)}`
                           : formatEventDate(event.event_date)
                         }
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        {event.end_date && event.event_date !== event.end_date ? 'Fechas del evento' : 'Fecha del evento'}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-3">
-                    <Clock className="w-5 h-5 text-primary flex-shrink-0" />
-                    <div>
-                      <p className="font-medium">
+                        {' a las '}
                         {formatEventTime(event.event_time)}
                         {event.end_time && ` - ${formatEventTime(event.end_time)}`}
                       </p>
-                      <p className="text-sm text-muted-foreground">Horario</p>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-3">
-                    <MapPin className="w-5 h-5 text-primary flex-shrink-0" />
+                  <div className="flex items-start gap-4">
+                    <div className="h-10 w-10 shrink-0 rounded-full bg-blue-100 flex items-center justify-center">
+                      <MapPin className="h-5 w-5 text-blue-600" />
+                    </div>
                     <div>
-                      <p className="font-medium">{event.location}</p>
-                      <p className="text-sm text-muted-foreground">Ubicación</p>
+                      <h4 className="text-sm font-medium text-gray-900">Ubicación</h4>
+                      <p className="mt-1 text-sm text-gray-500">{event.location}</p>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-3">
-                    <Users className="w-5 h-5 text-primary flex-shrink-0" />
+                  <div className="flex items-start gap-4">
+                    <div className="h-10 w-10 shrink-0 rounded-full bg-green-100 flex items-center justify-center">
+                      <Users className="h-5 w-5 text-green-600" />
+                    </div>
                     <div>
-                      <p className="font-medium">{event.max_capacity} personas</p>
-                      <p className="text-sm text-muted-foreground">Cupo máximo</p>
+                      <h4 className="text-sm font-medium text-gray-900">Cupo máximo</h4>
+                      <p className="mt-1 text-sm text-gray-500">{event.max_capacity} personas</p>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-3">
-                    <Clock className="w-5 h-5 text-primary flex-shrink-0" />
+                  <div className="flex items-start gap-4">
+                    <div className="h-10 w-10 shrink-0 rounded-full bg-yellow-100 flex items-center justify-center">
+                      <Clock className="h-5 w-5 text-yellow-600" />
+                    </div>
                     <div>
-                      <p className="font-medium">{event.duration_hours} horas</p>
-                      <p className="text-sm text-muted-foreground">Duración</p>
+                      <h4 className="text-sm font-medium text-gray-900">Duración</h4>
+                      <p className="mt-1 text-sm text-gray-500">{event.duration_hours} horas</p>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-3">
-                    <User className="w-5 h-5 text-primary flex-shrink-0" />
+                  <div className="flex items-start gap-4">
+                    <div className="h-10 w-10 shrink-0 rounded-full bg-indigo-100 flex items-center justify-center">
+                      <User className="h-5 w-5 text-indigo-600" />
+                    </div>
                     <div>
-                      <p className="font-medium">{getParticipantLevelLabel(event.participant_level)}</p>
-                      <p className="text-sm text-muted-foreground">Nivel requerido</p>
+                      <h4 className="text-sm font-medium text-gray-900">Nivel requerido</h4>
+                      <p className="mt-1 text-sm text-gray-500">{getParticipantLevelLabel(event.participant_level)}</p>
                     </div>
                   </div>
-                </div>
 
-                {/* Estacionamiento */}
-                {event.has_parking && (
-                  <div className="flex items-center gap-3 p-4 bg-green-50 dark:bg-green-950/20 rounded-lg">
-                    <Car className="w-5 h-5 text-green-600 flex-shrink-0" />
-                    <div>
-                      <p className="font-medium text-green-800 dark:text-green-200">Estacionamiento disponible</p>
-                      <p className="text-sm text-green-600 dark:text-green-300">El lugar cuenta con estacionamiento</p>
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Galería de imágenes */}
-            {event.gallery_images && event.gallery_images.length > 0 && (
-              <Card className="shadow-lg py-4">
-                <CardHeader>
-                  <CardTitle className="text-xl">Galería de imágenes</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                    {event.gallery_images.map((image, index) => (
-                      <div
-                        key={index}
-                        className="relative aspect-video rounded-lg overflow-hidden group cursor-pointer hover:scale-105 transition-transform"
-                        onClick={() => openGallery(index)}
-                      >
-                        <Image
-                          src={image}
-                          alt={`${event.name} - Imagen ${index + 1}`}
-                          fill
-                          className="object-cover"
-                        />
-                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
+                  {event.has_parking && (
+                    <div className="flex items-start gap-4">
+                      <div className="h-10 w-10 shrink-0 rounded-full bg-green-100 flex items-center justify-center">
+                        <Car className="h-5 w-5 text-green-600" />
                       </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-          </div>
+                      <div>
+                        <h4 className="text-sm font-medium text-gray-900">Estacionamiento</h4>
+                        <p className="mt-1 text-sm text-gray-500">El lugar cuenta con estacionamiento disponible</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
 
-          {/* Sidebar */}
-          <div className="lg:sticky lg:top-6 lg:self-start space-y-8">
-            {/* Información del profesional */}
-            {professional && (
-              <Card className="shadow-lg py-4">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <User className="w-5 h-5" />
-                    Profesional a cargo
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-center gap-3">
+              {activeTab === 'instructor' && professional && (
+                <div className="space-y-6">
+                  <div className="flex items-start gap-6">
                     {professional.profile_photo ? (
                       <Image
                         src={professional.profile_photo}
                         alt={`${professional.first_name} ${professional.last_name}`}
-                        width={60}
-                        height={60}
-                        className="w-15 h-15 rounded-full object-cover aspect-square"
+                        width={80}
+                        height={80}
+                        className="w-20 h-20 rounded-full object-cover"
                       />
                     ) : (
-                      <div className="w-15 h-15 rounded-full bg-muted flex items-center justify-center">
-                        <User className="w-8 h-8 text-muted-foreground" />
+                      <div className="w-20 h-20 rounded-full bg-purple-100 flex items-center justify-center">
+                        <User className="w-10 h-10 text-purple-600" />
                       </div>
                     )}
                     <div>
-                      <p className="font-medium">
+                      <h4 className="text-lg font-medium text-gray-900">
                         {professional.first_name} {professional.last_name}
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        {professional.profession}
-                      </p>
+                      </h4>
+                      <p className="mt-1 text-sm text-gray-500">{professional.profession}</p>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Información del precio y registro */}
-            <Card className="shadow-lg py-4">
-              <CardHeader>
-                <CardTitle>Registro al evento</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="text-center">
-                  <p className="text-2xl font-bold text-primary">
-                    {event.is_free ? "Gratuito" : `$${event.price}`}
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    {event.is_free ? "Evento sin costo" : "Costo por persona"}
-                  </p>
                 </div>
-
-                {!isAuthenticated && (
-                  <div className="space-y-4">
-                    <p className="text-sm text-muted-foreground text-center">
-                      Para registrarte en este evento, necesitas iniciar sesión o crear una cuenta
-                    </p>
-                    <div className="flex flex-col gap-2">
-                      <Button asChild size="lg" className="w-full">
-                        <Link href="/signup">Registrarse</Link>
-                      </Button>
-                      <Button asChild variant="outline" size="lg" className="w-full">
-                        <Link href="/login">Iniciar sesión</Link>
-                      </Button>
-                    </div>
-                  </div>
-                )}
-
-                {isAuthenticated && (
-                  <div className="space-y-4">
-                    <Button asChild size="lg" className="w-full">
-                      <Link href={`/patient/${event.id}/explore/event/${event.id}`}>
-                        Ver detalles completos
-                      </Link>
-                    </Button>
-                    <p className="text-xs text-muted-foreground text-center">
-                      Accede al evento en tu panel de control para registrarte
-                    </p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+              )}
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Dialog del Carousel */}
-      <Dialog open={isGalleryOpen} onOpenChange={setIsGalleryOpen}>
-        <DialogContent className="max-w-7xl w-full p-0 bg-black/95">
-          <div className="relative w-full h-[80vh]">
-            {event?.gallery_images && (
-              <>
-                <Image
-                  src={event.gallery_images[currentImageIndex]}
-                  alt={`${event.name} - Imagen ${currentImageIndex + 1}`}
-                  fill
-                  className="object-contain"
-                  priority
-                />
-
-                {/* Botón cerrar */}
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="absolute top-4 right-4 text-white hover:bg-white/20 z-50"
-                  onClick={closeGallery}
-                >
-                  <X className="h-6 w-6" />
-                </Button>
-
-                {/* Botón anterior */}
-                {event.gallery_images.length > 1 && (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="absolute left-4 top-1/2 -translate-y-1/2 text-white hover:bg-white/20 z-50"
-                    onClick={prevImage}
-                  >
-                    <ChevronLeft className="h-8 w-8" />
-                  </Button>
-                )}
-
-                {/* Botón siguiente */}
-                {event.gallery_images.length > 1 && (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-white hover:bg-white/20 z-50"
-                    onClick={nextImage}
-                  >
-                    <ChevronRight className="h-8 w-8" />
-                  </Button>
-                )}
-
-                {/* Contador de imágenes */}
-                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/70 text-white px-4 py-2 rounded-full text-sm">
-                  {currentImageIndex + 1} / {event.gallery_images.length}
+        {/* Gallery section */}
+        {event.gallery_images && event.gallery_images.length > 1 && (
+          <div className="mx-auto mt-24 max-w-2xl sm:mt-32 lg:max-w-none">
+            <div className="flex items-center justify-between space-x-4">
+              <h2 className="text-lg font-medium text-gray-900">Galería del evento</h2>
+            </div>
+            <div className="mt-6 grid grid-cols-1 gap-x-8 gap-y-8 sm:grid-cols-2 sm:gap-y-10 lg:grid-cols-4">
+              {event.gallery_images.slice(1).map((image, index) => (
+                <div key={index} className="group relative">
+                  <div className="relative aspect-[4/3] w-full overflow-hidden rounded-lg bg-gray-100">
+                    <Image
+                      alt={`${event.name} - Imagen ${index + 2}`}
+                      src={image}
+                      fill
+                      className="object-cover object-center group-hover:opacity-75 transition-opacity"
+                    />
+                  </div>
                 </div>
-              </>
-            )}
+              ))}
+            </div>
           </div>
-        </DialogContent>
-      </Dialog>
+        )}
+      </main>
     </div>
   );
 }

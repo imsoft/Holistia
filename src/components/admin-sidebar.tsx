@@ -20,6 +20,7 @@ import {
   Sparkles,
   Store,
   Ticket,
+  Wrench,
 } from "lucide-react";
 import {
   Sidebar,
@@ -185,6 +186,11 @@ export function AdminSidebar() {
       title: "Tickets de Soporte",
       url: `/admin/${userId}/tickets`,
       icon: Ticket,
+    },
+    {
+      title: "Herramientas de Plataforma",
+      url: `/admin/${userId}/platform-tools`,
+      icon: Wrench,
     },
     {
       title: "Agente IA (Alpha)",

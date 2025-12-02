@@ -127,6 +127,7 @@ export default function ProfessionalDashboard() {
             `)
             .eq('professional_id', professionalApp.id)
             .gte('appointment_date', today) // Citas desde hoy en adelante
+            .in('status', ['pending', 'confirmed', 'completed']) // Incluir todos los estados relevantes
             .order('appointment_date', { ascending: true })
             .order('appointment_time', { ascending: true })
             .limit(10); // Limitar a las próximas 10 citas
@@ -156,10 +157,6 @@ export default function ProfessionalDashboard() {
           // Formatear citas con información real de pacientes
           if (appointmentsData && appointmentsData.length > 0) {
             const formattedAppointments: Appointment[] = appointmentsData
-              .filter(apt => {
-                // Incluir citas confirmadas o completadas
-                return apt.status === 'confirmed' || apt.status === 'completed';
-              })
               .map(apt => {
                 const patient = patientsData.find(p => p.patient_id === apt.patient_id);
                 
@@ -183,7 +180,7 @@ export default function ProfessionalDashboard() {
             setAppointments(formattedAppointments);
           }
 
-          // Calcular estadísticas - Contar citas confirmadas (con o sin pago registrado)
+          // Calcular estadísticas - Contar todas las citas (pending, confirmed, completed)
           const { data: allAppointments } = await supabase
             .from('appointments')
             .select(`
@@ -193,7 +190,8 @@ export default function ProfessionalDashboard() {
               patient_id,
               status
             `)
-            .eq('professional_id', professionalApp.id);
+            .eq('professional_id', professionalApp.id)
+            .in('status', ['pending', 'confirmed', 'completed']); // Incluir todos los estados relevantes
 
           // Obtener pagos para todas las citas con el monto
           let allPaymentsData: { appointment_id: string; status: string; amount: number }[] = [];
@@ -207,16 +205,9 @@ export default function ProfessionalDashboard() {
             allPaymentsData = allPayments || [];
           }
 
-          // CAMBIO: Contar todas las citas confirmadas, tengan o no pago
-          // Esto evita que el dashboard muestre 0 si hay problemas con los registros de pago
-          const paidAppointments = allAppointments?.filter(apt => {
-            // Incluir si está confirmada o completada
-            if (apt.status === 'confirmed' || apt.status === 'completed') {
-              return true;
-            }
-            // O si tiene pago exitoso (para citas pending con pago)
-            return allPaymentsData.some(payment => payment.appointment_id === apt.id && payment.status === 'succeeded');
-          }) || [];
+          // Contar todas las citas (pending, confirmed, completed)
+          // Incluir todas las citas independientemente del estado para estadísticas más precisas
+          const paidAppointments = allAppointments || [];
 
           const now = new Date();
 

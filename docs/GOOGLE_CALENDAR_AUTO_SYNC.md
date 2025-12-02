@@ -104,9 +104,13 @@ CRON_SECRET=tu_secret_aleatorio_largo
 3. Eventos: `checkout.session.completed`, `payment_intent.succeeded`, etc.
 4. Agregar `STRIPE_WEBHOOK_SECRET` a las variables de entorno
 
-### Configuración del Cron Job (Vercel)
+### Configuración del Cron Job (Vercel) - OPCIONAL
 
-El cron job está configurado en `vercel.json`:
+**⚠️ IMPORTANTE**: Los cron jobs de Vercel requieren un plan **Pro o Enterprise**.
+
+El endpoint del cron job está disponible en `/api/cron/sync-google-calendar` pero está **desactivado por defecto** en `vercel.json`.
+
+Para activarlo cuando tengas un plan Pro/Enterprise, agrega esto a `vercel.json`:
 
 ```json
 {
@@ -119,8 +123,7 @@ El cron job está configurado en `vercel.json`:
 }
 ```
 
-**Nota**: Los cron jobs de Vercel solo están disponibles en planes Pro y Enterprise.
-Si estás en el plan gratuito, la sincronización seguirá funcionando a través del webhook de Google Calendar.
+**Si estás en el plan gratuito**: No te preocupes, la sincronización sigue funcionando perfectamente a través del **webhook de Google Calendar en tiempo real**. El cron job es solo un respaldo adicional.
 
 ## 🔍 Monitoreo y Debugging
 

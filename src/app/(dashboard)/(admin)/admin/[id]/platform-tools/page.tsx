@@ -364,7 +364,7 @@ export default function AdminPlatformTools() {
       <div className="p-4 sm:p-6 space-y-6">
         {/* Resumen de Costos */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <Card>
+          <Card className="py-4">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Mensual</CardTitle>
               <DollarSign className="h-4 w-4 text-muted-foreground" />
@@ -376,7 +376,7 @@ export default function AdminPlatformTools() {
               <p className="text-xs text-muted-foreground">Solo servicios activos</p>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="py-4">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Anual</CardTitle>
               <DollarSign className="h-4 w-4 text-muted-foreground" />
@@ -388,7 +388,7 @@ export default function AdminPlatformTools() {
               <p className="text-xs text-muted-foreground">Proyección anual</p>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="py-4">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Herramientas</CardTitle>
               <Wrench className="h-4 w-4 text-muted-foreground" />
@@ -403,7 +403,7 @@ export default function AdminPlatformTools() {
         </div>
 
         {/* Filtros */}
-        <Card>
+        <Card className="py-4">
           <CardHeader>
             <CardTitle>Filtros</CardTitle>
           </CardHeader>
@@ -460,7 +460,7 @@ export default function AdminPlatformTools() {
                   : tool.monthly_cost;
 
             return (
-              <Card key={tool.id} className="hover:shadow-md transition-shadow">
+              <Card key={tool.id} className="hover:shadow-md transition-shadow py-4">
                 <CardHeader>
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-3">
@@ -527,7 +527,7 @@ export default function AdminPlatformTools() {
         </div>
 
         {filteredTools.length === 0 && (
-          <Card>
+          <Card className="py-4">
             <CardContent className="px-8 py-12 text-center">
               <Wrench className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-lg font-semibold text-foreground mb-2">

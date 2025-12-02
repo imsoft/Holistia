@@ -64,20 +64,39 @@ export async function POST(request: NextRequest) {
     // Si no hay appointment_id, crear la cita primero
     if (!appointmentId) {
       console.log('🔄 Creating new appointment...');
-      
+
+      // Verificar que no exista una cita duplicada
+      console.log('🔍 Checking for duplicate appointment...');
+      const { data: existingAppointment } = await supabase
+        .from('appointments')
+        .select('id')
+        .eq('patient_id', user.id)
+        .eq('professional_id', professional_id)
+        .eq('appointment_date', appointment_date)
+        .eq('appointment_time', appointment_time)
+        .maybeSingle();
+
+      if (existingAppointment) {
+        console.log('⚠️ Duplicate appointment found:', existingAppointment.id);
+        return NextResponse.json(
+          { error: 'Ya existe una cita para esta fecha y hora. Por favor elige otro horario.' },
+          { status: 400 }
+        );
+      }
+
       // Determinar ubicación basada en el tipo de cita
       const { data: professionalData } = await supabase
         .from('professional_applications')
         .select('address, city, state')
         .eq('id', professional_id)
         .single();
-      
-      const location = appointment_type === 'online' 
-        ? 'Consulta en línea' 
+
+      const location = appointment_type === 'online'
+        ? 'Consulta en línea'
         : professionalData?.address || 'Por definir';
-      
+
       console.log('📍 Location determined:', location);
-      
+
       // Crear la cita
       const appointmentData = {
         patient_id: user.id,
@@ -91,9 +110,9 @@ export async function POST(request: NextRequest) {
         location: location,
         notes: notes || null
       };
-      
+
       console.log('💾 Inserting appointment:', appointmentData);
-      
+
       const { data: newAppointment, error: createError } = await supabase
         .from('appointments')
         .insert(appointmentData)
@@ -107,7 +126,7 @@ export async function POST(request: NextRequest) {
           { status: 500 }
         );
       }
-      
+
       console.log('✅ Appointment created:', newAppointment.id);
       appointmentId = newAppointment.id;
     }

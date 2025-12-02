@@ -337,13 +337,13 @@ export function ExploreSection({ hideHeader = false }: ExploreSectionProps) {
                         </div>
                       )}
                     </div>
-                    <CardHeader className="pb-3">
+                    <CardHeader className="pb-2">
                       {prof.profession && (
                         <CardTitle className="text-xl font-bold line-clamp-1">
                           {prof.profession}
                         </CardTitle>
                       )}
-                      <div className="flex items-center justify-between gap-2 mt-2">
+                      <div className="flex items-center justify-between gap-2 mt-1">
                         <p className="text-sm text-muted-foreground truncate">
                           {prof.first_name} {prof.last_name}
                         </p>
@@ -360,8 +360,8 @@ export function ExploreSection({ hideHeader = false }: ExploreSectionProps) {
                         )}
                       </div>
                     </CardHeader>
-                    <CardContent className="flex-1 flex flex-col justify-end pt-0 pb-4">
-                      <div className="flex-1 flex flex-col gap-3 mb-4 min-h-0">
+                    <CardContent className="flex-1 flex flex-col justify-end pt-0 pb-3">
+                      <div className="flex-1 flex flex-col gap-2 mb-3 min-h-0">
                         {prof.specializations && prof.specializations.length > 0 && (
                           <div className="flex flex-wrap gap-2">
                             {prof.specializations.slice(0, 2).map((spec, index) => (
@@ -473,9 +473,9 @@ export function ExploreSection({ hideHeader = false }: ExploreSectionProps) {
                         </div>
                       )}
                     </div>
-                    <CardHeader className="pb-3">
+                    <CardHeader className="pb-2">
                       <CardTitle className="text-lg line-clamp-2">{shop.name}</CardTitle>
-                      <div className="flex flex-wrap gap-2 mt-2">
+                      <div className="flex flex-wrap gap-2 mt-1">
                         {shop.category && (
                           <Badge variant="secondary" className="text-xs">{shop.category}</Badge>
                         )}
@@ -487,8 +487,8 @@ export function ExploreSection({ hideHeader = false }: ExploreSectionProps) {
                         )}
                       </div>
                     </CardHeader>
-                    <CardContent className="flex-1 flex flex-col justify-end pt-0 pb-4">
-                      <div className="flex-1 flex flex-col gap-2 mb-4 min-h-0">
+                    <CardContent className="flex-1 flex flex-col justify-end pt-0 pb-3">
+                      <div className="flex-1 flex flex-col gap-2 mb-3 min-h-0">
                         {cleanDescription && (
                           <p className="text-sm text-muted-foreground line-clamp-2">
                             {cleanDescription}
@@ -569,9 +569,9 @@ export function ExploreSection({ hideHeader = false }: ExploreSectionProps) {
                       </div>
                     )}
                   </div>
-                  <CardHeader className="pb-4">
+                  <CardHeader className="pb-2">
                     <CardTitle className="text-lg line-clamp-2">{restaurant.name}</CardTitle>
-                    <div className="flex flex-wrap gap-2 mt-2">
+                    <div className="flex flex-wrap gap-2 mt-1">
                       {restaurant.cuisine_type && (
                         <Badge variant="secondary" className="text-xs">{restaurant.cuisine_type}</Badge>
                       )}
@@ -580,8 +580,8 @@ export function ExploreSection({ hideHeader = false }: ExploreSectionProps) {
                       )}
                     </div>
                   </CardHeader>
-                  <CardContent className="flex-1 flex flex-col justify-end pt-0 pb-4">
-                    <div className="flex-1 mb-4">
+                  <CardContent className="flex-1 flex flex-col justify-end pt-0 pb-3">
+                    <div className="flex-1 mb-3">
                       {restaurant.address && (
                         <p className="text-sm text-muted-foreground line-clamp-2">
                           {restaurant.address}
@@ -656,9 +656,9 @@ export function ExploreSection({ hideHeader = false }: ExploreSectionProps) {
                         </div>
                       )}
                     </div>
-                    <CardHeader className="pb-4">
+                    <CardHeader className="pb-2">
                       <CardTitle className="text-lg line-clamp-2">{event.name}</CardTitle>
-                      <div className="flex flex-wrap gap-2 mt-2">
+                      <div className="flex flex-wrap gap-2 mt-1">
                         {event.category && (
                           <Badge variant="secondary" className="text-xs">{getCategoryLabel(event.category)}</Badge>
                         )}
@@ -669,8 +669,8 @@ export function ExploreSection({ hideHeader = false }: ExploreSectionProps) {
                         )}
                       </div>
                     </CardHeader>
-                    <CardContent className="flex-1 flex flex-col justify-end pt-0 pb-4">
-                      <div className="flex-1 space-y-2 mb-4">
+                    <CardContent className="flex-1 flex flex-col justify-end pt-0 pb-3">
+                      <div className="flex-1 space-y-2 mb-3">
                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
                           <Calendar className="w-4 h-4 flex-shrink-0" />
                           <span className="line-clamp-1">{formatDate(event.event_date)}</span>

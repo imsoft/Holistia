@@ -92,11 +92,6 @@ const getNavItems = (id: string): { mainNavItems: ProfessionalNavItem[] } => {
       icon: DollarSign,
     },
     {
-      title: "Tarifas y Comisiones",
-      url: `/professional/${id}/pricing`,
-      icon: FileText,
-    },
-    {
       title: "Mis eventos",
       url: `/professional/${id}/my-events`,
       icon: CalendarCheck,

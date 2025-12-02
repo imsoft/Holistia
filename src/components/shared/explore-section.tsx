@@ -333,7 +333,7 @@ export function ExploreSection({ hideHeader = false }: ExploreSectionProps) {
                         </div>
                       )}
                     </div>
-                    <CardHeader className="pb-4">
+                    <CardHeader className="pb-3">
                       {prof.profession && (
                         <CardTitle className="text-xl font-bold line-clamp-1">
                           {prof.profession}
@@ -357,7 +357,7 @@ export function ExploreSection({ hideHeader = false }: ExploreSectionProps) {
                       </div>
                     </CardHeader>
                     <CardContent className="flex-1 flex flex-col justify-end pt-0 pb-4">
-                      <div className="flex-1 space-y-3 mb-4">
+                      <div className="flex-1 flex flex-col gap-3 mb-4 min-h-0">
                         {prof.specializations && prof.specializations.length > 0 && (
                           <div className="flex flex-wrap gap-2">
                             {prof.specializations.slice(0, 2).map((spec, index) => (
@@ -379,7 +379,7 @@ export function ExploreSection({ hideHeader = false }: ExploreSectionProps) {
                           </div>
                         )}
                       </div>
-                      <Button variant="default" size="sm" className="w-full" asChild>
+                      <Button variant="default" size="sm" className="w-full mt-auto" asChild>
                         <Link href={`/public/professional/${slug}`}>
                           Ver perfil
                         </Link>

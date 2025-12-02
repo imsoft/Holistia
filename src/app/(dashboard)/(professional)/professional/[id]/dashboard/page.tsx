@@ -34,7 +34,7 @@ import { AdminRatingDisplay } from "@/components/ui/admin-rating-display";
 export default function ProfessionalDashboard() {
   const params = useParams();
   const router = useRouter();
-  const userId = params.id as string;
+  const professionalIdParam = params.id as string;
   const supabase = createClient();
   
   const [loading, setLoading] = useState(true);
@@ -47,6 +47,7 @@ export default function ProfessionalDashboard() {
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
   const [professionalId, setProfessionalId] = useState<string>("");
+  const [userId, setUserId] = useState<string>("");
   const [stripeStatus, setStripeStatus] = useState<{
     stripe_account_id: string | null;
     stripe_account_status: string | null;
@@ -78,8 +79,8 @@ export default function ProfessionalDashboard() {
         // Obtener la aplicación profesional del usuario
         const { data: professionalApp, error: profError } = await supabase
           .from('professional_applications')
-          .select('id, first_name, last_name, profile_photo, working_start_time, working_end_time, stripe_account_id, stripe_account_status, stripe_charges_enabled, stripe_payouts_enabled, registration_fee_paid, registration_fee_amount, registration_fee_currency, registration_fee_paid_at, registration_fee_expires_at')
-          .eq('user_id', userId)
+          .select('id, user_id, first_name, last_name, profile_photo, working_start_time, working_end_time, stripe_account_id, stripe_account_status, stripe_charges_enabled, stripe_payouts_enabled, registration_fee_paid, registration_fee_amount, registration_fee_currency, registration_fee_paid_at, registration_fee_expires_at')
+          .eq('id', professionalIdParam)
           .eq('status', 'approved')
           .single();
 
@@ -92,6 +93,7 @@ export default function ProfessionalDashboard() {
           setProfessionalName(`${professionalApp.first_name} ${professionalApp.last_name}`);
           setProfilePhoto(professionalApp.profile_photo || '');
           setProfessionalId(professionalApp.id);
+          setUserId(professionalApp.user_id);
           setStripeStatus({
             stripe_account_id: professionalApp.stripe_account_id,
             stripe_account_status: professionalApp.stripe_account_status,

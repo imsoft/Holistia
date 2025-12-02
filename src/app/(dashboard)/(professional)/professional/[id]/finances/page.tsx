@@ -62,12 +62,12 @@ interface FinancialSummary {
 
 export default function ProfessionalFinancesPage() {
   const params = useParams();
-  const userId = params.id as string;
+  const professionalId = params.id as string;
   const [summary, setSummary] = useState<FinancialSummary | null>(null);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [metrics, setMetrics] = useState<FinancialMetric[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedPeriod, setSelectedPeriod] = useState("month");
+  const [selectedPeriod, setSelectedPeriod] = useState("all");
   const supabase = createClient();
 
   // Función para obtener el nombre del período actual
@@ -91,23 +91,25 @@ export default function ProfessionalFinancesPage() {
         return `Este Trimestre (${quarterNames[quarter]})`;
       case 'year':
         return `Este Año (${year})`;
+      case 'all':
+        return 'Todo el tiempo';
       default:
-        return 'Este Mes';
+        return 'Todo el tiempo';
     }
   };
 
   // Cargar datos financieros
   useEffect(() => {
     const fetchFinancialData = async () => {
-      if (!userId) {
-        console.log('No user ID provided in route params');
+      if (!professionalId) {
+        console.log('No professional ID provided in route params');
         setLoading(false);
         return;
       }
 
       try {
         setLoading(true);
-        console.log('Fetching financial data for professional user:', userId);
+        console.log('Fetching financial data for professional:', professionalId);
 
         // Calcular rango de fechas según el período seleccionado
         const now = new Date();
@@ -124,17 +126,21 @@ export default function ProfessionalFinancesPage() {
           startDate = new Date(now.getFullYear(), quarterStartMonth, 1);
           previousStartDate = new Date(now.getFullYear(), quarterStartMonth - 3, 1);
           previousEndDate = new Date(now.getFullYear(), quarterStartMonth, 0, 23, 59, 59);
-        } else {
+        } else if (selectedPeriod === "year") {
           startDate = new Date(now.getFullYear(), 0, 1);
           previousStartDate = new Date(now.getFullYear() - 1, 0, 1);
           previousEndDate = new Date(now.getFullYear() - 1, 11, 31, 23, 59, 59);
+        } else {
+          startDate = new Date(2000, 0, 1); // rango amplio para "Todo el tiempo"
+          previousStartDate = new Date(1999, 0, 1);
+          previousEndDate = new Date(1999, 11, 31, 23, 59, 59);
         }
 
         // Obtener el ID de la aplicación profesional
         const { data: professionalApp } = await supabase
           .from('professional_applications')
           .select('id')
-          .eq('user_id', userId)
+          .eq('id', professionalId)
           .maybeSingle();
 
         if (!professionalApp) {
@@ -147,13 +153,19 @@ export default function ProfessionalFinancesPage() {
 
         // Obtener pagos del profesional para el período actual
         // Usar created_at en lugar de paid_at porque paid_at puede ser null
-        const { data: currentPayments, error: paymentsError } = await supabase
+        let paymentsQuery = supabase
           .from('payments')
           .select('*')
           .eq('professional_id', professionalApp.id)
-          .gte('created_at', startDate.toISOString())
-          .lte('created_at', now.toISOString())
           .eq('status', 'succeeded'); // Solo pagos completados
+
+        if (selectedPeriod !== 'all') {
+          paymentsQuery = paymentsQuery
+            .gte('created_at', startDate.toISOString())
+            .lte('created_at', now.toISOString());
+        }
+
+        const { data: currentPayments, error: paymentsError } = await paymentsQuery;
 
         if (paymentsError) {
           console.error('Error fetching payments:', paymentsError);
@@ -165,13 +177,17 @@ export default function ProfessionalFinancesPage() {
         console.log('Date range:', startDate.toISOString(), 'to', now.toISOString());
 
         // Obtener pagos del período anterior para comparación
-        const { data: previousPayments } = await supabase
-          .from('payments')
-          .select('*')
-          .eq('professional_id', professionalApp.id)
-          .gte('created_at', previousStartDate.toISOString())
-          .lte('created_at', previousEndDate.toISOString())
-          .eq('status', 'succeeded'); // Solo pagos completados
+        let previousPayments: typeof currentPayments = [];
+        if (selectedPeriod !== 'all') {
+          const { data: prev } = await supabase
+            .from('payments')
+            .select('*')
+            .eq('professional_id', professionalApp.id)
+            .gte('created_at', previousStartDate.toISOString())
+            .lte('created_at', previousEndDate.toISOString())
+            .eq('status', 'succeeded'); // Solo pagos completados
+          previousPayments = prev || [];
+        }
 
         // Calcular métricas del período actual
         // El profesional recibe el transfer_amount (monto después de comisión de plataforma)
@@ -299,7 +315,7 @@ export default function ProfessionalFinancesPage() {
     };
 
     fetchFinancialData();
-  }, [userId, selectedPeriod]);
+  }, [professionalId, selectedPeriod]);
 
   const getPaymentTypeLabel = (type: string | null) => {
     switch (type) {
@@ -344,8 +360,10 @@ export default function ProfessionalFinancesPage() {
         return 'Este Trimestre';
       case 'year':
         return 'Este Año';
+      case 'all':
+        return 'Todo el tiempo';
       default:
-        return 'Este Mes';
+        return 'Todo el tiempo';
     }
   };
 
@@ -384,6 +402,7 @@ export default function ProfessionalFinancesPage() {
                 <SelectItem value="month">{getCurrentPeriodName('month')}</SelectItem>
                 <SelectItem value="quarter">{getCurrentPeriodName('quarter')}</SelectItem>
                 <SelectItem value="year">{getCurrentPeriodName('year')}</SelectItem>
+                <SelectItem value="all">{getCurrentPeriodName('all')}</SelectItem>
               </SelectContent>
             </Select>
           </div>

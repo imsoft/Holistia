@@ -53,6 +53,7 @@ import Image from "next/image";
 import { normalizeName, normalizeProfession, normalizeAddress, normalizeLocation, normalizeLanguage } from "@/lib/text-utils";
 import { cn } from "@/lib/utils";
 import { getRegistrationFeeStatus, formatExpirationDate } from "@/utils/registration-utils";
+import { countries } from "@/lib/countries";
 
 interface Service {
   name: string;
@@ -125,14 +126,6 @@ export default function BecomeProfessionalPage() {
   const userId = params.id as string;
 
   const supabase = createClient();
-
-
-  // Opciones de países
-  const countries = [
-    { value: "México", label: "México" },
-    { value: "Estados Unidos", label: "Estados Unidos" },
-    { value: "Canadá", label: "Canadá" },
-  ];
 
   useEffect(() => {
     const getUserData = async () => {

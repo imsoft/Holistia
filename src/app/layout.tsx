@@ -56,9 +56,9 @@ export const metadata: Metadata = {
     siteName: "Holistia",
     images: [
       {
-        url: "/logos/holistia-og.png",
-        width: 1200,
-        height: 630,
+        url: "/logos/holistia-logo-square-black.png",
+        width: 512,
+        height: 512,
         alt: "Holistia - Plataforma de Salud Integral",
         type: "image/png",
       },
@@ -70,7 +70,7 @@ export const metadata: Metadata = {
     creator: "@holistia_mx",
     title: "Holistia - Plataforma de Salud Integral y Bienestar",
     description: "Conecta con expertos certificados en México para tu bienestar integral.",
-    images: ["/logos/holistia-og.png"],
+    images: ["/logos/holistia-logo-square-black.png"],
   },
   robots: {
     index: true,

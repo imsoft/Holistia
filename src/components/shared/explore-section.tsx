@@ -401,11 +401,6 @@ export function ExploreSection({ hideHeader = false }: ExploreSectionProps) {
                   <Store className="w-6 h-6 text-primary" />
                   Comercios Holísticos
                 </h3>
-                {shops.length > 1 && (
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Desliza para ver más →
-                  </p>
-                )}
               </div>
               <div className="flex items-center gap-2">
                 <Button

@@ -617,19 +617,19 @@ export default function ProfessionalDashboard() {
         )}
 
         {/* Configuración de pagos con Stripe Connect */}
-        {professionalId && (
+        {professionalIdParam && (
           <div className="mt-8">
             <StripeConnectButton
-              professionalId={professionalId}
+              professionalId={professionalIdParam}
               initialStatus={stripeStatus}
             />
           </div>
         )}
 
         {/* Calificación de administrador */}
-        {professionalId && (
+        {professionalIdParam && (
           <div className="mt-6">
-            <AdminRatingDisplay professionalId={professionalId} />
+            <AdminRatingDisplay professionalId={professionalIdParam} />
           </div>
         )}
 

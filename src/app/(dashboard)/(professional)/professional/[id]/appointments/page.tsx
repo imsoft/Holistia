@@ -428,22 +428,106 @@ export default function ProfessionalAppointments() {
       });
 
       if (!response.ok) {
-        console.error("Error confirmando cita");
+        const errorData = await response.json().catch(() => ({}));
+        toast.error(errorData.error || "Error al confirmar la cita");
         return;
       }
 
       const result = await response.json();
 
       if (result.success) {
+        toast.success("Cita confirmada correctamente. Se ha enviado un email al paciente.");
+        
+        // Actualizar el estado de las citas
         setAppointments((prev) =>
           prev.map((apt) =>
             apt.id === appointmentId ? { ...apt, status: "confirmed" as const } : apt
           )
         );
-        console.log("Cita confirmada y email enviado al paciente");
+        
+        // Actualizar la cita seleccionada si es la misma
+        if (selectedAppointment && selectedAppointment.id === appointmentId) {
+          setSelectedAppointment({ ...selectedAppointment, status: "confirmed" as const });
+        }
+        
+        // Cerrar el modal
+        setIsViewDialogOpen(false);
+        
+        // Recargar las citas para asegurar que todo esté actualizado
+        const fetchAppointments = async () => {
+          try {
+            // Obtener el ID de la aplicación profesional
+            const { data: professionalApp } = await supabase
+              .from('professional_applications')
+              .select('id')
+              .eq('user_id', userId)
+              .eq('status', 'approved')
+              .single();
+
+            if (professionalApp) {
+              setProfessionalAppId(professionalApp.id);
+
+              // Obtener citas del profesional
+              const { data: appointmentsData, error: appointmentsError } = await supabase
+                .from('appointments')
+                .select(`
+                  id,
+                  appointment_date,
+                  appointment_time,
+                  duration_minutes,
+                  appointment_type,
+                  status,
+                  location,
+                  notes,
+                  patient_id
+                `)
+                .eq('professional_id', professionalApp.id)
+                .order('appointment_date', { ascending: true })
+                .order('appointment_time', { ascending: true });
+
+              if (appointmentsError) {
+                console.error('Error obteniendo citas:', appointmentsError);
+                return;
+              }
+
+              // Formatear citas (similar al código existente)
+              const formattedAppointments: Appointment[] = (appointmentsData || []).map((apt) => {
+                const patient = (window as any).__patientCache?.[apt.patient_id];
+                const hasSuccessfulPayment = false;
+
+                return {
+                  id: apt.id,
+                  patient: {
+                    name: patient?.full_name || `Paciente`,
+                    email: patient?.email || "No disponible",
+                    phone: patient?.phone || "No disponible",
+                  },
+                  date: apt.appointment_date,
+                  time: apt.appointment_time.substring(0, 5),
+                  duration: apt.duration_minutes,
+                  type: apt.appointment_type === "presencial" ? "Presencial" : "Online",
+                  status: apt.status as "confirmed" | "pending" | "cancelled" | "completed",
+                  location:
+                    apt.location || (apt.appointment_type === "online" ? "Online" : "Sin especificar"),
+                  notes: apt.notes || undefined,
+                  isPaid: hasSuccessfulPayment,
+                };
+              });
+
+              setAppointments(formattedAppointments);
+            }
+          } catch (error) {
+            console.error("Error recargando citas:", error);
+          }
+        };
+
+        await fetchAppointments();
+      } else {
+        toast.error(result.error || "Error al confirmar la cita");
       }
     } catch (error) {
       console.error("Error inesperado:", error);
+      toast.error("Error inesperado al confirmar la cita");
     }
   };
 

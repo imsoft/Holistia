@@ -52,7 +52,8 @@ import { AppointmentActionsDialog } from "@/components/appointments/appointment-
 import { RescheduleAppointmentDialog } from "@/components/appointments/reschedule-appointment-dialog";
 import { CreateAppointmentDialog } from "@/components/appointments/create-appointment-dialog";
 import { toast } from "sonner";
-import { listUserGoogleCalendarEvents } from "@/actions/google-calendar";
+import { listUserGoogleCalendarEvents, syncAllAppointmentsToGoogleCalendar } from "@/actions/google-calendar";
+import { RefreshCw } from "lucide-react";
 
 type CalendarView = "day" | "week" | "month" | "year";
 
@@ -85,6 +86,7 @@ export default function ProfessionalAppointments() {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [availabilityBlocks, setAvailabilityBlocks] = useState<AvailabilityBlock[]>([]);
   const [loading, setLoading] = useState(true);
+  const [syncing, setSyncing] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [professionalAppId, setProfessionalAppId] = useState<string>("");
@@ -231,6 +233,15 @@ export default function ProfessionalAppointments() {
                 const endDate = new Date(event.end.dateTime);
                 const durationMinutes = Math.round((endDate.getTime() - startDate.getTime()) / 60000);
 
+                // Usar fecha local para evitar problemas de zona horaria
+                const localDate = new Date(startDate.getTime() - startDate.getTimezoneOffset() * 60000);
+                const dateString = localDate.toISOString().split('T')[0];
+                
+                // Formatear hora en zona horaria local
+                const hours = startDate.getHours().toString().padStart(2, '0');
+                const minutes = startDate.getMinutes().toString().padStart(2, '0');
+                const timeString = `${hours}:${minutes}`;
+
                 return {
                   id: `google-${event.id}`,
                   patient: {
@@ -238,8 +249,8 @@ export default function ProfessionalAppointments() {
                     email: event.attendees?.[0]?.email || "",
                     phone: "",
                   },
-                  date: startDate.toISOString().split('T')[0],
-                  time: startDate.toTimeString().substring(0, 5),
+                  date: dateString,
+                  time: timeString,
                   duration: durationMinutes,
                   type: event.location?.includes("Online") ? "Online" : "Presencial",
                   status: "confirmed" as const,
@@ -305,6 +316,26 @@ export default function ProfessionalAppointments() {
 
   const handleToday = () => {
     setCurrentDate(new Date());
+  };
+
+  // Función para sincronizar calendario
+  const handleSyncCalendar = async () => {
+    setSyncing(true);
+    try {
+      const result = await syncAllAppointmentsToGoogleCalendar(userId);
+      if (result.success) {
+        toast.success(result.message || 'Calendario sincronizado correctamente');
+        // Recargar la página para actualizar las citas
+        window.location.reload();
+      } else {
+        toast.error(result.error || 'Error al sincronizar el calendario');
+      }
+    } catch (error) {
+      console.error('Error sincronizando calendario:', error);
+      toast.error('Error al sincronizar el calendario');
+    } finally {
+      setSyncing(false);
+    }
   };
 
   // Funciones de citas
@@ -1017,28 +1048,40 @@ export default function ProfessionalAppointments() {
             <h2 className="text-base sm:text-lg font-semibold capitalize">{getTitle()}</h2>
           </div>
 
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="w-full sm:w-auto">
-                {viewLabels[view]}
-                <ChevronDown className="ml-2 h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => setView("day")}>
-                Vista de día
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setView("week")}>
-                Vista de semana
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setView("month")}>
-                Vista de mes
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setView("year")}>
-                Vista de año
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleSyncCalendar}
+              disabled={syncing}
+              className="w-full sm:w-auto"
+            >
+              <RefreshCw className={`h-4 w-4 mr-2 ${syncing ? 'animate-spin' : ''}`} />
+              {syncing ? 'Sincronizando...' : 'Sincronizar calendario'}
+            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="w-full sm:w-auto">
+                  {viewLabels[view]}
+                  <ChevronDown className="ml-2 h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => setView("day")}>
+                  Vista de día
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setView("week")}>
+                  Vista de semana
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setView("month")}>
+                  Vista de mes
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setView("year")}>
+                  Vista de año
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
       </div>
 

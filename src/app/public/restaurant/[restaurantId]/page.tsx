@@ -2,16 +2,14 @@
 
 import { useEffect, useState } from "react";
 import { createClient } from "@/utils/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import {
   MapPin,
   Clock,
   Phone,
   Mail,
-  Share2,
+  UtensilsCrossed,
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
@@ -39,6 +37,10 @@ interface MenuItem {
   image_url: string | null;
 }
 
+function classNames(...classes: string[]) {
+  return classes.filter(Boolean).join(" ");
+}
+
 export default function PublicRestaurantPage({
   params,
 }: {
@@ -49,13 +51,13 @@ export default function PublicRestaurantPage({
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'about' | 'menu' | 'hours'>('about');
   const { restaurantId } = params;
 
   useEffect(() => {
     async function loadRestaurant() {
       const supabase = createClient();
 
-      // Verificar si el usuario está autenticado
       const {
         data: { user },
       } = await supabase.auth.getUser();
@@ -77,7 +79,6 @@ export default function PublicRestaurantPage({
 
       setRestaurant(restaurantData);
 
-      // Cargar solo algunos platos del menú (vista previa)
       const { data: menuData } = await supabase
         .from("restaurant_menu_items")
         .select("*")
@@ -108,10 +109,10 @@ export default function PublicRestaurantPage({
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-white">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-4 text-muted-foreground">Cargando...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto"></div>
+          <p className="mt-4 text-gray-500">Cargando...</p>
         </div>
       </div>
     );
@@ -119,10 +120,10 @@ export default function PublicRestaurantPage({
 
   if (!restaurant) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-white">
         <div className="text-center">
-          <p className="text-xl font-semibold">Restaurante no encontrado</p>
-          <Link href="/" className="text-primary hover:underline mt-4 inline-block">
+          <p className="text-xl font-semibold text-gray-900">Restaurante no encontrado</p>
+          <Link href="/" className="text-purple-600 hover:text-purple-700 mt-4 inline-block">
             Volver al inicio
           </Link>
         </div>
@@ -130,141 +131,233 @@ export default function PublicRestaurantPage({
     );
   }
 
+  const highlights = [
+    restaurant.cuisine_types && restaurant.cuisine_types.length > 0 && `Cocina: ${restaurant.cuisine_types.join(", ")}`,
+    restaurant.address && `Ubicación: ${restaurant.address}`,
+    menuItems.length > 0 && `${menuItems.length} platillos disponibles`,
+  ].filter(Boolean) as string[];
+
   return (
-    <div className="min-h-screen bg-background">
-      {/* Hero Section con imagen de portada */}
-      {restaurant.gallery && restaurant.gallery.length > 0 && (
-        <div className="relative h-64 md:h-96 w-full overflow-hidden">
-          <Image
-            src={restaurant.gallery[0]}
-            alt={restaurant.name}
-            fill
-            className="object-cover"
-            priority
-          />
-          <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8">
-            <div className="container mx-auto">
-              <div className="flex items-center justify-between">
-                <h1 className="text-3xl md:text-4xl font-bold text-foreground drop-shadow-lg">
+    <div className="bg-white">
+      <main className="mx-auto px-4 pt-14 pb-24 sm:px-6 sm:pt-16 sm:pb-32 lg:max-w-7xl lg:px-8">
+        <div className="lg:grid lg:grid-cols-7 lg:grid-rows-1 lg:gap-x-8 lg:gap-y-10 xl:gap-x-16">
+          {/* Restaurant image */}
+          <div className="lg:col-span-4 lg:row-end-1">
+            {restaurant.gallery && restaurant.gallery.length > 0 ? (
+              <div className="aspect-[4/3] w-full overflow-hidden rounded-lg bg-gray-100">
+                <Image
+                  alt={restaurant.name}
+                  src={restaurant.gallery[0]}
+                  width={800}
+                  height={600}
+                  className="h-full w-full object-cover object-center"
+                  priority
+                />
+              </div>
+            ) : (
+              <div className="aspect-[4/3] w-full rounded-lg bg-gradient-to-br from-purple-100 to-blue-100 flex items-center justify-center">
+                <div className="text-center">
+                  <div className="w-32 h-32 rounded-full bg-white/50 mx-auto mb-4 flex items-center justify-center">
+                    <UtensilsCrossed className="w-16 h-16 text-purple-600" />
+                  </div>
+                  <p className="text-xl font-semibold text-purple-900">{restaurant.name}</p>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Restaurant details */}
+          <div className="mx-auto mt-14 max-w-2xl sm:mt-16 lg:col-span-3 lg:row-span-2 lg:row-end-2 lg:mt-0 lg:max-w-none">
+            <div className="flex flex-col-reverse">
+              <div className="mt-4">
+                <h1 className="text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl">
                   {restaurant.name}
                 </h1>
-                <Button variant="secondary" size="sm" onClick={handleShare} className="shadow-lg">
-                  <Share2 className="w-4 h-4 mr-2" />
-                  Compartir
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
-      <div className="container mx-auto px-4 py-8 max-w-6xl">
-        <div className="grid gap-8 lg:grid-cols-3">
-          {/* Contenido principal */}
-          <div className="lg:col-span-2 space-y-8">
-            {/* Información del restaurante */}
-            <Card className="shadow-lg py-4">
-              <CardHeader>
-                {(!restaurant.gallery || restaurant.gallery.length === 0) && (
-                  <CardTitle className="text-3xl md:text-4xl font-bold mb-4">
-                    {restaurant.name}
-                  </CardTitle>
-                )}
+                <h2 id="information-heading" className="sr-only">
+                  Información del restaurante
+                </h2>
                 {restaurant.cuisine_types && restaurant.cuisine_types.length > 0 && (
-                  <div className="flex flex-wrap gap-2">
+                  <div className="mt-3 flex flex-wrap gap-2">
                     {restaurant.cuisine_types.map((cuisine, index) => (
-                      <Badge key={index} variant="secondary" className="text-sm">
+                      <Badge
+                        key={index}
+                        className="bg-purple-100 text-purple-700 hover:bg-purple-200"
+                      >
                         {cuisine}
                       </Badge>
                     ))}
                   </div>
                 )}
-              </CardHeader>
-              <CardContent className="space-y-6">
-                {restaurant.description && (
-                  <div>
-                    <h3 className="text-lg font-semibold mb-3">Descripción</h3>
-                    <div
-                      className="text-muted-foreground leading-relaxed prose prose-sm max-w-none prose-headings:text-foreground prose-p:text-muted-foreground prose-a:text-primary prose-strong:text-foreground"
-                      dangerouslySetInnerHTML={{ __html: restaurant.description }}
-                    />
+              </div>
+            </div>
+
+            {/* Action buttons */}
+            <div className="mt-10 grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
+              {!isAuthenticated ? (
+                <>
+                  <Button
+                    asChild
+                    size="lg"
+                    className="w-full bg-purple-600 hover:bg-purple-700 text-white"
+                  >
+                    <Link href="/signup">
+                      <UtensilsCrossed className="w-5 h-5 mr-2" />
+                      Registrarse
+                    </Link>
+                  </Button>
+                  <Button
+                    asChild
+                    variant="outline"
+                    size="lg"
+                    className="w-full border-purple-600 text-purple-600 hover:bg-purple-50"
+                  >
+                    <Link href="/login">Iniciar sesión</Link>
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button
+                    asChild
+                    size="lg"
+                    className="w-full bg-purple-600 hover:bg-purple-700 text-white sm:col-span-2"
+                  >
+                    <Link href={`/patient/${userId}/explore/restaurant/${restaurantId}`}>
+                      <UtensilsCrossed className="w-5 h-5 mr-2" />
+                      Ver menú completo
+                    </Link>
+                  </Button>
+                </>
+              )}
+            </div>
+
+            {/* Highlights */}
+            {highlights.length > 0 && (
+              <div className="mt-10 border-t border-gray-200 pt-10">
+                <h3 className="text-sm font-medium text-gray-900">Destacados</h3>
+                <div className="mt-4">
+                  <ul role="list" className="list-disc space-y-2 pl-5 text-sm text-gray-500 marker:text-purple-300">
+                    {highlights.map((highlight, index) => (
+                      <li key={index} className="pl-2">
+                        <span className="text-gray-700">{highlight}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            )}
+
+            {/* Información de contacto */}
+            <div className="mt-10 border-t border-gray-200 pt-10">
+              <h3 className="text-sm font-medium text-gray-900">Información de contacto</h3>
+              <div className="mt-4 space-y-3">
+                {restaurant.address && (
+                  <div className="flex items-start gap-3">
+                    <MapPin className="w-5 h-5 text-purple-600 shrink-0 mt-0.5" />
+                    <p className="text-sm text-gray-500">{restaurant.address}</p>
                   </div>
                 )}
-
-                <Separator />
-
-                {/* Información de contacto */}
-                <div className="grid gap-4 sm:grid-cols-2">
-                  {restaurant.address && (
-                    <div className="flex items-start gap-3">
-                      <MapPin className="w-5 h-5 mt-0.5 flex-shrink-0 text-primary" />
-                      <div>
-                        <p className="font-medium">{restaurant.address}</p>
-                        <p className="text-sm text-muted-foreground">Dirección</p>
-                      </div>
-                    </div>
-                  )}
-                  {restaurant.phone && (
-                    <div className="flex items-center gap-3">
-                      <Phone className="w-5 h-5 flex-shrink-0 text-primary" />
-                      <div>
-                        <a href={`tel:${restaurant.phone}`} className="font-medium hover:underline">
-                          {restaurant.phone}
-                        </a>
-                        <p className="text-sm text-muted-foreground">Teléfono</p>
-                      </div>
-                    </div>
-                  )}
-                  {restaurant.email && (
-                    <div className="flex items-center gap-3">
-                      <Mail className="w-5 h-5 flex-shrink-0 text-primary" />
-                      <div>
-                        <a href={`mailto:${restaurant.email}`} className="font-medium hover:underline">
-                          {restaurant.email}
-                        </a>
-                        <p className="text-sm text-muted-foreground">Email</p>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* Horarios */}
-                {restaurant.opening_hours && (
-                  <>
-                    <Separator />
-                    <div>
-                      <div className="flex items-center gap-2 mb-4">
-                        <Clock className="w-5 h-5 text-primary" />
-                        <h3 className="text-lg font-semibold">Horarios de Atención</h3>
-                      </div>
-                      <div className="grid gap-2 sm:grid-cols-2">
-                        {Object.entries(restaurant.opening_hours).map(([day, hours]: [string, any]) => (
-                          <div key={day} className="flex justify-between items-center p-2 rounded-lg hover:bg-accent/50 transition-colors">
-                            <span className="font-medium capitalize text-foreground">{day}:</span>
-                            <span className="text-muted-foreground">
-                              {hours.open} - {hours.close}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </>
+                {restaurant.phone && (
+                  <div className="flex items-start gap-3">
+                    <Phone className="w-5 h-5 text-purple-600 shrink-0 mt-0.5" />
+                    <a href={`tel:${restaurant.phone}`} className="text-sm text-gray-500 hover:text-purple-600">
+                      {restaurant.phone}
+                    </a>
+                  </div>
                 )}
-              </CardContent>
-            </Card>
+                {restaurant.email && (
+                  <div className="flex items-start gap-3">
+                    <Mail className="w-5 h-5 text-purple-600 shrink-0 mt-0.5" />
+                    <a href={`mailto:${restaurant.email}`} className="text-sm text-gray-500 hover:text-purple-600">
+                      {restaurant.email}
+                    </a>
+                  </div>
+                )}
+              </div>
+            </div>
 
-            {/* Menú (vista previa) */}
-            {menuItems.length > 0 && (
-              <Card className="shadow-lg py-4">
-                <CardHeader>
-                  <CardTitle className="text-xl">Menú Destacado</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {menuItems.slice(0, 6).map((item) => (
-                      <div key={item.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow bg-card">
+            {/* Share */}
+            <div className="mt-10 border-t border-gray-200 pt-10">
+              <h3 className="text-sm font-medium text-gray-900">Compartir</h3>
+              <div className="mt-4">
+                <Button
+                  onClick={handleShare}
+                  variant="outline"
+                  size="sm"
+                  className="w-full sm:w-auto"
+                >
+                  Copiar enlace
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          {/* Tabs section */}
+          <div className="mx-auto mt-16 w-full max-w-2xl lg:col-span-4 lg:mt-0 lg:max-w-none">
+            <div className="border-b border-gray-200">
+              <div className="-mb-px flex space-x-8">
+                <button
+                  onClick={() => setActiveTab('about')}
+                  className={classNames(
+                    activeTab === 'about'
+                      ? "border-purple-600 text-purple-600"
+                      : "border-transparent text-gray-700 hover:border-gray-300 hover:text-gray-800",
+                    "whitespace-nowrap border-b-2 py-6 text-sm font-medium"
+                  )}
+                >
+                  Acerca del restaurante
+                </button>
+                {menuItems.length > 0 && (
+                  <button
+                    onClick={() => setActiveTab('menu')}
+                    className={classNames(
+                      activeTab === 'menu'
+                        ? "border-purple-600 text-purple-600"
+                        : "border-transparent text-gray-700 hover:border-gray-300 hover:text-gray-800",
+                      "whitespace-nowrap border-b-2 py-6 text-sm font-medium"
+                    )}
+                  >
+                    Menú
+                  </button>
+                )}
+                {restaurant.opening_hours && (
+                  <button
+                    onClick={() => setActiveTab('hours')}
+                    className={classNames(
+                      activeTab === 'hours'
+                        ? "border-purple-600 text-purple-600"
+                        : "border-transparent text-gray-700 hover:border-gray-300 hover:text-gray-800",
+                      "whitespace-nowrap border-b-2 py-6 text-sm font-medium"
+                    )}
+                  >
+                    Horarios
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Tab panels */}
+            <div className="mt-10">
+              {activeTab === 'about' && restaurant.description && (
+                <div className="text-sm text-gray-500">
+                  <div
+                    className="prose prose-sm max-w-none prose-headings:text-gray-900 prose-p:text-gray-500 prose-a:text-purple-600 prose-strong:text-gray-900"
+                    dangerouslySetInnerHTML={{ __html: restaurant.description }}
+                  />
+                </div>
+              )}
+
+              {activeTab === 'menu' && menuItems.length > 0 && (
+                <div>
+                  <h3 className="sr-only">Menú</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    {menuItems.map((item) => (
+                      <div
+                        key={item.id}
+                        className="group relative border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
+                      >
                         {item.image_url && (
-                          <div className="relative w-full h-40 rounded-lg overflow-hidden mb-3">
+                          <div className="relative w-full h-48 mb-4 rounded-lg overflow-hidden bg-gray-100">
                             <Image
                               src={item.image_url}
                               alt={item.name}
@@ -273,114 +366,70 @@ export default function PublicRestaurantPage({
                             />
                           </div>
                         )}
-                        <div className="flex-1">
-                          <div className="flex justify-between items-start mb-2">
-                            <h3 className="font-semibold text-foreground">{item.name}</h3>
-                            <span className="text-lg font-bold text-primary ml-2">
-                              ${item.price.toFixed(2)}
-                            </span>
-                          </div>
-                          {item.category && (
-                            <Badge variant="outline" className="mb-2 text-xs">
-                              {item.category}
-                            </Badge>
-                          )}
-                          {item.description && (
-                            <p className="text-sm text-muted-foreground line-clamp-2">{item.description}</p>
-                          )}
+                        <div className="flex justify-between items-start mb-2">
+                          <h4 className="text-sm font-medium text-gray-900">{item.name}</h4>
+                          <span className="text-lg font-bold text-purple-600 ml-2">
+                            ${item.price.toFixed(2)}
+                          </span>
                         </div>
+                        {item.category && (
+                          <Badge variant="outline" className="mb-2 text-xs">
+                            {item.category}
+                          </Badge>
+                        )}
+                        {item.description && (
+                          <p className="text-sm text-gray-500 line-clamp-2">{item.description}</p>
+                        )}
                       </div>
                     ))}
                   </div>
-                </CardContent>
-              </Card>
-            )}
+                </div>
+              )}
 
-            {/* Galería (vista previa) */}
-            {restaurant.gallery && restaurant.gallery.length > 1 && (
-              <Card className="shadow-lg py-4">
-                <CardHeader>
-                  <CardTitle className="text-xl">Galería de imágenes</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                    {restaurant.gallery.slice(1, 9).map((imageUrl, index) => (
-                      <div
-                        key={index}
-                        className="relative aspect-video rounded-lg overflow-hidden group cursor-pointer hover:scale-105 transition-transform"
-                      >
-                        <Image
-                          src={imageUrl}
-                          alt={`Galería ${index + 1}`}
-                          fill
-                          className="object-cover"
-                        />
-                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
+              {activeTab === 'hours' && restaurant.opening_hours && (
+                <div className="space-y-3">
+                  {Object.entries(restaurant.opening_hours).map(([day, hours]: [string, any]) => (
+                    <div key={day} className="flex items-start gap-4">
+                      <div className="h-10 w-10 shrink-0 rounded-full bg-purple-100 flex items-center justify-center">
+                        <Clock className="h-5 w-5 text-purple-600" />
                       </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-          </div>
-
-          {/* Sidebar */}
-          <div className="lg:sticky lg:top-6 lg:self-start space-y-8">
-            {/* Información de acceso */}
-            <Card className="shadow-lg py-4">
-              <CardHeader>
-                <CardTitle>Visitar restaurante</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {!isAuthenticated && (
-                  <div className="space-y-4">
-                    <p className="text-sm text-muted-foreground text-center">
-                      Para ver el menú completo y hacer una reservación, necesitas iniciar sesión o crear una cuenta
-                    </p>
-                    <div className="flex flex-col gap-2">
-                      <Button asChild size="lg" className="w-full">
-                        <Link href="/signup">Registrarse</Link>
-                      </Button>
-                      <Button asChild variant="outline" size="lg" className="w-full">
-                        <Link href="/login">Iniciar sesión</Link>
-                      </Button>
+                      <div className="flex-1">
+                        <h4 className="text-sm font-medium text-gray-900 capitalize">{day}</h4>
+                        <p className="mt-1 text-sm text-gray-500">
+                          {hours.open} - {hours.close}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                )}
-
-                {isAuthenticated && userId && (
-                  <div className="space-y-4">
-                    <Button asChild size="lg" className="w-full">
-                      <Link href={`/patient/${userId}/explore/restaurant/${restaurantId}`}>
-                        Ver detalles completos
-                      </Link>
-                    </Button>
-                    <p className="text-xs text-muted-foreground text-center">
-                      Accede al restaurante en tu panel de control para ver el menú completo
-                    </p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Logo del restaurante */}
-            {restaurant.logo_url && (
-              <Card className="shadow-lg py-4">
-                <CardContent className="pt-6">
-                  <div className="relative w-full h-32 rounded-lg overflow-hidden">
-                    <Image
-                      src={restaurant.logo_url}
-                      alt={restaurant.name}
-                      fill
-                      className="object-cover"
-                    />
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
-      </div>
+
+        {/* Gallery section */}
+        {restaurant.gallery && restaurant.gallery.length > 1 && (
+          <div className="mx-auto mt-24 max-w-2xl sm:mt-32 lg:max-w-none">
+            <div className="flex items-center justify-between space-x-4">
+              <h2 className="text-lg font-medium text-gray-900">Galería</h2>
+            </div>
+            <div className="mt-6 grid grid-cols-1 gap-x-8 gap-y-8 sm:grid-cols-2 sm:gap-y-10 lg:grid-cols-4">
+              {restaurant.gallery.slice(1).map((image, index) => (
+                <div key={index} className="group relative">
+                  <div className="relative aspect-[4/3] w-full overflow-hidden rounded-lg bg-gray-100">
+                    <Image
+                      alt={`${restaurant.name} - Imagen ${index + 2}`}
+                      src={image}
+                      fill
+                      className="object-cover object-center group-hover:opacity-75 transition-opacity"
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </main>
     </div>
   );
 }

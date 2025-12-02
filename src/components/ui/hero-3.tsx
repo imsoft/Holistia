@@ -156,6 +156,7 @@ export const AnimatedMarqueeHero: React.FC<AnimatedMarqueeHeroProps> = ({
                 alt={`Showcase image ${(index % images.length) + 1}`}
                 fill
                 className="object-cover rounded-2xl shadow-md"
+                priority
               />
             </div>
           ))}

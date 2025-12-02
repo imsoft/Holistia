@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useParams } from "next/navigation";
 import {
   DollarSign,
   TrendingUp,
@@ -25,7 +26,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useProfile } from "@/hooks/use-profile";
 
 // Interfaces
 interface FinancialMetric {
@@ -61,7 +61,8 @@ interface FinancialSummary {
 }
 
 export default function ProfessionalFinancesPage() {
-  const { profile } = useProfile();
+  const params = useParams();
+  const userId = params.id as string;
   const [summary, setSummary] = useState<FinancialSummary | null>(null);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [metrics, setMetrics] = useState<FinancialMetric[]>([]);
@@ -98,14 +99,15 @@ export default function ProfessionalFinancesPage() {
   // Cargar datos financieros
   useEffect(() => {
     const fetchFinancialData = async () => {
-      if (!profile) {
-        console.log('No profile available yet');
+      if (!userId) {
+        console.log('No user ID provided in route params');
+        setLoading(false);
         return;
       }
 
       try {
         setLoading(true);
-        console.log('Fetching financial data for professional:', profile.id);
+        console.log('Fetching financial data for professional user:', userId);
 
         // Calcular rango de fechas según el período seleccionado
         const now = new Date();
@@ -132,7 +134,7 @@ export default function ProfessionalFinancesPage() {
         const { data: professionalApp } = await supabase
           .from('professional_applications')
           .select('id')
-          .eq('user_id', profile.id)
+          .eq('user_id', userId)
           .maybeSingle();
 
         if (!professionalApp) {
@@ -297,7 +299,7 @@ export default function ProfessionalFinancesPage() {
     };
 
     fetchFinancialData();
-  }, [profile, supabase, selectedPeriod]);
+  }, [userId, selectedPeriod]);
 
   const getPaymentTypeLabel = (type: string | null) => {
     switch (type) {

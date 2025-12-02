@@ -36,9 +36,8 @@ export async function updateSession(request: NextRequest) {
       }
     );
 
-    // Rutas públicas que no requieren autenticación
+    // Rutas públicas que no requieren autenticación (sin incluir '/')
     const publicPaths = [
-      '/',
       '/login',
       '/signup',
       '/forgot-password',
@@ -50,12 +49,74 @@ export async function updateSession(request: NextRequest) {
       '/public', // Páginas públicas (profesionales, comercios, restaurantes)
       '/_next',
       '/favicon.ico',
-      '/api'
+      '/api',
+      '/contact',
+      '/privacy',
+      '/terms',
+      '/history',
+      '/blog',
+      '/explore',
+      '/become-professional',
+      '/robots.txt',
+      '/sitemap.xml'
     ];
 
-    const isPublicPath = publicPaths.some(path => 
+    const isPublicPath = publicPaths.some(path =>
       request.nextUrl.pathname.startsWith(path)
     );
+
+    // Manejar la ruta raíz '/' de forma especial para usuarios autenticados
+    if (request.nextUrl.pathname === '/') {
+      try {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+
+        // Si hay usuario autenticado, redirigir a su dashboard
+        if (user) {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('type')
+            .eq('id', user.id)
+            .maybeSingle();
+
+          if (profile) {
+            const url = request.nextUrl.clone();
+
+            // Redirigir según el tipo de usuario
+            if (profile.type === 'admin') {
+              url.pathname = `/admin/${user.id}/dashboard`;
+            } else if (profile.type === 'professional') {
+              // Verificar si el profesional tiene una aplicación aprobada
+              const { data: professionalApp } = await supabase
+                .from('professional_applications')
+                .select('id, status')
+                .eq('user_id', user.id)
+                .maybeSingle();
+
+              if (professionalApp) {
+                url.pathname = `/professional/${professionalApp.id}/dashboard`;
+              } else {
+                // Si no tiene aplicación, redirigir como paciente
+                url.pathname = `/patient/${user.id}/explore`;
+              }
+            } else {
+              // Por defecto redirigir como paciente
+              url.pathname = `/patient/${user.id}/explore`;
+            }
+
+            console.log('🔄 Redirecting authenticated user from / to:', url.pathname);
+            return NextResponse.redirect(url);
+          }
+        }
+      } catch (error) {
+        console.error('Error checking user on home page:', error);
+        // Si hay error, permitir que vea la página de inicio
+      }
+
+      // Si no hay usuario o hubo error, permitir ver la página de inicio
+      return supabaseResponse;
+    }
 
     // Si es una ruta pública, continuar sin verificar autenticación
     if (isPublicPath) {

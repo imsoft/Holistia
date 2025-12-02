@@ -128,14 +128,30 @@ export default function ProfessionalFinancesPage() {
           previousEndDate = new Date(now.getFullYear() - 1, 11, 31, 23, 59, 59);
         }
 
+        // Obtener el ID de la aplicación profesional
+        const { data: professionalApp } = await supabase
+          .from('professional_applications')
+          .select('id')
+          .eq('user_id', profile.id)
+          .maybeSingle();
+
+        if (!professionalApp) {
+          console.log('No professional application found for user');
+          setLoading(false);
+          return;
+        }
+
+        console.log('Professional application ID:', professionalApp.id);
+
         // Obtener pagos del profesional para el período actual
+        // Usar created_at en lugar de paid_at porque paid_at puede ser null
         const { data: currentPayments, error: paymentsError } = await supabase
           .from('payments')
           .select('*')
-          .eq('professional_id', profile.id)
-          .gte('paid_at', startDate.toISOString())
-          .lte('paid_at', now.toISOString())
-          .in('status', ['succeeded', 'processing']);
+          .eq('professional_id', professionalApp.id)
+          .gte('created_at', startDate.toISOString())
+          .lte('created_at', now.toISOString())
+          .eq('status', 'succeeded'); // Solo pagos completados
 
         if (paymentsError) {
           console.error('Error fetching payments:', paymentsError);
@@ -143,19 +159,24 @@ export default function ProfessionalFinancesPage() {
         }
 
         console.log('Current payments found:', currentPayments?.length || 0);
+        console.log('Current payments data:', currentPayments);
         console.log('Date range:', startDate.toISOString(), 'to', now.toISOString());
 
         // Obtener pagos del período anterior para comparación
         const { data: previousPayments } = await supabase
           .from('payments')
           .select('*')
-          .eq('professional_id', profile.id)
-          .gte('paid_at', previousStartDate.toISOString())
-          .lte('paid_at', previousEndDate.toISOString())
-          .in('status', ['succeeded', 'processing']);
+          .eq('professional_id', professionalApp.id)
+          .gte('created_at', previousStartDate.toISOString())
+          .lte('created_at', previousEndDate.toISOString())
+          .eq('status', 'succeeded'); // Solo pagos completados
 
         // Calcular métricas del período actual
-        const totalIncome = currentPayments?.reduce((sum, p) => sum + Number(p.amount), 0) || 0;
+        // El profesional recibe el transfer_amount (monto después de comisión de plataforma)
+        const totalIncome = currentPayments?.reduce((sum, p) => {
+          const transferAmount = Number(p.transfer_amount) || 0;
+          return sum + transferAmount;
+        }, 0) || 0;
 
         // Los ingresos totales son lo que recibe el profesional directamente
         const netIncome = totalIncome;
@@ -163,11 +184,17 @@ export default function ProfessionalFinancesPage() {
         // Ingresos por tipo
         const appointmentsIncome = currentPayments
           ?.filter(p => p.payment_type === 'appointment')
-          .reduce((sum, p) => sum + Number(p.amount), 0) || 0;
+          .reduce((sum, p) => {
+            const transferAmount = Number(p.transfer_amount) || 0;
+            return sum + transferAmount;
+          }, 0) || 0;
 
         const eventsIncome = currentPayments
           ?.filter(p => p.payment_type === 'event')
-          .reduce((sum, p) => sum + Number(p.amount), 0) || 0;
+          .reduce((sum, p) => {
+            const transferAmount = Number(p.transfer_amount) || 0;
+            return sum + transferAmount;
+          }, 0) || 0;
 
         const financialSummary: FinancialSummary = {
           total_income: totalIncome,
@@ -182,7 +209,10 @@ export default function ProfessionalFinancesPage() {
         setSummary(financialSummary);
 
         // Calcular cambios comparando con período anterior
-        const previousTotalIncome = previousPayments?.reduce((sum, p) => sum + Number(p.amount), 0) || 0;
+        const previousTotalIncome = previousPayments?.reduce((sum, p) => {
+          const transferAmount = Number(p.transfer_amount) || 0;
+          return sum + transferAmount;
+        }, 0) || 0;
         const previousNetIncome = previousTotalIncome;
         const previousTransactions = previousPayments?.length || 0;
 
@@ -190,12 +220,8 @@ export default function ProfessionalFinancesPage() {
           ? ((totalIncome - previousTotalIncome) / previousTotalIncome * 100).toFixed(1)
           : "0.0";
 
-        const netIncomeChange = previousNetIncome > 0
-          ? ((netIncome - previousNetIncome) / previousNetIncome * 100).toFixed(1)
-          : "0.0";
-
         const transactionsChange = previousTransactions > 0
-          ? ((currentPayments.length - previousTransactions) / previousTransactions * 100).toFixed(1)
+          ? (((currentPayments?.length || 0) - previousTransactions) / previousTransactions * 100).toFixed(1)
           : "0.0";
 
         // Construir métricas
@@ -245,13 +271,16 @@ export default function ProfessionalFinancesPage() {
           ?.slice(-10)
           .reverse()
           .map(p => {
+            const transferAmount = Number(p.transfer_amount) || 0;
+            const platformFee = Number(p.platform_fee) || 0;
+
             return {
               id: p.id,
               type: p.payment_type || 'unknown',
-              amount: Number(p.amount),
-              platform_fee: 0,
+              amount: transferAmount, // Mostrar lo que recibe el profesional
+              platform_fee: platformFee,
               stripe_fee: 0,
-              professional_receives: Number(p.amount),
+              professional_receives: transferAmount,
               status: p.status,
               created_at: p.created_at,
               description: p.description || getPaymentTypeLabel(p.payment_type),

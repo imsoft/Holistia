@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
@@ -143,23 +143,40 @@ export const AnimatedMarqueeHero: React.FC<AnimatedMarqueeHeroProps> = ({
             },
           }}
         >
-          {duplicatedImages.map((src, index) => (
-            <div
-              key={index}
-              className="relative aspect-3/4 h-48 md:h-64 shrink-0"
-              style={{
-                rotate: `${(index % 2 === 0 ? -2 : 5)}deg`,
-              }}
-            >
-              <Image
-                src={src}
-                alt={`Showcase image ${(index % images.length) + 1}`}
-                fill
-                className="object-cover rounded-2xl shadow-md"
-                priority
-              />
-            </div>
-          ))}
+          {duplicatedImages.map((src, index) => {
+            const imageIndex = index % images.length;
+            const [imageError, setImageError] = useState(false);
+            
+            return (
+              <div
+                key={`${src}-${index}`}
+                className="relative aspect-3/4 h-48 md:h-64 shrink-0"
+                style={{
+                  rotate: `${(index % 2 === 0 ? -2 : 5)}deg`,
+                }}
+              >
+                {!imageError ? (
+                  <Image
+                    src={src}
+                    alt={`Showcase image ${imageIndex + 1}`}
+                    fill
+                    className="object-cover rounded-2xl shadow-md"
+                    priority={index < images.length}
+                    sizes="(max-width: 768px) 192px, 256px"
+                    onError={() => {
+                      console.error(`Failed to load image: ${src}`);
+                      setImageError(true);
+                    }}
+                    unoptimized={false}
+                  />
+                ) : (
+                  <div className="w-full h-full bg-muted rounded-2xl flex items-center justify-center">
+                    <span className="text-xs text-muted-foreground">Image {imageIndex + 1}</span>
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </motion.div>
       </div>
     </section>

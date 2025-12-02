@@ -71,6 +71,33 @@ export function StableImage({
     );
   }
 
+  // Validar que la URL sea válida antes de renderizar
+  const isValidUrl = imageSrc && imageSrc !== "" && (
+    imageSrc.startsWith('http://') || 
+    imageSrc.startsWith('https://') || 
+    imageSrc.startsWith('/') ||
+    imageSrc.startsWith('data:')
+  );
+
+  // Si la URL no es válida, mostrar fallback
+  if (!isValidUrl) {
+    return (
+      <div className={`relative ${className} bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center`}>
+        <Image
+          src={fallbackSrc}
+          alt="Holistia Logo"
+          width={120}
+          height={120}
+          className="object-contain opacity-60"
+          priority={priority}
+        />
+      </div>
+    );
+  }
+
+  // Determinar si la imagen es de Supabase y necesita unoptimized
+  const isSupabaseUrl = imageSrc.includes('supabase.co') || imageSrc.includes('supabase.in');
+  
   const containerClass = fill 
     ? `relative ${className}`
     : className;
@@ -102,6 +129,7 @@ export function StableImage({
         onError={handleImageError}
         onLoad={handleImageLoad}
         priority={priority}
+        unoptimized={isSupabaseUrl}
       />
     </div>
   );

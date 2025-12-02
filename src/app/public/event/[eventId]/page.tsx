@@ -157,7 +157,7 @@ export default function PublicEventPage({
           {/* Event image */}
           <div className="lg:col-span-4 lg:row-end-1">
             {(event.gallery_images?.[0] || event.image_url) ? (
-              <div className="aspect-[4/3] w-full overflow-hidden rounded-lg bg-gray-100">
+              <div className="aspect-4/3 w-full overflow-hidden rounded-lg bg-gray-100">
                 <Image
                   alt={event.name}
                   src={event.gallery_images?.[0] || event.image_url || ""}
@@ -171,7 +171,7 @@ export default function PublicEventPage({
                 />
               </div>
             ) : (
-              <div className="aspect-[4/3] w-full rounded-lg bg-gradient-to-br from-purple-100 to-blue-100 flex items-center justify-center">
+              <div className="aspect-4/3 w-full rounded-lg bg-linear-to-br from-purple-100 to-blue-100 flex items-center justify-center">
                 <div className="text-center">
                   <div className="w-32 h-32 rounded-full bg-white/50 mx-auto mb-4 flex items-center justify-center">
                     <CalendarCheck className="w-16 h-16 text-purple-600" />
@@ -456,7 +456,7 @@ export default function PublicEventPage({
             <div className="mt-6 grid grid-cols-1 gap-x-8 gap-y-8 sm:grid-cols-2 sm:gap-y-10 lg:grid-cols-4">
               {event.gallery_images.slice(1).map((image, index) => (
                 <div key={index} className="group relative">
-                  <div className="relative aspect-[4/3] w-full overflow-hidden rounded-lg bg-gray-100">
+                  <div className="relative aspect-4/3 w-full overflow-hidden rounded-lg bg-gray-100">
                     <Image
                       alt={`${event.name} - Imagen ${index + 2}`}
                       src={image}

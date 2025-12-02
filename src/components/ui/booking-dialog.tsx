@@ -35,7 +35,7 @@ export function BookingDialog({ open, onOpenChange, children, title }: BookingDi
   // Usar portal para renderizar directamente en el body
   const modalContent = open ? (
     <div 
-      className="fixed inset-0 z-[9999] flex items-center justify-center p-0 sm:p-4"
+      className="fixed inset-0 z-9999 flex items-center justify-center p-0 sm:p-4"
       style={{ 
         position: 'fixed',
         top: 0,
@@ -48,7 +48,7 @@ export function BookingDialog({ open, onOpenChange, children, title }: BookingDi
     >
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[9998]"
+        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-9998"
         style={{
           position: 'fixed',
           top: 0,
@@ -66,7 +66,7 @@ export function BookingDialog({ open, onOpenChange, children, title }: BookingDi
 
       {/* Dialog */}
       <div 
-        className="relative bg-background rounded-none sm:rounded-2xl shadow-2xl border-0 sm:border border-border w-full sm:w-[98vw] max-w-7xl h-full sm:h-auto sm:max-h-[95vh] overflow-hidden z-[9999] flex flex-col"
+        className="relative bg-background rounded-none sm:rounded-2xl shadow-2xl border-0 sm:border border-border w-full sm:w-[98vw] max-w-7xl h-full sm:h-auto sm:max-h-[95vh] overflow-hidden z-9999 flex flex-col"
         style={{
           position: 'relative',
           zIndex: 9999,
@@ -82,7 +82,7 @@ export function BookingDialog({ open, onOpenChange, children, title }: BookingDi
         }}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-4 sm:p-6 border-b border-border flex-shrink-0">
+        <div className="flex items-center justify-between p-4 sm:p-6 border-b border-border shrink-0">
           <h2 className="text-xl sm:text-2xl font-bold text-foreground">{title}</h2>
           <Button
             variant="ghost"

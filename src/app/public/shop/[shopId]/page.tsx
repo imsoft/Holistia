@@ -11,7 +11,6 @@ import {
   Mail,
   Globe,
   Instagram,
-  CheckCircle2,
   Store,
 } from "lucide-react";
 import Link from "next/link";
@@ -158,7 +157,7 @@ export default function PublicShopPage({
           {/* Shop image */}
           <div className="lg:col-span-4 lg:row-end-1">
             {shop.gallery && shop.gallery.length > 0 ? (
-              <div className="aspect-[4/3] w-full overflow-hidden rounded-lg bg-gray-100">
+              <div className="aspect-4/3 w-full overflow-hidden rounded-lg bg-gray-100">
                 <Image
                   alt={shop.name}
                   src={shop.gallery[0]}
@@ -169,7 +168,7 @@ export default function PublicShopPage({
                 />
               </div>
             ) : (
-              <div className="aspect-[4/3] w-full rounded-lg bg-gradient-to-br from-purple-100 to-blue-100 flex items-center justify-center">
+              <div className="aspect-4/3 w-full rounded-lg bg-linear-to-br from-purple-100 to-blue-100 flex items-center justify-center">
                 <div className="text-center">
                   <div className="w-32 h-32 rounded-full bg-white/50 mx-auto mb-4 flex items-center justify-center">
                     <Store className="w-16 h-16 text-purple-600" />
@@ -461,7 +460,7 @@ export default function PublicShopPage({
             <div className="mt-6 grid grid-cols-1 gap-x-8 gap-y-8 sm:grid-cols-2 sm:gap-y-10 lg:grid-cols-4">
               {shop.gallery.slice(1).map((image, index) => (
                 <div key={index} className="group relative">
-                  <div className="relative aspect-[4/3] w-full overflow-hidden rounded-lg bg-gray-100">
+                  <div className="relative aspect-4/3 w-full overflow-hidden rounded-lg bg-gray-100">
                     <Image
                       alt={`${shop.name} - Imagen ${index + 2}`}
                       src={image}

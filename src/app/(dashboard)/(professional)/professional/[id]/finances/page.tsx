@@ -552,7 +552,7 @@ export default function ProfessionalFinancesPage() {
                     className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border border-border rounded-lg hover:bg-muted/50 transition-colors gap-3"
                   >
                     <div className="flex items-start gap-3 flex-1 min-w-0">
-                      <div className="flex-shrink-0 mt-1">
+                      <div className="shrink-0 mt-1">
                         {getStatusIcon(transaction.status)}
                       </div>
                       <div className="flex-1 min-w-0">

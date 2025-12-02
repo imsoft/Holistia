@@ -153,7 +153,7 @@ export default function PublicProfessionalPage({
           {/* Product image */}
           <div className="lg:col-span-4 lg:row-end-1">
             {professional.profile_photo ? (
-              <div className="aspect-[4/3] w-full overflow-hidden rounded-lg bg-gray-100">
+              <div className="aspect-4/3 w-full overflow-hidden rounded-lg bg-gray-100">
                 <Image
                   alt={`${professional.first_name} ${professional.last_name}`}
                   src={professional.profile_photo}
@@ -164,7 +164,7 @@ export default function PublicProfessionalPage({
                 />
               </div>
             ) : (
-              <div className="aspect-[4/3] w-full rounded-lg bg-gradient-to-br from-purple-100 to-blue-100 flex items-center justify-center">
+              <div className="aspect-4/3 w-full rounded-lg bg-linear-to-br from-purple-100 to-blue-100 flex items-center justify-center">
                 <div className="text-center">
                   <div className="w-32 h-32 rounded-full bg-white/50 mx-auto mb-4 flex items-center justify-center">
                     <span className="text-6xl font-bold text-purple-600">

@@ -14,7 +14,6 @@ import {
   Calendar,
   Share2,
   Award,
-  CheckCircle,
   XCircle,
   CreditCard,
   Languages,
@@ -720,7 +719,7 @@ export default function ProfessionalProfilePage() {
           <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 sm:gap-6">
             <div className="flex items-center gap-4 sm:gap-6 w-full lg:w-auto">
               <div 
-                className="relative flex-shrink-0 cursor-pointer group"
+                className="relative shrink-0 cursor-pointer group"
                 onClick={() => setIsPhotoModalOpen(true)}
               >
                 <Image
@@ -821,7 +820,7 @@ export default function ProfessionalProfilePage() {
                   Acerca de {professional.first_name}
                 </h2>
                 <div 
-                  className="text-sm sm:text-base text-muted-foreground leading-relaxed max-w-3xl prose prose-sm sm:prose-base max-w-none"
+                  className="text-sm sm:text-base text-muted-foreground leading-relaxed prose prose-sm sm:prose-base max-w-none"
                   dangerouslySetInnerHTML={{ __html: professional.biography }}
                 />
               </div>
@@ -836,7 +835,7 @@ export default function ProfessionalProfilePage() {
                 <div className="bg-muted/50 rounded-lg p-4 space-y-3">
                   {professional.working_start_time && professional.working_end_time && (
                     <div className="flex items-center gap-2 text-sm sm:text-base">
-                      <Clock className="h-4 w-4 text-primary flex-shrink-0" />
+                      <Clock className="h-4 w-4 text-primary shrink-0" />
                       <span className="font-medium text-foreground">Horario:</span>
                       <span className="text-muted-foreground">
                         {formatWorkingHours(professional.working_start_time, professional.working_end_time)}
@@ -845,7 +844,7 @@ export default function ProfessionalProfilePage() {
                   )}
                   {professional.working_days && professional.working_days.length > 0 && (
                     <div className="flex items-start gap-2 text-sm sm:text-base">
-                      <Calendar className="h-4 w-4 text-primary flex-shrink-0 mt-0.5" />
+                      <Calendar className="h-4 w-4 text-primary shrink-0 mt-0.5" />
                       <span className="font-medium text-foreground">Días:</span>
                       <span className="text-muted-foreground">
                         {formatWorkingDays(professional.working_days)}
@@ -866,7 +865,7 @@ export default function ProfessionalProfilePage() {
                   {professional.languages.map((language, index) => (
                     <div
                       key={index}
-                      className="flex items-center gap-2 px-3 sm:px-4 py-2 rounded-full bg-gradient-to-r from-primary/10 to-primary/20 border border-primary/30"
+                      className="flex items-center gap-2 px-3 sm:px-4 py-2 rounded-full bg-linear-to-r from-primary/10 to-primary/20 border border-primary/30"
                     >
                       <Languages className="h-4 w-4 text-primary" />
                       <span className="text-sm sm:text-base text-foreground font-medium">
@@ -906,7 +905,7 @@ export default function ProfessionalProfilePage() {
                         const maxPrice = Math.max(...allPrices);
 
                         return (
-                          <div className="text-center p-4 rounded-xl bg-gradient-to-r from-primary/5 to-primary/10 border border-primary/20">
+                          <div className="text-center p-4 rounded-xl bg-linear-to-r from-primary/5 to-primary/10 border border-primary/20">
                             <div className="text-2xl font-bold text-primary mb-1">
                               {formatPrice(minPrice)}
                             </div>
@@ -931,9 +930,9 @@ export default function ProfessionalProfilePage() {
                 <h3 className="text-base sm:text-lg font-bold text-foreground mb-3 sm:mb-4">
                   Experiencia
                 </h3>
-                <div className="p-4 sm:p-5 rounded-xl bg-gradient-to-r from-primary/5 to-primary/10 border border-primary/20">
+                <div className="p-4 sm:p-5 rounded-xl bg-linear-to-r from-primary/5 to-primary/10 border border-primary/20">
                   <div className="flex items-start gap-3 sm:gap-4">
-                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0 mt-1">
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-primary/20 flex items-center justify-center shrink-0 mt-1">
                       <Clock className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
                     </div>
                     <div className="flex-1">
@@ -965,7 +964,7 @@ export default function ProfessionalProfilePage() {
                   setIsBookingModalOpen(true);
                   console.log('🔵 Estado isBookingModalOpen actualizado a:', true);
                 }}
-                className="w-full h-11 sm:h-12 text-sm sm:text-base font-semibold rounded-xl bg-gradient-to-r from-green-300 to-green-400 hover:from-green-400 hover:to-green-500 shadow-lg text-white touch-manipulation"
+                className="w-full h-11 sm:h-12 text-sm sm:text-base font-semibold rounded-xl bg-linear-to-r from-green-300 to-green-400 hover:from-green-400 hover:to-green-500 shadow-lg text-white touch-manipulation"
                 style={{ 
                   touchAction: 'manipulation', 
                   WebkitTapHighlightColor: 'transparent',
@@ -998,7 +997,7 @@ export default function ProfessionalProfilePage() {
                   ).map((service, index) => (
                     <div
                       key={index}
-                      className="rounded-xl bg-gradient-to-r from-primary/5 to-primary/10 border border-primary/20 hover:border-primary/30 transition-all overflow-hidden"
+                      className="rounded-xl bg-linear-to-r from-primary/5 to-primary/10 border border-primary/20 hover:border-primary/30 transition-all overflow-hidden"
                     >
                       {/* Grid: imagen a la izquierda, contenido a la derecha */}
                       <div className="grid grid-cols-1 sm:grid-cols-[25%_1fr] gap-0">
@@ -1057,8 +1056,8 @@ export default function ProfessionalProfilePage() {
                   Ubicación
                 </h2>
                 <div className="space-y-3 sm:space-y-4">
-                  <div className="flex items-start gap-2 sm:gap-3 p-3 sm:p-4 rounded-xl bg-gradient-to-r from-primary/5 to-primary/10 border border-primary/20">
-                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <div className="flex items-start gap-2 sm:gap-3 p-3 sm:p-4 rounded-xl bg-linear-to-r from-primary/5 to-primary/10 border border-primary/20">
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-primary/20 flex items-center justify-center shrink-0 mt-0.5">
                       <MapPin className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
                     </div>
                     <div className="text-foreground">
@@ -1093,9 +1092,9 @@ export default function ProfessionalProfilePage() {
                   {professional.certifications.map((cert, index) => (
                     <div
                       key={index}
-                      className="flex items-center gap-2 sm:gap-3 p-3 sm:p-4 rounded-xl bg-gradient-to-r from-primary/5 to-primary/10 border border-primary/20 hover:border-primary/30 transition-all"
+                      className="flex items-center gap-2 sm:gap-3 p-3 sm:p-4 rounded-xl bg-linear-to-r from-primary/5 to-primary/10 border border-primary/20 hover:border-primary/30 transition-all"
                     >
-                      <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
+                      <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
                         <Award className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
                       </div>
                       <span className="text-sm sm:text-base text-foreground font-medium">{cert}</span>
@@ -1161,7 +1160,7 @@ export default function ProfessionalProfilePage() {
                           const maxPrice = Math.max(...allPrices);
 
                           return (
-                            <div className="text-center p-4 rounded-xl bg-gradient-to-r from-primary/5 to-primary/10 border border-primary/20">
+                            <div className="text-center p-4 rounded-xl bg-linear-to-r from-primary/5 to-primary/10 border border-primary/20">
                               <div className="text-2xl font-bold text-primary mb-1">
                                 {formatPrice(minPrice)}
                               </div>
@@ -1186,9 +1185,9 @@ export default function ProfessionalProfilePage() {
                   <h3 className="text-base sm:text-lg font-bold text-foreground mb-3 sm:mb-4">
                     Experiencia
                   </h3>
-                  <div className="p-4 sm:p-5 rounded-xl bg-gradient-to-r from-primary/5 to-primary/10 border border-primary/20">
+                  <div className="p-4 sm:p-5 rounded-xl bg-linear-to-r from-primary/5 to-primary/10 border border-primary/20">
                     <div className="flex items-start gap-3 sm:gap-4">
-                      <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0 mt-1">
+                      <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-primary/20 flex items-center justify-center shrink-0 mt-1">
                         <Clock className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
                       </div>
                       <div className="flex-1">
@@ -1221,7 +1220,7 @@ export default function ProfessionalProfilePage() {
                       setIsBookingModalOpen(true);
                       console.log('🔵 Estado isBookingModalOpen actualizado a:', true);
                     }}
-                    className="w-full h-11 sm:h-12 text-sm sm:text-base font-semibold rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 shadow-lg text-white touch-manipulation"
+                    className="w-full h-11 sm:h-12 text-sm sm:text-base font-semibold rounded-xl bg-linear-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 shadow-lg text-white touch-manipulation"
                     style={{ 
                       touchAction: 'manipulation', 
                       WebkitTapHighlightColor: 'transparent',
@@ -1259,7 +1258,7 @@ export default function ProfessionalProfilePage() {
           
           {paymentData && (
             <div className="space-y-4 py-4">
-              <div className="bg-gradient-to-r from-primary/5 to-primary/10 rounded-lg p-4 space-y-3 border border-primary/20">
+              <div className="bg-linear-to-r from-primary/5 to-primary/10 rounded-lg p-4 space-y-3 border border-primary/20">
                 <div className="flex items-center justify-between">
                   <span className="text-muted-foreground flex items-center gap-2">
                     <Calendar className="h-4 w-4" />

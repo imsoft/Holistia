@@ -419,7 +419,7 @@ export default function AdminPlatformTools() {
                 />
               </div>
               <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder="Categoría" />
                 </SelectTrigger>
                 <SelectContent>
@@ -432,7 +432,7 @@ export default function AdminPlatformTools() {
                 </SelectContent>
               </Select>
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder="Estado" />
                 </SelectTrigger>
                 <SelectContent>
@@ -460,7 +460,7 @@ export default function AdminPlatformTools() {
                   : tool.monthly_cost;
 
             return (
-              <Card key={tool.id} className="hover:shadow-md transition-shadow py-4">
+              <Card key={tool.id} className="hover:shadow-md transition-shadow py-4 flex flex-col h-full">
                 <CardHeader>
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-3">
@@ -475,12 +475,12 @@ export default function AdminPlatformTools() {
                     {getStatusBadge(tool.status)}
                   </div>
                 </CardHeader>
-                <CardContent className="space-y-3">
-                  <div>
+                <CardContent className="space-y-3 flex-1 flex flex-col">
+                  <div className="flex-1">
                     <p className="text-sm font-medium mb-1">Para qué sirve:</p>
                     <p className="text-xs text-muted-foreground line-clamp-2">{tool.purpose}</p>
                   </div>
-                  <div className="flex items-center justify-between pt-2 border-t">
+                  <div className="flex items-center justify-between pt-2 border-t mt-auto">
                     <div>
                       <p className="text-xs text-muted-foreground">Costo mensual</p>
                       <p className="text-sm font-bold">
@@ -498,6 +498,7 @@ export default function AdminPlatformTools() {
                         variant="outline"
                         size="sm"
                         onClick={() => handleView(tool)}
+                        className="h-8 w-8 p-0"
                       >
                         <Eye className="h-4 w-4" />
                       </Button>
@@ -505,6 +506,7 @@ export default function AdminPlatformTools() {
                         variant="outline"
                         size="sm"
                         onClick={() => handleOpenForm(tool)}
+                        className="h-8 w-8 p-0"
                       >
                         <Edit className="h-4 w-4" />
                       </Button>
@@ -515,6 +517,7 @@ export default function AdminPlatformTools() {
                           setDeletingId(tool.id);
                           setIsDeleteOpen(true);
                         }}
+                        className="h-8 w-8 p-0"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -558,7 +561,7 @@ export default function AdminPlatformTools() {
           </DialogHeader>
           <div className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-2">
+              <div className="space-y-2 w-full">
                 <Label htmlFor="name">
                   Nombre <span className="text-red-500">*</span>
                 </Label>
@@ -567,9 +570,10 @@ export default function AdminPlatformTools() {
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   placeholder="Ej: Vercel Hosting"
+                  className="w-full"
                 />
               </div>
-              <div className="space-y-2">
+              <div className="space-y-2 w-full">
                 <Label htmlFor="provider">
                   Proveedor <span className="text-red-500">*</span>
                 </Label>
@@ -577,7 +581,7 @@ export default function AdminPlatformTools() {
                   value={formData.provider}
                   onValueChange={(value) => setFormData({ ...formData, provider: value })}
                 >
-                  <SelectTrigger id="provider">
+                  <SelectTrigger id="provider" className="w-full">
                     <SelectValue placeholder="Selecciona un proveedor" />
                   </SelectTrigger>
                   <SelectContent>
@@ -592,7 +596,7 @@ export default function AdminPlatformTools() {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-2">
+              <div className="space-y-2 w-full">
                 <Label htmlFor="category">
                   Categoría <span className="text-red-500">*</span>
                 </Label>
@@ -600,7 +604,7 @@ export default function AdminPlatformTools() {
                   value={formData.category}
                   onValueChange={(value) => setFormData({ ...formData, category: value })}
                 >
-                  <SelectTrigger id="category">
+                  <SelectTrigger id="category" className="w-full">
                     <SelectValue placeholder="Selecciona una categoría" />
                   </SelectTrigger>
                   <SelectContent>
@@ -612,13 +616,13 @@ export default function AdminPlatformTools() {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="space-y-2">
+              <div className="space-y-2 w-full">
                 <Label htmlFor="status">Estado</Label>
                 <Select
                   value={formData.status}
                   onValueChange={(value: any) => setFormData({ ...formData, status: value })}
                 >
-                  <SelectTrigger id="status">
+                  <SelectTrigger id="status" className="w-full">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -657,25 +661,25 @@ export default function AdminPlatformTools() {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="billing_period">Período de Facturación</Label>
+              <div className="space-y-2 w-full">
+                <Label htmlFor="billing_period" className="whitespace-nowrap">Período de Facturación</Label>
                 <Select
                   value={formData.billing_period}
                   onValueChange={(value: any) => setFormData({ ...formData, billing_period: value })}
                 >
-                  <SelectTrigger id="billing_period">
+                  <SelectTrigger id="billing_period" className="w-full">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
                     {BILLING_PERIODS.map((period) => (
-                      <SelectItem key={period.value} value={period.value}>
+                      <SelectItem key={period.value} value={period.value} className="whitespace-nowrap">
                         {period.label}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
-              <div className="space-y-2">
+              <div className="space-y-2 w-full">
                 <Label htmlFor="monthly_cost">Costo Mensual (MXN)</Label>
                 <Input
                   id="monthly_cost"
@@ -685,9 +689,10 @@ export default function AdminPlatformTools() {
                   value={formData.monthly_cost}
                   onChange={(e) => setFormData({ ...formData, monthly_cost: e.target.value })}
                   placeholder="0.00"
+                  className="w-full"
                 />
               </div>
-              <div className="space-y-2">
+              <div className="space-y-2 w-full">
                 <Label htmlFor="annual_cost">Costo Anual (MXN)</Label>
                 <Input
                   id="annual_cost"
@@ -697,12 +702,13 @@ export default function AdminPlatformTools() {
                   value={formData.annual_cost}
                   onChange={(e) => setFormData({ ...formData, annual_cost: e.target.value })}
                   placeholder="0.00"
+                  className="w-full"
                 />
               </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-2">
+              <div className="space-y-2 w-full">
                 <Label htmlFor="url">URL del Servicio</Label>
                 <Input
                   id="url"
@@ -710,9 +716,10 @@ export default function AdminPlatformTools() {
                   value={formData.url}
                   onChange={(e) => setFormData({ ...formData, url: e.target.value })}
                   placeholder="https://..."
+                  className="w-full"
                 />
               </div>
-              <div className="space-y-2">
+              <div className="space-y-2 w-full">
                 <Label htmlFor="account_email">Email de la Cuenta</Label>
                 <Input
                   id="account_email"
@@ -720,6 +727,7 @@ export default function AdminPlatformTools() {
                   value={formData.account_email}
                   onChange={(e) => setFormData({ ...formData, account_email: e.target.value })}
                   placeholder="cuenta@ejemplo.com"
+                  className="w-full"
                 />
               </div>
             </div>
@@ -809,7 +817,7 @@ export default function AdminPlatformTools() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <p className="text-sm text-muted-foreground">Período de Facturación</p>
-                    <p className="font-medium">
+                    <p className="font-medium whitespace-nowrap">
                       {BILLING_PERIODS.find((p) => p.value === viewingTool.billing_period)?.label}
                     </p>
                   </div>

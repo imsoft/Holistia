@@ -1056,7 +1056,7 @@ export default function AdminProfessionals() {
 
       {/* Modal para ver perfil del profesional */}
       <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
-        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto w-[95vw]">
           <DialogHeader>
             <DialogTitle>Perfil del Profesional</DialogTitle>
             <DialogDescription>
@@ -1110,14 +1110,14 @@ export default function AdminProfessionals() {
                       <Phone className="h-4 w-4" />
                       <span>Teléfono</span>
                     </div>
-                    <span className="text-base font-medium pl-6">{selectedProfessional.phone || 'No disponible'}</span>
+                    <span className="text-base font-medium pl-6 break-all">{selectedProfessional.phone || 'No disponible'}</span>
                   </div>
                   <div className="flex flex-col gap-1">
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <MapPin className="h-4 w-4" />
                       <span>Ubicación</span>
                     </div>
-                    <span className="text-base font-medium pl-6">{selectedProfessional.city}, {selectedProfessional.state}</span>
+                    <span className="text-base font-medium pl-6 break-words">{selectedProfessional.city}, {selectedProfessional.state}</span>
                   </div>
                   <div className="flex flex-col gap-1">
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -1130,7 +1130,7 @@ export default function AdminProfessionals() {
                           href={`https://instagram.com/${selectedProfessional.instagram}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-base font-medium text-primary hover:underline"
+                          className="text-base font-medium text-primary hover:underline break-all"
                         >
                           @{selectedProfessional.instagram}
                         </a>
@@ -1147,7 +1147,7 @@ export default function AdminProfessionals() {
                 <h3 className="text-lg font-semibold mb-4">Especialidades</h3>
                 <div className="flex flex-wrap gap-2">
                   {selectedProfessional.specializations.map((specialization, index) => (
-                    <Badge key={index} variant="secondary">
+                    <Badge key={index} variant="secondary" className="max-w-full break-words whitespace-normal">
                       {specialization}
                     </Badge>
                   ))}
@@ -1194,7 +1194,7 @@ export default function AdminProfessionals() {
                     feeStatus.color === 'red' ? 'bg-red-50 border-red-200' :
                     'bg-gray-50 border-gray-200'
                   }`}>
-                    <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                    <h3 className="text-lg font-semibold mb-4 flex items-center gap-2 flex-wrap">
                       <span>Cuota de Inscripción Anual</span>
                       <Badge className={
                         feeStatus.color === 'green' ? 'bg-green-600' :
@@ -1214,7 +1214,7 @@ export default function AdminProfessionals() {
                   </div>
                   <div className="flex flex-col gap-1">
                     <span className="text-sm text-muted-foreground">Estado</span>
-                    <span className="text-base font-medium">
+                    <span className="text-base font-medium break-words">
                       {selectedProfessional.registration_fee_paid ? (
                         selectedProfessional.registration_fee_expires_at && 
                         new Date(selectedProfessional.registration_fee_expires_at) > new Date()
@@ -1234,7 +1234,7 @@ export default function AdminProfessionals() {
                   {selectedProfessional.registration_fee_expires_at && (
                     <div className="flex flex-col gap-1">
                       <span className="text-sm text-muted-foreground">Fecha de expiración</span>
-                      <span className={`text-base font-medium ${
+                      <span className={`text-base font-medium break-words ${
                         new Date(selectedProfessional.registration_fee_expires_at) <= new Date()
                           ? 'text-red-600 font-bold'
                           : new Date(selectedProfessional.registration_fee_expires_at).getTime() - new Date().getTime() < 30 * 24 * 60 * 60 * 1000
@@ -1252,7 +1252,7 @@ export default function AdminProfessionals() {
                 </div>
                 {!selectedProfessional.registration_fee_paid && (
                   <div className="mt-3 p-3 bg-yellow-100 border border-yellow-300 rounded-md">
-                    <p className="text-sm text-yellow-800">
+                    <p className="text-sm text-yellow-800 break-words">
                       ⚠️ El profesional debe pagar la cuota de inscripción anual para poder aparecer en la plataforma, 
                       incluso si ya fue aprobado.
                     </p>
@@ -1262,7 +1262,7 @@ export default function AdminProfessionals() {
                  selectedProfessional.registration_fee_expires_at && 
                  new Date(selectedProfessional.registration_fee_expires_at) <= new Date() && (
                   <div className="mt-3 p-3 bg-red-100 border border-red-300 rounded-md">
-                    <p className="text-sm text-red-800">
+                    <p className="text-sm text-red-800 break-words">
                       ❌ La inscripción de este profesional ha expirado. Debe renovar su pago para volver a aparecer en la plataforma.
                     </p>
                   </div>

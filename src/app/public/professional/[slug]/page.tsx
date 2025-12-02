@@ -117,10 +117,10 @@ export default function PublicProfessionalPage({
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto"></div>
-          <p className="mt-4 text-gray-500">Cargando...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-4 text-muted-foreground">Cargando...</p>
         </div>
       </div>
     );
@@ -128,10 +128,10 @@ export default function PublicProfessionalPage({
 
   if (!professional) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
-          <p className="text-xl font-semibold text-gray-900">Profesional no encontrado</p>
-          <Link href="/" className="text-purple-600 hover:text-purple-700 mt-4 inline-block">
+          <p className="text-xl font-semibold text-foreground">Profesional no encontrado</p>
+          <Link href="/" className="text-primary hover:text-primary/80 mt-4 inline-block">
             Volver al inicio
           </Link>
         </div>
@@ -146,14 +146,14 @@ export default function PublicProfessionalPage({
   ].filter(Boolean) as string[];
 
   return (
-    <div className="bg-white">
+    <div className="bg-background">
       <main className="mx-auto px-4 pt-14 pb-24 sm:px-6 sm:pt-16 sm:pb-32 lg:max-w-7xl lg:px-8">
         {/* Product */}
         <div className="lg:grid lg:grid-cols-7 lg:grid-rows-1 lg:gap-x-8 lg:gap-y-10 xl:gap-x-16">
           {/* Product image */}
           <div className="lg:col-span-4 lg:row-end-1">
             {professional.profile_photo ? (
-              <div className="aspect-4/3 w-full overflow-hidden rounded-lg bg-gray-100">
+              <div className="aspect-4/3 w-full overflow-hidden rounded-lg bg-muted">
                 <Image
                   alt={`${professional.first_name} ${professional.last_name}`}
                   src={professional.profile_photo}
@@ -166,7 +166,7 @@ export default function PublicProfessionalPage({
             ) : (
               <div className="aspect-4/3 w-full rounded-lg bg-linear-to-br from-purple-100 to-blue-100 flex items-center justify-center">
                 <div className="text-center">
-                  <div className="w-32 h-32 rounded-full bg-white/50 mx-auto mb-4 flex items-center justify-center">
+                  <div className="w-32 h-32 rounded-full bg-background/50 mx-auto mb-4 flex items-center justify-center">
                     <span className="text-6xl font-bold text-purple-600">
                       {professional.first_name[0]}{professional.last_name[0]}
                     </span>
@@ -180,7 +180,7 @@ export default function PublicProfessionalPage({
           <div className="mx-auto mt-14 max-w-2xl sm:mt-16 lg:col-span-3 lg:row-span-2 lg:row-end-2 lg:mt-0 lg:max-w-none">
             <div className="flex flex-col-reverse">
               <div className="mt-4">
-                <h1 className="text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl">
+                <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
                   {professional.first_name} {professional.last_name}
                 </h1>
 
@@ -188,7 +188,7 @@ export default function PublicProfessionalPage({
                   Información del profesional
                 </h2>
                 {professional.profession && (
-                  <p className="mt-2 text-lg text-gray-500">
+                  <p className="mt-2 text-lg text-muted-foreground">
                     {professional.profession}
                   </p>
                 )}
@@ -203,15 +203,15 @@ export default function PublicProfessionalPage({
                         key={rating}
                         aria-hidden="true"
                         className={classNames(
-                          professional.average_rating > rating ? "fill-yellow-400 text-yellow-400" : "text-gray-300",
+                          professional.average_rating > rating ? "fill-yellow-400 text-yellow-400" : "text-muted",
                           "h-5 w-5 shrink-0"
                         )}
                       />
                     ))}
-                    <p className="ml-3 text-sm text-gray-700">
+                    <p className="ml-3 text-sm text-foreground">
                       {professional.average_rating.toFixed(1)} de 5 estrellas
                     </p>
-                    <p className="ml-2 text-sm text-gray-500">
+                    <p className="ml-2 text-sm text-muted-foreground">
                       ({professional.total_reviews} reseñas)
                     </p>
                   </div>
@@ -277,13 +277,13 @@ export default function PublicProfessionalPage({
 
             {/* Highlights */}
             {highlights.length > 0 && (
-              <div className="mt-10 border-t border-gray-200 pt-10">
-                <h3 className="text-sm font-medium text-gray-900">Destacados</h3>
+              <div className="mt-10 border-t border-border pt-10">
+                <h3 className="text-sm font-medium text-foreground">Destacados</h3>
                 <div className="mt-4">
-                  <ul role="list" className="list-disc space-y-2 pl-5 text-sm text-gray-500 marker:text-purple-300">
+                  <ul role="list" className="list-disc space-y-2 pl-5 text-sm text-muted-foreground marker:text-purple-300">
                     {highlights.map((highlight, index) => (
                       <li key={index} className="pl-2">
-                        <span className="text-gray-700">{highlight}</span>
+                        <span className="text-foreground">{highlight}</span>
                       </li>
                     ))}
                   </ul>
@@ -292,24 +292,24 @@ export default function PublicProfessionalPage({
             )}
 
             {/* Por qué elegirme */}
-            <div className="mt-10 border-t border-gray-200 pt-10">
-              <h3 className="text-sm font-medium text-gray-900">¿Por qué elegirme?</h3>
+            <div className="mt-10 border-t border-border pt-10">
+              <h3 className="text-sm font-medium text-foreground">¿Por qué elegirme?</h3>
               <div className="mt-4 space-y-3">
                 <div className="flex items-start gap-3">
                   <CheckCircle2 className="w-5 h-5 text-purple-600 shrink-0 mt-0.5" />
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-muted-foreground">
                     Profesional verificado y certificado
                   </p>
                 </div>
                 <div className="flex items-start gap-3">
                   <CheckCircle2 className="w-5 h-5 text-purple-600 shrink-0 mt-0.5" />
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-muted-foreground">
                     Atención personalizada y profesional
                   </p>
                 </div>
                 <div className="flex items-start gap-3">
                   <CheckCircle2 className="w-5 h-5 text-purple-600 shrink-0 mt-0.5" />
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-muted-foreground">
                     Reserva fácil y flexible
                   </p>
                 </div>
@@ -317,8 +317,8 @@ export default function PublicProfessionalPage({
             </div>
 
             {/* Share */}
-            <div className="mt-10 border-t border-gray-200 pt-10">
-              <h3 className="text-sm font-medium text-gray-900">Compartir perfil</h3>
+            <div className="mt-10 border-t border-border pt-10">
+              <h3 className="text-sm font-medium text-foreground">Compartir perfil</h3>
               <div className="mt-4">
                 <Button
                   onClick={handleShare}
@@ -334,14 +334,14 @@ export default function PublicProfessionalPage({
 
           {/* Tabs section */}
           <div className="mx-auto mt-16 w-full max-w-2xl lg:col-span-4 lg:mt-0 lg:max-w-none">
-            <div className="border-b border-gray-200">
+            <div className="border-b border-border">
               <div className="-mb-px flex space-x-8">
                 <button
                   onClick={() => setActiveTab('about')}
                   className={classNames(
                     activeTab === 'about'
                       ? "border-purple-600 text-purple-600"
-                      : "border-transparent text-gray-700 hover:border-gray-300 hover:text-gray-800",
+                      : "border-transparent text-foreground hover:border-border hover:text-foreground",
                     "whitespace-nowrap border-b-2 py-6 text-sm font-medium"
                   )}
                 >
@@ -353,7 +353,7 @@ export default function PublicProfessionalPage({
                     className={classNames(
                       activeTab === 'certifications'
                         ? "border-purple-600 text-purple-600"
-                        : "border-transparent text-gray-700 hover:border-gray-300 hover:text-gray-800",
+                        : "border-transparent text-foreground hover:border-border hover:text-foreground",
                       "whitespace-nowrap border-b-2 py-6 text-sm font-medium"
                     )}
                   >
@@ -365,7 +365,7 @@ export default function PublicProfessionalPage({
                   className={classNames(
                     activeTab === 'highlights'
                       ? "border-purple-600 text-purple-600"
-                      : "border-transparent text-gray-700 hover:border-gray-300 hover:text-gray-800",
+                      : "border-transparent text-foreground hover:border-border hover:text-foreground",
                     "whitespace-nowrap border-b-2 py-6 text-sm font-medium"
                   )}
                 >
@@ -377,9 +377,9 @@ export default function PublicProfessionalPage({
             {/* Tab panels */}
             <div className="mt-10">
               {activeTab === 'about' && professional.biography && (
-                <div className="text-sm text-gray-500">
+                <div className="text-sm text-muted-foreground">
                   <div
-                    className="prose prose-sm max-w-none prose-headings:text-gray-900 prose-p:text-gray-500 prose-a:text-purple-600 prose-strong:text-gray-900"
+                    className="prose prose-sm max-w-none prose-headings:text-foreground prose-p:text-muted-foreground prose-a:text-purple-600 prose-strong:text-foreground"
                     dangerouslySetInnerHTML={{ __html: professional.biography }}
                   />
                 </div>
@@ -392,13 +392,13 @@ export default function PublicProfessionalPage({
                     {professional.certifications.map((cert, index) => (
                       <li
                         key={index}
-                        className="flex items-start gap-4 p-4 rounded-lg bg-gray-50 border border-gray-200 hover:bg-gray-100 transition-colors"
+                        className="flex items-start gap-4 p-4 rounded-lg bg-muted/50 border border-border hover:bg-muted transition-colors"
                       >
                         <div className="shrink-0">
                           <Award className="h-6 w-6 text-purple-600" />
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-gray-900">{cert}</p>
+                          <p className="text-sm font-medium text-foreground">{cert}</p>
                         </div>
                       </li>
                     ))}
@@ -414,8 +414,8 @@ export default function PublicProfessionalPage({
                         <Award className="h-5 w-5 text-purple-600" />
                       </div>
                       <div>
-                        <h4 className="text-sm font-medium text-gray-900">Experiencia Profesional</h4>
-                        <p className="mt-1 text-sm text-gray-500">{professional.experience}</p>
+                        <h4 className="text-sm font-medium text-foreground">Experiencia Profesional</h4>
+                        <p className="mt-1 text-sm text-muted-foreground">{professional.experience}</p>
                       </div>
                     </div>
                   )}
@@ -426,8 +426,8 @@ export default function PublicProfessionalPage({
                         <Star className="h-5 w-5 text-yellow-600" />
                       </div>
                       <div>
-                        <h4 className="text-sm font-medium text-gray-900">Excelente Calificación</h4>
-                        <p className="mt-1 text-sm text-gray-500">
+                        <h4 className="text-sm font-medium text-foreground">Excelente Calificación</h4>
+                        <p className="mt-1 text-sm text-muted-foreground">
                           {professional.average_rating.toFixed(1)} estrellas basado en {professional.total_reviews} reseñas
                         </p>
                       </div>
@@ -440,8 +440,8 @@ export default function PublicProfessionalPage({
                         <CheckCircle2 className="h-5 w-5 text-blue-600" />
                       </div>
                       <div>
-                        <h4 className="text-sm font-medium text-gray-900">Certificado y Verificado</h4>
-                        <p className="mt-1 text-sm text-gray-500">
+                        <h4 className="text-sm font-medium text-foreground">Certificado y Verificado</h4>
+                        <p className="mt-1 text-sm text-muted-foreground">
                           {professional.certifications.length} certificación{professional.certifications.length !== 1 ? 'es' : ''} profesional{professional.certifications.length !== 1 ? 'es' : ''}
                         </p>
                       </div>
@@ -454,8 +454,8 @@ export default function PublicProfessionalPage({
                         <CheckCircle2 className="h-5 w-5 text-green-600" />
                       </div>
                       <div>
-                        <h4 className="text-sm font-medium text-gray-900">Especialidades</h4>
-                        <p className="mt-1 text-sm text-gray-500">
+                        <h4 className="text-sm font-medium text-foreground">Especialidades</h4>
+                        <p className="mt-1 text-sm text-muted-foreground">
                           {professional.specializations.join(", ")}
                         </p>
                       </div>

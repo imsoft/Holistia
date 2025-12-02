@@ -121,10 +121,10 @@ export default function PublicEventPage({
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto"></div>
-          <p className="mt-4 text-gray-500">Cargando...</p>
+          <p className="mt-4 text-muted-foreground">Cargando...</p>
         </div>
       </div>
     );
@@ -132,9 +132,9 @@ export default function PublicEventPage({
 
   if (!event) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
-          <p className="text-xl font-semibold text-gray-900">Evento no encontrado</p>
+          <p className="text-xl font-semibold text-foreground">Evento no encontrado</p>
           <Link href="/" className="text-purple-600 hover:text-purple-700 mt-4 inline-block">
             Volver al inicio
           </Link>
@@ -151,13 +151,13 @@ export default function PublicEventPage({
   ].filter(Boolean) as string[];
 
   return (
-    <div className="bg-white">
+    <div className="bg-background">
       <main className="mx-auto px-4 pt-14 pb-24 sm:px-6 sm:pt-16 sm:pb-32 lg:max-w-7xl lg:px-8">
         <div className="lg:grid lg:grid-cols-7 lg:grid-rows-1 lg:gap-x-8 lg:gap-y-10 xl:gap-x-16">
           {/* Event image */}
           <div className="lg:col-span-4 lg:row-end-1">
             {(event.gallery_images?.[0] || event.image_url) ? (
-              <div className="aspect-4/3 w-full overflow-hidden rounded-lg bg-gray-100">
+              <div className="aspect-4/3 w-full overflow-hidden rounded-lg bg-muted">
                 <Image
                   alt={event.name}
                   src={event.gallery_images?.[0] || event.image_url || ""}
@@ -173,7 +173,7 @@ export default function PublicEventPage({
             ) : (
               <div className="aspect-4/3 w-full rounded-lg bg-linear-to-br from-purple-100 to-blue-100 flex items-center justify-center">
                 <div className="text-center">
-                  <div className="w-32 h-32 rounded-full bg-white/50 mx-auto mb-4 flex items-center justify-center">
+                  <div className="w-32 h-32 rounded-full bg-background/50 mx-auto mb-4 flex items-center justify-center">
                     <CalendarCheck className="w-16 h-16 text-purple-600" />
                   </div>
                   <p className="text-xl font-semibold text-purple-900">{event.name}</p>
@@ -186,7 +186,7 @@ export default function PublicEventPage({
           <div className="mx-auto mt-14 max-w-2xl sm:mt-16 lg:col-span-3 lg:row-span-2 lg:row-end-2 lg:mt-0 lg:max-w-none">
             <div className="flex flex-col-reverse">
               <div className="mt-4">
-                <h1 className="text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl">
+                <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
                   {event.name}
                 </h1>
 
@@ -249,12 +249,12 @@ export default function PublicEventPage({
             {/* Highlights */}
             {highlights.length > 0 && (
               <div className="mt-10 border-t border-gray-200 pt-10">
-                <h3 className="text-sm font-medium text-gray-900">Información destacada</h3>
+                <h3 className="text-sm font-medium text-foreground">Información destacada</h3>
                 <div className="mt-4">
-                  <ul role="list" className="list-disc space-y-2 pl-5 text-sm text-gray-500 marker:text-purple-300">
+                  <ul role="list" className="list-disc space-y-2 pl-5 text-sm text-muted-foreground marker:text-purple-300">
                     {highlights.map((highlight, index) => (
                       <li key={index} className="pl-2">
-                        <span className="text-gray-700">{highlight}</span>
+                        <span className="text-foreground">{highlight}</span>
                       </li>
                     ))}
                   </ul>
@@ -264,12 +264,12 @@ export default function PublicEventPage({
 
             {/* Precio */}
             <div className="mt-10 border-t border-gray-200 pt-10">
-              <h3 className="text-sm font-medium text-gray-900">Precio</h3>
+              <h3 className="text-sm font-medium text-foreground">Precio</h3>
               <div className="mt-4">
                 <p className="text-2xl font-bold text-purple-600">
                   {event.is_free ? "Gratuito" : `$${event.price} MXN`}
                 </p>
-                <p className="mt-1 text-sm text-gray-500">
+                <p className="mt-1 text-sm text-muted-foreground">
                   {event.is_free ? "Evento sin costo" : "Costo por persona"}
                 </p>
               </div>
@@ -277,7 +277,7 @@ export default function PublicEventPage({
 
             {/* Share */}
             <div className="mt-10 border-t border-gray-200 pt-10">
-              <h3 className="text-sm font-medium text-gray-900">Compartir evento</h3>
+              <h3 className="text-sm font-medium text-foreground">Compartir evento</h3>
               <div className="mt-4">
                 <Button
                   onClick={handleShare}
@@ -300,7 +300,7 @@ export default function PublicEventPage({
                   className={classNames(
                     activeTab === 'about'
                       ? "border-purple-600 text-purple-600"
-                      : "border-transparent text-gray-700 hover:border-gray-300 hover:text-gray-800",
+                      : "border-transparent text-foreground hover:border-border hover:text-foreground",
                     "whitespace-nowrap border-b-2 py-6 text-sm font-medium"
                   )}
                 >
@@ -311,7 +311,7 @@ export default function PublicEventPage({
                   className={classNames(
                     activeTab === 'details'
                       ? "border-purple-600 text-purple-600"
-                      : "border-transparent text-gray-700 hover:border-gray-300 hover:text-gray-800",
+                      : "border-transparent text-foreground hover:border-border hover:text-foreground",
                     "whitespace-nowrap border-b-2 py-6 text-sm font-medium"
                   )}
                 >
@@ -323,7 +323,7 @@ export default function PublicEventPage({
                     className={classNames(
                       activeTab === 'instructor'
                         ? "border-purple-600 text-purple-600"
-                        : "border-transparent text-gray-700 hover:border-gray-300 hover:text-gray-800",
+                        : "border-transparent text-foreground hover:border-border hover:text-foreground",
                       "whitespace-nowrap border-b-2 py-6 text-sm font-medium"
                     )}
                   >
@@ -336,9 +336,9 @@ export default function PublicEventPage({
             {/* Tab panels */}
             <div className="mt-10">
               {activeTab === 'about' && event.description && (
-                <div className="text-sm text-gray-500">
+                <div className="text-sm text-muted-foreground">
                   <div
-                    className="prose prose-sm max-w-none prose-headings:text-gray-900 prose-p:text-gray-500 prose-a:text-purple-600 prose-strong:text-gray-900"
+                    className="prose prose-sm max-w-none prose-headings:text-foreground prose-p:text-muted-foreground prose-a:text-purple-600 prose-strong:text-foreground"
                     dangerouslySetInnerHTML={{ __html: event.description }}
                   />
                 </div>
@@ -351,8 +351,8 @@ export default function PublicEventPage({
                       <Calendar className="h-5 w-5 text-purple-600" />
                     </div>
                     <div>
-                      <h4 className="text-sm font-medium text-gray-900">Fecha y hora</h4>
-                      <p className="mt-1 text-sm text-gray-500">
+                      <h4 className="text-sm font-medium text-foreground">Fecha y hora</h4>
+                      <p className="mt-1 text-sm text-muted-foreground">
                         {event.end_date && event.event_date !== event.end_date
                           ? `${formatEventDate(event.event_date)} - ${formatEventDate(event.end_date)}`
                           : formatEventDate(event.event_date)
@@ -369,8 +369,8 @@ export default function PublicEventPage({
                       <MapPin className="h-5 w-5 text-blue-600" />
                     </div>
                     <div>
-                      <h4 className="text-sm font-medium text-gray-900">Ubicación</h4>
-                      <p className="mt-1 text-sm text-gray-500">{event.location}</p>
+                      <h4 className="text-sm font-medium text-foreground">Ubicación</h4>
+                      <p className="mt-1 text-sm text-muted-foreground">{event.location}</p>
                     </div>
                   </div>
 
@@ -379,8 +379,8 @@ export default function PublicEventPage({
                       <Users className="h-5 w-5 text-green-600" />
                     </div>
                     <div>
-                      <h4 className="text-sm font-medium text-gray-900">Cupo máximo</h4>
-                      <p className="mt-1 text-sm text-gray-500">{event.max_capacity} personas</p>
+                      <h4 className="text-sm font-medium text-foreground">Cupo máximo</h4>
+                      <p className="mt-1 text-sm text-muted-foreground">{event.max_capacity} personas</p>
                     </div>
                   </div>
 
@@ -389,8 +389,8 @@ export default function PublicEventPage({
                       <Clock className="h-5 w-5 text-yellow-600" />
                     </div>
                     <div>
-                      <h4 className="text-sm font-medium text-gray-900">Duración</h4>
-                      <p className="mt-1 text-sm text-gray-500">{event.duration_hours} horas</p>
+                      <h4 className="text-sm font-medium text-foreground">Duración</h4>
+                      <p className="mt-1 text-sm text-muted-foreground">{event.duration_hours} horas</p>
                     </div>
                   </div>
 
@@ -399,8 +399,8 @@ export default function PublicEventPage({
                       <User className="h-5 w-5 text-indigo-600" />
                     </div>
                     <div>
-                      <h4 className="text-sm font-medium text-gray-900">Nivel requerido</h4>
-                      <p className="mt-1 text-sm text-gray-500">{getParticipantLevelLabel(event.participant_level)}</p>
+                      <h4 className="text-sm font-medium text-foreground">Nivel requerido</h4>
+                      <p className="mt-1 text-sm text-muted-foreground">{getParticipantLevelLabel(event.participant_level)}</p>
                     </div>
                   </div>
 
@@ -410,8 +410,8 @@ export default function PublicEventPage({
                         <Car className="h-5 w-5 text-green-600" />
                       </div>
                       <div>
-                        <h4 className="text-sm font-medium text-gray-900">Estacionamiento</h4>
-                        <p className="mt-1 text-sm text-gray-500">El lugar cuenta con estacionamiento disponible</p>
+                        <h4 className="text-sm font-medium text-foreground">Estacionamiento</h4>
+                        <p className="mt-1 text-sm text-muted-foreground">El lugar cuenta con estacionamiento disponible</p>
                       </div>
                     </div>
                   )}
@@ -435,10 +435,10 @@ export default function PublicEventPage({
                       </div>
                     )}
                     <div>
-                      <h4 className="text-lg font-medium text-gray-900">
+                      <h4 className="text-lg font-medium text-foreground">
                         {professional.first_name} {professional.last_name}
                       </h4>
-                      <p className="mt-1 text-sm text-gray-500">{professional.profession}</p>
+                      <p className="mt-1 text-sm text-muted-foreground">{professional.profession}</p>
                     </div>
                   </div>
                 </div>
@@ -451,12 +451,12 @@ export default function PublicEventPage({
         {event.gallery_images && event.gallery_images.length > 1 && (
           <div className="mx-auto mt-24 max-w-2xl sm:mt-32 lg:max-w-none">
             <div className="flex items-center justify-between space-x-4">
-              <h2 className="text-lg font-medium text-gray-900">Galería del evento</h2>
+              <h2 className="text-lg font-medium text-foreground">Galería del evento</h2>
             </div>
             <div className="mt-6 grid grid-cols-1 gap-x-8 gap-y-8 sm:grid-cols-2 sm:gap-y-10 lg:grid-cols-4">
               {event.gallery_images.slice(1).map((image, index) => (
                 <div key={index} className="group relative">
-                  <div className="relative aspect-4/3 w-full overflow-hidden rounded-lg bg-gray-100">
+                  <div className="relative aspect-4/3 w-full overflow-hidden rounded-lg bg-muted">
                     <Image
                       alt={`${event.name} - Imagen ${index + 2}`}
                       src={image}

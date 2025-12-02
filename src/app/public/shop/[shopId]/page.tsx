@@ -122,10 +122,10 @@ export default function PublicShopPage({
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto"></div>
-          <p className="mt-4 text-gray-500">Cargando...</p>
+          <p className="mt-4 text-muted-foreground">Cargando...</p>
         </div>
       </div>
     );
@@ -133,9 +133,9 @@ export default function PublicShopPage({
 
   if (!shop) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
-          <p className="text-xl font-semibold text-gray-900">Comercio no encontrado</p>
+          <p className="text-xl font-semibold text-foreground">Comercio no encontrado</p>
           <Link href="/" className="text-purple-600 hover:text-purple-700 mt-4 inline-block">
             Volver al inicio
           </Link>
@@ -151,13 +151,13 @@ export default function PublicShopPage({
   ].filter(Boolean) as string[];
 
   return (
-    <div className="bg-white">
+    <div className="bg-background">
       <main className="mx-auto px-4 pt-14 pb-24 sm:px-6 sm:pt-16 sm:pb-32 lg:max-w-7xl lg:px-8">
         <div className="lg:grid lg:grid-cols-7 lg:grid-rows-1 lg:gap-x-8 lg:gap-y-10 xl:gap-x-16">
           {/* Shop image */}
           <div className="lg:col-span-4 lg:row-end-1">
             {shop.gallery && shop.gallery.length > 0 ? (
-              <div className="aspect-4/3 w-full overflow-hidden rounded-lg bg-gray-100">
+              <div className="aspect-4/3 w-full overflow-hidden rounded-lg bg-muted">
                 <Image
                   alt={shop.name}
                   src={shop.gallery[0]}
@@ -170,7 +170,7 @@ export default function PublicShopPage({
             ) : (
               <div className="aspect-4/3 w-full rounded-lg bg-linear-to-br from-purple-100 to-blue-100 flex items-center justify-center">
                 <div className="text-center">
-                  <div className="w-32 h-32 rounded-full bg-white/50 mx-auto mb-4 flex items-center justify-center">
+                  <div className="w-32 h-32 rounded-full bg-background/50 mx-auto mb-4 flex items-center justify-center">
                     <Store className="w-16 h-16 text-purple-600" />
                   </div>
                   <p className="text-xl font-semibold text-purple-900">{shop.name}</p>
@@ -183,7 +183,7 @@ export default function PublicShopPage({
           <div className="mx-auto mt-14 max-w-2xl sm:mt-16 lg:col-span-3 lg:row-span-2 lg:row-end-2 lg:mt-0 lg:max-w-none">
             <div className="flex flex-col-reverse">
               <div className="mt-4">
-                <h1 className="text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl">
+                <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
                   {shop.name}
                 </h1>
 
@@ -191,7 +191,7 @@ export default function PublicShopPage({
                   Información del comercio
                 </h2>
                 {shop.category && (
-                  <p className="mt-2 text-lg text-gray-500">
+                  <p className="mt-2 text-lg text-muted-foreground">
                     {shop.category}
                   </p>
                 )}
@@ -240,12 +240,12 @@ export default function PublicShopPage({
             {/* Highlights */}
             {highlights.length > 0 && (
               <div className="mt-10 border-t border-gray-200 pt-10">
-                <h3 className="text-sm font-medium text-gray-900">Destacados</h3>
+                <h3 className="text-sm font-medium text-foreground">Destacados</h3>
                 <div className="mt-4">
-                  <ul role="list" className="list-disc space-y-2 pl-5 text-sm text-gray-500 marker:text-purple-300">
+                  <ul role="list" className="list-disc space-y-2 pl-5 text-sm text-muted-foreground marker:text-purple-300">
                     {highlights.map((highlight, index) => (
                       <li key={index} className="pl-2">
-                        <span className="text-gray-700">{highlight}</span>
+                        <span className="text-foreground">{highlight}</span>
                       </li>
                     ))}
                   </ul>
@@ -255,18 +255,18 @@ export default function PublicShopPage({
 
             {/* Información de contacto */}
             <div className="mt-10 border-t border-gray-200 pt-10">
-              <h3 className="text-sm font-medium text-gray-900">Información de contacto</h3>
+              <h3 className="text-sm font-medium text-foreground">Información de contacto</h3>
               <div className="mt-4 space-y-3">
                 {shop.address && (
                   <div className="flex items-start gap-3">
                     <MapPin className="w-5 h-5 text-purple-600 shrink-0 mt-0.5" />
-                    <p className="text-sm text-gray-500">{shop.address}</p>
+                    <p className="text-sm text-muted-foreground">{shop.address}</p>
                   </div>
                 )}
                 {shop.phone && (
                   <div className="flex items-start gap-3">
                     <Phone className="w-5 h-5 text-purple-600 shrink-0 mt-0.5" />
-                    <a href={`tel:${shop.phone}`} className="text-sm text-gray-500 hover:text-purple-600">
+                    <a href={`tel:${shop.phone}`} className="text-sm text-muted-foreground hover:text-purple-600">
                       {shop.phone}
                     </a>
                   </div>
@@ -274,7 +274,7 @@ export default function PublicShopPage({
                 {shop.email && (
                   <div className="flex items-start gap-3">
                     <Mail className="w-5 h-5 text-purple-600 shrink-0 mt-0.5" />
-                    <a href={`mailto:${shop.email}`} className="text-sm text-gray-500 hover:text-purple-600">
+                    <a href={`mailto:${shop.email}`} className="text-sm text-muted-foreground hover:text-purple-600">
                       {shop.email}
                     </a>
                   </div>
@@ -282,7 +282,7 @@ export default function PublicShopPage({
                 {shop.website && (
                   <div className="flex items-start gap-3">
                     <Globe className="w-5 h-5 text-purple-600 shrink-0 mt-0.5" />
-                    <a href={shop.website} target="_blank" rel="noopener noreferrer" className="text-sm text-gray-500 hover:text-purple-600">
+                    <a href={shop.website} target="_blank" rel="noopener noreferrer" className="text-sm text-muted-foreground hover:text-purple-600">
                       Visitar sitio web
                     </a>
                   </div>
@@ -290,7 +290,7 @@ export default function PublicShopPage({
                 {shop.instagram && (
                   <div className="flex items-start gap-3">
                     <Instagram className="w-5 h-5 text-purple-600 shrink-0 mt-0.5" />
-                    <a href={shop.instagram} target="_blank" rel="noopener noreferrer" className="text-sm text-gray-500 hover:text-purple-600">
+                    <a href={shop.instagram} target="_blank" rel="noopener noreferrer" className="text-sm text-muted-foreground hover:text-purple-600">
                       Seguir en Instagram
                     </a>
                   </div>
@@ -300,7 +300,7 @@ export default function PublicShopPage({
 
             {/* Share */}
             <div className="mt-10 border-t border-gray-200 pt-10">
-              <h3 className="text-sm font-medium text-gray-900">Compartir</h3>
+              <h3 className="text-sm font-medium text-foreground">Compartir</h3>
               <div className="mt-4">
                 <Button
                   onClick={handleShare}
@@ -323,7 +323,7 @@ export default function PublicShopPage({
                   className={classNames(
                     activeTab === 'about'
                       ? "border-purple-600 text-purple-600"
-                      : "border-transparent text-gray-700 hover:border-gray-300 hover:text-gray-800",
+                      : "border-transparent text-foreground hover:border-border hover:text-foreground",
                     "whitespace-nowrap border-b-2 py-6 text-sm font-medium"
                   )}
                 >
@@ -335,7 +335,7 @@ export default function PublicShopPage({
                     className={classNames(
                       activeTab === 'products'
                         ? "border-purple-600 text-purple-600"
-                        : "border-transparent text-gray-700 hover:border-gray-300 hover:text-gray-800",
+                        : "border-transparent text-foreground hover:border-border hover:text-foreground",
                       "whitespace-nowrap border-b-2 py-6 text-sm font-medium"
                     )}
                   >
@@ -348,7 +348,7 @@ export default function PublicShopPage({
                     className={classNames(
                       activeTab === 'hours'
                         ? "border-purple-600 text-purple-600"
-                        : "border-transparent text-gray-700 hover:border-gray-300 hover:text-gray-800",
+                        : "border-transparent text-foreground hover:border-border hover:text-foreground",
                       "whitespace-nowrap border-b-2 py-6 text-sm font-medium"
                     )}
                   >
@@ -361,9 +361,9 @@ export default function PublicShopPage({
             {/* Tab panels */}
             <div className="mt-10">
               {activeTab === 'about' && shop.description && (
-                <div className="text-sm text-gray-500">
+                <div className="text-sm text-muted-foreground">
                   <div
-                    className="prose prose-sm max-w-none prose-headings:text-gray-900 prose-p:text-gray-500 prose-a:text-purple-600 prose-strong:text-gray-900"
+                    className="prose prose-sm max-w-none prose-headings:text-foreground prose-p:text-muted-foreground prose-a:text-purple-600 prose-strong:text-foreground"
                     dangerouslySetInnerHTML={{ __html: shop.description }}
                   />
                 </div>
@@ -379,7 +379,7 @@ export default function PublicShopPage({
                         className="group relative border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
                       >
                         {product.image_url && (
-                          <div className="relative w-full h-48 mb-4 rounded-lg overflow-hidden bg-gray-100">
+                          <div className="relative w-full h-48 mb-4 rounded-lg overflow-hidden bg-muted">
                             <Image
                               src={product.image_url}
                               alt={product.name}
@@ -388,9 +388,9 @@ export default function PublicShopPage({
                             />
                           </div>
                         )}
-                        <h4 className="text-sm font-medium text-gray-900 mb-2">{product.name}</h4>
+                        <h4 className="text-sm font-medium text-foreground mb-2">{product.name}</h4>
                         {product.description && (
-                          <p className="text-sm text-gray-500 mb-3 line-clamp-2">
+                          <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
                             {product.description}
                           </p>
                         )}
@@ -439,8 +439,8 @@ export default function PublicShopPage({
                           <Clock className="h-5 w-5 text-purple-600" />
                         </div>
                         <div className="flex-1">
-                          <h4 className="text-sm font-medium text-gray-900 capitalize">{day}</h4>
-                          <p className="mt-1 text-sm text-gray-500">{hoursText}</p>
+                          <h4 className="text-sm font-medium text-foreground capitalize">{day}</h4>
+                          <p className="mt-1 text-sm text-muted-foreground">{hoursText}</p>
                         </div>
                       </div>
                     );
@@ -455,12 +455,12 @@ export default function PublicShopPage({
         {shop.gallery && shop.gallery.length > 1 && (
           <div className="mx-auto mt-24 max-w-2xl sm:mt-32 lg:max-w-none">
             <div className="flex items-center justify-between space-x-4">
-              <h2 className="text-lg font-medium text-gray-900">Galería</h2>
+              <h2 className="text-lg font-medium text-foreground">Galería</h2>
             </div>
             <div className="mt-6 grid grid-cols-1 gap-x-8 gap-y-8 sm:grid-cols-2 sm:gap-y-10 lg:grid-cols-4">
               {shop.gallery.slice(1).map((image, index) => (
                 <div key={index} className="group relative">
-                  <div className="relative aspect-4/3 w-full overflow-hidden rounded-lg bg-gray-100">
+                  <div className="relative aspect-4/3 w-full overflow-hidden rounded-lg bg-muted">
                     <Image
                       alt={`${shop.name} - Imagen ${index + 2}`}
                       src={image}

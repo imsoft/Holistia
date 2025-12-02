@@ -84,6 +84,66 @@ export async function POST(request: NextRequest) {
         );
       }
 
+      // Verificar que el horario no esté bloqueado (por ejemplo, por eventos de Google Calendar)
+      console.log('🔍 Checking for availability blocks...');
+      const { data: blocks } = await supabase
+        .from('availability_blocks')
+        .select('*')
+        .eq('professional_id', professional_id);
+
+      if (blocks && blocks.length > 0) {
+        // Parsear la fecha para obtener el día de la semana
+        const [year, month, day] = appointment_date.split('-').map(Number);
+        const appointmentDateObj = new Date(year, month - 1, day);
+        const dayOfWeek = appointmentDateObj.getDay() === 0 ? 7 : appointmentDateObj.getDay();
+
+        // Verificar si hay algún bloqueo que aplique a esta fecha/hora
+        const isBlocked = blocks.some(block => {
+          const blockStartDate = new Date(block.start_date);
+          const blockEndDate = block.end_date ? new Date(block.end_date) : blockStartDate;
+          const currentDate = new Date(appointment_date);
+
+          // Normalizar fechas
+          blockStartDate.setHours(0, 0, 0, 0);
+          blockEndDate.setHours(0, 0, 0, 0);
+          currentDate.setHours(0, 0, 0, 0);
+
+          // Verificar bloqueos de día completo
+          if (block.block_type === 'full_day' || block.block_type === 'weekly_day') {
+            if (block.is_recurring && block.day_of_week === dayOfWeek) {
+              return true; // Bloqueo recurrente de día completo
+            }
+            if (currentDate >= blockStartDate && currentDate <= blockEndDate) {
+              return true; // Bloqueo de día completo en este rango
+            }
+          }
+
+          // Verificar bloqueos de rango de horas
+          if ((block.block_type === 'time_range' || block.block_type === 'weekly_range') &&
+              block.start_time && block.end_time) {
+            // Verificar si la fecha está en el rango
+            const isInDateRange = currentDate >= blockStartDate && currentDate <= blockEndDate;
+
+            if (block.is_recurring || isInDateRange) {
+              // Verificar si la hora está en el rango bloqueado
+              if (appointment_time >= block.start_time && appointment_time < block.end_time) {
+                return true; // Horario bloqueado
+              }
+            }
+          }
+
+          return false;
+        });
+
+        if (isBlocked) {
+          console.log('⚠️ Time slot is blocked');
+          return NextResponse.json(
+            { error: 'Este horario no está disponible. Por favor elige otro horario.' },
+            { status: 400 }
+          );
+        }
+      }
+
       // Determinar ubicación basada en el tipo de cita
       const { data: professionalData } = await supabase
         .from('professional_applications')

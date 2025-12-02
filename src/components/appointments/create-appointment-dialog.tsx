@@ -168,6 +168,63 @@ export function CreateAppointmentDialog({
         return;
       }
 
+      // Verificar que el horario no esté bloqueado (por ejemplo, por eventos de Google Calendar)
+      const { data: blocks } = await supabase
+        .from('availability_blocks')
+        .select('*')
+        .eq('professional_id', professionalId);
+
+      if (blocks && blocks.length > 0) {
+        // Parsear la fecha para obtener el día de la semana
+        const [year, month, day] = appointmentDate.split('-').map(Number);
+        const appointmentDateObj = new Date(year, month - 1, day);
+        const dayOfWeek = appointmentDateObj.getDay() === 0 ? 7 : appointmentDateObj.getDay();
+
+        // Verificar si hay algún bloqueo que aplique a esta fecha/hora
+        const isBlocked = blocks.some(block => {
+          const blockStartDate = new Date(block.start_date);
+          const blockEndDate = block.end_date ? new Date(block.end_date) : blockStartDate;
+          const currentDate = new Date(appointmentDate);
+
+          // Normalizar fechas
+          blockStartDate.setHours(0, 0, 0, 0);
+          blockEndDate.setHours(0, 0, 0, 0);
+          currentDate.setHours(0, 0, 0, 0);
+
+          // Verificar bloqueos de día completo
+          if (block.block_type === 'full_day' || block.block_type === 'weekly_day') {
+            if (block.is_recurring && block.day_of_week === dayOfWeek) {
+              return true; // Bloqueo recurrente de día completo
+            }
+            if (currentDate >= blockStartDate && currentDate <= blockEndDate) {
+              return true; // Bloqueo de día completo en este rango
+            }
+          }
+
+          // Verificar bloqueos de rango de horas
+          if ((block.block_type === 'time_range' || block.block_type === 'weekly_range') &&
+              block.start_time && block.end_time) {
+            // Verificar si la fecha está en el rango
+            const isInDateRange = currentDate >= blockStartDate && currentDate <= blockEndDate;
+
+            if (block.is_recurring || isInDateRange) {
+              // Verificar si la hora está en el rango bloqueado
+              if (appointmentTime >= block.start_time && appointmentTime < block.end_time) {
+                return true; // Horario bloqueado
+              }
+            }
+          }
+
+          return false;
+        });
+
+        if (isBlocked) {
+          setError("Este horario no está disponible. Puede estar bloqueado por un evento en tu calendario.");
+          setIsSubmitting(false);
+          return;
+        }
+      }
+
       // Crear la cita
       const { data: newAppointment, error: insertError } = await supabase
         .from('appointments')
@@ -192,6 +249,34 @@ export function CreateAppointmentDialog({
       }
 
       console.log('✅ Cita creada exitosamente:', newAppointment);
+
+      // Obtener el user_id del profesional para sincronizar con Google Calendar
+      const { data: { user } } = await supabase.auth.getUser();
+
+      // Sincronizar con Google Calendar si el profesional tiene Google Calendar conectado
+      if (user) {
+        try {
+          const syncResponse = await fetch('/api/google-calendar/sync-appointment', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              appointmentId: newAppointment.id,
+              userId: user.id
+            })
+          });
+
+          if (!syncResponse.ok) {
+            console.log('⚠️ No se pudo sincronizar con Google Calendar (puede que no esté conectado)');
+          } else {
+            console.log('✅ Cita sincronizada con Google Calendar');
+          }
+        } catch (syncError) {
+          console.error('Error sincronizando con Google Calendar:', syncError);
+          // No mostramos error al usuario porque no es crítico
+        }
+      }
 
       // Enviar notificación por email al paciente
       try {

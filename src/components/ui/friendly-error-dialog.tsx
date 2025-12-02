@@ -78,15 +78,15 @@ export function FriendlyErrorDialog({
   };
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-9999 flex items-center justify-center p-4">
       {/* Backdrop */}
       <div 
-        className="fixed inset-0 bg-black/20 backdrop-blur-sm z-[9998]"
+        className="fixed inset-0 bg-black/20 backdrop-blur-sm z-9998"
         onClick={() => onOpenChange(false)}
       />
       
       {/* Dialog */}
-      <Card className={`relative w-full max-w-md shadow-2xl border-2 ${getCardStyles()} z-[9999]`}>
+      <Card className={`relative w-full max-w-md shadow-2xl border-2 ${getCardStyles()} z-9999`}>
         <CardContent className="p-6">
           {/* Header */}
           <div className="flex items-start justify-between mb-4">

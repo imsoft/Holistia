@@ -34,7 +34,7 @@ import { AdminRatingDisplay } from "@/components/ui/admin-rating-display";
 export default function ProfessionalDashboard() {
   const params = useParams();
   const router = useRouter();
-  const professionalIdParam = params.id as string;
+  const userIdParam = params.id as string; // Este es el user_id, no el professional_id
   const supabase = createClient();
   
   const [loading, setLoading] = useState(true);
@@ -77,10 +77,11 @@ export default function ProfessionalDashboard() {
         }
 
         // Obtener la aplicación profesional del usuario
+        // El parámetro de la URL es el user_id, no el professional_id
         const { data: professionalApp, error: profError } = await supabase
           .from('professional_applications')
           .select('id, user_id, first_name, last_name, profile_photo, working_start_time, working_end_time, stripe_account_id, stripe_account_status, stripe_charges_enabled, stripe_payouts_enabled, registration_fee_paid, registration_fee_amount, registration_fee_currency, registration_fee_paid_at, registration_fee_expires_at')
-          .eq('id', professionalIdParam)
+          .eq('user_id', userIdParam)
           .eq('status', 'approved')
           .single();
 
@@ -331,7 +332,7 @@ export default function ProfessionalDashboard() {
     };
 
     fetchData();
-  }, [userId, supabase, refreshKey]);
+  }, [userIdParam, supabase, refreshKey]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -617,19 +618,19 @@ export default function ProfessionalDashboard() {
         )}
 
         {/* Configuración de pagos con Stripe Connect */}
-        {professionalIdParam && (
+        {professionalId && (
           <div className="mt-8">
             <StripeConnectButton
-              professionalId={professionalIdParam}
+              professionalId={professionalId}
               initialStatus={stripeStatus}
             />
           </div>
         )}
 
         {/* Calificación de administrador */}
-        {professionalIdParam && (
+        {professionalId && (
           <div className="mt-6">
-            <AdminRatingDisplay professionalId={professionalIdParam} />
+            <AdminRatingDisplay professionalId={professionalId} />
           </div>
         )}
 

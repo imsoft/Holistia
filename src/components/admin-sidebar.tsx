@@ -189,7 +189,7 @@ export function AdminSidebar() {
     },
     {
       title: "Servicios y Costos",
-      url: `/admin/${userId}/platform-tools`,
+      url: `/admin/${userId}/services-costs`,
       icon: Wrench,
     },
     {

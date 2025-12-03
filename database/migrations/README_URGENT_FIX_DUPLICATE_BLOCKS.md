@@ -23,7 +23,29 @@ La migración `131_add_unique_constraint_availability_blocks.sql` hace dos cosas
    - `start_time` (o 'full_day' si es evento de día completo)
    - `end_time` (o 'full_day' si es evento de día completo)
 
+## 🚨 SITUACIÓN ACTUAL
+
+Basado en los screenshots:
+- ✅ El **constraint único YA EXISTE** en la base de datos
+- ❌ Pero todavía hay **muchos duplicados** en la tabla
+- 💡 Esto significa: el constraint previene NUEVOS duplicados, pero NO eliminó los existentes
+
 ## 📋 Pasos para Aplicar
+
+### ⚡ OPCIÓN RÁPIDA (RECOMENDADA)
+
+**Ejecuta este archivo directamente en Supabase SQL Editor:**
+
+```bash
+database/migrations/EJECUTAR_AHORA_clean_existing_duplicates.sql
+```
+
+Este script:
+1. Muestra cuántos duplicados hay (ANTES)
+2. Elimina los duplicados (mantiene el más antiguo)
+3. Verifica que no quedan duplicados (DESPUÉS)
+
+### 📝 OPCIÓN DETALLADA
 
 ### 1. Backup (IMPORTANTE)
 Antes de aplicar, haz un backup de la tabla:

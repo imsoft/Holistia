@@ -148,7 +148,6 @@ export default function AdminPlatformTools() {
     account_email: "",
     notes: "",
   });
-  const [syncingPayments, setSyncingPayments] = useState(false);
 
   const supabase = createClient();
 
@@ -287,42 +286,6 @@ export default function AdminPlatformTools() {
     setIsViewOpen(true);
   };
 
-  const handleSyncPayments = async () => {
-    try {
-      setSyncingPayments(true);
-      toast.info("Sincronizando pagos con Stripe...");
-
-      const response = await fetch("/api/admin/sync-payments-by-session", {
-        method: "POST",
-      });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.error || "Error al sincronizar pagos");
-      }
-
-      toast.success(
-        `Sincronización completada: ${result.updated} pagos actualizados de ${result.total_checked} revisados`
-      );
-
-      // Mostrar detalles si hay resultados
-      if (result.results && result.results.length > 0) {
-        const successCount = result.results.filter((r: any) => r.success).length;
-        const failedCount = result.results.filter((r: any) => !r.success).length;
-
-        if (failedCount > 0) {
-          toast.warning(`${failedCount} pagos no pudieron sincronizarse`);
-        }
-      }
-    } catch (error: any) {
-      console.error("Error syncing payments:", error);
-      toast.error(error.message || "Error al sincronizar pagos");
-    } finally {
-      setSyncingPayments(false);
-    }
-  };
-
   const getCategoryIcon = (category: string) => {
     const cat = CATEGORIES.find((c) => c.value === category);
     return cat ? cat.icon : Wrench;
@@ -386,7 +349,7 @@ export default function AdminPlatformTools() {
                 Herramientas de Plataforma
               </h1>
               <p className="text-xs sm:text-sm text-muted-foreground">
-                Gestiona los servicios y herramientas que usa Holistia
+                Servicios contratados para que Holistia funcione (servidores, bases de datos, mapas, etc.)
               </p>
             </div>
           </div>
@@ -399,54 +362,6 @@ export default function AdminPlatformTools() {
 
       {/* Main Content */}
       <div className="p-4 sm:p-6 space-y-6">
-        {/* Utilidades de Administración */}
-        <Card className="py-4">
-          <CardHeader>
-            <CardTitle>Utilidades de Administración</CardTitle>
-            <p className="text-sm text-muted-foreground">
-              Herramientas para gestionar la plataforma
-            </p>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              <div className="border rounded-lg p-4 space-y-3">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-blue-100 rounded-lg">
-                    <CreditCard className="h-5 w-5 text-blue-600" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-sm">Sincronizar Pagos</h3>
-                    <p className="text-xs text-muted-foreground">
-                      Actualiza pagos desde Stripe
-                    </p>
-                  </div>
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Sincroniza los pagos que están en "processing" o "pending" con el estado real en Stripe.
-                </p>
-                <Button
-                  onClick={handleSyncPayments}
-                  disabled={syncingPayments}
-                  className="w-full"
-                  size="sm"
-                >
-                  {syncingPayments ? (
-                    <>
-                      <Clock className="h-4 w-4 mr-2 animate-spin" />
-                      Sincronizando...
-                    </>
-                  ) : (
-                    <>
-                      <CreditCard className="h-4 w-4 mr-2" />
-                      Sincronizar Ahora
-                    </>
-                  )}
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
         {/* Resumen de Costos */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <Card className="py-4">

@@ -262,7 +262,16 @@ export async function syncGoogleCalendarEvents(userId: string) {
       if (isAllDay) {
         // Evento de día completo
         const startDate = event.start!.date!;
-        const endDate = event.end?.date || startDate;
+
+        // Google Calendar devuelve la fecha de fin como exclusiva (día después del último día)
+        // Por ejemplo: evento del 6 de diciembre -> start: "2025-12-06", end: "2025-12-07"
+        // Debemos restar 1 día a la fecha de fin para obtener el último día real del evento
+        let endDate = startDate; // Por defecto, mismo día
+        if (event.end?.date) {
+          const endDateObj = new Date(event.end.date);
+          endDateObj.setDate(endDateObj.getDate() - 1); // Restar 1 día
+          endDate = endDateObj.toISOString().split('T')[0];
+        }
 
         blockData = {
           professional_id: professional.id,
@@ -289,6 +298,7 @@ export async function syncGoogleCalendarEvents(userId: string) {
 
         // Formatear fecha y hora
         const startDate = startDateTime.toISOString().split('T')[0];
+        const endDate = endDateTime.toISOString().split('T')[0]; // Agregar end_date
         const startTime = startDateTime.toTimeString().substring(0, 5);
         const endTime = endDateTime.toTimeString().substring(0, 5);
 
@@ -297,6 +307,7 @@ export async function syncGoogleCalendarEvents(userId: string) {
           user_id: professional.user_id,
           block_type: 'time_range',
           start_date: startDate,
+          end_date: endDate, // Agregar end_date para eventos que cruzan medianoche
           start_time: startTime,
           end_time: endTime,
           title: event.summary || 'Evento bloqueado',

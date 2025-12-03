@@ -21,11 +21,11 @@ export async function POST(request: NextRequest) {
 
     const { data: adminProfile } = await supabase
       .from('profiles')
-      .select('role')
+      .select('type')
       .eq('id', user.id)
       .single();
 
-    if (adminProfile?.role !== 'admin') {
+    if (adminProfile?.type !== 'admin') {
       return NextResponse.json(
         { error: 'No tienes permisos de administrador' },
         { status: 403 }

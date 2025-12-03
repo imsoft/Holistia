@@ -107,7 +107,7 @@ export default function SyncToolsPage() {
       {/* Main Content */}
       <main className="flex-1 p-6 space-y-6">
         {/* Input Card */}
-        <Card>
+        <Card className="py-4">
           <CardHeader>
             <CardTitle>Buscar Profesional</CardTitle>
             <CardDescription>
@@ -140,7 +140,7 @@ export default function SyncToolsPage() {
 
         {/* Diagnostic Result */}
         {diagnosticResult && (
-          <Card>
+          <Card className="py-4">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <AlertCircle className="h-5 w-5 text-blue-500" />
@@ -237,7 +237,7 @@ export default function SyncToolsPage() {
 
         {/* Sync Result */}
         {syncResult && (
-          <Card>
+          <Card className="py-4">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <RefreshCw className="h-5 w-5 text-green-500" />

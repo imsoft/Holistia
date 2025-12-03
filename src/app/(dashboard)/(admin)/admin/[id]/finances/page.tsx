@@ -31,6 +31,8 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 // Interfaces
 interface FinancialMetric {
@@ -76,6 +78,7 @@ export default function FinancesPage() {
   const [exampleAmount, setExampleAmount] = useState(700);
   const [eventAmount, setEventAmount] = useState(500);
   const [registrationAmount, setRegistrationAmount] = useState(600);
+  const [syncingPayments, setSyncingPayments] = useState(false);
   const supabase = createClient();
 
   // Función para obtener el nombre del período actual
@@ -145,6 +148,44 @@ export default function FinancesPage() {
   };
 
   // Función para calcular valores de inscripciones (Con Stripe pero sin comisión Holistia)
+  const handleSyncPayments = async () => {
+    try {
+      setSyncingPayments(true);
+      toast.info("Sincronizando pagos con Stripe...");
+
+      const response = await fetch("/api/admin/sync-payments-by-session", {
+        method: "POST",
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || "Error al sincronizar pagos");
+      }
+
+      toast.success(
+        `Sincronización completada: ${result.updated} pagos actualizados de ${result.total_checked} revisados`
+      );
+
+      // Mostrar detalles si hay resultados
+      if (result.results && result.results.length > 0) {
+        const failedCount = result.results.filter((r: any) => !r.success).length;
+
+        if (failedCount > 0) {
+          toast.warning(`${failedCount} pagos no pudieron sincronizarse`);
+        }
+      }
+
+      // Recargar página después de sincronizar
+      window.location.reload();
+    } catch (error: any) {
+      console.error("Error syncing payments:", error);
+      toast.error(error.message || "Error al sincronizar pagos");
+    } finally {
+      setSyncingPayments(false);
+    }
+  };
+
   const calculateRegistrationValues = (amount: number) => {
     // Las inscripciones SÍ pasan por Stripe pero NO tienen comisión de Holistia
     const stripeBase = (amount * 0.036) + 3;
@@ -1071,6 +1112,52 @@ export default function FinancesPage() {
                   <p>• <strong>Impuestos:</strong> IVA del 16% solo sobre comisiones de Stripe</p>
                   <p>• <strong>Ingreso neto:</strong> Comisiones de plataforma - Costos de Stripe</p>
                 </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Utilidades de Administración */}
+        <Card className="py-4">
+          <CardHeader>
+            <CardTitle>Utilidades de Administración</CardTitle>
+            <CardDescription>Herramientas para gestionar la plataforma</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="border rounded-lg p-4 space-y-3">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-blue-100 rounded-lg">
+                    <CreditCard className="h-5 w-5 text-blue-600" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-sm">Sincronizar Pagos</h3>
+                    <p className="text-xs text-muted-foreground">
+                      Actualiza pagos desde Stripe
+                    </p>
+                  </div>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Sincroniza los pagos que están en "processing" o "pending" con el estado real en Stripe.
+                </p>
+                <Button
+                  onClick={handleSyncPayments}
+                  disabled={syncingPayments}
+                  className="w-full"
+                  size="sm"
+                >
+                  {syncingPayments ? (
+                    <>
+                      <Clock className="h-4 w-4 mr-2 animate-spin" />
+                      Sincronizando...
+                    </>
+                  ) : (
+                    <>
+                      <CreditCard className="h-4 w-4 mr-2" />
+                      Sincronizar Ahora
+                    </>
+                  )}
+                </Button>
               </div>
             </div>
           </CardContent>

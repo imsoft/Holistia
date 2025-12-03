@@ -38,12 +38,12 @@ export async function POST(request: NextRequest) {
 
     console.log('🔵 [Sync] Iniciando sincronización de pagos de inscripción...');
 
-    // Obtener todos los pagos de inscripción pendientes que tienen session_id
+    // Obtener todos los pagos de inscripción pendientes o en procesamiento que tienen session_id
     const { data: pendingPayments, error: paymentsError } = await supabase
       .from('payments')
       .select('id, stripe_checkout_session_id, professional_application_id')
       .eq('payment_type', 'registration')
-      .eq('status', 'pending')
+      .in('status', ['pending', 'processing'])
       .not('stripe_checkout_session_id', 'is', null);
 
     if (paymentsError) {
@@ -54,12 +54,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log(`📊 Encontrados ${pendingPayments?.length || 0} pagos pendientes`);
+    console.log(`📊 Encontrados ${pendingPayments?.length || 0} pagos pendientes o en procesamiento`);
 
     if (!pendingPayments || pendingPayments.length === 0) {
       return NextResponse.json({
-        message: "No hay pagos pendientes para sincronizar",
-        synced: 0
+        message: "No hay pagos pendientes o en procesamiento para sincronizar",
+        synced: 0,
+        total: 0
       });
     }
 

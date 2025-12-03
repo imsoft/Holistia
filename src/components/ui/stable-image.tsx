@@ -71,8 +71,13 @@ export function StableImage({
     );
   }
 
+  // Determinar si la imagen es de Supabase y necesita unoptimized
+  const isSupabaseUrl = !!(imageSrc && (imageSrc.includes('supabase.co') || imageSrc.includes('supabase.in')));
+  
   // Validar que la URL sea válida antes de renderizar
+  // Permitir URLs de Supabase, http/https, rutas relativas, o data URIs
   const isValidUrl = imageSrc && imageSrc !== "" && (
+    isSupabaseUrl ||
     imageSrc.startsWith('http://') || 
     imageSrc.startsWith('https://') || 
     imageSrc.startsWith('/') ||
@@ -94,9 +99,6 @@ export function StableImage({
       </div>
     );
   }
-
-  // Determinar si la imagen es de Supabase y necesita unoptimized
-  const isSupabaseUrl = imageSrc.includes('supabase.co') || imageSrc.includes('supabase.in');
   
   const containerClass = fill 
     ? `relative ${className}`

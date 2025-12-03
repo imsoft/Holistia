@@ -10,8 +10,8 @@ export async function GET(request: NextRequest) {
 
     // Obtener el parámetro de usuario desde query string
     const searchParams = request.nextUrl.searchParams;
-    const userId = searchParams.get('userId');
-    const professionalId = searchParams.get('professionalId');
+    const userId = searchParams.get('userId')?.trim();
+    const professionalId = searchParams.get('professionalId')?.trim();
 
     if (!userId && !professionalId) {
       return NextResponse.json(

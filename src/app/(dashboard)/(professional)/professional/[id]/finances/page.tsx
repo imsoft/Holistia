@@ -160,12 +160,25 @@ export default function ProfessionalFinancesPage() {
 
         const appointmentIds = professionalAppointments?.map(a => a.id) || [];
         console.log('Professional appointments found:', appointmentIds.length);
+        console.log('Appointment IDs:', appointmentIds.slice(0, 5)); // Solo primeros 5 para no saturar logs
+
+        // Debug: Primero intentar obtener TODOS los pagos que puede ver el profesional
+        const { data: allVisiblePayments, error: allPaymentsError } = await supabase
+          .from('payments')
+          .select('id, payment_type, status, professional_id, appointment_id');
+
+        console.log('ALL visible payments for professional (any status):', allVisiblePayments?.length || 0);
+        console.log('Sample of all visible payments:', allVisiblePayments?.slice(0, 3));
+
+        if (allPaymentsError) {
+          console.error('Error fetching all payments:', allPaymentsError);
+        }
 
         // Obtener pagos del profesional para el período actual
+        // Primero filtrar por profesional, luego por estado
         let paymentsQuery = supabase
           .from('payments')
-          .select('*')
-          .eq('status', 'succeeded'); // Solo pagos completados
+          .select('*');
 
         // Filtrar por pagos que tengan professional_id o appointment_id del profesional
         if (appointmentIds.length > 0) {
@@ -173,6 +186,9 @@ export default function ProfessionalFinancesPage() {
         } else {
           paymentsQuery = paymentsQuery.eq('professional_id', professionalApp.id);
         }
+
+        // Después filtrar por estado
+        paymentsQuery = paymentsQuery.eq('status', 'succeeded');
 
         if (selectedPeriod !== 'all') {
           paymentsQuery = paymentsQuery

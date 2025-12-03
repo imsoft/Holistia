@@ -137,19 +137,36 @@ export default function ProfessionalFinancesPage() {
         }
 
         // Obtener el ID de la aplicación profesional
-        const { data: professionalApp } = await supabase
+        // Primero intentamos por ID directo
+        let { data: professionalApp } = await supabase
           .from('professional_applications')
-          .select('id')
+          .select('id, user_id, first_name, last_name')
           .eq('id', professionalId)
           .maybeSingle();
 
+        // Si no se encuentra, intentar por user_id
         if (!professionalApp) {
-          console.log('No professional application found for user');
+          const { data: appByUserId } = await supabase
+            .from('professional_applications')
+            .select('id, user_id, first_name, last_name')
+            .eq('user_id', professionalId)
+            .maybeSingle();
+
+          professionalApp = appByUserId;
+        }
+
+        if (!professionalApp) {
+          console.error('No professional application found for ID:', professionalId);
+          console.error('This ID may be a patient ID, not a professional ID');
           setLoading(false);
           return;
         }
 
-        console.log('Professional application ID:', professionalApp.id);
+        console.log('Professional application found:', {
+          id: professionalApp.id,
+          user_id: professionalApp.user_id,
+          name: `${professionalApp.first_name} ${professionalApp.last_name}`
+        });
 
         // Obtener todos los pagos del profesional
         // Primero obtenemos las citas del profesional
@@ -188,7 +205,9 @@ export default function ProfessionalFinancesPage() {
         }
 
         // Después filtrar por estado
-        paymentsQuery = paymentsQuery.eq('status', 'succeeded');
+        // TEMPORAL: Mostrar todos los estados para debugging
+        // paymentsQuery = paymentsQuery.eq('status', 'succeeded');
+        paymentsQuery = paymentsQuery.in('status', ['succeeded', 'processing', 'pending']);
 
         if (selectedPeriod !== 'all') {
           paymentsQuery = paymentsQuery
@@ -225,7 +244,7 @@ export default function ProfessionalFinancesPage() {
           let prevQuery = supabase
             .from('payments')
             .select('*')
-            .eq('status', 'succeeded')
+            .in('status', ['succeeded', 'processing', 'pending'])
             .gte('created_at', previousStartDate.toISOString())
             .lte('created_at', previousEndDate.toISOString());
 

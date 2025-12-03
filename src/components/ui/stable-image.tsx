@@ -33,7 +33,33 @@ export function StableImage({
   const [hasError, setHasError] = useState(false);
 
   useEffect(() => {
-    setImageSrc(src);
+    // Codificar correctamente la URL para Supabase Storage
+    let processedSrc = src;
+
+    if (src && src.includes('supabase.co/storage/v1/object/public/')) {
+      try {
+        // Extraer la parte después de "public/"
+        const publicIndex = src.indexOf('/public/');
+        if (publicIndex !== -1) {
+          const baseUrl = src.substring(0, publicIndex + '/public/'.length);
+          const pathPart = src.substring(publicIndex + '/public/'.length);
+
+          // Dividir el path en partes y encodear cada una
+          const pathSegments = pathPart.split('/');
+          const encodedSegments = pathSegments.map(segment => encodeURIComponent(segment));
+          const encodedPath = encodedSegments.join('/');
+
+          processedSrc = baseUrl + encodedPath;
+          console.log('🔧 URL codificada:', { original: src, encoded: processedSrc });
+        }
+      } catch (error) {
+        console.error('Error encoding Supabase URL:', error);
+        // Si hay error, usar la URL original
+        processedSrc = src;
+      }
+    }
+
+    setImageSrc(processedSrc);
     setIsLoading(true);
     setHasError(false);
   }, [src]);

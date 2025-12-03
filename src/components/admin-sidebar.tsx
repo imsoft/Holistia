@@ -21,6 +21,7 @@ import {
   Store,
   Ticket,
   Wrench,
+  RefreshCw,
 } from "lucide-react";
 import {
   Sidebar,
@@ -191,6 +192,11 @@ export function AdminSidebar() {
       title: "Servicios y Costos",
       url: `/admin/${userId}/services-costs`,
       icon: Wrench,
+    },
+    {
+      title: "Sincronización Google Calendar",
+      url: `/admin/${userId}/sync-tools`,
+      icon: RefreshCw,
     },
     {
       title: "Agente IA (Alpha)",

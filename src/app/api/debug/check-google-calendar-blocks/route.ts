@@ -11,21 +11,38 @@ export async function GET(request: NextRequest) {
     // Obtener el parámetro de usuario desde query string
     const searchParams = request.nextUrl.searchParams;
     const userId = searchParams.get('userId');
+    const professionalId = searchParams.get('professionalId');
 
-    if (!userId) {
+    if (!userId && !professionalId) {
       return NextResponse.json(
-        { error: 'userId es requerido' },
+        { error: 'userId o professionalId es requerido' },
         { status: 400 }
       );
     }
 
-    // Obtener el profesional
-    const { data: professional, error: profError } = await supabase
-      .from('professional_applications')
-      .select('id, user_id, first_name, last_name')
-      .eq('user_id', userId)
-      .eq('status', 'approved')
-      .single();
+    // Obtener el profesional (buscar por userId o professionalId)
+    let professional;
+    let profError;
+
+    if (professionalId) {
+      const result = await supabase
+        .from('professional_applications')
+        .select('id, user_id, first_name, last_name')
+        .eq('id', professionalId)
+        .eq('status', 'approved')
+        .single();
+      professional = result.data;
+      profError = result.error;
+    } else {
+      const result = await supabase
+        .from('professional_applications')
+        .select('id, user_id, first_name, last_name')
+        .eq('user_id', userId)
+        .eq('status', 'approved')
+        .single();
+      professional = result.data;
+      profError = result.error;
+    }
 
     if (profError || !professional) {
       return NextResponse.json({

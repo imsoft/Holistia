@@ -23,27 +23,70 @@ La migración `131_add_unique_constraint_availability_blocks.sql` hace dos cosas
    - `start_time` (o 'full_day' si es evento de día completo)
    - `end_time` (o 'full_day' si es evento de día completo)
 
-## 🚨 SITUACIÓN ACTUAL
+## 🚨 SITUACIÓN ACTUAL - ACTUALIZACIÓN
 
-Basado en los screenshots:
+### Problema 1: Duplicados ✅ RESUELTO
 - ✅ El **constraint único YA EXISTE** en la base de datos
-- ❌ Pero todavía hay **muchos duplicados** en la tabla
-- 💡 Esto significa: el constraint previene NUEVOS duplicados, pero NO eliminó los existentes
+- ✅ Los duplicados fueron eliminados con el script de limpieza
+- ✅ El constraint previene que se creen nuevos duplicados
 
-## 📋 Pasos para Aplicar
+### Problema 2: Fechas Incorrectas ⚠️ CRÍTICO
+Después de revisar los datos, se encontró un segundo problema:
 
-### ⚡ OPCIÓN RÁPIDA (RECOMENDADA)
+**Eventos de día completo sin fecha de fin:**
+- Google Calendar devuelve la fecha de fin como **exclusiva** (el día después)
+- Ejemplo: Evento del 6 de diciembre
+  - Google devuelve: `start: "2025-12-06"`, `end: "2025-12-07"`
+  - Holistia guardaba: `start_date: "2025-12-06"`, `end_date: "2025-12-07"` ❌
+  - Debería guardar: `start_date: "2025-12-06"`, `end_date: "2025-12-06"` ✅
 
-**Ejecuta este archivo directamente en Supabase SQL Editor:**
+**Eventos con hora sin end_date:**
+- Los eventos time_range no estaban guardando `end_date`
+- Esto causa problemas si el evento cruza medianoche
+
+**FIX APLICADO:**
+- ✅ Se corrigió la lógica para restar 1 día a la fecha de fin de eventos completos
+- ✅ Se agregó `end_date` a eventos time_range
+- ⚠️ **PERO** los bloques existentes tienen fechas incorrectas
+- 🔧 **SOLUCIÓN:** Eliminar todos los bloques y re-sincronizar
+
+## 📋 Pasos para Aplicar (ACTUALIZADOS)
+
+### ⚡ PASO 1: Resetear Bloques de Google Calendar
+
+**Ejecuta este script en Supabase SQL Editor:**
 
 ```bash
-database/migrations/EJECUTAR_AHORA_clean_existing_duplicates.sql
+database/migrations/EJECUTAR_AHORA_reset_google_blocks.sql
 ```
 
 Este script:
-1. Muestra cuántos duplicados hay (ANTES)
-2. Elimina los duplicados (mantiene el más antiguo)
-3. Verifica que no quedan duplicados (DESPUÉS)
+1. Muestra cuántos bloques externos hay
+2. **ELIMINA TODOS** los bloques de Google Calendar
+3. Verifica que se eliminaron correctamente
+4. Confirma que los bloques internos (creados en Holistia) NO fueron afectados
+
+⚠️ **IMPORTANTE:** Esto solo elimina bloques sincronizados de Google Calendar, NO elimina bloques creados manualmente en Holistia.
+
+### ⚡ PASO 2: Re-sincronizar Google Calendar
+
+Después de ejecutar el script:
+
+1. Ve a: `https://www.holistia.io/admin/[professional-id]/sync-tools`
+2. Haz clic en **"Forzar Sincronización"**
+3. Espera a que complete
+
+**Resultado esperado:**
+- ✅ Todos los eventos se sincronizarán con fechas correctas
+- ✅ Eventos de día completo tendrán `start_date = end_date`
+- ✅ Eventos con hora tendrán `end_date` correctamente establecido
+- ✅ Sin duplicados (protegido por el constraint único)
+
+---
+
+### 📝 SCRIPTS ANTERIORES (YA EJECUTADOS)
+
+~~**EJECUTAR_AHORA_clean_existing_duplicates.sql**~~ - Ya ejecutado, duplicados eliminados ✅
 
 ### 📝 OPCIÓN DETALLADA
 

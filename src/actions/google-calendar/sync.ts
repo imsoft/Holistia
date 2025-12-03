@@ -187,6 +187,7 @@ export async function syncGoogleCalendarEvents(userId: string) {
 
       let blockData: {
         professional_id: string;
+        user_id: string;
         block_type: string;
         start_date: string;
         end_date?: string;
@@ -212,6 +213,7 @@ export async function syncGoogleCalendarEvents(userId: string) {
 
         blockData = {
           professional_id: professional.id,
+          user_id: professional.user_id,
           block_type: 'full_day',
           start_date: startDate,
           end_date: endDate,
@@ -239,6 +241,7 @@ export async function syncGoogleCalendarEvents(userId: string) {
 
         blockData = {
           professional_id: professional.id,
+          user_id: professional.user_id,
           block_type: 'time_range',
           start_date: startDate,
           start_time: startTime,

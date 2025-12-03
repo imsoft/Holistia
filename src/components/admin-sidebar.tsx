@@ -188,7 +188,7 @@ export function AdminSidebar() {
       icon: Ticket,
     },
     {
-      title: "Herramientas de Plataforma",
+      title: "Servicios y Costos",
       url: `/admin/${userId}/platform-tools`,
       icon: Wrench,
     },

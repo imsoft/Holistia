@@ -151,13 +151,28 @@ export default function ProfessionalFinancesPage() {
 
         console.log('Professional application ID:', professionalApp.id);
 
+        // Obtener todos los pagos del profesional
+        // Primero obtenemos las citas del profesional
+        const { data: professionalAppointments } = await supabase
+          .from('appointments')
+          .select('id')
+          .eq('professional_id', professionalApp.id);
+
+        const appointmentIds = professionalAppointments?.map(a => a.id) || [];
+        console.log('Professional appointments found:', appointmentIds.length);
+
         // Obtener pagos del profesional para el período actual
-        // Usar created_at en lugar de paid_at porque paid_at puede ser null
         let paymentsQuery = supabase
           .from('payments')
           .select('*')
-          .eq('professional_id', professionalApp.id)
           .eq('status', 'succeeded'); // Solo pagos completados
+
+        // Filtrar por pagos que tengan professional_id o appointment_id del profesional
+        if (appointmentIds.length > 0) {
+          paymentsQuery = paymentsQuery.or(`professional_id.eq.${professionalApp.id},appointment_id.in.(${appointmentIds.join(',')})`);
+        } else {
+          paymentsQuery = paymentsQuery.eq('professional_id', professionalApp.id);
+        }
 
         if (selectedPeriod !== 'all') {
           paymentsQuery = paymentsQuery
@@ -169,6 +184,7 @@ export default function ProfessionalFinancesPage() {
 
         if (paymentsError) {
           console.error('Error fetching payments:', paymentsError);
+          console.error('Error details:', paymentsError.message, paymentsError.details, paymentsError.hint);
           return;
         }
 
@@ -176,24 +192,51 @@ export default function ProfessionalFinancesPage() {
         console.log('Current payments data:', currentPayments);
         console.log('Date range:', startDate.toISOString(), 'to', now.toISOString());
 
+        // Debug: Log payment details
+        if (currentPayments && currentPayments.length > 0) {
+          console.log('Sample payment details:', {
+            transfer_amount: currentPayments[0].transfer_amount,
+            service_amount: currentPayments[0].service_amount,
+            amount: currentPayments[0].amount,
+            platform_fee: currentPayments[0].platform_fee,
+            commission_percentage: currentPayments[0].commission_percentage,
+          });
+        }
+
         // Obtener pagos del período anterior para comparación
         let previousPayments: typeof currentPayments = [];
         if (selectedPeriod !== 'all') {
-          const { data: prev } = await supabase
+          let prevQuery = supabase
             .from('payments')
             .select('*')
-            .eq('professional_id', professionalApp.id)
+            .eq('status', 'succeeded')
             .gte('created_at', previousStartDate.toISOString())
-            .lte('created_at', previousEndDate.toISOString())
-            .eq('status', 'succeeded'); // Solo pagos completados
+            .lte('created_at', previousEndDate.toISOString());
+
+          if (appointmentIds.length > 0) {
+            prevQuery = prevQuery.or(`professional_id.eq.${professionalApp.id},appointment_id.in.(${appointmentIds.join(',')})`);
+          } else {
+            prevQuery = prevQuery.eq('professional_id', professionalApp.id);
+          }
+
+          const { data: prev } = await prevQuery;
           previousPayments = prev || [];
         }
 
         // Calcular métricas del período actual
         // El profesional recibe el transfer_amount (monto después de comisión de plataforma)
+        // Si transfer_amount no está disponible, calculamos: service_amount - platform_fee
         const totalIncome = currentPayments?.reduce((sum, p) => {
-          const transferAmount = Number(p.transfer_amount) || 0;
-          return sum + transferAmount;
+          let professionalAmount = Number(p.transfer_amount) || 0;
+
+          // Si transfer_amount es 0 o null, calcular basado en service_amount
+          if (professionalAmount === 0 && p.service_amount) {
+            const serviceAmount = Number(p.service_amount) || 0;
+            const platformFee = Number(p.platform_fee) || 0;
+            professionalAmount = serviceAmount - platformFee;
+          }
+
+          return sum + professionalAmount;
         }, 0) || 0;
 
         // Los ingresos totales son lo que recibe el profesional directamente
@@ -203,15 +246,29 @@ export default function ProfessionalFinancesPage() {
         const appointmentsIncome = currentPayments
           ?.filter(p => p.payment_type === 'appointment')
           .reduce((sum, p) => {
-            const transferAmount = Number(p.transfer_amount) || 0;
-            return sum + transferAmount;
+            let professionalAmount = Number(p.transfer_amount) || 0;
+
+            if (professionalAmount === 0 && p.service_amount) {
+              const serviceAmount = Number(p.service_amount) || 0;
+              const platformFee = Number(p.platform_fee) || 0;
+              professionalAmount = serviceAmount - platformFee;
+            }
+
+            return sum + professionalAmount;
           }, 0) || 0;
 
         const eventsIncome = currentPayments
           ?.filter(p => p.payment_type === 'event')
           .reduce((sum, p) => {
-            const transferAmount = Number(p.transfer_amount) || 0;
-            return sum + transferAmount;
+            let professionalAmount = Number(p.transfer_amount) || 0;
+
+            if (professionalAmount === 0 && p.service_amount) {
+              const serviceAmount = Number(p.service_amount) || 0;
+              const platformFee = Number(p.platform_fee) || 0;
+              professionalAmount = serviceAmount - platformFee;
+            }
+
+            return sum + professionalAmount;
           }, 0) || 0;
 
         const financialSummary: FinancialSummary = {
@@ -228,8 +285,15 @@ export default function ProfessionalFinancesPage() {
 
         // Calcular cambios comparando con período anterior
         const previousTotalIncome = previousPayments?.reduce((sum, p) => {
-          const transferAmount = Number(p.transfer_amount) || 0;
-          return sum + transferAmount;
+          let professionalAmount = Number(p.transfer_amount) || 0;
+
+          if (professionalAmount === 0 && p.service_amount) {
+            const serviceAmount = Number(p.service_amount) || 0;
+            const platformFee = Number(p.platform_fee) || 0;
+            professionalAmount = serviceAmount - platformFee;
+          }
+
+          return sum + professionalAmount;
         }, 0) || 0;
         const previousNetIncome = previousTotalIncome;
         const previousTransactions = previousPayments?.length || 0;
@@ -289,16 +353,22 @@ export default function ProfessionalFinancesPage() {
           ?.slice(-10)
           .reverse()
           .map(p => {
-            const transferAmount = Number(p.transfer_amount) || 0;
+            let professionalAmount = Number(p.transfer_amount) || 0;
             const platformFee = Number(p.platform_fee) || 0;
+
+            // Si transfer_amount es 0 o null, calcular basado en service_amount
+            if (professionalAmount === 0 && p.service_amount) {
+              const serviceAmount = Number(p.service_amount) || 0;
+              professionalAmount = serviceAmount - platformFee;
+            }
 
             return {
               id: p.id,
               type: p.payment_type || 'unknown',
-              amount: transferAmount, // Mostrar lo que recibe el profesional
+              amount: professionalAmount, // Mostrar lo que recibe el profesional
               platform_fee: platformFee,
               stripe_fee: 0,
-              professional_receives: transferAmount,
+              professional_receives: professionalAmount,
               status: p.status,
               created_at: p.created_at,
               description: p.description || getPaymentTypeLabel(p.payment_type),

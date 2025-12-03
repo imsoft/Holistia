@@ -173,12 +173,27 @@ export async function syncGoogleCalendarEvents(userId: string) {
       return true;
     });
 
-    console.log('📋 Eventos externos encontrados:', {
-      total: result.events.length,
+    console.log('📋 Eventos de Google Calendar:', {
+      totalFromGoogle: result.events.length,
       holistiaEvents: holistiaEventIds.size,
       existingBlocks: existingBlockIds.size,
-      newExternalEvents: externalEvents.length
+      afterFiltering: externalEvents.length
     });
+
+    // Log detallado de eventos filtrados para debugging
+    if (result.events.length > 0 && externalEvents.length === 0) {
+      console.log('⚠️ Se obtuvieron eventos pero todos fueron filtrados. Analizando razones:');
+      result.events.forEach((event, index) => {
+        const reasons = [];
+        if (!event.id) reasons.push('sin ID');
+        if (holistiaEventIds.has(event.id)) reasons.push('es cita de Holistia');
+        if (existingBlockIds.has(event.id)) reasons.push('ya existe como bloque');
+        if (!event.start || !event.end) reasons.push('sin fecha/hora');
+        if (event.transparency === 'transparent') reasons.push('evento transparente');
+
+        console.log(`  Evento ${index + 1}: "${event.summary}" - Filtrado porque: ${reasons.join(', ')}`);
+      });
+    }
 
     // Crear bloques de disponibilidad para cada evento externo
     const blocksToCreate = externalEvents.map(event => {
@@ -301,6 +316,12 @@ export async function syncGoogleCalendarEvents(userId: string) {
       message: `Sincronización completada: ${blocksToCreate.length} eventos nuevos, ${blocksToDelete.length} eventos eliminados`,
       created: blocksToCreate.length,
       deleted: blocksToDelete.length,
+      diagnostics: {
+        totalFromGoogle: result.events.length,
+        holistiaEvents: holistiaEventIds.size,
+        existingBlocks: existingBlockIds.size,
+        afterFiltering: externalEvents.length,
+      }
     };
   } catch (error: unknown) {
     console.error('Error syncing Google Calendar events:', error);

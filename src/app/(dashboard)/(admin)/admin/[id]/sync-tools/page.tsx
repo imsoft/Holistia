@@ -265,11 +265,37 @@ export default function SyncToolsPage() {
               </div>
 
               <div className="bg-gray-50 rounded-lg p-4">
-                <div className="text-sm text-gray-600">
+                <div className="text-sm text-gray-600 space-y-2">
                   <div>✅ Eventos creados: <span className="font-bold text-green-600">{syncResult.syncResult.created}</span></div>
                   <div>🗑️ Eventos eliminados: <span className="font-bold text-red-600">{syncResult.syncResult.deleted}</span></div>
                   {syncResult.syncResult.message && (
                     <div className="mt-2 text-gray-700">{syncResult.syncResult.message}</div>
+                  )}
+
+                  {/* Diagnostics */}
+                  {syncResult.syncResult.diagnostics && (
+                    <div className="mt-4 pt-4 border-t border-gray-200">
+                      <h4 className="font-semibold text-gray-900 mb-2">Diagnóstico Detallado:</h4>
+                      <div className="space-y-1">
+                        <div>📊 Eventos obtenidos de Google: <span className="font-bold">{syncResult.syncResult.diagnostics.totalFromGoogle}</span></div>
+                        <div>🔵 Eventos de citas Holistia: <span className="font-bold">{syncResult.syncResult.diagnostics.holistiaEvents}</span></div>
+                        <div>🟢 Bloques ya existentes: <span className="font-bold">{syncResult.syncResult.diagnostics.existingBlocks}</span></div>
+                        <div>🎯 Eventos después de filtrar: <span className="font-bold">{syncResult.syncResult.diagnostics.afterFiltering}</span></div>
+                      </div>
+
+                      {syncResult.syncResult.diagnostics.totalFromGoogle > 0 && syncResult.syncResult.diagnostics.afterFiltering === 0 && (
+                        <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded text-yellow-800">
+                          ⚠️ Se obtuvieron {syncResult.syncResult.diagnostics.totalFromGoogle} eventos de Google Calendar pero todos fueron filtrados.
+                          Esto puede ser porque son eventos transparentes, ya existen como bloques, o son citas de Holistia.
+                        </div>
+                      )}
+
+                      {syncResult.syncResult.diagnostics.totalFromGoogle === 0 && (
+                        <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded text-red-800">
+                          ❌ No se obtuvieron eventos de Google Calendar. Verifica que el profesional tenga eventos en los próximos 30 días.
+                        </div>
+                      )}
+                    </div>
                   )}
                 </div>
               </div>

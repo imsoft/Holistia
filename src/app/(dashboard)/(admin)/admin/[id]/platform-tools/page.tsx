@@ -346,10 +346,10 @@ export default function AdminPlatformTools() {
             <SidebarTrigger />
             <div>
               <h1 className="text-xl sm:text-2xl font-bold text-foreground">
-                Herramientas de Plataforma
+                Servicios y Costos
               </h1>
               <p className="text-xs sm:text-sm text-muted-foreground">
-                Servicios contratados para que Holistia funcione (servidores, bases de datos, mapas, etc.)
+                Gestiona los servicios contratados y sus costos (servidores, bases de datos, mapas, etc.)
               </p>
             </div>
           </div>

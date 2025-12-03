@@ -144,13 +144,17 @@ export async function syncGoogleCalendarEvents(userId: string) {
     // Obtener bloques externos existentes para evitar duplicados
     const { data: existingBlocks } = await supabase
       .from('availability_blocks')
-      .select('google_calendar_event_id')
+      .select('google_calendar_event_id, start_date, start_time, end_time')
       .eq('professional_id', professional.id)
       .eq('is_external_event', true)
       .not('google_calendar_event_id', 'is', null);
 
-    const existingBlockIds = new Set(
-      existingBlocks?.map(block => block.google_calendar_event_id) || []
+    // Crear un Set con la combinación única de event_id + fecha + hora
+    // Esto maneja eventos recurrentes donde cada instancia tiene el mismo ID
+    const existingBlockKeys = new Set(
+      existingBlocks?.map(block =>
+        `${block.google_calendar_event_id}_${block.start_date}_${block.start_time || 'full_day'}_${block.end_time || 'full_day'}`
+      ) || []
     );
 
     // Filtrar eventos que no son de Holistia y que no están ya creados como bloques
@@ -161,14 +165,30 @@ export async function syncGoogleCalendarEvents(userId: string) {
       // Saltar eventos que son citas de Holistia
       if (holistiaEventIds.has(event.id)) return false;
 
-      // Saltar eventos que ya están creados como bloques
-      if (existingBlockIds.has(event.id)) return false;
-
       // Saltar eventos que no tienen fecha/hora de inicio o fin
       if (!event.start || !event.end) return false;
 
       // Saltar eventos transparentes (disponibles en el calendario)
       if (event.transparency === 'transparent') return false;
+
+      // Crear key única para este evento específico (maneja recurrencias)
+      const isAllDay = !!event.start?.date && !event.start?.dateTime;
+      let eventKey: string;
+
+      if (isAllDay) {
+        const startDate = event.start!.date!;
+        eventKey = `${event.id}_${startDate}_full_day_full_day`;
+      } else {
+        const startDateTime = new Date(event.start!.dateTime!);
+        const endDateTime = new Date(event.end!.dateTime!);
+        const startDate = startDateTime.toISOString().split('T')[0];
+        const startTime = startDateTime.toTimeString().substring(0, 5);
+        const endTime = endDateTime.toTimeString().substring(0, 5);
+        eventKey = `${event.id}_${startDate}_${startTime}_${endTime}`;
+      }
+
+      // Saltar eventos que ya están creados como bloques (por fecha y hora específica)
+      if (existingBlockKeys.has(eventKey)) return false;
 
       return true;
     });
@@ -176,7 +196,7 @@ export async function syncGoogleCalendarEvents(userId: string) {
     console.log('📋 Eventos de Google Calendar:', {
       totalFromGoogle: result.events.length,
       holistiaEvents: holistiaEventIds.size,
-      existingBlocks: existingBlockIds.size,
+      existingBlocks: existingBlockKeys.size,
       afterFiltering: externalEvents.length
     });
 
@@ -187,7 +207,25 @@ export async function syncGoogleCalendarEvents(userId: string) {
         const reasons = [];
         if (!event.id) reasons.push('sin ID');
         if (holistiaEventIds.has(event.id)) reasons.push('es cita de Holistia');
-        if (existingBlockIds.has(event.id)) reasons.push('ya existe como bloque');
+
+        // Check if event key exists
+        const isAllDay = !!event.start?.date && !event.start?.dateTime;
+        let eventKey: string;
+        if (isAllDay) {
+          const startDate = event.start!.date!;
+          eventKey = `${event.id}_${startDate}_full_day_full_day`;
+        } else if (event.start?.dateTime && event.end?.dateTime) {
+          const startDateTime = new Date(event.start.dateTime);
+          const endDateTime = new Date(event.end.dateTime);
+          const startDate = startDateTime.toISOString().split('T')[0];
+          const startTime = startDateTime.toTimeString().substring(0, 5);
+          const endTime = endDateTime.toTimeString().substring(0, 5);
+          eventKey = `${event.id}_${startDate}_${startTime}_${endTime}`;
+        } else {
+          eventKey = '';
+        }
+
+        if (eventKey && existingBlockKeys.has(eventKey)) reasons.push('ya existe como bloque');
         if (!event.start || !event.end) reasons.push('sin fecha/hora');
         if (event.transparency === 'transparent') reasons.push('evento transparente');
 
@@ -294,32 +332,54 @@ export async function syncGoogleCalendarEvents(userId: string) {
     }
 
     // Eliminar bloques externos que ya no existen en Google Calendar
-    const currentGoogleEventIds = new Set(
-      result.events.map(event => event.id).filter(Boolean)
-    );
+    // Crear un Set de keys actuales de eventos de Google
+    const currentGoogleEventKeys = new Set<string>();
+    result.events.forEach(event => {
+      if (!event.id || !event.start || !event.end) return;
 
-    const blocksToDelete = Array.from(existingBlockIds).filter(
-      id => !currentGoogleEventIds.has(id)
-    );
+      const isAllDay = !!event.start?.date && !event.start?.dateTime;
+      if (isAllDay) {
+        const startDate = event.start.date!;
+        currentGoogleEventKeys.add(`${event.id}_${startDate}_full_day_full_day`);
+      } else {
+        const startDateTime = new Date(event.start.dateTime!);
+        const endDateTime = new Date(event.end.dateTime!);
+        const startDate = startDateTime.toISOString().split('T')[0];
+        const startTime = startDateTime.toTimeString().substring(0, 5);
+        const endTime = endDateTime.toTimeString().substring(0, 5);
+        currentGoogleEventKeys.add(`${event.id}_${startDate}_${startTime}_${endTime}`);
+      }
+    });
 
-    if (blocksToDelete.length > 0) {
+    // Encontrar bloques que ya no existen en Google Calendar
+    const blocksToDeleteIds: string[] = [];
+    if (existingBlocks) {
+      existingBlocks.forEach(block => {
+        const blockKey = `${block.google_calendar_event_id}_${block.start_date}_${block.start_time || 'full_day'}_${block.end_time || 'full_day'}`;
+        if (!currentGoogleEventKeys.has(blockKey)) {
+          blocksToDeleteIds.push(block.google_calendar_event_id);
+        }
+      });
+    }
+
+    if (blocksToDeleteIds.length > 0) {
       await supabase
         .from('availability_blocks')
         .delete()
         .eq('professional_id', professional.id)
         .eq('is_external_event', true)
-        .in('google_calendar_event_id', blocksToDelete);
+        .in('google_calendar_event_id', blocksToDeleteIds);
     }
 
     return {
       success: true,
-      message: `Sincronización completada: ${blocksToCreate.length} eventos nuevos, ${blocksToDelete.length} eventos eliminados`,
+      message: `Sincronización completada: ${blocksToCreate.length} eventos nuevos, ${blocksToDeleteIds.length} eventos eliminados`,
       created: blocksToCreate.length,
-      deleted: blocksToDelete.length,
+      deleted: blocksToDeleteIds.length,
       diagnostics: {
         totalFromGoogle: result.events.length,
         holistiaEvents: holistiaEventIds.size,
-        existingBlocks: existingBlockIds.size,
+        existingBlocks: existingBlockKeys.size,
         afterFiltering: externalEvents.length,
       }
     };

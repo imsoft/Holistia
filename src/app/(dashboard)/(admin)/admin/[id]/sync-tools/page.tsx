@@ -14,8 +14,10 @@ export default function SyncToolsPage() {
   const [professionalId, setProfessionalId] = useState("");
   const [loading, setLoading] = useState(false);
   const [diagnosing, setDiagnosing] = useState(false);
+  const [cleaning, setCleaning] = useState(false);
   const [diagnosticResult, setDiagnosticResult] = useState<any>(null);
   const [syncResult, setSyncResult] = useState<any>(null);
+  const [cleanResult, setCleanResult] = useState<any>(null);
 
   const handleDiagnostic = async () => {
     if (!professionalId.trim()) {
@@ -88,6 +90,50 @@ export default function SyncToolsPage() {
       toast.error(error.message || "Error al forzar sincronización");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleCleanDuplicates = async () => {
+    if (!professionalId.trim()) {
+      toast.error("Por favor ingresa un Professional ID");
+      return;
+    }
+
+    try {
+      setCleaning(true);
+      setCleanResult(null);
+
+      const response = await fetch("/api/admin/clean-duplicate-blocks", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ professionalId: professionalId.trim() }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Error al limpiar duplicados");
+      }
+
+      setCleanResult(data);
+
+      if (data.duplicatesRemoved > 0) {
+        toast.success(
+          `Limpieza exitosa: ${data.duplicatesRemoved} duplicados eliminados`
+        );
+      } else {
+        toast.info("No se encontraron duplicados para eliminar");
+      }
+
+      // Actualizar diagnóstico después de limpiar
+      setTimeout(() => handleDiagnostic(), 1000);
+    } catch (error: any) {
+      console.error("Error en limpieza:", error);
+      toast.error(error.message || "Error al limpiar duplicados");
+    } finally {
+      setCleaning(false);
     }
   };
 
@@ -221,16 +267,27 @@ export default function SyncToolsPage() {
                 </div>
               )}
 
-              {/* Sync Button */}
-              <Button
-                onClick={handleForceSync}
-                disabled={loading || !diagnosticResult.googleCalendar.connected}
-                className="w-full"
-                size="lg"
-              >
-                <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-                {loading ? "Sincronizando..." : "Forzar Sincronización"}
-              </Button>
+              {/* Action Buttons */}
+              <div className="grid grid-cols-2 gap-4">
+                <Button
+                  onClick={handleCleanDuplicates}
+                  disabled={cleaning}
+                  variant="outline"
+                  size="lg"
+                >
+                  <RefreshCw className={`h-4 w-4 mr-2 ${cleaning ? 'animate-spin' : ''}`} />
+                  {cleaning ? "Limpiando..." : "Limpiar Duplicados"}
+                </Button>
+
+                <Button
+                  onClick={handleForceSync}
+                  disabled={loading || !diagnosticResult.googleCalendar.connected}
+                  size="lg"
+                >
+                  <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+                  {loading ? "Sincronizando..." : "Forzar Sincronización"}
+                </Button>
+              </div>
             </CardContent>
           </Card>
         )}
@@ -317,6 +374,44 @@ export default function SyncToolsPage() {
                       </div>
                     ))}
                   </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Clean Result */}
+        {cleanResult && (
+          <Card className="py-4">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <RefreshCw className="h-5 w-5 text-orange-500" />
+                Resultado de Limpieza
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="bg-gray-50 rounded-lg p-4">
+                <div className="text-sm text-gray-600 space-y-2">
+                  <div>🧹 Duplicados eliminados: <span className="font-bold text-orange-600">{cleanResult.duplicatesRemoved}</span></div>
+                  <div>📊 Total de bloques (antes): <span className="font-bold">{cleanResult.totalBlocks}</span></div>
+                  <div>✅ Bloques únicos: <span className="font-bold text-green-600">{cleanResult.uniqueBlocks}</span></div>
+                  <div>📈 Bloques restantes: <span className="font-bold">{cleanResult.remainingBlocks}</span></div>
+                  {cleanResult.message && (
+                    <div className="mt-2 text-gray-700">{cleanResult.message}</div>
+                  )}
+                </div>
+              </div>
+
+              {cleanResult.duplicatesRemoved > 0 && (
+                <div className="bg-green-50 border border-green-200 rounded p-3 text-sm text-green-800">
+                  ✅ Se eliminaron correctamente {cleanResult.duplicatesRemoved} bloques duplicados.
+                  Ahora hay {cleanResult.uniqueBlocks} eventos únicos en el calendario.
+                </div>
+              )}
+
+              {cleanResult.duplicatesRemoved === 0 && (
+                <div className="bg-blue-50 border border-blue-200 rounded p-3 text-sm text-blue-800">
+                  ℹ️ No se encontraron duplicados. El calendario está limpio.
                 </div>
               )}
             </CardContent>

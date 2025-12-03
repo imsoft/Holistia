@@ -81,10 +81,13 @@ export async function POST(request: NextRequest) {
       if (seenKeys.has(key)) {
         // Este es un duplicado, agregar a la lista de eliminación
         duplicateIds.push(block.id);
-        console.log(`🔍 Duplicado encontrado: ${key} (ID: ${block.id})`);
+        console.log(`🔍 Duplicado encontrado: ${key}`);
+        console.log(`   - Manteniendo: ${seenKeys.get(key)} (creado: ${blocks.find(b => b.id === seenKeys.get(key))?.created_at})`);
+        console.log(`   - Eliminando: ${block.id} (creado: ${block.created_at})`);
       } else {
         // Este es el primer bloque con esta key, mantenerlo
         seenKeys.set(key, block.id);
+        console.log(`✅ Primer bloque para key ${key}: ${block.id} (mantener)`);
       }
     });
 

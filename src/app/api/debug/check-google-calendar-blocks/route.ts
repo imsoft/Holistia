@@ -72,7 +72,7 @@ export async function GET(request: NextRequest) {
     const { data: profile } = await supabase
       .from('profiles')
       .select('google_calendar_connected, email')
-      .eq('id', userId)
+      .eq('id', professional.user_id)
       .single();
 
     return NextResponse.json({

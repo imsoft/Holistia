@@ -496,7 +496,7 @@ const HomeUserPage = () => {
 
                 <div
                   ref={eventsScrollRef}
-                  className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar"
+                  className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar px-12"
                   style={{ scrollPaddingLeft: '1rem', scrollPaddingRight: '1rem' }}
                 >
                   {filteredEvents.map((event) => (
@@ -608,7 +608,7 @@ const HomeUserPage = () => {
 
                 <div
                   ref={professionalsScrollRef}
-                  className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar"
+                  className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar px-12"
                   style={{ scrollPaddingLeft: '1rem', scrollPaddingRight: '1rem' }}
                 >
                   {filteredProfessionals.map((professional) => (
@@ -726,7 +726,7 @@ const HomeUserPage = () => {
 
                 <div
                   ref={restaurantsScrollRef}
-                  className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar justify-center"
+                  className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar justify-center px-12"
                 >
                   {restaurants.map((restaurant) => (
                     <Link
@@ -823,7 +823,7 @@ const HomeUserPage = () => {
 
                 <div
                   ref={shopsScrollRef}
-                  className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar justify-center"
+                  className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar justify-center px-12"
                 >
                   {shops.map((shop) => (
                     <Link

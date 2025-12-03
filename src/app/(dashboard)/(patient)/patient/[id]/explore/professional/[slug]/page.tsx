@@ -404,7 +404,7 @@ export default function ProfessionalProfilePage() {
     };
 
     getData();
-    
+
     // Sincronizar Google Calendar del profesional para asegurar que los eventos estén actualizados
     const syncGoogleCalendar = async () => {
       try {
@@ -414,8 +414,9 @@ export default function ProfessionalProfilePage() {
           .select('user_id')
           .eq('id', professionalId)
           .single();
-        
+
         if (professionalData?.user_id) {
+          console.log('🔄 Iniciando sincronización de Google Calendar...');
           // Llamar a la API para sincronizar Google Calendar
           const response = await fetch('/api/cron/sync-google-calendar', {
             method: 'POST',
@@ -424,9 +425,14 @@ export default function ProfessionalProfilePage() {
             },
             body: JSON.stringify({ userId: professionalData.user_id }),
           });
-          
+
           if (response.ok) {
-            console.log('✅ Google Calendar sincronizado para el profesional');
+            const result = await response.json();
+            console.log('✅ Google Calendar sincronizado para el profesional:', result);
+
+            // Disparar evento para recargar el calendario con los datos actualizados
+            console.log('🔄 Disparando evento reload-calendar para actualizar el calendario');
+            window.dispatchEvent(new Event('reload-calendar'));
           } else {
             console.log('⚠️ No se pudo sincronizar Google Calendar (puede que no esté conectado)');
           }
@@ -436,7 +442,7 @@ export default function ProfessionalProfilePage() {
         console.log('⚠️ Error al sincronizar Google Calendar:', error);
       }
     };
-    
+
     // Sincronizar en segundo plano sin bloquear la carga
     syncGoogleCalendar();
   }, [professionalId, patientId, supabase]);

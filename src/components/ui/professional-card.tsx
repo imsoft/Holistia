@@ -172,8 +172,8 @@ export const ProfessionalCard = ({ professional, userId }: ProfessionalCardProps
         </button>
       </div>
 
-      <CardContent className="px-4 pt-3 pb-4 flex flex-col flex-grow">
-        <div className="space-y-2 flex flex-col flex-grow">
+      <CardContent className="px-4 pt-3 pb-4 flex flex-col grow">
+        <div className="space-y-2 flex flex-col grow">
           {/* Header - Intercambiado: Especialidad arriba, Nombre abajo */}
           <div>
             <h3 className="text-lg font-semibold text-foreground group-hover:text-primary transition-colors">

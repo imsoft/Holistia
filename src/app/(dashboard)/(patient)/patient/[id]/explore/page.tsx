@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useParams } from "next/navigation";
 import { Calendar, MapPin, Users, ChevronLeft, ChevronRight, Brain, Sparkles, Activity, Apple, UtensilsCrossed, Store } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { ProfessionalCard } from "@/components/ui/professional-card";
 import { createClient } from "@/utils/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -254,6 +255,7 @@ const HomeUserPage = () => {
         if (restaurantsError) {
           console.error("Error fetching restaurants:", restaurantsError);
         } else {
+          console.log("🍽️ Restaurants data:", restaurantsData?.map(r => ({ id: r.id, name: r.name, image_url: r.image_url })));
           setRestaurants(restaurantsData || []);
         }
 
@@ -268,6 +270,7 @@ const HomeUserPage = () => {
         if (shopsError) {
           console.error("Error fetching shops:", shopsError);
         } else {
+          console.log("🛍️ Shops data:", shopsData?.map(s => ({ id: s.id, name: s.name, image_url: s.image_url })));
           setShops(shopsData || []);
         }
       } catch (error) {
@@ -735,13 +738,14 @@ const HomeUserPage = () => {
                       className="shrink-0 w-80"
                     >
                       <Card className="hover:shadow-lg hover:-translate-y-2 transition-all duration-300 overflow-hidden cursor-pointer h-full flex flex-col">
-                        <div className="relative w-full h-48">
+                        <div className="relative w-full h-48 bg-gray-100">
                           {restaurant.image_url ? (
-                            <StableImage
+                            <Image
                               src={restaurant.image_url}
                               alt={restaurant.name}
                               fill
                               className="object-cover"
+                              unoptimized
                             />
                           ) : (
                             <div className="w-full h-full bg-linear-to-br from-primary/20 to-primary/10 flex items-center justify-center">
@@ -832,13 +836,14 @@ const HomeUserPage = () => {
                       className="shrink-0 w-80"
                     >
                       <Card className="hover:shadow-lg hover:-translate-y-2 transition-all duration-300 overflow-hidden cursor-pointer h-full flex flex-col">
-                        <div className="relative w-full h-48">
+                        <div className="relative w-full h-48 bg-gray-100">
                           {shop.image_url ? (
-                            <StableImage
+                            <Image
                               src={shop.image_url}
                               alt={shop.name}
                               fill
                               className="object-cover"
+                              unoptimized
                             />
                           ) : (
                             <div className="w-full h-full bg-linear-to-br from-primary/20 to-primary/10 flex items-center justify-center">

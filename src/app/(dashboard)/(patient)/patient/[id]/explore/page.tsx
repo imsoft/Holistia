@@ -13,7 +13,6 @@ import { EventWorkshop } from "@/types/event";
 import { formatEventDate, formatEventTime } from "@/utils/date-utils";
 import { determineProfessionalModality, transformServicesFromDB } from "@/utils/professional-utils";
 import { sortProfessionalsByRanking } from "@/utils/professional-ranking";
-import { StableImage } from "@/components/ui/stable-image";
 
 const categories = [
   {
@@ -509,15 +508,14 @@ const HomeUserPage = () => {
                       className="shrink-0 w-80"
                     >
                       <Card className="hover:shadow-lg hover:-translate-y-2 transition-all duration-300 overflow-hidden cursor-pointer h-full flex flex-col">
-                        <div className="relative w-full h-48">
-                          <StableImage
-                            src={(event.gallery_images && event.gallery_images.length > 0 && event.gallery_images[0]) || event.image_url || ""}
+                        <div className="relative w-full h-48 bg-gray-100">
+                          <Image
+                            src={(event.gallery_images && event.gallery_images.length > 0 && event.gallery_images[0]) || event.image_url || "/logos/holistia-black.png"}
                             alt={event.name}
                             fill
                             className="object-cover"
-                            objectFit="cover"
-                            objectPosition={event.image_position || "center center"}
-                            fallbackSrc="/logos/holistia-black.png"
+                            style={{ objectPosition: event.image_position || "center center" }}
+                            unoptimized
                           />
                         </div>
                         <CardHeader className="pb-3">

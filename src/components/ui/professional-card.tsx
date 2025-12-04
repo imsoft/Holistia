@@ -3,10 +3,10 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { MapPin, Monitor, Heart } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { Professional } from "@/types";
 import { useState } from "react";
 import { createClient } from "@/utils/supabase/client";
-import { StableImage } from "@/components/ui/stable-image";
 import { StarRating } from "@/components/reviews/star-rating";
 
 interface ProfessionalCardProps {
@@ -152,18 +152,17 @@ export const ProfessionalCard = ({ professional, userId }: ProfessionalCardProps
   return (
     <Link href={professionalRoute}>
       <Card className="group overflow-hidden hover:shadow-xl hover:-translate-y-2 transition-all duration-300 border-border cursor-pointer h-full flex flex-col">
-      <div className="relative w-full h-48 overflow-hidden">
-        <StableImage
-          src={professional.profile_photo || professional.profilePhoto || professional.avatar || ""}
+      <div className="relative w-full h-48 overflow-hidden bg-gray-100">
+        <Image
+          src={professional.profile_photo || professional.profilePhoto || professional.avatar || "/logos/holistia-black.png"}
           alt={professional.name || `${professional.first_name || ''} ${professional.last_name || ''}`.trim()}
           fill
           className="object-cover"
-          fallbackSrc="/logos/holistia-black.png"
-          objectFit="cover"
-          objectPosition={professional.imagePosition || "center center"}
+          style={{ objectPosition: professional.imagePosition || "center center" }}
+          unoptimized
         />
         {/* Favorite button */}
-        <button 
+        <button
           onClick={handleToggleFavorite}
           disabled={isLoading}
           className="absolute top-3 right-3 p-2 bg-white/90 backdrop-blur-sm rounded-full hover:bg-white transition-colors shadow-sm group/favorite"

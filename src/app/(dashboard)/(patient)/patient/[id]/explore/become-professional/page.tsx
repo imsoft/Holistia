@@ -610,7 +610,7 @@ export default function BecomeProfessionalPage() {
                     }
                   }}
                   disabled={!specializationInput.trim()}
-                  className="flex-shrink-0"
+                  className="shrink-0"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -737,7 +737,7 @@ export default function BecomeProfessionalPage() {
             <div className="space-y-3">
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                 <div className="flex items-start gap-3">
-                  <div className="flex-shrink-0">
+                  <div className="shrink-0">
                     <svg className="w-5 h-5 text-blue-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
@@ -774,7 +774,7 @@ export default function BecomeProfessionalPage() {
             <div className="space-y-3">
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                 <div className="flex items-start gap-3">
-                  <div className="flex-shrink-0">
+                  <div className="shrink-0">
                     <svg className="w-5 h-5 text-blue-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
@@ -808,7 +808,7 @@ export default function BecomeProfessionalPage() {
             {/* Alerta informativa sobre la dirección */}
             <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
               <div className="flex items-start gap-3">
-                <Info className="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
+                <Info className="h-5 w-5 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
                 <div className="space-y-2">
                   <h4 className="font-semibold text-blue-900 dark:text-blue-100 text-sm">
                     📍 ¿Cómo ingresar tu dirección correctamente?
@@ -849,7 +849,7 @@ export default function BecomeProfessionalPage() {
                 className={errors.address ? "border-red-500" : ""}
               />
               <p className="text-xs text-muted-foreground flex items-start gap-1.5">
-                <Info className="h-3.5 w-3.5 flex-shrink-0 mt-0.5" />
+                <Info className="h-3.5 w-3.5 shrink-0 mt-0.5" />
                 <span>Incluye: Calle/Avenida, número exterior, número interior (si aplica) y colonia</span>
               </p>
               {errors.address && (

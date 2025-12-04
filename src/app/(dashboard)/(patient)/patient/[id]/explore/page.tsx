@@ -426,7 +426,7 @@ const HomeUserPage = () => {
               <div
                 key={category.id}
                 onClick={() => handleCategoryToggle(category.id)}
-                className={`group flex flex-col items-center p-3 sm:p-4 rounded-xl border transition-all duration-200 min-w-[120px] sm:min-w-[140px] flex-shrink-0 cursor-pointer ${
+                className={`group flex flex-col items-center p-3 sm:p-4 rounded-xl border transition-all duration-200 min-w-[120px] sm:min-w-[140px] shrink-0 cursor-pointer ${
                   selectedCategories.includes(category.id)
                     ? "bg-white text-primary border-primary shadow-md"
                     : "bg-primary text-white border-primary/20 hover:border-primary hover:shadow-md"
@@ -503,7 +503,7 @@ const HomeUserPage = () => {
                     <Link 
                       key={event.id} 
                       href={`/patient/${userId}/explore/event/${generateEventSlug(event.name, event.id!)}`}
-                      className="flex-shrink-0 w-80"
+                      className="shrink-0 w-80"
                     >
                       <Card className="hover:shadow-lg hover:-translate-y-2 transition-all duration-300 overflow-hidden cursor-pointer h-full flex flex-col">
                         <div className="relative w-full h-48">
@@ -530,7 +530,7 @@ const HomeUserPage = () => {
                         </CardHeader>
                         <CardContent className="space-y-2 flex-1 pb-4">
                           <div className="flex items-start gap-2 text-sm text-muted-foreground">
-                            <Calendar className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                            <Calendar className="w-4 h-4 mt-0.5 shrink-0" />
                             <div className="flex-1">
                               <div className="font-medium text-foreground">
                                 {event.end_date && event.event_date !== event.end_date
@@ -545,7 +545,7 @@ const HomeUserPage = () => {
                             </div>
                           </div>
                           <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                            <MapPin className="w-4 h-4 flex-shrink-0" />
+                            <MapPin className="w-4 h-4 shrink-0" />
                             <span className="truncate">{event.location}</span>
                           </div>
                           {event.description && (
@@ -612,7 +612,7 @@ const HomeUserPage = () => {
                   style={{ scrollPaddingLeft: '1rem', scrollPaddingRight: '1rem' }}
                 >
                   {filteredProfessionals.map((professional) => (
-                    <div key={professional.id} className="flex-shrink-0 w-96">
+                    <div key={professional.id} className="shrink-0 w-96">
                       <ProfessionalCard
                         userId={userId}
                         professional={{
@@ -732,7 +732,7 @@ const HomeUserPage = () => {
                     <Link
                       key={restaurant.id}
                       href={`/patient/${userId}/explore/restaurant/${restaurant.id}`}
-                      className="flex-shrink-0 w-80"
+                      className="shrink-0 w-80"
                     >
                       <Card className="hover:shadow-lg hover:-translate-y-2 transition-all duration-300 overflow-hidden cursor-pointer h-full flex flex-col">
                         <div className="relative w-full h-48">
@@ -744,7 +744,7 @@ const HomeUserPage = () => {
                               className="object-cover"
                             />
                           ) : (
-                            <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center">
+                            <div className="w-full h-full bg-linear-to-br from-primary/20 to-primary/10 flex items-center justify-center">
                               <UtensilsCrossed className="h-16 w-16 text-primary/40" />
                             </div>
                           )}
@@ -769,7 +769,7 @@ const HomeUserPage = () => {
                           )}
                           {restaurant.address && (
                             <div className="flex items-start gap-2 mt-3 text-sm text-muted-foreground">
-                              <MapPin className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                              <MapPin className="h-4 w-4 mt-0.5 shrink-0" />
                               <span className="line-clamp-2">{restaurant.address}</span>
                             </div>
                           )}
@@ -829,7 +829,7 @@ const HomeUserPage = () => {
                     <Link
                       key={shop.id}
                       href={`/patient/${userId}/explore/shop/${shop.id}`}
-                      className="flex-shrink-0 w-80"
+                      className="shrink-0 w-80"
                     >
                       <Card className="hover:shadow-lg hover:-translate-y-2 transition-all duration-300 overflow-hidden cursor-pointer h-full flex flex-col">
                         <div className="relative w-full h-48">
@@ -841,7 +841,7 @@ const HomeUserPage = () => {
                               className="object-cover"
                             />
                           ) : (
-                            <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center">
+                            <div className="w-full h-full bg-linear-to-br from-primary/20 to-primary/10 flex items-center justify-center">
                               <Store className="h-16 w-16 text-primary/40" />
                             </div>
                           )}
@@ -861,7 +861,7 @@ const HomeUserPage = () => {
                           )}
                           {(shop.address || shop.city) && (
                             <div className="flex items-start gap-2 mt-3 text-sm text-muted-foreground">
-                              <MapPin className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                              <MapPin className="h-4 w-4 mt-0.5 shrink-0" />
                               <span className="line-clamp-2">
                                 {shop.address && shop.city ? `${shop.address}, ${shop.city}` : shop.address || shop.city}
                               </span>

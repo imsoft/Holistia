@@ -60,7 +60,7 @@ export function StableImage({
   // Si no hay src, mostrar directamente el fallback
   if (!src || src === "") {
     return (
-      <div className={`relative ${className} bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center`}>
+      <div className={`relative ${className} bg-linear-to-br from-gray-50 to-gray-100 flex items-center justify-center`}>
         <Image
           src={fallbackSrc}
           alt="Holistia Logo"
@@ -89,7 +89,7 @@ export function StableImage({
   // Si la URL no es válida, mostrar fallback
   if (!isValidUrl) {
     return (
-      <div className={`relative ${className} bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center`}>
+      <div className={`relative ${className} bg-linear-to-br from-gray-50 to-gray-100 flex items-center justify-center`}>
         <Image
           src={fallbackSrc}
           alt="Holistia Logo"
@@ -109,7 +109,7 @@ export function StableImage({
   return (
     <div className={containerClass}>
       {isLoading && (
-        <div className="absolute inset-0 bg-gradient-to-br from-gray-50 to-gray-100 animate-pulse flex items-center justify-center z-10">
+        <div className="absolute inset-0 bg-linear-to-br from-gray-50 to-gray-100 animate-pulse flex items-center justify-center z-10">
           <div className="w-8 h-8 border-2 border-gray-300 border-t-primary rounded-full animate-spin"></div>
         </div>
       )}

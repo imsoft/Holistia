@@ -22,6 +22,7 @@ import {
   Ticket,
   Wrench,
   RefreshCw,
+  Palette,
 } from "lucide-react";
 import {
   Sidebar,
@@ -202,6 +203,11 @@ export function AdminSidebar() {
       title: "Agente IA (Alpha)",
       url: `/admin/${userId}/ai-agent`,
       icon: Sparkles,
+    },
+    {
+      title: "UI Playground",
+      url: `/admin/${userId}/ui-playground`,
+      icon: Palette,
     },
   ];
 

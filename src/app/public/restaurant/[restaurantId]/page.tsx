@@ -111,7 +111,7 @@ export default function PublicRestaurantPage({
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
           <p className="mt-4 text-muted-foreground">Cargando...</p>
         </div>
       </div>
@@ -123,7 +123,7 @@ export default function PublicRestaurantPage({
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
           <p className="text-xl font-semibold text-foreground">Restaurante no encontrado</p>
-          <Link href="/" className="text-purple-600 hover:text-purple-700 mt-4 inline-block">
+          <Link href="/" className="text-primary hover:text-primary mt-4 inline-block">
             Volver al inicio
           </Link>
         </div>
@@ -155,12 +155,12 @@ export default function PublicRestaurantPage({
                 />
               </div>
             ) : (
-              <div className="aspect-4/3 w-full rounded-lg bg-linear-to-br from-purple-100 to-blue-100 flex items-center justify-center">
+              <div className="aspect-4/3 w-full rounded-lg bg-linear-to-br from-primary/10 to-blue-100 flex items-center justify-center">
                 <div className="text-center">
                   <div className="w-32 h-32 rounded-full bg-background/50 mx-auto mb-4 flex items-center justify-center">
-                    <UtensilsCrossed className="w-16 h-16 text-purple-600" />
+                    <UtensilsCrossed className="w-16 h-16 text-primary" />
                   </div>
-                  <p className="text-xl font-semibold text-purple-900">{restaurant.name}</p>
+                  <p className="text-xl font-semibold text-primary-foreground">{restaurant.name}</p>
                 </div>
               </div>
             )}
@@ -182,7 +182,7 @@ export default function PublicRestaurantPage({
                     {restaurant.cuisine_types.map((cuisine, index) => (
                       <Badge
                         key={index}
-                        className="bg-purple-100 text-purple-700 hover:bg-purple-200"
+                        className="bg-primary/10 text-primary hover:bg-primary/20"
                       >
                         {cuisine}
                       </Badge>
@@ -199,7 +199,7 @@ export default function PublicRestaurantPage({
                   <Button
                     asChild
                     size="lg"
-                    className="w-full bg-purple-600 hover:bg-purple-700 text-white"
+                    className="w-full bg-primary hover:bg-primary text-white"
                   >
                     <Link href="/signup">
                       <UtensilsCrossed className="w-5 h-5 mr-2" />
@@ -210,7 +210,7 @@ export default function PublicRestaurantPage({
                     asChild
                     variant="outline"
                     size="lg"
-                    className="w-full border-purple-600 text-purple-600 hover:bg-purple-50"
+                    className="w-full border-primary text-primary hover:bg-primary/5"
                   >
                     <Link href="/login">Iniciar sesión</Link>
                   </Button>
@@ -220,7 +220,7 @@ export default function PublicRestaurantPage({
                   <Button
                     asChild
                     size="lg"
-                    className="w-full bg-purple-600 hover:bg-purple-700 text-white sm:col-span-2"
+                    className="w-full bg-primary hover:bg-primary text-white sm:col-span-2"
                   >
                     <Link href={`/patient/${userId}/explore/restaurant/${restaurantId}`}>
                       <UtensilsCrossed className="w-5 h-5 mr-2" />
@@ -236,7 +236,7 @@ export default function PublicRestaurantPage({
               <div className="mt-10 border-t border-gray-200 pt-10">
                 <h3 className="text-sm font-medium text-foreground">Destacados</h3>
                 <div className="mt-4">
-                  <ul role="list" className="list-disc space-y-2 pl-5 text-sm text-muted-foreground marker:text-purple-300">
+                  <ul role="list" className="list-disc space-y-2 pl-5 text-sm text-muted-foreground marker:text-primary/30">
                     {highlights.map((highlight, index) => (
                       <li key={index} className="pl-2">
                         <span className="text-foreground">{highlight}</span>
@@ -253,22 +253,22 @@ export default function PublicRestaurantPage({
               <div className="mt-4 space-y-3">
                 {restaurant.address && (
                   <div className="flex items-start gap-3">
-                    <MapPin className="w-5 h-5 text-purple-600 shrink-0 mt-0.5" />
+                    <MapPin className="w-5 h-5 text-primary shrink-0 mt-0.5" />
                     <p className="text-sm text-muted-foreground">{restaurant.address}</p>
                   </div>
                 )}
                 {restaurant.phone && (
                   <div className="flex items-start gap-3">
-                    <Phone className="w-5 h-5 text-purple-600 shrink-0 mt-0.5" />
-                    <a href={`tel:${restaurant.phone}`} className="text-sm text-muted-foreground hover:text-purple-600">
+                    <Phone className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+                    <a href={`tel:${restaurant.phone}`} className="text-sm text-muted-foreground hover:text-primary">
                       {restaurant.phone}
                     </a>
                   </div>
                 )}
                 {restaurant.email && (
                   <div className="flex items-start gap-3">
-                    <Mail className="w-5 h-5 text-purple-600 shrink-0 mt-0.5" />
-                    <a href={`mailto:${restaurant.email}`} className="text-sm text-muted-foreground hover:text-purple-600">
+                    <Mail className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+                    <a href={`mailto:${restaurant.email}`} className="text-sm text-muted-foreground hover:text-primary">
                       {restaurant.email}
                     </a>
                   </div>
@@ -300,7 +300,7 @@ export default function PublicRestaurantPage({
                   onClick={() => setActiveTab('about')}
                   className={classNames(
                     activeTab === 'about'
-                      ? "border-purple-600 text-purple-600"
+                      ? "border-primary text-primary"
                       : "border-transparent text-foreground hover:border-border hover:text-foreground",
                     "whitespace-nowrap border-b-2 py-6 text-sm font-medium"
                   )}
@@ -312,7 +312,7 @@ export default function PublicRestaurantPage({
                     onClick={() => setActiveTab('menu')}
                     className={classNames(
                       activeTab === 'menu'
-                        ? "border-purple-600 text-purple-600"
+                        ? "border-primary text-primary"
                         : "border-transparent text-foreground hover:border-border hover:text-foreground",
                       "whitespace-nowrap border-b-2 py-6 text-sm font-medium"
                     )}
@@ -325,7 +325,7 @@ export default function PublicRestaurantPage({
                     onClick={() => setActiveTab('hours')}
                     className={classNames(
                       activeTab === 'hours'
-                        ? "border-purple-600 text-purple-600"
+                        ? "border-primary text-primary"
                         : "border-transparent text-foreground hover:border-border hover:text-foreground",
                       "whitespace-nowrap border-b-2 py-6 text-sm font-medium"
                     )}
@@ -341,7 +341,7 @@ export default function PublicRestaurantPage({
               {activeTab === 'about' && restaurant.description && (
                 <div className="text-sm text-muted-foreground">
                   <div
-                    className="prose prose-sm max-w-none prose-headings:text-foreground prose-p:text-muted-foreground prose-a:text-purple-600 prose-strong:text-foreground"
+                    className="prose prose-sm max-w-none prose-headings:text-foreground prose-p:text-muted-foreground prose-a:text-primary prose-strong:text-foreground"
                     dangerouslySetInnerHTML={{ __html: restaurant.description }}
                   />
                 </div>
@@ -368,7 +368,7 @@ export default function PublicRestaurantPage({
                         )}
                         <div className="flex justify-between items-start mb-2">
                           <h4 className="text-sm font-medium text-foreground">{item.name}</h4>
-                          <span className="text-lg font-bold text-purple-600 ml-2">
+                          <span className="text-lg font-bold text-primary ml-2">
                             ${item.price.toFixed(2)}
                           </span>
                         </div>
@@ -390,8 +390,8 @@ export default function PublicRestaurantPage({
                 <div className="space-y-3">
                   {Object.entries(restaurant.opening_hours).map(([day, hours]: [string, any]) => (
                     <div key={day} className="flex items-start gap-4">
-                      <div className="h-10 w-10 shrink-0 rounded-full bg-purple-100 flex items-center justify-center">
-                        <Clock className="h-5 w-5 text-purple-600" />
+                      <div className="h-10 w-10 shrink-0 rounded-full bg-primary/10 flex items-center justify-center">
+                        <Clock className="h-5 w-5 text-primary" />
                       </div>
                       <div className="flex-1">
                         <h4 className="text-sm font-medium text-foreground capitalize">{day}</h4>

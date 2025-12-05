@@ -123,7 +123,7 @@ export default function PublicEventPage({
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
           <p className="mt-4 text-muted-foreground">Cargando...</p>
         </div>
       </div>
@@ -135,7 +135,7 @@ export default function PublicEventPage({
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
           <p className="text-xl font-semibold text-foreground">Evento no encontrado</p>
-          <Link href="/" className="text-purple-600 hover:text-purple-700 mt-4 inline-block">
+          <Link href="/" className="text-primary hover:text-primary mt-4 inline-block">
             Volver al inicio
           </Link>
         </div>
@@ -171,12 +171,12 @@ export default function PublicEventPage({
                 />
               </div>
             ) : (
-              <div className="aspect-4/3 w-full rounded-lg bg-linear-to-br from-purple-100 to-blue-100 flex items-center justify-center">
+              <div className="aspect-4/3 w-full rounded-lg bg-linear-to-br from-primary/10 to-blue-100 flex items-center justify-center">
                 <div className="text-center">
                   <div className="w-32 h-32 rounded-full bg-background/50 mx-auto mb-4 flex items-center justify-center">
-                    <CalendarCheck className="w-16 h-16 text-purple-600" />
+                    <CalendarCheck className="w-16 h-16 text-primary" />
                   </div>
-                  <p className="text-xl font-semibold text-purple-900">{event.name}</p>
+                  <p className="text-xl font-semibold text-primary-foreground">{event.name}</p>
                 </div>
               </div>
             )}
@@ -194,7 +194,7 @@ export default function PublicEventPage({
                   Información del evento
                 </h2>
                 <div className="mt-3 flex flex-wrap gap-2">
-                  <Badge className="bg-purple-100 text-purple-700 hover:bg-purple-200">
+                  <Badge className="bg-primary/10 text-primary hover:bg-primary/20">
                     {getCategoryLabel(event.category)}
                   </Badge>
                   <Badge variant={event.is_free ? "default" : "outline"}>
@@ -214,7 +214,7 @@ export default function PublicEventPage({
                   <Button
                     asChild
                     size="lg"
-                    className="w-full bg-purple-600 hover:bg-purple-700 text-white"
+                    className="w-full bg-primary hover:bg-primary text-white"
                   >
                     <Link href="/signup">
                       <Calendar className="w-5 h-5 mr-2" />
@@ -225,7 +225,7 @@ export default function PublicEventPage({
                     asChild
                     variant="outline"
                     size="lg"
-                    className="w-full border-purple-600 text-purple-600 hover:bg-purple-50"
+                    className="w-full border-primary text-primary hover:bg-primary/5"
                   >
                     <Link href="/login">Iniciar sesión</Link>
                   </Button>
@@ -235,7 +235,7 @@ export default function PublicEventPage({
                   <Button
                     asChild
                     size="lg"
-                    className="w-full bg-purple-600 hover:bg-purple-700 text-white sm:col-span-2"
+                    className="w-full bg-primary hover:bg-primary text-white sm:col-span-2"
                   >
                     <Link href={`/patient/${event.id}/explore/event/${event.id}`}>
                       <Calendar className="w-5 h-5 mr-2" />
@@ -251,7 +251,7 @@ export default function PublicEventPage({
               <div className="mt-10 border-t border-gray-200 pt-10">
                 <h3 className="text-sm font-medium text-foreground">Información destacada</h3>
                 <div className="mt-4">
-                  <ul role="list" className="list-disc space-y-2 pl-5 text-sm text-muted-foreground marker:text-purple-300">
+                  <ul role="list" className="list-disc space-y-2 pl-5 text-sm text-muted-foreground marker:text-primary/30">
                     {highlights.map((highlight, index) => (
                       <li key={index} className="pl-2">
                         <span className="text-foreground">{highlight}</span>
@@ -266,7 +266,7 @@ export default function PublicEventPage({
             <div className="mt-10 border-t border-gray-200 pt-10">
               <h3 className="text-sm font-medium text-foreground">Precio</h3>
               <div className="mt-4">
-                <p className="text-2xl font-bold text-purple-600">
+                <p className="text-2xl font-bold text-primary">
                   {event.is_free ? "Gratuito" : `$${event.price} MXN`}
                 </p>
                 <p className="mt-1 text-sm text-muted-foreground">
@@ -299,7 +299,7 @@ export default function PublicEventPage({
                   onClick={() => setActiveTab('about')}
                   className={classNames(
                     activeTab === 'about'
-                      ? "border-purple-600 text-purple-600"
+                      ? "border-primary text-primary"
                       : "border-transparent text-foreground hover:border-border hover:text-foreground",
                     "whitespace-nowrap border-b-2 py-6 text-sm font-medium"
                   )}
@@ -310,7 +310,7 @@ export default function PublicEventPage({
                   onClick={() => setActiveTab('details')}
                   className={classNames(
                     activeTab === 'details'
-                      ? "border-purple-600 text-purple-600"
+                      ? "border-primary text-primary"
                       : "border-transparent text-foreground hover:border-border hover:text-foreground",
                     "whitespace-nowrap border-b-2 py-6 text-sm font-medium"
                   )}
@@ -322,7 +322,7 @@ export default function PublicEventPage({
                     onClick={() => setActiveTab('instructor')}
                     className={classNames(
                       activeTab === 'instructor'
-                        ? "border-purple-600 text-purple-600"
+                        ? "border-primary text-primary"
                         : "border-transparent text-foreground hover:border-border hover:text-foreground",
                       "whitespace-nowrap border-b-2 py-6 text-sm font-medium"
                     )}
@@ -338,7 +338,7 @@ export default function PublicEventPage({
               {activeTab === 'about' && event.description && (
                 <div className="text-sm text-muted-foreground">
                   <div
-                    className="prose prose-sm max-w-none prose-headings:text-foreground prose-p:text-muted-foreground prose-a:text-purple-600 prose-strong:text-foreground"
+                    className="prose prose-sm max-w-none prose-headings:text-foreground prose-p:text-muted-foreground prose-a:text-primary prose-strong:text-foreground"
                     dangerouslySetInnerHTML={{ __html: event.description }}
                   />
                 </div>
@@ -347,8 +347,8 @@ export default function PublicEventPage({
               {activeTab === 'details' && (
                 <div className="space-y-6">
                   <div className="flex items-start gap-4">
-                    <div className="h-10 w-10 shrink-0 rounded-full bg-purple-100 flex items-center justify-center">
-                      <Calendar className="h-5 w-5 text-purple-600" />
+                    <div className="h-10 w-10 shrink-0 rounded-full bg-primary/10 flex items-center justify-center">
+                      <Calendar className="h-5 w-5 text-primary" />
                     </div>
                     <div>
                       <h4 className="text-sm font-medium text-foreground">Fecha y hora</h4>
@@ -430,8 +430,8 @@ export default function PublicEventPage({
                         className="w-20 h-20 rounded-full object-cover"
                       />
                     ) : (
-                      <div className="w-20 h-20 rounded-full bg-purple-100 flex items-center justify-center">
-                        <User className="w-10 h-10 text-purple-600" />
+                      <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center">
+                        <User className="w-10 h-10 text-primary" />
                       </div>
                     )}
                     <div>

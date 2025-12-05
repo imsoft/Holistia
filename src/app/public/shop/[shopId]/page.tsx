@@ -124,7 +124,7 @@ export default function PublicShopPage({
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
           <p className="mt-4 text-muted-foreground">Cargando...</p>
         </div>
       </div>
@@ -136,7 +136,7 @@ export default function PublicShopPage({
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
           <p className="text-xl font-semibold text-foreground">Comercio no encontrado</p>
-          <Link href="/" className="text-purple-600 hover:text-purple-700 mt-4 inline-block">
+          <Link href="/" className="text-primary hover:text-primary mt-4 inline-block">
             Volver al inicio
           </Link>
         </div>
@@ -168,12 +168,12 @@ export default function PublicShopPage({
                 />
               </div>
             ) : (
-              <div className="aspect-4/3 w-full rounded-lg bg-linear-to-br from-purple-100 to-blue-100 flex items-center justify-center">
+              <div className="aspect-4/3 w-full rounded-lg bg-linear-to-br from-primary/10 to-blue-100 flex items-center justify-center">
                 <div className="text-center">
                   <div className="w-32 h-32 rounded-full bg-background/50 mx-auto mb-4 flex items-center justify-center">
-                    <Store className="w-16 h-16 text-purple-600" />
+                    <Store className="w-16 h-16 text-primary" />
                   </div>
-                  <p className="text-xl font-semibold text-purple-900">{shop.name}</p>
+                  <p className="text-xl font-semibold text-primary-foreground">{shop.name}</p>
                 </div>
               </div>
             )}
@@ -205,7 +205,7 @@ export default function PublicShopPage({
                   <Button
                     asChild
                     size="lg"
-                    className="w-full bg-purple-600 hover:bg-purple-700 text-white"
+                    className="w-full bg-primary hover:bg-primary text-white"
                   >
                     <Link href="/signup">
                       <Store className="w-5 h-5 mr-2" />
@@ -216,7 +216,7 @@ export default function PublicShopPage({
                     asChild
                     variant="outline"
                     size="lg"
-                    className="w-full border-purple-600 text-purple-600 hover:bg-purple-50"
+                    className="w-full border-primary text-primary hover:bg-primary/5"
                   >
                     <Link href="/login">Iniciar sesión</Link>
                   </Button>
@@ -226,7 +226,7 @@ export default function PublicShopPage({
                   <Button
                     asChild
                     size="lg"
-                    className="w-full bg-purple-600 hover:bg-purple-700 text-white sm:col-span-2"
+                    className="w-full bg-primary hover:bg-primary text-white sm:col-span-2"
                   >
                     <Link href={`/patient/${shopId}/explore/shop/${shopId}`}>
                       <Store className="w-5 h-5 mr-2" />
@@ -242,7 +242,7 @@ export default function PublicShopPage({
               <div className="mt-10 border-t border-gray-200 pt-10">
                 <h3 className="text-sm font-medium text-foreground">Destacados</h3>
                 <div className="mt-4">
-                  <ul role="list" className="list-disc space-y-2 pl-5 text-sm text-muted-foreground marker:text-purple-300">
+                  <ul role="list" className="list-disc space-y-2 pl-5 text-sm text-muted-foreground marker:text-primary/30">
                     {highlights.map((highlight, index) => (
                       <li key={index} className="pl-2">
                         <span className="text-foreground">{highlight}</span>
@@ -259,38 +259,38 @@ export default function PublicShopPage({
               <div className="mt-4 space-y-3">
                 {shop.address && (
                   <div className="flex items-start gap-3">
-                    <MapPin className="w-5 h-5 text-purple-600 shrink-0 mt-0.5" />
+                    <MapPin className="w-5 h-5 text-primary shrink-0 mt-0.5" />
                     <p className="text-sm text-muted-foreground">{shop.address}</p>
                   </div>
                 )}
                 {shop.phone && (
                   <div className="flex items-start gap-3">
-                    <Phone className="w-5 h-5 text-purple-600 shrink-0 mt-0.5" />
-                    <a href={`tel:${shop.phone}`} className="text-sm text-muted-foreground hover:text-purple-600">
+                    <Phone className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+                    <a href={`tel:${shop.phone}`} className="text-sm text-muted-foreground hover:text-primary">
                       {shop.phone}
                     </a>
                   </div>
                 )}
                 {shop.email && (
                   <div className="flex items-start gap-3">
-                    <Mail className="w-5 h-5 text-purple-600 shrink-0 mt-0.5" />
-                    <a href={`mailto:${shop.email}`} className="text-sm text-muted-foreground hover:text-purple-600">
+                    <Mail className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+                    <a href={`mailto:${shop.email}`} className="text-sm text-muted-foreground hover:text-primary">
                       {shop.email}
                     </a>
                   </div>
                 )}
                 {shop.website && (
                   <div className="flex items-start gap-3">
-                    <Globe className="w-5 h-5 text-purple-600 shrink-0 mt-0.5" />
-                    <a href={shop.website} target="_blank" rel="noopener noreferrer" className="text-sm text-muted-foreground hover:text-purple-600">
+                    <Globe className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+                    <a href={shop.website} target="_blank" rel="noopener noreferrer" className="text-sm text-muted-foreground hover:text-primary">
                       Visitar sitio web
                     </a>
                   </div>
                 )}
                 {shop.instagram && (
                   <div className="flex items-start gap-3">
-                    <Instagram className="w-5 h-5 text-purple-600 shrink-0 mt-0.5" />
-                    <a href={shop.instagram} target="_blank" rel="noopener noreferrer" className="text-sm text-muted-foreground hover:text-purple-600">
+                    <Instagram className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+                    <a href={shop.instagram} target="_blank" rel="noopener noreferrer" className="text-sm text-muted-foreground hover:text-primary">
                       Seguir en Instagram
                     </a>
                   </div>
@@ -322,7 +322,7 @@ export default function PublicShopPage({
                   onClick={() => setActiveTab('about')}
                   className={classNames(
                     activeTab === 'about'
-                      ? "border-purple-600 text-purple-600"
+                      ? "border-primary text-primary"
                       : "border-transparent text-foreground hover:border-border hover:text-foreground",
                     "whitespace-nowrap border-b-2 py-6 text-sm font-medium"
                   )}
@@ -334,7 +334,7 @@ export default function PublicShopPage({
                     onClick={() => setActiveTab('products')}
                     className={classNames(
                       activeTab === 'products'
-                        ? "border-purple-600 text-purple-600"
+                        ? "border-primary text-primary"
                         : "border-transparent text-foreground hover:border-border hover:text-foreground",
                       "whitespace-nowrap border-b-2 py-6 text-sm font-medium"
                     )}
@@ -347,7 +347,7 @@ export default function PublicShopPage({
                     onClick={() => setActiveTab('hours')}
                     className={classNames(
                       activeTab === 'hours'
-                        ? "border-purple-600 text-purple-600"
+                        ? "border-primary text-primary"
                         : "border-transparent text-foreground hover:border-border hover:text-foreground",
                       "whitespace-nowrap border-b-2 py-6 text-sm font-medium"
                     )}
@@ -363,7 +363,7 @@ export default function PublicShopPage({
               {activeTab === 'about' && shop.description && (
                 <div className="text-sm text-muted-foreground">
                   <div
-                    className="prose prose-sm max-w-none prose-headings:text-foreground prose-p:text-muted-foreground prose-a:text-purple-600 prose-strong:text-foreground"
+                    className="prose prose-sm max-w-none prose-headings:text-foreground prose-p:text-muted-foreground prose-a:text-primary prose-strong:text-foreground"
                     dangerouslySetInnerHTML={{ __html: shop.description }}
                   />
                 </div>
@@ -394,7 +394,7 @@ export default function PublicShopPage({
                             {product.description}
                           </p>
                         )}
-                        <p className="text-lg font-bold text-purple-600">
+                        <p className="text-lg font-bold text-primary">
                           ${product.price.toFixed(2)} MXN
                         </p>
                       </div>
@@ -435,8 +435,8 @@ export default function PublicShopPage({
 
                     return (
                       <div key={day} className="flex items-start gap-4">
-                        <div className="h-10 w-10 shrink-0 rounded-full bg-purple-100 flex items-center justify-center">
-                          <Clock className="h-5 w-5 text-purple-600" />
+                        <div className="h-10 w-10 shrink-0 rounded-full bg-primary/10 flex items-center justify-center">
+                          <Clock className="h-5 w-5 text-primary" />
                         </div>
                         <div className="flex-1">
                           <h4 className="text-sm font-medium text-foreground capitalize">{day}</h4>

@@ -72,7 +72,7 @@ export default function UIPlayground() {
 
           {/* Buttons Tab */}
           <TabsContent value="buttons" className="space-y-6">
-            <Card>
+            <Card className="py-4">
               <CardHeader>
                 <CardTitle>Variantes de Botones</CardTitle>
                 <CardDescription>
@@ -148,7 +148,7 @@ export default function UIPlayground() {
           <TabsContent value="cards" className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {/* Basic Card */}
-              <Card>
+              <Card className="py-4">
                 <CardHeader>
                   <CardTitle>Card Básica</CardTitle>
                   <CardDescription>
@@ -166,7 +166,7 @@ export default function UIPlayground() {
               </Card>
 
               {/* Card with User Info */}
-              <Card>
+              <Card className="py-4">
                 <CardHeader>
                   <div className="flex items-center gap-4">
                     <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
@@ -193,7 +193,7 @@ export default function UIPlayground() {
               </Card>
 
               {/* Card with Badges */}
-              <Card>
+              <Card className="py-4">
                 <CardHeader>
                   <CardTitle>Badges y Estados</CardTitle>
                   <CardDescription>Diferentes estilos de badges</CardDescription>
@@ -223,7 +223,7 @@ export default function UIPlayground() {
               </Card>
 
               {/* Stat Card */}
-              <Card>
+              <Card className="py-4">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">
                     Total de Usuarios
@@ -240,7 +240,7 @@ export default function UIPlayground() {
               </Card>
 
               {/* Interactive Card */}
-              <Card className="border-2 border-primary">
+              <Card className="border-2 border-primary py-4">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Sparkles className="h-5 w-5 text-primary" />
@@ -258,7 +258,7 @@ export default function UIPlayground() {
               </Card>
 
               {/* Image Card */}
-              <Card>
+              <Card className="py-4">
                 <CardHeader className="p-0">
                   <div className="relative h-40 w-full">
                     <Image
@@ -284,7 +284,7 @@ export default function UIPlayground() {
 
           {/* Forms Tab */}
           <TabsContent value="forms" className="space-y-6">
-            <Card>
+            <Card className="py-4">
               <CardHeader>
                 <CardTitle>Componentes de Formulario</CardTitle>
                 <CardDescription>
@@ -398,7 +398,7 @@ export default function UIPlayground() {
               </Alert>
             </div>
 
-            <Card>
+            <Card className="py-4">
               <CardHeader>
                 <CardTitle>Iconos de Usuario</CardTitle>
                 <CardDescription>Diferentes tamaños de iconos de usuario</CardDescription>
@@ -424,7 +424,7 @@ export default function UIPlayground() {
         </Tabs>
 
         {/* Color Palette */}
-        <Card>
+        <Card className="py-4">
           <CardHeader>
             <CardTitle>Paleta de Colores del Sistema</CardTitle>
             <CardDescription>

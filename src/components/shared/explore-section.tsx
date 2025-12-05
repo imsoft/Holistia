@@ -322,7 +322,7 @@ export function ExploreSection({ hideHeader = false }: ExploreSectionProps) {
               {professionals.map((prof) => {
                 const slug = `${prof.first_name.toLowerCase()}-${prof.last_name.toLowerCase()}-${prof.id}`;
                 return (
-                  <Card key={prof.id} className="flex-shrink-0 w-[280px] sm:w-[320px] h-[450px] flex flex-col hover:shadow-lg transition-shadow">
+                  <Card key={prof.id} className="flex-shrink-0 w-[280px] sm:w-[320px] h-[480px] flex flex-col hover:shadow-lg transition-shadow">
                     <div className="relative w-full h-48 bg-gray-100 shrink-0">
                       {prof.avatar_url ? (
                         <Image
@@ -459,7 +459,7 @@ export function ExploreSection({ hideHeader = false }: ExploreSectionProps) {
                 const cleanDescription = shop.description ? stripHtml(shop.description) : null;
                 
                 return (
-                  <Card key={shop.id} className="flex-shrink-0 w-[280px] sm:w-[320px] h-[450px] flex flex-col hover:shadow-lg transition-shadow">
+                  <Card key={shop.id} className="flex-shrink-0 w-[280px] sm:w-[320px] h-[480px] flex flex-col hover:shadow-lg transition-shadow">
                     <div className="relative w-full h-48 bg-gray-100 shrink-0">
                       {mainImage ? (
                         <Image
@@ -556,7 +556,7 @@ export function ExploreSection({ hideHeader = false }: ExploreSectionProps) {
               }}
             >
               {restaurants.map((restaurant) => (
-                <Card key={restaurant.id} className="flex-shrink-0 w-[280px] sm:w-[320px] h-[450px] flex flex-col hover:shadow-lg transition-shadow">
+                <Card key={restaurant.id} className="flex-shrink-0 w-[280px] sm:w-[320px] h-[480px] flex flex-col hover:shadow-lg transition-shadow">
                   <div className="relative w-full h-48 bg-gray-100 shrink-0">
                     {restaurant.image_url ? (
                       <Image
@@ -644,7 +644,7 @@ export function ExploreSection({ hideHeader = false }: ExploreSectionProps) {
             >
               {events.map((event) => {
                 return (
-                  <Card key={event.id} className="flex-shrink-0 w-[280px] sm:w-[320px] h-[450px] flex flex-col hover:shadow-lg transition-shadow">
+                  <Card key={event.id} className="flex-shrink-0 w-[280px] sm:w-[320px] h-[480px] flex flex-col hover:shadow-lg transition-shadow">
                     <div className="relative w-full h-48 bg-gray-100 shrink-0">
                       {event.image_url ? (
                         <Image

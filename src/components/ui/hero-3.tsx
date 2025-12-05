@@ -167,7 +167,7 @@ export const AnimatedMarqueeHero: React.FC<AnimatedMarqueeHeroProps> = ({
                       console.error(`Failed to load image: ${src}`);
                       setImageError(true);
                     }}
-                    unoptimized={false}
+                    unoptimized={true}
                   />
                 ) : (
                   <div className="w-full h-full bg-muted rounded-2xl flex items-center justify-center">

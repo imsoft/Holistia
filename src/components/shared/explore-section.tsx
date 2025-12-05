@@ -322,8 +322,8 @@ export function ExploreSection({ hideHeader = false }: ExploreSectionProps) {
               {professionals.map((prof) => {
                 const slug = `${prof.first_name.toLowerCase()}-${prof.last_name.toLowerCase()}-${prof.id}`;
                 return (
-                  <Card key={prof.id} className="flex-shrink-0 w-[280px] sm:w-[320px] hover:shadow-lg transition-shadow">
-                    <div className="relative w-full h-48 bg-gray-100">
+                  <Card key={prof.id} className="flex-shrink-0 w-[280px] sm:w-[320px] h-[420px] flex flex-col hover:shadow-lg transition-shadow">
+                    <div className="relative w-full h-48 bg-gray-100 shrink-0">
                       {prof.avatar_url ? (
                         <Image
                           src={prof.avatar_url}
@@ -361,28 +361,30 @@ export function ExploreSection({ hideHeader = false }: ExploreSectionProps) {
                         )}
                       </div>
                     </CardHeader>
-                    <CardContent className="px-4 pt-0 pb-3">
-                      {prof.specializations && prof.specializations.length > 0 && (
-                        <div className="flex flex-wrap gap-1.5 mb-2">
-                          {prof.specializations.slice(0, 2).map((spec, index) => (
-                            <Badge key={index} variant="secondary" className="text-xs">
-                              {spec}
-                            </Badge>
-                          ))}
-                          {prof.specializations.length > 2 && (
-                            <Badge variant="outline" className="text-xs">
-                              +{prof.specializations.length - 2}
-                            </Badge>
-                          )}
-                        </div>
-                      )}
-                      {prof.city && (
-                        <div className="flex items-center gap-1 text-sm text-muted-foreground mb-2">
-                          <MapPin className="w-3 h-3 flex-shrink-0" />
-                          <span>{prof.city}</span>
-                        </div>
-                      )}
-                      <Button variant="default" size="sm" className="w-full mt-auto" asChild>
+                    <CardContent className="px-4 pt-0 pb-3 flex flex-col grow">
+                      <div className="grow">
+                        {prof.specializations && prof.specializations.length > 0 && (
+                          <div className="flex flex-wrap gap-1.5 mb-2">
+                            {prof.specializations.slice(0, 2).map((spec, index) => (
+                              <Badge key={index} variant="secondary" className="text-xs">
+                                {spec}
+                              </Badge>
+                            ))}
+                            {prof.specializations.length > 2 && (
+                              <Badge variant="outline" className="text-xs">
+                                +{prof.specializations.length - 2}
+                              </Badge>
+                            )}
+                          </div>
+                        )}
+                        {prof.city && (
+                          <div className="flex items-center gap-1 text-sm text-muted-foreground mb-2">
+                            <MapPin className="w-3 h-3 shrink-0" />
+                            <span>{prof.city}</span>
+                          </div>
+                        )}
+                      </div>
+                      <Button variant="default" size="sm" className="w-full" asChild>
                         <Link href={`/public/professional/${slug}`}>
                           Ver perfil
                         </Link>
@@ -457,8 +459,8 @@ export function ExploreSection({ hideHeader = false }: ExploreSectionProps) {
                 const cleanDescription = shop.description ? stripHtml(shop.description) : null;
                 
                 return (
-                  <Card key={shop.id} className="flex-shrink-0 w-[280px] sm:w-[320px] hover:shadow-lg transition-shadow">
-                    <div className="relative w-full h-48 bg-gray-100">
+                  <Card key={shop.id} className="flex-shrink-0 w-[280px] sm:w-[320px] h-[420px] flex flex-col hover:shadow-lg transition-shadow">
+                    <div className="relative w-full h-48 bg-gray-100 shrink-0">
                       {mainImage ? (
                         <Image
                           src={mainImage}
@@ -481,24 +483,26 @@ export function ExploreSection({ hideHeader = false }: ExploreSectionProps) {
                         )}
                         {shop.city && (
                           <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                            <MapPin className="w-3 h-3 flex-shrink-0" />
+                            <MapPin className="w-3 h-3 shrink-0" />
                             <span>{shop.city}</span>
                           </div>
                         )}
                       </div>
                     </CardHeader>
-                    <CardContent className="px-4 pt-0 pb-3">
-                      {cleanDescription && (
-                        <p className="text-sm text-muted-foreground line-clamp-2 mb-2">
-                          {cleanDescription}
-                        </p>
-                      )}
-                      {shop.address && (
-                        <div className="flex items-start gap-1 text-xs text-muted-foreground mb-2">
-                          <MapPin className="w-3 h-3 shrink-0 mt-0.5" />
-                          <span className="line-clamp-1">{shop.address}</span>
-                        </div>
-                      )}
+                    <CardContent className="px-4 pt-0 pb-3 flex flex-col grow">
+                      <div className="grow">
+                        {cleanDescription && (
+                          <p className="text-sm text-muted-foreground line-clamp-2 mb-2">
+                            {cleanDescription}
+                          </p>
+                        )}
+                        {shop.address && (
+                          <div className="flex items-start gap-1 text-xs text-muted-foreground mb-2">
+                            <MapPin className="w-3 h-3 shrink-0 mt-0.5" />
+                            <span className="line-clamp-1">{shop.address}</span>
+                          </div>
+                        )}
+                      </div>
                       <Button variant="default" size="sm" className="w-full" asChild>
                         <Link href={`/public/shop/${shop.id}`}>
                           Ver comercio
@@ -552,8 +556,8 @@ export function ExploreSection({ hideHeader = false }: ExploreSectionProps) {
               }}
             >
               {restaurants.map((restaurant) => (
-                <Card key={restaurant.id} className="flex-shrink-0 w-[280px] sm:w-[320px] hover:shadow-lg transition-shadow">
-                  <div className="relative w-full h-48 bg-gray-100">
+                <Card key={restaurant.id} className="flex-shrink-0 w-[280px] sm:w-[320px] h-[420px] flex flex-col hover:shadow-lg transition-shadow">
+                  <div className="relative w-full h-48 bg-gray-100 shrink-0">
                     {restaurant.image_url ? (
                       <Image
                         src={restaurant.image_url}
@@ -579,12 +583,14 @@ export function ExploreSection({ hideHeader = false }: ExploreSectionProps) {
                       )}
                     </div>
                   </CardHeader>
-                  <CardContent className="px-4 pt-0 pb-3">
-                    {restaurant.address && (
-                      <p className="text-sm text-muted-foreground line-clamp-2 mb-2">
-                        {restaurant.address}
-                      </p>
-                    )}
+                  <CardContent className="px-4 pt-0 pb-3 flex flex-col grow">
+                    <div className="grow">
+                      {restaurant.address && (
+                        <p className="text-sm text-muted-foreground line-clamp-2 mb-2">
+                          {restaurant.address}
+                        </p>
+                      )}
+                    </div>
                     <Button variant="default" size="sm" className="w-full" asChild>
                       <Link href={`/public/restaurant/${restaurant.id}`}>
                         Ver restaurante
@@ -638,8 +644,8 @@ export function ExploreSection({ hideHeader = false }: ExploreSectionProps) {
             >
               {events.map((event) => {
                 return (
-                  <Card key={event.id} className="flex-shrink-0 w-[280px] sm:w-[320px] hover:shadow-lg transition-shadow">
-                    <div className="relative w-full h-48 bg-gray-100">
+                  <Card key={event.id} className="flex-shrink-0 w-[280px] sm:w-[320px] h-[420px] flex flex-col hover:shadow-lg transition-shadow">
+                    <div className="relative w-full h-48 bg-gray-100 shrink-0">
                       {event.image_url ? (
                         <Image
                           src={event.image_url}
@@ -667,17 +673,19 @@ export function ExploreSection({ hideHeader = false }: ExploreSectionProps) {
                         )}
                       </div>
                     </CardHeader>
-                    <CardContent className="px-4 pt-0 pb-3">
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1.5">
-                        <Calendar className="w-4 h-4 shrink-0" />
-                        <span className="line-clamp-1">{formatDate(event.event_date)}</span>
-                      </div>
-                      {event.location && (
-                        <div className="flex items-start gap-2 text-sm text-muted-foreground mb-2">
-                          <MapPin className="w-4 h-4 shrink-0 mt-0.5" />
-                          <span className="line-clamp-2">{event.location}</span>
+                    <CardContent className="px-4 pt-0 pb-3 flex flex-col grow">
+                      <div className="grow">
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1.5">
+                          <Calendar className="w-4 h-4 shrink-0" />
+                          <span className="line-clamp-1">{formatDate(event.event_date)}</span>
                         </div>
-                      )}
+                        {event.location && (
+                          <div className="flex items-start gap-2 text-sm text-muted-foreground mb-2">
+                            <MapPin className="w-4 h-4 shrink-0 mt-0.5" />
+                            <span className="line-clamp-2">{event.location}</span>
+                          </div>
+                        )}
+                      </div>
                       <Button variant="default" size="sm" className="w-full" asChild>
                         <Link href={`/public/event/${event.id}`}>
                           Ver evento

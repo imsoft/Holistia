@@ -3,12 +3,12 @@
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { Store, MapPin, Search } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { StableImage } from "@/components/ui/stable-image";
 import {
   Select,
   SelectContent,
@@ -255,11 +255,12 @@ export default function ShopsPage() {
                 <Card className="hover:shadow-lg hover:-translate-y-2 transition-all duration-300 overflow-hidden cursor-pointer h-full flex flex-col">
                   <div className="relative w-full h-48 bg-linear-to-br from-primary/20 to-primary/10">
                     {shop.image_url && shop.image_url.trim() !== "" ? (
-                      <StableImage
+                      <Image
                         src={shop.image_url}
                         alt={shop.name}
                         fill
                         className="object-cover"
+                        unoptimized
                       />
                     ) : (
                       <div className="absolute inset-0 flex items-center justify-center">

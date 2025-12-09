@@ -1035,7 +1035,11 @@ export default function ProfessionalProfilePage() {
                   {professional.services.filter(service => 
                     (service.presencialCost && service.presencialCost !== '') || 
                     (service.onlineCost && service.onlineCost !== '')
-                  ).map((service, index) => (
+                  ).map((service, index) => {
+                    const hasPresencial = service.presencialCost && service.presencialCost !== '' && service.presencialCost !== '0' && Number(service.presencialCost) > 0;
+                    const hasOnline = service.onlineCost && service.onlineCost !== '' && service.onlineCost !== '0' && Number(service.onlineCost) > 0;
+
+                    return (
                     <div
                       key={index}
                       className="rounded-xl bg-linear-to-r from-primary/5 to-primary/10 border border-primary/20 hover:border-primary/30 transition-all overflow-hidden"
@@ -1060,32 +1064,47 @@ export default function ProfessionalProfilePage() {
                           </h3>
                           {service.description && (
                             <div
-                              className="text-sm sm:text-base text-muted-foreground leading-relaxed mb-2 prose prose-sm sm:prose-base max-w-none"
+                              className="text-sm sm:text-base text-muted-foreground leading-relaxed mb-4 prose prose-sm sm:prose-base max-w-none"
                               dangerouslySetInnerHTML={{ __html: service.description }}
                             />
                           )}
                           <div className="flex flex-wrap gap-2 sm:gap-3">
-                            {service.presencialCost && service.presencialCost !== '' && (
-                              <div className="flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-1.5 bg-primary/10 rounded-full">
-                                <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary" />
-                                <span className="text-xs sm:text-sm text-primary font-medium">
+                            {hasPresencial && (
+                              <button
+                                onClick={() => {
+                                  setSelectedService(`${service.name}-presencial`);
+                                  setIsBookingModalOpen(true);
+                                }}
+                                className="flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 bg-primary hover:bg-primary/90 text-white rounded-lg transition-colors cursor-pointer"
+                              >
+                                <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                                <span className="text-xs sm:text-sm font-medium">
                                   Presencial: {formatPrice(parseInt(service.presencialCost))}
                                 </span>
-                              </div>
+                                <Calendar className="h-3.5 w-3.5 sm:h-4 sm:w-4 ml-1" />
+                              </button>
                             )}
-                            {service.onlineCost && service.onlineCost !== '' && (
-                              <div className="flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-1.5 bg-primary/10 rounded-full">
-                                <Monitor className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary" />
-                                <span className="text-xs sm:text-sm text-primary font-medium">
+                            {hasOnline && (
+                              <button
+                                onClick={() => {
+                                  setSelectedService(`${service.name}-online`);
+                                  setIsBookingModalOpen(true);
+                                }}
+                                className="flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 bg-primary hover:bg-primary/90 text-white rounded-lg transition-colors cursor-pointer"
+                              >
+                                <Monitor className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                                <span className="text-xs sm:text-sm font-medium">
                                   En línea: {formatPrice(parseInt(service.onlineCost))}
                                 </span>
-                              </div>
+                                <Calendar className="h-3.5 w-3.5 sm:h-4 sm:w-4 ml-1" />
+                              </button>
                             )}
                           </div>
                         </div>
                       </div>
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             )}

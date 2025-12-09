@@ -173,27 +173,29 @@ export const ProfessionalCard = ({ professional, userId }: ProfessionalCardProps
 
       <CardContent className="px-4 pt-3 pb-4 flex flex-col grow">
         <div className="space-y-2 flex flex-col grow">
-          {/* Header - Intercambiado: Especialidad arriba, Nombre abajo */}
+          {/* Header - Especialidad arriba, Nombre y Rating en la misma línea */}
           <div>
-            <h3 className="text-lg font-semibold text-foreground group-hover:text-primary transition-colors">
+            <h3 className="text-lg font-semibold text-foreground group-hover:text-primary transition-colors line-clamp-1">
               {professional.profession}
             </h3>
-            <p className="text-sm text-muted-foreground">
-              {professional.name || `${professional.first_name || ''} ${professional.last_name || ''}`.trim()}
-            </p>
-            {/* Rating */}
-            {professional.average_rating && professional.total_reviews && professional.total_reviews > 0 && (
-              <div className="mt-0.5">
-                <StarRating 
-                  rating={professional.average_rating} 
-                  size="sm" 
-                  showNumber={false}
-                />
-                <span className="text-xs text-muted-foreground ml-1">
-                  ({professional.total_reviews} {professional.total_reviews === 1 ? 'reseña' : 'reseñas'})
-                </span>
-              </div>
-            )}
+            <div className="flex items-center justify-between gap-2 mt-1">
+              <p className="text-sm text-muted-foreground truncate">
+                {professional.name || `${professional.first_name || ''} ${professional.last_name || ''}`.trim()}
+              </p>
+              {/* Rating */}
+              {professional.average_rating && professional.total_reviews && professional.total_reviews > 0 && (
+                <div className="flex items-center gap-1 flex-shrink-0">
+                  <StarRating
+                    rating={professional.average_rating}
+                    size="sm"
+                    showNumber={true}
+                  />
+                  <span className="text-xs text-muted-foreground">
+                    ({professional.total_reviews})
+                  </span>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Therapy Types */}

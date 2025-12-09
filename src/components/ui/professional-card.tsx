@@ -158,7 +158,7 @@ export const ProfessionalCard = ({ professional, userId }: ProfessionalCardProps
           alt={professional.name || `${professional.first_name || ''} ${professional.last_name || ''}`.trim()}
           fill
           className="object-cover"
-          style={{ objectPosition: professional.imagePosition || "center center" }}
+          style={{ objectPosition: professional.imagePosition || "center top" }}
           unoptimized
         />
         {/* Favorite button */}

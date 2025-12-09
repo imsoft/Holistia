@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { Store, MapPin, Search } from "lucide-react";
@@ -253,8 +253,8 @@ export default function ShopsPage() {
                 href={`/patient/${userId}/explore/shop/${shop.id}`}
               >
                 <Card className="hover:shadow-lg hover:-translate-y-2 transition-all duration-300 overflow-hidden cursor-pointer h-full flex flex-col">
-                  <div className="relative w-full h-48">
-                    {shop.image_url ? (
+                  <div className="relative w-full h-48 bg-linear-to-br from-primary/20 to-primary/10">
+                    {shop.image_url && shop.image_url.trim() !== "" ? (
                       <StableImage
                         src={shop.image_url}
                         alt={shop.name}
@@ -262,7 +262,7 @@ export default function ShopsPage() {
                         className="object-cover"
                       />
                     ) : (
-                      <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center">
+                      <div className="absolute inset-0 flex items-center justify-center">
                         <Store className="h-16 w-16 text-primary/40" />
                       </div>
                     )}

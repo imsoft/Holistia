@@ -152,14 +152,12 @@ const HomeUserPage = () => {
       try {
         setLoading(true);
 
-        // Obtener profesionales
+        // Obtener profesionales - Todos los aprobados y activos
         const { data: professionalsData, error: professionalsError } = await supabase
           .from("professional_applications")
           .select("*")
           .eq("status", "approved")
           .eq("is_active", true)
-          .eq("registration_fee_paid", true)
-          .gt("registration_fee_expires_at", new Date().toISOString())
           .order("created_at", { ascending: false });
 
         if (professionalsError) {
@@ -213,8 +211,25 @@ const HomeUserPage = () => {
             })
           );
 
-          // Usar algoritmo de ranking para ordenar profesionales
-          const sortedProfessionals = sortProfessionalsByRanking(professionalsWithServices);
+          // Separar profesionales con membresía activa y sin membresía
+          const currentDate = new Date();
+          const professionalsWithMembership = professionalsWithServices.filter(prof =>
+            prof.registration_fee_paid === true &&
+            prof.registration_fee_expires_at &&
+            new Date(prof.registration_fee_expires_at) > currentDate
+          );
+          const professionalsWithoutMembership = professionalsWithServices.filter(prof =>
+            !prof.registration_fee_paid ||
+            !prof.registration_fee_expires_at ||
+            new Date(prof.registration_fee_expires_at) <= currentDate
+          );
+
+          // Ordenar cada grupo por ranking
+          const sortedWithMembership = sortProfessionalsByRanking(professionalsWithMembership);
+          const sortedWithoutMembership = sortProfessionalsByRanking(professionalsWithoutMembership);
+
+          // Combinar: primero con membresía, luego sin membresía
+          const sortedProfessionals = [...sortedWithMembership, ...sortedWithoutMembership];
 
           setProfessionals(sortedProfessionals);
           setFilteredProfessionals(sortedProfessionals);

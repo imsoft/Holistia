@@ -160,6 +160,7 @@ const HomeUserPage = () => {
           .eq("is_active", true)
           .eq("registration_fee_paid", true)
           .gt("registration_fee_expires_at", new Date().toISOString())
+          .not("profile_photo", "is", null)
           .order("created_at", { ascending: false });
 
         if (professionalsError) {

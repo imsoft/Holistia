@@ -348,13 +348,54 @@ export default function ProfessionalAppointments() {
   const handleSyncCalendar = async () => {
     setSyncing(true);
     try {
+      // Primero verificar si el profesional tiene Google Calendar conectado
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('google_calendar_connected')
+        .eq('id', userId)
+        .single();
+
+      if (profileError || !profile) {
+        toast.error('Error al verificar la conexión de Google Calendar');
+        setSyncing(false);
+        return;
+      }
+
+      // Si no tiene Google Calendar conectado, redirigir a configuración
+      if (!profile.google_calendar_connected) {
+        toast.error('Primero debes conectar tu cuenta de Google Calendar', {
+          description: 'Serás redirigido a la página de configuración',
+          duration: 3000,
+        });
+
+        setTimeout(() => {
+          window.location.href = `/professional/${userId}/settings`;
+        }, 2000);
+
+        setSyncing(false);
+        return;
+      }
+
+      // Si está conectado, proceder con la sincronización
       const result = await syncAllAppointmentsToGoogleCalendar(userId);
       if (result.success) {
         toast.success(result.message || 'Calendario sincronizado correctamente');
         // Recargar la página para actualizar las citas
         window.location.reload();
       } else {
-        toast.error(result.error || 'Error al sincronizar el calendario');
+        // Si el error es por cuenta no conectada, redirigir
+        if (result.error?.includes('no está conectado') || result.error?.includes('Tokens') || result.error?.includes('Google Calendar')) {
+          toast.error('Tu cuenta de Google Calendar no está configurada correctamente', {
+            description: 'Serás redirigido a la página de configuración',
+            duration: 3000,
+          });
+
+          setTimeout(() => {
+            window.location.href = `/professional/${userId}/settings`;
+          }, 2000);
+        } else {
+          toast.error(result.error || 'Error al sincronizar el calendario');
+        }
       }
     } catch (error) {
       console.error('Error sincronizando calendario:', error);

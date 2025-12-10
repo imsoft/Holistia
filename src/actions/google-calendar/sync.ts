@@ -239,6 +239,7 @@ export async function syncGoogleCalendarEvents(userId: string) {
       const isAllDay = !!event.start?.date && !event.start?.dateTime;
 
       let blockData: {
+        id?: string;
         professional_id: string;
         user_id: string;
         block_type: string;
@@ -274,6 +275,7 @@ export async function syncGoogleCalendarEvents(userId: string) {
         }
 
         blockData = {
+          id: randomUUID(),
           professional_id: professional.id,
           user_id: professional.user_id,
           block_type: 'full_day',
@@ -303,6 +305,7 @@ export async function syncGoogleCalendarEvents(userId: string) {
         const endTime = endDateTime.toTimeString().substring(0, 5);
 
         blockData = {
+          id: randomUUID(),
           professional_id: professional.id,
           user_id: professional.user_id,
           block_type: 'time_range',
@@ -327,18 +330,39 @@ export async function syncGoogleCalendarEvents(userId: string) {
       return blockData;
     });
 
-    // Insertar bloques en la base de datos
+    // Insertar bloques en la base de datos uno por uno para mejor manejo de errores
     if (blocksToCreate.length > 0) {
-      const { error: insertError } = await supabase
-        .from('availability_blocks')
-        .insert(blocksToCreate);
+      let successCount = 0;
+      let errorCount = 0;
+      const errors: string[] = [];
 
-      if (insertError) {
-        console.error('Error al insertar bloques:', insertError);
+      for (const block of blocksToCreate) {
+        const { error: insertError } = await supabase
+          .from('availability_blocks')
+          .insert(block);
+
+        if (insertError) {
+          errorCount++;
+          console.error('Error al insertar bloque:', insertError, 'Block:', block);
+          errors.push(`${insertError.code}: ${insertError.message}`);
+        } else {
+          successCount++;
+        }
+      }
+
+      console.log(`📊 Inserción completada: ${successCount} exitosos, ${errorCount} fallidos`);
+
+      // Si todos fallaron, retornar error
+      if (errorCount > 0 && successCount === 0) {
         return {
           success: false,
-          error: 'Error al crear bloques de disponibilidad',
+          error: `Error al crear bloques de disponibilidad. Detalles: ${errors[0] || 'Error desconocido'}`,
         };
+      }
+
+      // Si algunos fallaron, continuar pero logear
+      if (errorCount > 0) {
+        console.warn(`⚠️ Se crearon ${successCount} bloques pero ${errorCount} fallaron:`, errors);
       }
     }
 

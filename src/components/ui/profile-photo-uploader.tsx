@@ -137,13 +137,26 @@ export default function ProfilePhotoUploader({
         .from('professional-gallery')
         .getPublicUrl(filePath);
 
-      // Actualizar la base de datos
+      // Primero obtener el ID del professional_application
+      const { data: professionalApp, error: fetchError } = await supabase
+        .from('professional_applications')
+        .select('id')
+        .eq('user_id', professionalId)
+        .single();
+
+      if (fetchError || !professionalApp) {
+        console.error('Error fetching professional application:', fetchError);
+        throw new Error('No se encontró el perfil profesional');
+      }
+
+      // Actualizar la base de datos usando el ID del registro
       const { error: updateError } = await supabase
         .from('professional_applications')
-        .update({ 
+        .update({
           profile_photo: publicUrl,
           updated_at: new Date().toISOString()
         })
+        .eq('id', professionalApp.id)
         .eq('user_id', professionalId);
 
       if (updateError) {
@@ -178,13 +191,26 @@ export default function ProfilePhotoUploader({
 
   const handleCropSave = async (newPosition: string) => {
     try {
+      // Primero obtener el ID del professional_application
+      const { data: professionalApp, error: fetchError } = await supabase
+        .from('professional_applications')
+        .select('id')
+        .eq('user_id', professionalId)
+        .single();
+
+      if (fetchError || !professionalApp) {
+        console.error('Error fetching professional application:', fetchError);
+        throw new Error('No se encontró el perfil profesional');
+      }
+
       // Actualizar la posición de la imagen en la base de datos
       const { error: updateError } = await supabase
         .from('professional_applications')
-        .update({ 
+        .update({
           image_position: newPosition,
           updated_at: new Date().toISOString()
         })
+        .eq('id', professionalApp.id)
         .eq('user_id', professionalId);
 
       if (updateError) {

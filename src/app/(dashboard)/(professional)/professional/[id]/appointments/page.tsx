@@ -142,42 +142,7 @@ export default function ProfessionalAppointments() {
 
         setProfessionalAppId(professionalApp.id);
 
-        // Sincronizar Google Calendar antes de obtener los bloqueos (no bloqueante)
-        console.log('🔄 Sincronizando eventos de Google Calendar...');
-
-        // Verificar primero si tiene Google Calendar conectado
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('google_calendar_connected')
-          .eq('id', userId)
-          .single();
-
-        if (profile?.google_calendar_connected) {
-          try {
-            const syncResponse = await fetch('/api/cron/sync-google-calendar', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({ userId: userId }),
-            });
-
-            if (syncResponse.ok) {
-              const syncResult = await syncResponse.json();
-              console.log('✅ Google Calendar sincronizado:', syncResult);
-            } else {
-              const errorData = await syncResponse.json().catch(() => ({}));
-              console.log('⚠️ No se pudo sincronizar Google Calendar:', errorData);
-            }
-          } catch (syncError) {
-            console.log('⚠️ Error al sincronizar Google Calendar:', syncError);
-            // No mostramos error al usuario, solo logging
-          }
-        } else {
-          console.log('ℹ️ Google Calendar no está conectado, omitiendo sincronización');
-        }
-
-        // Obtener bloqueos de disponibilidad (ahora incluye eventos de Google Calendar actualizados)
+        // Obtener bloqueos de disponibilidad
         const { data: blocksData } = await supabase
           .from("availability_blocks")
           .select("*")

@@ -560,7 +560,6 @@ export default function PublicProfessionalPage({
 
                           <div className="flex items-center justify-between pt-4 border-t border-border">
                             <div className="flex items-center gap-2">
-                              <DollarSign className="w-5 h-5 text-primary" />
                               <span className="text-2xl font-bold text-primary">
                                 ${service.cost.toLocaleString('es-MX')}
                               </span>

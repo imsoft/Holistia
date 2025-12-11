@@ -11,7 +11,6 @@ import {
   CheckCircle2,
   Calendar,
   Clock,
-  DollarSign,
   Monitor,
   MapPin,
   Package,
@@ -67,7 +66,7 @@ export default function PublicProfessionalPage({
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const [professionalId, setProfessionalId] = useState<string>("");
-  const [activeTab, setActiveTab] = useState<'about' | 'services' | 'gallery' | 'certifications' | 'highlights'>('about');
+  const [activeTab, setActiveTab] = useState<'about' | 'services' | 'gallery' | 'certifications' | 'highlights'>('services');
 
   useEffect(() => {
     async function loadProfessional() {

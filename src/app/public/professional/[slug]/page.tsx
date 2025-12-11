@@ -623,7 +623,9 @@ export default function PublicProfessionalPage({
                       </div>
                       <div>
                         <h4 className="text-sm font-medium text-foreground">Experiencia Profesional</h4>
-                        <p className="mt-1 text-sm text-muted-foreground">{professional.experience}</p>
+                        <p className="mt-1 text-sm text-muted-foreground">
+                          {professional.experience}{professional.experience.toLowerCase().includes('año') ? '' : ' años'}
+                        </p>
                       </div>
                     </div>
                   )}

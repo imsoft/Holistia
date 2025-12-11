@@ -591,6 +591,10 @@ export default function BecomeProfessionalPage() {
                           specializations: [...prev.specializations, specializationInput.trim()]
                         }));
                         setSpecializationInput('');
+                        // Limpiar error de especialización al agregar una
+                        if (errors.specializations) {
+                          setErrors((prev) => ({ ...prev, specializations: "" }));
+                        }
                       }
                     }
                   }}
@@ -607,6 +611,10 @@ export default function BecomeProfessionalPage() {
                         specializations: [...prev.specializations, specializationInput.trim()]
                       }));
                       setSpecializationInput('');
+                      // Limpiar error de especialización al agregar una
+                      if (errors.specializations) {
+                        setErrors((prev) => ({ ...prev, specializations: "" }));
+                      }
                     }
                   }}
                   disabled={!specializationInput.trim()}
@@ -691,6 +699,10 @@ export default function BecomeProfessionalPage() {
                           ...prev,
                           languages: [...prev.languages, normalizedLanguage]
                         }));
+                        // Limpiar error de idiomas al agregar uno
+                        if (errors.languages) {
+                          setErrors((prev) => ({ ...prev, languages: "" }));
+                        }
                       }
                       setLanguageInput('');
                     }

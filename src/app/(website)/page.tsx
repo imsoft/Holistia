@@ -6,6 +6,7 @@ import { FeaturesSection } from "@/components/shared/fearures-section";
 import { HeroSection } from "@/components/shared/hero-section";
 import { LogoClouds } from "@/components/shared/logo-clouds";
 import { TestimonialsSection } from "@/components/shared/testimonials-section";
+import { Snowflakes } from "@/components/ui/snowflakes";
 
 export const metadata: Metadata = generateStaticMetadata({
   title: 'Holistia - Plataforma de Salud Integral y Bienestar en México',
@@ -31,6 +32,7 @@ const structuredData = generateStructuredData('website', {});
 export default function HomePage() {
   return (
     <>
+      <Snowflakes />
       <StructuredData data={structuredData} />
       <HeroSection />
       <ExploreSection />

@@ -13,19 +13,34 @@ Ejecutar la migración `999_add_public_access_to_professional_services.sql` en S
 1. Ve a tu proyecto en [Supabase Dashboard](https://app.supabase.com)
 2. Click en **SQL Editor** en el menú lateral
 3. Click en **New Query**
-4. Copia y pega el contenido del archivo `999_add_public_access_to_professional_services.sql`
+4. Copia y pega este SQL:
+
+```sql
+-- Eliminar política si existe (para evitar errores en re-ejecución)
+DROP POLICY IF EXISTS "Public can view active professional services" ON public.professional_services;
+
+-- Crear política para acceso público (anon) a servicios activos
+CREATE POLICY "Public can view active professional services"
+ON public.professional_services
+FOR SELECT
+TO anon
+USING (
+  isactive = true AND
+  EXISTS (
+    SELECT 1 FROM public.professional_applications pa
+    WHERE pa.id = professional_services.professional_id
+    AND pa.status = 'approved'
+    AND pa.is_active = true
+  )
+);
+```
+
 5. Click en **Run** o presiona `Ctrl/Cmd + Enter`
 6. Verifica que se ejecutó exitosamente (deberías ver "Success. No rows returned")
 
-### Opción 2: Desde CLI de Supabase
+### Opción 2: Copiar del archivo
 
-```bash
-# Asegúrate de estar en el directorio del proyecto
-cd /Users/brangarciaramos/Proyectos/holistia/web/Holistia
-
-# Ejecuta la migración
-supabase db push
-```
+Simplemente copia y pega todo el contenido del archivo `999_add_public_access_to_professional_services.sql` en el SQL Editor de Supabase y ejecútalo.
 
 ## Verificación
 

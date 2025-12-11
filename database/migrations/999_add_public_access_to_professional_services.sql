@@ -5,8 +5,11 @@
 -- Propósito: Permitir que usuarios no autenticados vean servicios en perfiles públicos
 -- ============================================================================
 
+-- Eliminar política si existe (para evitar errores en re-ejecución)
+DROP POLICY IF EXISTS "Public can view active professional services" ON public.professional_services;
+
 -- Crear política para acceso público (anon) a servicios activos
-CREATE POLICY IF NOT EXISTS "Public can view active professional services"
+CREATE POLICY "Public can view active professional services"
 ON public.professional_services
 FOR SELECT
 TO anon

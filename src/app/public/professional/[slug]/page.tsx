@@ -31,6 +31,7 @@ interface Professional {
   profession: string;
   average_rating: number;
   total_reviews: number;
+  gallery: string[];
 }
 
 interface Service {
@@ -66,7 +67,7 @@ export default function PublicProfessionalPage({
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const [professionalId, setProfessionalId] = useState<string>("");
-  const [activeTab, setActiveTab] = useState<'about' | 'services' | 'certifications' | 'highlights'>('about');
+  const [activeTab, setActiveTab] = useState<'about' | 'services' | 'gallery' | 'certifications' | 'highlights'>('about');
 
   useEffect(() => {
     async function loadProfessional() {
@@ -94,7 +95,8 @@ export default function PublicProfessionalPage({
           specializations,
           experience,
           certifications,
-          profession
+          profession,
+          gallery
         `
         )
         .eq("id", id)
@@ -119,6 +121,7 @@ export default function PublicProfessionalPage({
         ...data,
         average_rating: reviewStats?.average_rating || 0,
         total_reviews: reviewStats?.total_reviews || 0,
+        gallery: data.gallery || [],
       });
       setLoading(false);
 
@@ -449,6 +452,19 @@ export default function PublicProfessionalPage({
                 >
                   Servicios
                 </button>
+                {professional.gallery && professional.gallery.length > 0 && (
+                  <button
+                    onClick={() => setActiveTab('gallery')}
+                    className={classNames(
+                      activeTab === 'gallery'
+                        ? "border-primary text-primary"
+                        : "border-transparent text-foreground hover:border-border hover:text-foreground",
+                      "whitespace-nowrap border-b-2 py-6 text-sm font-medium"
+                    )}
+                  >
+                    Galería
+                  </button>
+                )}
                 {professional.certifications && professional.certifications.length > 0 && (
                   <button
                     onClick={() => setActiveTab('certifications')}
@@ -589,6 +605,28 @@ export default function PublicProfessionalPage({
                       </div>
                     ))
                   )}
+                </div>
+              )}
+
+              {activeTab === 'gallery' && professional.gallery && professional.gallery.length > 0 && (
+                <div>
+                  <h3 className="text-xl font-semibold text-foreground mb-6">Galería</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {professional.gallery.map((imageUrl, index) => (
+                      <div
+                        key={index}
+                        className="aspect-square overflow-hidden rounded-lg border border-border hover:shadow-lg transition-all cursor-pointer group"
+                      >
+                        <Image
+                          src={imageUrl}
+                          alt={`${professional.first_name} ${professional.last_name} - Imagen ${index + 1}`}
+                          width={400}
+                          height={400}
+                          className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
 

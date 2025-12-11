@@ -348,6 +348,8 @@ export default function ProfilePhotoUploader({
             <li>• Asegúrate de que tu cara sea visible</li>
             <li>• Evita fondos muy cargados</li>
             <li>• Formatos recomendados: JPG, PNG</li>
+            <li>• Tamaño mínimo recomendado: 400x400 píxeles</li>
+            <li>• Peso máximo: 2MB</li>
           </ul>
         </div>
       </CardContent>

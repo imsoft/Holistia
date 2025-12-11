@@ -121,36 +121,26 @@ export default function PublicProfessionalPage({
         total_reviews: reviewStats?.total_reviews || 0,
       });
       setLoading(false);
-    }
 
-    loadProfessional();
-  }, [slug]);
-
-  useEffect(() => {
-    async function loadServices() {
-      if (!professionalId) return;
-
-      const supabase = createClient();
-      setLoadingServices(true);
-
-      const { data, error } = await supabase
+      // Load services
+      const { data: servicesData, error: servicesError } = await supabase
         .from("professional_services")
         .select("*")
-        .eq("professional_id", professionalId)
+        .eq("professional_id", id)
         .eq("isactive", true)
         .order("created_at", { ascending: false });
 
-      if (error) {
-        console.error("Error loading services:", error);
+      if (servicesError) {
+        console.error("Error loading services:", servicesError);
       } else {
-        setServices(data || []);
+        setServices(servicesData || []);
       }
 
       setLoadingServices(false);
     }
 
-    loadServices();
-  }, [professionalId]);
+    loadProfessional();
+  }, [slug]);
 
   const getModalityIcon = (modality: string) => {
     switch (modality) {
@@ -241,7 +231,7 @@ export default function PublicProfessionalPage({
   }
 
   const highlights = [
-    professional.experience && `${professional.experience} de experiencia profesional`,
+    professional.experience && `${professional.experience}${professional.experience.toLowerCase().includes('año') ? '' : ' años'} de experiencia profesional`,
     professional.certifications.length > 0 && `${professional.certifications.length} certificación${professional.certifications.length !== 1 ? 'es' : ''} verificada${professional.certifications.length !== 1 ? 's' : ''}`,
     professional.average_rating > 0 && `Calificación de ${professional.average_rating.toFixed(1)} estrellas`,
   ].filter(Boolean) as string[];

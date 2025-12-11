@@ -644,7 +644,7 @@ export default function ProfessionalProfileEditor({
             {/* Información sobre certificaciones por email - SIEMPRE visible */}
             <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
               <div className="flex items-start gap-2">
-                <Mail className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                <Mail className="h-5 w-5 text-blue-600 mt-0.5 shrink-0" />
                 <div className="text-sm">
                   <p className="font-medium text-blue-900 mb-1">
                     Envíanos tus certificaciones por email

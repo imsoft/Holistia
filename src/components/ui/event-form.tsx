@@ -655,6 +655,7 @@ export function EventForm({ event, professionals, onSuccess, onCancel }: EventFo
               content={formData.description || ""}
               onChange={(content) => handleInputChange('description', content)}
               placeholder="Describe el contenido del evento..."
+              maxLength={500}
             />
           </div>
         </CardContent>

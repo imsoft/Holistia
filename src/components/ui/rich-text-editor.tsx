@@ -4,14 +4,15 @@ import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
 import { Heading } from '@tiptap/extension-heading';
+import CharacterCount from '@tiptap/extension-character-count';
 import { Button } from '@/components/ui/button';
-import { 
-  Bold, 
-  Italic, 
-  List, 
-  ListOrdered, 
-  Quote, 
-  Undo, 
+import {
+  Bold,
+  Italic,
+  List,
+  ListOrdered,
+  Quote,
+  Undo,
   Redo,
   Heading1,
   Heading2,
@@ -25,13 +26,15 @@ interface RichTextEditorProps {
   onChange: (content: string) => void;
   placeholder?: string;
   className?: string;
+  maxLength?: number;
 }
 
-export function RichTextEditor({ 
-  content, 
-  onChange, 
+export function RichTextEditor({
+  content,
+  onChange,
   placeholder = "Escribe aquí el contenido de tu post...",
-  className 
+  className,
+  maxLength = 500
 }: RichTextEditorProps) {
   const [isMounted, setIsMounted] = useState(false);
   const [, forceUpdate] = useState({});
@@ -46,6 +49,9 @@ export function RichTextEditor({
       }),
       Placeholder.configure({
         placeholder,
+      }),
+      CharacterCount.configure({
+        limit: maxLength,
       }),
     ],
     content,
@@ -304,6 +310,20 @@ export function RichTextEditor({
 
       {/* Editor Content */}
       <EditorContent editor={editor} />
+
+      {/* Character Counter */}
+      <div className="flex items-center justify-end p-2 border-t bg-muted/30">
+        <div className={cn(
+          "text-xs font-medium",
+          editor.storage.characterCount.characters() > maxLength
+            ? "text-destructive"
+            : editor.storage.characterCount.characters() > maxLength * 0.9
+            ? "text-orange-500"
+            : "text-muted-foreground"
+        )}>
+          {editor.storage.characterCount.characters()} / {maxLength} caracteres
+        </div>
+      </div>
     </div>
   );
 }

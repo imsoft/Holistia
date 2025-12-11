@@ -959,16 +959,31 @@ export default function BecomeProfessionalPage() {
           <div className="space-y-6">
             <div className="space-y-3">
               <Label htmlFor="biography">Biografía *</Label>
-              <Textarea
-                id="biography"
-                value={formData.biography}
-                onChange={(e) => handleInputChange("biography", e.target.value)}
-                onBlur={(e) => handleInputBlur("biography", e.target.value)}
-                placeholder="Cuéntanos sobre ti, tu experiencia y cómo puedes ayudar a tus pacientes..."
-                className={`min-h-[200px] ${
-                  errors.biography ? "border-red-500" : ""
-                }`}
-              />
+              <div className="relative">
+                <Textarea
+                  id="biography"
+                  value={formData.biography}
+                  onChange={(e) => {
+                    const value = e.target.value.slice(0, 500);
+                    handleInputChange("biography", value);
+                  }}
+                  onBlur={(e) => handleInputBlur("biography", e.target.value)}
+                  placeholder="Cuéntanos sobre ti, tu experiencia y cómo puedes ayudar a tus pacientes..."
+                  maxLength={500}
+                  className={`min-h-[200px] ${
+                    errors.biography ? "border-red-500" : ""
+                  }`}
+                />
+                <div className={`mt-1 text-xs font-medium text-right ${
+                  formData.biography.length > 500
+                    ? "text-destructive"
+                    : formData.biography.length > 450
+                    ? "text-orange-500"
+                    : "text-muted-foreground"
+                }`}>
+                  {formData.biography.length} / 500 caracteres
+                </div>
+              </div>
               {errors.biography && (
                 <p className="text-red-500 text-sm mt-1">{errors.biography}</p>
               )}

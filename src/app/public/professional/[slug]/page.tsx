@@ -10,6 +10,11 @@ import {
   Award,
   CheckCircle2,
   Calendar,
+  Clock,
+  DollarSign,
+  Monitor,
+  MapPin,
+  Package,
 } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
@@ -28,6 +33,22 @@ interface Professional {
   total_reviews: number;
 }
 
+interface Service {
+  id: string;
+  name: string;
+  description: string;
+  type: "session" | "program";
+  modality: "presencial" | "online" | "both";
+  duration: number;
+  cost: number;
+  address?: string;
+  image_url?: string;
+  program_duration?: {
+    value: number;
+    unit: "meses" | "semanas" | "dias" | "horas";
+  };
+}
+
 function classNames(...classes: string[]) {
   return classes.filter(Boolean).join(" ");
 }
@@ -39,11 +60,13 @@ export default function PublicProfessionalPage({
 }) {
   const { slug } = use(params);
   const [professional, setProfessional] = useState<Professional | null>(null);
+  const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingServices, setLoadingServices] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const [professionalId, setProfessionalId] = useState<string>("");
-  const [activeTab, setActiveTab] = useState<'about' | 'certifications' | 'highlights'>('about');
+  const [activeTab, setActiveTab] = useState<'about' | 'services' | 'certifications' | 'highlights'>('about');
 
   useEffect(() => {
     async function loadProfessional() {
@@ -103,6 +126,75 @@ export default function PublicProfessionalPage({
     loadProfessional();
   }, [slug]);
 
+  useEffect(() => {
+    async function loadServices() {
+      if (!professionalId) return;
+
+      const supabase = createClient();
+      setLoadingServices(true);
+
+      const { data, error } = await supabase
+        .from("professional_services")
+        .select("*")
+        .eq("professional_id", professionalId)
+        .eq("isactive", true)
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        console.error("Error loading services:", error);
+      } else {
+        setServices(data || []);
+      }
+
+      setLoadingServices(false);
+    }
+
+    loadServices();
+  }, [professionalId]);
+
+  const getModalityIcon = (modality: string) => {
+    switch (modality) {
+      case "presencial":
+        return <MapPin className="w-4 h-4" />;
+      case "online":
+        return <Monitor className="w-4 h-4" />;
+      case "both":
+        return (
+          <div className="flex gap-1">
+            <MapPin className="w-4 h-4" />
+            <Monitor className="w-4 h-4" />
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
+
+  const getModalityLabel = (modality: string) => {
+    switch (modality) {
+      case "presencial":
+        return "Presencial";
+      case "online":
+        return "En línea";
+      case "both":
+        return "Presencial y en línea";
+      default:
+        return modality;
+    }
+  };
+
+  const formatDuration = (minutes: number) => {
+    if (minutes < 60) {
+      return `${minutes} min`;
+    }
+    const hours = Math.floor(minutes / 60);
+    const remainingMinutes = minutes % 60;
+    if (remainingMinutes === 0) {
+      return `${hours}h`;
+    }
+    return `${hours}h ${remainingMinutes}min`;
+  };
+
   const handleShare = async () => {
     const publicUrl = `${window.location.origin}/public/professional/${slug}`;
 
@@ -113,6 +205,15 @@ export default function PublicProfessionalPage({
       console.error("Error copying to clipboard:", error);
       toast.error("No se pudo copiar el enlace");
     }
+  };
+
+  const handleBookService = (service: Service) => {
+    if (!isAuthenticated) {
+      toast.error("Debes iniciar sesión para agendar una cita");
+      return;
+    }
+    // Redirigir a la página de agendar cita
+    window.location.href = `/patient/${userId}/explore/professional/${professionalId}`;
   };
 
   if (loading) {
@@ -347,6 +448,17 @@ export default function PublicProfessionalPage({
                 >
                   Acerca de mí
                 </button>
+                <button
+                  onClick={() => setActiveTab('services')}
+                  className={classNames(
+                    activeTab === 'services'
+                      ? "border-primary text-primary"
+                      : "border-transparent text-foreground hover:border-border hover:text-foreground",
+                    "whitespace-nowrap border-b-2 py-6 text-sm font-medium"
+                  )}
+                >
+                  Servicios
+                </button>
                 {professional.certifications && professional.certifications.length > 0 && (
                   <button
                     onClick={() => setActiveTab('certifications')}
@@ -382,6 +494,112 @@ export default function PublicProfessionalPage({
                     className="prose prose-sm max-w-none prose-headings:text-foreground prose-p:text-muted-foreground prose-a:text-primary prose-strong:text-foreground"
                     dangerouslySetInnerHTML={{ __html: professional.biography }}
                   />
+                </div>
+              )}
+
+              {activeTab === 'services' && (
+                <div className="space-y-6">
+                  {loadingServices ? (
+                    <div className="space-y-4">
+                      {[1, 2].map((i) => (
+                        <div key={i} className="h-48 bg-muted animate-pulse rounded-lg" />
+                      ))}
+                    </div>
+                  ) : services.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center py-12 border border-dashed border-border rounded-lg">
+                      <Package className="w-12 h-12 text-muted-foreground mb-3" />
+                      <h3 className="text-lg font-semibold text-foreground mb-1">
+                        Sin servicios disponibles
+                      </h3>
+                      <p className="text-muted-foreground text-center text-sm">
+                        Este profesional aún no ha configurado sus servicios
+                      </p>
+                    </div>
+                  ) : (
+                    services.map((service) => (
+                      <div
+                        key={service.id}
+                        className="relative overflow-hidden rounded-lg border border-border bg-card hover:shadow-lg transition-all"
+                      >
+                        {service.image_url && (
+                          <div className="aspect-video w-full overflow-hidden">
+                            <Image
+                              src={service.image_url}
+                              alt={service.name}
+                              width={800}
+                              height={450}
+                              className="h-full w-full object-cover"
+                            />
+                          </div>
+                        )}
+                        <div className="p-6">
+                          <div className="flex items-start justify-between mb-3">
+                            <h3 className="text-xl font-semibold text-foreground">
+                              {service.name}
+                            </h3>
+                            <Badge variant="outline" className="shrink-0 ml-3">
+                              {service.type === "session" ? "Sesión" : "Programa"}
+                            </Badge>
+                          </div>
+
+                          {service.description && (
+                            <div
+                              className="text-muted-foreground text-sm mb-4 prose prose-sm max-w-none"
+                              dangerouslySetInnerHTML={{ __html: service.description }}
+                            />
+                          )}
+
+                          <div className="space-y-3 mb-4">
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                              {getModalityIcon(service.modality)}
+                              <span>{getModalityLabel(service.modality)}</span>
+                            </div>
+
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <Clock className="w-4 h-4" />
+                              <span>{formatDuration(service.duration)}</span>
+                            </div>
+
+                            {service.address && (
+                              <div className="flex items-start gap-2 text-sm text-muted-foreground">
+                                <MapPin className="w-4 h-4 mt-0.5 shrink-0" />
+                                <span>{service.address}</span>
+                              </div>
+                            )}
+                          </div>
+
+                          <div className="flex items-center justify-between pt-4 border-t border-border">
+                            <div className="flex items-center gap-2">
+                              <DollarSign className="w-5 h-5 text-primary" />
+                              <span className="text-2xl font-bold text-primary">
+                                ${service.cost.toLocaleString('es-MX')}
+                              </span>
+                            </div>
+
+                            {isAuthenticated ? (
+                              <Button
+                                onClick={() => handleBookService(service)}
+                                className="bg-primary hover:bg-primary/90"
+                              >
+                                <Calendar className="w-4 h-4 mr-2" />
+                                Agendar
+                              </Button>
+                            ) : (
+                              <Button
+                                asChild
+                                className="bg-primary hover:bg-primary/90"
+                              >
+                                <Link href="/login">
+                                  <Calendar className="w-4 h-4 mr-2" />
+                                  Iniciar sesión para agendar
+                                </Link>
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  )}
                 </div>
               )}
 

@@ -700,6 +700,7 @@ export default function ProfessionalProfileEditor({
                 content={formData.biography || ""}
                 onChange={(content) => setFormData(prev => ({ ...prev, biography: content }))}
                 placeholder="Cuéntanos sobre tu experiencia, enfoque terapéutico y cómo puedes ayudar a tus pacientes..."
+                maxLength={500}
               />
             ) : (
               <div 

@@ -457,6 +457,7 @@ export function ServiceManager({ professionalId, userId }: ServiceManagerProps) 
                     setFormData({ ...formData, description: content })
                   }
                   placeholder="Describe qué incluye este servicio..."
+                  maxLength={500}
                 />
               </div>
 

@@ -50,15 +50,13 @@ export const HeroSection = () => {
       <Navbar />
       <main className="flex-1">
         <AnimatedMarqueeHero
-          tagline="Tu acceso al wellness integral"
+          tagline="Tu ecosistema del bienestar"
           title={
             <>
-              ¿Por dónde quieres
-              <br />
-              empezar a sanar hoy?
+              Donde tu transformación sucede
             </>
           }
-          description="Encuentra expertos, experiencias, talleres, centros, restaurantes y espacios que acompañan tu equilibrio mental, físico, emocional, espiritual y social."
+          description="Explora expertos, programas, experiencias, restaurantes y espacios diseñados para acompañarte en tu bienestar físico, mental, emocional, espiritual y social. Aquí tu cambio sí toma forma."
           ctaText="Encuentra a tu experto"
           ctaHref="/explore"
           images={HERO_IMAGES}

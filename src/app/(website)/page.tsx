@@ -1,6 +1,7 @@
 import { Metadata } from 'next';
 import { generateStaticMetadata, generateStructuredData } from '@/lib/seo';
 import { StructuredData } from '@/components/seo/structured-data';
+import { ExploreSection } from "@/components/shared/explore-section";
 import { FeaturesSection } from "@/components/shared/fearures-section";
 import { HeroSection } from "@/components/shared/hero-section";
 import { LogoClouds } from "@/components/shared/logo-clouds";
@@ -32,6 +33,7 @@ export default function HomePage() {
     <>
       <StructuredData data={structuredData} />
       <HeroSection />
+      <ExploreSection />
       <FeaturesSection />
       <LogoClouds />
       <TestimonialsSection />

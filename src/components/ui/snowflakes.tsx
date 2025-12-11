@@ -13,41 +13,38 @@ interface Snowflake {
 
 export function Snowflakes() {
   const [snowflakes, setSnowflakes] = useState<Snowflake[]>([]);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     // Generar copos de nieve
     const flakes: Snowflake[] = Array.from({ length: 50 }, (_, i) => ({
       id: i,
       left: Math.random() * 100,
-      animationDuration: 5 + Math.random() * 10,
-      animationDelay: Math.random() * 5,
-      opacity: 0.3 + Math.random() * 0.7,
-      size: 10 + Math.random() * 20,
+      animationDuration: 8 + Math.random() * 12,
+      animationDelay: Math.random() * 8,
+      opacity: 0.4 + Math.random() * 0.6,
+      size: 12 + Math.random() * 18,
     }));
     setSnowflakes(flakes);
   }, []);
 
+  if (!mounted) return null;
+
   return (
     <>
-      <style jsx global>{`
-        @keyframes snowfall {
-          0% {
-            transform: translateY(-10vh) rotate(0deg);
+      <style>
+        {`
+          @keyframes snowfall {
+            0% {
+              transform: translateY(-10vh) rotate(0deg);
+            }
+            100% {
+              transform: translateY(110vh) rotate(360deg);
+            }
           }
-          100% {
-            transform: translateY(110vh) rotate(360deg);
-          }
-        }
-
-        @keyframes sway {
-          0%, 100% {
-            transform: translateX(0);
-          }
-          50% {
-            transform: translateX(20px);
-          }
-        }
-      `}</style>
+        `}
+      </style>
       <div 
         className="fixed inset-0 pointer-events-none overflow-hidden"
         style={{ zIndex: 9999 }}
@@ -56,13 +53,15 @@ export function Snowflakes() {
         {snowflakes.map((flake) => (
           <div
             key={flake.id}
-            className="absolute text-white"
+            className="absolute"
             style={{
               left: `${flake.left}%`,
-              top: "-20px",
+              top: "-30px",
               opacity: flake.opacity,
               fontSize: `${flake.size}px`,
-              animation: `snowfall ${flake.animationDuration}s linear infinite, sway 3s ease-in-out infinite`,
+              color: "#a8d4f0",
+              textShadow: "0 0 5px #fff, 0 0 10px #a8d4f0, 0 0 15px #87ceeb",
+              animation: `snowfall ${flake.animationDuration}s linear infinite`,
               animationDelay: `${flake.animationDelay}s`,
             }}
           >

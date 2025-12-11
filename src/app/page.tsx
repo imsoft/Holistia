@@ -62,8 +62,8 @@ const Home = () => {
   return (
     <>
       <HeroSection />
-      <FeaturesSection />
       <ExploreSection />
+      <FeaturesSection />
       <TestimonialsSection />
       <LogoClouds />
       <Footer />

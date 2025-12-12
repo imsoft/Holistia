@@ -23,6 +23,7 @@ import {
   Wrench,
   RefreshCw,
   Palette,
+  Briefcase,
 } from "lucide-react";
 import {
   Sidebar,
@@ -183,6 +184,11 @@ export function AdminSidebar() {
       title: "Comercios",
       url: `/admin/${userId}/shops`,
       icon: Store,
+    },
+    {
+      title: "Holistia para Empresas",
+      url: `/admin/${userId}/companies`,
+      icon: Briefcase,
     },
     {
       title: "Tickets de Soporte",

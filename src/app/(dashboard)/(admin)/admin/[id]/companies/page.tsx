@@ -16,6 +16,9 @@ import {
   Users,
   Building,
   FileText,
+  UserCheck,
+  Settings,
+  X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -42,6 +45,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface Company {
   id: string;
@@ -59,6 +63,26 @@ interface Company {
   status: 'pending' | 'active' | 'inactive';
   created_at: string;
   updated_at: string;
+}
+
+interface Professional {
+  id: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  profession: string;
+  specializations?: string[];
+  profile_photo?: string;
+  phone?: string;
+}
+
+interface CompanyProfessional {
+  id: string;
+  company_id: string;
+  professional_id: string;
+  assigned_at: string;
+  assigned_by?: string;
+  professional?: Professional;
 }
 
 interface FormData {
@@ -107,8 +131,10 @@ export default function AdminCompanies() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isViewOpen, setIsViewOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [isManageProfessionalsOpen, setIsManageProfessionalsOpen] = useState(false);
   const [editingCompany, setEditingCompany] = useState<Company | null>(null);
   const [viewingCompany, setViewingCompany] = useState<Company | null>(null);
+  const [managingCompany, setManagingCompany] = useState<Company | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState<FormData>({
@@ -125,6 +151,12 @@ export default function AdminCompanies() {
     logo_url: "",
     status: "pending",
   });
+
+  // Estados para gestión de profesionales
+  const [availableProfessionals, setAvailableProfessionals] = useState<Professional[]>([]);
+  const [assignedProfessionals, setAssignedProfessionals] = useState<CompanyProfessional[]>([]);
+  const [loadingProfessionals, setLoadingProfessionals] = useState(false);
+  const [selectedProfessionalId, setSelectedProfessionalId] = useState<string>("");
 
   const supabase = createClient();
 
@@ -269,6 +301,103 @@ export default function AdminCompanies() {
     } catch (error) {
       console.error("Error deleting company:", error);
       toast.error("Error al eliminar la empresa");
+    }
+  };
+
+  // Funciones para gestionar profesionales
+  const handleOpenManageProfessionals = async (company: Company) => {
+    setManagingCompany(company);
+    setIsManageProfessionalsOpen(true);
+    await fetchProfessionals(company.id);
+  };
+
+  const fetchProfessionals = async (companyId: string) => {
+    try {
+      setLoadingProfessionals(true);
+
+      // Obtener profesionales aprobados
+      const { data: allProfessionals, error: profError } = await supabase
+        .from("professional_applications")
+        .select("id, first_name, last_name, email, profession, specializations, profile_photo, phone")
+        .eq("status", "approved")
+        .eq("is_active", true)
+        .order("first_name");
+
+      if (profError) throw profError;
+
+      // Obtener profesionales ya asignados a esta empresa
+      const { data: assigned, error: assignedError } = await supabase
+        .from("company_professionals")
+        .select(`
+          id,
+          company_id,
+          professional_id,
+          assigned_at,
+          assigned_by
+        `)
+        .eq("company_id", companyId);
+
+      if (assignedError) throw assignedError;
+
+      // Enriquecer los datos con la información del profesional
+      const enrichedAssignments = await Promise.all(
+        (assigned || []).map(async (assignment) => {
+          const professional = allProfessionals?.find(p => p.id === assignment.professional_id);
+          return {
+            ...assignment,
+            professional: professional || undefined,
+          };
+        })
+      );
+
+      setAvailableProfessionals(allProfessionals || []);
+      setAssignedProfessionals(enrichedAssignments as CompanyProfessional[]);
+    } catch (error) {
+      console.error("Error fetching professionals:", error);
+      toast.error("Error al cargar los profesionales");
+    } finally {
+      setLoadingProfessionals(false);
+    }
+  };
+
+  const handleAssignProfessional = async () => {
+    if (!selectedProfessionalId || !managingCompany) return;
+
+    try {
+      const { error } = await supabase
+        .from("company_professionals")
+        .insert({
+          company_id: managingCompany.id,
+          professional_id: selectedProfessionalId,
+        });
+
+      if (error) throw error;
+
+      toast.success("Profesional asignado exitosamente");
+      setSelectedProfessionalId("");
+      await fetchProfessionals(managingCompany.id);
+    } catch (error) {
+      console.error("Error assigning professional:", error);
+      toast.error("Error al asignar el profesional");
+    }
+  };
+
+  const handleRemoveProfessional = async (assignmentId: string) => {
+    if (!managingCompany) return;
+
+    try {
+      const { error } = await supabase
+        .from("company_professionals")
+        .delete()
+        .eq("id", assignmentId);
+
+      if (error) throw error;
+
+      toast.success("Profesional removido exitosamente");
+      await fetchProfessionals(managingCompany.id);
+    } catch (error) {
+      console.error("Error removing professional:", error);
+      toast.error("Error al remover el profesional");
     }
   };
 
@@ -480,6 +609,14 @@ export default function AdminCompanies() {
                     >
                       <Eye className="w-4 h-4 mr-2" />
                       Ver
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleOpenManageProfessionals(company)}
+                      title="Gestionar profesionales"
+                    >
+                      <Settings className="w-4 h-4" />
                     </Button>
                     <Button
                       variant="outline"
@@ -788,6 +925,180 @@ export default function AdminCompanies() {
                 </div>
               )}
             </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Manage Professionals Dialog */}
+      <Dialog open={isManageProfessionalsOpen} onOpenChange={setIsManageProfessionalsOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Gestionar Profesionales - {managingCompany?.name}</DialogTitle>
+            <DialogDescription>
+              Asigna o remueve profesionales que atenderán a los empleados de esta empresa
+            </DialogDescription>
+          </DialogHeader>
+
+          {managingCompany && (
+            <Tabs defaultValue="assigned" className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="assigned">
+                  Profesionales Asignados ({assignedProfessionals.length})
+                </TabsTrigger>
+                <TabsTrigger value="available">
+                  Asignar Nuevo Profesional
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="assigned" className="space-y-4 mt-4">
+                {loadingProfessionals ? (
+                  <div className="text-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+                    <p className="mt-2 text-sm text-muted-foreground">Cargando profesionales...</p>
+                  </div>
+                ) : assignedProfessionals.length === 0 ? (
+                  <div className="text-center py-8">
+                    <UserCheck className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold mb-2">No hay profesionales asignados</h3>
+                    <p className="text-muted-foreground mb-4">
+                      Asigna profesionales para que atiendan a los empleados de esta empresa
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {assignedProfessionals.map((assignment) => (
+                      <Card key={assignment.id}>
+                        <CardContent className="flex items-center justify-between p-4">
+                          <div className="flex items-center gap-4">
+                            <Image
+                              src={
+                                assignment.professional?.profile_photo ||
+                                `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                                  `${assignment.professional?.first_name} ${assignment.professional?.last_name}`
+                                )}&background=random`
+                              }
+                              alt=""
+                              width={48}
+                              height={48}
+                              className="w-12 h-12 rounded-full object-cover"
+                            />
+                            <div>
+                              <h4 className="font-medium">
+                                {assignment.professional?.first_name} {assignment.professional?.last_name}
+                              </h4>
+                              <p className="text-sm text-muted-foreground">
+                                {assignment.professional?.profession}
+                              </p>
+                              {assignment.professional?.email && (
+                                <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
+                                  <Mail className="w-3 h-3" />
+                                  {assignment.professional.email}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleRemoveProfessional(assignment.id)}
+                          >
+                            <X className="w-4 h-4 mr-2" />
+                            Remover
+                          </Button>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </TabsContent>
+
+              <TabsContent value="available" className="space-y-4 mt-4">
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label>Seleccionar Profesional</Label>
+                    <Select
+                      value={selectedProfessionalId}
+                      onValueChange={setSelectedProfessionalId}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecciona un profesional" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {availableProfessionals
+                          .filter(
+                            (prof) =>
+                              !assignedProfessionals.some(
+                                (assigned) => assigned.professional_id === prof.id
+                              )
+                          )
+                          .map((professional) => (
+                            <SelectItem key={professional.id} value={professional.id}>
+                              {professional.first_name} {professional.last_name} - {professional.profession}
+                            </SelectItem>
+                          ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <Button
+                    onClick={handleAssignProfessional}
+                    disabled={!selectedProfessionalId}
+                    className="w-full"
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Asignar Profesional
+                  </Button>
+
+                  {selectedProfessionalId && (
+                    <Card className="mt-4">
+                      <CardHeader>
+                        <CardTitle className="text-sm">Vista previa</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        {(() => {
+                          const selectedProf = availableProfessionals.find(
+                            (p) => p.id === selectedProfessionalId
+                          );
+                          return selectedProf ? (
+                            <div className="flex items-center gap-4">
+                              <Image
+                                src={
+                                  selectedProf.profile_photo ||
+                                  `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                                    `${selectedProf.first_name} ${selectedProf.last_name}`
+                                  )}&background=random`
+                                }
+                                alt=""
+                                width={48}
+                                height={48}
+                                className="w-12 h-12 rounded-full object-cover"
+                              />
+                              <div>
+                                <h4 className="font-medium">
+                                  {selectedProf.first_name} {selectedProf.last_name}
+                                </h4>
+                                <p className="text-sm text-muted-foreground">
+                                  {selectedProf.profession}
+                                </p>
+                                {selectedProf.specializations && selectedProf.specializations.length > 0 && (
+                                  <div className="flex gap-1 mt-1">
+                                    {selectedProf.specializations.slice(0, 3).map((spec, idx) => (
+                                      <Badge key={idx} variant="secondary" className="text-xs">
+                                        {spec}
+                                      </Badge>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          ) : null;
+                        })()}
+                      </CardContent>
+                    </Card>
+                  )}
+                </div>
+              </TabsContent>
+            </Tabs>
           )}
         </DialogContent>
       </Dialog>

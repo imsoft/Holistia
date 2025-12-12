@@ -684,7 +684,7 @@ export default function AdminCompanies() {
                   value={formData.industry}
                   onValueChange={(value) => setFormData({ ...formData, industry: value })}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="w-full">
                     <SelectValue placeholder="Selecciona una industria" />
                   </SelectTrigger>
                   <SelectContent>
@@ -703,7 +703,7 @@ export default function AdminCompanies() {
                   value={formData.company_size}
                   onValueChange={(value) => setFormData({ ...formData, company_size: value })}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="w-full">
                     <SelectValue placeholder="Número de empleados" />
                   </SelectTrigger>
                   <SelectContent>
@@ -789,7 +789,7 @@ export default function AdminCompanies() {
                   setFormData({ ...formData, status: value })
                 }
               >
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -1020,7 +1020,7 @@ export default function AdminCompanies() {
                       value={selectedProfessionalId}
                       onValueChange={setSelectedProfessionalId}
                     >
-                      <SelectTrigger>
+                      <SelectTrigger className="w-full">
                         <SelectValue placeholder="Selecciona un profesional" />
                       </SelectTrigger>
                       <SelectContent>

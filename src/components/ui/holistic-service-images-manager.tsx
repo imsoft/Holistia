@@ -92,8 +92,10 @@ export default function HolisticServiceImagesManager({
           throw new Error('El archivo es demasiado grande');
         } else if (uploadError.message.includes('quota')) {
           throw new Error('Se ha alcanzado el límite de almacenamiento');
+        } else if (uploadError.message.includes('Bucket not found') || uploadError.message.includes('not found')) {
+          throw new Error('El bucket de almacenamiento no existe. Por favor, ejecuta la migración 135 para crear el bucket.');
         } else {
-          throw new Error('Error al subir la imagen al servidor');
+          throw new Error(`Error al subir la imagen: ${uploadError.message}`);
         }
       }
 

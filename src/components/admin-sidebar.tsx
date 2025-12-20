@@ -191,6 +191,11 @@ export function AdminSidebar() {
       icon: Briefcase,
     },
     {
+      title: "Servicios Holísticos",
+      url: `/admin/${userId}/holistic-services`,
+      icon: Sparkles,
+    },
+    {
       title: "Tickets de Soporte",
       url: `/admin/${userId}/tickets`,
       icon: Ticket,

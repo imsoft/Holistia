@@ -57,6 +57,7 @@ export async function updateSession(request: NextRequest) {
       '/blog',
       '/explore',
       '/become-professional',
+      '/companies', // Página pública para empresas
       '/robots.txt',
       '/sitemap.xml'
     ];

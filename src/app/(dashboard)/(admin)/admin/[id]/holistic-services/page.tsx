@@ -446,30 +446,34 @@ export default function AdminHolisticServices() {
               />
             </div>
 
-            {(editingService || (formData.name && formData.description)) && (
-              <div className="space-y-2">
-                <Label>Imágenes del Servicio</Label>
-                <p className="text-xs text-muted-foreground mb-2">
-                  Agrega hasta 4 imágenes para mostrar el servicio (máximo 2MB por imagen)
-                </p>
-                {editingService ? (
-                  <HolisticServiceImagesManager
-                    serviceId={editingService.id}
-                    currentImages={getServiceImages(editingService.id)}
-                    onImagesUpdate={() => {
-                      fetchServiceImages(editingService.id);
-                      fetchServices();
-                    }}
-                    maxImages={4}
-                    maxSizeMB={2}
-                  />
-                ) : (
-                  <div className="p-4 border border-dashed rounded-lg text-center text-sm text-muted-foreground">
-                    Guarda el servicio primero para poder agregar imágenes
-                  </div>
-                )}
-              </div>
-            )}
+            <div className="space-y-2">
+              <Label>Imágenes del Servicio</Label>
+              <p className="text-xs text-muted-foreground mb-2">
+                Agrega hasta 4 imágenes para mostrar el servicio (máximo 2MB por imagen)
+              </p>
+              {editingService ? (
+                <HolisticServiceImagesManager
+                  serviceId={editingService.id}
+                  currentImages={getServiceImages(editingService.id)}
+                  onImagesUpdate={() => {
+                    fetchServiceImages(editingService.id);
+                    fetchServices();
+                  }}
+                  maxImages={4}
+                  maxSizeMB={2}
+                />
+              ) : (
+                <div className="p-6 border-2 border-dashed rounded-lg text-center bg-muted/30">
+                  <ImageIcon className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
+                  <p className="text-sm font-medium text-foreground mb-1">
+                    Guarda el servicio primero
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Después de crear el servicio, podrás agregar hasta 4 imágenes aquí
+                  </p>
+                </div>
+              )}
+            </div>
 
             <div className="flex items-center gap-2">
               <input

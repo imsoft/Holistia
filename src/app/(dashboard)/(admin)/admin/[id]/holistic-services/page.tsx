@@ -192,7 +192,7 @@ export default function AdminHolisticServices() {
         if (error) throw error;
         toast.success("Servicio creado exitosamente");
         
-        // Si se creó un nuevo servicio, abrir el formulario de edición para agregar imágenes
+        // Si se creó un nuevo servicio, mantener el diálogo abierto para agregar imágenes
         if (newService) {
           setEditingService(newService);
           setFormData({
@@ -200,7 +200,12 @@ export default function AdminHolisticServices() {
             description: newService.description,
             is_active: newService.is_active,
           });
-          // No cerrar el diálogo, solo actualizar para que aparezca el gestor de imágenes
+          // Inicializar imágenes vacías para el nuevo servicio
+          setServiceImages(prev => ({
+            ...prev,
+            [newService.id]: []
+          }));
+          // Cargar servicios actualizados
           fetchServices();
         } else {
           setIsFormOpen(false);
@@ -441,22 +446,28 @@ export default function AdminHolisticServices() {
               />
             </div>
 
-            {editingService && (
+            {(editingService || (formData.name && formData.description)) && (
               <div className="space-y-2">
                 <Label>Imágenes del Servicio</Label>
                 <p className="text-xs text-muted-foreground mb-2">
                   Agrega hasta 4 imágenes para mostrar el servicio (máximo 2MB por imagen)
                 </p>
-                <HolisticServiceImagesManager
-                  serviceId={editingService.id}
-                  currentImages={getServiceImages(editingService.id)}
-                  onImagesUpdate={() => {
-                    fetchServiceImages(editingService.id);
-                    fetchServices();
-                  }}
-                  maxImages={4}
-                  maxSizeMB={2}
-                />
+                {editingService ? (
+                  <HolisticServiceImagesManager
+                    serviceId={editingService.id}
+                    currentImages={getServiceImages(editingService.id)}
+                    onImagesUpdate={() => {
+                      fetchServiceImages(editingService.id);
+                      fetchServices();
+                    }}
+                    maxImages={4}
+                    maxSizeMB={2}
+                  />
+                ) : (
+                  <div className="p-4 border border-dashed rounded-lg text-center text-sm text-muted-foreground">
+                    Guarda el servicio primero para poder agregar imágenes
+                  </div>
+                )}
               </div>
             )}
 

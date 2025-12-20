@@ -1,23 +1,43 @@
 -- Migración 134: Agregar soporte de imágenes a servicios holísticos
 -- Permite que los servicios holísticos tengan múltiples imágenes
 
--- 1. Crear tabla de imágenes de servicios holísticos
+-- 1. Crear tabla de imágenes de servicios holísticos (sin constraints primero)
 CREATE TABLE IF NOT EXISTS public.holistic_service_images (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     service_id UUID NOT NULL REFERENCES public.holistic_services(id) ON DELETE CASCADE,
     image_url TEXT NOT NULL,
     image_order INTEGER NOT NULL DEFAULT 0,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
-
-    -- Constraint: máximo 4 imágenes por servicio
-    CONSTRAINT unique_service_order UNIQUE(service_id, image_order),
-    CONSTRAINT check_image_order CHECK (image_order >= 0 AND image_order < 4)
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
--- 2. Habilitar RLS
+-- 2. Agregar constraints si no existen (hacer la migración idempotente)
+DO $$
+BEGIN
+    -- Agregar constraint unique_service_order si no existe
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_constraint 
+        WHERE conname = 'unique_service_order' 
+        AND conrelid = 'public.holistic_service_images'::regclass
+    ) THEN
+        ALTER TABLE public.holistic_service_images
+        ADD CONSTRAINT unique_service_order UNIQUE(service_id, image_order);
+    END IF;
+
+    -- Agregar constraint check_image_order si no existe
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_constraint 
+        WHERE conname = 'check_image_order' 
+        AND conrelid = 'public.holistic_service_images'::regclass
+    ) THEN
+        ALTER TABLE public.holistic_service_images
+        ADD CONSTRAINT check_image_order CHECK (image_order >= 0 AND image_order < 4);
+    END IF;
+END $$;
+
+-- 3. Habilitar RLS
 ALTER TABLE public.holistic_service_images ENABLE ROW LEVEL SECURITY;
 
--- 3. Políticas RLS para imágenes
+-- 4. Políticas RLS para imágenes
 -- Eliminar políticas existentes si existen (para hacer la migración idempotente)
 DROP POLICY IF EXISTS "Admins can do everything on holistic service images" ON public.holistic_service_images;
 DROP POLICY IF EXISTS "Everyone can view holistic service images" ON public.holistic_service_images;
@@ -48,20 +68,20 @@ USING (
     )
 );
 
--- 4. Índices para mejorar el rendimiento
+-- 5. Índices para mejorar el rendimiento
 CREATE INDEX IF NOT EXISTS idx_holistic_service_images_service_id 
 ON public.holistic_service_images(service_id);
 
 CREATE INDEX IF NOT EXISTS idx_holistic_service_images_order 
 ON public.holistic_service_images(service_id, image_order);
 
--- 5. Comentarios
+-- 6. Comentarios
 COMMENT ON TABLE public.holistic_service_images IS 'Imágenes de servicios holísticos (máximo 4 por servicio)';
 COMMENT ON COLUMN public.holistic_service_images.service_id IS 'ID del servicio holístico';
 COMMENT ON COLUMN public.holistic_service_images.image_url IS 'URL de la imagen en storage';
 COMMENT ON COLUMN public.holistic_service_images.image_order IS 'Orden de la imagen (0-3)';
 
--- 6. Crear bucket de storage si no existe (holistic-services)
+-- 7. Crear bucket de storage si no existe (holistic-services)
 -- Nota: Esto debe ejecutarse manualmente en Supabase Dashboard si el bucket no existe
 -- INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
 -- VALUES (

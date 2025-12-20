@@ -14,6 +14,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Footer } from "@/components/shared/footer";
 import { Navbar } from "@/components/shared/navbar";
 import { createClient } from "@/utils/supabase/client";
@@ -25,6 +33,7 @@ import {
   TrendingUp,
   CheckCircle,
   ArrowRight,
+  Info,
 } from "lucide-react";
 
 interface HolisticService {
@@ -282,8 +291,8 @@ export default function CompaniesLandingPage() {
           {holisticServices.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
               {holisticServices.map((service) => {
-                const firstImage = service.images && service.images.length > 0 
-                  ? service.images[0].image_url 
+                const firstImage = service.images && service.images.length > 0
+                  ? service.images[0].image_url
                   : null;
 
                 return (
@@ -305,8 +314,78 @@ export default function CompaniesLandingPage() {
                         {service.name}
                       </CardTitle>
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className="space-y-4">
                       <p className="text-muted-foreground">{service.description}</p>
+
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button variant="outline" className="w-full gap-2">
+                            <Info className="w-4 h-4" />
+                            Ver más detalles
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+                          <DialogHeader>
+                            <DialogTitle className="text-2xl">{service.name}</DialogTitle>
+                            <DialogDescription className="text-base">
+                              Información completa del servicio
+                            </DialogDescription>
+                          </DialogHeader>
+
+                          <div className="space-y-6">
+                            {/* Gallery of images */}
+                            {service.images && service.images.length > 0 && (
+                              <div className="space-y-3">
+                                <h3 className="font-semibold text-lg">Galería</h3>
+                                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                                  {service.images.map((img) => (
+                                    <div key={img.id} className="relative aspect-square rounded-lg overflow-hidden">
+                                      <Image
+                                        src={img.image_url}
+                                        alt={`${service.name} - Imagen ${img.image_order}`}
+                                        fill
+                                        className="object-cover"
+                                        unoptimized
+                                      />
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Description */}
+                            <div className="space-y-2">
+                              <h3 className="font-semibold text-lg">Descripción</h3>
+                              <p className="text-muted-foreground leading-relaxed">
+                                {service.description}
+                              </p>
+                            </div>
+
+                            {/* Benefits */}
+                            <div className="space-y-2">
+                              <h3 className="font-semibold text-lg">Beneficios para tu equipo</h3>
+                              <ul className="space-y-2">
+                                <li className="flex items-start gap-2">
+                                  <CheckCircle className="w-5 h-5 text-primary mt-0.5 shrink-0" />
+                                  <span className="text-muted-foreground">Mejora el bienestar general de los colaboradores</span>
+                                </li>
+                                <li className="flex items-start gap-2">
+                                  <CheckCircle className="w-5 h-5 text-primary mt-0.5 shrink-0" />
+                                  <span className="text-muted-foreground">Reduce el estrés y aumenta la productividad</span>
+                                </li>
+                                <li className="flex items-start gap-2">
+                                  <CheckCircle className="w-5 h-5 text-primary mt-0.5 shrink-0" />
+                                  <span className="text-muted-foreground">Fortalece la cultura organizacional</span>
+                                </li>
+                                <li className="flex items-start gap-2">
+                                  <CheckCircle className="w-5 h-5 text-primary mt-0.5 shrink-0" />
+                                  <span className="text-muted-foreground">Profesionales certificados y verificados</span>
+                                </li>
+                              </ul>
+                            </div>
+                          </div>
+                        </DialogContent>
+                      </Dialog>
                     </CardContent>
                   </Card>
                 );

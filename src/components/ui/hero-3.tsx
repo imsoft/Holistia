@@ -174,7 +174,7 @@ export const AnimatedMarqueeHero: React.FC<AnimatedMarqueeHeroProps> = ({
           }}
           transition={{
             ease: "linear",
-            duration: 120,
+            duration: 180,
             repeat: Infinity,
             repeatType: "loop",
           }}

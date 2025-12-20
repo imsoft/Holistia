@@ -13,57 +13,46 @@ CREATE TABLE IF NOT EXISTS public.holistic_service_images (
 -- 2. Agregar constraints solo si no existen (hacer la migración idempotente)
 DO $$
 BEGIN
-    -- Verificar si la tabla existe antes de agregar constraints
-    IF EXISTS (
+    -- Agregar constraint unique_service_order si no existe
+    IF NOT EXISTS (
         SELECT 1 
-        FROM information_schema.tables 
-        WHERE table_schema = 'public' 
-        AND table_name = 'holistic_service_images'
+        FROM pg_constraint c
+        JOIN pg_class t ON c.conrelid = t.oid
+        JOIN pg_namespace n ON t.relnamespace = n.oid
+        WHERE n.nspname = 'public'
+        AND t.relname = 'holistic_service_images'
+        AND c.conname = 'unique_service_order'
     ) THEN
-        -- Eliminar constraints si existen (para poder recrearlas)
-        BEGIN
-            ALTER TABLE public.holistic_service_images
-            DROP CONSTRAINT IF EXISTS unique_service_order;
-        EXCEPTION
-            WHEN OTHERS THEN NULL;
-        END;
-
-        BEGIN
-            ALTER TABLE public.holistic_service_images
-            DROP CONSTRAINT IF EXISTS check_image_order;
-        EXCEPTION
-            WHEN OTHERS THEN NULL;
-        END;
-
-        -- Agregar constraint unique_service_order si no existe
-        IF NOT EXISTS (
-            SELECT 1 
-            FROM pg_constraint 
-            WHERE conname = 'unique_service_order' 
-            AND conrelid = 'public.holistic_service_images'::regclass
-        ) THEN
-            ALTER TABLE public.holistic_service_images
-            ADD CONSTRAINT unique_service_order UNIQUE(service_id, image_order);
-        END IF;
-
-        -- Agregar constraint check_image_order si no existe
-        IF NOT EXISTS (
-            SELECT 1 
-            FROM pg_constraint 
-            WHERE conname = 'check_image_order' 
-            AND conrelid = 'public.holistic_service_images'::regclass
-        ) THEN
-            ALTER TABLE public.holistic_service_images
-            ADD CONSTRAINT check_image_order CHECK (image_order >= 0 AND image_order < 4);
-        END IF;
+        ALTER TABLE public.holistic_service_images
+        ADD CONSTRAINT unique_service_order UNIQUE(service_id, image_order);
     END IF;
 EXCEPTION
     WHEN duplicate_object THEN
-        -- Si la constraint ya existe, simplemente continuar
-        NULL;
+        NULL; -- Constraint ya existe, continuar
     WHEN OTHERS THEN
-        -- Cualquier otro error, continuar
-        NULL;
+        RAISE NOTICE 'Error al agregar unique_service_order: %', SQLERRM;
+END $$;
+
+DO $$
+BEGIN
+    -- Agregar constraint check_image_order si no existe
+    IF NOT EXISTS (
+        SELECT 1 
+        FROM pg_constraint c
+        JOIN pg_class t ON c.conrelid = t.oid
+        JOIN pg_namespace n ON t.relnamespace = n.oid
+        WHERE n.nspname = 'public'
+        AND t.relname = 'holistic_service_images'
+        AND c.conname = 'check_image_order'
+    ) THEN
+        ALTER TABLE public.holistic_service_images
+        ADD CONSTRAINT check_image_order CHECK (image_order >= 0 AND image_order < 4);
+    END IF;
+EXCEPTION
+    WHEN duplicate_object THEN
+        NULL; -- Constraint ya existe, continuar
+    WHEN OTHERS THEN
+        RAISE NOTICE 'Error al agregar check_image_order: %', SQLERRM;
 END $$;
 
 -- 3. Habilitar RLS

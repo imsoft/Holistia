@@ -10,9 +10,10 @@ import Image from "next/image";
 import { toast } from "sonner";
 
 interface HolisticServiceImagesManagerProps {
-  serviceId: string;
+  serviceId: string | null;
   currentImages: Array<{ id: string; image_url: string; image_order: number }>;
   onImagesUpdate: () => void;
+  onSaveService?: () => Promise<string | null>; // Retorna el ID del servicio guardado
   maxImages?: number;
   maxSizeMB?: number;
 }
@@ -21,6 +22,7 @@ export default function HolisticServiceImagesManager({
   serviceId,
   currentImages,
   onImagesUpdate,
+  onSaveService,
   maxImages = 4,
   maxSizeMB = 2
 }: HolisticServiceImagesManagerProps) {
@@ -70,13 +72,25 @@ export default function HolisticServiceImagesManager({
         throw new Error('Debes estar autenticado para subir imágenes');
       }
 
+      // Si no hay serviceId, guardar el servicio primero
+      let finalServiceId = serviceId;
+      if (!serviceId && onSaveService) {
+        const savedServiceId = await onSaveService();
+        if (!savedServiceId) {
+          throw new Error('No se pudo guardar el servicio. Por favor, completa los campos requeridos.');
+        }
+        finalServiceId = savedServiceId;
+      } else if (!serviceId) {
+        throw new Error('Debes guardar el servicio primero antes de agregar imágenes');
+      }
+
       // Determinar el siguiente order disponible
       const nextOrder = currentImages.length;
 
       // Generar nombre único para la imagen
       const fileExt = file.name.split('.').pop();
       const fileName = `image-${nextOrder}.${fileExt}`;
-      const filePath = `${serviceId}/${fileName}`;
+      const filePath = `${finalServiceId}/${fileName}`;
 
       // Subir imagen a Supabase Storage (bucket holistic-services)
       const { error: uploadError } = await supabase.storage
@@ -108,7 +122,7 @@ export default function HolisticServiceImagesManager({
       const { error: dbError } = await supabase
         .from('holistic_service_images')
         .insert({
-          service_id: serviceId,
+          service_id: finalServiceId,
           image_url: publicUrl,
           image_order: nextOrder,
         });
@@ -122,7 +136,16 @@ export default function HolisticServiceImagesManager({
       }
 
       toast.success('Imagen agregada exitosamente');
-      onImagesUpdate();
+      
+      // Si el servicio se guardó automáticamente, notificar al componente padre
+      if (!serviceId && finalServiceId) {
+        // Esperar un momento para que el estado se actualice
+        setTimeout(() => {
+          onImagesUpdate();
+        }, 100);
+      } else {
+        onImagesUpdate();
+      }
 
       // Limpiar input
       if (fileInputRef.current) {
@@ -214,12 +237,12 @@ export default function HolisticServiceImagesManager({
           <Card className="border-dashed">
             <CardContent className="p-0">
               <label
-                htmlFor={`holistic-service-image-${serviceId}`}
+                htmlFor={`holistic-service-image-${serviceId || 'new'}`}
                 className="flex flex-col items-center justify-center aspect-square cursor-pointer hover:bg-muted/50 transition-colors rounded-lg"
               >
                 <input
                   ref={fileInputRef}
-                  id={`holistic-service-image-${serviceId}`}
+                  id={`holistic-service-image-${serviceId || 'new'}`}
                   type="file"
                   accept="image/*"
                   onChange={handleFileSelect}

@@ -153,17 +153,13 @@ export default function AdminHolisticServices() {
     setIsFormOpen(true);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
+  const saveService = async (): Promise<string | null> => {
     if (!formData.name.trim() || !formData.description.trim()) {
       toast.error("El título y la descripción son requeridos");
-      return;
+      return null;
     }
 
     try {
-      setSaving(true);
-
       if (editingService) {
         const { error } = await supabase
           .from("holistic_services")
@@ -175,9 +171,7 @@ export default function AdminHolisticServices() {
           .eq("id", editingService.id);
 
         if (error) throw error;
-        toast.success("Servicio actualizado exitosamente");
-        setIsFormOpen(false);
-        fetchServices();
+        return editingService.id;
       } else {
         const { data: newService, error } = await supabase
           .from("holistic_services")
@@ -190,33 +184,39 @@ export default function AdminHolisticServices() {
           .single();
 
         if (error) throw error;
-        toast.success("Servicio creado exitosamente");
         
-        // Si se creó un nuevo servicio, mantener el diálogo abierto para agregar imágenes
         if (newService) {
           setEditingService(newService);
-          setFormData({
-            name: newService.name,
-            description: newService.description,
-            is_active: newService.is_active,
-          });
-          // Inicializar imágenes vacías para el nuevo servicio
           setServiceImages(prev => ({
             ...prev,
             [newService.id]: []
           }));
-          // Cargar servicios actualizados
           fetchServices();
-        } else {
-          setIsFormOpen(false);
-          fetchServices();
+          return newService.id;
         }
+        return null;
       }
     } catch (error) {
       console.error("Error saving service:", error);
       toast.error("Error al guardar el servicio");
-    } finally {
-      setSaving(false);
+      return null;
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    const savedServiceId = await saveService();
+    if (!savedServiceId) return;
+
+    if (editingService) {
+      toast.success("Servicio actualizado exitosamente");
+      setIsFormOpen(false);
+      fetchServices();
+    } else {
+      toast.success("Servicio creado exitosamente");
+      // El diálogo permanece abierto para agregar imágenes
+      fetchServices();
     }
   };
 
@@ -451,28 +451,40 @@ export default function AdminHolisticServices() {
               <p className="text-xs text-muted-foreground mb-2">
                 Agrega hasta 4 imágenes para mostrar el servicio (máximo 2MB por imagen)
               </p>
-              {editingService ? (
-                <HolisticServiceImagesManager
-                  serviceId={editingService.id}
-                  currentImages={getServiceImages(editingService.id)}
-                  onImagesUpdate={() => {
-                    fetchServiceImages(editingService.id);
+              <HolisticServiceImagesManager
+                serviceId={editingService?.id || null}
+                currentImages={editingService ? getServiceImages(editingService.id) : []}
+                onImagesUpdate={async () => {
+                  if (editingService) {
+                    await fetchServiceImages(editingService.id);
                     fetchServices();
-                  }}
-                  maxImages={4}
-                  maxSizeMB={2}
-                />
-              ) : (
-                <div className="p-6 border-2 border-dashed rounded-lg text-center bg-muted/30">
-                  <ImageIcon className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
-                  <p className="text-sm font-medium text-foreground mb-1">
-                    Guarda el servicio primero
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    Después de crear el servicio, podrás agregar hasta 4 imágenes aquí
-                  </p>
-                </div>
-              )}
+                  } else {
+                    // Si no hay editingService, recargar todo para obtener el servicio guardado
+                    await fetchServices();
+                  }
+                }}
+                onSaveService={async () => {
+                  const savedId = await saveService();
+                  if (savedId) {
+                    // Asegurar que el servicio se cargue en el estado
+                    const { data: service } = await supabase
+                      .from("holistic_services")
+                      .select("*")
+                      .eq("id", savedId)
+                      .single();
+                    if (service) {
+                      setEditingService(service);
+                      setServiceImages(prev => ({
+                        ...prev,
+                        [savedId]: []
+                      }));
+                    }
+                  }
+                  return savedId;
+                }}
+                maxImages={4}
+                maxSizeMB={2}
+              />
             </div>
 
             <div className="flex items-center gap-2">

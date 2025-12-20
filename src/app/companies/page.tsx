@@ -287,7 +287,7 @@ export default function CompaniesLandingPage() {
                   : null;
 
                 return (
-                  <Card key={service.id} className="hover:shadow-lg transition-all overflow-hidden">
+                  <Card key={service.id} className="hover:shadow-lg transition-all overflow-hidden py-4">
                     {firstImage && (
                       <div className="relative w-full h-48">
                         <Image

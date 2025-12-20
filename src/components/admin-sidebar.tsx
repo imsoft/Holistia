@@ -306,6 +306,17 @@ export function AdminSidebar() {
         </div>
       </SidebarHeader>
 
+      {/* Logo cuando está colapsado */}
+      <div className="hidden group-data-[collapsible=icon]:flex items-center justify-center py-3 border-b border-border">
+        <Image
+          src="/logos/holistia-black.png"
+          alt="Holistia"
+          width={24}
+          height={24}
+          className="h-6 w-auto"
+        />
+      </div>
+
       <SidebarContent>
         {/* Navegación principal */}
         <SidebarGroup>

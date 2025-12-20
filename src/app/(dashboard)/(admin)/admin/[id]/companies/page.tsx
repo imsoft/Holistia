@@ -247,7 +247,12 @@ export default function AdminCompanies() {
         .select("*")
         .order("created_at", { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching leads:", error);
+        throw error;
+      }
+      
+      console.log("🔍 Leads cargados:", data?.length || 0, data);
       setLeads(data || []);
     } catch (error) {
       console.error("Error fetching leads:", error);
@@ -948,7 +953,7 @@ export default function AdminCompanies() {
               Empresas Activas ({companies.length})
             </TabsTrigger>
             <TabsTrigger value="leads">
-              Solicitudes ({leads.filter(l => l.status !== 'converted').length})
+              Solicitudes ({leads.length})
             </TabsTrigger>
           </TabsList>
 
@@ -1147,7 +1152,7 @@ export default function AdminCompanies() {
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
                 <p className="mt-2 text-sm text-muted-foreground">Cargando solicitudes...</p>
               </div>
-            ) : leads.filter(l => l.status !== 'converted').length === 0 ? (
+            ) : leads.length === 0 ? (
               <Card>
                 <CardContent className="flex flex-col items-center justify-center py-12">
                   <Mail className="w-12 h-12 text-muted-foreground mb-4" />
@@ -1159,7 +1164,7 @@ export default function AdminCompanies() {
               </Card>
             ) : (
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {leads.filter(l => l.status !== 'converted').map((lead) => (
+                {leads.map((lead) => (
                   <Card key={lead.id} className="hover:shadow-lg transition-shadow">
                     <CardHeader className="py-4">
                       <div className="flex items-start justify-between">

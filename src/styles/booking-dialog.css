@@ -13,9 +13,8 @@
 }
 
 /* Asegurar que el diálogo esté por encima de todos los elementos de Mapbox */
-.booking-dialog-open {
-  position: relative;
-  z-index: 9999;
+.booking-dialog {
+  z-index: 10000 !important;
 }
 
 /* Asegurar que todos los elementos de Mapbox tengan z-index bajo */

@@ -48,6 +48,13 @@ COMMENT ON COLUMN public.platform_tools.notes IS 'Notas adicionales sobre el ser
 ALTER TABLE public.platform_tools ENABLE ROW LEVEL SECURITY;
 
 -- Política RLS: Solo administradores pueden ver y modificar
+-- Eliminar políticas existentes si existen (para hacer la migración idempotente)
+DROP POLICY IF EXISTS "Solo administradores pueden ver herramientas de plataforma" ON public.platform_tools;
+DROP POLICY IF EXISTS "Solo administradores pueden insertar herramientas de plataforma" ON public.platform_tools;
+DROP POLICY IF EXISTS "Solo administradores pueden actualizar herramientas de plataforma" ON public.platform_tools;
+DROP POLICY IF EXISTS "Solo administradores pueden eliminar herramientas de plataforma" ON public.platform_tools;
+
+-- Crear políticas RLS
 CREATE POLICY "Solo administradores pueden ver herramientas de plataforma"
     ON public.platform_tools
     FOR SELECT
@@ -100,6 +107,9 @@ BEGIN
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
+
+-- Eliminar trigger si existe (para hacer la migración idempotente)
+DROP TRIGGER IF EXISTS update_platform_tools_updated_at_trigger ON public.platform_tools;
 
 CREATE TRIGGER update_platform_tools_updated_at_trigger
     BEFORE UPDATE ON public.platform_tools

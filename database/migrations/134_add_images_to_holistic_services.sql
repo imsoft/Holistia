@@ -10,29 +10,20 @@ CREATE TABLE IF NOT EXISTS public.holistic_service_images (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
--- 2. Agregar constraints si no existen (hacer la migración idempotente)
-DO $$
-BEGIN
-    -- Agregar constraint unique_service_order si no existe
-    IF NOT EXISTS (
-        SELECT 1 FROM pg_constraint 
-        WHERE conname = 'unique_service_order' 
-        AND conrelid = 'public.holistic_service_images'::regclass
-    ) THEN
-        ALTER TABLE public.holistic_service_images
-        ADD CONSTRAINT unique_service_order UNIQUE(service_id, image_order);
-    END IF;
+-- 2. Agregar constraints (hacer la migración idempotente)
+-- Eliminar constraints si existen antes de agregarlas
+ALTER TABLE public.holistic_service_images
+DROP CONSTRAINT IF EXISTS unique_service_order;
 
-    -- Agregar constraint check_image_order si no existe
-    IF NOT EXISTS (
-        SELECT 1 FROM pg_constraint 
-        WHERE conname = 'check_image_order' 
-        AND conrelid = 'public.holistic_service_images'::regclass
-    ) THEN
-        ALTER TABLE public.holistic_service_images
-        ADD CONSTRAINT check_image_order CHECK (image_order >= 0 AND image_order < 4);
-    END IF;
-END $$;
+ALTER TABLE public.holistic_service_images
+DROP CONSTRAINT IF EXISTS check_image_order;
+
+-- Agregar constraints
+ALTER TABLE public.holistic_service_images
+ADD CONSTRAINT unique_service_order UNIQUE(service_id, image_order);
+
+ALTER TABLE public.holistic_service_images
+ADD CONSTRAINT check_image_order CHECK (image_order >= 0 AND image_order < 4);
 
 -- 3. Habilitar RLS
 ALTER TABLE public.holistic_service_images ENABLE ROW LEVEL SECURITY;

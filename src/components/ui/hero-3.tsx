@@ -89,7 +89,8 @@ export const AnimatedMarqueeHero: React.FC<AnimatedMarqueeHeroProps> = ({
   };
 
   // Duplicate images multiple times for a seamless infinite loop
-  const duplicatedImages = [...images, ...images, ...images, ...images];
+  // Más duplicados para una animación más suave
+  const duplicatedImages = [...images, ...images, ...images, ...images, ...images];
 
   return (
     <section
@@ -169,13 +170,16 @@ export const AnimatedMarqueeHero: React.FC<AnimatedMarqueeHeroProps> = ({
           className="flex gap-4 will-change-transform"
           initial={{ x: 0 }}
           animate={{
-            x: `-${(duplicatedImages.length / 4) * 100}%`,
+            x: `-${(duplicatedImages.length / 5) * 100}%`,
           }}
           transition={{
             ease: "linear",
-            duration: 80,
+            duration: 120,
             repeat: Infinity,
             repeatType: "loop",
+          }}
+          style={{
+            willChange: "transform",
           }}
         >
           {duplicatedImages.map((src, index) => {

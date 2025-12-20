@@ -55,8 +55,11 @@ interface PlatformTool {
   category: string;
   description: string | null;
   purpose: string;
+  currency: "mxn" | "usd";
   monthly_cost: number;
   annual_cost: number;
+  monthly_cost_usd: number | null;
+  annual_cost_usd: number | null;
   billing_period: "monthly" | "annual" | "usage" | "free";
   status: "active" | "inactive" | "trial" | "cancelled";
   url: string | null;
@@ -70,10 +73,12 @@ interface FormData {
   name: string;
   provider: string;
   category: string;
-  description: string;
   purpose: string;
+  currency: "mxn" | "usd";
   monthly_cost: string;
   annual_cost: string;
+  monthly_cost_usd: string;
+  annual_cost_usd: string;
   billing_period: "monthly" | "annual" | "usage" | "free";
   status: "active" | "inactive" | "trial" | "cancelled";
   url: string;
@@ -138,10 +143,12 @@ export default function AdminPlatformTools() {
     name: "",
     provider: "",
     category: "",
-    description: "",
     purpose: "",
+    currency: "mxn",
     monthly_cost: "0",
     annual_cost: "0",
+    monthly_cost_usd: "0",
+    annual_cost_usd: "0",
     billing_period: "monthly",
     status: "active",
     url: "",
@@ -180,10 +187,12 @@ export default function AdminPlatformTools() {
         name: tool.name,
         provider: tool.provider,
         category: tool.category,
-        description: tool.description || "",
         purpose: tool.purpose,
+        currency: tool.currency || "mxn",
         monthly_cost: tool.monthly_cost.toString(),
         annual_cost: tool.annual_cost.toString(),
+        monthly_cost_usd: (tool.monthly_cost_usd || 0).toString(),
+        annual_cost_usd: (tool.annual_cost_usd || 0).toString(),
         billing_period: tool.billing_period,
         status: tool.status,
         url: tool.url || "",
@@ -196,10 +205,12 @@ export default function AdminPlatformTools() {
         name: "",
         provider: "",
         category: "",
-        description: "",
         purpose: "",
+        currency: "mxn",
         monthly_cost: "0",
         annual_cost: "0",
+        monthly_cost_usd: "0",
+        annual_cost_usd: "0",
         billing_period: "monthly",
         status: "active",
         url: "",
@@ -223,10 +234,12 @@ export default function AdminPlatformTools() {
         name: formData.name.trim(),
         provider: formData.provider.trim(),
         category: formData.category,
-        description: formData.description.trim() || null,
         purpose: formData.purpose.trim(),
+        currency: formData.currency,
         monthly_cost: parseFloat(formData.monthly_cost) || 0,
         annual_cost: parseFloat(formData.annual_cost) || 0,
+        monthly_cost_usd: parseFloat(formData.monthly_cost_usd) || 0,
+        annual_cost_usd: parseFloat(formData.annual_cost_usd) || 0,
         billing_period: formData.billing_period,
         status: formData.status,
         url: formData.url.trim() || null,
@@ -306,23 +319,40 @@ export default function AdminPlatformTools() {
   const filteredTools = tools.filter((tool) => {
     const matchesSearch =
       tool.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      tool.provider.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (tool.description && tool.description.toLowerCase().includes(searchTerm.toLowerCase()));
+      tool.provider.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = categoryFilter === "all" || tool.category === categoryFilter;
     const matchesStatus = statusFilter === "all" || tool.status === statusFilter;
     return matchesSearch && matchesCategory && matchesStatus;
   });
 
-  // Calcular totales
+  // Calcular totales (convertir USD a MXN para el cálculo, usando tipo de cambio aproximado de 17)
+  const USD_TO_MXN_RATE = 17;
   const totalMonthly = filteredTools
     .filter((t) => t.status === "active")
-    .reduce((sum, t) => sum + (t.billing_period === "monthly" ? t.monthly_cost : 0), 0);
+    .reduce((sum, t) => {
+      if (t.billing_period !== "monthly") return sum;
+      if (t.currency === "usd") {
+        const costMxn = (t.monthly_cost_usd || 0) * USD_TO_MXN_RATE;
+        return sum + costMxn;
+      }
+      return sum + t.monthly_cost;
+    }, 0);
 
   const totalAnnual = filteredTools
     .filter((t) => t.status === "active")
     .reduce((sum, t) => {
-      if (t.billing_period === "annual") return sum + t.annual_cost;
-      if (t.billing_period === "monthly") return sum + t.monthly_cost * 12;
+      if (t.billing_period === "annual") {
+        if (t.currency === "usd") {
+          return sum + (t.annual_cost_usd || 0) * USD_TO_MXN_RATE;
+        }
+        return sum + t.annual_cost;
+      }
+      if (t.billing_period === "monthly") {
+        if (t.currency === "usd") {
+          return sum + (t.monthly_cost_usd || 0) * 12 * USD_TO_MXN_RATE;
+        }
+        return sum + t.monthly_cost * 12;
+      }
       return sum;
     }, 0);
 
@@ -452,12 +482,14 @@ export default function AdminPlatformTools() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredTools.map((tool) => {
             const CategoryIcon = getCategoryIcon(tool.category);
+            const currency = tool.currency || "mxn";
             const effectiveCost =
               tool.billing_period === "annual"
-                ? tool.annual_cost / 12
+                ? currency === "usd" ? (tool.annual_cost_usd || 0) / 12 : tool.annual_cost / 12
                 : tool.billing_period === "free"
                   ? 0
-                  : tool.monthly_cost;
+                  : currency === "usd" ? (tool.monthly_cost_usd || 0) : tool.monthly_cost;
+            const currencySymbol = currency === "usd" ? "USD" : "MXN";
 
             return (
               <Card key={tool.id} className="hover:shadow-md transition-shadow py-4 flex flex-col h-full">
@@ -489,7 +521,7 @@ export default function AdminPlatformTools() {
                         ) : tool.billing_period === "usage" ? (
                           "Por uso"
                         ) : (
-                          `$${effectiveCost.toLocaleString("es-MX", { minimumFractionDigits: 2 })}`
+                          `$${effectiveCost.toLocaleString("es-MX", { minimumFractionDigits: 2 })} ${currencySymbol}`
                         )}
                       </p>
                     </div>
@@ -649,18 +681,7 @@ export default function AdminPlatformTools() {
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="description">Descripción</Label>
-              <Textarea
-                id="description"
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                placeholder="Descripción general del servicio..."
-                rows={2}
-              />
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2 w-full">
                 <Label htmlFor="billing_period" className="whitespace-nowrap">Período de Facturación</Label>
                 <Select
@@ -680,32 +701,81 @@ export default function AdminPlatformTools() {
                 </Select>
               </div>
               <div className="space-y-2 w-full">
-                <Label htmlFor="monthly_cost">Costo Mensual (MXN)</Label>
-                <Input
-                  id="monthly_cost"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={formData.monthly_cost}
-                  onChange={(e) => setFormData({ ...formData, monthly_cost: e.target.value })}
-                  placeholder="0.00"
-                  className="w-full"
-                />
-              </div>
-              <div className="space-y-2 w-full">
-                <Label htmlFor="annual_cost">Costo Anual (MXN)</Label>
-                <Input
-                  id="annual_cost"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={formData.annual_cost}
-                  onChange={(e) => setFormData({ ...formData, annual_cost: e.target.value })}
-                  placeholder="0.00"
-                  className="w-full"
-                />
+                <Label htmlFor="currency">Moneda</Label>
+                <Select
+                  value={formData.currency}
+                  onValueChange={(value: any) => setFormData({ ...formData, currency: value })}
+                >
+                  <SelectTrigger id="currency" className="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="mxn">MXN (Pesos Mexicanos)</SelectItem>
+                    <SelectItem value="usd">USD (Dólares)</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
+
+            {formData.currency === "mxn" ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-2 w-full">
+                  <Label htmlFor="monthly_cost">Costo Mensual (MXN)</Label>
+                  <Input
+                    id="monthly_cost"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={formData.monthly_cost}
+                    onChange={(e) => setFormData({ ...formData, monthly_cost: e.target.value })}
+                    placeholder="0.00"
+                    className="w-full"
+                  />
+                </div>
+                <div className="space-y-2 w-full">
+                  <Label htmlFor="annual_cost">Costo Anual (MXN)</Label>
+                  <Input
+                    id="annual_cost"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={formData.annual_cost}
+                    onChange={(e) => setFormData({ ...formData, annual_cost: e.target.value })}
+                    placeholder="0.00"
+                    className="w-full"
+                  />
+                </div>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-2 w-full">
+                  <Label htmlFor="monthly_cost_usd">Costo Mensual (USD)</Label>
+                  <Input
+                    id="monthly_cost_usd"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={formData.monthly_cost_usd}
+                    onChange={(e) => setFormData({ ...formData, monthly_cost_usd: e.target.value })}
+                    placeholder="0.00"
+                    className="w-full"
+                  />
+                </div>
+                <div className="space-y-2 w-full">
+                  <Label htmlFor="annual_cost_usd">Costo Anual (USD)</Label>
+                  <Input
+                    id="annual_cost_usd"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={formData.annual_cost_usd}
+                    onChange={(e) => setFormData({ ...formData, annual_cost_usd: e.target.value })}
+                    placeholder="0.00"
+                    className="w-full"
+                  />
+                </div>
+              </div>
+            )}
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2 w-full">
@@ -797,18 +867,10 @@ export default function AdminPlatformTools() {
               </div>
 
               <div className="bg-muted/50 rounded-lg p-4">
-                <h3 className="text-lg font-semibold mb-4">Propósito y Descripción</h3>
-                <div className="space-y-3">
-                  <div>
-                    <p className="text-sm text-muted-foreground mb-1">Para qué sirve</p>
-                    <p className="text-sm">{viewingTool.purpose}</p>
-                  </div>
-                  {viewingTool.description && (
-                    <div>
-                      <p className="text-sm text-muted-foreground mb-1">Descripción</p>
-                      <p className="text-sm">{viewingTool.description}</p>
-                    </div>
-                  )}
+                <h3 className="text-lg font-semibold mb-4">Propósito</h3>
+                <div>
+                  <p className="text-sm text-muted-foreground mb-1">Para qué sirve</p>
+                  <p className="text-sm">{viewingTool.purpose}</p>
                 </div>
               </div>
 
@@ -822,12 +884,22 @@ export default function AdminPlatformTools() {
                     </p>
                   </div>
                   <div>
+                    <p className="text-sm text-muted-foreground">Moneda</p>
+                    <p className="font-medium">
+                      {(viewingTool.currency || "mxn").toUpperCase()}
+                    </p>
+                  </div>
+                  <div>
                     <p className="text-sm text-muted-foreground">Costo Mensual</p>
                     <p className="font-medium">
                       {viewingTool.billing_period === "free" ? (
                         "Gratis"
                       ) : viewingTool.billing_period === "usage" ? (
                         "Por uso"
+                      ) : viewingTool.currency === "usd" ? (
+                        `$${(viewingTool.monthly_cost_usd || 0).toLocaleString("es-MX", {
+                          minimumFractionDigits: 2,
+                        })} USD`
                       ) : (
                         `$${viewingTool.monthly_cost.toLocaleString("es-MX", {
                           minimumFractionDigits: 2,
@@ -839,10 +911,15 @@ export default function AdminPlatformTools() {
                     <div>
                       <p className="text-sm text-muted-foreground">Costo Anual</p>
                       <p className="font-medium">
-                        ${viewingTool.annual_cost.toLocaleString("es-MX", {
-                          minimumFractionDigits: 2,
-                        })}{" "}
-                        MXN
+                        {viewingTool.currency === "usd" ? (
+                          `$${(viewingTool.annual_cost_usd || 0).toLocaleString("es-MX", {
+                            minimumFractionDigits: 2,
+                          })} USD`
+                        ) : (
+                          `$${viewingTool.annual_cost.toLocaleString("es-MX", {
+                            minimumFractionDigits: 2,
+                          })} MXN`
+                        )}
                       </p>
                     </div>
                   )}

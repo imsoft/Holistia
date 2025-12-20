@@ -222,7 +222,7 @@ export default function CompaniesLandingPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <Card className="border-2 hover:border-primary transition-all">
+            <Card className="border-2 hover:border-primary transition-all py-4">
               <CardHeader>
                 <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
                   <TrendingUp className="w-6 h-6 text-primary" />
@@ -236,7 +236,7 @@ export default function CompaniesLandingPage() {
               </CardContent>
             </Card>
 
-            <Card className="border-2 hover:border-primary transition-all">
+            <Card className="border-2 hover:border-primary transition-all py-4">
               <CardHeader>
                 <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
                   <Users className="w-6 h-6 text-primary" />
@@ -250,7 +250,7 @@ export default function CompaniesLandingPage() {
               </CardContent>
             </Card>
 
-            <Card className="border-2 hover:border-primary transition-all">
+            <Card className="border-2 hover:border-primary transition-all py-4">
               <CardHeader>
                 <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
                   <Heart className="w-6 h-6 text-primary" />
@@ -264,7 +264,7 @@ export default function CompaniesLandingPage() {
               </CardContent>
             </Card>
 
-            <Card className="border-2 hover:border-primary transition-all">
+            <Card className="border-2 hover:border-primary transition-all py-4">
               <CardHeader>
                 <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
                   <Briefcase className="w-6 h-6 text-primary" />
@@ -296,7 +296,7 @@ export default function CompaniesLandingPage() {
           {holisticServices.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
               {holisticServices.map((service) => (
-                <Card key={service.id} className="hover:shadow-lg transition-all">
+                <Card key={service.id} className="hover:shadow-lg transition-all py-4">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <CheckCircle className="w-5 h-5 text-primary" />
@@ -330,7 +330,7 @@ export default function CompaniesLandingPage() {
               </p>
             </div>
 
-            <Card>
+            <Card className="py-4">
               <CardHeader>
                 <CardTitle>Información de tu Empresa</CardTitle>
                 <CardDescription>

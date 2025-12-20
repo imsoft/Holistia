@@ -9,6 +9,7 @@ import { HeroSection } from "@/components/shared/hero-section";
 import { LogoClouds } from "@/components/shared/logo-clouds";
 import { TestimonialsSection } from "@/components/shared/testimonials-section";
 import { ExploreSection } from "@/components/shared/explore-section";
+import { Snowflakes } from "@/components/ui/snowflakes";
 
 const Home = () => {
   const router = useRouter();
@@ -61,6 +62,7 @@ const Home = () => {
 
   return (
     <>
+      <Snowflakes />
       <HeroSection />
       <ExploreSection />
       <FeaturesSection />

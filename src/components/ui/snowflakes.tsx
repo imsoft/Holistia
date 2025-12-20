@@ -47,7 +47,7 @@ export function Snowflakes() {
       </style>
       <div
         className="fixed inset-0 pointer-events-none overflow-hidden"
-        style={{ zIndex: 1 }}
+        style={{ zIndex: 9999 }}
         aria-hidden="true"
       >
         {snowflakes.map((flake) => (

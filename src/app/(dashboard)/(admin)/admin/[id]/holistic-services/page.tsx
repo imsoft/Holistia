@@ -8,6 +8,7 @@ import {
   Edit,
   Trash2,
   Eye,
+  Image as ImageIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -27,26 +28,33 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 import { createClient } from "@/utils/supabase/client";
 import { toast } from "sonner";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import HolisticServiceImagesManager from "@/components/ui/holistic-service-images-manager";
+import Image from "next/image";
 
 interface HolisticService {
   id: string;
   name: string;
   description: string;
-  icon?: string;
   is_active: boolean;
   created_at: string;
   updated_at: string;
 }
 
+interface HolisticServiceImage {
+  id: string;
+  image_url: string;
+  image_order: number;
+}
+
 interface FormData {
   name: string;
   description: string;
-  icon: string;
   is_active: boolean;
 }
 
 export default function AdminHolisticServices() {
   const [services, setServices] = useState<HolisticService[]>([]);
+  const [serviceImages, setServiceImages] = useState<Record<string, HolisticServiceImage[]>>({});
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -59,7 +67,6 @@ export default function AdminHolisticServices() {
   const [formData, setFormData] = useState<FormData>({
     name: "",
     description: "",
-    icon: "",
     is_active: true,
   });
 
@@ -79,11 +86,51 @@ export default function AdminHolisticServices() {
 
       if (error) throw error;
       setServices(data || []);
+
+      // Cargar imágenes para todos los servicios
+      if (data && data.length > 0) {
+        const serviceIds = data.map(s => s.id);
+        const { data: imagesData, error: imagesError } = await supabase
+          .from("holistic_service_images")
+          .select("*")
+          .in("service_id", serviceIds)
+          .order("image_order", { ascending: true });
+
+        if (!imagesError && imagesData) {
+          const imagesMap: Record<string, HolisticServiceImage[]> = {};
+          imagesData.forEach(img => {
+            if (!imagesMap[img.service_id]) {
+              imagesMap[img.service_id] = [];
+            }
+            imagesMap[img.service_id].push(img);
+          });
+          setServiceImages(imagesMap);
+        }
+      }
     } catch (error) {
       console.error("Error fetching services:", error);
       toast.error("Error al cargar los servicios");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchServiceImages = async (serviceId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from("holistic_service_images")
+        .select("*")
+        .eq("service_id", serviceId)
+        .order("image_order", { ascending: true });
+
+      if (!error && data) {
+        setServiceImages(prev => ({
+          ...prev,
+          [serviceId]: data
+        }));
+      }
+    } catch (error) {
+      console.error("Error fetching images:", error);
     }
   };
 
@@ -93,7 +140,6 @@ export default function AdminHolisticServices() {
       setFormData({
         name: service.name,
         description: service.description,
-        icon: service.icon || "",
         is_active: service.is_active,
       });
     } else {
@@ -101,7 +147,6 @@ export default function AdminHolisticServices() {
       setFormData({
         name: "",
         description: "",
-        icon: "",
         is_active: true,
       });
     }
@@ -112,7 +157,7 @@ export default function AdminHolisticServices() {
     e.preventDefault();
 
     if (!formData.name.trim() || !formData.description.trim()) {
-      toast.error("El nombre y la descripción son requeridos");
+      toast.error("El título y la descripción son requeridos");
       return;
     }
 
@@ -125,7 +170,6 @@ export default function AdminHolisticServices() {
           .update({
             name: formData.name.trim(),
             description: formData.description.trim(),
-            icon: formData.icon.trim() || null,
             is_active: formData.is_active,
           })
           .eq("id", editingService.id);
@@ -135,19 +179,33 @@ export default function AdminHolisticServices() {
         setIsFormOpen(false);
         fetchServices();
       } else {
-        const { error } = await supabase
+        const { data: newService, error } = await supabase
           .from("holistic_services")
           .insert({
             name: formData.name.trim(),
             description: formData.description.trim(),
-            icon: formData.icon.trim() || null,
             is_active: formData.is_active,
-          });
+          })
+          .select()
+          .single();
 
         if (error) throw error;
         toast.success("Servicio creado exitosamente");
-        setIsFormOpen(false);
-        fetchServices();
+        
+        // Si se creó un nuevo servicio, abrir el formulario de edición para agregar imágenes
+        if (newService) {
+          setEditingService(newService);
+          setFormData({
+            name: newService.name,
+            description: newService.description,
+            is_active: newService.is_active,
+          });
+          // No cerrar el diálogo, solo actualizar para que aparezca el gestor de imágenes
+          fetchServices();
+        } else {
+          setIsFormOpen(false);
+          fetchServices();
+        }
       }
     } catch (error) {
       console.error("Error saving service:", error);
@@ -161,6 +219,17 @@ export default function AdminHolisticServices() {
     if (!deletingId) return;
 
     try {
+      // Eliminar imágenes primero
+      const { error: imagesError } = await supabase
+        .from("holistic_service_images")
+        .delete()
+        .eq("service_id", deletingId);
+
+      if (imagesError) {
+        console.error("Error deleting images:", imagesError);
+      }
+
+      // Eliminar el servicio
       const { error } = await supabase
         .from("holistic_services")
         .delete()
@@ -181,6 +250,10 @@ export default function AdminHolisticServices() {
     service.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     service.description.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const getServiceImages = (serviceId: string) => {
+    return serviceImages[serviceId] || [];
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -249,64 +322,87 @@ export default function AdminHolisticServices() {
           </Card>
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {filteredServices.map((service) => (
-              <Card key={service.id} className="hover:shadow-lg transition-shadow">
-                <CardHeader className="py-4">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <CardTitle className="text-lg mb-2">{service.name}</CardTitle>
-                      <Badge variant={service.is_active ? "default" : "secondary"}>
-                        {service.is_active ? "Activo" : "Inactivo"}
-                      </Badge>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-3 py-4">
-                  <p className="text-sm text-muted-foreground line-clamp-3">
-                    {service.description}
-                  </p>
+            {filteredServices.map((service) => {
+              const images = getServiceImages(service.id);
+              const firstImage = images.length > 0 ? images[0].image_url : null;
 
-                  <div className="flex gap-2 pt-3 border-t">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="flex-1"
-                      onClick={() => {
-                        setViewingService(service);
-                        setIsViewOpen(true);
-                      }}
-                    >
-                      <Eye className="w-4 h-4 mr-2" />
-                      Ver
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleOpenForm(service)}
-                    >
-                      <Edit className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        setDeletingId(service.id);
-                        setIsDeleteOpen(true);
-                      }}
-                    >
-                      <Trash2 className="w-4 h-4 text-destructive" />
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+              return (
+                <Card key={service.id} className="hover:shadow-lg transition-shadow">
+                  {firstImage && (
+                    <div className="relative w-full h-48">
+                      <Image
+                        src={firstImage}
+                        alt={service.name}
+                        fill
+                        className="object-cover rounded-t-lg"
+                        unoptimized
+                      />
+                    </div>
+                  )}
+                  <CardHeader className="py-4">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <CardTitle className="text-lg mb-2">{service.name}</CardTitle>
+                        <Badge variant={service.is_active ? "default" : "secondary"}>
+                          {service.is_active ? "Activo" : "Inactivo"}
+                        </Badge>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-3 py-4">
+                    <p className="text-sm text-muted-foreground line-clamp-3">
+                      {service.description}
+                    </p>
+
+                    {images.length > 0 && (
+                      <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                        <ImageIcon className="w-3 h-3" />
+                        <span>{images.length} imagen{images.length !== 1 ? 'es' : ''}</span>
+                      </div>
+                    )}
+
+                    <div className="flex gap-2 pt-3 border-t">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex-1"
+                        onClick={() => {
+                          setViewingService(service);
+                          setIsViewOpen(true);
+                        }}
+                      >
+                        <Eye className="w-4 h-4 mr-2" />
+                        Ver
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleOpenForm(service)}
+                      >
+                        <Edit className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setDeletingId(service.id);
+                          setIsDeleteOpen(true);
+                        }}
+                      >
+                        <Trash2 className="w-4 h-4 text-destructive" />
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
         )}
       </div>
 
       {/* Form Dialog */}
       <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
               {editingService ? "Editar Servicio Holístico" : "Nuevo Servicio Holístico"}
@@ -319,7 +415,9 @@ export default function AdminHolisticServices() {
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="name">Nombre del Servicio *</Label>
+              <Label htmlFor="name">
+                Título del Servicio <span className="text-red-500">*</span>
+              </Label>
               <Input
                 id="name"
                 value={formData.name}
@@ -330,7 +428,9 @@ export default function AdminHolisticServices() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="description">Descripción *</Label>
+              <Label htmlFor="description">
+                Descripción <span className="text-red-500">*</span>
+              </Label>
               <Textarea
                 id="description"
                 value={formData.description}
@@ -341,15 +441,24 @@ export default function AdminHolisticServices() {
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="icon">Icono (opcional)</Label>
-              <Input
-                id="icon"
-                value={formData.icon}
-                onChange={(e) => setFormData({ ...formData, icon: e.target.value })}
-                placeholder="Nombre del icono (ej: yoga, meditation)"
-              />
-            </div>
+            {editingService && (
+              <div className="space-y-2">
+                <Label>Imágenes del Servicio</Label>
+                <p className="text-xs text-muted-foreground mb-2">
+                  Agrega hasta 4 imágenes para mostrar el servicio (máximo 2MB por imagen)
+                </p>
+                <HolisticServiceImagesManager
+                  serviceId={editingService.id}
+                  currentImages={getServiceImages(editingService.id)}
+                  onImagesUpdate={() => {
+                    fetchServiceImages(editingService.id);
+                    fetchServices();
+                  }}
+                  maxImages={4}
+                  maxSizeMB={2}
+                />
+              </div>
+            )}
 
             <div className="flex items-center gap-2">
               <input
@@ -376,13 +485,13 @@ export default function AdminHolisticServices() {
 
       {/* View Dialog */}
       <Dialog open={isViewOpen} onOpenChange={setIsViewOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{viewingService?.name}</DialogTitle>
             <DialogDescription>Detalles del servicio holístico</DialogDescription>
           </DialogHeader>
           {viewingService && (
-            <div className="space-y-4">
+            <div className="space-y-6">
               <div>
                 <Label className="text-muted-foreground">Estado</Label>
                 <div className="mt-1">
@@ -397,10 +506,22 @@ export default function AdminHolisticServices() {
                 <p className="mt-1 text-sm">{viewingService.description}</p>
               </div>
 
-              {viewingService.icon && (
+              {getServiceImages(viewingService.id).length > 0 && (
                 <div>
-                  <Label className="text-muted-foreground">Icono</Label>
-                  <p className="mt-1 text-sm">{viewingService.icon}</p>
+                  <Label className="text-muted-foreground mb-2 block">Imágenes</Label>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                    {getServiceImages(viewingService.id).map((image) => (
+                      <div key={image.id} className="relative aspect-square rounded-lg overflow-hidden border">
+                        <Image
+                          src={image.image_url}
+                          alt={`Imagen ${image.image_order + 1}`}
+                          fill
+                          className="object-cover"
+                          unoptimized
+                        />
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>

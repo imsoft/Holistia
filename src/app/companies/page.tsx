@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import Image from "next/image";
 import {
   Select,
   SelectContent,
@@ -32,6 +33,11 @@ interface HolisticService {
   description: string;
   icon?: string;
   is_active: boolean;
+  images?: Array<{
+    id: string;
+    image_url: string;
+    image_order: number;
+  }>;
 }
 
 const COMPANY_SIZES = [
@@ -82,12 +88,26 @@ export default function CompaniesLandingPage() {
     try {
       const { data, error } = await supabase
         .from("holistic_services")
-        .select("*")
+        .select(`
+          *,
+          holistic_service_images (
+            id,
+            image_url,
+            image_order
+          )
+        `)
         .eq("is_active", true)
         .order("name");
 
       if (error) throw error;
-      setHolisticServices(data || []);
+      
+      // Mapear los datos para incluir imágenes ordenadas
+      const servicesWithImages = (data || []).map(service => ({
+        ...service,
+        images: (service.holistic_service_images || []).sort((a: any, b: any) => a.image_order - b.image_order)
+      }));
+      
+      setHolisticServices(servicesWithImages);
     } catch (error) {
       console.error("Error fetching services:", error);
     }
@@ -261,19 +281,36 @@ export default function CompaniesLandingPage() {
 
           {holisticServices.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
-              {holisticServices.map((service) => (
-                <Card key={service.id} className="hover:shadow-lg transition-all py-4">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <CheckCircle className="w-5 h-5 text-primary" />
-                      {service.name}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-muted-foreground">{service.description}</p>
-                  </CardContent>
-                </Card>
-              ))}
+              {holisticServices.map((service) => {
+                const firstImage = service.images && service.images.length > 0 
+                  ? service.images[0].image_url 
+                  : null;
+
+                return (
+                  <Card key={service.id} className="hover:shadow-lg transition-all overflow-hidden">
+                    {firstImage && (
+                      <div className="relative w-full h-48">
+                        <Image
+                          src={firstImage}
+                          alt={service.name}
+                          fill
+                          className="object-cover"
+                          unoptimized
+                        />
+                      </div>
+                    )}
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <CheckCircle className="w-5 h-5 text-primary" />
+                        {service.name}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-muted-foreground">{service.description}</p>
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </div>
           ) : (
             <div className="text-center py-12">

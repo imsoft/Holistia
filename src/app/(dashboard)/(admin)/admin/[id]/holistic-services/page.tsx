@@ -9,6 +9,8 @@ import {
   Trash2,
   Eye,
   Image as ImageIcon,
+  X,
+  CheckCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -35,6 +37,7 @@ interface HolisticService {
   id: string;
   name: string;
   description: string;
+  benefits?: string[];
   is_active: boolean;
   created_at: string;
   updated_at: string;
@@ -49,6 +52,7 @@ interface HolisticServiceImage {
 interface FormData {
   name: string;
   description: string;
+  benefits: string[];
   is_active: boolean;
 }
 
@@ -67,8 +71,10 @@ export default function AdminHolisticServices() {
   const [formData, setFormData] = useState<FormData>({
     name: "",
     description: "",
+    benefits: [],
     is_active: true,
   });
+  const [newBenefit, setNewBenefit] = useState("");
 
   const supabase = createClient();
 
@@ -140,6 +146,7 @@ export default function AdminHolisticServices() {
       setFormData({
         name: service.name,
         description: service.description,
+        benefits: service.benefits || [],
         is_active: service.is_active,
       });
     } else {
@@ -147,9 +154,11 @@ export default function AdminHolisticServices() {
       setFormData({
         name: "",
         description: "",
+        benefits: [],
         is_active: true,
       });
     }
+    setNewBenefit("");
     setIsFormOpen(true);
   };
 
@@ -166,6 +175,7 @@ export default function AdminHolisticServices() {
           .update({
             name: formData.name.trim(),
             description: formData.description.trim(),
+            benefits: formData.benefits,
             is_active: formData.is_active,
           })
           .eq("id", editingService.id);
@@ -178,13 +188,14 @@ export default function AdminHolisticServices() {
           .insert({
             name: formData.name.trim(),
             description: formData.description.trim(),
+            benefits: formData.benefits,
             is_active: formData.is_active,
           })
           .select()
           .single();
 
         if (error) throw error;
-        
+
         if (newService) {
           setEditingService(newService);
           setServiceImages(prev => ({
@@ -201,6 +212,23 @@ export default function AdminHolisticServices() {
       toast.error("Error al guardar el servicio");
       return null;
     }
+  };
+
+  const addBenefit = () => {
+    if (newBenefit.trim() && formData.benefits.length < 10) {
+      setFormData({
+        ...formData,
+        benefits: [...formData.benefits, newBenefit.trim()]
+      });
+      setNewBenefit("");
+    }
+  };
+
+  const removeBenefit = (index: number) => {
+    setFormData({
+      ...formData,
+      benefits: formData.benefits.filter((_, i) => i !== index)
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -447,6 +475,58 @@ export default function AdminHolisticServices() {
             </div>
 
             <div className="space-y-2">
+              <Label>Beneficios del Servicio</Label>
+              <p className="text-xs text-muted-foreground mb-2">
+                Agrega hasta 10 beneficios que este servicio ofrece a las empresas
+              </p>
+
+              {/* Lista de beneficios */}
+              {formData.benefits.length > 0 && (
+                <div className="space-y-2 mb-3">
+                  {formData.benefits.map((benefit, index) => (
+                    <div key={index} className="flex items-start gap-2 p-3 bg-muted rounded-lg">
+                      <CheckCircle className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+                      <span className="flex-1 text-sm">{benefit}</span>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeBenefit(index)}
+                        className="h-6 w-6 p-0"
+                      >
+                        <X className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Input para agregar beneficio */}
+              {formData.benefits.length < 10 && (
+                <div className="flex gap-2">
+                  <Input
+                    value={newBenefit}
+                    onChange={(e) => setNewBenefit(e.target.value)}
+                    placeholder="Ej: Mejora el bienestar general de los colaboradores"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        addBenefit();
+                      }
+                    }}
+                  />
+                  <Button
+                    type="button"
+                    onClick={addBenefit}
+                    disabled={!newBenefit.trim()}
+                  >
+                    <Plus className="w-4 h-4" />
+                  </Button>
+                </div>
+              )}
+            </div>
+
+            <div className="space-y-2">
               <Label>Imágenes del Servicio</Label>
               <p className="text-xs text-muted-foreground mb-2">
                 Agrega hasta 4 imágenes para mostrar el servicio (máximo 2MB por imagen)
@@ -532,6 +612,20 @@ export default function AdminHolisticServices() {
                 <Label className="text-muted-foreground">Descripción</Label>
                 <p className="mt-1 text-sm">{viewingService.description}</p>
               </div>
+
+              {viewingService.benefits && viewingService.benefits.length > 0 && (
+                <div>
+                  <Label className="text-muted-foreground mb-2 block">Beneficios</Label>
+                  <ul className="space-y-2">
+                    {viewingService.benefits.map((benefit, index) => (
+                      <li key={index} className="flex items-start gap-2">
+                        <CheckCircle className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+                        <span className="text-sm">{benefit}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
 
               {getServiceImages(viewingService.id).length > 0 && (
                 <div>

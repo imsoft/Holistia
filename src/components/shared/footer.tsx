@@ -6,6 +6,7 @@ const navigation = {
   company: [
     { name: "Historia", href: "/history" },
     { name: "Blog", href: "/blog" },
+    { name: "Para Empresas", href: "/companies" },
   ],
   legal: [
     { name: "Términos y condiciones", href: "/terms" },

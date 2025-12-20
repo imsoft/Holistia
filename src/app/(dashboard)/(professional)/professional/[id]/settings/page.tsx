@@ -2,7 +2,8 @@ import { createClient } from '@/utils/supabase/server';
 import { redirect } from 'next/navigation';
 import { GoogleCalendarIntegration } from '@/components/google-calendar-integration';
 import { AccountDeactivation } from '@/components/ui/account-deactivation';
-import { Settings as SettingsIcon, Calendar, AlertTriangle } from 'lucide-react';
+import { UsernameSettings } from '@/components/username-settings';
+import { Settings as SettingsIcon, Calendar, AlertTriangle, User } from 'lucide-react';
 
 export default async function ProfessionalSettingsPage({
   params,
@@ -33,6 +34,13 @@ export default async function ProfessionalSettingsPage({
     redirect('/patient/' + user.id + '/explore');
   }
 
+  // Obtener el username actual del perfil
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('username')
+    .eq('id', user.id)
+    .single();
+
   return (
     <div className="container mx-auto py-8 px-4 max-w-4xl">
       <div className="space-y-6">
@@ -45,6 +53,20 @@ export default async function ProfessionalSettingsPage({
               Administra tus integraciones y preferencias
             </p>
           </div>
+        </div>
+
+        {/* Sección de Perfil */}
+        <div className="space-y-4">
+          <div className="flex items-center gap-2">
+            <User className="h-5 w-5" />
+            <h2 className="text-xl font-semibold">Perfil</h2>
+          </div>
+
+          {/* Username Settings */}
+          <UsernameSettings
+            userId={user.id}
+            currentUsername={profile?.username}
+          />
         </div>
 
         {/* Sección de Integraciones */}

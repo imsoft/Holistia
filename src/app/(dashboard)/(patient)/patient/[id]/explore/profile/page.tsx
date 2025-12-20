@@ -9,6 +9,7 @@ import { useProfile } from "@/hooks/use-profile";
 import { Button } from "@/components/ui/button";
 import { PhoneInput } from "@/components/ui/phone-input";
 import { AccountDeactivation } from "@/components/ui/account-deactivation";
+import { UsernameSettings } from "@/components/username-settings";
 
 const ProfilePage = () => {
   const { profile, loading, updateProfile } = useProfile();
@@ -303,6 +304,14 @@ const ProfilePage = () => {
                 </dd>
               </div>
             </dl>
+          </div>
+
+          {/* Username Settings */}
+          <div>
+            <UsernameSettings
+              userId={profile.id}
+              currentUsername={profile.username}
+            />
           </div>
 
           {/* Información adicional del usuario */}

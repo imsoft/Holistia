@@ -40,6 +40,8 @@
     "date-fns": "^4.1.0",
     "framer-motion": "^12.23.24",
     "googleapis": "^164.1.0",
+    "jspdf": "^3.0.4",
+    "jspdf-autotable": "^5.0.2",
     "lucide-react": "^0.544.0",
     "mapbox-gl": "^3.15.0",
     "next": "16.0.7",

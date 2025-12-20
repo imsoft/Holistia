@@ -9,6 +9,7 @@ export interface Profile {
   last_name: string | null;
   phone: string | null;
   avatar_url: string | null;
+  username: string | null;
   type: 'admin' | 'patient' | 'professional';
   account_active: boolean;
   deactivated_at: string | null;
@@ -24,6 +25,7 @@ export interface ProfileUpdate {
   last_name?: string;
   phone?: string;
   avatar_url?: string;
+  username?: string;
   type?: 'admin' | 'patient' | 'professional';
 }
 

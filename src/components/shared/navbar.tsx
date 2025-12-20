@@ -15,6 +15,7 @@ import Link from "next/link";
 const navigation = [
   { name: "Inicio", href: "/" },
   { name: "Explorar", href: "/explore" },
+  { name: "Empresas", href: "/companies" },
   { name: "Blog", href: "/blog" },
   { name: "Historia", href: "/history" },
   { name: "Contacto", href: "/contact" },

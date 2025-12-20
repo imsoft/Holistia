@@ -525,99 +525,137 @@ export default function CompaniesLandingPage() {
                       Selecciona los servicios que te interesan para tu equipo
                     </p>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      {holisticServices.map((service) => (
-                        <div
-                          key={service.id}
-                          className={`p-4 border-2 rounded-lg transition-all ${
-                            selectedServices.includes(service.id)
-                              ? "border-primary bg-primary/5"
-                              : "border-border hover:border-primary/50"
-                          }`}
-                        >
-                          <div className="flex items-start gap-3">
-                            <div
-                              className="mt-1 cursor-pointer"
-                              onClick={() => toggleService(service.id)}
-                            >
-                              {selectedServices.includes(service.id) ? (
-                                <CheckCircle className="w-5 h-5 text-primary" />
-                              ) : (
-                                <div className="w-5 h-5 rounded-full border-2 border-muted-foreground" />
-                              )}
-                            </div>
-                            <div className="flex-1" onClick={() => toggleService(service.id)}>
-                              <h4 className="font-medium cursor-pointer">{service.name}</h4>
-                              <p className="text-sm text-muted-foreground cursor-pointer line-clamp-2">{service.description}</p>
-                            </div>
-                            <Dialog>
-                              <DialogTrigger asChild>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="h-8 w-8 p-0"
-                                  onClick={(e) => e.stopPropagation()}
-                                >
-                                  <Info className="w-4 h-4" />
-                                </Button>
-                              </DialogTrigger>
-                              <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
-                                <DialogHeader>
-                                  <DialogTitle className="text-2xl">{service.name}</DialogTitle>
-                                  <DialogDescription className="text-base">
-                                    Información completa del servicio
-                                  </DialogDescription>
-                                </DialogHeader>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {holisticServices.map((service) => {
+                        const firstImage = service.images && service.images.length > 0
+                          ? service.images[0].image_url
+                          : null;
 
-                                <div className="space-y-6">
-                                  {/* Gallery of images */}
-                                  {service.images && service.images.length > 0 && (
-                                    <div className="space-y-3">
-                                      <h3 className="font-semibold text-lg">Galería</h3>
-                                      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                                        {service.images.map((img) => (
-                                          <div key={img.id} className="relative aspect-square rounded-lg overflow-hidden">
-                                            <Image
-                                              src={img.image_url}
-                                              alt={`${service.name} - Imagen ${img.image_order}`}
-                                              fill
-                                              className="object-cover"
-                                              unoptimized
-                                            />
-                                          </div>
-                                        ))}
-                                      </div>
+                        return (
+                          <div
+                            key={service.id}
+                            className={`border-2 rounded-lg transition-all overflow-hidden ${
+                              selectedServices.includes(service.id)
+                                ? "border-primary bg-primary/5"
+                                : "border-border hover:border-primary/50"
+                            }`}
+                          >
+                            {/* Imagen del servicio */}
+                            {firstImage && (
+                              <div
+                                className="relative w-full h-40 cursor-pointer"
+                                onClick={() => toggleService(service.id)}
+                              >
+                                <Image
+                                  src={firstImage}
+                                  alt={service.name}
+                                  fill
+                                  className="object-cover"
+                                  unoptimized
+                                />
+                                {/* Overlay con checkbox cuando está seleccionado */}
+                                {selectedServices.includes(service.id) && (
+                                  <div className="absolute inset-0 bg-primary/20 flex items-center justify-center">
+                                    <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center">
+                                      <CheckCircle className="w-8 h-8 text-primary-foreground" />
                                     </div>
-                                  )}
-
-                                  {/* Description */}
-                                  <div className="space-y-2">
-                                    <h3 className="font-semibold text-lg">Descripción</h3>
-                                    <p className="text-muted-foreground leading-relaxed">
-                                      {service.description}
-                                    </p>
                                   </div>
+                                )}
+                              </div>
+                            )}
 
-                                  {/* Benefits */}
-                                  {service.benefits && service.benefits.length > 0 && (
-                                    <div className="space-y-2">
-                                      <h3 className="font-semibold text-lg">Beneficios para tu equipo</h3>
-                                      <ul className="space-y-2">
-                                        {service.benefits.map((benefit, index) => (
-                                          <li key={index} className="flex items-start gap-2">
-                                            <CheckCircle className="w-5 h-5 text-primary mt-0.5 shrink-0" />
-                                            <span className="text-muted-foreground">{benefit}</span>
-                                          </li>
-                                        ))}
-                                      </ul>
-                                    </div>
+                            {/* Contenido */}
+                            <div className="p-4">
+                              <div className="flex items-start gap-3">
+                                <div
+                                  className="mt-1 cursor-pointer"
+                                  onClick={() => toggleService(service.id)}
+                                >
+                                  {selectedServices.includes(service.id) ? (
+                                    <CheckCircle className="w-5 h-5 text-primary" />
+                                  ) : (
+                                    <div className="w-5 h-5 rounded-full border-2 border-muted-foreground" />
                                   )}
                                 </div>
-                              </DialogContent>
-                            </Dialog>
+                                <div className="flex-1" onClick={() => toggleService(service.id)}>
+                                  <h4 className="font-medium cursor-pointer">{service.name}</h4>
+                                  <p className="text-sm text-muted-foreground cursor-pointer line-clamp-2">
+                                    {service.description}
+                                  </p>
+                                </div>
+                                <Dialog>
+                                  <DialogTrigger asChild>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      className="h-8 w-8 p-0 shrink-0"
+                                      onClick={(e) => e.stopPropagation()}
+                                    >
+                                      <Info className="w-4 h-4" />
+                                    </Button>
+                                  </DialogTrigger>
+                                  <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+                                    <DialogHeader>
+                                      <DialogTitle className="text-2xl">{service.name}</DialogTitle>
+                                      <DialogDescription className="text-base">
+                                        Información completa del servicio
+                                      </DialogDescription>
+                                    </DialogHeader>
+
+                                    <div className="space-y-6">
+                                      {/* Gallery of images */}
+                                      {service.images && service.images.length > 0 && (
+                                        <div className="space-y-3">
+                                          <h3 className="font-semibold text-lg">Galería</h3>
+                                          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                                            {service.images.map((img) => (
+                                              <div
+                                                key={img.id}
+                                                className="relative aspect-square rounded-lg overflow-hidden"
+                                              >
+                                                <Image
+                                                  src={img.image_url}
+                                                  alt={`${service.name} - Imagen ${img.image_order}`}
+                                                  fill
+                                                  className="object-cover"
+                                                  unoptimized
+                                                />
+                                              </div>
+                                            ))}
+                                          </div>
+                                        </div>
+                                      )}
+
+                                      {/* Description */}
+                                      <div className="space-y-2">
+                                        <h3 className="font-semibold text-lg">Descripción</h3>
+                                        <p className="text-muted-foreground leading-relaxed">
+                                          {service.description}
+                                        </p>
+                                      </div>
+
+                                      {/* Benefits */}
+                                      {service.benefits && service.benefits.length > 0 && (
+                                        <div className="space-y-2">
+                                          <h3 className="font-semibold text-lg">Beneficios para tu equipo</h3>
+                                          <ul className="space-y-2">
+                                            {service.benefits.map((benefit, index) => (
+                                              <li key={index} className="flex items-start gap-2">
+                                                <CheckCircle className="w-5 h-5 text-primary mt-0.5 shrink-0" />
+                                                <span className="text-muted-foreground">{benefit}</span>
+                                              </li>
+                                            ))}
+                                          </ul>
+                                        </div>
+                                      )}
+                                    </div>
+                                  </DialogContent>
+                                </Dialog>
+                              </div>
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
 

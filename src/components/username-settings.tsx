@@ -129,7 +129,7 @@ export function UsernameSettings({ userId, currentUsername }: UsernameSettingsPr
   const canSave = !validationError && isAvailable === true && hasChanges && !isSaving;
 
   return (
-    <Card>
+    <Card className="py-4">
       <CardHeader>
         <div className="flex items-center gap-2">
           <User className="h-5 w-5" />

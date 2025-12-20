@@ -14,6 +14,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Footer } from "@/components/shared/footer";
+import { Navbar } from "@/components/shared/navbar";
 import { createClient } from "@/utils/supabase/client";
 import { toast } from "sonner";
 import {
@@ -23,13 +24,7 @@ import {
   TrendingUp,
   CheckCircle,
   ArrowRight,
-  Building,
-  Mail,
-  Phone,
-  MapPin,
 } from "lucide-react";
-import Link from "next/link";
-import Image from "next/image";
 
 interface HolisticService {
   id: string;
@@ -157,36 +152,7 @@ export default function CompaniesLandingPage() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header/Navbar */}
-      <header className="border-b border-border bg-card sticky top-0 z-50">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex h-16 items-center justify-between">
-            <Link href="/" className="flex items-center gap-2">
-              <Image
-                src="/logos/holistia-black.png"
-                alt="Holistia"
-                width={32}
-                height={32}
-                className="h-8 w-auto"
-              />
-              <span className="text-xl font-bold">Holistia</span>
-            </Link>
-            <nav className="hidden md:flex items-center gap-6">
-              <Link href="#servicios" className="text-sm font-medium hover:text-primary transition-colors">
-                Servicios
-              </Link>
-              <Link href="#beneficios" className="text-sm font-medium hover:text-primary transition-colors">
-                Beneficios
-              </Link>
-              <Link href="#contacto" className="text-sm font-medium hover:text-primary transition-colors">
-                Contacto
-              </Link>
-              <Link href="/login">
-                <Button variant="outline" size="sm">Iniciar Sesión</Button>
-              </Link>
-            </nav>
-          </div>
-        </div>
-      </header>
+      <Navbar />
 
       {/* Hero Section */}
       <section className="relative py-20 sm:py-32 bg-gradient-to-br from-primary/5 via-background to-primary/10">

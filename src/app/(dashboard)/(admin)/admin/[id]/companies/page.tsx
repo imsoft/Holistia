@@ -985,32 +985,32 @@ export default function AdminCompanies() {
 
             {/* Stats Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <Card className="py-4">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 py-4">
               <CardTitle className="text-sm font-medium">Total de Empresas</CardTitle>
               <Briefcase className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
-            <CardContent>
+            <CardContent className="py-4">
               <div className="text-2xl font-bold">{companies.length}</div>
             </CardContent>
           </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <Card className="py-4">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 py-4">
               <CardTitle className="text-sm font-medium">Empresas Activas</CardTitle>
               <Building className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
-            <CardContent>
+            <CardContent className="py-4">
               <div className="text-2xl font-bold">
                 {companies.filter((c) => c.status === "active").length}
               </div>
             </CardContent>
           </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <Card className="py-4">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 py-4">
               <CardTitle className="text-sm font-medium">Pendientes</CardTitle>
               <FileText className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
-            <CardContent>
+            <CardContent className="py-4">
               <div className="text-2xl font-bold">
                 {companies.filter((c) => c.status === "pending").length}
               </div>
@@ -1022,8 +1022,8 @@ export default function AdminCompanies() {
         {loading ? (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {[1, 2, 3].map((i) => (
-              <Card key={i} className="animate-pulse">
-                <CardContent className="p-6">
+              <Card key={i} className="animate-pulse py-4">
+                <CardContent className="p-6 py-4">
                   <div className="h-20 bg-muted rounded mb-4" />
                   <div className="h-4 bg-muted rounded w-3/4 mb-2" />
                   <div className="h-4 bg-muted rounded w-1/2" />
@@ -1032,8 +1032,8 @@ export default function AdminCompanies() {
             ))}
           </div>
         ) : filteredCompanies.length === 0 ? (
-          <Card>
-            <CardContent className="flex flex-col items-center justify-center py-12">
+          <Card className="py-4">
+            <CardContent className="flex flex-col items-center justify-center py-4">
               <Briefcase className="w-12 h-12 text-muted-foreground mb-4" />
               <h3 className="text-lg font-semibold mb-2">No hay empresas</h3>
               <p className="text-muted-foreground text-center mb-4">
@@ -1052,7 +1052,7 @@ export default function AdminCompanies() {
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {filteredCompanies.map((company) => (
-              <Card key={company.id} className="hover:shadow-lg transition-shadow">
+              <Card key={company.id} className="hover:shadow-lg transition-shadow py-4">
                 <CardHeader className="py-4">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
@@ -1153,8 +1153,8 @@ export default function AdminCompanies() {
                 <p className="mt-2 text-sm text-muted-foreground">Cargando solicitudes...</p>
               </div>
             ) : leads.length === 0 ? (
-              <Card>
-                <CardContent className="flex flex-col items-center justify-center py-12">
+              <Card className="py-4">
+                <CardContent className="flex flex-col items-center justify-center py-4">
                   <Mail className="w-12 h-12 text-muted-foreground mb-4" />
                   <h3 className="text-lg font-semibold mb-2">No hay solicitudes pendientes</h3>
                   <p className="text-muted-foreground text-center">
@@ -1165,7 +1165,7 @@ export default function AdminCompanies() {
             ) : (
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {leads.map((lead) => (
-                  <Card key={lead.id} className="hover:shadow-lg transition-shadow">
+                  <Card key={lead.id} className="hover:shadow-lg transition-shadow py-4">
                     <CardHeader className="py-4">
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
@@ -1233,7 +1233,7 @@ export default function AdminCompanies() {
 
       {/* Form Dialog */}
       <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto py-4">
           <DialogHeader>
             <DialogTitle>
               {editingCompany ? "Editar Empresa" : "Nueva Empresa"}
@@ -1402,7 +1402,7 @@ export default function AdminCompanies() {
 
       {/* View Dialog */}
       <Dialog open={isViewOpen} onOpenChange={setIsViewOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl py-4">
           <DialogHeader>
             <DialogTitle>{viewingCompany?.name}</DialogTitle>
             <DialogDescription>Detalles de la empresa</DialogDescription>
@@ -1519,7 +1519,7 @@ export default function AdminCompanies() {
 
       {/* Manage Professionals Dialog */}
       <Dialog open={isManageProfessionalsOpen} onOpenChange={setIsManageProfessionalsOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto py-4">
           <DialogHeader>
             <DialogTitle>Gestionar Profesionales - {managingCompany?.name}</DialogTitle>
             <DialogDescription>
@@ -1555,8 +1555,8 @@ export default function AdminCompanies() {
                 ) : (
                   <div className="space-y-3">
                     {assignedProfessionals.map((assignment) => (
-                      <Card key={assignment.id}>
-                        <CardContent className="flex items-center justify-between p-4">
+                      <Card key={assignment.id} className="py-4">
+                        <CardContent className="flex items-center justify-between p-4 py-4">
                           <div className="flex items-center gap-4">
                             <Image
                               src={
@@ -1638,11 +1638,11 @@ export default function AdminCompanies() {
                   </Button>
 
                   {selectedProfessionalId && (
-                    <Card className="mt-4">
-                      <CardHeader>
+                    <Card className="mt-4 py-4">
+                      <CardHeader className="py-4">
                         <CardTitle className="text-sm">Vista previa</CardTitle>
                       </CardHeader>
-                      <CardContent>
+                      <CardContent className="py-4">
                         {(() => {
                           const selectedProf = availableProfessionals.find(
                             (p) => p.id === selectedProfessionalId
@@ -1693,7 +1693,7 @@ export default function AdminCompanies() {
 
       {/* View Lead Dialog */}
       <Dialog open={isViewLeadOpen} onOpenChange={setIsViewLeadOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl py-4">
           <DialogHeader>
             <DialogTitle>{viewingLead?.company_name}</DialogTitle>
             <DialogDescription>Detalles de la solicitud</DialogDescription>
@@ -1828,7 +1828,7 @@ export default function AdminCompanies() {
 
       {/* Quote Dialog */}
       <Dialog open={isQuoteOpen} onOpenChange={setIsQuoteOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto py-4">
           <DialogHeader>
             <DialogTitle>Crear Cotización - {quotingLead?.company_name}</DialogTitle>
             <DialogDescription>
@@ -1839,8 +1839,8 @@ export default function AdminCompanies() {
           {quotingLead && (
             <div className="space-y-6">
               {/* Company Info Summary */}
-              <Card>
-                <CardContent className="pt-6">
+              <Card className="py-4">
+                <CardContent className="pt-6 py-4">
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <div>
                       <Label className="text-muted-foreground">Contacto</Label>
@@ -1863,11 +1863,11 @@ export default function AdminCompanies() {
                 <h3 className="font-semibold">Servicios Solicitados</h3>
 
                 {quoteServices.map((service, index) => (
-                  <Card key={index}>
-                    <CardHeader>
+                  <Card key={index} className="py-4">
+                    <CardHeader className="py-4">
                       <CardTitle className="text-base">{service.service_name}</CardTitle>
                     </CardHeader>
-                    <CardContent className="space-y-4">
+                    <CardContent className="space-y-4 py-4">
                       {/* Professional Assignment */}
                       <div className="space-y-2">
                         <Label>Profesionales Asignados</Label>
@@ -1963,8 +1963,8 @@ export default function AdminCompanies() {
               </div>
 
               {/* Pricing Summary */}
-              <Card>
-                <CardContent className="pt-6 space-y-4">
+              <Card className="py-4">
+                <CardContent className="pt-6 space-y-4 py-4">
                   <div className="flex justify-between text-sm">
                     <span>Subtotal:</span>
                     <span className="font-medium">

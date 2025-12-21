@@ -307,6 +307,13 @@ export default function AdminCompanies() {
       if (leadError) throw leadError;
 
       toast.success("Lead convertido a empresa exitosamente");
+
+      // Cerrar el diálogo de vista si está abierto
+      setIsViewLeadOpen(false);
+
+      // Abrir automáticamente el diálogo de cotización
+      await handleOpenQuote(lead);
+
       fetchLeads();
       fetchCompanies();
     } catch (error) {

@@ -510,7 +510,8 @@ export default function AdminCompanies() {
     if (!quotingLead) return;
 
     try {
-      const { jsPDF } = await import('jspdf');
+      const jsPDF = (await import('jspdf')).default;
+      // Importar jspdf-autotable para extender jsPDF
       await import('jspdf-autotable');
 
       const doc = new jsPDF() as any;

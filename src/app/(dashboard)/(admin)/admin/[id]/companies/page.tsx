@@ -381,9 +381,51 @@ export default function AdminCompanies() {
     setIsQuoteOpen(true);
   };
 
+  const handleOpenQuoteForCompany = async (company: Company) => {
+    // Convertir la empresa a un formato de lead temporal para usar con handleOpenQuote
+    const tempLead: CompanyLead = {
+      id: company.id,
+      company_name: company.name,
+      industry: company.industry,
+      company_size: company.company_size,
+      contact_name: company.contact_name || '',
+      contact_email: company.contact_email || '',
+      contact_phone: company.contact_phone,
+      city: company.city,
+      additional_info: company.description,
+      requested_services: [], // Vacío para que el admin pueda seleccionar servicios manualmente
+      status: 'quoted',
+      created_at: company.created_at,
+      updated_at: company.updated_at,
+    };
+
+    await handleOpenQuote(tempLead);
+  };
+
   const updateQuoteService = (index: number, field: keyof QuoteService, value: any) => {
     const updated = [...quoteServices];
     updated[index] = { ...updated[index], [field]: value };
+    setQuoteServices(updated);
+  };
+
+  const addServiceToQuote = (serviceId: string) => {
+    const service = holisticServices.find(s => s.id === serviceId);
+    if (!service) return;
+
+    const newService: QuoteService = {
+      service_id: serviceId,
+      service_name: service.name,
+      assigned_professionals: [],
+      unit_price: 0,
+      quantity: 1,
+      notes: '',
+    };
+
+    setQuoteServices([...quoteServices, newService]);
+  };
+
+  const removeServiceFromQuote = (index: number) => {
+    const updated = quoteServices.filter((_, i) => i !== index);
     setQuoteServices(updated);
   };
 
@@ -1114,6 +1156,14 @@ export default function AdminCompanies() {
                     >
                       <Eye className="w-4 h-4 mr-2" />
                       Ver
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleOpenQuoteForCompany(company)}
+                      title="Crear cotización"
+                    >
+                      <FileText className="w-4 h-4" />
                     </Button>
                     <Button
                       variant="outline"
@@ -1867,13 +1917,48 @@ export default function AdminCompanies() {
 
               {/* Services */}
               <div className="space-y-4">
-                <h3 className="font-semibold">Servicios Solicitados</h3>
+                <div className="flex items-center justify-between">
+                  <h3 className="font-semibold">Servicios</h3>
+                  <Select onValueChange={(value) => addServiceToQuote(value)}>
+                    <SelectTrigger className="w-64">
+                      <SelectValue placeholder="Agregar servicio..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {holisticServices
+                        .filter(s => !quoteServices.some(qs => qs.service_id === s.id))
+                        .map(service => (
+                          <SelectItem key={service.id} value={service.id}>
+                            {service.name}
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
+                </div>
 
-                {quoteServices.map((service, index) => (
-                  <Card key={index} className="py-4">
-                    <CardHeader className="py-4">
-                      <CardTitle className="text-base">{service.service_name}</CardTitle>
-                    </CardHeader>
+                {quoteServices.length === 0 ? (
+                  <Card className="py-4">
+                    <CardContent className="flex flex-col items-center justify-center py-8 text-center">
+                      <FileText className="w-12 h-12 text-muted-foreground mb-4" />
+                      <p className="text-muted-foreground">
+                        No hay servicios agregados. Selecciona servicios del menú superior.
+                      </p>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  quoteServices.map((service, index) => (
+                    <Card key={index} className="py-4">
+                      <CardHeader className="py-4">
+                        <div className="flex items-center justify-between">
+                          <CardTitle className="text-base">{service.service_name}</CardTitle>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => removeServiceFromQuote(index)}
+                          >
+                            <X className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </CardHeader>
                     <CardContent className="space-y-4 py-4">
                       {/* Professional Assignment */}
                       <div className="space-y-2">
@@ -1966,7 +2051,8 @@ export default function AdminCompanies() {
                       </div>
                     </CardContent>
                   </Card>
-                ))}
+                  ))
+                )}
               </div>
 
               {/* Pricing Summary */}

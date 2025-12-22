@@ -138,6 +138,20 @@ export default function ProfessionalsPage() {
             const reviewStats = reviewStatsData && reviewStatsData.length > 0 ? reviewStatsData[0] : null;
             const transformedServices = transformServicesFromDB(services || []);
             const professionalModality = determineProfessionalModality(transformedServices);
+            
+            return {
+              ...prof,
+              services: transformedServices.length > 0 ? transformedServices : prof.services || [],
+              modality: professionalModality,
+              imagePosition: prof.image_position || "center center",
+              average_rating: reviewStats?.average_rating || undefined,
+              total_reviews: reviewStats?.total_reviews || undefined,
+              admin_rating: adminRatingData?.average_admin_rating || undefined,
+              completed_appointments: completedAppointmentsCount || 0,
+              is_active: prof.is_active !== false,
+              is_verified: prof.is_verified || false,
+              verified: prof.is_verified || false
+            };
 
             return {
               ...prof,
@@ -148,7 +162,9 @@ export default function ProfessionalsPage() {
               total_reviews: reviewStats?.total_reviews || undefined,
               admin_rating: adminRatingData?.average_admin_rating || undefined,
               completed_appointments: completedAppointmentsCount || 0,
-              is_active: prof.is_active !== false
+              is_active: prof.is_active !== false,
+              is_verified: prof.is_verified || false,
+              verified: prof.is_verified || false
             };
           })
         );

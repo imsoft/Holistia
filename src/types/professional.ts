@@ -60,6 +60,7 @@ export interface Professional {
   specialization?: string;
   patients?: number;
   verified?: boolean;
+  is_verified?: boolean;
   joinDate?: string;
   avatar?: string;
   bio?: string;

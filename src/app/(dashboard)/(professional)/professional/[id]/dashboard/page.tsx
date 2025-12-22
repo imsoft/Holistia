@@ -28,6 +28,7 @@ import { DashboardStats, Appointment } from "@/types";
 import { createClient } from "@/utils/supabase/client";
 import { StripeConnectButton } from "@/components/ui/stripe-connect-button";
 import { AdminRatingDisplay } from "@/components/ui/admin-rating-display";
+import { VerifiedBadge } from "@/components/ui/verified-badge";
 
 
 
@@ -48,6 +49,7 @@ export default function ProfessionalDashboard() {
   const [refreshKey, setRefreshKey] = useState(0);
   const [professionalId, setProfessionalId] = useState<string>("");
   const [userId, setUserId] = useState<string>("");
+  const [isVerified, setIsVerified] = useState<boolean>(false);
   const [stripeStatus, setStripeStatus] = useState<{
     stripe_account_id: string | null;
     stripe_account_status: string | null;
@@ -80,7 +82,7 @@ export default function ProfessionalDashboard() {
         // El parámetro de la URL es el user_id, no el professional_id
         const { data: professionalApp, error: profError } = await supabase
           .from('professional_applications')
-          .select('id, user_id, first_name, last_name, profile_photo, working_start_time, working_end_time, stripe_account_id, stripe_account_status, stripe_charges_enabled, stripe_payouts_enabled, registration_fee_paid, registration_fee_amount, registration_fee_currency, registration_fee_paid_at, registration_fee_expires_at')
+          .select('id, user_id, first_name, last_name, profile_photo, working_start_time, working_end_time, stripe_account_id, stripe_account_status, stripe_charges_enabled, stripe_payouts_enabled, registration_fee_paid, registration_fee_amount, registration_fee_currency, registration_fee_paid_at, registration_fee_expires_at, is_verified')
           .eq('user_id', userIdParam)
           .eq('status', 'approved')
           .single();
@@ -95,6 +97,7 @@ export default function ProfessionalDashboard() {
           setProfilePhoto(professionalApp.profile_photo || '');
           setProfessionalId(professionalApp.id);
           setUserId(professionalApp.user_id);
+          setIsVerified(professionalApp.is_verified || false);
           setStripeStatus({
             stripe_account_id: professionalApp.stripe_account_id,
             stripe_account_status: professionalApp.stripe_account_status,
@@ -379,7 +382,10 @@ export default function ProfessionalDashboard() {
           <div className="flex items-center gap-3 sm:gap-4">
             <SidebarTrigger />
             <div>
-              <h1 className="text-xl sm:text-2xl font-bold text-foreground">Dashboard</h1>
+              <div className="flex items-center gap-2">
+                <h1 className="text-xl sm:text-2xl font-bold text-foreground">Dashboard</h1>
+                {isVerified && <VerifiedBadge size={20} />}
+              </div>
               <p className="text-xs sm:text-sm text-muted-foreground">
                 {loading ? 'Cargando...' : `Bienvenido/a${professionalName ? `, ${professionalName}` : ''}`}
               </p>

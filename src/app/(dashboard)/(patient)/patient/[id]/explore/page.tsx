@@ -206,7 +206,9 @@ const HomeUserPage = () => {
                 total_reviews: reviewStats?.total_reviews || undefined,
                 admin_rating: adminRatingData?.average_admin_rating || undefined,
                 completed_appointments: completedAppointmentsCount || 0,
-                is_active: prof.is_active !== false
+                is_active: prof.is_active !== false,
+                is_verified: prof.is_verified || false,
+                verified: prof.is_verified || false
               };
             })
           );

@@ -8,6 +8,7 @@ import { Professional } from "@/types";
 import { useState } from "react";
 import { createClient } from "@/utils/supabase/client";
 import { StarRating } from "@/components/reviews/star-rating";
+import { VerifiedBadge } from "@/components/ui/verified-badge";
 
 interface ProfessionalCardProps {
   professional: Professional;
@@ -179,9 +180,14 @@ export const ProfessionalCard = ({ professional, userId }: ProfessionalCardProps
               {professional.profession}
             </h3>
             <div className="flex items-center justify-between gap-2 mt-1">
-              <p className="text-sm text-muted-foreground truncate">
-                {professional.name || `${professional.first_name || ''} ${professional.last_name || ''}`.trim()}
-              </p>
+              <div className="flex items-center gap-1.5 truncate">
+                <p className="text-sm text-muted-foreground truncate">
+                  {professional.name || `${professional.first_name || ''} ${professional.last_name || ''}`.trim()}
+                </p>
+                {(professional.is_verified || professional.verified) && (
+                  <VerifiedBadge size={14} />
+                )}
+              </div>
               {/* Rating */}
               {professional.average_rating && professional.total_reviews && professional.total_reviews > 0 && (
                 <div className="flex items-center gap-1 flex-shrink-0">

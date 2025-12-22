@@ -140,7 +140,9 @@ const FavoritesPage = () => {
                 ...prof,
                 services: transformedServices.length > 0 ? transformedServices : prof.services || [],
                 modality: professionalModality, // Agregar la modalidad calculada
-                imagePosition: prof.image_position || "center center" // Agregar posición de imagen
+                imagePosition: prof.image_position || "center center", // Agregar posición de imagen
+                is_verified: prof.is_verified || false,
+                verified: prof.is_verified || false
               };
             })
           );

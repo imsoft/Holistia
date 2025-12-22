@@ -280,11 +280,15 @@ export default function ProfessionalChallenges() {
       // Subir imagen
       const fileExt = file.name.split('.').pop();
       const fileName = `cover.${fileExt}`;
-      const filePath = `challenges/${challengeId}/${fileName}`;
+      const filePath = `${challengeId}/${fileName}`;
 
+      // Subir imagen a Supabase Storage (bucket challenges)
       const { error: uploadError } = await supabase.storage
         .from('challenges')
-        .upload(filePath, file, { upsert: true });
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: true // Permite sobrescribir si existe
+        });
 
       if (uploadError) throw uploadError;
 
@@ -327,11 +331,15 @@ export default function ProfessionalChallenges() {
       // Subir archivo
       const fileExt = file.name.split('.').pop();
       const fileName = `${Date.now()}-${file.name}`;
-      const filePath = `challenges/${challengeId}/files/${fileName}`;
+      const filePath = `${challengeId}/files/${fileName}`;
 
+      // Subir archivo a Supabase Storage (bucket challenges)
       const { error: uploadError } = await supabase.storage
         .from('challenges')
-        .upload(filePath, file, { upsert: true });
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: true // Permite sobrescribir si existe
+        });
 
       if (uploadError) throw uploadError;
 

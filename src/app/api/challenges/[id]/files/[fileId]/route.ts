@@ -49,10 +49,12 @@ export async function DELETE(
     if (file.file_url) {
       try {
         // Extraer el path del archivo de la URL
+        // Formato: https://[project].supabase.co/storage/v1/object/public/challenges/[challengeId]/files/[fileName]
         const urlParts = file.file_url.split('/storage/v1/object/public/');
         if (urlParts.length > 1) {
           const pathParts = urlParts[1].split('/');
           const bucket = pathParts[0];
+          // El resto de la ruta después del bucket (ej: challengeId/files/fileName)
           const filePath = pathParts.slice(1).join('/');
           
           const { error: storageError } = await supabase.storage

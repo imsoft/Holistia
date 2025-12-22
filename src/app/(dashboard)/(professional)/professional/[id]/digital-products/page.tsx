@@ -358,38 +358,81 @@ export default function ProfessionalDigitalProducts() {
         throw new Error('Debes estar autenticado para subir imágenes');
       }
 
-      // Obtener professional_id
-      const { data: professional } = await supabase
-        .from("professional_applications")
-        .select("id")
-        .eq("user_id", user.id)
-        .single();
+      // Si estamos editando un producto existente, usar su ID
+      // Si es un producto nuevo, necesitamos guardarlo primero
+      let productId = editingProduct?.id;
+      
+      if (!productId) {
+        // Para productos nuevos, necesitamos guardar primero el producto
+        // Validar que tenga los campos mínimos requeridos
+        if (!formData.title || !formData.description || !formData.price) {
+          toast.error('Por favor completa título, descripción y precio antes de subir la imagen');
+          setUploadingCover(false);
+          return;
+        }
 
-      if (!professional) {
-        throw new Error('No se encontró tu perfil de profesional');
+        // Obtener professional_id
+        const { data: professional } = await supabase
+          .from("professional_applications")
+          .select("id")
+          .eq("user_id", user.id)
+          .single();
+
+        if (!professional) {
+          throw new Error('No se encontró tu perfil de profesional');
+        }
+
+        // Crear producto con los datos del formulario
+        const { data: tempProduct, error: createError } = await supabase
+          .from("digital_products")
+          .insert({
+            title: formData.title,
+            description: formData.description,
+            category: formData.category,
+            price: parseFloat(formData.price),
+            currency: formData.currency,
+            professional_id: professional.id,
+            is_active: formData.is_active,
+            duration_minutes: formData.duration_minutes ? parseInt(formData.duration_minutes) : null,
+            pages_count: formData.pages_count ? parseInt(formData.pages_count) : null,
+          })
+          .select()
+          .single();
+
+        if (createError) {
+          console.error('Error creating product:', createError);
+          throw new Error('Error al crear el producto');
+        }
+
+        productId = tempProduct.id;
+        setEditingProduct(tempProduct);
+        toast.success('Producto creado. Ahora puedes subir la imagen.');
       }
 
       // Generar nombre único para la imagen
       const fileExt = file.name.split('.').pop();
-      const fileName = `cover-${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
-      const filePath = `${professional.id}/${fileName}`;
+      const fileName = `cover.${fileExt}`;
+      const filePath = `${productId}/${fileName}`;
 
-      // Subir imagen a Supabase Storage (usando bucket professional-gallery)
+      // Subir imagen a Supabase Storage (bucket digital-products)
       const { error: uploadError } = await supabase.storage
-        .from('professional-gallery')
+        .from('digital-products')
         .upload(filePath, file, {
           cacheControl: '3600',
-          upsert: false
+          upsert: true // Permite sobrescribir si existe
         });
 
       if (uploadError) {
         console.error('Storage upload error:', uploadError);
+        if (uploadError.message.includes('Bucket not found') || uploadError.message.includes('not found')) {
+          throw new Error('El bucket digital-products no existe. Por favor, crea el bucket primero.');
+        }
         throw new Error('Error al subir la imagen');
       }
 
       // Obtener URL pública de la imagen
       const { data: { publicUrl } } = supabase.storage
-        .from('professional-gallery')
+        .from('digital-products')
         .getPublicUrl(filePath);
 
       setFormData({ ...formData, cover_image_url: publicUrl });
@@ -414,13 +457,13 @@ export default function ProfessionalDigitalProducts() {
       // Extraer el path del URL
       const url = new URL(formData.cover_image_url);
       const pathParts = url.pathname.split('/');
-      const bucketIndex = pathParts.findIndex(part => part === 'professional-gallery');
+      const bucketIndex = pathParts.findIndex(part => part === 'digital-products');
       
       if (bucketIndex !== -1) {
         const filePath = pathParts.slice(bucketIndex + 1).join('/');
         
         const { error } = await supabase.storage
-          .from('professional-gallery')
+          .from('digital-products')
           .remove([filePath]);
 
         if (error) {

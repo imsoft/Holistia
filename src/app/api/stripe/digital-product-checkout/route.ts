@@ -92,9 +92,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Calculate platform fee (15% for digital products)
+    // Calculate platform fee (15% for Holistia, 85% for professional)
+    // Ejemplo: Si el producto cuesta $100 MXN:
+    // - Holistia recibe: $15 MXN (15%)
+    // - Profesional recibe: $85 MXN (85%)
     const platformFee = calculateCommission(product.price, 15);
     const transferAmount = calculateTransferAmount(product.price, 15);
+    
+    console.log(`💰 Comisión calculada - Precio: $${product.price}, Holistia (15%): $${platformFee}, Profesional (85%): $${transferAmount}`);
 
     // Create purchase record
     const { data: purchase, error: purchaseError } = await supabase
@@ -138,8 +143,10 @@ export async function POST(request: NextRequest) {
         },
       ],
       payment_intent_data: {
+        // Holistia recibe el 15% como comisión de plataforma
         application_fee_amount: formatAmountForStripe(platformFee),
         transfer_data: {
+          // El profesional recibe el 85% restante
           destination: professional.stripe_account_id,
         },
       },

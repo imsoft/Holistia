@@ -3,27 +3,11 @@
 -- También elimina 'course' del constraint de categoría
 
 -- ============================================================================
--- 1. ACTUALIZAR VISTA QUE DEPENDE DE LAS COLUMNAS
+-- 1. ELIMINAR VISTA QUE DEPENDE DE LAS COLUMNAS (con CASCADE)
 -- ============================================================================
 
--- Recrear la vista sin las columnas que vamos a eliminar
+-- Eliminar la vista primero para liberar las dependencias
 DROP VIEW IF EXISTS public.digital_products_with_professional CASCADE;
-
-CREATE OR REPLACE VIEW public.digital_products_with_professional AS
-SELECT
-    dp.*,
-    pa.first_name as professional_first_name,
-    pa.last_name as professional_last_name,
-    pa.profile_photo as professional_photo,
-    pa.profession as professional_profession,
-    pa.is_verified as professional_is_verified
-FROM public.digital_products dp
-INNER JOIN public.professional_applications pa ON dp.professional_id = pa.id
-WHERE dp.is_active = true
-AND pa.is_verified = true
-AND pa.status = 'approved';
-
-COMMENT ON VIEW public.digital_products_with_professional IS 'Vista de productos digitales con información del profesional que los vende';
 
 -- ============================================================================
 -- 2. ELIMINAR ÍNDICE DE TAGS (si existe)
@@ -32,27 +16,27 @@ COMMENT ON VIEW public.digital_products_with_professional IS 'Vista de productos
 DROP INDEX IF EXISTS public.idx_digital_products_tags;
 
 -- ============================================================================
--- 3. ELIMINAR COLUMNAS NO UTILIZADAS
+-- 3. ELIMINAR COLUMNAS NO UTILIZADAS (con CASCADE para evitar errores)
 -- ============================================================================
 
 -- Eliminar columna tags
 ALTER TABLE public.digital_products
-DROP COLUMN IF EXISTS tags;
+DROP COLUMN IF EXISTS tags CASCADE;
 
 -- Eliminar columna preview_url
 ALTER TABLE public.digital_products
-DROP COLUMN IF EXISTS preview_url;
+DROP COLUMN IF EXISTS preview_url CASCADE;
 
 -- Eliminar columna file_format
 ALTER TABLE public.digital_products
-DROP COLUMN IF EXISTS file_format;
+DROP COLUMN IF EXISTS file_format CASCADE;
 
 -- Eliminar columna file_size_mb
 ALTER TABLE public.digital_products
-DROP COLUMN IF EXISTS file_size_mb;
+DROP COLUMN IF EXISTS file_size_mb CASCADE;
 
 -- ============================================================================
--- 3. ACTUALIZAR CONSTRAINT DE CATEGORÍA (eliminar 'course')
+-- 4. ACTUALIZAR CONSTRAINT DE CATEGORÍA (eliminar 'course')
 -- ============================================================================
 
 -- Primero eliminar el constraint existente
@@ -76,7 +60,41 @@ ADD CONSTRAINT digital_products_category_check CHECK (
 );
 
 -- ============================================================================
--- 4. COMENTARIOS
+-- 5. RECREAR LA VISTA SIN LAS COLUMNAS ELIMINADAS
+-- ============================================================================
+
+CREATE OR REPLACE VIEW public.digital_products_with_professional AS
+SELECT
+    dp.id,
+    dp.professional_id,
+    dp.title,
+    dp.description,
+    dp.category,
+    dp.price,
+    dp.currency,
+    dp.cover_image_url,
+    dp.file_url,
+    dp.duration_minutes,
+    dp.pages_count,
+    dp.is_active,
+    dp.sales_count,
+    dp.created_at,
+    dp.updated_at,
+    pa.first_name as professional_first_name,
+    pa.last_name as professional_last_name,
+    pa.profile_photo as professional_photo,
+    pa.profession as professional_profession,
+    pa.is_verified as professional_is_verified
+FROM public.digital_products dp
+INNER JOIN public.professional_applications pa ON dp.professional_id = pa.id
+WHERE dp.is_active = true
+AND pa.is_verified = true
+AND pa.status = 'approved';
+
+COMMENT ON VIEW public.digital_products_with_professional IS 'Vista de productos digitales con información del profesional que los vende';
+
+-- ============================================================================
+-- 6. COMENTARIOS
 -- ============================================================================
 
 COMMENT ON COLUMN public.digital_products.category IS 'Tipo de producto: meditation, ebook, manual, guide, audio, video, other (course fue eliminado)';

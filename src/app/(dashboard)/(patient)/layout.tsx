@@ -15,7 +15,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Menu, User, LogOut, Briefcase } from "lucide-react";
+import { Menu, User, LogOut, Briefcase, Download } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { createClient } from "@/utils/supabase/client";
@@ -27,6 +27,7 @@ const getNavigation = (userId: string, hasEvents: boolean = false) => {
     { name: "Explorar", href: `/patient/${userId}/explore` },
     { name: "Favoritos", href: `/patient/${userId}/explore/favorites` },
     { name: "Citas", href: `/patient/${userId}/explore/appointments` },
+    { name: "Mis Productos", href: `/patient/${userId}/my-products` },
   ];
 
   // Agregar "Mis eventos" solo si el usuario tiene eventos asignados

@@ -16,6 +16,7 @@ import {
   CalendarCheck,
   DollarSign,
   FileText,
+  ShoppingBag,
 } from "lucide-react";
 import {
   Sidebar,
@@ -90,6 +91,11 @@ const getNavItems = (id: string): { mainNavItems: ProfessionalNavItem[] } => {
       title: "Finanzas",
       url: `/professional/${id}/finances`,
       icon: DollarSign,
+    },
+    {
+      title: "Productos Digitales",
+      url: `/professional/${id}/digital-products`,
+      icon: ShoppingBag,
     },
     {
       title: "Mis eventos",

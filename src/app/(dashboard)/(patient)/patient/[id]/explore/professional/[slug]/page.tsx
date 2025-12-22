@@ -17,6 +17,7 @@ import {
   XCircle,
   CreditCard,
   Languages,
+  ShoppingBag,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import MapboxMap from "@/components/ui/mapbox-map";
@@ -47,6 +48,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { VerifiedBadge } from "@/components/ui/verified-badge";
+import { DigitalProductCard } from "@/components/ui/digital-product-card";
 
 interface Professional {
   id: string;
@@ -149,6 +151,7 @@ export default function ProfessionalProfilePage() {
   const [userReview, setUserReview] = useState<Review | null>(null);
   const [editingReview, setEditingReview] = useState<Review | null>(null);
   const [refreshReviews, setRefreshReviews] = useState(0);
+  const [digitalProducts, setDigitalProducts] = useState<any[]>([]);
 
   const params = useParams();
   const supabase = createClient();
@@ -395,6 +398,20 @@ export default function ProfessionalProfilePage() {
 
           if (!favoriteError) {
             setIsFavorite(!!favoriteData);
+          }
+        }
+
+        // Cargar productos digitales del profesional verificado
+        if (professionalData.is_verified) {
+          const { data: productsData } = await supabase
+            .from('digital_products_with_professional')
+            .select('*')
+            .eq('professional_id', professionalData.id)
+            .eq('is_active', true)
+            .order('created_at', { ascending: false });
+
+          if (productsData) {
+            setDigitalProducts(productsData);
           }
         }
 
@@ -1108,6 +1125,28 @@ export default function ProfessionalProfilePage() {
                     </div>
                     );
                   })}
+                </div>
+              </div>
+            )}
+
+            {/* Productos Digitales */}
+            {professional.is_verified && digitalProducts.length > 0 && (
+              <div>
+                <h2 className="text-lg sm:text-xl font-bold text-foreground mb-4 sm:mb-6 flex items-center gap-2">
+                  <ShoppingBag className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
+                  Productos Digitales
+                </h2>
+                <p className="text-sm text-muted-foreground mb-6">
+                  Meditaciones, ebooks y recursos creados por {professional.first_name}
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {digitalProducts.map((product) => (
+                    <DigitalProductCard
+                      key={product.id}
+                      product={product}
+                      showProfessional={false}
+                    />
+                  ))}
                 </div>
               </div>
             )}

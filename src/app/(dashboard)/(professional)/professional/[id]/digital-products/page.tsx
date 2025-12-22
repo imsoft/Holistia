@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams } from "next/navigation";
 import Image from "next/image";
 import { toast } from "sonner";
@@ -19,6 +19,8 @@ import {
   Video,
   FileCheck,
   Sparkles,
+  Image as ImageIcon,
+  Upload,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -78,8 +80,6 @@ interface FormData {
   file_url: string;
   duration_minutes: string;
   pages_count: string;
-  file_size_mb: string;
-  file_format: string;
   is_active: boolean;
 }
 
@@ -115,10 +115,10 @@ export default function ProfessionalDigitalProducts() {
     file_url: "",
     duration_minutes: "",
     pages_count: "",
-    file_size_mb: "",
-    file_format: "",
     is_active: true,
   });
+  const [uploadingCover, setUploadingCover] = useState(false);
+  const coverFileInputRef = useRef<HTMLInputElement>(null);
 
   const [stats, setStats] = useState({
     totalProducts: 0,
@@ -201,8 +201,6 @@ export default function ProfessionalDigitalProducts() {
         file_url: product.file_url || "",
         duration_minutes: product.duration_minutes?.toString() || "",
         pages_count: product.pages_count?.toString() || "",
-        file_size_mb: product.file_size_mb?.toString() || "",
-        file_format: product.file_format || "",
         is_active: product.is_active,
       });
     } else {
@@ -217,8 +215,6 @@ export default function ProfessionalDigitalProducts() {
         file_url: "",
         duration_minutes: "",
         pages_count: "",
-        file_size_mb: "",
-        file_format: "",
         is_active: true,
       });
     }
@@ -264,8 +260,8 @@ export default function ProfessionalDigitalProducts() {
         preview_url: null,
         duration_minutes: formData.duration_minutes ? parseInt(formData.duration_minutes) : null,
         pages_count: formData.pages_count ? parseInt(formData.pages_count) : null,
-        file_size_mb: formData.file_size_mb ? parseFloat(formData.file_size_mb) : null,
-        file_format: formData.file_format || null,
+        file_size_mb: null,
+        file_format: null,
         tags: null,
         is_active: formData.is_active,
       };
@@ -334,6 +330,112 @@ export default function ProfessionalDigitalProducts() {
   // Determinar qué campos mostrar según la categoría
   const shouldShowDuration = ['meditation', 'audio', 'video'].includes(formData.category);
   const shouldShowPages = ['ebook', 'manual', 'guide'].includes(formData.category);
+
+  const handleCoverImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (!files || files.length === 0) return;
+
+    const file = files[0];
+    
+    // Validar tamaño (máximo 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('La imagen debe ser menor a 5MB');
+      return;
+    }
+
+    // Validar tipo
+    if (!file.type.startsWith('image/')) {
+      toast.error('Solo se permiten archivos de imagen');
+      return;
+    }
+
+    setUploadingCover(true);
+
+    try {
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      
+      if (authError || !user) {
+        throw new Error('Debes estar autenticado para subir imágenes');
+      }
+
+      // Obtener professional_id
+      const { data: professional } = await supabase
+        .from("professional_applications")
+        .select("id")
+        .eq("user_id", user.id)
+        .single();
+
+      if (!professional) {
+        throw new Error('No se encontró tu perfil de profesional');
+      }
+
+      // Generar nombre único para la imagen
+      const fileExt = file.name.split('.').pop();
+      const fileName = `cover-${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+      const filePath = `${professional.id}/${fileName}`;
+
+      // Subir imagen a Supabase Storage (usando bucket professional-gallery)
+      const { error: uploadError } = await supabase.storage
+        .from('professional-gallery')
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
+
+      if (uploadError) {
+        console.error('Storage upload error:', uploadError);
+        throw new Error('Error al subir la imagen');
+      }
+
+      // Obtener URL pública de la imagen
+      const { data: { publicUrl } } = supabase.storage
+        .from('professional-gallery')
+        .getPublicUrl(filePath);
+
+      setFormData({ ...formData, cover_image_url: publicUrl });
+      toast.success('Imagen de portada subida exitosamente');
+
+      // Limpiar input
+      if (coverFileInputRef.current) {
+        coverFileInputRef.current.value = '';
+      }
+    } catch (error) {
+      console.error('Error uploading cover image:', error);
+      toast.error(error instanceof Error ? error.message : 'Error al subir la imagen');
+    } finally {
+      setUploadingCover(false);
+    }
+  };
+
+  const handleRemoveCoverImage = async () => {
+    if (!formData.cover_image_url) return;
+
+    try {
+      // Extraer el path del URL
+      const url = new URL(formData.cover_image_url);
+      const pathParts = url.pathname.split('/');
+      const bucketIndex = pathParts.findIndex(part => part === 'professional-gallery');
+      
+      if (bucketIndex !== -1) {
+        const filePath = pathParts.slice(bucketIndex + 1).join('/');
+        
+        const { error } = await supabase.storage
+          .from('professional-gallery')
+          .remove([filePath]);
+
+        if (error) {
+          console.error('Error removing image:', error);
+        }
+      }
+
+      setFormData({ ...formData, cover_image_url: '' });
+      toast.success('Imagen de portada eliminada');
+    } catch (error) {
+      console.error('Error removing cover image:', error);
+      // Aún así, limpiar el campo del formulario
+      setFormData({ ...formData, cover_image_url: '' });
+    }
+  };
 
   if (loading) {
     return (
@@ -601,13 +703,67 @@ export default function ProfessionalDigitalProducts() {
             </div>
 
             <div>
-              <Label htmlFor="cover_image_url" className="mb-2 block">URL de Imagen de Portada</Label>
-              <Input
-                id="cover_image_url"
-                value={formData.cover_image_url}
-                onChange={(e) => setFormData({ ...formData, cover_image_url: e.target.value })}
-                placeholder="https://..."
-              />
+              <Label htmlFor="cover_image" className="mb-2 block">Imagen de Portada</Label>
+              {formData.cover_image_url ? (
+                <div className="space-y-2">
+                  <div className="relative w-full h-48 rounded-lg overflow-hidden border border-border">
+                    <Image
+                      src={formData.cover_image_url}
+                      alt="Portada"
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleRemoveCoverImage}
+                    className="w-full"
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Eliminar Imagen
+                  </Button>
+                </div>
+              ) : (
+                <div className="border-2 border-dashed border-border rounded-lg p-6">
+                  <input
+                    ref={coverFileInputRef}
+                    type="file"
+                    id="cover_image"
+                    accept="image/*"
+                    onChange={handleCoverImageUpload}
+                    className="hidden"
+                  />
+                  <div className="flex flex-col items-center justify-center text-center">
+                    <ImageIcon className="h-12 w-12 text-muted-foreground mb-2" />
+                    <p className="text-sm text-muted-foreground mb-2">
+                      Sube una imagen de portada para tu producto
+                    </p>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => coverFileInputRef.current?.click()}
+                      disabled={uploadingCover}
+                    >
+                      {uploadingCover ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mr-2"></div>
+                          Subiendo...
+                        </>
+                      ) : (
+                        <>
+                          <Upload className="h-4 w-4 mr-2" />
+                          Seleccionar Imagen
+                        </>
+                      )}
+                    </Button>
+                    <p className="text-xs text-muted-foreground mt-2">
+                      Máximo 5MB. Formatos: JPG, PNG, WebP
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
 
             <div>
@@ -624,81 +780,32 @@ export default function ProfessionalDigitalProducts() {
             </div>
 
             {shouldShowDuration && (
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="duration_minutes" className="mb-2 block">Duración (minutos)</Label>
-                  <Input
-                    id="duration_minutes"
-                    type="number"
-                    min="0"
-                    value={formData.duration_minutes}
-                    onChange={(e) => setFormData({ ...formData, duration_minutes: e.target.value })}
-                    placeholder="Para audio/video"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="file_format" className="mb-2 block">Formato</Label>
-                  <Input
-                    id="file_format"
-                    value={formData.file_format}
-                    onChange={(e) => setFormData({ ...formData, file_format: e.target.value })}
-                    placeholder="MP3, MP4..."
-                  />
-                </div>
-              </div>
-            )}
-
-            {shouldShowPages && (
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="pages_count" className="mb-2 block">Número de Páginas</Label>
-                  <Input
-                    id="pages_count"
-                    type="number"
-                    min="0"
-                    value={formData.pages_count}
-                    onChange={(e) => setFormData({ ...formData, pages_count: e.target.value })}
-                    placeholder="Para ebooks/manuales"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="file_format" className="mb-2 block">Formato</Label>
-                  <Input
-                    id="file_format"
-                    value={formData.file_format}
-                    onChange={(e) => setFormData({ ...formData, file_format: e.target.value })}
-                    placeholder="PDF..."
-                  />
-                </div>
-              </div>
-            )}
-
-            {!shouldShowDuration && !shouldShowPages && (
               <div>
-                <Label htmlFor="file_format" className="mb-2 block">Formato</Label>
+                <Label htmlFor="duration_minutes" className="mb-2 block">Duración (minutos)</Label>
                 <Input
-                  id="file_format"
-                  value={formData.file_format}
-                  onChange={(e) => setFormData({ ...formData, file_format: e.target.value })}
-                  placeholder="PDF, MP3, MP4, ZIP..."
+                  id="duration_minutes"
+                  type="number"
+                  min="0"
+                  value={formData.duration_minutes}
+                  onChange={(e) => setFormData({ ...formData, duration_minutes: e.target.value })}
+                  placeholder="Para audio/video"
                 />
               </div>
             )}
 
-            <div>
-              <Label htmlFor="file_size_mb" className="mb-2 block">Tamaño (MB)</Label>
-              <Input
-                id="file_size_mb"
-                type="number"
-                step="0.1"
-                min="0"
-                value={formData.file_size_mb}
-                onChange={(e) => setFormData({ ...formData, file_size_mb: e.target.value })}
-                placeholder="0.0"
-              />
-            </div>
+            {shouldShowPages && (
+              <div>
+                <Label htmlFor="pages_count" className="mb-2 block">Número de Páginas</Label>
+                <Input
+                  id="pages_count"
+                  type="number"
+                  min="0"
+                  value={formData.pages_count}
+                  onChange={(e) => setFormData({ ...formData, pages_count: e.target.value })}
+                  placeholder="Para ebooks/manuales"
+                />
+              </div>
+            )}
 
             <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
               <Label htmlFor="is_active" className="cursor-pointer">

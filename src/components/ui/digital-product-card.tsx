@@ -81,6 +81,7 @@ export function DigitalProductCard({
 }: DigitalProductCardProps) {
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [hasPurchased, setHasPurchased] = useState(false);
+  const [isPurchasing, setIsPurchasing] = useState(false);
   const supabase = createClient();
 
   const CategoryIcon = CATEGORY_ICONS[product.category] || Tag;
@@ -113,7 +114,37 @@ export function DigitalProductCard({
       return;
     }
 
-    toast.info("Característica de compra en desarrollo. Próximamente disponible.");
+    try {
+      setIsPurchasing(true);
+      toast.loading("Procesando compra...");
+      
+      const response = await fetch('/api/stripe/digital-product-checkout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          product_id: product.id,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Error al procesar la compra');
+      }
+
+      // Redirect to Stripe Checkout
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        throw new Error('No se recibió la URL de checkout');
+      }
+    } catch (error) {
+      console.error('Error processing purchase:', error);
+      toast.error(error instanceof Error ? error.message : 'Error al procesar la compra');
+      setIsPurchasing(false);
+    }
   };
 
   const handleDownload = async () => {
@@ -402,9 +433,9 @@ export function DigitalProductCard({
                 </Button>
               </div>
             ) : (
-              <Button size="lg" onClick={handlePurchase} className="gap-2">
+              <Button size="lg" onClick={handlePurchase} disabled={isPurchasing} className="gap-2">
                 <ShoppingBag className="h-5 w-5" />
-                Comprar Ahora
+                {isPurchasing ? 'Procesando...' : 'Comprar Ahora'}
               </Button>
             )}
           </DialogFooter>

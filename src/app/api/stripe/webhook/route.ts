@@ -495,9 +495,32 @@ export async function POST(request: NextRequest) {
           appointment_id,
           event_registration_id,
           professional_application_id,
-          payment_type
+          payment_type,
+          purchase_id,
+          product_id
         } = session.metadata || {};
 
+        // Handle digital product purchases (they don't use the payments table)
+        if (payment_type === 'digital_product' && purchase_id) {
+          const { error: purchaseUpdateError } = await supabase
+            .from('digital_product_purchases')
+            .update({
+              stripe_payment_intent_id: session.payment_intent as string,
+              stripe_charge_id: session.payment_intent as string,
+              payment_status: 'succeeded',
+              access_granted: true,
+            })
+            .eq('id', purchase_id);
+
+          if (purchaseUpdateError) {
+            console.error('Error updating digital product purchase:', purchaseUpdateError);
+          } else {
+            console.log('✅ Digital product purchase confirmed and access granted:', purchase_id);
+          }
+          break; // Exit early for digital products
+        }
+
+        // For other payment types, require payment_id
         if (!payment_id) {
           console.error('Missing payment_id in session metadata');
           break;

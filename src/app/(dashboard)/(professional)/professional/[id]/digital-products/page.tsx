@@ -76,12 +76,10 @@ interface FormData {
   currency: string;
   cover_image_url: string;
   file_url: string;
-  preview_url: string;
   duration_minutes: string;
   pages_count: string;
   file_size_mb: string;
   file_format: string;
-  tags: string[];
   is_active: boolean;
 }
 
@@ -89,7 +87,6 @@ const CATEGORY_OPTIONS = [
   { value: 'meditation', label: 'Meditación', icon: Sparkles },
   { value: 'ebook', label: 'eBook', icon: BookOpen },
   { value: 'manual', label: 'Manual', icon: FileText },
-  { value: 'course', label: 'Curso', icon: Video },
   { value: 'guide', label: 'Guía', icon: FileCheck },
   { value: 'audio', label: 'Audio', icon: Headphones },
   { value: 'video', label: 'Video', icon: Video },
@@ -107,7 +104,6 @@ export default function ProfessionalDigitalProducts() {
   const [editingProduct, setEditingProduct] = useState<DigitalProduct | null>(null);
   const [deletingProduct, setDeletingProduct] = useState<DigitalProduct | null>(null);
   const [saving, setSaving] = useState(false);
-  const [newTag, setNewTag] = useState("");
 
   const [formData, setFormData] = useState<FormData>({
     title: "",
@@ -117,12 +113,10 @@ export default function ProfessionalDigitalProducts() {
     currency: "MXN",
     cover_image_url: "",
     file_url: "",
-    preview_url: "",
     duration_minutes: "",
     pages_count: "",
     file_size_mb: "",
     file_format: "",
-    tags: [],
     is_active: true,
   });
 
@@ -205,12 +199,10 @@ export default function ProfessionalDigitalProducts() {
         currency: product.currency,
         cover_image_url: product.cover_image_url || "",
         file_url: product.file_url || "",
-        preview_url: product.preview_url || "",
         duration_minutes: product.duration_minutes?.toString() || "",
         pages_count: product.pages_count?.toString() || "",
         file_size_mb: product.file_size_mb?.toString() || "",
         file_format: product.file_format || "",
-        tags: product.tags || [],
         is_active: product.is_active,
       });
     } else {
@@ -223,12 +215,10 @@ export default function ProfessionalDigitalProducts() {
         currency: "MXN",
         cover_image_url: "",
         file_url: "",
-        preview_url: "",
         duration_minutes: "",
         pages_count: "",
         file_size_mb: "",
         file_format: "",
-        tags: [],
         is_active: true,
       });
     }
@@ -271,12 +261,12 @@ export default function ProfessionalDigitalProducts() {
         currency: formData.currency,
         cover_image_url: formData.cover_image_url || null,
         file_url: formData.file_url || null,
-        preview_url: formData.preview_url || null,
+        preview_url: null,
         duration_minutes: formData.duration_minutes ? parseInt(formData.duration_minutes) : null,
         pages_count: formData.pages_count ? parseInt(formData.pages_count) : null,
         file_size_mb: formData.file_size_mb ? parseFloat(formData.file_size_mb) : null,
         file_format: formData.file_format || null,
-        tags: formData.tags.length > 0 ? formData.tags : null,
+        tags: null,
         is_active: formData.is_active,
       };
 
@@ -341,22 +331,9 @@ export default function ProfessionalDigitalProducts() {
     return option ? option.label : category;
   };
 
-  const addTag = () => {
-    if (newTag.trim() && !formData.tags.includes(newTag.trim())) {
-      setFormData({
-        ...formData,
-        tags: [...formData.tags, newTag.trim()],
-      });
-      setNewTag("");
-    }
-  };
-
-  const removeTag = (tagToRemove: string) => {
-    setFormData({
-      ...formData,
-      tags: formData.tags.filter(tag => tag !== tagToRemove),
-    });
-  };
+  // Determinar qué campos mostrar según la categoría
+  const shouldShowDuration = ['meditation', 'audio', 'video'].includes(formData.category);
+  const shouldShowPages = ['ebook', 'manual', 'guide'].includes(formData.category);
 
   if (loading) {
     return (
@@ -516,20 +493,6 @@ export default function ProfessionalDigitalProducts() {
                       </div>
                     </div>
 
-                    {product.tags && product.tags.length > 0 && (
-                      <div className="flex flex-wrap gap-1">
-                        {product.tags.slice(0, 3).map((tag, idx) => (
-                          <Badge key={idx} variant="secondary" className="text-xs">
-                            {tag}
-                          </Badge>
-                        ))}
-                        {product.tags.length > 3 && (
-                          <Badge variant="secondary" className="text-xs">
-                            +{product.tags.length - 3}
-                          </Badge>
-                        )}
-                      </div>
-                    )}
 
                     <div className="flex gap-2 pt-2">
                       <Button
@@ -574,9 +537,9 @@ export default function ProfessionalDigitalProducts() {
             </DialogDescription>
           </DialogHeader>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <Label htmlFor="title">Título *</Label>
+              <Label htmlFor="title" className="mb-2 block">Título *</Label>
               <Input
                 id="title"
                 value={formData.title}
@@ -587,7 +550,7 @@ export default function ProfessionalDigitalProducts() {
             </div>
 
             <div>
-              <Label htmlFor="description">Descripción *</Label>
+              <Label htmlFor="description" className="mb-2 block">Descripción *</Label>
               <Textarea
                 id="description"
                 value={formData.description}
@@ -598,49 +561,47 @@ export default function ProfessionalDigitalProducts() {
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="category">Categoría *</Label>
-                <Select
-                  value={formData.category}
-                  onValueChange={(value) => setFormData({ ...formData, category: value })}
-                >
-                  <SelectTrigger id="category">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {CATEGORY_OPTIONS.map((option) => {
-                      const Icon = option.icon;
-                      return (
-                        <SelectItem key={option.value} value={option.value}>
-                          <div className="flex items-center gap-2">
-                            <Icon className="h-4 w-4" />
-                            {option.label}
-                          </div>
-                        </SelectItem>
-                      );
-                    })}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <Label htmlFor="price">Precio (MXN) *</Label>
-                <Input
-                  id="price"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={formData.price}
-                  onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                  placeholder="0.00"
-                  required
-                />
-              </div>
+            <div>
+              <Label htmlFor="category" className="mb-2 block">Categoría *</Label>
+              <Select
+                value={formData.category}
+                onValueChange={(value) => setFormData({ ...formData, category: value })}
+              >
+                <SelectTrigger id="category" className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {CATEGORY_OPTIONS.map((option) => {
+                    const Icon = option.icon;
+                    return (
+                      <SelectItem key={option.value} value={option.value}>
+                        <div className="flex items-center gap-2">
+                          <Icon className="h-4 w-4" />
+                          {option.label}
+                        </div>
+                      </SelectItem>
+                    );
+                  })}
+                </SelectContent>
+              </Select>
             </div>
 
             <div>
-              <Label htmlFor="cover_image_url">URL de Imagen de Portada</Label>
+              <Label htmlFor="price" className="mb-2 block">Precio (MXN) *</Label>
+              <Input
+                id="price"
+                type="number"
+                step="0.01"
+                min="0"
+                value={formData.price}
+                onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                placeholder="0.00"
+                required
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="cover_image_url" className="mb-2 block">URL de Imagen de Portada</Label>
               <Input
                 id="cover_image_url"
                 value={formData.cover_image_url}
@@ -650,7 +611,7 @@ export default function ProfessionalDigitalProducts() {
             </div>
 
             <div>
-              <Label htmlFor="file_url">URL del Archivo (producto final)</Label>
+              <Label htmlFor="file_url" className="mb-2 block">URL del Archivo (producto final)</Label>
               <Input
                 id="file_url"
                 value={formData.file_url}
@@ -662,48 +623,61 @@ export default function ProfessionalDigitalProducts() {
               </p>
             </div>
 
-            <div>
-              <Label htmlFor="preview_url">URL de Vista Previa (opcional)</Label>
-              <Input
-                id="preview_url"
-                value={formData.preview_url}
-                onChange={(e) => setFormData({ ...formData, preview_url: e.target.value })}
-                placeholder="https://..."
-              />
-              <p className="text-xs text-muted-foreground mt-1">
-                Muestra gratuita o fragmento del producto
-              </p>
-            </div>
+            {shouldShowDuration && (
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="duration_minutes" className="mb-2 block">Duración (minutos)</Label>
+                  <Input
+                    id="duration_minutes"
+                    type="number"
+                    min="0"
+                    value={formData.duration_minutes}
+                    onChange={(e) => setFormData({ ...formData, duration_minutes: e.target.value })}
+                    placeholder="Para audio/video"
+                  />
+                </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="duration_minutes">Duración (minutos)</Label>
-                <Input
-                  id="duration_minutes"
-                  type="number"
-                  min="0"
-                  value={formData.duration_minutes}
-                  onChange={(e) => setFormData({ ...formData, duration_minutes: e.target.value })}
-                  placeholder="Para audio/video"
-                />
+                <div>
+                  <Label htmlFor="file_format" className="mb-2 block">Formato</Label>
+                  <Input
+                    id="file_format"
+                    value={formData.file_format}
+                    onChange={(e) => setFormData({ ...formData, file_format: e.target.value })}
+                    placeholder="MP3, MP4..."
+                  />
+                </div>
               </div>
+            )}
 
-              <div>
-                <Label htmlFor="pages_count">Número de Páginas</Label>
-                <Input
-                  id="pages_count"
-                  type="number"
-                  min="0"
-                  value={formData.pages_count}
-                  onChange={(e) => setFormData({ ...formData, pages_count: e.target.value })}
-                  placeholder="Para ebooks/manuales"
-                />
+            {shouldShowPages && (
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="pages_count" className="mb-2 block">Número de Páginas</Label>
+                  <Input
+                    id="pages_count"
+                    type="number"
+                    min="0"
+                    value={formData.pages_count}
+                    onChange={(e) => setFormData({ ...formData, pages_count: e.target.value })}
+                    placeholder="Para ebooks/manuales"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="file_format" className="mb-2 block">Formato</Label>
+                  <Input
+                    id="file_format"
+                    value={formData.file_format}
+                    onChange={(e) => setFormData({ ...formData, file_format: e.target.value })}
+                    placeholder="PDF..."
+                  />
+                </div>
               </div>
-            </div>
+            )}
 
-            <div className="grid grid-cols-2 gap-4">
+            {!shouldShowDuration && !shouldShowPages && (
               <div>
-                <Label htmlFor="file_format">Formato</Label>
+                <Label htmlFor="file_format" className="mb-2 block">Formato</Label>
                 <Input
                   id="file_format"
                   value={formData.file_format}
@@ -711,48 +685,19 @@ export default function ProfessionalDigitalProducts() {
                   placeholder="PDF, MP3, MP4, ZIP..."
                 />
               </div>
-
-              <div>
-                <Label htmlFor="file_size_mb">Tamaño (MB)</Label>
-                <Input
-                  id="file_size_mb"
-                  type="number"
-                  step="0.1"
-                  min="0"
-                  value={formData.file_size_mb}
-                  onChange={(e) => setFormData({ ...formData, file_size_mb: e.target.value })}
-                  placeholder="0.0"
-                />
-              </div>
-            </div>
+            )}
 
             <div>
-              <Label>Etiquetas</Label>
-              <div className="flex gap-2 mb-2">
-                <Input
-                  value={newTag}
-                  onChange={(e) => setNewTag(e.target.value)}
-                  onKeyPress={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault();
-                      addTag();
-                    }
-                  }}
-                  placeholder="Ej: relajación, sueño, mindfulness..."
-                />
-                <Button type="button" variant="outline" onClick={addTag}>
-                  <Plus className="h-4 w-4" />
-                </Button>
-              </div>
-              {formData.tags.length > 0 && (
-                <div className="flex flex-wrap gap-2">
-                  {formData.tags.map((tag, idx) => (
-                    <Badge key={idx} variant="secondary" className="cursor-pointer" onClick={() => removeTag(tag)}>
-                      {tag} <span className="ml-1 text-xs">×</span>
-                    </Badge>
-                  ))}
-                </div>
-              )}
+              <Label htmlFor="file_size_mb" className="mb-2 block">Tamaño (MB)</Label>
+              <Input
+                id="file_size_mb"
+                type="number"
+                step="0.1"
+                min="0"
+                value={formData.file_size_mb}
+                onChange={(e) => setFormData({ ...formData, file_size_mb: e.target.value })}
+                placeholder="0.0"
+              />
             </div>
 
             <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">

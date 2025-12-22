@@ -510,11 +510,8 @@ export default function AdminCompanies() {
     if (!quotingLead) return;
 
     try {
-      const jsPDF = (await import('jspdf')).default;
-      // Importar jspdf-autotable para extender jsPDF
-      await import('jspdf-autotable');
-
-      const doc = new jsPDF() as any;
+      const { jsPDF } = await import('jspdf');
+      const doc = new jsPDF();
 
       // Header - Logo y título
       doc.setFillColor(79, 70, 229); // primary color
@@ -569,51 +566,66 @@ export default function AdminCompanies() {
       doc.setFont('helvetica', 'bold');
       doc.text('SERVICIOS COTIZADOS', 20, yPos);
 
-      yPos += 5;
+      yPos += 10;
 
-      const tableData = quoteServices.map((service) => {
+      // Dibujar tabla manualmente
+      const startX = 20;
+      const cellHeight = 8;
+      const colWidths = [60, 50, 25, 30, 25];
+
+      // Encabezados de tabla
+      doc.setFillColor(79, 70, 229);
+      doc.rect(startX, yPos, colWidths.reduce((a, b) => a + b, 0), cellHeight, 'F');
+
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'bold');
+
+      doc.text('Servicio', startX + 2, yPos + 5);
+      doc.text('Profesional(es)', startX + colWidths[0] + 2, yPos + 5);
+      doc.text('Sesiones', startX + colWidths[0] + colWidths[1] + 2, yPos + 5);
+      doc.text('Precio/Sesión', startX + colWidths[0] + colWidths[1] + colWidths[2] + 2, yPos + 5);
+      doc.text('Subtotal', startX + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3] + 2, yPos + 5);
+
+      yPos += cellHeight;
+
+      // Filas de datos
+      doc.setTextColor(0, 0, 0);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8);
+
+      quoteServices.forEach((service) => {
         const professionals = service.assigned_professionals
           .map(profId => {
             const prof = availableProfessionals.find(p => p.id === profId);
             return prof ? `${prof.first_name} ${prof.last_name}` : '';
           })
           .filter(Boolean)
-          .join(', ');
+          .join(', ') || 'Por asignar';
 
-        return [
-          service.service_name,
-          professionals || 'Por asignar',
-          service.quantity.toString(),
-          `$${service.unit_price.toLocaleString('es-MX', { minimumFractionDigits: 2 })}`,
-          `$${(service.quantity * service.unit_price).toLocaleString('es-MX', { minimumFractionDigits: 2 })}`,
-        ];
-      });
+        // Fondo alternado
+        doc.setFillColor(245, 245, 245);
+        doc.rect(startX, yPos, colWidths.reduce((a, b) => a + b, 0), cellHeight, 'F');
 
-      doc.autoTable({
-        startY: yPos,
-        head: [['Servicio', 'Profesional(es)', 'Sesiones', 'Precio/Sesión', 'Subtotal']],
-        body: tableData,
-        theme: 'grid',
-        headStyles: {
-          fillColor: [79, 70, 229],
-          textColor: [255, 255, 255],
-          fontStyle: 'bold',
-        },
-        styles: {
-          fontSize: 9,
-          cellPadding: 4,
-        },
-        columnStyles: {
-          0: { cellWidth: 50 },
-          1: { cellWidth: 50 },
-          2: { cellWidth: 20, halign: 'center' },
-          3: { cellWidth: 30, halign: 'right' },
-          4: { cellWidth: 30, halign: 'right' },
-        },
+        // Bordes
+        doc.setDrawColor(200, 200, 200);
+        doc.rect(startX, yPos, colWidths.reduce((a, b) => a + b, 0), cellHeight);
+
+        // Contenido
+        const serviceName = doc.splitTextToSize(service.service_name, colWidths[0] - 4);
+        const profNames = doc.splitTextToSize(professionals, colWidths[1] - 4);
+
+        doc.text(serviceName[0], startX + 2, yPos + 5);
+        doc.text(profNames[0], startX + colWidths[0] + 2, yPos + 5);
+        doc.text(service.quantity.toString(), startX + colWidths[0] + colWidths[1] + colWidths[2] / 2, yPos + 5, { align: 'center' });
+        doc.text(`$${service.unit_price.toLocaleString('es-MX', { minimumFractionDigits: 2 })}`, startX + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3] - 2, yPos + 5, { align: 'right' });
+        doc.text(`$${(service.quantity * service.unit_price).toLocaleString('es-MX', { minimumFractionDigits: 2 })}`, startX + colWidths.reduce((a, b) => a + b, 0) - 2, yPos + 5, { align: 'right' });
+
+        yPos += cellHeight;
       });
 
       // Resumen de precios
-      yPos = (doc as any).lastAutoTable.finalY + 10;
+      yPos += 10;
 
       const subtotal = calculateSubtotal();
       const discount = calculateDiscount();
@@ -659,18 +671,14 @@ export default function AdminCompanies() {
       }
 
       // Footer
-      const pageCount = doc.internal.getNumberOfPages();
-      for (let i = 1; i <= pageCount; i++) {
-        doc.setPage(i);
-        doc.setFontSize(8);
-        doc.setTextColor(128, 128, 128);
-        doc.text(
-          `Página ${i} de ${pageCount}`,
-          doc.internal.pageSize.width / 2,
-          doc.internal.pageSize.height - 10,
-          { align: 'center' }
-        );
-      }
+      doc.setFontSize(8);
+      doc.setTextColor(128, 128, 128);
+      doc.text(
+        'Cotización generada por Holistia',
+        doc.internal.pageSize.getWidth() / 2,
+        doc.internal.pageSize.getHeight() - 10,
+        { align: 'center' }
+      );
 
       // Guardar PDF
       const fileName = `Cotizacion_${quotingLead.company_name.replace(/\s/g, '_')}_${new Date().getTime()}.pdf`;

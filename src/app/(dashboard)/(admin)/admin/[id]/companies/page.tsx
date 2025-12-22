@@ -49,6 +49,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { VerifiedBadge } from "@/components/ui/verified-badge";
 
 interface Company {
   id: string;
@@ -77,6 +78,7 @@ interface Professional {
   specializations?: string[];
   profile_photo?: string;
   phone?: string;
+  is_verified?: boolean;
 }
 
 interface CompanyProfessional {
@@ -349,7 +351,7 @@ export default function AdminCompanies() {
       try {
         const { data: allProfessionals, error: profError } = await supabase
           .from("professional_applications")
-          .select("id, first_name, last_name, email, profession, specializations, profile_photo, phone")
+          .select("id, first_name, last_name, email, profession, specializations, profile_photo, phone, is_verified")
           .eq("status", "approved")
           .eq("is_active", true)
           .order("first_name");
@@ -1637,8 +1639,9 @@ export default function AdminCompanies() {
                               className="w-12 h-12 rounded-full object-cover"
                             />
                             <div>
-                              <h4 className="font-medium">
+                              <h4 className="font-medium flex items-center gap-2">
                                 {assignment.professional?.first_name} {assignment.professional?.last_name}
+                                {assignment.professional?.is_verified && <VerifiedBadge size={16} />}
                               </h4>
                               <p className="text-sm text-muted-foreground">
                                 {assignment.professional?.profession}
@@ -1728,8 +1731,9 @@ export default function AdminCompanies() {
                                 className="w-12 h-12 rounded-full object-cover"
                               />
                               <div>
-                                <h4 className="font-medium">
+                                <h4 className="font-medium flex items-center gap-2">
                                   {selectedProf.first_name} {selectedProf.last_name}
+                                  {selectedProf.is_verified && <VerifiedBadge size={16} />}
                                 </h4>
                                 <p className="text-sm text-muted-foreground">
                                   {selectedProf.profession}
@@ -2003,6 +2007,7 @@ export default function AdminCompanies() {
                               return prof ? (
                                 <Badge key={profId} variant="secondary" className="flex items-center gap-1">
                                   {prof.first_name} {prof.last_name}
+                                  {prof.is_verified && <VerifiedBadge size={14} />}
                                   <X
                                     className="w-3 h-3 cursor-pointer hover:text-destructive"
                                     onClick={() => {

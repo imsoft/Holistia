@@ -19,6 +19,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { stripHtml } from "@/lib/text-utils";
+import { VerifiedBadge } from "@/components/ui/verified-badge";
 
 interface Professional {
   id: string;
@@ -33,6 +34,7 @@ interface Professional {
   profession: string;
   city: string | null;
   admin_rating: number | null;
+  is_verified?: boolean;
 }
 
 interface Shop {
@@ -91,7 +93,7 @@ export function ExploreSection({ hideHeader = false }: ExploreSectionProps) {
         // Solo profesionales con foto de perfil, aprobados, activos y con calificación de admin > 4.5
         const { data: professionalsData } = await supabase
           .from("professional_applications")
-          .select("id, first_name, last_name, profile_photo, specializations, experience, user_id, profession, city")
+          .select("id, first_name, last_name, profile_photo, specializations, experience, user_id, profession, city, is_verified")
           .eq("status", "approved")
           .eq("is_active", true)
           .not("profile_photo", "is", null)
@@ -128,6 +130,7 @@ export function ExploreSection({ hideHeader = false }: ExploreSectionProps) {
                 profession: prof.profession,
                 city: prof.city,
                 admin_rating: adminRatingStats?.average_admin_rating || null,
+                is_verified: prof.is_verified || false,
               };
             })
           );
@@ -345,8 +348,9 @@ export function ExploreSection({ hideHeader = false }: ExploreSectionProps) {
                         </CardTitle>
                       )}
                       <div className="flex items-center justify-between gap-2 mt-1">
-                        <p className="text-sm text-muted-foreground truncate">
+                        <p className="text-sm text-muted-foreground truncate flex items-center gap-1">
                           {prof.first_name} {prof.last_name}
+                          {prof.is_verified && <VerifiedBadge size={14} />}
                         </p>
                         {prof.average_rating > 0 && (
                           <div className="flex items-center gap-1 flex-shrink-0">

@@ -46,6 +46,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { VerifiedBadge } from "@/components/ui/verified-badge";
 
 interface Professional {
   id: string;
@@ -76,6 +77,7 @@ interface Professional {
   status: 'pending' | 'under_review' | 'approved' | 'rejected';
   created_at: string;
   updated_at: string;
+  is_verified?: boolean;
   // Campos de horarios de trabajo
   working_start_time?: string;
   working_end_time?: string;
@@ -777,8 +779,9 @@ export default function ProfessionalProfilePage() {
                 </div>
               </div>
               <div className="flex-1">
-                <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-1">
+                <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-1 flex items-center gap-2">
                   {professional.first_name} {professional.last_name}
+                  {professional.is_verified && <VerifiedBadge size={24} />}
                 </h1>
                 <p className="text-base sm:text-lg text-primary font-medium mb-2 sm:mb-3">
                   {professional.profession}
@@ -1467,8 +1470,9 @@ export default function ProfessionalProfilePage() {
       <Dialog open={isPhotoModalOpen} onOpenChange={setIsPhotoModalOpen}>
         <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
-            <DialogTitle className="text-center text-xl">
+            <DialogTitle className="text-center text-xl flex items-center justify-center gap-2">
               {professional.first_name} {professional.last_name}
+              {professional.is_verified && <VerifiedBadge size={20} />}
             </DialogTitle>
           </DialogHeader>
           

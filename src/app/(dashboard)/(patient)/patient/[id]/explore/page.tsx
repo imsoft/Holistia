@@ -2,10 +2,11 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { useParams } from "next/navigation";
-import { Calendar, MapPin, Users, ChevronLeft, ChevronRight, Brain, Sparkles, Activity, Apple, UtensilsCrossed, Store } from "lucide-react";
+import { Calendar, MapPin, Users, ChevronLeft, ChevronRight, Brain, Sparkles, Activity, Apple, UtensilsCrossed, Store, Target } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { ProfessionalCard } from "@/components/ui/professional-card";
+import { ChallengeCard } from "@/components/ui/challenge-card";
 import { createClient } from "@/utils/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -141,10 +142,12 @@ const HomeUserPage = () => {
   const [events, setEvents] = useState<EventWorkshop[]>([]);
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [shops, setShops] = useState<Shop[]>([]);
+  const [challenges, setChallenges] = useState<any[]>([]);
   const eventsScrollRef = useRef<HTMLDivElement>(null);
   const professionalsScrollRef = useRef<HTMLDivElement>(null);
   const restaurantsScrollRef = useRef<HTMLDivElement>(null);
   const shopsScrollRef = useRef<HTMLDivElement>(null);
+  const challengesScrollRef = useRef<HTMLDivElement>(null);
   const supabase = createClient();
 
   useEffect(() => {
@@ -289,6 +292,19 @@ const HomeUserPage = () => {
           console.log("🛍️ Shops data:", shopsData?.map(s => ({ id: s.id, name: s.name, image_url: s.image_url })));
           setShops(shopsData || []);
         }
+
+        // Obtener retos
+        const { data: challengesData, error: challengesError } = await supabase
+          .from("challenges_with_professional")
+          .select("*")
+          .order("created_at", { ascending: false })
+          .limit(20);
+
+        if (challengesError) {
+          console.error("Error fetching challenges:", challengesError);
+        } else {
+          setChallenges(challengesData || []);
+        }
       } catch (error) {
         console.error("Error fetching data:", error);
       } finally {
@@ -424,6 +440,18 @@ const HomeUserPage = () => {
   const scrollShopsRight = () => {
     if (shopsScrollRef.current) {
       shopsScrollRef.current.scrollBy({ left: 400, behavior: 'smooth' });
+    }
+  };
+
+  const scrollChallengesLeft = () => {
+    if (challengesScrollRef.current) {
+      challengesScrollRef.current.scrollBy({ left: -400, behavior: 'smooth' });
+    }
+  };
+
+  const scrollChallengesRight = () => {
+    if (challengesScrollRef.current) {
+      challengesScrollRef.current.scrollBy({ left: 400, behavior: 'smooth' });
     }
   };
 
@@ -580,6 +608,46 @@ const HomeUserPage = () => {
               </div>
             )}
           </div>
+
+          {/* Sección de Retos */}
+          {challenges.length > 0 && (
+            <div className="relative z-5">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-3xl sm:text-4xl font-bold text-foreground">
+                  Retos
+                </h2>
+              </div>
+
+              <div className="relative">
+                <button
+                  onClick={scrollChallengesLeft}
+                  className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-background/80 backdrop-blur-sm rounded-full p-2 shadow-lg hover:bg-background transition-colors"
+                  aria-label="Scroll left"
+                >
+                  <ChevronLeft className="h-6 w-6" />
+                </button>
+                <button
+                  onClick={scrollChallengesRight}
+                  className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-background/80 backdrop-blur-sm rounded-full p-2 shadow-lg hover:bg-background transition-colors"
+                  aria-label="Scroll right"
+                >
+                  <ChevronRight className="h-6 w-6" />
+                </button>
+
+                <div
+                  ref={challengesScrollRef}
+                  className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar px-12"
+                  style={{ scrollPaddingLeft: '1rem', scrollPaddingRight: '1rem' }}
+                >
+                  {challenges.map((challenge) => (
+                    <div key={challenge.id} className="shrink-0 w-80">
+                      <ChallengeCard challenge={challenge} />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Sección de Expertos */}
           <div className="relative z-10">

@@ -497,7 +497,8 @@ export async function POST(request: NextRequest) {
           professional_application_id,
           payment_type,
           purchase_id,
-          product_id
+          product_id,
+          challenge_id
         } = session.metadata || {};
 
         // Handle digital product purchases (they don't use the payments table)
@@ -518,6 +519,40 @@ export async function POST(request: NextRequest) {
             console.log('✅ Digital product purchase confirmed and access granted:', purchase_id);
           }
           break; // Exit early for digital products
+        }
+
+        // Handle challenge purchases
+        if (payment_type === 'challenge' && purchase_id) {
+          const challenge_id = session.metadata?.challenge_id;
+          
+          const { error: purchaseUpdateError } = await supabase
+            .from('challenge_purchases')
+            .update({
+              stripe_payment_intent_id: session.payment_intent as string,
+              stripe_charge_id: session.payment_intent as string,
+              payment_status: 'succeeded',
+              access_granted: true,
+              started_at: new Date().toISOString(),
+            })
+            .eq('id', purchase_id);
+
+          if (purchaseUpdateError) {
+            console.error('Error updating challenge purchase:', purchaseUpdateError);
+          } else {
+            console.log('✅ Challenge purchase confirmed and access granted:', purchase_id);
+            // Increment sales count
+            if (challenge_id) {
+              const { error: salesError } = await supabase.rpc('increment_challenge_sales', { 
+                challenge_id_param: challenge_id 
+              });
+              if (salesError) {
+                console.error('Error incrementing challenge sales:', salesError);
+              }
+            }
+            // TODO: Send purchase confirmation email to buyer
+            // TODO: Send notification email to professional about the sale
+          }
+          break; // Exit early for challenges
         }
 
         // For other payment types, require payment_id

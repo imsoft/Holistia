@@ -17,9 +17,11 @@ import {
   Calendar,
   ChevronLeft,
   ChevronRight,
+  Target,
 } from "lucide-react";
 import { stripHtml } from "@/lib/text-utils";
 import { VerifiedBadge } from "@/components/ui/verified-badge";
+import { ChallengeCard } from "@/components/ui/challenge-card";
 
 interface Professional {
   id: string;
@@ -77,12 +79,14 @@ export function ExploreSection({ hideHeader = false }: ExploreSectionProps) {
   const [shops, setShops] = useState<Shop[]>([]);
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [events, setEvents] = useState<Event[]>([]);
+  const [challenges, setChallenges] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   const professionalsRef = useRef<HTMLDivElement>(null);
   const shopsRef = useRef<HTMLDivElement>(null);
   const restaurantsRef = useRef<HTMLDivElement>(null);
   const eventsRef = useRef<HTMLDivElement>(null);
+  const challengesRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     async function loadData() {
@@ -201,6 +205,17 @@ export function ExploreSection({ hideHeader = false }: ExploreSectionProps) {
             location: event.location,
           }));
           setEvents(mappedEvents);
+        }
+
+        // Cargar retos (6 para el carousel)
+        const { data: challengesData } = await supabase
+          .from("challenges_with_professional")
+          .select("*")
+          .order("created_at", { ascending: false })
+          .limit(6);
+
+        if (challengesData) {
+          setChallenges(challengesData);
         }
       } catch (error) {
         console.error("Error loading explore data:", error);
@@ -699,6 +714,54 @@ export function ExploreSection({ hideHeader = false }: ExploreSectionProps) {
                   </Card>
                 );
               })}
+            </div>
+          </div>
+        )}
+
+        {/* Retos */}
+        {challenges.length > 0 && (
+          <div className="mb-16">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-2xl font-bold flex items-center gap-2">
+                <Target className="w-6 h-6 text-primary" />
+                Retos
+              </h3>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => scroll(challengesRef, 'left')}
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => scroll(challengesRef, 'right')}
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </Button>
+                <Button variant="outline" size="sm" asChild className="ml-2">
+                  <Link href="/signup">
+                    Ver más <ArrowRight className="w-4 h-4 ml-2" />
+                  </Link>
+                </Button>
+              </div>
+            </div>
+            <div
+              ref={challengesRef}
+              className="flex gap-6 overflow-x-auto pb-4"
+              style={{
+                scrollbarWidth: 'none',
+                msOverflowStyle: 'none',
+                WebkitOverflowScrolling: 'touch'
+              }}
+            >
+              {challenges.map((challenge) => (
+                <div key={challenge.id} className="flex-shrink-0 w-[280px] sm:w-[320px]">
+                  <ChallengeCard challenge={challenge} />
+                </div>
+              ))}
             </div>
           </div>
         )}

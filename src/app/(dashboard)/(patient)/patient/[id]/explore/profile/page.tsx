@@ -10,6 +10,8 @@ import { Button } from "@/components/ui/button";
 import { PhoneInput } from "@/components/ui/phone-input";
 import { AccountDeactivation } from "@/components/ui/account-deactivation";
 import { UsernameSettings } from "@/components/username-settings";
+import { FollowButton } from "@/components/ui/follow-button";
+import { FollowStats } from "@/components/ui/follow-stats";
 
 const ProfilePage = () => {
   const { profile, loading, updateProfile } = useProfile();
@@ -217,10 +219,21 @@ const ProfilePage = () => {
 
           {/* Profile Section */}
           <div>
-            <h2 className="text-sm sm:text-base font-semibold text-foreground">Perfil</h2>
-            <p className="mt-1 text-xs sm:text-sm text-muted-foreground">
-              Esta información será visible públicamente, así que ten cuidado con lo que compartes.
-            </p>
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h2 className="text-sm sm:text-base font-semibold text-foreground">Perfil</h2>
+                <p className="mt-1 text-xs sm:text-sm text-muted-foreground">
+                  Esta información será visible públicamente, así que ten cuidado con lo que compartes.
+                </p>
+              </div>
+              {/* Estadísticas de seguimiento */}
+              {profile.id && (
+                <div className="flex items-center gap-3">
+                  <FollowStats userId={profile.id} />
+                  <FollowButton userId={profile.id} />
+                </div>
+              )}
+            </div>
 
             <dl className="mt-4 sm:mt-6 divide-y divide-border border-t border-border text-xs sm:text-sm">
               <div className="py-4 sm:py-6 sm:flex sm:items-center">

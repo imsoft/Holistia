@@ -49,6 +49,8 @@ import {
 } from "@/components/ui/select";
 import { VerifiedBadge } from "@/components/ui/verified-badge";
 import { DigitalProductCard } from "@/components/ui/digital-product-card";
+import { FollowButton } from "@/components/ui/follow-button";
+import { FollowStats } from "@/components/ui/follow-stats";
 
 interface Professional {
   id: string;
@@ -803,6 +805,12 @@ export default function ProfessionalProfilePage() {
                 <p className="text-base sm:text-lg text-primary font-medium mb-2 sm:mb-3">
                   {professional.profession}
                 </p>
+                {/* Estadísticas de seguimiento */}
+                {professional.user_id && (
+                  <div className="mb-2 sm:mb-3">
+                    <FollowStats userId={professional.user_id} />
+                  </div>
+                )}
                 <div className="flex items-center gap-2 sm:gap-4 flex-wrap mb-2 sm:mb-3">
                   <div className="flex items-center gap-1 px-2 sm:px-3 py-1 bg-primary/10 rounded-full">
                     {getServiceTypeIcon()}
@@ -840,6 +848,10 @@ export default function ProfessionalProfilePage() {
               </div>
             </div>
             <div className="flex gap-2 w-full lg:w-auto justify-end">
+              {/* Botón de seguir */}
+              {professional.user_id && (
+                <FollowButton userId={professional.user_id} />
+              )}
               <Button
                 variant="outline"
                 size="icon"

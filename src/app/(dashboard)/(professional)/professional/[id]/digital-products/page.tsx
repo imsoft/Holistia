@@ -53,17 +53,13 @@ interface DigitalProduct {
   professional_id: string;
   title: string;
   description: string;
-  category: 'meditation' | 'ebook' | 'manual' | 'course' | 'guide' | 'audio' | 'video' | 'other';
+  category: 'meditation' | 'ebook' | 'manual' | 'guide' | 'audio' | 'video' | 'other';
   price: number;
   currency: string;
   cover_image_url?: string;
   file_url?: string;
-  preview_url?: string;
   duration_minutes?: number;
   pages_count?: number;
-  file_size_mb?: number;
-  file_format?: string;
-  tags?: string[];
   is_active: boolean;
   sales_count: number;
   created_at: string;
@@ -91,7 +87,7 @@ const CATEGORY_OPTIONS = [
   { value: 'audio', label: 'Audio', icon: Headphones },
   { value: 'video', label: 'Video', icon: Video },
   { value: 'other', label: 'Otro', icon: Tag },
-];
+] as const;
 
 export default function ProfessionalDigitalProducts() {
   const params = useParams();

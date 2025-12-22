@@ -38,11 +38,8 @@ interface PurchasedProduct {
   currency: string;
   cover_image_url?: string;
   file_url?: string;
-  preview_url?: string;
   duration_minutes?: number;
   pages_count?: number;
-  file_format?: string;
-  tags?: string[];
   // Datos del profesional
   professional_id: string;
   professional_first_name: string;
@@ -112,11 +109,8 @@ export default function MyProducts({ params }: { params: Promise<{ id: string }>
             currency,
             cover_image_url,
             file_url,
-            preview_url,
             duration_minutes,
             pages_count,
-            file_format,
-            tags,
             professional_applications!inner (
               id,
               first_name,
@@ -146,11 +140,8 @@ export default function MyProducts({ params }: { params: Promise<{ id: string }>
         currency: purchase.digital_products.currency,
         cover_image_url: purchase.digital_products.cover_image_url,
         file_url: purchase.digital_products.file_url,
-        preview_url: purchase.digital_products.preview_url,
         duration_minutes: purchase.digital_products.duration_minutes,
         pages_count: purchase.digital_products.pages_count,
-        file_format: purchase.digital_products.file_format,
-        tags: purchase.digital_products.tags,
         professional_id: purchase.digital_products.professional_applications.id,
         professional_first_name: purchase.digital_products.professional_applications.first_name,
         professional_last_name: purchase.digital_products.professional_applications.last_name,
@@ -353,11 +344,6 @@ export default function MyProducts({ params }: { params: Promise<{ id: string }>
                           {product.pages_count} páginas
                         </div>
                       )}
-                      {product.file_format && (
-                        <Badge variant="outline" className="text-xs">
-                          {product.file_format}
-                        </Badge>
-                      )}
                     </div>
 
                     {/* Professional Info */}
@@ -416,18 +402,11 @@ export default function MyProducts({ params }: { params: Promise<{ id: string }>
                       ) : (
                         <>
                           <Download className="h-4 w-4 mr-2" />
-                          Descargar {product.file_format || 'Archivo'}
+                          Descargar Archivo
                         </>
                       )}
                     </Button>
 
-                    {product.preview_url && (
-                      <Button variant="outline" size="sm" className="w-full" asChild>
-                        <a href={product.preview_url} target="_blank" rel="noopener noreferrer">
-                          Ver Vista Previa
-                        </a>
-                      </Button>
-                    )}
                   </CardContent>
                 </Card>
               );

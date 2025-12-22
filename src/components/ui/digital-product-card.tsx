@@ -38,11 +38,8 @@ interface DigitalProductCardProps {
     price: number;
     currency: string;
     cover_image_url?: string;
-    preview_url?: string;
     duration_minutes?: number;
     pages_count?: number;
-    file_format?: string;
-    tags?: string[];
     sales_count: number;
     professional_first_name?: string;
     professional_last_name?: string;
@@ -232,28 +229,8 @@ export function DigitalProductCard({
                 {product.pages_count} páginas
               </div>
             )}
-            {product.file_format && (
-              <Badge variant="outline" className="text-xs">
-                {product.file_format}
-              </Badge>
-            )}
           </div>
 
-          {/* Tags */}
-          {product.tags && product.tags.length > 0 && (
-            <div className="flex flex-wrap gap-1">
-              {product.tags.slice(0, 3).map((tag, idx) => (
-                <Badge key={idx} variant="secondary" className="text-xs">
-                  {tag}
-                </Badge>
-              ))}
-              {product.tags.length > 3 && (
-                <Badge variant="secondary" className="text-xs">
-                  +{product.tags.length - 3}
-                </Badge>
-              )}
-            </div>
-          )}
 
           {/* Professional Info */}
           {showProfessional && product.professional_first_name && (
@@ -344,12 +321,6 @@ export function DigitalProductCard({
                   <span className="text-sm">Páginas: {product.pages_count}</span>
                 </div>
               )}
-              {product.file_format && (
-                <div className="flex items-center gap-2">
-                  <Tag className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm">Formato: {product.file_format}</span>
-                </div>
-              )}
               {product.sales_count > 0 && (
                 <div className="flex items-center gap-2">
                   <Download className="h-4 w-4 text-muted-foreground" />
@@ -358,31 +329,7 @@ export function DigitalProductCard({
               )}
             </div>
 
-            {/* Tags */}
-            {product.tags && product.tags.length > 0 && (
-              <div>
-                <h3 className="font-semibold mb-2">Etiquetas</h3>
-                <div className="flex flex-wrap gap-2">
-                  {product.tags.map((tag, idx) => (
-                    <Badge key={idx} variant="secondary">
-                      {tag}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-            )}
 
-            {/* Preview Link */}
-            {product.preview_url && (
-              <div className="p-4 bg-muted rounded-lg">
-                <p className="text-sm font-medium mb-2">Vista Previa Disponible</p>
-                <Button variant="outline" size="sm" asChild>
-                  <a href={product.preview_url} target="_blank" rel="noopener noreferrer">
-                    Ver Muestra Gratuita
-                  </a>
-                </Button>
-              </div>
-            )}
 
             {/* Professional Info */}
             {showProfessional && product.professional_first_name && (

@@ -97,6 +97,7 @@ const DIFFICULTY_OPTIONS = [
 
 export default function ProfessionalChallenges() {
   const params = useParams();
+  const professionalId = params.id as string;
   const supabase = createClient();
 
   const [challenges, setChallenges] = useState<Challenge[]>([]);
@@ -498,10 +499,17 @@ export default function ProfessionalChallenges() {
             Crea y gestiona retos para tus usuarios
           </p>
         </div>
-        <Button onClick={() => handleOpenForm()}>
-          <Plus className="h-4 w-4 mr-2" />
-          Nuevo Reto
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" asChild>
+            <a href={`/professional/${professionalId}/challenges/participants`}>
+              Ver Participantes
+            </a>
+          </Button>
+          <Button onClick={() => handleOpenForm()}>
+            <Plus className="h-4 w-4 mr-2" />
+            Nuevo Reto
+          </Button>
+        </div>
       </div>
 
       <div className="flex-1 overflow-y-auto p-6">

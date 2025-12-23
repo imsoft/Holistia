@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
-import { Heart, MessageCircle, Target, TrendingUp, Calendar } from "lucide-react";
+import { Heart, MessageCircle, Target, TrendingUp, Calendar, Users } from "lucide-react";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
@@ -39,6 +39,9 @@ interface SocialFeedPostProps {
     days_completed: number | null;
     completion_percentage: number | null;
     isLikedByCurrentUser: boolean;
+    is_team?: boolean;
+    team_id?: string;
+    team_name?: string | null;
   };
   onLike?: () => void;
   onUnlike?: () => void;
@@ -189,6 +192,12 @@ export function SocialFeedPost({ checkin, onLike, onUnlike }: SocialFeedPostProp
             </div>
           </div>
           <div className="flex items-center gap-2">
+            {checkin.is_team && (
+              <Badge variant="outline" className="gap-1 bg-blue-50 text-blue-700 border-blue-200">
+                <Users className="h-3 w-3" />
+                {checkin.team_name || "Equipo"}
+              </Badge>
+            )}
             {checkin.current_streak && checkin.current_streak > 0 && (
               <Badge variant="secondary" className="gap-1">
                 <TrendingUp className="h-3 w-3" />

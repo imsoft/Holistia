@@ -9,10 +9,12 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { createClient } from "@/utils/supabase/client";
 import { toast } from "sonner";
-import { Calendar, Clock, TrendingUp, Flame, Target, Award, Loader2, CheckCircle2, Circle } from "lucide-react";
+import { Calendar, Clock, TrendingUp, Flame, Target, Award, Loader2, CheckCircle2, Circle, Users } from "lucide-react";
 import { CheckinForm } from "@/components/ui/checkin-form";
 import { ChallengeProgress } from "@/components/ui/challenge-progress";
 import { ChallengeBadges } from "@/components/ui/challenge-badges";
+import { TeamChallengeDialog } from "@/components/ui/team-challenge-dialog";
+import { TeamInvitationsList } from "@/components/ui/team-invitations-list";
 import {
   Dialog,
   DialogContent,
@@ -69,6 +71,8 @@ export default function MyChallengesPage() {
   const [checkins, setCheckins] = useState<Checkin[]>([]);
   const [isCheckinDialogOpen, setIsCheckinDialogOpen] = useState(false);
   const [nextDayNumber, setNextDayNumber] = useState(1);
+  const [isTeamDialogOpen, setIsTeamDialogOpen] = useState(false);
+  const [selectedChallengeForTeam, setSelectedChallengeForTeam] = useState<ChallengePurchase | null>(null);
 
   useEffect(() => {
     fetchChallenges();
@@ -211,6 +215,11 @@ export default function MyChallengesPage() {
         </p>
       </div>
 
+      {/* Invitaciones a equipos */}
+      <div className="mb-6">
+        <TeamInvitationsList />
+      </div>
+
       {challenges.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
@@ -279,6 +288,21 @@ export default function MyChallengesPage() {
                     )}
                   </div>
                 </CardContent>
+                <div className="px-6 pb-4">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full gap-2"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedChallengeForTeam(challenge);
+                      setIsTeamDialogOpen(true);
+                    }}
+                  >
+                    <Users className="h-4 w-4" />
+                    Crear/Ver Equipo
+                  </Button>
+                </div>
               </Card>
             ))}
           </div>
@@ -419,6 +443,19 @@ export default function MyChallengesPage() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Diálogo para crear equipo */}
+      {selectedChallengeForTeam && (
+        <TeamChallengeDialog
+          open={isTeamDialogOpen}
+          onOpenChange={setIsTeamDialogOpen}
+          challengeId={selectedChallengeForTeam.challenge_id}
+          challengeTitle={selectedChallengeForTeam.challenge.title}
+          onTeamCreated={() => {
+            toast.success("Equipo creado exitosamente");
+          }}
+        />
+      )}
     </div>
   );
 }

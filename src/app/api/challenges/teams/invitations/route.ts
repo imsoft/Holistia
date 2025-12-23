@@ -1,0 +1,245 @@
+import { createClient } from "@/utils/supabase/server";
+import { NextResponse } from "next/server";
+
+// GET - Obtener invitaciones del usuario
+export async function GET(request: Request) {
+  try {
+    const supabase = await createClient();
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+
+    if (userError || !user) {
+      return NextResponse.json({ error: "No autenticado" }, { status: 401 });
+    }
+
+    const { searchParams } = new URL(request.url);
+    const type = searchParams.get("type") || "received"; // received | sent
+
+    let query = supabase
+      .from("challenge_team_invitations")
+      .select(`
+        *,
+        team:challenge_teams(
+          id,
+          team_name,
+          max_members,
+          is_full,
+          challenge:challenges(id, title, cover_image_url),
+          creator:profiles!challenge_teams_creator_id_fkey(first_name, last_name, avatar_url)
+        ),
+        inviter:profiles!challenge_team_invitations_inviter_id_fkey(first_name, last_name, avatar_url),
+        invitee:profiles!challenge_team_invitations_invitee_id_fkey(first_name, last_name, avatar_url)
+      `)
+      .order("created_at", { ascending: false });
+
+    if (type === "received") {
+      query = query.eq("invitee_id", user.id).eq("status", "pending");
+    } else {
+      query = query.eq("inviter_id", user.id);
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    return NextResponse.json({ data: data || [] });
+  } catch (error) {
+    console.error("Error fetching invitations:", error);
+    return NextResponse.json({ error: "Error al obtener invitaciones" }, { status: 500 });
+  }
+}
+
+// POST - Crear invitación
+export async function POST(request: Request) {
+  try {
+    const supabase = await createClient();
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+
+    if (userError || !user) {
+      return NextResponse.json({ error: "No autenticado" }, { status: 401 });
+    }
+
+    const { teamId, inviteeId } = await request.json();
+
+    if (!teamId || !inviteeId) {
+      return NextResponse.json(
+        { error: "teamId y inviteeId son requeridos" },
+        { status: 400 }
+      );
+    }
+
+    // La validación de seguimiento, compra del reto, etc. se hace en el trigger de la BD
+    const { data: invitation, error: invitationError } = await supabase
+      .from("challenge_team_invitations")
+      .insert({
+        team_id: teamId,
+        inviter_id: user.id,
+        invitee_id: inviteeId,
+      })
+      .select(`
+        *,
+        team:challenge_teams(
+          id,
+          team_name,
+          challenge:challenges(id, title)
+        ),
+        inviter:profiles!challenge_team_invitations_inviter_id_fkey(first_name, last_name)
+      `)
+      .single();
+
+    if (invitationError) {
+      return NextResponse.json({ error: invitationError.message }, { status: 500 });
+    }
+
+    return NextResponse.json({ data: invitation });
+  } catch (error) {
+    console.error("Error creating invitation:", error);
+    return NextResponse.json({ error: "Error al crear invitación" }, { status: 500 });
+  }
+}
+
+// PATCH - Actualizar invitación (aceptar/rechazar)
+export async function PATCH(request: Request) {
+  try {
+    const supabase = await createClient();
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+
+    if (userError || !user) {
+      return NextResponse.json({ error: "No autenticado" }, { status: 401 });
+    }
+
+    const { invitationId, action } = await request.json();
+
+    if (!invitationId || !action || !["accept", "reject"].includes(action)) {
+      return NextResponse.json(
+        { error: "invitationId y action (accept/reject) son requeridos" },
+        { status: 400 }
+      );
+    }
+
+    // Obtener la invitación
+    const { data: invitation, error: getError } = await supabase
+      .from("challenge_team_invitations")
+      .select(`
+        *,
+        team:challenge_teams(id, challenge_id, is_full)
+      `)
+      .eq("id", invitationId)
+      .eq("invitee_id", user.id)
+      .eq("status", "pending")
+      .single();
+
+    if (getError || !invitation) {
+      return NextResponse.json(
+        { error: "Invitación no encontrada" },
+        { status: 404 }
+      );
+    }
+
+    if (action === "accept") {
+      // Verificar que el equipo no esté lleno
+      if (invitation.team.is_full) {
+        return NextResponse.json(
+          { error: "El equipo está lleno" },
+          { status: 400 }
+        );
+      }
+
+      // Obtener la compra del usuario para este reto
+      const { data: purchase } = await supabase
+        .from("challenge_purchases")
+        .select("id")
+        .eq("buyer_id", user.id)
+        .eq("challenge_id", invitation.team.challenge_id)
+        .maybeSingle();
+
+      if (!purchase) {
+        return NextResponse.json(
+          { error: "Debes comprar el reto primero" },
+          { status: 400 }
+        );
+      }
+
+      // Agregar al usuario al equipo
+      const { error: memberError } = await supabase
+        .from("challenge_team_members")
+        .insert({
+          team_id: invitation.team.id,
+          user_id: user.id,
+          challenge_purchase_id: purchase.id,
+        });
+
+      if (memberError) {
+        return NextResponse.json({ error: memberError.message }, { status: 500 });
+      }
+
+      // Actualizar la compra para marcarla como equipo
+      await supabase
+        .from("challenge_purchases")
+        .update({
+          is_team_challenge: true,
+          team_id: invitation.team.id,
+        })
+        .eq("id", purchase.id);
+    }
+
+    // Actualizar estado de la invitación
+    const { data: updatedInvitation, error: updateError } = await supabase
+      .from("challenge_team_invitations")
+      .update({
+        status: action === "accept" ? "accepted" : "rejected",
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", invitationId)
+      .select()
+      .single();
+
+    if (updateError) {
+      return NextResponse.json({ error: updateError.message }, { status: 500 });
+    }
+
+    return NextResponse.json({ data: updatedInvitation });
+  } catch (error) {
+    console.error("Error updating invitation:", error);
+    return NextResponse.json({ error: "Error al actualizar invitación" }, { status: 500 });
+  }
+}
+
+// DELETE - Cancelar invitación
+export async function DELETE(request: Request) {
+  try {
+    const supabase = await createClient();
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+
+    if (userError || !user) {
+      return NextResponse.json({ error: "No autenticado" }, { status: 401 });
+    }
+
+    const { searchParams } = new URL(request.url);
+    const invitationId = searchParams.get("invitationId");
+
+    if (!invitationId) {
+      return NextResponse.json(
+        { error: "invitationId es requerido" },
+        { status: 400 }
+      );
+    }
+
+    const { error } = await supabase
+      .from("challenge_team_invitations")
+      .delete()
+      .eq("id", invitationId)
+      .eq("inviter_id", user.id)
+      .eq("status", "pending");
+
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("Error deleting invitation:", error);
+    return NextResponse.json({ error: "Error al cancelar invitación" }, { status: 500 });
+  }
+}

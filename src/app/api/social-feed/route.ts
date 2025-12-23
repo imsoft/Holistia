@@ -17,10 +17,14 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "No autenticado" }, { status: 401 });
     }
 
-    let query = supabase
+    // Obtener check-ins individuales y de equipos
+    let individualQuery = supabase
       .from("social_feed_checkins")
-      .select("*")
-      .order("checkin_time", { ascending: false });
+      .select("*");
+
+    let teamQuery = supabase
+      .from("team_feed_checkins")
+      .select("*");
 
     // Filtrar según el tipo
     if (filterType === "following") {
@@ -41,32 +45,54 @@ export async function GET(request: Request) {
         });
       }
 
-      query = query.in("user_id", followingIds);
-    } else if (filterType === "recommended") {
-      // Obtener intereses del usuario desde su perfil
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("type")
-        .eq("id", user.id)
-        .single();
+      individualQuery = individualQuery.in("user_id", followingIds);
+      teamQuery = teamQuery.in("user_id", followingIds);
+    }
 
-      // Recomendar basado en categorías populares o aleatorio
-      // Por ahora mostramos todos los públicos ordenados por likes
-      query = query.order("likes_count", { ascending: false });
+    // Ejecutar ambas queries
+    const [individualResult, teamResult] = await Promise.all([
+      individualQuery,
+      teamQuery,
+    ]);
+
+    if (individualResult.error) {
+      console.error("Error fetching individual feed:", individualResult.error);
+    }
+
+    if (teamResult.error) {
+      console.error("Error fetching team feed:", teamResult.error);
+    }
+
+    // Combinar y marcar el tipo
+    const individualCheckins = (individualResult.data || []).map((item: any) => ({
+      ...item,
+      is_team: false,
+    }));
+
+    const teamCheckins = (teamResult.data || []).map((item: any) => ({
+      ...item,
+      is_team: true,
+    }));
+
+    // Combinar ambos arrays
+    let allCheckins = [...individualCheckins, ...teamCheckins];
+
+    // Ordenar por fecha
+    allCheckins.sort((a, b) => {
+      return new Date(b.checkin_time).getTime() - new Date(a.checkin_time).getTime();
+    });
+
+    // Aplicar filtro de populares si es necesario
+    if (filterType === "recommended") {
+      allCheckins.sort((a, b) => b.likes_count - a.likes_count);
     }
 
     // Aplicar paginación
-    const { data, error, count } = await query
-      .range(offset, offset + limit - 1);
-
-    if (error) {
-      console.error("Error fetching social feed:", error);
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
+    const paginatedCheckins = allCheckins.slice(offset, offset + limit);
 
     // Para cada check-in, verificar si el usuario actual le dio like
     const dataWithLikeStatus = await Promise.all(
-      (data || []).map(async (checkin) => {
+      paginatedCheckins.map(async (checkin: any) => {
         const { data: likeData } = await supabase
           .from("challenge_checkin_likes")
           .select("id")
@@ -83,8 +109,8 @@ export async function GET(request: Request) {
 
     return NextResponse.json({
       data: dataWithLikeStatus,
-      count: count || 0,
-      hasMore: (data?.length || 0) === limit,
+      count: allCheckins.length,
+      hasMore: offset + limit < allCheckins.length,
     });
   } catch (error) {
     console.error("Error in social feed API:", error);

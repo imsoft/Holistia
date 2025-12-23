@@ -204,7 +204,7 @@ export default function AdminChallengesPage() {
                 Total Retos
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="py-4">
               <div className="text-2xl font-bold">{stats.totalChallenges}</div>
             </CardContent>
           </Card>
@@ -215,7 +215,7 @@ export default function AdminChallengesPage() {
                 Retos Activos
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="py-4">
               <div className="text-2xl font-bold text-green-600">{stats.activeChallenges}</div>
             </CardContent>
           </Card>
@@ -226,7 +226,7 @@ export default function AdminChallengesPage() {
                 Total Ventas
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="py-4">
               <div className="text-2xl font-bold">{stats.totalSales}</div>
             </CardContent>
           </Card>
@@ -237,7 +237,7 @@ export default function AdminChallengesPage() {
                 Ingresos Totales
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="py-4">
               <div className="text-2xl font-bold text-primary">
                 ${stats.totalRevenue.toFixed(2)} MXN
               </div>

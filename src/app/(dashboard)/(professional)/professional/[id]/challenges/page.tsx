@@ -148,9 +148,21 @@ export default function ProfessionalChallenges() {
         return;
       }
 
-      const professionalId = params.id as string;
+      // Obtener el professional_id desde el user_id
+      const userId = params.id as string;
+      const { data: professionalData, error: profError } = await supabase
+        .from('professional_applications')
+        .select('id')
+        .eq('user_id', userId)
+        .eq('status', 'approved')
+        .single();
 
-      const response = await fetch(`/api/challenges?professional_id=${professionalId}`);
+      if (profError || !professionalData) {
+        toast.error("No se encontró el profesional");
+        return;
+      }
+
+      const response = await fetch(`/api/challenges?professional_id=${professionalData.id}`);
       const data = await response.json();
 
       if (!response.ok) {
@@ -251,13 +263,26 @@ export default function ProfessionalChallenges() {
         return;
       }
 
-      const professionalId = params.id as string;
+      // Obtener el professional_id desde el user_id
+      const userId = params.id as string;
+      const { data: professionalData, error: profError } = await supabase
+        .from('professional_applications')
+        .select('id')
+        .eq('user_id', userId)
+        .eq('status', 'approved')
+        .single();
+
+      if (profError || !professionalData) {
+        toast.error("No se encontró el profesional");
+        return;
+      }
+
       let challengeId = editingChallenge?.id;
 
       // Si es un reto nuevo, crear primero el reto con datos mínimos
       if (!challengeId) {
         const tempChallenge = {
-          professional_id: professionalId,
+          professional_id: professionalData.id,
           title: formData.title || "Nuevo Reto",
           description: formData.description || "",
           price: parseFloat(formData.price) || 0,
@@ -407,10 +432,23 @@ export default function ProfessionalChallenges() {
 
     try {
       setSaving(true);
-      const professionalId = params.id as string;
+
+      // Obtener el professional_id desde el user_id
+      const userId = params.id as string;
+      const { data: professionalData, error: profError } = await supabase
+        .from('professional_applications')
+        .select('id')
+        .eq('user_id', userId)
+        .eq('status', 'approved')
+        .single();
+
+      if (profError || !professionalData) {
+        toast.error("No se encontró el profesional");
+        return;
+      }
 
       const challengeData = {
-        professional_id: professionalId,
+        professional_id: professionalData.id,
         title: formData.title,
         description: formData.description,
         short_description: formData.short_description || null,

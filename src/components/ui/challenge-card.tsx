@@ -97,7 +97,7 @@ export function ChallengeCard({ challenge, onPurchase }: ChallengeCardProps) {
   };
 
   return (
-    <Card className="overflow-hidden hover:shadow-lg transition-shadow">
+    <Card className="overflow-hidden hover:shadow-lg transition-shadow py-4">
       <div className="relative h-48 w-full">
         <Image
           src={

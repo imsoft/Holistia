@@ -15,7 +15,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Menu, User, LogOut, Briefcase, Download } from "lucide-react";
+import { Menu, User, LogOut, Briefcase } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { createClient } from "@/utils/supabase/client";
@@ -25,6 +25,7 @@ import { useProfile } from "@/hooks/use-profile";
 const getNavigation = (userId: string, hasEvents: boolean = false) => {
   const nav = [
     { name: "Explorar", href: `/patient/${userId}/explore` },
+    { name: "Feed", href: `/patient/${userId}/feed` },
     { name: "Favoritos", href: `/patient/${userId}/explore/favorites` },
     { name: "Citas", href: `/patient/${userId}/explore/appointments` },
     { name: "Mis Productos", href: `/patient/${userId}/my-products` },

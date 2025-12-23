@@ -51,6 +51,8 @@ import { VerifiedBadge } from "@/components/ui/verified-badge";
 import { DigitalProductCard } from "@/components/ui/digital-product-card";
 import { FollowButton } from "@/components/ui/follow-button";
 import { FollowStats } from "@/components/ui/follow-stats";
+import { ChallengeCard } from "@/components/ui/challenge-card";
+import { Target } from "lucide-react";
 
 interface Professional {
   id: string;
@@ -154,6 +156,7 @@ export default function ProfessionalProfilePage() {
   const [editingReview, setEditingReview] = useState<Review | null>(null);
   const [refreshReviews, setRefreshReviews] = useState(0);
   const [digitalProducts, setDigitalProducts] = useState<any[]>([]);
+  const [challenges, setChallenges] = useState<any[]>([]);
 
   const params = useParams();
   const supabase = createClient();
@@ -415,6 +418,20 @@ export default function ProfessionalProfilePage() {
           if (productsData) {
             setDigitalProducts(productsData);
           }
+        }
+
+        // Cargar retos del profesional
+        const { data: challengesData, error: challengesError } = await supabase
+          .from('challenges')
+          .select('*')
+          .eq('professional_id', professionalData.id)
+          .eq('is_active', true)
+          .order('created_at', { ascending: false });
+
+        if (challengesError) {
+          console.error('Error loading challenges:', challengesError);
+        } else {
+          setChallenges(challengesData || []);
         }
 
       } catch (error) {
@@ -1157,6 +1174,34 @@ export default function ProfessionalProfilePage() {
                       key={product.id}
                       product={product}
                       showProfessional={false}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Retos */}
+            {challenges.length > 0 && (
+              <div>
+                <h2 className="text-lg sm:text-xl font-bold text-foreground mb-4 sm:mb-6 flex items-center gap-2">
+                  <Target className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
+                  Retos Disponibles
+                </h2>
+                <p className="text-sm text-muted-foreground mb-6">
+                  Desafíos creados por {professional.first_name} para ayudarte a alcanzar tus metas
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {challenges.map((challenge) => (
+                    <ChallengeCard
+                      key={challenge.id}
+                      challenge={{
+                        ...challenge,
+                        professional_first_name: professional.first_name,
+                        professional_last_name: professional.last_name,
+                        professional_photo: professional.profile_photo,
+                        professional_profession: professional.profession,
+                        professional_is_verified: professional.is_verified || false,
+                      }}
                     />
                   ))}
                 </div>

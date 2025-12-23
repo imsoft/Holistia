@@ -22,6 +22,7 @@ import {
 import { stripHtml } from "@/lib/text-utils";
 import { VerifiedBadge } from "@/components/ui/verified-badge";
 import { ChallengeCard } from "@/components/ui/challenge-card";
+import { FavoriteButton } from "@/components/ui/favorite-button";
 
 interface Professional {
   id: string;
@@ -493,6 +494,11 @@ export function ExploreSection({ hideHeader = false }: ExploreSectionProps) {
                           <Store className="h-16 w-16 text-primary/40" />
                         </div>
                       )}
+                      <FavoriteButton
+                        itemId={shop.id}
+                        favoriteType="shop"
+                        variant="floating"
+                      />
                     </div>
                     <CardHeader className="pb-1.5 px-4 pt-3">
                       <CardTitle className="text-lg line-clamp-2">{shop.name}</CardTitle>
@@ -590,6 +596,11 @@ export function ExploreSection({ hideHeader = false }: ExploreSectionProps) {
                         <UtensilsCrossed className="h-16 w-16 text-primary/40" />
                       </div>
                     )}
+                    <FavoriteButton
+                      itemId={restaurant.id}
+                      favoriteType="restaurant"
+                      variant="floating"
+                    />
                   </div>
                   <CardHeader className="pb-1.5 px-4 pt-3">
                     <CardTitle className="text-lg line-clamp-2">{restaurant.name}</CardTitle>
@@ -678,6 +689,11 @@ export function ExploreSection({ hideHeader = false }: ExploreSectionProps) {
                           <Calendar className="h-16 w-16 text-primary/40" />
                         </div>
                       )}
+                      <FavoriteButton
+                        itemId={event.id}
+                        favoriteType="event"
+                        variant="floating"
+                      />
                     </div>
                     <CardHeader className="pb-1.5 px-4 pt-3">
                       <CardTitle className="text-lg line-clamp-2">{event.name}</CardTitle>

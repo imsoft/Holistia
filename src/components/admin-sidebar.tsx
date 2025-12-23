@@ -24,6 +24,7 @@ import {
   RefreshCw,
   Palette,
   Briefcase,
+  Target,
 } from "lucide-react";
 import {
   Sidebar,
@@ -169,6 +170,11 @@ export function AdminSidebar() {
       title: "Certificaciones",
       url: `/admin/${userId}/certifications`,
       icon: Award,
+    },
+    {
+      title: "Retos",
+      url: `/admin/${userId}/challenges`,
+      icon: Target,
     },
     {
       title: "Centros Holísticos",

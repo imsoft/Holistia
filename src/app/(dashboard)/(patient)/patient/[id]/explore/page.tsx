@@ -301,8 +301,9 @@ const HomeUserPage = () => {
           .limit(20);
 
         if (challengesError) {
-          console.error("Error fetching challenges:", challengesError);
+          console.error("❌ Error fetching challenges:", challengesError);
         } else {
+          console.log("✅ Patient explore - Challenges loaded:", challengesData?.length || 0, challengesData);
           setChallenges(challengesData || []);
         }
       } catch (error) {

@@ -209,14 +209,22 @@ export function ExploreSection({ hideHeader = false }: ExploreSectionProps) {
         }
 
         // Cargar retos (6 para el carousel)
-        const { data: challengesData } = await supabase
+        const { data: challengesData, error: challengesError } = await supabase
           .from("challenges_with_professional")
           .select("*")
           .order("created_at", { ascending: false })
           .limit(6);
 
-        if (challengesData) {
+        if (challengesError) {
+          console.error("❌ Error loading challenges:", challengesError);
+        }
+
+        if (challengesData && challengesData.length > 0) {
+          console.log("✅ Challenges loaded:", challengesData.length, challengesData);
           setChallenges(challengesData);
+        } else {
+          console.log("⚠️ No challenges found or challenges array is empty");
+          setChallenges([]);
         }
       } catch (error) {
         console.error("Error loading explore data:", error);

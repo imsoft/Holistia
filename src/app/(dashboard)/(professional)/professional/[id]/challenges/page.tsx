@@ -763,7 +763,7 @@ export default function ProfessionalChallenges() {
                   value={formData.currency}
                   onValueChange={(value) => setFormData({ ...formData, currency: value })}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="w-full">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -796,7 +796,7 @@ export default function ProfessionalChallenges() {
                   value={formData.difficulty_level}
                   onValueChange={(value) => setFormData({ ...formData, difficulty_level: value })}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="w-full">
                     <SelectValue placeholder="Selecciona nivel" />
                   </SelectTrigger>
                   <SelectContent>
@@ -825,9 +825,9 @@ export default function ProfessionalChallenges() {
             {/* Imagen de portada */}
             <div>
               <Label className="mb-2 block">Imagen de Portada</Label>
-              <div className="space-y-2">
-                {formData.cover_image_url && (
-                  <div className="relative h-32 w-full rounded-lg overflow-hidden">
+              <div className="space-y-3">
+                {formData.cover_image_url ? (
+                  <div className="relative h-48 w-full rounded-lg overflow-hidden border-2 border-dashed border-muted">
                     <Image
                       src={formData.cover_image_url}
                       alt="Portada"
@@ -838,11 +838,16 @@ export default function ProfessionalChallenges() {
                       type="button"
                       variant="destructive"
                       size="icon"
-                      className="absolute top-2 right-2"
+                      className="absolute top-2 right-2 shadow-lg"
                       onClick={() => setFormData({ ...formData, cover_image_url: "" })}
                     >
                       <X className="h-4 w-4" />
                     </Button>
+                  </div>
+                ) : (
+                  <div className="relative h-48 w-full rounded-lg border-2 border-dashed border-muted bg-muted/10 flex flex-col items-center justify-center gap-2 hover:bg-muted/20 transition-colors">
+                    <Upload className="h-8 w-8 text-muted-foreground" />
+                    <p className="text-sm text-muted-foreground">No se ha subido ninguna imagen</p>
                   </div>
                 )}
                 <input
@@ -855,6 +860,7 @@ export default function ProfessionalChallenges() {
                 <Button
                   type="button"
                   variant="outline"
+                  className="w-full"
                   onClick={() => coverFileInputRef.current?.click()}
                   disabled={uploadingCover}
                 >
@@ -866,10 +872,13 @@ export default function ProfessionalChallenges() {
                   ) : (
                     <>
                       <Upload className="h-4 w-4 mr-2" />
-                      {formData.cover_image_url ? "Cambiar Imagen" : "Subir Imagen"}
+                      {formData.cover_image_url ? "Cambiar Imagen" : "Subir Imagen de Portada"}
                     </>
                   )}
                 </Button>
+                <p className="text-xs text-muted-foreground">
+                  Tamaño máximo: 5MB. Formatos: JPG, PNG, WEBP
+                </p>
               </div>
             </div>
 
@@ -877,7 +886,10 @@ export default function ProfessionalChallenges() {
             {editingChallenge && (
               <div>
                 <Label className="mb-2 block">Archivos Multimedia</Label>
-                <div className="space-y-2">
+                <p className="text-xs text-muted-foreground mb-3">
+                  Agrega videos, audios, PDFs o documentos para complementar tu reto
+                </p>
+                <div className="space-y-3">
                   <input
                     ref={fileInputRef}
                     type="file"
@@ -887,6 +899,7 @@ export default function ProfessionalChallenges() {
                   <Button
                     type="button"
                     variant="outline"
+                    className="w-full"
                     onClick={() => fileInputRef.current?.click()}
                     disabled={uploadingFile}
                   >
@@ -903,21 +916,24 @@ export default function ProfessionalChallenges() {
                     )}
                   </Button>
 
-                  {challengeFiles.length > 0 && (
-                    <div className="space-y-2 mt-4">
+                  {challengeFiles.length > 0 ? (
+                    <div className="space-y-2 border rounded-lg p-4 bg-muted/5">
+                      <p className="text-sm font-medium mb-3">{challengeFiles.length} {challengeFiles.length === 1 ? 'archivo' : 'archivos'}</p>
                       {challengeFiles.map((file) => {
                         const FileIcon = getFileIcon(file.file_type);
                         return (
                           <div
                             key={file.id}
-                            className="flex items-center justify-between p-3 border rounded-lg"
+                            className="flex items-center justify-between p-3 border rounded-lg bg-background hover:bg-muted/50 transition-colors"
                           >
-                            <div className="flex items-center gap-3">
-                              <FileIcon className="h-5 w-5 text-muted-foreground" />
-                              <div>
-                                <p className="font-medium text-sm">{file.file_name}</p>
+                            <div className="flex items-center gap-3 flex-1 min-w-0">
+                              <div className="flex-shrink-0">
+                                <FileIcon className="h-5 w-5 text-muted-foreground" />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="font-medium text-sm truncate">{file.file_name}</p>
                                 <p className="text-xs text-muted-foreground">
-                                  {file.file_type} {file.file_size_mb && `• ${file.file_size_mb} MB`}
+                                  {file.file_type.toUpperCase()} {file.file_size_mb && `• ${file.file_size_mb} MB`}
                                 </p>
                               </div>
                             </div>
@@ -925,6 +941,7 @@ export default function ProfessionalChallenges() {
                               type="button"
                               variant="ghost"
                               size="icon"
+                              className="flex-shrink-0 hover:text-destructive"
                               onClick={() => handleRemoveFile(file.id)}
                             >
                               <Trash2 className="h-4 w-4" />
@@ -932,6 +949,11 @@ export default function ProfessionalChallenges() {
                           </div>
                         );
                       })}
+                    </div>
+                  ) : (
+                    <div className="border-2 border-dashed rounded-lg p-6 text-center bg-muted/5">
+                      <File className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+                      <p className="text-sm text-muted-foreground">No hay archivos agregados</p>
                     </div>
                   )}
                 </div>

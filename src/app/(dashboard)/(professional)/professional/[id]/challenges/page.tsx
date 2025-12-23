@@ -559,7 +559,7 @@ export default function ProfessionalChallenges() {
                 Total Retos
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="py-4">
               <div className="text-2xl font-bold">{stats.totalChallenges}</div>
             </CardContent>
           </Card>
@@ -569,7 +569,7 @@ export default function ProfessionalChallenges() {
                 Retos Activos
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="py-4">
               <div className="text-2xl font-bold">{stats.activeChallenges}</div>
             </CardContent>
           </Card>
@@ -579,7 +579,7 @@ export default function ProfessionalChallenges() {
                 Total Ventas
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="py-4">
               <div className="text-2xl font-bold">{stats.totalSales}</div>
             </CardContent>
           </Card>
@@ -589,7 +589,7 @@ export default function ProfessionalChallenges() {
                 Ingresos Totales
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="py-4">
               <div className="text-2xl font-bold">
                 ${stats.totalRevenue.toFixed(2)} MXN
               </div>

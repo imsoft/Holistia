@@ -4,6 +4,7 @@ import { useEffect, useState, use } from "react";
 import { createClient } from "@/utils/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { ChallengeCard } from "@/components/ui/challenge-card";
 import Image from "next/image";
 import {
   Star,
@@ -14,6 +15,7 @@ import {
   Monitor,
   MapPin,
   Package,
+  Target,
 } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
@@ -61,12 +63,14 @@ export default function PublicProfessionalPage({
   const { slug } = use(params);
   const [professional, setProfessional] = useState<Professional | null>(null);
   const [services, setServices] = useState<Service[]>([]);
+  const [challenges, setChallenges] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingServices, setLoadingServices] = useState(true);
+  const [loadingChallenges, setLoadingChallenges] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const [professionalId, setProfessionalId] = useState<string>("");
-  const [activeTab, setActiveTab] = useState<'about' | 'services' | 'gallery' | 'certifications' | 'highlights'>('services');
+  const [activeTab, setActiveTab] = useState<'about' | 'services' | 'gallery' | 'certifications' | 'highlights' | 'challenges'>('services');
 
   useEffect(() => {
     async function loadProfessional() {
@@ -139,6 +143,22 @@ export default function PublicProfessionalPage({
       }
 
       setLoadingServices(false);
+
+      // Load challenges
+      const { data: challengesData, error: challengesError } = await supabase
+        .from("challenges")
+        .select("*")
+        .eq("professional_id", id)
+        .eq("is_active", true)
+        .order("created_at", { ascending: false });
+
+      if (challengesError) {
+        console.error("Error loading challenges:", challengesError);
+      } else {
+        setChallenges(challengesData || []);
+      }
+
+      setLoadingChallenges(false);
     }
 
     loadProfessional();
@@ -477,6 +497,20 @@ export default function PublicProfessionalPage({
                     Certificaciones
                   </button>
                 )}
+                {challenges.length > 0 && (
+                  <button
+                    onClick={() => setActiveTab('challenges')}
+                    className={classNames(
+                      activeTab === 'challenges'
+                        ? "border-primary text-primary"
+                        : "border-transparent text-foreground hover:border-border hover:text-foreground",
+                      "whitespace-nowrap border-b-2 py-6 text-sm font-medium flex items-center gap-2"
+                    )}
+                  >
+                    <Target className="w-4 h-4" />
+                    Retos
+                  </button>
+                )}
                 <button
                   onClick={() => setActiveTab('highlights')}
                   className={classNames(
@@ -707,6 +741,40 @@ export default function PublicProfessionalPage({
                       </div>
                     </div>
                   )}
+                </div>
+              )}
+
+              {activeTab === 'challenges' && (
+                <div className="space-y-6">
+                  <div>
+                    <h3 className="text-xl font-semibold text-foreground mb-6">Retos Disponibles</h3>
+                    {loadingChallenges ? (
+                      <div className="flex items-center justify-center py-12">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                      </div>
+                    ) : challenges.length === 0 ? (
+                      <div className="text-center py-12">
+                        <Target className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                        <p className="text-muted-foreground">Este profesional no tiene retos disponibles</p>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {challenges.map((challenge) => (
+                          <ChallengeCard
+                            key={challenge.id}
+                            challenge={{
+                              ...challenge,
+                              professional_first_name: professional?.first_name,
+                              professional_last_name: professional?.last_name,
+                              professional_photo: professional?.profile_photo,
+                              professional_profession: professional?.profession,
+                              professional_is_verified: false,
+                            }}
+                          />
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
             </div>

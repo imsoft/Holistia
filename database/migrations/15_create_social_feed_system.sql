@@ -79,7 +79,7 @@ SELECT
     cp.buyer_id as user_id,
     p.first_name as user_first_name,
     p.last_name as user_last_name,
-    p.photo_url as user_photo_url,
+    p.avatar_url as user_photo_url,
     p.type as user_type,
     -- Información del reto
     c.id as challenge_id,

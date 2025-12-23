@@ -9,6 +9,7 @@ import { Calendar, Clock, TrendingUp, User, ShoppingBag } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 import { toast } from "sonner";
 import { VerifiedBadge } from "@/components/ui/verified-badge";
+import { FavoriteButton } from "@/components/ui/favorite-button";
 
 interface Challenge {
   id: string;
@@ -107,8 +108,13 @@ export function ChallengeCard({ challenge, onPurchase }: ChallengeCardProps) {
           fill
           className="object-cover"
         />
+        <FavoriteButton
+          itemId={challenge.id}
+          favoriteType="challenge"
+          variant="floating"
+        />
         {challenge.difficulty_level && (
-          <div className="absolute top-2 right-2">
+          <div className="absolute top-2 left-2">
             <Badge
               className={difficultyColors[challenge.difficulty_level]}
             >

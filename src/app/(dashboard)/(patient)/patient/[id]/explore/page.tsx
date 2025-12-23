@@ -611,14 +611,23 @@ const HomeUserPage = () => {
           </div>
 
           {/* Sección de Retos */}
-          {challenges.length > 0 && (
-            <div className="relative z-5">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-3xl sm:text-4xl font-bold text-foreground">
-                  Retos
-                </h2>
-              </div>
+          <div className="relative z-5">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-3xl sm:text-4xl font-bold text-foreground">
+                Retos
+              </h2>
+            </div>
 
+            {loading ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+              </div>
+            ) : challenges.length === 0 ? (
+              <div className="text-center py-12">
+                <Target className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <p className="text-muted-foreground">No hay retos disponibles</p>
+              </div>
+            ) : (
               <div className="relative">
                 <button
                   onClick={scrollChallengesLeft}
@@ -647,8 +656,8 @@ const HomeUserPage = () => {
                   ))}
                 </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
 
           {/* Sección de Expertos */}
           <div className="relative z-10">

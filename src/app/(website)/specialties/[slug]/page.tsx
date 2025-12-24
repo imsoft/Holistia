@@ -88,7 +88,11 @@ export default async function SpecialtyPage({ params }: SpecialtyPageProps) {
     .eq("is_active", true);
 
   if (fetchError) {
-    console.error("Error fetching professionals:", fetchError);
+    console.error("❌ Error fetching professionals:", fetchError);
+    // Si el error es de permisos RLS, mostrar mensaje más claro
+    if (fetchError.code === "PGRST301" || fetchError.message?.includes("permission") || fetchError.message?.includes("policy")) {
+      console.error("⚠️ Error de permisos RLS. Asegúrate de ejecutar la migración 147_add_public_access_to_professional_applications.sql");
+    }
     notFound();
   }
 

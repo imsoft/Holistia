@@ -7,6 +7,7 @@ import { HeroSection } from "@/components/shared/hero-section";
 import { LogoClouds } from "@/components/shared/logo-clouds";
 import { TestimonialsSection } from "@/components/shared/testimonials-section";
 import { CompaniesCtaSection } from "@/components/shared/companies-cta-section";
+import { SpecialtiesSection } from "@/components/shared/specialties-section";
 import { Snowflakes } from "@/components/ui/snowflakes";
 
 export const metadata: Metadata = generateStaticMetadata({
@@ -36,6 +37,7 @@ export default function HomePage() {
       <Snowflakes />
       <StructuredData data={structuredData} />
       <HeroSection />
+      <SpecialtiesSection />
       <ExploreSection />
       <FeaturesSection />
       <CompaniesCtaSection />

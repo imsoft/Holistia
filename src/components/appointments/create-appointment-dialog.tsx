@@ -278,6 +278,23 @@ export function CreateAppointmentDialog({
         }
       }
 
+      // Obtener tiempo de tolerancia del profesional
+      let toleranceMinutes = 15; // Valor por defecto
+      try {
+        const { data: professionalData } = await supabase
+          .from("professional_applications")
+          .select("tolerance_minutes")
+          .eq("id", professionalId)
+          .single();
+        
+        if (professionalData?.tolerance_minutes !== null && professionalData?.tolerance_minutes !== undefined) {
+          toleranceMinutes = professionalData.tolerance_minutes;
+        }
+      } catch (toleranceError) {
+        console.error('Error obteniendo tiempo de tolerancia:', toleranceError);
+        // Usar valor por defecto si hay error
+      }
+
       // Enviar notificación por email al paciente
       try {
         const patient = patients.find(p => p.patient_id === selectedPatientId);
@@ -292,14 +309,17 @@ export function CreateAppointmentDialog({
         if (response.ok) {
           toast.success("Cita creada exitosamente");
           toast.info(`Se ha enviado una notificación a ${patient?.full_name}`);
+          toast.info(`Tiempo de tolerancia: ${toleranceMinutes} minutos. El profesional esperará este tiempo antes de considerar la cita como no asistida.`);
         } else {
           toast.success("Cita creada exitosamente");
           toast.warning("No se pudo enviar la notificación por email");
+          toast.info(`Tiempo de tolerancia: ${toleranceMinutes} minutos. El profesional esperará este tiempo antes de considerar la cita como no asistida.`);
         }
       } catch (emailError) {
         console.error('Error enviando email:', emailError);
         toast.success("Cita creada exitosamente");
         toast.warning("No se pudo enviar la notificación por email");
+        toast.info(`Tiempo de tolerancia: ${toleranceMinutes} minutos. El profesional esperará este tiempo antes de considerar la cita como no asistida.`);
       }
 
       // Resetear formulario

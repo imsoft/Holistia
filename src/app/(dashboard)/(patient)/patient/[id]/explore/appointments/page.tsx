@@ -231,7 +231,7 @@ export default function AppointmentsPage() {
 
         const { data: professionalsData } = await supabase
           .from('professional_applications')
-          .select('id, first_name, last_name, profession, profile_photo, user_id')
+          .select('id, first_name, last_name, profession, profile_photo, user_id, tolerance_minutes')
           .in('id', professionalIds);
 
         // Obtener avatares de profiles
@@ -261,12 +261,28 @@ export default function AppointmentsPage() {
               id: prof?.id || '',
               full_name: prof ? `${prof.first_name} ${prof.last_name}` : 'Profesional',
               avatar_url: profile?.avatar_url || prof?.profile_photo,
-              especialidad: prof?.profession
+              especialidad: prof?.profession,
+              tolerance_minutes: prof?.tolerance_minutes || 15
             }
           };
         });
 
         setAppointments(formattedAppointments);
+
+        // Verificar si hay una nueva cita (creada en los últimos 30 segundos) para mostrar mensaje de tolerancia
+        const now = new Date();
+        const recentAppointments = formattedAppointments.filter(apt => {
+          const createdAt = new Date(apt.created_at);
+          const diffSeconds = (now.getTime() - createdAt.getTime()) / 1000;
+          return diffSeconds < 30 && (apt.status === 'pending' || apt.status === 'confirmed');
+        });
+
+        if (recentAppointments.length > 0) {
+          const latestAppointment = recentAppointments[0];
+          const toleranceMinutes = latestAppointment.professional.tolerance_minutes || 15;
+          toast.success("¡Cita agendada exitosamente!");
+          toast.info(`Tiempo de tolerancia: ${toleranceMinutes} minutos. El profesional esperará este tiempo antes de considerar la cita como no asistida.`);
+        }
         
       } catch (error) {
         console.error('Unexpected error fetching appointments:', error);

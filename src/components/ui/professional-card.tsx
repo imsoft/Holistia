@@ -1,12 +1,13 @@
 "use client";
 
-import { Card } from "@/components/ui/card";
-import { Heart, Star } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { MapPin, Monitor, Heart } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { Professional } from "@/types";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { createClient } from "@/utils/supabase/client";
+import { StarRating } from "@/components/reviews/star-rating";
 import { VerifiedBadge } from "@/components/ui/verified-badge";
 
 interface ProfessionalCardProps {
@@ -18,67 +19,95 @@ export const ProfessionalCard = ({ professional, userId }: ProfessionalCardProps
   const [isFavorite, setIsFavorite] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const supabase = createClient();
-
-  // Check if professional is favorite on mount
-  useEffect(() => {
-    const checkFavorite = async () => {
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return;
-
-        const { data } = await supabase
-          .from('user_favorites')
-          .select('id')
-          .eq('user_id', user.id)
-          .eq('professional_id', professional.id)
-          .maybeSingle();
-
-        setIsFavorite(!!data);
-      } catch (error) {
-        console.error('Error checking favorite:', error);
-      }
-    };
-
-    checkFavorite();
-  }, [professional.id, supabase]);
-
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('es-MX', {
       style: 'currency',
-      currency: 'MXN',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
+      currency: 'MXN'
     }).format(price);
   };
 
-  const getMinPrice = () => {
-    if (professional.costs) {
-      const presencial = professional.costs.presencial || 0;
-      const online = professional.costs.online || 0;
-      const prices = [presencial, online].filter(p => p > 0);
-      return prices.length > 0 ? Math.min(...prices) : 0;
+  const getServiceTypeIcon = () => {
+    // Si ya está definido el serviceType, usarlo
+    if (professional.serviceType) {
+      switch (professional.serviceType) {
+        case 'in-person':
+          return <MapPin className="h-3 w-3" />;
+        case 'online':
+          return <Monitor className="h-3 w-3" />;
+        case 'both':
+          return (
+            <div className="flex gap-0.5">
+              <MapPin className="h-3 w-3" />
+              <Monitor className="h-3 w-3" />
+            </div>
+          );
+        default:
+          return <MapPin className="h-3 w-3" />;
+      }
     }
-    
+
+    // Si no está definido, calcular basándose en los servicios
     if (professional.services && professional.services.length > 0) {
-      const prices: number[] = [];
-      professional.services.forEach(service => {
-        if (service.presencialCost) {
-          const price = typeof service.presencialCost === 'string' 
-            ? parseInt(service.presencialCost) || 0
-            : service.presencialCost;
-          if (price > 0) prices.push(price);
-        }
-        if (service.onlineCost) {
-          const price = typeof service.onlineCost === 'string'
-            ? parseInt(service.onlineCost) || 0
-            : service.onlineCost;
-          if (price > 0) prices.push(price);
-        }
-      });
-      return prices.length > 0 ? Math.min(...prices) : 0;
+      const hasPresencial = professional.services.some(service =>
+        service.presencialCost && service.presencialCost !== "" && service.presencialCost !== "0" && Number(service.presencialCost) > 0
+      );
+      const hasOnline = professional.services.some(service =>
+        service.onlineCost && service.onlineCost !== "" && service.onlineCost !== "0" && Number(service.onlineCost) > 0
+      );
+
+      if (hasPresencial && hasOnline) {
+        return (
+          <div className="flex gap-0.5">
+            <MapPin className="h-3 w-3" />
+            <Monitor className="h-3 w-3" />
+          </div>
+        );
+      } else if (hasOnline) {
+        return <Monitor className="h-3 w-3" />;
+      } else if (hasPresencial) {
+        return <MapPin className="h-3 w-3" />;
+      }
     }
-    
-    return 0;
+
+    // Fallback por defecto
+    return <MapPin className="h-3 w-3" />;
+  };
+
+  const getServiceTypeText = () => {
+    // Si ya está definido el serviceType, usarlo
+    if (professional.serviceType) {
+      switch (professional.serviceType) {
+        case 'in-person':
+          return 'Presencial';
+        case 'online':
+          return 'En línea';
+        case 'both':
+          return 'Presencial y en línea';
+        default:
+          return 'Presencial';
+      }
+    }
+
+    // Si no está definido, calcular basándose en los servicios
+    if (professional.services && professional.services.length > 0) {
+      const hasPresencial = professional.services.some(service =>
+        service.presencialCost && service.presencialCost !== "" && service.presencialCost !== "0" && Number(service.presencialCost) > 0
+      );
+      const hasOnline = professional.services.some(service =>
+        service.onlineCost && service.onlineCost !== "" && service.onlineCost !== "0" && Number(service.onlineCost) > 0
+      );
+
+      if (hasPresencial && hasOnline) {
+        return 'Presencial y en línea';
+      } else if (hasOnline) {
+        return 'En línea';
+      } else if (hasPresencial) {
+        return 'Presencial';
+      }
+    }
+
+    // Fallback por defecto
+    return 'Presencial';
   };
 
   const handleToggleFavorite = async (e: React.MouseEvent) => {
@@ -93,12 +122,14 @@ export const ProfessionalCard = ({ professional, userId }: ProfessionalCardProps
       if (!user) return;
 
       if (isFavorite) {
+        // Remove from favorites
         await supabase
           .from('user_favorites')
           .delete()
           .eq('user_id', user.id)
           .eq('professional_id', professional.id);
       } else {
+        // Add to favorites
         await supabase
           .from('user_favorites')
           .insert({
@@ -114,71 +145,121 @@ export const ProfessionalCard = ({ professional, userId }: ProfessionalCardProps
     }
   };
 
+  // Construir la ruta correcta
   const professionalRoute = userId 
     ? `/patient/${userId}/explore/professional/${professional.id}` 
     : `/explore/professional/${professional.id}`;
 
-  const professionalName = professional.name || `${professional.first_name || ''} ${professional.last_name || ''}`.trim() || 'Profesional';
-  const professionalImage = professional.profile_photo || professional.profilePhoto || professional.avatar || "/logos/holistia-black.png";
-  const minPrice = getMinPrice();
-  const rating = professional.average_rating || 0;
-  const totalReviews = professional.total_reviews || 0;
-
   return (
-    <Link href={professionalRoute} className="block">
-      <Card className="group overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300 border-border cursor-pointer h-full flex flex-col rounded-2xl">
-        {/* Image Section - 2/3 of card height */}
-        <div className="relative w-full aspect-[3/2] overflow-hidden bg-gray-100 rounded-t-2xl">
-          <Image
-            src={professionalImage}
-            alt={professionalName}
-            fill
-            className="object-cover transition-transform duration-300 group-hover:scale-105"
-            style={{ objectPosition: professional.imagePosition || "center center" }}
-            unoptimized
-          />
-          {/* Heart Icon - Top Right */}
-          <button
-            onClick={handleToggleFavorite}
-            disabled={isLoading}
-            className="absolute top-3 right-3 p-2 bg-white/95 backdrop-blur-sm rounded-full hover:bg-white transition-all shadow-md z-10"
-            aria-label={isFavorite ? "Quitar de favoritos" : "Agregar a favoritos"}
-          >
-            <Heart 
-              className={`h-5 w-5 transition-all ${
-                isFavorite 
-                  ? 'text-red-500 fill-red-500' 
-                  : 'text-gray-600 hover:text-red-500'
-              }`} 
-            />
-          </button>
-        </div>
+    <Link href={professionalRoute}>
+      <Card className="group overflow-hidden hover:shadow-xl hover:-translate-y-2 transition-all duration-300 border-border cursor-pointer h-full flex flex-col">
+      <div className="relative w-full h-48 overflow-hidden bg-gray-100">
+        <Image
+          src={professional.profile_photo || professional.profilePhoto || professional.avatar || "/logos/holistia-black.png"}
+          alt={professional.name || `${professional.first_name || ''} ${professional.last_name || ''}`.trim()}
+          fill
+          className="object-cover"
+          style={{ objectPosition: professional.imagePosition || "center top" }}
+          unoptimized
+        />
+        {/* Favorite button */}
+        <button
+          onClick={handleToggleFavorite}
+          disabled={isLoading}
+          className="absolute top-3 right-3 p-2 bg-white/90 backdrop-blur-sm rounded-full hover:bg-white transition-colors shadow-sm group/favorite"
+        >
+          <Heart className={`h-4 w-4 transition-colors ${isFavorite ? 'text-red-500 fill-red-500' : 'text-muted-foreground hover:text-red-500 hover:fill-red-500'}`} />
+        </button>
+      </div>
 
-        {/* Text Section - 1/3 of card height */}
-        <div className="px-4 pt-4 pb-5 flex flex-col flex-1 bg-white rounded-b-2xl">
-          {/* Main Title - Professional Name */}
-          <h3 className="text-xl font-bold text-foreground group-hover:text-primary transition-colors line-clamp-2 mb-1.5 leading-tight">
-            {professionalName}
-          </h3>
+      <CardContent className="px-4 pt-3 pb-4 flex flex-col grow">
+        <div className="space-y-2 flex flex-col grow">
+          {/* Header - Especialidad arriba, Nombre y Rating en la misma línea */}
+          <div>
+            <h3 className="text-lg font-semibold text-foreground group-hover:text-primary transition-colors line-clamp-1">
+              {professional.profession}
+            </h3>
+            <div className="flex items-center justify-between gap-2 mt-1">
+              <div className="flex items-center gap-1.5 truncate">
+                <p className="text-sm text-muted-foreground truncate">
+                  {professional.name || `${professional.first_name || ''} ${professional.last_name || ''}`.trim()}
+                </p>
+                {(professional.is_verified || professional.verified) && (
+                  <VerifiedBadge size={14} />
+                )}
+              </div>
+              {/* Rating */}
+              {professional.average_rating && professional.total_reviews && professional.total_reviews > 0 && (
+                <div className="flex items-center gap-1 flex-shrink-0">
+                  <StarRating
+                    rating={professional.average_rating}
+                    size="sm"
+                    showNumber={true}
+                  />
+                  <span className="text-xs text-muted-foreground">
+                    ({professional.total_reviews})
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
 
-          {/* Secondary Details - Price */}
-          {minPrice > 0 && (
-            <p className="text-sm text-muted-foreground mb-2">
-              Desde {formatPrice(minPrice)} MXN
-            </p>
-          )}
-
-          {/* Rating */}
-          {rating > 0 && (
-            <div className="flex items-center gap-1 mt-auto">
-              <Star className="h-4 w-4 fill-black text-black" />
-              <span className="text-sm font-semibold text-foreground">
-                {rating.toFixed(1)}
-              </span>
+          {/* Therapy Types */}
+          {professional.therapyTypes && professional.therapyTypes.length > 0 && (
+            <div className="flex flex-wrap gap-1">
+              {professional.therapyTypes.slice(0, 2).map((therapy) => (
+                <span key={therapy} className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full">
+                  {therapy}
+                </span>
+              ))}
+              {professional.therapyTypes.length > 2 && (
+                <span className="text-xs text-muted-foreground">
+                  +{professional.therapyTypes.length - 2} más
+                </span>
+              )}
             </div>
           )}
+
+          {/* Services */}
+          {professional.services && professional.services.length > 0 && (
+            <div>
+              <p className="text-xs text-muted-foreground mb-1">Servicios:</p>
+              <div className="flex flex-wrap gap-1">
+                {professional.services.slice(0, 2).map((service) => (
+                  <span key={service.name} className="text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded-full border border-blue-200">
+                    {service.name}
+                  </span>
+                ))}
+                {professional.services.length > 2 && (
+                  <span className="text-xs text-muted-foreground">
+                    +{professional.services.length - 2} más
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Location and Service Type */}
+          <div className="space-y-1 mt-auto">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <MapPin className="h-3 w-3" />
+              <span>
+                {professional.location
+                  ? (typeof professional.location === 'string'
+                      ? professional.location
+                      : `${professional.location.city}, ${professional.location.state}`)
+                  : `${professional.city || ''}, ${professional.state || ''}`.replace(/^,\s*|,\s*$/g, '')
+                }
+              </span>
+            </div>
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              {getServiceTypeIcon()}
+              <span>{getServiceTypeText()}</span>
+            </div>
+          </div>
         </div>
-      </Card>
+      </CardContent>
+    </Card>
     </Link>
   );
 };

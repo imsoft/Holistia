@@ -15,11 +15,13 @@ export async function GET() {
   try {
     const supabase = await createClient();
 
-    // Obtener profesiones únicas y contar profesionales aprobados
+    // Obtener profesiones únicas y contar profesionales aprobados y activos
     const { data, error } = await supabase
       .from("professional_applications")
       .select("profession")
-      .eq("status", "approved");
+      .eq("status", "approved")
+      .eq("is_active", true)
+      .not("profession", "is", null);
 
     if (error) {
       console.error("Error fetching specialties:", error);

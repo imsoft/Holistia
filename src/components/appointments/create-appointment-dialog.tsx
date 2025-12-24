@@ -20,8 +20,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Calendar, Clock, Loader2, AlertCircle, User, FileText } from "lucide-react";
+import { Calendar, Clock, Loader2, AlertCircle, User, FileText, Search } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { createClient } from "@/utils/supabase/client";
 
@@ -54,7 +55,7 @@ export function CreateAppointmentDialog({
   professionalId,
   onSuccess,
 }: CreateAppointmentDialogProps) {
-  const [patients, setPatients] = useState<Patient[]>([]);
+  const [patients, setPatients] = useState<(Patient & { isExisting?: boolean })[]>([]);
   const [services, setServices] = useState<Service[]>([]);
   const [selectedPatientId, setSelectedPatientId] = useState("");
   const [selectedServiceId, setSelectedServiceId] = useState("");
@@ -64,6 +65,7 @@ export function CreateAppointmentDialog({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const supabase = createClient();
 
@@ -79,7 +81,7 @@ export function CreateAppointmentDialog({
       setIsLoading(true);
       setError(null);
 
-      // Cargar pacientes del profesional
+      // Cargar pacientes que ya han tenido citas con el profesional
       const { data: patientsData, error: patientsError } = await supabase
         .from('professional_patient_info')
         .select('patient_id, full_name, email, phone')
@@ -88,11 +90,39 @@ export function CreateAppointmentDialog({
 
       if (patientsError) {
         console.error('Error cargando pacientes:', patientsError);
+        // No retornar aquí, continuar para cargar todos los pacientes
+      }
+
+      // Cargar TODOS los pacientes registrados en Holistia (para permitir crear citas a pacientes nuevos)
+      const { data: allPatientsData, error: allPatientsError } = await supabase
+        .from('profiles')
+        .select('id, full_name, email, phone, first_name, last_name')
+        .eq('type', 'patient')
+        .eq('account_active', true)
+        .order('full_name', { ascending: true });
+
+      if (allPatientsError) {
+        console.error('Error cargando todos los pacientes:', allPatientsError);
         setError('Error al cargar la lista de pacientes');
         return;
       }
 
-      setPatients(patientsData || []);
+      // Convertir formato de profiles a formato de Patient
+      const formattedAllPatients = (allPatientsData || []).map(profile => ({
+        patient_id: profile.id,
+        full_name: profile.full_name || `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || 'Paciente',
+        email: profile.email || '',
+        phone: profile.phone || null,
+      }));
+
+      // Marcar cuáles pacientes ya han tenido citas (para mostrar badge)
+      const existingPatientIds = new Set((patientsData || []).map(p => p.patient_id));
+      const patientsWithStatus = formattedAllPatients.map(patient => ({
+        ...patient,
+        isExisting: existingPatientIds.has(patient.patient_id),
+      }));
+
+      setPatients(patientsWithStatus);
 
       // Cargar servicios activos del profesional
       const { data: servicesData, error: servicesError } = await supabase
@@ -110,9 +140,7 @@ export function CreateAppointmentDialog({
 
       setServices(servicesData || []);
 
-      if (patientsData?.length === 0) {
-        setError('No tienes pacientes registrados aún. Los pacientes se registran automáticamente cuando reservan su primera cita contigo.');
-      }
+      // No mostrar error si no hay pacientes existentes, ya que ahora pueden seleccionar cualquier paciente registrado
 
       if (servicesData?.length === 0) {
         setError('No tienes servicios activos. Por favor configura tus servicios primero.');
@@ -385,25 +413,54 @@ export function CreateAppointmentDialog({
                   <User className="w-4 h-4" />
                   Paciente *
                 </Label>
-                <Select
-                  value={selectedPatientId}
-                  onValueChange={setSelectedPatientId}
-                  disabled={isSubmitting || patients.length === 0}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Selecciona un paciente" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {patients.map((patient) => (
-                      <SelectItem key={patient.patient_id} value={patient.patient_id}>
-                        <div className="flex flex-col">
-                          <span>{patient.full_name}</span>
-                          <span className="text-xs text-muted-foreground">{patient.email}</span>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="space-y-2">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Buscar paciente por nombre o email..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="pl-9"
+                      disabled={isSubmitting}
+                    />
+                  </div>
+                  <Select
+                    value={selectedPatientId}
+                    onValueChange={setSelectedPatientId}
+                    disabled={isSubmitting || patients.length === 0}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Selecciona un paciente" />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-[300px]">
+                      {patients
+                        .filter(patient => {
+                          if (!searchQuery) return true;
+                          const query = searchQuery.toLowerCase();
+                          return (
+                            patient.full_name.toLowerCase().includes(query) ||
+                            patient.email.toLowerCase().includes(query)
+                          );
+                        })
+                        .map((patient) => (
+                          <SelectItem key={patient.patient_id} value={patient.patient_id}>
+                            <div className="flex flex-col">
+                              <div className="flex items-center gap-2">
+                                <span>{patient.full_name}</span>
+                                {(patient as any).isExisting && (
+                                  <Badge variant="secondary" className="text-xs">Paciente existente</Badge>
+                                )}
+                              </div>
+                              <span className="text-xs text-muted-foreground">{patient.email}</span>
+                            </div>
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Puedes seleccionar pacientes que ya han tenido citas contigo o cualquier paciente registrado en Holistia.
+                </p>
               </div>
 
               {/* Seleccionar Servicio */}

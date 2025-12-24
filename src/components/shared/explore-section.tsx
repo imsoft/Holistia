@@ -742,14 +742,14 @@ export function ExploreSection({ hideHeader = false }: ExploreSectionProps) {
           </div>
         )}
 
-        {/* Retos */}
-        <div className="mb-16">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-2xl font-bold flex items-center gap-2">
-              <Target className="w-6 h-6 text-primary" />
-              Retos
-            </h3>
-            {challenges.length > 0 && (
+        {/* Retos - Solo mostrar si hay retos disponibles */}
+        {!loading && challenges.length > 0 && (
+          <div className="mb-16">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-2xl font-bold flex items-center gap-2">
+                <Target className="w-6 h-6 text-primary" />
+                Retos
+              </h3>
               <div className="flex items-center gap-2">
                 <Button
                   variant="outline"
@@ -771,19 +771,8 @@ export function ExploreSection({ hideHeader = false }: ExploreSectionProps) {
                   </Link>
                 </Button>
               </div>
-            )}
-          </div>
+            </div>
 
-          {loading ? (
-            <div className="flex items-center justify-center py-12">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-            </div>
-          ) : challenges.length === 0 ? (
-            <div className="text-center py-12">
-              <Target className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <p className="text-muted-foreground">No hay retos disponibles</p>
-            </div>
-          ) : (
             <div
               ref={challengesRef}
               className="flex gap-6 overflow-x-auto pb-4"
@@ -799,8 +788,8 @@ export function ExploreSection({ hideHeader = false }: ExploreSectionProps) {
                 </div>
               ))}
             </div>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* Call to action */}
         <div className="mt-12 text-center">

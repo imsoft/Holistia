@@ -499,166 +499,6 @@ const HomeUserPage = () => {
         </div>
 
         <div className="space-y-12 relative">
-          {/* Sección de Eventos y Talleres */}
-          <div className="relative z-0">
-            <div className="flex items-center justify-between mb-6">
-              <Link 
-                href={`/patient/${userId}/explore/events`}
-                className="group"
-              >
-                <h2 className="text-3xl sm:text-4xl font-bold text-foreground group-hover:text-primary transition-colors">
-                  Eventos y Talleres
-                </h2>
-              </Link>
-            </div>
-
-            {loading ? (
-              <div className="flex items-center justify-center py-12">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-              </div>
-            ) : filteredEvents.length === 0 ? (
-              <div className="text-center py-12">
-                <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <p className="text-muted-foreground">
-                  {events.length === 0 
-                    ? "No hay eventos disponibles"
-                    : "No se encontraron eventos que coincidan con los filtros aplicados."}
-                </p>
-              </div>
-            ) : (
-              <div className="relative">
-                <button
-                  onClick={scrollEventsLeft}
-                  className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-background/80 backdrop-blur-sm rounded-full p-2 shadow-lg hover:bg-background transition-colors"
-                  aria-label="Scroll left"
-                >
-                  <ChevronLeft className="h-6 w-6" />
-                </button>
-                <button
-                  onClick={scrollEventsRight}
-                  className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-background/80 backdrop-blur-sm rounded-full p-2 shadow-lg hover:bg-background transition-colors"
-                  aria-label="Scroll right"
-                >
-                  <ChevronRight className="h-6 w-6" />
-                </button>
-
-                <div
-                  ref={eventsScrollRef}
-                  className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar px-12"
-                  style={{ scrollPaddingLeft: '1rem', scrollPaddingRight: '1rem' }}
-                >
-                  {filteredEvents.map((event) => (
-                    <Link 
-                      key={event.id} 
-                      href={`/patient/${userId}/explore/event/${generateEventSlug(event.name, event.id!)}`}
-                      className="shrink-0 w-80"
-                    >
-                      <Card className="hover:shadow-lg hover:-translate-y-2 transition-all duration-300 overflow-hidden cursor-pointer h-full flex flex-col">
-                        <div className="relative w-full h-48 bg-gray-100">
-                          <Image
-                            src={(event.gallery_images && event.gallery_images.length > 0 && event.gallery_images[0]) || event.image_url || "/logos/holistia-black.png"}
-                            alt={event.name}
-                            fill
-                            className="object-cover"
-                            style={{ objectPosition: event.image_position || "center center" }}
-                            unoptimized
-                          />
-                        </div>
-                        <CardHeader className="pb-3">
-                          <CardTitle className="text-lg mb-1.5">{event.name}</CardTitle>
-                          <div className="flex flex-wrap gap-2 mb-2">
-                            <Badge variant="secondary">
-                              {getCategoryLabel(event.category)}
-                            </Badge>
-                            <Badge variant={event.is_free ? "default" : "outline"}>
-                              {event.is_free ? "Gratuito" : `$${event.price}`}
-                            </Badge>
-                          </div>
-                        </CardHeader>
-                        <CardContent className="space-y-2 flex-1 pb-4">
-                          <div className="flex items-start gap-2 text-sm text-muted-foreground">
-                            <Calendar className="w-4 h-4 mt-0.5 shrink-0" />
-                            <div className="flex-1">
-                              <div className="font-medium text-foreground">
-                                {event.end_date && event.event_date !== event.end_date
-                                  ? `${formatEventDate(event.event_date)} - ${formatEventDate(event.end_date)}`
-                                  : formatEventDate(event.event_date)
-                                }
-                              </div>
-                              <div className="text-xs">
-                                {formatEventTime(event.event_time)}
-                                {event.end_time && ` - ${formatEventTime(event.end_time)}`}
-                              </div>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                            <MapPin className="w-4 h-4 shrink-0" />
-                            <span className="truncate">{event.location}</span>
-                          </div>
-                          {event.description && (
-                            <div 
-                              className="text-sm text-muted-foreground line-clamp-2 prose prose-sm max-w-none"
-                              dangerouslySetInnerHTML={{ __html: event.description }}
-                            />
-                          )}
-                        </CardContent>
-                      </Card>
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Sección de Retos */}
-          <div className="relative z-5">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-3xl sm:text-4xl font-bold text-foreground">
-                Retos
-              </h2>
-            </div>
-
-            {loading ? (
-              <div className="flex items-center justify-center py-12">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-              </div>
-            ) : challenges.length === 0 ? (
-              <div className="text-center py-12">
-                <Target className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <p className="text-muted-foreground">No hay retos disponibles</p>
-              </div>
-            ) : (
-              <div className="relative">
-                <button
-                  onClick={scrollChallengesLeft}
-                  className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-background/80 backdrop-blur-sm rounded-full p-2 shadow-lg hover:bg-background transition-colors"
-                  aria-label="Scroll left"
-                >
-                  <ChevronLeft className="h-6 w-6" />
-                </button>
-                <button
-                  onClick={scrollChallengesRight}
-                  className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-background/80 backdrop-blur-sm rounded-full p-2 shadow-lg hover:bg-background transition-colors"
-                  aria-label="Scroll right"
-                >
-                  <ChevronRight className="h-6 w-6" />
-                </button>
-
-                <div
-                  ref={challengesScrollRef}
-                  className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar px-12"
-                  style={{ scrollPaddingLeft: '1rem', scrollPaddingRight: '1rem' }}
-                >
-                  {challenges.map((challenge) => (
-                    <div key={challenge.id} className="shrink-0 w-80">
-                      <ChallengeCard challenge={challenge} />
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-
           {/* Sección de Expertos */}
           <div className="relative z-10">
             <div className="flex items-center justify-between mb-6">
@@ -781,6 +621,265 @@ const HomeUserPage = () => {
             )}
           </div>
 
+          {/* Sección de Comercios */}
+          <div>
+            <div className="flex items-center justify-between mb-6">
+              <Link
+                href={`/patient/${userId}/explore/shops`}
+                className="group"
+              >
+                <h2 className="text-3xl sm:text-4xl font-bold text-foreground group-hover:text-primary transition-colors">
+                  Comercios
+                </h2>
+              </Link>
+            </div>
+
+            {loading ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+              </div>
+            ) : shops.length === 0 ? (
+              <div className="text-center py-12">
+                <Store className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <p className="text-muted-foreground">No hay comercios disponibles</p>
+              </div>
+            ) : (
+              <div className="relative">
+                <button
+                  onClick={scrollShopsLeft}
+                  className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-background/80 backdrop-blur-sm rounded-full p-2 shadow-lg hover:bg-background transition-colors"
+                  aria-label="Scroll left"
+                >
+                  <ChevronLeft className="h-6 w-6" />
+                </button>
+                <button
+                  onClick={scrollShopsRight}
+                  className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-background/80 backdrop-blur-sm rounded-full p-2 shadow-lg hover:bg-background transition-colors"
+                  aria-label="Scroll right"
+                >
+                  <ChevronRight className="h-6 w-6" />
+                </button>
+
+                <div
+                  ref={shopsScrollRef}
+                  className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar justify-center px-12"
+                >
+                  {shops.map((shop) => (
+                    <Link
+                      key={shop.id}
+                      href={`/patient/${userId}/explore/shop/${shop.id}`}
+                      className="shrink-0 w-80"
+                    >
+                      <Card className="hover:shadow-lg hover:-translate-y-2 transition-all duration-300 overflow-hidden cursor-pointer h-full flex flex-col">
+                        <div className="relative w-full h-48 bg-gray-100">
+                          {shop.image_url ? (
+                            <Image
+                              src={shop.image_url}
+                              alt={shop.name}
+                              fill
+                              className="object-cover"
+                              unoptimized
+                            />
+                          ) : (
+                            <div className="w-full h-full bg-linear-to-br from-primary/20 to-primary/10 flex items-center justify-center">
+                              <Store className="h-16 w-16 text-primary/40" />
+                            </div>
+                          )}
+                        </div>
+                        <CardHeader className="pb-3">
+                          <CardTitle className="line-clamp-2">{shop.name}</CardTitle>
+                          {shop.category && (
+                            <Badge variant="secondary" className="w-fit mt-1.5">{shop.category}</Badge>
+                          )}
+                        </CardHeader>
+                        <CardContent className="flex-1 pb-4">
+                          {shop.description && (
+                            <div
+                              className="text-sm text-muted-foreground line-clamp-3 prose prose-sm max-w-none"
+                              dangerouslySetInnerHTML={{ __html: shop.description }}
+                            />
+                          )}
+                          {(shop.address || shop.city) && (
+                            <div className="flex items-start gap-2 mt-3 text-sm text-muted-foreground">
+                              <MapPin className="h-4 w-4 mt-0.5 shrink-0" />
+                              <span className="line-clamp-2">
+                                {shop.address && shop.city ? `${shop.address}, ${shop.city}` : shop.address || shop.city}
+                              </span>
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Sección de Eventos y Talleres */}
+          <div className="relative z-0">
+            <div className="flex items-center justify-between mb-6">
+              <Link
+                href={`/patient/${userId}/explore/events`}
+                className="group"
+              >
+                <h2 className="text-3xl sm:text-4xl font-bold text-foreground group-hover:text-primary transition-colors">
+                  Eventos y Talleres
+                </h2>
+              </Link>
+            </div>
+
+            {loading ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+              </div>
+            ) : filteredEvents.length === 0 ? (
+              <div className="text-center py-12">
+                <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <p className="text-muted-foreground">
+                  {events.length === 0
+                    ? "No hay eventos disponibles"
+                    : "No se encontraron eventos que coincidan con los filtros aplicados."}
+                </p>
+              </div>
+            ) : (
+              <div className="relative">
+                <button
+                  onClick={scrollEventsLeft}
+                  className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-background/80 backdrop-blur-sm rounded-full p-2 shadow-lg hover:bg-background transition-colors"
+                  aria-label="Scroll left"
+                >
+                  <ChevronLeft className="h-6 w-6" />
+                </button>
+                <button
+                  onClick={scrollEventsRight}
+                  className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-background/80 backdrop-blur-sm rounded-full p-2 shadow-lg hover:bg-background transition-colors"
+                  aria-label="Scroll right"
+                >
+                  <ChevronRight className="h-6 w-6" />
+                </button>
+
+                <div
+                  ref={eventsScrollRef}
+                  className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar px-12"
+                  style={{ scrollPaddingLeft: '1rem', scrollPaddingRight: '1rem' }}
+                >
+                  {filteredEvents.map((event) => (
+                    <Link
+                      key={event.id}
+                      href={`/patient/${userId}/explore/event/${generateEventSlug(event.name, event.id!)}`}
+                      className="shrink-0 w-80"
+                    >
+                      <Card className="hover:shadow-lg hover:-translate-y-2 transition-all duration-300 overflow-hidden cursor-pointer h-full flex flex-col">
+                        <div className="relative w-full h-48 bg-gray-100">
+                          <Image
+                            src={(event.gallery_images && event.gallery_images.length > 0 && event.gallery_images[0]) || event.image_url || "/logos/holistia-black.png"}
+                            alt={event.name}
+                            fill
+                            className="object-cover"
+                            style={{ objectPosition: event.image_position || "center center" }}
+                            unoptimized
+                          />
+                        </div>
+                        <CardHeader className="pb-3">
+                          <CardTitle className="text-lg mb-1.5">{event.name}</CardTitle>
+                          <div className="flex flex-wrap gap-2 mb-2">
+                            <Badge variant="secondary">
+                              {getCategoryLabel(event.category)}
+                            </Badge>
+                            <Badge variant={event.is_free ? "default" : "outline"}>
+                              {event.is_free ? "Gratuito" : `$${event.price}`}
+                            </Badge>
+                          </div>
+                        </CardHeader>
+                        <CardContent className="space-y-2 flex-1 pb-4">
+                          <div className="flex items-start gap-2 text-sm text-muted-foreground">
+                            <Calendar className="w-4 h-4 mt-0.5 shrink-0" />
+                            <div className="flex-1">
+                              <div className="font-medium text-foreground">
+                                {event.end_date && event.event_date !== event.end_date
+                                  ? `${formatEventDate(event.event_date)} - ${formatEventDate(event.end_date)}`
+                                  : formatEventDate(event.event_date)
+                                }
+                              </div>
+                              <div className="text-xs">
+                                {formatEventTime(event.event_time)}
+                                {event.end_time && ` - ${formatEventTime(event.end_time)}`}
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <MapPin className="w-4 h-4 shrink-0" />
+                            <span className="truncate">{event.location}</span>
+                          </div>
+                          {event.description && (
+                            <div
+                              className="text-sm text-muted-foreground line-clamp-2 prose prose-sm max-w-none"
+                              dangerouslySetInnerHTML={{ __html: event.description }}
+                            />
+                          )}
+                        </CardContent>
+                      </Card>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Sección de Retos */}
+          <div className="relative z-5">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-3xl sm:text-4xl font-bold text-foreground">
+                Retos
+              </h2>
+            </div>
+
+            {loading ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+              </div>
+            ) : challenges.length === 0 ? (
+              <div className="text-center py-12">
+                <Target className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <p className="text-muted-foreground">No hay retos disponibles</p>
+              </div>
+            ) : (
+              <div className="relative">
+                <button
+                  onClick={scrollChallengesLeft}
+                  className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-background/80 backdrop-blur-sm rounded-full p-2 shadow-lg hover:bg-background transition-colors"
+                  aria-label="Scroll left"
+                >
+                  <ChevronLeft className="h-6 w-6" />
+                </button>
+                <button
+                  onClick={scrollChallengesRight}
+                  className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-background/80 backdrop-blur-sm rounded-full p-2 shadow-lg hover:bg-background transition-colors"
+                  aria-label="Scroll right"
+                >
+                  <ChevronRight className="h-6 w-6" />
+                </button>
+
+                <div
+                  ref={challengesScrollRef}
+                  className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar px-12"
+                  style={{ scrollPaddingLeft: '1rem', scrollPaddingRight: '1rem' }}
+                >
+                  {challenges.map((challenge) => (
+                    <Link
+                      key={challenge.id}
+                      href={`/patient/${userId}/explore/challenge/${challenge.id}`}
+                      className="shrink-0 w-80"
+                    >
+                      <ChallengeCard challenge={challenge} />
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
           {/* Sección de Restaurantes */}
           <div>
             <div className="flex items-center justify-between mb-6">
@@ -868,101 +967,6 @@ const HomeUserPage = () => {
                             <div className="flex items-start gap-2 mt-3 text-sm text-muted-foreground">
                               <MapPin className="h-4 w-4 mt-0.5 shrink-0" />
                               <span className="line-clamp-2">{restaurant.address}</span>
-                            </div>
-                          )}
-                        </CardContent>
-                      </Card>
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Sección de Comercios */}
-          <div>
-            <div className="flex items-center justify-between mb-6">
-              <Link
-                href={`/patient/${userId}/explore/shops`}
-                className="group"
-              >
-                <h2 className="text-3xl sm:text-4xl font-bold text-foreground group-hover:text-primary transition-colors">
-                  Comercios
-                </h2>
-              </Link>
-            </div>
-
-            {loading ? (
-              <div className="flex items-center justify-center py-12">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-              </div>
-            ) : shops.length === 0 ? (
-              <div className="text-center py-12">
-                <Store className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <p className="text-muted-foreground">No hay comercios disponibles</p>
-              </div>
-            ) : (
-              <div className="relative">
-                <button
-                  onClick={scrollShopsLeft}
-                  className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-background/80 backdrop-blur-sm rounded-full p-2 shadow-lg hover:bg-background transition-colors"
-                  aria-label="Scroll left"
-                >
-                  <ChevronLeft className="h-6 w-6" />
-                </button>
-                <button
-                  onClick={scrollShopsRight}
-                  className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-background/80 backdrop-blur-sm rounded-full p-2 shadow-lg hover:bg-background transition-colors"
-                  aria-label="Scroll right"
-                >
-                  <ChevronRight className="h-6 w-6" />
-                </button>
-
-                <div
-                  ref={shopsScrollRef}
-                  className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar justify-center px-12"
-                >
-                  {shops.map((shop) => (
-                    <Link
-                      key={shop.id}
-                      href={`/patient/${userId}/explore/shop/${shop.id}`}
-                      className="shrink-0 w-80"
-                    >
-                      <Card className="hover:shadow-lg hover:-translate-y-2 transition-all duration-300 overflow-hidden cursor-pointer h-full flex flex-col">
-                        <div className="relative w-full h-48 bg-gray-100">
-                          {shop.image_url ? (
-                            <Image
-                              src={shop.image_url}
-                              alt={shop.name}
-                              fill
-                              className="object-cover"
-                              unoptimized
-                            />
-                          ) : (
-                            <div className="w-full h-full bg-linear-to-br from-primary/20 to-primary/10 flex items-center justify-center">
-                              <Store className="h-16 w-16 text-primary/40" />
-                            </div>
-                          )}
-                        </div>
-                        <CardHeader className="pb-3">
-                          <CardTitle className="line-clamp-2">{shop.name}</CardTitle>
-                          {shop.category && (
-                            <Badge variant="secondary" className="w-fit mt-1.5">{shop.category}</Badge>
-                          )}
-                        </CardHeader>
-                        <CardContent className="flex-1 pb-4">
-                          {shop.description && (
-                            <div 
-                              className="text-sm text-muted-foreground line-clamp-3 prose prose-sm max-w-none"
-                              dangerouslySetInnerHTML={{ __html: shop.description }}
-                            />
-                          )}
-                          {(shop.address || shop.city) && (
-                            <div className="flex items-start gap-2 mt-3 text-sm text-muted-foreground">
-                              <MapPin className="h-4 w-4 mt-0.5 shrink-0" />
-                              <span className="line-clamp-2">
-                                {shop.address && shop.city ? `${shop.address}, ${shop.city}` : shop.address || shop.city}
-                              </span>
                             </div>
                           )}
                         </CardContent>

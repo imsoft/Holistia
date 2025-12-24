@@ -39,6 +39,9 @@ interface Professional {
   city: string | null;
   admin_rating: number | null;
   is_verified?: boolean;
+  minPresencial?: number;
+  minOnline?: number;
+  services?: any[];
 }
 
 interface Shop {
@@ -123,6 +126,28 @@ export function ExploreSection({ hideHeader = false }: ExploreSectionProps) {
                 .eq("professional_id", prof.id)
                 .maybeSingle();
 
+              // Obtener servicios para calcular precio mínimo
+              const { data: servicesData } = await supabase
+                .from("professional_services")
+                .select("presencialCost, onlineCost")
+                .eq("professional_id", prof.id)
+                .eq("isactive", true);
+
+              // Calcular precio mínimo
+              let minPresencial = 0;
+              let minOnline = 0;
+              if (servicesData && servicesData.length > 0) {
+                const presencialPrices = servicesData
+                  .map(s => typeof s.presencialCost === 'string' ? parseInt(s.presencialCost) || 0 : (s.presencialCost || 0))
+                  .filter(p => p > 0);
+                const onlinePrices = servicesData
+                  .map(s => typeof s.onlineCost === 'string' ? parseInt(s.onlineCost) || 0 : (s.onlineCost || 0))
+                  .filter(p => p > 0);
+                
+                minPresencial = presencialPrices.length > 0 ? Math.min(...presencialPrices) : 0;
+                minOnline = onlinePrices.length > 0 ? Math.min(...onlinePrices) : 0;
+              }
+
               return {
                 id: prof.id,
                 first_name: prof.first_name,
@@ -137,6 +162,9 @@ export function ExploreSection({ hideHeader = false }: ExploreSectionProps) {
                 city: prof.city,
                 admin_rating: adminRatingStats?.average_admin_rating || null,
                 is_verified: prof.is_verified || false,
+                minPresencial,
+                minOnline,
+                services: servicesData || [],
               };
             })
           );
@@ -367,10 +395,10 @@ export function ExploreSection({ hideHeader = false }: ExploreSectionProps) {
                         is_verified: prof.is_verified,
                         verified: prof.is_verified,
                         specializations: prof.specializations,
-                        services: [],
+                        services: (prof as any).services || [],
                         costs: {
-                          presencial: 0,
-                          online: 0,
+                          presencial: (prof as any).minPresencial || 0,
+                          online: (prof as any).minOnline || 0,
                         },
                       }}
                     />

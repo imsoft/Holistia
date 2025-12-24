@@ -14,7 +14,17 @@ interface SpecialtyPageProps {
   params: Promise<{ slug: string }>;
 }
 
-// Función para convertir slug a profession
+// Función para normalizar texto (quitar acentos, convertir a minúsculas)
+function normalizeText(text: string): string {
+  return text
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "") // Remover acentos
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+// Función para convertir slug a profession (aproximación)
 function slugToProfession(slug: string): string {
   return slug
     .split("-")
@@ -27,6 +37,7 @@ export async function generateMetadata({
   params,
 }: SpecialtyPageProps): Promise<Metadata> {
   const { slug } = await params;
+  // Usar slugToProfession como aproximación para metadata
   const profession = slugToProfession(slug);
 
   return {
@@ -52,11 +63,11 @@ export default async function SpecialtyPage({ params }: SpecialtyPageProps) {
   const { slug } = await params;
   const supabase = await createClient();
 
-  // Obtener el nombre de la profesión desde el slug
-  const profession = slugToProfession(slug);
+  // Normalizar el slug para comparación
+  const normalizedSlug = normalizeText(slug);
 
-  // Buscar profesionales con esta especialidad
-  const { data: professionals, error } = await supabase
+  // Obtener todos los profesionales aprobados y activos
+  const { data: allProfessionals, error: fetchError } = await supabase
     .from("professional_applications")
     .select(
       `
@@ -74,17 +85,33 @@ export default async function SpecialtyPage({ params }: SpecialtyPageProps) {
     `
     )
     .eq("status", "approved")
-    .ilike("profession", profession)
-    .order("rating", { ascending: false });
+    .eq("is_active", true);
 
-  if (error) {
-    console.error("Error fetching professionals:", error);
+  if (fetchError) {
+    console.error("Error fetching professionals:", fetchError);
     notFound();
   }
 
-  if (!professionals || professionals.length === 0) {
+  if (!allProfessionals || allProfessionals.length === 0) {
     notFound();
   }
+
+  // Filtrar profesionales cuyo profession normalizado coincida con el slug
+  const professionals = allProfessionals.filter((prof) => {
+    if (!prof.profession) return false;
+    const normalizedProfession = normalizeText(prof.profession);
+    return normalizedProfession === normalizedSlug;
+  });
+
+  if (professionals.length === 0) {
+    notFound();
+  }
+
+  // Ordenar por rating
+  professionals.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+
+  // Obtener el nombre de la profesión desde el primer profesional encontrado
+  const profession = professionals[0].profession;
 
   return (
     <>

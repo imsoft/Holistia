@@ -65,8 +65,8 @@ const Home = () => {
     <>
       <Snowflakes />
       <HeroSection />
-      <ExploreSection />
       <SpecialtiesBadgesSection />
+      <ExploreSection />
       <FeaturesSection />
       <TestimonialsSection />
       <LogoClouds />

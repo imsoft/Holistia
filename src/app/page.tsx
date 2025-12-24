@@ -9,6 +9,7 @@ import { HeroSection } from "@/components/shared/hero-section";
 import { LogoClouds } from "@/components/shared/logo-clouds";
 import { TestimonialsSection } from "@/components/shared/testimonials-section";
 import { ExploreSection } from "@/components/shared/explore-section";
+import { SpecialtiesBadgesSection } from "@/components/shared/specialties-badges-section";
 import { Snowflakes } from "@/components/ui/snowflakes";
 
 const Home = () => {
@@ -65,6 +66,7 @@ const Home = () => {
       <Snowflakes />
       <HeroSection />
       <ExploreSection />
+      <SpecialtiesBadgesSection />
       <FeaturesSection />
       <TestimonialsSection />
       <LogoClouds />

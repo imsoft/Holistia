@@ -63,6 +63,20 @@ interface AppointmentPaymentConfirmationData {
   ticket_number: string;
 }
 
+interface AppointmentCreatedByProfessionalData {
+  patient_name: string;
+  patient_email: string;
+  professional_name: string;
+  appointment_date: string;
+  appointment_time: string;
+  appointment_type: string;
+  duration_minutes: number;
+  cost: number;
+  location: string;
+  notes?: string;
+  payment_url: string;
+}
+
 interface RegistrationPaymentConfirmationData {
   professional_name: string;
   professional_email: string;
@@ -310,6 +324,68 @@ export async function sendAppointmentPaymentConfirmation(data: AppointmentPaymen
 
   } catch (error) {
     console.error('Error sending appointment payment confirmation:', error);
+    return { success: false, error: 'Failed to send email' };
+  }
+}
+
+// Send email to patient when professional creates an appointment (with payment link)
+export async function sendAppointmentCreatedByProfessional(data: AppointmentCreatedByProfessionalData) {
+  try {
+    const fs = await import('fs');
+    const path = await import('path');
+
+    // Read the email template
+    const templatePath = path.join(process.cwd(), 'database/email-templates/appointment-created-by-professional.html');
+    let emailTemplate: string;
+
+    try {
+      emailTemplate = fs.readFileSync(templatePath, 'utf8');
+    } catch (error) {
+      console.error('Error reading email template:', error);
+      return { success: false, error: 'Template not found' };
+    }
+
+    // Replace placeholders in the template
+    let emailContent = emailTemplate
+      .replace(/\{\{patient_name\}\}/g, data.patient_name)
+      .replace(/\{\{professional_name\}\}/g, data.professional_name)
+      .replace(/\{\{appointment_date\}\}/g, data.appointment_date)
+      .replace(/\{\{appointment_time\}\}/g, data.appointment_time)
+      .replace(/\{\{appointment_type\}\}/g, data.appointment_type)
+      .replace(/\{\{duration_minutes\}\}/g, data.duration_minutes.toString())
+      .replace(/\{\{cost\}\}/g, data.cost.toFixed(2))
+      .replace(/\{\{location\}\}/g, data.location)
+      .replace(/\{\{payment_url\}\}/g, data.payment_url);
+
+    // Handle optional notes field
+    if (data.notes) {
+      emailContent = emailContent.replace(/\{\{#if notes\}\}[\s\S]*?\{\{\/if\}\}/g, (match) => {
+        return match
+          .replace(/\{\{#if notes\}\}/g, '')
+          .replace(/\{\{\/if\}\}/g, '')
+          .replace(/\{\{notes\}\}/g, data.notes || '');
+      });
+    } else {
+      emailContent = emailContent.replace(/\{\{#if notes\}\}[\s\S]*?\{\{\/if\}\}/g, '');
+    }
+
+    // Send email using Resend
+    const { data: emailData, error } = await resend.emails.send({
+      from: 'Holistia <noreply@holistia.io>',
+      to: [data.patient_email],
+      subject: `📅 Nueva Cita Creada por ${data.professional_name} | Holistia`,
+      html: emailContent,
+    });
+
+    if (error) {
+      console.error('Error sending appointment created email:', error);
+      return { success: false, error: error.message };
+    }
+
+    console.log('Appointment created email sent successfully:', emailData?.id);
+    return { success: true, emailId: emailData?.id };
+  } catch (error) {
+    console.error('Error in sendAppointmentCreatedByProfessional:', error);
     return { success: false, error: 'Failed to send email' };
   }
 }

@@ -225,7 +225,7 @@ export function CreateAppointmentDialog({
         }
       }
 
-      // Crear la cita
+      // Crear la cita con estado 'pending' para que requiera pago
       const { data: newAppointment, error: insertError } = await supabase
         .from('appointments')
         .insert({
@@ -238,7 +238,7 @@ export function CreateAppointmentDialog({
           cost: selectedService.cost,
           location: selectedService.modality === 'online' ? 'Online' : null,
           notes: notes.trim() || null,
-          status: 'confirmed', // Las citas creadas por el profesional se confirman automáticamente
+          status: 'pending', // Estado pendiente hasta que el paciente pague
         })
         .select()
         .single();
@@ -278,48 +278,36 @@ export function CreateAppointmentDialog({
         }
       }
 
-      // Obtener tiempo de tolerancia del profesional
-      let toleranceMinutes = 15; // Valor por defecto
-      try {
-        const { data: professionalData } = await supabase
-          .from("professional_applications")
-          .select("tolerance_minutes")
-          .eq("id", professionalId)
-          .single();
-        
-        if (professionalData?.tolerance_minutes !== null && professionalData?.tolerance_minutes !== undefined) {
-          toleranceMinutes = professionalData.tolerance_minutes;
-        }
-      } catch (toleranceError) {
-        console.error('Error obteniendo tiempo de tolerancia:', toleranceError);
-        // Usar valor por defecto si hay error
-      }
+      // Generar enlace de pago para la cita
+      const paymentUrl = `${window.location.origin}/patient/${selectedPatientId}/appointments/${newAppointment.id}/pay`;
 
-      // Enviar notificación por email al paciente
+      // Enviar email al paciente con enlace de pago
       try {
         const patient = patients.find(p => p.patient_id === selectedPatientId);
-        const response = await fetch('/api/appointments/confirm', {
+        const response = await fetch('/api/appointments/send-creation-email', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ appointmentId: newAppointment.id })
+          body: JSON.stringify({
+            appointmentId: newAppointment.id,
+            paymentUrl: paymentUrl
+          })
         });
 
         if (response.ok) {
           toast.success("Cita creada exitosamente");
-          toast.info(`Se ha enviado una notificación a ${patient?.full_name}`);
-          toast.info(`Tiempo de tolerancia: ${toleranceMinutes} minutos. El profesional esperará este tiempo antes de considerar la cita como no asistida.`);
+          toast.info(`Se ha enviado un email a ${patient?.full_name} con la información de la cita y el enlace de pago.`);
         } else {
+          const errorData = await response.json();
+          console.error('Error sending email:', errorData);
           toast.success("Cita creada exitosamente");
-          toast.warning("No se pudo enviar la notificación por email");
-          toast.info(`Tiempo de tolerancia: ${toleranceMinutes} minutos. El profesional esperará este tiempo antes de considerar la cita como no asistida.`);
+          toast.warning("No se pudo enviar el email al paciente. La cita está pendiente de pago.");
         }
       } catch (emailError) {
         console.error('Error enviando email:', emailError);
         toast.success("Cita creada exitosamente");
-        toast.warning("No se pudo enviar la notificación por email");
-        toast.info(`Tiempo de tolerancia: ${toleranceMinutes} minutos. El profesional esperará este tiempo antes de considerar la cita como no asistida.`);
+        toast.warning("No se pudo enviar el email al paciente. La cita está pendiente de pago.");
       }
 
       // Resetear formulario

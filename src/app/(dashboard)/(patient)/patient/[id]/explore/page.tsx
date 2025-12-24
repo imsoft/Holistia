@@ -10,6 +10,7 @@ import { ChallengeCard } from "@/components/ui/challenge-card";
 import { createClient } from "@/utils/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { EventWorkshop } from "@/types/event";
 import { formatEventDate, formatEventTime } from "@/utils/date-utils";
 import { determineProfessionalModality, transformServicesFromDB } from "@/utils/professional-utils";
@@ -830,9 +831,21 @@ const HomeUserPage = () => {
           {/* Sección de Retos */}
           <div className="relative z-5">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-3xl sm:text-4xl font-bold text-foreground">
-                Retos
-              </h2>
+              <Link 
+                href={`/patient/${userId}/explore/challenges`}
+                className="group"
+              >
+                <h2 className="text-3xl sm:text-4xl font-bold text-foreground group-hover:text-primary transition-colors">
+                  Retos
+                </h2>
+              </Link>
+              {challenges.length > 0 && (
+                <Link href={`/patient/${userId}/explore/challenges`}>
+                  <Button variant="outline" size="sm">
+                    Ver todos
+                  </Button>
+                </Link>
+              )}
             </div>
 
             {loading ? (

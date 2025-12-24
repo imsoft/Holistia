@@ -505,11 +505,12 @@ const HomeUserPage = () => {
             <div className="flex items-center justify-between mb-6">
               <Link 
                 href={`/patient/${userId}/explore/professionals`}
-                className="group"
+                className="group flex items-center gap-2"
               >
                 <h2 className="text-3xl sm:text-4xl font-bold text-foreground group-hover:text-primary transition-colors">
                   Expertos
                 </h2>
+                <ChevronRight className="h-6 w-6 text-foreground group-hover:text-primary transition-colors" />
               </Link>
             </div>
 
@@ -627,11 +628,12 @@ const HomeUserPage = () => {
             <div className="flex items-center justify-between mb-6">
               <Link
                 href={`/patient/${userId}/explore/shops`}
-                className="group"
+                className="group flex items-center gap-2"
               >
                 <h2 className="text-3xl sm:text-4xl font-bold text-foreground group-hover:text-primary transition-colors">
                   Comercios
                 </h2>
+                <ChevronRight className="h-6 w-6 text-foreground group-hover:text-primary transition-colors" />
               </Link>
             </div>
 
@@ -722,11 +724,12 @@ const HomeUserPage = () => {
             <div className="flex items-center justify-between mb-6">
               <Link
                 href={`/patient/${userId}/explore/events`}
-                className="group"
+                className="group flex items-center gap-2"
               >
                 <h2 className="text-3xl sm:text-4xl font-bold text-foreground group-hover:text-primary transition-colors">
                   Eventos y Talleres
                 </h2>
+                <ChevronRight className="h-6 w-6 text-foreground group-hover:text-primary transition-colors" />
               </Link>
             </div>
 
@@ -833,11 +836,12 @@ const HomeUserPage = () => {
             <div className="flex items-center justify-between mb-6">
               <Link 
                 href={`/patient/${userId}/explore/challenges`}
-                className="group"
+                className="group flex items-center gap-2"
               >
                 <h2 className="text-3xl sm:text-4xl font-bold text-foreground group-hover:text-primary transition-colors">
                   Retos
                 </h2>
+                <ChevronRight className="h-6 w-6 text-foreground group-hover:text-primary transition-colors" />
               </Link>
               {challenges.length > 0 && (
                 <Link href={`/patient/${userId}/explore/challenges`}>
@@ -898,11 +902,12 @@ const HomeUserPage = () => {
             <div className="flex items-center justify-between mb-6">
               <Link
                 href={`/patient/${userId}/explore/restaurants`}
-                className="group"
+                className="group flex items-center gap-2"
               >
                 <h2 className="text-3xl sm:text-4xl font-bold text-foreground group-hover:text-primary transition-colors">
                   Restaurantes
                 </h2>
+                <ChevronRight className="h-6 w-6 text-foreground group-hover:text-primary transition-colors" />
               </Link>
             </div>
 

@@ -15,6 +15,7 @@ import { ChallengeProgress } from "@/components/ui/challenge-progress";
 import { ChallengeBadges } from "@/components/ui/challenge-badges";
 import { TeamChallengeDialog } from "@/components/ui/team-challenge-dialog";
 import { TeamInvitationsList } from "@/components/ui/team-invitations-list";
+import { TeamChat } from "@/components/ui/team-chat";
 import {
   Dialog,
   DialogContent,
@@ -73,6 +74,8 @@ export default function MyChallengesPage() {
   const [nextDayNumber, setNextDayNumber] = useState(1);
   const [isTeamDialogOpen, setIsTeamDialogOpen] = useState(false);
   const [selectedChallengeForTeam, setSelectedChallengeForTeam] = useState<ChallengePurchase | null>(null);
+  const [teamId, setTeamId] = useState<string | null>(null);
+  const [teamName, setTeamName] = useState<string | null>(null);
 
   useEffect(() => {
     fetchChallenges();
@@ -167,6 +170,45 @@ export default function MyChallengesPage() {
   const handleOpenChallenge = async (challenge: ChallengePurchase) => {
     setSelectedChallenge(challenge);
     await fetchCheckins(challenge.id); // challenge.id es el challenge_purchase_id
+    await fetchTeam(challenge.challenge_id);
+  };
+
+  const fetchTeam = async (challengeId: string) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Obtener equipo del usuario para este reto
+      const { data: membership } = await supabase
+        .from("challenge_team_members")
+        .select(`
+          team:challenge_teams(
+            id,
+            team_name,
+            challenge_id
+          )
+        `)
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (membership?.team) {
+        const teamData = Array.isArray(membership.team) ? membership.team[0] : membership.team;
+        if (teamData && teamData.challenge_id === challengeId) {
+          setTeamId(teamData.id);
+          setTeamName(teamData.team_name || "Equipo sin nombre");
+        } else {
+          setTeamId(null);
+          setTeamName(null);
+        }
+      } else {
+        setTeamId(null);
+        setTeamName(null);
+      }
+    } catch (error) {
+      console.error("Error fetching team:", error);
+      setTeamId(null);
+      setTeamName(null);
+    }
   };
 
   const handleCheckinComplete = async () => {
@@ -311,10 +353,16 @@ export default function MyChallengesPage() {
           {selectedChallenge && (
             <div className="lg:col-span-2 space-y-6">
               <Tabs defaultValue="progress" className="w-full">
-                <TabsList className="grid w-full grid-cols-3">
+                <TabsList className={`grid w-full ${teamId ? 'grid-cols-4' : 'grid-cols-3'}`}>
                   <TabsTrigger value="progress">Progreso</TabsTrigger>
                   <TabsTrigger value="checkins">Check-ins</TabsTrigger>
                   <TabsTrigger value="badges">Badges</TabsTrigger>
+                  {teamId && (
+                    <TabsTrigger value="chat" className="gap-2">
+                      <Users className="h-4 w-4" />
+                      Chat
+                    </TabsTrigger>
+                  )}
                 </TabsList>
 
                 <TabsContent value="progress" className="space-y-4">
@@ -418,6 +466,29 @@ export default function MyChallengesPage() {
                 <TabsContent value="badges">
                   <ChallengeBadges challengePurchaseId={selectedChallenge.id} />
                 </TabsContent>
+
+                {teamId && (
+                  <TabsContent value="chat">
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                          <Users className="h-5 w-5" />
+                          Chat de Equipo
+                        </CardTitle>
+                        <p className="text-sm text-muted-foreground">
+                          Comunícate con tu equipo en tiempo real
+                        </p>
+                      </CardHeader>
+                      <CardContent>
+                        <TeamChat
+                          teamId={teamId}
+                          currentUserId={userId}
+                          teamName={teamName || undefined}
+                        />
+                      </CardContent>
+                    </Card>
+                  </TabsContent>
+                )}
               </Tabs>
             </div>
           )}
@@ -453,6 +524,10 @@ export default function MyChallengesPage() {
           challengeTitle={selectedChallengeForTeam.challenge.title}
           onTeamCreated={() => {
             toast.success("Equipo creado exitosamente");
+            // Recargar el equipo si el reto seleccionado coincide
+            if (selectedChallenge?.challenge_id === selectedChallengeForTeam.challenge_id) {
+              fetchTeam(selectedChallengeForTeam.challenge_id);
+            }
           }}
         />
       )}

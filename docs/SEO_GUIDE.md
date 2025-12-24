@@ -366,5 +366,266 @@ Antes de publicar cualquier página nueva:
 
 ---
 
-**Última actualización:** Octubre 2024
-**Próxima revisión:** Enero 2025
+---
+
+## 🆕 Funcionalidades de Retos y Equipos (Diciembre 2024)
+
+### Nuevas Páginas SEO-Optimizadas
+
+#### 1. **Retos (Challenges)**
+```typescript
+// Usar en app/challenges/[id]/page.tsx
+import { generateChallengeMetadata, generateChallengeSchema } from '@/lib/seo';
+
+export async function generateMetadata({ params }) {
+  return generateChallengeMetadata({
+    title: "Reto de 30 Días de Meditación",
+    description: "Transforma tu vida con 30 días de meditación guiada",
+    category: "mindfulness",
+    difficulty: "principiante",
+    durationDays: 30,
+    coverImage: "/reto-meditacion.jpg",
+    challengeId: params.id,
+    creatorName: "Dra. María López",
+  });
+}
+```
+
+**Palabras Clave para Retos:**
+- "reto de [categoría]"
+- "desafío de [categoría]"
+- "hábitos saludables"
+- "transformación personal"
+- "reto [número] días"
+
+#### 2. **Equipos (Teams)** - Privados
+Los equipos tienen `robots: { index: false }` por privacidad.
+
+```typescript
+// No se indexan, solo para usuarios autenticados
+export async function generateMetadata({ params }) {
+  return generateTeamMetadata({
+    teamName: "Los Guerreros del Bienestar",
+    challengeTitle: "Reto de 30 Días",
+    memberCount: 5,
+    totalPoints: 450,
+    teamId: params.teamId,
+  });
+}
+```
+
+#### 3. **Perfiles de Usuario** - Privados
+Los perfiles tienen `robots: { index: false }` por privacidad.
+
+```typescript
+export async function generateMetadata({ params }) {
+  return generateUserProfileMetadata({
+    firstName: "Juan",
+    lastName: "Pérez",
+    role: "patient",
+    bio: "Apasionado por el bienestar...",
+    avatarUrl: "/avatar.jpg",
+    userId: params.userId,
+    totalChallenges: 5,
+    totalPoints: 320,
+  });
+}
+```
+
+#### 4. **Feed Social** - Posts Individuales
+```typescript
+export async function generateMetadata({ params }) {
+  return generateFeedPostMetadata({
+    userName: "Juan Pérez",
+    challengeTitle: "Reto de Meditación",
+    notes: "Día 15 completado! Me siento increíble",
+    imageUrl: "/evidencia.jpg",
+    postId: params.postId,
+  });
+}
+```
+
+### URLs Actualizadas en Sitemap
+
+El sitemap ahora incluye:
+
+1. **Páginas Estáticas:**
+   - / (prioridad 1.0)
+   - /blog (0.9)
+   - /challenges (0.9) ← NUEVO
+   - /login, /signup (0.8)
+   - /contact (0.7)
+   - /privacy, /terms (0.3)
+
+2. **Contenido Dinámico:**
+   - /challenges/{id} (0.9) ← NUEVO
+   - /profesionales/{slug} (0.8)
+   - /eventos/{slug} (0.7)
+   - /blog/{slug} (0.6)
+
+3. **URLs Bloqueadas en robots.txt:**
+   - /teams/ (privacidad)
+   - /profile/ (privacidad)
+   - /feed/post/ (pueden ser privados)
+   - /patient/ (rutas privadas)
+
+### Schema.org para Retos
+
+```typescript
+// Course Schema para Retos
+{
+  "@context": "https://schema.org",
+  "@type": "Course",
+  "name": "Reto de 30 Días de Meditación",
+  "description": "Aprende a meditar en 30 días",
+  "provider": {
+    "@type": "Organization",
+    "name": "Holistia"
+  },
+  "teaches": "mindfulness",
+  "educationalLevel": "principiante",
+  "timeRequired": "P30D",
+  "offers": {
+    "@type": "Offer",
+    "price": 299,
+    "priceCurrency": "MXN"
+  }
+}
+```
+
+### Estrategia de Contenido para Retos
+
+#### Palabras Clave por Categoría:
+
+**Fitness:**
+- "reto fitness 30 días"
+- "desafío ejercicio en casa"
+- "rutina de entrenamiento"
+
+**Nutrición:**
+- "reto alimentación saludable"
+- "desafío nutrición 21 días"
+- "cambiar hábitos alimenticios"
+
+**Mindfulness:**
+- "reto meditación para principiantes"
+- "desafío mindfulness 30 días"
+- "aprender a meditar"
+
+**Productividad:**
+- "reto productividad personal"
+- "hábitos productivos 21 días"
+- "organización y enfoque"
+
+#### SEO On-Page para Retos:
+
+```typescript
+// Ejemplo de página optimizada
+export default function ChallengePage({ challenge }) {
+  return (
+    <>
+      {/* Schema.org */}
+      <script type="application/ld+json">
+        {generateChallengeSchema(challenge)}
+      </script>
+
+      {/* Breadcrumbs */}
+      <script type="application/ld+json">
+        {generateBreadcrumbSchema([
+          { name: "Inicio", url: "https://holistia.com" },
+          { name: "Retos", url: "https://holistia.com/challenges" },
+          { name: challenge.title, url: `https://holistia.com/challenges/${challenge.id}` }
+        ])}
+      </script>
+
+      {/* Contenido */}
+      <h1>{challenge.title} - Reto de {challenge.category}</h1>
+      <h2>Sobre este reto de {challenge.duration_days} días</h2>
+      <p>{challenge.description}</p>
+
+      {/* Badges de dificultad y categoría */}
+      <div>
+        <Badge>Dificultad: {challenge.difficulty}</Badge>
+        <Badge>Categoría: {challenge.category}</Badge>
+        <Badge>Duración: {challenge.duration_days} días</Badge>
+      </div>
+
+      {/* Beneficios con H3 */}
+      <h3>Beneficios de completar este reto</h3>
+      <ul>
+        <li>...</li>
+      </ul>
+
+      {/* CTA */}
+      <Button>Comienza el reto ahora</Button>
+    </>
+  );
+}
+```
+
+---
+
+## 🎯 Objetivos SEO Actualizados para 2025
+
+### Corto Plazo (1-3 meses)
+- [ ] 50+ retos indexados
+- [ ] Top 20 en "retos de bienestar México"
+- [ ] 100+ visitas orgánicas a retos
+- [ ] Feed social optimizado para compartir
+
+### Medio Plazo (3-6 meses)
+- [ ] Top 10 en "retos de [categoría]" para 5 categorías
+- [ ] 500+ visitas orgánicas mensuales a retos
+- [ ] Featured snippet en "cómo completar un reto de bienestar"
+- [ ] 200+ shares sociales de evidencias
+
+### Largo Plazo (6-12 meses)
+- [ ] #1 en "plataforma de retos de bienestar México"
+- [ ] 2,000+ visitas orgánicas mensuales
+- [ ] 100+ retos activos indexados
+- [ ] Comunidad viral con shares orgánicos
+
+---
+
+## 📱 Optimización para Redes Sociales
+
+### Open Graph para Evidencias
+
+Cuando un usuario comparte su evidencia en redes sociales:
+
+```typescript
+// Metadata optimizada
+{
+  openGraph: {
+    title: "Juan completó el día 15 del Reto de Meditación",
+    description: "Me siento increíble! Únete a Holistia",
+    images: [{
+      url: "/evidencia-juan-dia15.jpg", // Foto del usuario
+      width: 1200,
+      height: 630
+    }]
+  }
+}
+```
+
+### Estrategia de Viralización
+
+1. **Botón de Compartir** ✅ Implementado
+   - Facebook
+   - Twitter
+   - WhatsApp
+   - Copy Link
+
+2. **Imágenes Optimizadas**
+   - Todas las evidencias son 1200x630px ideales para OG
+   - Se incluyen automáticamente en metadata
+
+3. **Call-to-Actions Sociales**
+   - "¡Comparte tu progreso!"
+   - "Invita a un amigo al reto"
+   - "Muestra tus logros"
+
+---
+
+**Última actualización:** Diciembre 2024
+**Próxima revisión:** Marzo 2025

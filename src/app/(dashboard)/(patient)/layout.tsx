@@ -20,6 +20,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { createClient } from "@/utils/supabase/client";
 import { useProfile } from "@/hooks/use-profile";
+import { NotificationsDropdown } from "@/components/ui/notifications-dropdown";
 
 // Función para generar navegación basada en el ID del usuario
 const getNavigation = (userId: string, hasEvents: boolean = false) => {
@@ -213,7 +214,10 @@ export default function UserLayout({
               </div>
             </div>
 
-            <div className="hidden sm:ml-6 sm:flex sm:items-center">
+            <div className="hidden sm:ml-6 sm:flex sm:items-center gap-2">
+              {/* Notifications */}
+              <NotificationsDropdown />
+
               {/* Profile dropdown */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>

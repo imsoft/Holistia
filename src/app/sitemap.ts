@@ -18,6 +18,11 @@ interface BlogPostSitemap {
   updated_at: string;
 }
 
+interface ChallengeSitemap {
+  id: string;
+  updated_at: string;
+}
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const supabase = await createClient();
   
@@ -74,6 +79,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ];
 
   try {
+    // Obtener retos activos
+    const { data: challenges } = await supabase
+      .from('challenges')
+      .select('id, updated_at')
+      .eq('is_active', true);
+
+    const challengePages: MetadataRoute.Sitemap = (challenges || []).map((challenge: ChallengeSitemap) => ({
+      url: `${BASE_URL}/challenges/${challenge.id}`,
+      lastModified: new Date(challenge.updated_at),
+      changeFrequency: 'weekly' as const,
+      priority: 0.9,
+    }));
+
     // Obtener profesionales aprobados
     const { data: professionals } = await supabase
       .from('professional_applications')
@@ -117,7 +135,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.6,
     }));
 
-    return [...staticPages, ...professionalPages, ...eventPages, ...blogPages];
+    return [...staticPages, ...challengePages, ...professionalPages, ...eventPages, ...blogPages];
   } catch (error) {
     console.error('Error generating sitemap:', error);
     return staticPages;

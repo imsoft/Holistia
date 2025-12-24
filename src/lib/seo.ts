@@ -521,3 +521,335 @@ export function generateBreadcrumbSchema(breadcrumbs: Array<{ name: string; url:
     }))
   });
 }
+
+// =====================================================
+// FUNCIONES PARA RETOS (CHALLENGES)
+// =====================================================
+
+export function generateChallengeMetadata({
+  title,
+  description,
+  category,
+  difficulty,
+  durationDays,
+  coverImage,
+  challengeId,
+  creatorName,
+}: {
+  title: string;
+  description: string;
+  category: string;
+  difficulty: string;
+  durationDays: number;
+  coverImage?: string;
+  challengeId: string;
+  creatorName?: string;
+}): Metadata {
+  const pageTitle = `${title} - Reto de ${category} | Holistia`;
+  const pageDescription = `${description} Dificultad: ${difficulty}. Duración: ${durationDays} días. ${creatorName ? `Creado por ${creatorName}.` : ''} Únete y transforma tu vida.`;
+
+  const url = `${BASE_URL}/challenges/${challengeId}`;
+  const imageUrl = coverImage
+    ? `${BASE_URL}/api/image?url=${encodeURIComponent(coverImage)}`
+    : `${BASE_URL}/logos/holistia-og.png`;
+
+  return {
+    title: pageTitle,
+    description: pageDescription,
+    keywords: [
+      title,
+      `reto de ${category}`,
+      category,
+      difficulty,
+      `${durationDays} días`,
+      'desafío personal',
+      'hábitos saludables',
+      'transformación',
+      'bienestar',
+    ],
+    openGraph: {
+      ...DEFAULT_SEO.openGraph,
+      type: 'article',
+      url,
+      title: pageTitle,
+      description: pageDescription,
+      images: [
+        {
+          url: imageUrl,
+          width: 1200,
+          height: 630,
+          alt: title,
+        },
+      ],
+    },
+    twitter: {
+      ...DEFAULT_SEO.twitter,
+      title: pageTitle,
+      description: pageDescription,
+      images: [imageUrl],
+    },
+    alternates: {
+      canonical: url,
+    },
+  };
+}
+
+export function generateChallengeSchema({
+  title,
+  description,
+  category,
+  difficulty,
+  durationDays,
+  coverImage,
+  challengeId,
+  creatorName,
+  price,
+}: {
+  title: string;
+  description: string;
+  category: string;
+  difficulty: string;
+  durationDays: number;
+  coverImage?: string;
+  challengeId: string;
+  creatorName?: string;
+  price?: number;
+}): string {
+  return JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'Course',
+    name: title,
+    description: description,
+    provider: {
+      '@type': 'Organization',
+      name: 'Holistia',
+      url: BASE_URL,
+    },
+    url: `${BASE_URL}/challenges/${challengeId}`,
+    image: coverImage,
+    courseCode: challengeId,
+    teaches: category,
+    educationalLevel: difficulty,
+    timeRequired: `P${durationDays}D`,
+    ...(price && {
+      offers: {
+        '@type': 'Offer',
+        price: price,
+        priceCurrency: 'MXN',
+        availability: 'https://schema.org/InStock',
+      },
+    }),
+    ...(creatorName && {
+      author: {
+        '@type': 'Person',
+        name: creatorName,
+      },
+    }),
+  });
+}
+
+// =====================================================
+// FUNCIONES PARA EQUIPOS (TEAMS)
+// =====================================================
+
+export function generateTeamMetadata({
+  teamName,
+  challengeTitle,
+  memberCount,
+  totalPoints,
+  teamId,
+}: {
+  teamName: string;
+  challengeTitle: string;
+  memberCount: number;
+  totalPoints?: number;
+  teamId: string;
+}): Metadata {
+  const pageTitle = `Equipo ${teamName} - ${challengeTitle} | Holistia`;
+  const pageDescription = `Equipo de ${memberCount} ${memberCount === 1 ? 'miembro' : 'miembros'} trabajando juntos en "${challengeTitle}". ${totalPoints ? `${totalPoints} puntos acumulados.` : ''} Únete y alcanza tus metas con apoyo grupal.`;
+
+  const url = `${BASE_URL}/teams/${teamId}`;
+
+  return {
+    title: pageTitle,
+    description: pageDescription,
+    keywords: [
+      teamName,
+      challengeTitle,
+      'equipo',
+      'reto en equipo',
+      'motivación grupal',
+      'trabajo en equipo',
+      'apoyo mutuo',
+    ],
+    openGraph: {
+      ...DEFAULT_SEO.openGraph,
+      type: 'website',
+      url,
+      title: pageTitle,
+      description: pageDescription,
+    },
+    twitter: {
+      ...DEFAULT_SEO.twitter,
+      title: pageTitle,
+      description: pageDescription,
+    },
+    alternates: {
+      canonical: url,
+    },
+    robots: {
+      index: false, // Equipos no se indexan por privacidad
+      follow: false,
+    },
+  };
+}
+
+export function generateTeamSchema({
+  teamName,
+  challengeTitle,
+  memberCount,
+  teamId,
+}: {
+  teamName: string;
+  challengeTitle: string;
+  memberCount: number;
+  teamId: string;
+}): string {
+  return JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'SportsTeam',
+    name: teamName,
+    description: `Equipo trabajando en el reto "${challengeTitle}"`,
+    url: `${BASE_URL}/teams/${teamId}`,
+    numberOfMembers: memberCount,
+    sport: challengeTitle,
+  });
+}
+
+// =====================================================
+// FUNCIONES PARA PERFILES DE USUARIO
+// =====================================================
+
+export function generateUserProfileMetadata({
+  firstName,
+  lastName,
+  role,
+  bio,
+  avatarUrl,
+  userId,
+  totalChallenges,
+  totalPoints,
+}: {
+  firstName: string;
+  lastName: string;
+  role: string;
+  bio?: string;
+  avatarUrl?: string;
+  userId: string;
+  totalChallenges?: number;
+  totalPoints?: number;
+}): Metadata {
+  const fullName = `${firstName} ${lastName}`;
+  const roleLabel = role === 'professional' ? 'Profesional' : 'Miembro';
+  const pageTitle = `${fullName} - ${roleLabel} | Holistia`;
+  const pageDescription = bio || `Perfil de ${fullName}, ${roleLabel.toLowerCase()} en Holistia. ${totalChallenges ? `${totalChallenges} retos completados.` : ''} ${totalPoints ? `${totalPoints} puntos ganados.` : ''}`;
+
+  const url = `${BASE_URL}/profile/${userId}`;
+  const imageUrl = avatarUrl
+    ? `${BASE_URL}/api/image?url=${encodeURIComponent(avatarUrl)}`
+    : `${BASE_URL}/logos/holistia-og.png`;
+
+  return {
+    title: pageTitle,
+    description: pageDescription,
+    keywords: [
+      fullName,
+      roleLabel,
+      'perfil',
+      'usuario Holistia',
+    ],
+    openGraph: {
+      ...DEFAULT_SEO.openGraph,
+      type: 'profile',
+      url,
+      title: pageTitle,
+      description: pageDescription,
+      images: [
+        {
+          url: imageUrl,
+          width: 1200,
+          height: 630,
+          alt: fullName,
+        },
+      ],
+    },
+    twitter: {
+      ...DEFAULT_SEO.twitter,
+      title: pageTitle,
+      description: pageDescription,
+      images: [imageUrl],
+    },
+    alternates: {
+      canonical: url,
+    },
+    robots: {
+      index: false, // Perfiles no se indexan por privacidad
+      follow: false,
+    },
+  };
+}
+
+// =====================================================
+// FUNCIONES PARA FEED SOCIAL
+// =====================================================
+
+export function generateFeedPostMetadata({
+  userName,
+  challengeTitle,
+  notes,
+  imageUrl,
+  postId,
+}: {
+  userName: string;
+  challengeTitle: string;
+  notes?: string;
+  imageUrl?: string;
+  postId: string;
+}): Metadata {
+  const pageTitle = `${userName} - ${challengeTitle} | Holistia`;
+  const pageDescription = notes || `${userName} completó un día del reto "${challengeTitle}". Descubre su progreso y únete a la comunidad.`;
+
+  const url = `${BASE_URL}/feed/post/${postId}`;
+  const ogImage = imageUrl
+    ? `${BASE_URL}/api/image?url=${encodeURIComponent(imageUrl)}`
+    : `${BASE_URL}/logos/holistia-og.png`;
+
+  return {
+    title: pageTitle,
+    description: pageDescription,
+    openGraph: {
+      ...DEFAULT_SEO.openGraph,
+      type: 'article',
+      url,
+      title: pageTitle,
+      description: pageDescription,
+      images: [
+        {
+          url: ogImage,
+          width: 1200,
+          height: 630,
+          alt: `${userName} - ${challengeTitle}`,
+        },
+      ],
+    },
+    twitter: {
+      ...DEFAULT_SEO.twitter,
+      title: pageTitle,
+      description: pageDescription,
+      images: [ogImage],
+    },
+    alternates: {
+      canonical: url,
+    },
+  };
+}

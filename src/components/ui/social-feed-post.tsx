@@ -11,6 +11,8 @@ import { Heart, MessageCircle, Target, TrendingUp, Calendar, Users } from "lucid
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
+import { ReactionPicker, ReactionsSummary, type ReactionType } from "@/components/ui/reaction-picker";
+import { SharePostDialog } from "@/components/ui/share-post-dialog";
 
 interface SocialFeedPostProps {
   checkin: {
@@ -42,6 +44,9 @@ interface SocialFeedPostProps {
     is_team?: boolean;
     team_id?: string;
     team_name?: string | null;
+    userReaction?: ReactionType | null;
+    reactions?: Record<string, number>;
+    total_reactions?: number;
   };
   onLike?: () => void;
   onUnlike?: () => void;
@@ -70,6 +75,78 @@ export function SocialFeedPost({ checkin, onLike, onUnlike }: SocialFeedPostProp
   const [isLoadingComments, setIsLoadingComments] = useState(false);
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
   const [isTogglingLike, setIsTogglingLike] = useState(false);
+
+  // Estado para reacciones - inicializar desde props
+  const [currentReaction, setCurrentReaction] = useState<ReactionType | null>(
+    checkin.userReaction || null
+  );
+  const [reactions, setReactions] = useState<Record<ReactionType, number>>(
+    (checkin.reactions as Record<ReactionType, number>) || ({} as any)
+  );
+  const [totalReactions, setTotalReactions] = useState(checkin.total_reactions || 0);
+
+  // Manejar reacción
+  const handleReactionSelect = async (reactionType: ReactionType) => {
+    try {
+      const response = await fetch("/api/social-feed/reactions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          checkinId: checkin.checkin_id,
+          reactionType,
+        }),
+      });
+
+      if (!response.ok) throw new Error("Error al reaccionar");
+
+      // Actualizar estado local
+      const newReactions = { ...reactions };
+
+      // Si había reacción anterior, decrementar
+      if (currentReaction && newReactions[currentReaction]) {
+        newReactions[currentReaction] = Math.max(0, newReactions[currentReaction] - 1);
+        if (newReactions[currentReaction] === 0) {
+          delete newReactions[currentReaction];
+        }
+      }
+
+      // Incrementar nueva reacción
+      newReactions[reactionType] = (newReactions[reactionType] || 0) + 1;
+
+      setReactions(newReactions);
+      setCurrentReaction(reactionType);
+      setTotalReactions(Object.values(newReactions).reduce((a, b) => a + b, 0));
+    } catch (error) {
+      console.error("Error handling reaction:", error);
+      toast.error("Error al reaccionar");
+    }
+  };
+
+  const handleReactionRemove = async () => {
+    try {
+      const response = await fetch(
+        `/api/social-feed/reactions?checkinId=${checkin.checkin_id}`,
+        { method: "DELETE" }
+      );
+
+      if (!response.ok) throw new Error("Error al quitar reacción");
+
+      // Actualizar estado local
+      if (currentReaction && reactions[currentReaction]) {
+        const newReactions = { ...reactions };
+        newReactions[currentReaction] = Math.max(0, newReactions[currentReaction] - 1);
+        if (newReactions[currentReaction] === 0) {
+          delete newReactions[currentReaction];
+        }
+        setReactions(newReactions);
+        setTotalReactions(Object.values(newReactions).reduce((a, b) => a + b, 0));
+      }
+      setCurrentReaction(null);
+    } catch (error) {
+      console.error("Error removing reaction:", error);
+      toast.error("Error al quitar reacción");
+    }
+  };
 
   const handleToggleLike = async () => {
     if (isTogglingLike) return;
@@ -269,20 +346,27 @@ export function SocialFeedPost({ checkin, onLike, onUnlike }: SocialFeedPostProp
 
       {/* Footer con acciones */}
       <CardFooter className="flex flex-col gap-3 px-4 pb-4">
+        {/* Resumen de reacciones */}
+        {totalReactions > 0 && (
+          <div className="w-full border-b border-border pb-2">
+            <ReactionsSummary
+              reactions={reactions}
+              totalCount={totalReactions}
+              userReaction={currentReaction}
+            />
+          </div>
+        )}
+
         <div className="flex items-center justify-between w-full">
-          <div className="flex items-center gap-4">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleToggleLike}
-              disabled={isTogglingLike}
-              className="gap-2"
-            >
-              <Heart
-                className={`h-5 w-5 ${isLiked ? "fill-red-500 text-red-500" : ""}`}
-              />
-              <span>{likesCount}</span>
-            </Button>
+          <div className="flex items-center gap-2">
+            {/* Reaction Picker */}
+            <ReactionPicker
+              currentReaction={currentReaction}
+              onReactionSelect={handleReactionSelect}
+              onReactionRemove={handleReactionRemove}
+            />
+
+            {/* Botón de comentarios */}
             <Button
               variant="ghost"
               size="sm"
@@ -291,6 +375,28 @@ export function SocialFeedPost({ checkin, onLike, onUnlike }: SocialFeedPostProp
             >
               <MessageCircle className="h-5 w-5" />
               <span>{checkin.comments_count}</span>
+            </Button>
+
+            {/* Botón de compartir */}
+            <SharePostDialog
+              checkinId={checkin.checkin_id}
+              challengeTitle={checkin.challenge_title}
+              userName={`${checkin.user_first_name} ${checkin.user_last_name}`}
+              compact
+            />
+
+            {/* Legacy Like button (mantener para compatibilidad) */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleToggleLike}
+              disabled={isTogglingLike}
+              className="gap-2 opacity-50 hover:opacity-100"
+            >
+              <Heart
+                className={`h-4 w-4 ${isLiked ? "fill-red-500 text-red-500" : ""}`}
+              />
+              <span className="text-xs">{likesCount}</span>
             </Button>
           </div>
           {checkin.points_earned > 0 && (

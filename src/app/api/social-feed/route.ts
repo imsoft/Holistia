@@ -9,6 +9,9 @@ export async function GET(request: Request) {
     const limit = parseInt(searchParams.get("limit") || "20");
     const offset = parseInt(searchParams.get("offset") || "0");
     const filterType = searchParams.get("filter") || "all"; // "all", "following", "recommended"
+    const categoriesParam = searchParams.get("categories");
+    const difficultiesParam = searchParams.get("difficulties");
+    const searchQuery = searchParams.get("search");
 
     // Obtener usuario autenticado
     const { data: { user }, error: userError } = await supabase.auth.getUser();
@@ -77,6 +80,31 @@ export async function GET(request: Request) {
     // Combinar ambos arrays
     let allCheckins = [...individualCheckins, ...teamCheckins];
 
+    // Aplicar filtros avanzados
+    if (categoriesParam) {
+      const categories = categoriesParam.split(',');
+      allCheckins = allCheckins.filter((checkin: any) =>
+        categories.includes(checkin.challenge_category)
+      );
+    }
+
+    if (difficultiesParam) {
+      const difficulties = difficultiesParam.split(',');
+      allCheckins = allCheckins.filter((checkin: any) =>
+        difficulties.includes(checkin.challenge_difficulty)
+      );
+    }
+
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      allCheckins = allCheckins.filter((checkin: any) =>
+        checkin.challenge_title?.toLowerCase().includes(query) ||
+        checkin.notes?.toLowerCase().includes(query) ||
+        checkin.user_first_name?.toLowerCase().includes(query) ||
+        checkin.user_last_name?.toLowerCase().includes(query)
+      );
+    }
+
     // Ordenar por fecha
     allCheckins.sort((a, b) => {
       return new Date(b.checkin_time).getTime() - new Date(a.checkin_time).getTime();
@@ -90,19 +118,28 @@ export async function GET(request: Request) {
     // Aplicar paginación
     const paginatedCheckins = allCheckins.slice(offset, offset + limit);
 
-    // Para cada check-in, verificar si el usuario actual le dio like
+    // Para cada check-in, verificar si el usuario actual le dio like o reacción
     const dataWithLikeStatus = await Promise.all(
       paginatedCheckins.map(async (checkin: any) => {
-        const { data: likeData } = await supabase
-          .from("challenge_checkin_likes")
-          .select("id")
-          .eq("checkin_id", checkin.checkin_id)
-          .eq("user_id", user.id)
-          .maybeSingle();
+        const [likeData, reactionData] = await Promise.all([
+          supabase
+            .from("challenge_checkin_likes")
+            .select("id")
+            .eq("checkin_id", checkin.checkin_id)
+            .eq("user_id", user.id)
+            .maybeSingle(),
+          supabase
+            .from("post_reactions")
+            .select("reaction_type")
+            .eq("checkin_id", checkin.checkin_id)
+            .eq("user_id", user.id)
+            .maybeSingle()
+        ]);
 
         return {
           ...checkin,
-          isLikedByCurrentUser: !!likeData,
+          isLikedByCurrentUser: !!likeData.data,
+          userReaction: reactionData.data?.reaction_type || null,
         };
       })
     );

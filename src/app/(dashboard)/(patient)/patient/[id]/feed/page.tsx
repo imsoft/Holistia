@@ -5,8 +5,15 @@ import { useParams } from "next/navigation";
 import { SocialFeedPost } from "@/components/ui/social-feed-post";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { RefreshCw, Users, Sparkles, TrendingUp } from "lucide-react";
+import { RefreshCw, Users, Sparkles, TrendingUp, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { motion, AnimatePresence } from "framer-motion";
+import { usePullToRefresh } from "@/hooks/use-pull-to-refresh";
+import { useInfiniteScrollTrigger } from "@/hooks/use-infinite-scroll";
+import { PullToRefreshIndicator } from "@/components/ui/pull-to-refresh-indicator";
+import { SkeletonPostList } from "@/components/ui/skeleton-post";
+import { staggerContainer, staggerItem } from "@/lib/animations";
+import { FeedFilters, type FeedFilterOptions } from "@/components/ui/feed-filters";
 
 export default function SocialFeedPage() {
   const params = useParams();
@@ -18,19 +25,39 @@ export default function SocialFeedPage() {
   const [hasMore, setHasMore] = useState(false);
   const [offset, setOffset] = useState(0);
   const limit = 10;
+  const [advancedFilters, setAdvancedFilters] = useState<FeedFilterOptions>({
+    categories: [],
+    difficulties: [],
+    searchQuery: "",
+  });
 
   useEffect(() => {
     loadFeed(true);
-  }, [filter]);
+  }, [filter, advancedFilters]);
 
   const loadFeed = async (reset = false) => {
     try {
       setLoading(true);
       const currentOffset = reset ? 0 : offset;
 
-      const response = await fetch(
-        `/api/social-feed?limit=${limit}&offset=${currentOffset}&filter=${filter}`
-      );
+      // Build query params
+      const params = new URLSearchParams({
+        limit: limit.toString(),
+        offset: currentOffset.toString(),
+        filter,
+      });
+
+      if (advancedFilters.categories.length > 0) {
+        params.append('categories', advancedFilters.categories.join(','));
+      }
+      if (advancedFilters.difficulties.length > 0) {
+        params.append('difficulties', advancedFilters.difficulties.join(','));
+      }
+      if (advancedFilters.searchQuery) {
+        params.append('search', advancedFilters.searchQuery);
+      }
+
+      const response = await fetch(`/api/social-feed?${params.toString()}`);
       const data = await response.json();
 
       if (!response.ok) throw new Error(data.error || "Error al cargar feed");
@@ -52,29 +79,58 @@ export default function SocialFeedPage() {
     }
   };
 
-  const handleRefresh = () => {
-    loadFeed(true);
+  const handleRefresh = async () => {
+    await loadFeed(true);
+    toast.success("Feed actualizado");
   };
 
-  const handleLoadMore = () => {
-    loadFeed(false);
+  const handleLoadMore = async () => {
+    await loadFeed(false);
   };
+
+  // Pull to refresh
+  const { pullDistance, isRefreshing } = usePullToRefresh({
+    onRefresh: handleRefresh,
+    threshold: 80,
+  });
+
+  // Infinite scroll
+  const { triggerRef, isLoading: isLoadingMore } = useInfiniteScrollTrigger(
+    handleLoadMore,
+    hasMore,
+    !loading
+  );
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Pull to refresh indicator */}
+      <PullToRefreshIndicator
+        pullDistance={pullDistance}
+        isRefreshing={isRefreshing}
+        threshold={80}
+      />
+
       <main className="max-w-2xl mx-auto px-4 py-8">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
+        <motion.div
+          className="flex items-center justify-between mb-6"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+        >
           <h1 className="text-3xl font-bold">Feed Social</h1>
           <Button
             variant="outline"
             size="icon"
             onClick={handleRefresh}
-            disabled={loading}
+            disabled={loading || isRefreshing}
           >
-            <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
+            <RefreshCw className={`h-4 w-4 ${loading || isRefreshing ? "animate-spin" : ""}`} />
           </Button>
-        </div>
+        </motion.div>
+
+        {/* Filtros avanzados */}
+        <FeedFilters onFilterChange={setAdvancedFilters} />
 
         {/* Tabs de filtros */}
         <Tabs
@@ -99,62 +155,74 @@ export default function SocialFeedPage() {
 
           <TabsContent value={filter} className="mt-6">
             {/* Feed de posts */}
-            <div className="space-y-6">
-              {loading && feed.length === 0 ? (
-                <div className="flex items-center justify-center py-12">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                </div>
-              ) : feed.length === 0 ? (
-                <div className="text-center py-12">
-                  <p className="text-muted-foreground">
-                    {filter === "following"
-                      ? "No hay actividad de personas que sigues. ¡Comienza a seguir a otros usuarios!"
-                      : "No hay evidencias disponibles aún"}
-                  </p>
-                </div>
-              ) : (
-                <>
+            {loading && feed.length === 0 ? (
+              <SkeletonPostList count={3} />
+            ) : feed.length === 0 ? (
+              <motion.div
+                className="text-center py-12"
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.3 }}
+              >
+                <p className="text-muted-foreground">
+                  {filter === "following"
+                    ? "No hay actividad de personas que sigues. ¡Comienza a seguir a otros usuarios!"
+                    : "No hay evidencias disponibles aún"}
+                </p>
+              </motion.div>
+            ) : (
+              <motion.div
+                className="space-y-6"
+                variants={staggerContainer}
+                initial="initial"
+                animate="animate"
+              >
+                <AnimatePresence mode="popLayout">
                   {feed.map((checkin) => (
-                    <SocialFeedPost
+                    <motion.div
                       key={checkin.checkin_id}
-                      checkin={checkin}
-                      onLike={() => {
-                        // Actualizar el estado local
-                        setFeed(prev =>
-                          prev.map(item =>
-                            item.checkin_id === checkin.checkin_id
-                              ? { ...item, isLikedByCurrentUser: true }
-                              : item
-                          )
-                        );
-                      }}
-                      onUnlike={() => {
-                        setFeed(prev =>
-                          prev.map(item =>
-                            item.checkin_id === checkin.checkin_id
-                              ? { ...item, isLikedByCurrentUser: false }
-                              : item
-                          )
-                        );
-                      }}
-                    />
+                      variants={staggerItem}
+                      layout
+                    >
+                      <SocialFeedPost
+                        checkin={checkin}
+                        onLike={() => {
+                          // Actualizar el estado local
+                          setFeed(prev =>
+                            prev.map(item =>
+                              item.checkin_id === checkin.checkin_id
+                                ? { ...item, isLikedByCurrentUser: true }
+                                : item
+                            )
+                          );
+                        }}
+                        onUnlike={() => {
+                          setFeed(prev =>
+                            prev.map(item =>
+                              item.checkin_id === checkin.checkin_id
+                                ? { ...item, isLikedByCurrentUser: false }
+                                : item
+                            )
+                          );
+                        }}
+                      />
+                    </motion.div>
                   ))}
+                </AnimatePresence>
 
-                  {/* Botón de cargar más */}
-                  {hasMore && (
-                    <div className="flex justify-center pt-4">
-                      <Button
-                        onClick={handleLoadMore}
-                        disabled={loading}
-                        variant="outline"
-                      >
-                        {loading ? "Cargando..." : "Cargar más"}
-                      </Button>
-                    </div>
-                  )}
-                </>
-              )}
-            </div>
+                {/* Infinite scroll trigger */}
+                {hasMore && (
+                  <div ref={triggerRef} className="flex justify-center pt-4">
+                    {isLoadingMore && (
+                      <div className="flex items-center gap-2 text-muted-foreground">
+                        <Loader2 className="h-5 w-5 animate-spin" />
+                        <span className="text-sm">Cargando más...</span>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </motion.div>
+            )}
           </TabsContent>
         </Tabs>
       </main>

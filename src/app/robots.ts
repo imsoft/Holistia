@@ -17,6 +17,9 @@ export default function robots(): MetadataRoute.Robots {
           '/private/',
           '/_next/',
           '/_vercel/',
+          '/teams/', // Equipos son privados
+          '/profile/', // Perfiles son privados
+          '/feed/post/', // Posts individuales pueden ser privados
         ],
       },
       {
@@ -32,7 +35,11 @@ export default function robots(): MetadataRoute.Robots {
           '/private/',
           '/_next/',
           '/_vercel/',
+          '/teams/',
+          '/profile/',
+          '/feed/post/',
         ],
+        crawlDelay: 0,
       },
       {
         userAgent: 'Bingbot',
@@ -47,7 +54,11 @@ export default function robots(): MetadataRoute.Robots {
           '/private/',
           '/_next/',
           '/_vercel/',
+          '/teams/',
+          '/profile/',
+          '/feed/post/',
         ],
+        crawlDelay: 0,
       },
     ],
     sitemap: `${BASE_URL}/sitemap.xml`,

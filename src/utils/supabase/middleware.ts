@@ -47,6 +47,7 @@ export async function updateSession(request: NextRequest) {
       '/error',
       '/auth',
       '/public', // Páginas públicas (profesionales, comercios, restaurantes)
+      '/specialties', // Páginas de especialidades (públicas)
       '/_next',
       '/favicon.ico',
       '/api',

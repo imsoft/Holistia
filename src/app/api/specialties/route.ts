@@ -1,4 +1,4 @@
-import { createClient } from "@/utils/supabase/server";
+import { createAnonClient } from "@/utils/supabase/server";
 import { NextResponse } from "next/server";
 
 // Función para generar slug
@@ -13,7 +13,7 @@ function generateSlug(profession: string): string {
 
 export async function GET() {
   try {
-    const supabase = await createClient();
+    const supabase = createAnonClient();
 
     // Obtener profesiones únicas y contar profesionales aprobados y activos
     const { data, error } = await supabase

@@ -1,4 +1,4 @@
-import { createClient } from "@/utils/supabase/server";
+import { createAnonClient } from "@/utils/supabase/server";
 import { NextResponse } from "next/server";
 
 // Función para normalizar texto (igual que en la página)
@@ -17,7 +17,7 @@ export async function GET(
 ) {
   try {
     const { slug } = await params;
-    const supabase = await createClient();
+    const supabase = createAnonClient();
 
     // Normalizar el slug para comparación
     const normalizedSlug = normalizeText(slug);

@@ -6,7 +6,7 @@ import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { MapPin, Star, Calendar, ArrowLeft } from "lucide-react";
+import { MapPin, Calendar, ArrowLeft } from "lucide-react";
 
 interface SpecialtyPageProps {
   params: Promise<{ slug: string }>;
@@ -18,11 +18,10 @@ interface Professional {
   first_name: string;
   last_name: string;
   profession: string;
-  bio: string | null;
-  profile_picture_url: string | null;
+  biography: string | null;
+  profile_photo: string | null;
   city: string | null;
   state: string | null;
-  rating: number | null;
   slug: string | null;
 }
 
@@ -87,11 +86,10 @@ export default async function SpecialtyPage({ params }: SpecialtyPageProps) {
       first_name,
       last_name,
       profession,
-      bio,
-      profile_picture_url,
+      biography,
+      profile_photo,
       city,
       state,
-      rating,
       slug
     `
     )
@@ -120,8 +118,8 @@ export default async function SpecialtyPage({ params }: SpecialtyPageProps) {
     notFound();
   }
 
-  // Ordenar por rating
-  professionals.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+  // Ordenar por nombre
+  professionals.sort((a, b) => a.first_name.localeCompare(b.first_name));
 
   // Obtener el nombre de la profesión desde el primer profesional encontrado
   const profession = professionals[0].profession;
@@ -165,9 +163,9 @@ export default async function SpecialtyPage({ params }: SpecialtyPageProps) {
                 <CardContent className="p-0">
                   {/* Imagen del profesional */}
                   <div className="relative h-48 bg-gradient-to-br from-primary/10 to-purple-500/10">
-                    {professional.profile_picture_url ? (
+                    {professional.profile_photo ? (
                       <Image
-                        src={professional.profile_picture_url}
+                        src={professional.profile_photo}
                         alt={`${professional.first_name} ${professional.last_name}`}
                         fill
                         className="object-cover"
@@ -194,16 +192,6 @@ export default async function SpecialtyPage({ params }: SpecialtyPageProps) {
                       {professional.profession}
                     </Badge>
 
-                    {/* Rating */}
-                    {professional.rating && professional.rating > 0 && (
-                      <div className="flex items-center gap-1 mb-3">
-                        <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                        <span className="text-sm font-medium">
-                          {professional.rating.toFixed(1)}
-                        </span>
-                      </div>
-                    )}
-
                     {/* Ubicación */}
                     {(professional.city || professional.state) && (
                       <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
@@ -216,10 +204,10 @@ export default async function SpecialtyPage({ params }: SpecialtyPageProps) {
                       </div>
                     )}
 
-                    {/* Bio */}
-                    {professional.bio && (
+                    {/* Biografía */}
+                    {professional.biography && (
                       <p className="text-sm text-muted-foreground line-clamp-3 mb-4">
-                        {professional.bio}
+                        {professional.biography}
                       </p>
                     )}
 

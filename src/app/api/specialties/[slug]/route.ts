@@ -32,11 +32,10 @@ export async function GET(
         first_name,
         last_name,
         profession,
-        bio,
-        profile_picture_url,
+        biography,
+        profile_photo,
         city,
         state,
-        rating,
         slug
       `
       )
@@ -72,8 +71,9 @@ export async function GET(
       );
     }
 
-    // Ordenar por rating
-    professionals.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+    // Los profesionales ya vienen filtrados, solo necesitamos ordenarlos
+    // El rating se puede obtener de review_stats si es necesario, por ahora solo ordenamos por nombre
+    professionals.sort((a, b) => a.first_name.localeCompare(b.first_name));
 
     // Obtener el nombre de la profesión desde el primer profesional encontrado
     const profession = professionals[0].profession;

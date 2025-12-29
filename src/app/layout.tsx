@@ -5,6 +5,7 @@ import "../styles/toast.css";
 import { Analytics } from '@vercel/analytics/next';
 import { GoogleAnalytics, GoogleSearchConsole } from '@/components/seo/google-analytics';
 import { Toaster } from 'sonner';
+import { FaviconManager } from '@/components/layout/FaviconManager';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -117,10 +118,11 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        <FaviconManager />
         {children}
         <Analytics />
         <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS_ID} />
-        <Toaster 
+        <Toaster
           position="top-center"
           expand={true}
           richColors={false}

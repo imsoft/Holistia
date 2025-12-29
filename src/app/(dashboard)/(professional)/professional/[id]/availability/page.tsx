@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { User } from 'lucide-react';
 import { WorkingHoursManager } from '@/components/ui/working-hours-manager';
+import { ProfessionalToleranceSettings } from '@/components/professional-tolerance-settings';
 
 interface ProfessionalApplication {
   id: string;
@@ -194,7 +195,7 @@ export default function AvailabilityPage() {
       </div>
 
       {/* Main Content */}
-      <div className="container mx-auto p-4 sm:p-6">
+      <div className="container mx-auto p-4 sm:p-6 space-y-6">
         <WorkingHoursManager
           professionalId={professional.id}
           userId={user.id}
@@ -202,6 +203,9 @@ export default function AvailabilityPage() {
           currentEndTime={workingEndTime}
           currentWorkingDays={workingDays}
         />
+
+        {/* Tiempo de Tolerancia */}
+        <ProfessionalToleranceSettings professionalId={professional.id} />
       </div>
     </div>
   );

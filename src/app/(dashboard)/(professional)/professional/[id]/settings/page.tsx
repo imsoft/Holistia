@@ -2,8 +2,7 @@ import { createClient } from '@/utils/supabase/server';
 import { redirect } from 'next/navigation';
 import { GoogleCalendarIntegration } from '@/components/google-calendar-integration';
 import { AccountDeactivation } from '@/components/ui/account-deactivation';
-import { ProfessionalToleranceSettings } from '@/components/professional-tolerance-settings';
-import { Settings as SettingsIcon, Calendar, AlertTriangle, Clock } from 'lucide-react';
+import { Settings as SettingsIcon, Calendar, AlertTriangle } from 'lucide-react';
 
 export default async function ProfessionalSettingsPage({
   params,
@@ -57,17 +56,6 @@ export default async function ProfessionalSettingsPage({
 
           {/* Google Calendar Integration */}
           <GoogleCalendarIntegration userId={user.id} />
-        </div>
-
-        {/* Sección de Configuración de Citas */}
-        <div className="space-y-4">
-          <div className="flex items-center gap-2">
-            <Clock className="h-5 w-5" />
-            <h2 className="text-xl font-semibold">Configuración de Citas</h2>
-          </div>
-
-          {/* Tiempo de Tolerancia */}
-          <ProfessionalToleranceSettings professionalId={professional.id} />
         </div>
 
         {/* Zona de Peligro - Desactivación de Cuenta */}

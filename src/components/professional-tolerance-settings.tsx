@@ -84,7 +84,7 @@ export function ProfessionalToleranceSettings({ professionalId }: ProfessionalTo
 
   if (loading) {
     return (
-      <Card>
+      <Card className="py-4">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Clock className="h-5 w-5" />
@@ -101,7 +101,7 @@ export function ProfessionalToleranceSettings({ professionalId }: ProfessionalTo
   }
 
   return (
-    <Card>
+    <Card className="py-4">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Clock className="h-5 w-5" />

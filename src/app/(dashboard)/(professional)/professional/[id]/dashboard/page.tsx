@@ -26,7 +26,6 @@ import {
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { DashboardStats, Appointment } from "@/types";
 import { createClient } from "@/utils/supabase/client";
-import { AdminRatingDisplay } from "@/components/ui/admin-rating-display";
 import { VerifiedBadge } from "@/components/ui/verified-badge";
 
 
@@ -594,13 +593,6 @@ export default function ProfessionalDashboard() {
               </Card>
             )}
           </>
-        )}
-
-        {/* Calificación de administrador */}
-        {professionalId && (
-          <div className="mt-6">
-            <AdminRatingDisplay professionalId={professionalId} />
-          </div>
         )}
 
       </div>

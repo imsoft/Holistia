@@ -5,12 +5,14 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 import ProfilePhotoUploader from "@/components/ui/profile-photo-uploader";
 import ProfessionalProfileEditor from "@/components/ui/professional-profile-editor";
 import { UsernameSettings } from "@/components/username-settings";
+import { AdminRatingDisplay } from "@/components/ui/admin-rating-display";
 import { Button } from "@/components/ui/button";
 import { User, Camera, Share2 } from "lucide-react";
 import { toast } from "sonner";
 
 interface ProfessionalProfileClientProps {
   userId: string;
+  professionalId: string;
   professionalName: string;
   firstName: string;
   lastName: string;
@@ -20,6 +22,7 @@ interface ProfessionalProfileClientProps {
 
 export function ProfessionalProfileClient({
   userId,
+  professionalId,
   professionalName,
   firstName,
   lastName,
@@ -106,6 +109,11 @@ export function ProfessionalProfileClient({
               userId={userId}
               currentUsername={currentUsername}
             />
+          </div>
+
+          {/* Calificación del Administrador */}
+          <div>
+            <AdminRatingDisplay professionalId={professionalId} />
           </div>
         </div>
       </div>

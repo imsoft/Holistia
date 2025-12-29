@@ -41,6 +41,7 @@ export default async function ProfessionalProfilePage({
   return (
     <ProfessionalProfileClient
       userId={user.id}
+      professionalId={professionalApp.id}
       professionalName={`${professionalApp.first_name} ${professionalApp.last_name}`}
       firstName={professionalApp.first_name}
       lastName={professionalApp.last_name}

@@ -74,33 +74,30 @@ export function ProfessionalProfileClient({
       {/* Main Content */}
       <div className="container mx-auto py-6 sm:py-8 px-4 sm:px-6 max-w-6xl">
         <div className="space-y-6 sm:space-y-8">
-          {/* Sección de Foto de Perfil y Edición */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Foto de Perfil */}
-            <div className="lg:col-span-1">
-              <div className="flex items-center gap-2 mb-4">
-                <Camera className="h-5 w-5 text-primary" />
-                <h2 className="text-lg font-semibold">Foto de Perfil</h2>
-              </div>
-              <ProfilePhotoUploader
-                professionalId={userId}
-                currentPhoto={profilePhoto}
-                professionalName={professionalName}
-                onPhotoUpdate={(newPhotoUrl) => setProfilePhoto(newPhotoUrl)}
-              />
+          {/* Foto de Perfil */}
+          <div>
+            <div className="flex items-center gap-2 mb-4">
+              <Camera className="h-5 w-5 text-primary" />
+              <h2 className="text-lg font-semibold">Foto de Perfil</h2>
             </div>
+            <ProfilePhotoUploader
+              professionalId={userId}
+              currentPhoto={profilePhoto}
+              professionalName={professionalName}
+              onPhotoUpdate={(newPhotoUrl) => setProfilePhoto(newPhotoUrl)}
+            />
+          </div>
 
-            {/* Editor de Perfil */}
-            <div className="lg:col-span-2">
-              <div className="flex items-center gap-2 mb-4">
-                <User className="h-5 w-5 text-primary" />
-                <h2 className="text-lg font-semibold">Información Profesional</h2>
-              </div>
-              <ProfessionalProfileEditor
-                professionalId={userId}
-                onProfileUpdate={handleProfileUpdate}
-              />
+          {/* Información Profesional */}
+          <div>
+            <div className="flex items-center gap-2 mb-4">
+              <User className="h-5 w-5 text-primary" />
+              <h2 className="text-lg font-semibold">Información Profesional</h2>
             </div>
+            <ProfessionalProfileEditor
+              professionalId={userId}
+              onProfileUpdate={handleProfileUpdate}
+            />
           </div>
 
           {/* Sección de Nombre de Usuario */}

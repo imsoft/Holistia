@@ -26,7 +26,6 @@ import {
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { DashboardStats, Appointment } from "@/types";
 import { createClient } from "@/utils/supabase/client";
-import { StripeConnectButton } from "@/components/ui/stripe-connect-button";
 import { AdminRatingDisplay } from "@/components/ui/admin-rating-display";
 import { VerifiedBadge } from "@/components/ui/verified-badge";
 
@@ -50,17 +49,6 @@ export default function ProfessionalDashboard() {
   const [professionalId, setProfessionalId] = useState<string>("");
   const [userId, setUserId] = useState<string>("");
   const [isVerified, setIsVerified] = useState<boolean>(false);
-  const [stripeStatus, setStripeStatus] = useState<{
-    stripe_account_id: string | null;
-    stripe_account_status: string | null;
-    stripe_charges_enabled: boolean | null;
-    stripe_payouts_enabled: boolean | null;
-  }>({
-    stripe_account_id: null,
-    stripe_account_status: null,
-    stripe_charges_enabled: null,
-    stripe_payouts_enabled: null,
-  });
   const [registrationFeeStatus, setRegistrationFeeStatus] = useState<{
     paid: boolean;
     amount: number;
@@ -82,7 +70,7 @@ export default function ProfessionalDashboard() {
         // El parámetro de la URL es el user_id, no el professional_id
         const { data: professionalApp, error: profError } = await supabase
           .from('professional_applications')
-          .select('id, user_id, first_name, last_name, profile_photo, working_start_time, working_end_time, stripe_account_id, stripe_account_status, stripe_charges_enabled, stripe_payouts_enabled, registration_fee_paid, registration_fee_amount, registration_fee_currency, registration_fee_paid_at, registration_fee_expires_at, is_verified')
+          .select('id, user_id, first_name, last_name, profile_photo, working_start_time, working_end_time, registration_fee_paid, registration_fee_amount, registration_fee_currency, registration_fee_paid_at, registration_fee_expires_at, is_verified')
           .eq('user_id', userIdParam)
           .eq('status', 'approved')
           .single();
@@ -98,12 +86,6 @@ export default function ProfessionalDashboard() {
           setProfessionalId(professionalApp.id);
           setUserId(professionalApp.user_id);
           setIsVerified(professionalApp.is_verified || false);
-          setStripeStatus({
-            stripe_account_id: professionalApp.stripe_account_id,
-            stripe_account_status: professionalApp.stripe_account_status,
-            stripe_charges_enabled: professionalApp.stripe_charges_enabled,
-            stripe_payouts_enabled: professionalApp.stripe_payouts_enabled,
-          });
           setRegistrationFeeStatus({
             paid: professionalApp.registration_fee_paid || false,
             amount: professionalApp.registration_fee_amount || 600,
@@ -612,16 +594,6 @@ export default function ProfessionalDashboard() {
               </Card>
             )}
           </>
-        )}
-
-        {/* Configuración de pagos con Stripe Connect */}
-        {professionalId && (
-          <div className="mt-8">
-            <StripeConnectButton
-              professionalId={professionalId}
-              initialStatus={stripeStatus}
-            />
-          </div>
         )}
 
         {/* Calificación de administrador */}

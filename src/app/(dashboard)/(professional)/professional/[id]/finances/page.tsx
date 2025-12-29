@@ -26,6 +26,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { StripeConnectButton } from "@/components/ui/stripe-connect-button";
 
 // Interfaces
 interface FinancialMetric {
@@ -68,6 +69,18 @@ export default function ProfessionalFinancesPage() {
   const [metrics, setMetrics] = useState<FinancialMetric[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedPeriod, setSelectedPeriod] = useState("all");
+  const [professionalAppId, setProfessionalAppId] = useState<string>("");
+  const [stripeStatus, setStripeStatus] = useState<{
+    stripe_account_id: string | null;
+    stripe_account_status: string | null;
+    stripe_charges_enabled: boolean | null;
+    stripe_payouts_enabled: boolean | null;
+  }>({
+    stripe_account_id: null,
+    stripe_account_status: null,
+    stripe_charges_enabled: null,
+    stripe_payouts_enabled: null,
+  });
   const supabase = createClient();
 
   // Función para obtener el nombre del período actual
@@ -140,7 +153,7 @@ export default function ProfessionalFinancesPage() {
         // Primero intentamos por ID directo
         let { data: professionalApp } = await supabase
           .from('professional_applications')
-          .select('id, user_id, first_name, last_name')
+          .select('id, user_id, first_name, last_name, stripe_account_id, stripe_account_status, stripe_charges_enabled, stripe_payouts_enabled')
           .eq('id', professionalId)
           .maybeSingle();
 
@@ -148,7 +161,7 @@ export default function ProfessionalFinancesPage() {
         if (!professionalApp) {
           const { data: appByUserId } = await supabase
             .from('professional_applications')
-            .select('id, user_id, first_name, last_name')
+            .select('id, user_id, first_name, last_name, stripe_account_id, stripe_account_status, stripe_charges_enabled, stripe_payouts_enabled')
             .eq('user_id', professionalId)
             .maybeSingle();
 
@@ -166,6 +179,15 @@ export default function ProfessionalFinancesPage() {
           id: professionalApp.id,
           user_id: professionalApp.user_id,
           name: `${professionalApp.first_name} ${professionalApp.last_name}`
+        });
+
+        // Establecer el ID de la aplicación profesional y el estado de Stripe
+        setProfessionalAppId(professionalApp.id);
+        setStripeStatus({
+          stripe_account_id: professionalApp.stripe_account_id,
+          stripe_account_status: professionalApp.stripe_account_status,
+          stripe_charges_enabled: professionalApp.stripe_charges_enabled,
+          stripe_payouts_enabled: professionalApp.stripe_payouts_enabled,
         });
 
         // Obtener todos los pagos del profesional
@@ -715,6 +737,14 @@ export default function ProfessionalFinancesPage() {
             )}
           </CardContent>
         </Card>
+
+        {/* Configuración de pagos con Stripe Connect */}
+        {professionalAppId && (
+          <StripeConnectButton
+            professionalId={professionalAppId}
+            initialStatus={stripeStatus}
+          />
+        )}
       </div>
     </div>
   );

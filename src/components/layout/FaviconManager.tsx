@@ -20,6 +20,8 @@ export function FaviconManager() {
       );
 
       // Determinar qué favicon usar basado en el tema
+      // En tema oscuro del navegador: usar favicon blanco (contrasta con pestañas oscuras)
+      // En tema claro del navegador: usar favicon negro (contrasta con pestañas claras)
       const faviconPath = isDark
         ? '/favicons/favicon-white.ico'
         : '/favicons/favicon-black.ico';

@@ -109,7 +109,7 @@ BEGIN
     -- Insertar registro de pago para Armida (solo si no existe)
     IF armida_id IS NOT NULL AND armida_user_id IS NOT NULL THEN
         INSERT INTO payments (
-            professional_id,
+            professional_application_id,
             patient_id,
             amount,
             service_amount,
@@ -137,7 +137,7 @@ BEGIN
             NOW()
         WHERE NOT EXISTS (
             SELECT 1 FROM payments
-            WHERE professional_id = armida_id
+            WHERE professional_application_id = armida_id
             AND payment_type = 'registration'
             AND status = 'succeeded'
         );
@@ -148,7 +148,7 @@ BEGIN
     -- Insertar registro de pago para Mark (solo si no existe)
     IF mark_id IS NOT NULL AND mark_user_id IS NOT NULL THEN
         INSERT INTO payments (
-            professional_id,
+            professional_application_id,
             patient_id,
             amount,
             service_amount,
@@ -176,7 +176,7 @@ BEGIN
             NOW()
         WHERE NOT EXISTS (
             SELECT 1 FROM payments
-            WHERE professional_id = mark_id
+            WHERE professional_application_id = mark_id
             AND payment_type = 'registration'
             AND status = 'succeeded'
         );

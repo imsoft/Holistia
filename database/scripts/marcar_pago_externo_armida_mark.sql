@@ -91,38 +91,48 @@ DO $$
 DECLARE
     armida_id UUID;
     mark_id UUID;
+    armida_user_id UUID;
+    mark_user_id UUID;
 BEGIN
-    -- Obtener ID de Armida
-    SELECT id INTO armida_id
+    -- Obtener ID y user_id de Armida
+    SELECT id, user_id INTO armida_id, armida_user_id
     FROM professional_applications
     WHERE email = 'armidadelagarza@gmail.com'
     LIMIT 1;
 
-    -- Obtener ID de Mark
-    SELECT id INTO mark_id
+    -- Obtener ID y user_id de Mark
+    SELECT id, user_id INTO mark_id, mark_user_id
     FROM professional_applications
     WHERE email = 'mark.arechiga@gmail.com'
     LIMIT 1;
 
     -- Insertar registro de pago para Armida (solo si no existe)
-    IF armida_id IS NOT NULL THEN
+    IF armida_id IS NOT NULL AND armida_user_id IS NOT NULL THEN
         INSERT INTO payments (
             professional_id,
+            patient_id,
             amount,
+            service_amount,
+            commission_percentage,
             currency,
             status,
             payment_type,
             description,
             created_at,
-            updated_at
+            updated_at,
+            paid_at
         )
         SELECT
             armida_id,
+            armida_user_id,
             299.00,
+            299.00,
+            100.00,
             'mxn',
             'succeeded',
             'registration',
             'Pago de inscripción anual (registrado manualmente - pago externo)',
+            NOW(),
             NOW(),
             NOW()
         WHERE NOT EXISTS (
@@ -136,24 +146,32 @@ BEGIN
     END IF;
 
     -- Insertar registro de pago para Mark (solo si no existe)
-    IF mark_id IS NOT NULL THEN
+    IF mark_id IS NOT NULL AND mark_user_id IS NOT NULL THEN
         INSERT INTO payments (
             professional_id,
+            patient_id,
             amount,
+            service_amount,
+            commission_percentage,
             currency,
             status,
             payment_type,
             description,
             created_at,
-            updated_at
+            updated_at,
+            paid_at
         )
         SELECT
             mark_id,
+            mark_user_id,
             299.00,
+            299.00,
+            100.00,
             'mxn',
             'succeeded',
             'registration',
             'Pago de inscripción anual (registrado manualmente - pago externo)',
+            NOW(),
             NOW(),
             NOW()
         WHERE NOT EXISTS (

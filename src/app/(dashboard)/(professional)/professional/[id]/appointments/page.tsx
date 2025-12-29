@@ -54,6 +54,7 @@ import { CreateAppointmentDialog } from "@/components/appointments/create-appoin
 import { toast } from "sonner";
 import { listUserGoogleCalendarEvents, syncAllAppointmentsToGoogleCalendar } from "@/actions/google-calendar";
 import { RefreshCw } from "lucide-react";
+import { GoogleCalendarIntegration } from "@/components/google-calendar-integration";
 
 type CalendarView = "day" | "week" | "month" | "year";
 
@@ -1369,6 +1370,11 @@ export default function ProfessionalAppointments() {
         professionalId={professionalAppId}
         onSuccess={handleCreateSuccess}
       />
+
+      {/* Google Calendar Integration */}
+      <div className="p-6">
+        <GoogleCalendarIntegration userId={userId} />
+      </div>
     </div>
   );
 }

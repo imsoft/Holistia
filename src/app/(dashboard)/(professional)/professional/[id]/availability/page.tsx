@@ -9,6 +9,7 @@ import { SidebarTrigger } from '@/components/ui/sidebar';
 import { User } from 'lucide-react';
 import { WorkingHoursManager } from '@/components/ui/working-hours-manager';
 import { ProfessionalToleranceSettings } from '@/components/professional-tolerance-settings';
+import AvailabilityBlockManager from '@/components/ui/availability-block-manager';
 
 interface ProfessionalApplication {
   id: string;
@@ -97,9 +98,9 @@ export default function AvailabilityPage() {
             <div className="flex items-center gap-3 sm:gap-4">
               <SidebarTrigger />
               <div>
-                <h1 className="text-xl sm:text-2xl font-bold text-foreground">Horarios de Trabajo</h1>
+                <h1 className="text-xl sm:text-2xl font-bold text-foreground">Horarios y Disponibilidad</h1>
                 <p className="text-xs sm:text-sm text-muted-foreground">
-                  Configura tus días y horarios laborales
+                  Configura tus horarios de trabajo y bloqueos de disponibilidad
                 </p>
               </div>
             </div>
@@ -110,7 +111,7 @@ export default function AvailabilityPage() {
             <CardHeader className="px-4 sm:px-6">
               <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
                 <User className="w-4 h-4 sm:w-5 sm:h-5" />
-                Horarios de Trabajo
+                Horarios y Disponibilidad
               </CardTitle>
             </CardHeader>
             <CardContent className="px-4 sm:px-6">
@@ -118,7 +119,7 @@ export default function AvailabilityPage() {
                 <User className="w-12 h-12 sm:w-16 sm:h-16 mx-auto text-muted-foreground mb-3 sm:mb-4" />
                 <h3 className="text-base sm:text-lg font-semibold mb-2">No eres un profesional registrado</h3>
                 <p className="text-xs sm:text-sm text-muted-foreground mb-4 sm:mb-6 max-w-md mx-auto">
-                  Para gestionar horarios de trabajo, primero debes aplicar para ser un profesional.
+                  Para gestionar horarios de trabajo y disponibilidad, primero debes aplicar para ser un profesional.
                 </p>
                 <Button 
                   onClick={() => router.push(`/patient/${user.id}/explore/become-professional`)}
@@ -142,9 +143,9 @@ export default function AvailabilityPage() {
             <div className="flex items-center gap-3 sm:gap-4">
               <SidebarTrigger />
               <div>
-                <h1 className="text-xl sm:text-2xl font-bold text-foreground">Horarios de Trabajo</h1>
+                <h1 className="text-xl sm:text-2xl font-bold text-foreground">Horarios y Disponibilidad</h1>
                 <p className="text-xs sm:text-sm text-muted-foreground">
-                  Configura tus días y horarios laborales
+                  Configura tus horarios de trabajo y bloqueos de disponibilidad
                 </p>
               </div>
             </div>
@@ -155,7 +156,7 @@ export default function AvailabilityPage() {
             <CardHeader className="px-4 sm:px-6">
               <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
                 <User className="w-4 h-4 sm:w-5 sm:h-5" />
-                Horarios de Trabajo
+                Horarios y Disponibilidad
               </CardTitle>
             </CardHeader>
             <CardContent className="px-4 sm:px-6">
@@ -163,8 +164,8 @@ export default function AvailabilityPage() {
                 <User className="w-12 h-12 sm:w-16 sm:h-16 mx-auto text-muted-foreground mb-3 sm:mb-4" />
                 <h3 className="text-base sm:text-lg font-semibold mb-2">Aplicación en revisión</h3>
                 <p className="text-xs sm:text-sm text-muted-foreground mb-4 sm:mb-6 max-w-md mx-auto">
-                  Tu aplicación como profesional está siendo revisada. 
-                  Una vez aprobada, podrás gestionar tus horarios de trabajo.
+                  Tu aplicación como profesional está siendo revisada.
+                  Una vez aprobada, podrás gestionar tus horarios de trabajo y disponibilidad.
                 </p>
                 <div className="text-xs sm:text-sm text-muted-foreground">
                   Estado actual: <span className="font-medium">{professional.status}</span>
@@ -206,6 +207,9 @@ export default function AvailabilityPage() {
 
         {/* Tiempo de Tolerancia */}
         <ProfessionalToleranceSettings professionalId={professional.id} />
+
+        {/* Bloqueos de Disponibilidad */}
+        <AvailabilityBlockManager professionalId={professional.id} userId={user.id} />
       </div>
     </div>
   );

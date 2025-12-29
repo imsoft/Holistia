@@ -12,7 +12,6 @@ import {
   Image as ImageIcon,
   Package,
   Clock,
-  CalendarX,
   CalendarCheck,
   DollarSign,
   FileText,
@@ -67,11 +66,6 @@ const getNavItems = (id: string): { mainNavItems: ProfessionalNavItem[] } => {
       title: "Horarios",
       url: `/professional/${id}/availability`,
       icon: Clock,
-    },
-    {
-      title: "Bloqueos",
-      url: `/professional/${id}/blocks`,
-      icon: CalendarX,
     },
     {
       title: "Citas",

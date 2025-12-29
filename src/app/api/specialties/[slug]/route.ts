@@ -35,8 +35,7 @@ export async function GET(
         biography,
         profile_photo,
         city,
-        state,
-        slug
+        state
       `
       )
       .eq("status", "approved")

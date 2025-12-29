@@ -22,7 +22,6 @@ interface Professional {
   profile_photo: string | null;
   city: string | null;
   state: string | null;
-  slug: string | null;
 }
 
 // Función para normalizar texto (quitar acentos, convertir a minúsculas)
@@ -89,8 +88,7 @@ export default async function SpecialtyPage({ params }: SpecialtyPageProps) {
       biography,
       profile_photo,
       city,
-      state,
-      slug
+      state
     `
     )
     .eq("status", "approved")
@@ -212,13 +210,7 @@ export default async function SpecialtyPage({ params }: SpecialtyPageProps) {
                     )}
 
                     {/* Botón de ver perfil */}
-                    <Link
-                      href={
-                        professional.slug
-                          ? `/public/professional/${professional.slug}`
-                          : `/explore/professional/${professional.id}`
-                      }
-                    >
+                    <Link href={`/explore/professional/${professional.id}`}>
                       <Button className="w-full gap-2">
                         <Calendar className="h-4 w-4" />
                         Ver perfil y agendar

@@ -534,7 +534,7 @@ const HomeUserPage = () => {
         </div>
 
         <div className="space-y-12 relative">
-          {/* Sección de Programas */}
+          {/* Sección de Programas - Solo mostrar si hay datos */}
           {digitalProducts.length > 0 && (
             <div className="relative z-10">
               <div className="flex items-center justify-between mb-6">
@@ -618,7 +618,8 @@ const HomeUserPage = () => {
             </div>
           )}
 
-          {/* Sección de Eventos y Talleres */}
+          {/* Sección de Eventos y Talleres - Solo mostrar si hay datos */}
+          {filteredEvents.length > 0 && (
           <div className="relative z-0">
             <div className="flex items-center justify-between mb-6">
               <Link
@@ -729,8 +730,10 @@ const HomeUserPage = () => {
               </div>
             )}
           </div>
+          )}
 
-          {/* Sección de Expertos */}
+          {/* Sección de Expertos - Solo mostrar si hay datos */}
+          {filteredProfessionals.length > 0 && (
           <div className="relative z-10">
             <div className="flex items-center justify-between mb-6">
               <Link
@@ -852,8 +855,10 @@ const HomeUserPage = () => {
               </div>
             )}
           </div>
+          )}
 
-          {/* Sección de Restaurantes */}
+          {/* Sección de Restaurantes - Solo mostrar si hay datos */}
+          {restaurants.length > 0 && (
           <div>
             <div className="flex items-center justify-between mb-6">
               <Link
@@ -951,8 +956,10 @@ const HomeUserPage = () => {
               </div>
             )}
           </div>
+          )}
 
-          {/* Sección de Comercios */}
+          {/* Sección de Comercios - Solo mostrar si hay datos */}
+          {shops.length > 0 && (
           <div>
             <div className="flex items-center justify-between mb-6">
               <Link
@@ -1047,6 +1054,7 @@ const HomeUserPage = () => {
               </div>
             )}
           </div>
+          )}
         </div>
       </main>
     </div>

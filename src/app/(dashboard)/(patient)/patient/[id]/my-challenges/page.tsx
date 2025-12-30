@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { createClient } from "@/utils/supabase/client";
 import { toast } from "sonner";
-import { Calendar, Clock, TrendingUp, Flame, Target, Award, Loader2, CheckCircle2, Circle, Users } from "lucide-react";
+import { Calendar, Target, Loader2, CheckCircle2, Circle, Users, Plus, Edit } from "lucide-react";
 import { CheckinForm } from "@/components/ui/checkin-form";
 import { ChallengeProgress } from "@/components/ui/challenge-progress";
 import { ChallengeBadges } from "@/components/ui/challenge-badges";
@@ -37,6 +37,8 @@ interface ChallengePurchase {
     duration_days?: number;
     difficulty_level?: string;
     category?: string;
+    created_by_type?: 'professional' | 'patient';
+    linked_professional_id?: string;
     professional_applications?: {
       first_name: string;
       last_name: string;
@@ -60,12 +62,34 @@ interface Checkin {
   verified_by_professional: boolean;
 }
 
+interface CreatedChallenge {
+  id: string;
+  title: string;
+  description: string;
+  short_description?: string;
+  cover_image_url?: string;
+  duration_days?: number;
+  difficulty_level?: string;
+  category?: string;
+  created_by_type: 'professional' | 'patient';
+  linked_professional_id?: string;
+  is_active: boolean;
+  created_at: string;
+  professional_applications?: {
+    first_name: string;
+    last_name: string;
+    profile_photo?: string;
+    is_verified?: boolean;
+  };
+}
+
 export default function MyChallengesPage() {
   const params = useParams();
   const userId = params.id as string;
   const supabase = createClient();
 
   const [challenges, setChallenges] = useState<ChallengePurchase[]>([]);
+  const [createdChallenges, setCreatedChallenges] = useState<CreatedChallenge[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedChallenge, setSelectedChallenge] = useState<ChallengePurchase | null>(null);
   const [checkins, setCheckins] = useState<Checkin[]>([]);
@@ -75,6 +99,7 @@ export default function MyChallengesPage() {
   const [selectedChallengeForTeam, setSelectedChallengeForTeam] = useState<ChallengePurchase | null>(null);
   const [teamId, setTeamId] = useState<string | null>(null);
   const [teamName, setTeamName] = useState<string | null>(null);
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
   useEffect(() => {
     fetchChallenges();
@@ -108,6 +133,8 @@ export default function MyChallengesPage() {
             duration_days,
             difficulty_level,
             category,
+            created_by_type,
+            linked_professional_id,
             professional_applications(
               first_name,
               last_name,
@@ -135,6 +162,45 @@ export default function MyChallengesPage() {
       }));
 
       setChallenges(transformedPurchases);
+
+      // Obtener retos creados por el usuario
+      const { data: created, error: createdError } = await supabase
+        .from('challenges')
+        .select(`
+          id,
+          title,
+          description,
+          short_description,
+          cover_image_url,
+          duration_days,
+          difficulty_level,
+          category,
+          created_by_type,
+          linked_professional_id,
+          is_active,
+          created_at,
+          professional_applications!challenges_linked_professional_id_fkey(
+            first_name,
+            last_name,
+            profile_photo,
+            is_verified
+          )
+        `)
+        .eq('created_by_user_id', user.id)
+        .eq('created_by_type', 'patient')
+        .order('created_at', { ascending: false });
+
+      if (createdError) throw createdError;
+
+      // Transformar datos de retos creados
+      const transformedCreated = (created || []).map((challenge: any) => ({
+        ...challenge,
+        professional_applications: Array.isArray(challenge.professional_applications) && challenge.professional_applications.length > 0
+          ? challenge.professional_applications[0]
+          : undefined,
+      }));
+
+      setCreatedChallenges(transformedCreated);
 
     } catch (error) {
       console.error("Error fetching challenges:", error);
@@ -247,11 +313,17 @@ export default function MyChallengesPage() {
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-7xl">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-foreground mb-2">Mis Retos</h1>
-        <p className="text-muted-foreground">
-          Gestiona tus retos activos y completa tus check-ins diarios
-        </p>
+      <div className="mb-8 flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-foreground mb-2">Mis Retos</h1>
+          <p className="text-muted-foreground">
+            Gestiona tus retos activos y completa tus check-ins diarios
+          </p>
+        </div>
+        <Button onClick={() => setIsCreateDialogOpen(true)}>
+          <Plus className="h-4 w-4 mr-2" />
+          Crear Reto Personal
+        </Button>
       </div>
 
       {/* Invitaciones a equipos */}
@@ -259,24 +331,37 @@ export default function MyChallengesPage() {
         <TeamInvitationsList />
       </div>
 
-      {challenges.length === 0 ? (
-        <Card>
-          <CardContent className="flex flex-col items-center justify-center py-12">
-            <Target className="h-16 w-16 text-muted-foreground mb-4" />
-            <h3 className="text-xl font-semibold mb-2">No tienes retos aún</h3>
-            <p className="text-muted-foreground text-center mb-6">
-              Explora los retos disponibles y comienza tu transformación
-            </p>
-            <Button asChild>
-              <a href={`/patient/${userId}/explore`}>Explorar Retos</a>
-            </Button>
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Lista de retos */}
-          <div className="lg:col-span-1 space-y-4">
-            {challenges.map((challenge) => (
+      {/* Tabs para separar retos participados y creados */}
+      <Tabs defaultValue="participating" className="w-full">
+        <TabsList className="grid w-full grid-cols-2 mb-6">
+          <TabsTrigger value="participating">
+            Retos en los que Participo ({challenges.length})
+          </TabsTrigger>
+          <TabsTrigger value="created">
+            Retos que Creé ({createdChallenges.length})
+          </TabsTrigger>
+        </TabsList>
+
+        {/* Tab de retos en los que participa */}
+        <TabsContent value="participating">
+          {challenges.length === 0 ? (
+            <Card>
+              <CardContent className="flex flex-col items-center justify-center py-12">
+                <Target className="h-16 w-16 text-muted-foreground mb-4" />
+                <h3 className="text-xl font-semibold mb-2">No estás participando en retos aún</h3>
+                <p className="text-muted-foreground text-center mb-6">
+                  Explora los retos disponibles y comienza tu transformación
+                </p>
+                <Button asChild>
+                  <a href={`/patient/${userId}/explore/challenges`}>Explorar Retos</a>
+                </Button>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Lista de retos */}
+              <div className="lg:col-span-1 space-y-4">
+                {challenges.map((challenge) => (
               <Card
                 key={challenge.id}
                 className={`cursor-pointer hover:shadow-lg transition-shadow ${
@@ -491,8 +576,116 @@ export default function MyChallengesPage() {
               </Tabs>
             </div>
           )}
-        </div>
-      )}
+            </div>
+          )}
+        </TabsContent>
+
+        {/* Tab de retos creados por el usuario */}
+        <TabsContent value="created">
+          {createdChallenges.length === 0 ? (
+            <Card>
+              <CardContent className="flex flex-col items-center justify-center py-12">
+                <Target className="h-16 w-16 text-muted-foreground mb-4" />
+                <h3 className="text-xl font-semibold mb-2">No has creado retos personales</h3>
+                <p className="text-muted-foreground text-center mb-6">
+                  Crea tu propio reto personalizado y compártelo con tus amigos
+                </p>
+                <Button onClick={() => setIsCreateDialogOpen(true)}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Crear Mi Primer Reto
+                </Button>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {createdChallenges.map((challenge) => (
+                <Card key={challenge.id} className="overflow-hidden">
+                  <div className="relative h-48">
+                    {challenge.cover_image_url ? (
+                      <Image
+                        src={challenge.cover_image_url}
+                        alt={challenge.title}
+                        fill
+                        className="object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center">
+                        <Target className="h-12 w-12 text-primary/40" />
+                      </div>
+                    )}
+                    {!challenge.is_active && (
+                      <div className="absolute top-2 right-2">
+                        <Badge variant="secondary">Inactivo</Badge>
+                      </div>
+                    )}
+                  </div>
+                  <CardHeader>
+                    <CardTitle className="line-clamp-2">{challenge.title}</CardTitle>
+                    {challenge.professional_applications && (
+                      <div className="flex items-center gap-2 mt-2">
+                        <Badge variant="outline" className="text-xs">
+                          <Users className="h-3 w-3 mr-1" />
+                          Supervisado por {challenge.professional_applications.first_name} {challenge.professional_applications.last_name}
+                        </Badge>
+                        {challenge.professional_applications.is_verified && (
+                          <VerifiedBadge size={14} />
+                        )}
+                      </div>
+                    )}
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                    {challenge.duration_days && (
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Calendar className="h-4 w-4" />
+                        {challenge.duration_days} {challenge.duration_days === 1 ? 'día' : 'días'}
+                      </div>
+                    )}
+                    {challenge.difficulty_level && (
+                      <Badge className={`text-xs ${getDifficultyColor(challenge.difficulty_level)}`}>
+                        {getDifficultyLabel(challenge.difficulty_level)}
+                      </Badge>
+                    )}
+                  </CardContent>
+                  <CardContent className="pt-0">
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex-1"
+                        asChild
+                      >
+                        <a href={`/patient/${userId}/challenges`}>
+                          <Edit className="h-4 w-4 mr-2" />
+                          Editar
+                        </a>
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex-1"
+                        onClick={() => {
+                          // Convertir a formato ChallengePurchase para usar el diálogo de equipo
+                          const challengeForTeam = {
+                            id: challenge.id,
+                            challenge_id: challenge.id,
+                            challenge: challenge,
+                            access_granted: true,
+                          };
+                          setSelectedChallengeForTeam(challengeForTeam as any);
+                          setIsTeamDialogOpen(true);
+                        }}
+                      >
+                        <Users className="h-4 w-4 mr-2" />
+                        Invitar
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </TabsContent>
+      </Tabs>
 
       {/* Dialog para nuevo check-in */}
       <Dialog open={isCheckinDialogOpen} onOpenChange={setIsCheckinDialogOpen}>
@@ -530,6 +723,40 @@ export default function MyChallengesPage() {
           }}
         />
       )}
+
+      {/* Diálogo para crear reto personal */}
+      <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Crear Reto Personal</DialogTitle>
+            <DialogDescription>
+              Crea tu propio reto personalizado. Podrás invitar hasta 5 amigos y opcionalmente vincularlo a un profesional para supervisión.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <p className="text-sm text-muted-foreground mb-4">
+              Para crear y editar tu reto con todas las opciones disponibles, serás redirigido a la página de gestión de retos.
+            </p>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setIsCreateDialogOpen(false)}
+                className="flex-1"
+              >
+                Cancelar
+              </Button>
+              <Button
+                onClick={() => {
+                  window.location.href = `/patient/${userId}/challenges`;
+                }}
+                className="flex-1"
+              >
+                Ir a Crear Reto
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

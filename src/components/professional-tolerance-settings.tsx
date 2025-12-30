@@ -128,10 +128,12 @@ export function ProfessionalToleranceSettings({ professionalId }: ProfessionalTo
             Tiempo en minutos (0-60). Valor recomendado: 15 minutos.
           </p>
         </div>
-        <Button onClick={handleSave} disabled={saving} className="w-full sm:w-auto">
-          <Save className="h-4 w-4 mr-2" />
-          {saving ? "Guardando..." : "Guardar"}
-        </Button>
+        <div className="flex justify-end">
+          <Button onClick={handleSave} disabled={saving} className="w-full sm:w-auto">
+            <Save className="h-4 w-4 mr-2" />
+            {saving ? "Guardando..." : "Guardar"}
+          </Button>
+        </div>
       </CardContent>
     </Card>
   );

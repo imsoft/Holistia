@@ -151,7 +151,7 @@ export default function ProfessionalDigitalProducts() {
       }
 
       if (!professional.is_verified) {
-        toast.error("Solo profesionales verificados pueden vender productos digitales");
+        toast.error("Solo profesionales verificados pueden vender programas");
         return;
       }
 
@@ -178,7 +178,7 @@ export default function ProfessionalDigitalProducts() {
 
     } catch (error) {
       console.error("Error fetching products:", error);
-      toast.error("Error al cargar productos");
+      toast.error("Error al cargar programas");
     } finally {
       setLoading(false);
     }
@@ -269,7 +269,7 @@ export default function ProfessionalDigitalProducts() {
           .eq("id", editingProduct.id);
 
         if (error) throw error;
-        toast.success("Producto actualizado exitosamente");
+        toast.success("Programa actualizado exitosamente");
       } else {
         const { error } = await supabase
           .from("digital_products")
@@ -279,14 +279,14 @@ export default function ProfessionalDigitalProducts() {
           });
 
         if (error) throw error;
-        toast.success("Producto creado exitosamente");
+        toast.success("Programa creado exitosamente");
       }
 
       setIsFormOpen(false);
       fetchProducts();
     } catch (error) {
       console.error("Error saving product:", error);
-      toast.error("Error al guardar producto");
+      toast.error("Error al guardar programa");
     } finally {
       setSaving(false);
     }
@@ -303,13 +303,13 @@ export default function ProfessionalDigitalProducts() {
 
       if (error) throw error;
 
-      toast.success("Producto eliminado exitosamente");
+      toast.success("Programa eliminado exitosamente");
       setIsDeleteOpen(false);
       setDeletingProduct(null);
       fetchProducts();
     } catch (error) {
       console.error("Error deleting product:", error);
-      toast.error("Error al eliminar producto");
+      toast.error("Error al eliminar programa");
     }
   };
 
@@ -481,7 +481,7 @@ export default function ProfessionalDigitalProducts() {
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-2 text-sm text-muted-foreground">Cargando productos...</p>
+          <p className="mt-2 text-sm text-muted-foreground">Cargando programas...</p>
         </div>
       </div>
     );
@@ -495,7 +495,7 @@ export default function ProfessionalDigitalProducts() {
           <div className="flex items-center gap-4">
             <SidebarTrigger />
             <div>
-              <h1 className="text-2xl font-bold text-foreground">Productos Digitales</h1>
+              <h1 className="text-2xl font-bold text-foreground">Programas</h1>
               <p className="text-sm text-muted-foreground">
                 Gestiona tus meditaciones, ebooks y cursos
               </p>
@@ -503,7 +503,7 @@ export default function ProfessionalDigitalProducts() {
           </div>
           <Button onClick={() => handleOpenForm()}>
             <Plus className="h-4 w-4 mr-2" />
-            Nuevo Producto
+            Nuevo Programa
           </Button>
         </div>
       </div>
@@ -515,7 +515,7 @@ export default function ProfessionalDigitalProducts() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-6 pt-6">
               <CardTitle className="text-sm font-medium text-muted-foreground">
-                Total Productos
+                Total Programas
               </CardTitle>
               <ShoppingBag className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
@@ -527,7 +527,7 @@ export default function ProfessionalDigitalProducts() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-6 pt-6">
               <CardTitle className="text-sm font-medium text-muted-foreground">
-                Productos Activos
+                Programas Activos
               </CardTitle>
               <Eye className="h-4 w-4 text-green-600" />
             </CardHeader>
@@ -669,12 +669,12 @@ export default function ProfessionalDigitalProducts() {
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
-              {editingProduct ? "Editar Producto" : "Nuevo Producto"}
+              {editingProduct ? "Editar Programa" : "Nuevo Programa"}
             </DialogTitle>
             <DialogDescription>
               {editingProduct
-                ? "Modifica la información de tu producto digital"
-                : "Crea un nuevo producto digital para vender"}
+                ? "Modifica la información de tu programa"
+                : "Crea un nuevo programa para vender"}
             </DialogDescription>
           </DialogHeader>
 
@@ -696,7 +696,7 @@ export default function ProfessionalDigitalProducts() {
                 id="description"
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                placeholder="Describe tu producto, qué incluye y qué beneficios ofrece..."
+                placeholder="Describe tu programa, qué incluye y qué beneficios ofrece..."
                 rows={4}
                 required
               />
@@ -848,7 +848,7 @@ export default function ProfessionalDigitalProducts() {
 
             <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
               <Label htmlFor="is_active" className="cursor-pointer">
-                {formData.is_active ? "Producto Activo (visible para comprar)" : "Producto Inactivo (oculto)"}
+                {formData.is_active ? "Programa Activo (visible para comprar)" : "Programa Inactivo (oculto)"}
               </Label>
               <Switch
                 id="is_active"
@@ -862,7 +862,7 @@ export default function ProfessionalDigitalProducts() {
                 Cancelar
               </Button>
               <Button type="submit" disabled={saving}>
-                {saving ? "Guardando..." : editingProduct ? "Actualizar" : "Crear Producto"}
+                {saving ? "Guardando..." : editingProduct ? "Actualizar" : "Crear Programa"}
               </Button>
             </DialogFooter>
           </form>
@@ -873,8 +873,8 @@ export default function ProfessionalDigitalProducts() {
       <ConfirmDialog
         open={isDeleteOpen}
         onOpenChange={setIsDeleteOpen}
-        title="Eliminar Producto"
-        description="¿Estás seguro de que quieres eliminar este producto? Esta acción no se puede deshacer."
+        title="Eliminar Programa"
+        description="¿Estás seguro de que quieres eliminar este programa? Esta acción no se puede deshacer."
         confirmText="Eliminar"
         onConfirm={handleDelete}
       />

@@ -88,7 +88,7 @@ const getNavItems = (id: string): { mainNavItems: ProfessionalNavItem[] } => {
       icon: DollarSign,
     },
     {
-      title: "Productos Digitales",
+      title: "Programas",
       url: `/professional/${id}/digital-products`,
       icon: ShoppingBag,
     },

@@ -153,7 +153,7 @@ export default function MyProducts({ params }: { params: Promise<{ id: string }>
 
     } catch (error) {
       console.error("Error fetching purchased products:", error);
-      toast.error("Error al cargar tus productos");
+      toast.error("Error al cargar tus programas");
     } finally {
       setLoading(false);
     }
@@ -176,7 +176,7 @@ export default function MyProducts({ params }: { params: Promise<{ id: string }>
 
       // Abrir el archivo en nueva pestaña
       window.open(product.file_url, "_blank");
-      toast.success("Descargando producto...");
+      toast.success("Descargando programa...");
 
       // Actualizar contador localmente
       setProducts(prev =>
@@ -189,7 +189,7 @@ export default function MyProducts({ params }: { params: Promise<{ id: string }>
 
     } catch (error) {
       console.error("Error downloading product:", error);
-      toast.error("Error al descargar el producto");
+      toast.error("Error al descargar el programa");
     } finally {
       setDownloading(null);
     }
@@ -209,7 +209,7 @@ export default function MyProducts({ params }: { params: Promise<{ id: string }>
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-2 text-sm text-muted-foreground">Cargando tus productos...</p>
+          <p className="mt-2 text-sm text-muted-foreground">Cargando tus programas...</p>
         </div>
       </div>
     );
@@ -223,9 +223,9 @@ export default function MyProducts({ params }: { params: Promise<{ id: string }>
           <div className="flex items-center gap-4">
             <SidebarTrigger />
             <div>
-              <h1 className="text-2xl font-bold text-foreground">Mis Productos</h1>
+              <h1 className="text-2xl font-bold text-foreground">Mis Programas</h1>
               <p className="text-sm text-muted-foreground">
-                Productos digitales que has comprado
+                Programas que has comprado
               </p>
             </div>
           </div>
@@ -239,7 +239,7 @@ export default function MyProducts({ params }: { params: Promise<{ id: string }>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-6 pt-6">
               <CardTitle className="text-sm font-medium text-muted-foreground">
-                Total de Productos
+                Total de Programas
               </CardTitle>
               <ShoppingBag className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
@@ -282,7 +282,7 @@ export default function MyProducts({ params }: { params: Promise<{ id: string }>
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-12">
               <ShoppingBag className="h-12 w-12 text-muted-foreground mb-4" />
-              <h3 className="text-lg font-semibold mb-2">No has comprado productos aún</h3>
+              <h3 className="text-lg font-semibold mb-2">No has comprado programas aún</h3>
               <p className="text-muted-foreground text-center mb-4">
                 Explora los perfiles de profesionales verificados para descubrir meditaciones, ebooks y más
               </p>

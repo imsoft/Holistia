@@ -6,7 +6,7 @@ export async function POST() {
   try {
     const supabase = await createClient();
 
-    // Verify user is authenticated and is admin
+    // Verify user is authenticated
     const { data: { user }, error: authError } = await supabase.auth.getUser();
 
     if (authError || !user) {
@@ -16,9 +16,14 @@ export async function POST() {
       );
     }
 
-    // Check if user is admin
-    const isAdmin = user.user_metadata?.role === 'admin';
-    if (!isAdmin) {
+    // Check if user is admin by verifying profile type
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('type')
+      .eq('id', user.id)
+      .single();
+
+    if (!profile || profile.type !== 'admin') {
       return NextResponse.json(
         { error: 'No tienes permisos de administrador' },
         { status: 403 }

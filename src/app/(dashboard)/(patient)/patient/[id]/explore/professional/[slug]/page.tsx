@@ -162,7 +162,11 @@ export default function ProfessionalProfilePage() {
   const supabase = createClient();
   
   const patientId = params.id as string;
-  const professionalId = params.slug as string; // Ahora es el ID del profesional, no un slug
+  const slugParam = params.slug as string;
+  
+  // Extraer UUID del slug si está presente (formato: "nombre-apellido-{uuid}" o solo UUID)
+  const uuidMatch = slugParam.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i);
+  const professionalId = uuidMatch ? uuidMatch[0] : slugParam; // Si no hay UUID, usar el slug completo (puede ser un UUID directo)
 
   // Scroll al inicio cuando se carga la página (usar useLayoutEffect para ejecutar antes del render)
   useLayoutEffect(() => {

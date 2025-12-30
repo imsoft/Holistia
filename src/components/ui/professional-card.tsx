@@ -162,7 +162,7 @@ export const ProfessionalCard = ({ professional, userId }: ProfessionalCardProps
           alt={professional.name || `${professional.first_name || ''} ${professional.last_name || ''}`.trim()}
           fill
           className="object-cover"
-          style={{ objectPosition: professional.imagePosition || "center top" }}
+          style={{ objectPosition: professional.imagePosition || "center center" }}
           unoptimized
         />
         {/* Favorite button */}
@@ -192,7 +192,10 @@ export const ProfessionalCard = ({ professional, userId }: ProfessionalCardProps
                 )}
               </div>
               {/* Rating */}
-              {professional.average_rating && professional.total_reviews && professional.total_reviews > 0 && (
+              {professional.average_rating && 
+               professional.average_rating > 0 && 
+               professional.total_reviews && 
+               professional.total_reviews > 0 && (
                 <div className="flex items-center gap-1 flex-shrink-0">
                   <StarRating
                     rating={professional.average_rating}

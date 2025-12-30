@@ -197,7 +197,7 @@ export default function AdminChallengesPage() {
       <div className="flex-1 overflow-y-auto p-6">
         {/* Estadísticas */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-          <Card>
+          <Card className="py-4">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                 <Target className="h-4 w-4" />
@@ -208,7 +208,7 @@ export default function AdminChallengesPage() {
               <div className="text-2xl font-bold">{stats.totalChallenges}</div>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="py-4">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                 <Award className="h-4 w-4" />
@@ -219,7 +219,7 @@ export default function AdminChallengesPage() {
               <div className="text-2xl font-bold text-green-600">{stats.activeChallenges}</div>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="py-4">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                 <Users className="h-4 w-4" />
@@ -230,14 +230,14 @@ export default function AdminChallengesPage() {
               <div className="text-2xl font-bold">{stats.totalSales}</div>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="py-4">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                 <DollarSign className="h-4 w-4" />
                 Ingresos Totales
               </CardTitle>
             </CardHeader>
-            <CardContent className="py-4">
+            <CardContent>
               <div className="text-2xl font-bold text-primary">
                 ${stats.totalRevenue.toFixed(2)} MXN
               </div>

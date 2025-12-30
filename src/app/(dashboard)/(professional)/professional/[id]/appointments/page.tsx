@@ -1150,9 +1150,9 @@ export default function ProfessionalAppointments() {
   }
 
   return (
-    <div className="flex flex-col h-screen bg-background">
+    <div className="flex flex-col min-h-screen bg-background">
       {/* Header */}
-      <div className="border-b border-border bg-card">
+      <div className="border-b border-border bg-card sticky top-0 z-10">
         <div className="flex h-16 items-center px-6">
           <div className="flex items-center gap-4">
             <SidebarTrigger />
@@ -1162,7 +1162,7 @@ export default function ProfessionalAppointments() {
       </div>
 
       {/* Toolbar */}
-      <div className="border-b border-border bg-card">
+      <div className="border-b border-border bg-card sticky top-16 z-10">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 px-4 sm:px-6 py-3 sm:py-4">
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 w-full sm:w-auto">
             <div className="flex items-center gap-2">
@@ -1217,8 +1217,8 @@ export default function ProfessionalAppointments() {
       </div>
 
       {/* Calendar */}
-      <div className="flex-1 overflow-hidden p-6">
-        <div className="h-full bg-card border border-border rounded-lg overflow-hidden">
+      <div className="p-6" style={{ minHeight: 'calc(100vh - 8rem)' }}>
+        <div className="h-full bg-card border border-border rounded-lg overflow-hidden" style={{ minHeight: '600px' }}>
           {view === "day" && renderDayView()}
           {view === "week" && renderWeekView()}
           {view === "month" && renderMonthView()}

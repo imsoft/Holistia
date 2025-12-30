@@ -129,9 +129,6 @@ export default function SocialFeedPage() {
           </Button>
         </motion.div>
 
-        {/* Filtros avanzados */}
-        <FeedFilters onFilterChange={setAdvancedFilters} />
-
         {/* Tabs de filtros */}
         <Tabs
           value={filter}

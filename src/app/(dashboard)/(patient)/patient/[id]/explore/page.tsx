@@ -110,6 +110,28 @@ interface Shop {
   created_at: string;
 }
 
+interface DigitalProduct {
+  id: string;
+  professional_id: string;
+  title: string;
+  description: string;
+  category: string;
+  price: number;
+  currency: string;
+  cover_image_url?: string;
+  file_url?: string;
+  duration_minutes?: number;
+  pages_count?: number;
+  is_active: boolean;
+  created_at: string;
+  professional_applications?: {
+    first_name: string;
+    last_name: string;
+    profile_photo?: string;
+    is_verified?: boolean;
+  };
+}
+
 const getCategoryLabel = (category: string) => {
   const categories: Record<string, string> = {
     espiritualidad: "Espiritualidad",
@@ -141,10 +163,12 @@ const HomeUserPage = () => {
   const [events, setEvents] = useState<EventWorkshop[]>([]);
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [shops, setShops] = useState<Shop[]>([]);
+  const [digitalProducts, setDigitalProducts] = useState<DigitalProduct[]>([]);
   const eventsScrollRef = useRef<HTMLDivElement>(null);
   const professionalsScrollRef = useRef<HTMLDivElement>(null);
   const restaurantsScrollRef = useRef<HTMLDivElement>(null);
   const shopsScrollRef = useRef<HTMLDivElement>(null);
+  const digitalProductsScrollRef = useRef<HTMLDivElement>(null);
   const supabase = createClient();
 
   useEffect(() => {
@@ -290,7 +314,33 @@ const HomeUserPage = () => {
           setShops(shopsData || []);
         }
 
-        // Obtener retos
+        // Obtener programas (productos digitales)
+        const { data: productsData, error: productsError } = await supabase
+          .from("digital_products")
+          .select(`
+            *,
+            professional_applications!digital_products_professional_id_fkey(
+              first_name,
+              last_name,
+              profile_photo,
+              is_verified
+            )
+          `)
+          .eq("is_active", true)
+          .order("created_at", { ascending: false })
+          .limit(10);
+
+        if (productsError) {
+          console.error("Error fetching digital products:", productsError);
+        } else {
+          const transformedProducts = (productsData || []).map((product: any) => ({
+            ...product,
+            professional_applications: Array.isArray(product.professional_applications) && product.professional_applications.length > 0
+              ? product.professional_applications[0]
+              : undefined,
+          }));
+          setDigitalProducts(transformedProducts);
+        }
       } catch (error) {
         console.error("Error fetching data:", error);
       } finally {
@@ -429,6 +479,17 @@ const HomeUserPage = () => {
     }
   };
 
+  const scrollDigitalProductsLeft = () => {
+    if (digitalProductsScrollRef.current) {
+      digitalProductsScrollRef.current.scrollBy({ left: -400, behavior: 'smooth' });
+    }
+  };
+
+  const scrollDigitalProductsRight = () => {
+    if (digitalProductsScrollRef.current) {
+      digitalProductsScrollRef.current.scrollBy({ left: 400, behavior: 'smooth' });
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -473,6 +534,90 @@ const HomeUserPage = () => {
         </div>
 
         <div className="space-y-12 relative">
+          {/* Sección de Programas */}
+          {digitalProducts.length > 0 && (
+            <div className="relative z-10">
+              <div className="flex items-center justify-between mb-6">
+                <Link
+                  href={`/patient/${userId}/explore/professionals`}
+                  className="group flex items-center gap-2"
+                >
+                  <h2 className="text-3xl sm:text-4xl font-bold text-foreground group-hover:text-primary transition-colors">
+                    Programas
+                  </h2>
+                  <ChevronRight className="h-6 w-6 text-foreground group-hover:text-primary transition-colors" />
+                </Link>
+              </div>
+
+              <div className="relative">
+                <button
+                  onClick={scrollDigitalProductsLeft}
+                  className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-background/80 backdrop-blur-sm rounded-full p-2 shadow-lg hover:bg-background transition-colors"
+                  aria-label="Scroll left"
+                >
+                  <ChevronLeft className="h-6 w-6" />
+                </button>
+                <button
+                  onClick={scrollDigitalProductsRight}
+                  className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-background/80 backdrop-blur-sm rounded-full p-2 shadow-lg hover:bg-background transition-colors"
+                  aria-label="Scroll right"
+                >
+                  <ChevronRight className="h-6 w-6" />
+                </button>
+
+                <div
+                  ref={digitalProductsScrollRef}
+                  className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar px-12"
+                  style={{ scrollPaddingLeft: '1rem', scrollPaddingRight: '1rem' }}
+                >
+                  {digitalProducts.map((product) => (
+                    <Link
+                      key={product.id}
+                      href={`/patient/${userId}/my-products`}
+                      className="shrink-0 w-80"
+                    >
+                      <Card className="overflow-hidden hover:shadow-lg transition-shadow">
+                        <div className="relative h-48">
+                          {product.cover_image_url ? (
+                            <Image
+                              src={product.cover_image_url}
+                              alt={product.title}
+                              fill
+                              className="object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center">
+                              <Store className="h-12 w-12 text-primary/40" />
+                            </div>
+                          )}
+                        </div>
+                        <CardHeader>
+                          <CardTitle className="line-clamp-2">{product.title}</CardTitle>
+                          {product.professional_applications && (
+                            <div className="flex items-center gap-2 mt-2 text-sm text-muted-foreground">
+                              <span>Por {product.professional_applications.first_name} {product.professional_applications.last_name}</span>
+                            </div>
+                          )}
+                        </CardHeader>
+                        <CardContent>
+                          <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
+                            {product.description}
+                          </p>
+                          <div className="flex items-center justify-between">
+                            <Badge variant="secondary">{product.category}</Badge>
+                            <span className="text-lg font-bold text-primary">
+                              ${product.price.toFixed(2)} {product.currency}
+                            </span>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Sección de Expertos */}
           <div className="relative z-10">
             <div className="flex items-center justify-between mb-6">

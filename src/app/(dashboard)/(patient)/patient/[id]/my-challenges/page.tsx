@@ -37,7 +37,7 @@ interface ChallengePurchase {
     duration_days?: number;
     difficulty_level?: string;
     category?: string;
-    professional_applications: {
+    professional_applications?: {
       first_name: string;
       last_name: string;
       profile_photo?: string;
@@ -45,7 +45,6 @@ interface ChallengePurchase {
     };
   };
   access_granted: boolean;
-  payment_status: string;
   started_at?: string;
   completed_at?: string;
 }
@@ -91,14 +90,13 @@ export default function MyChallengesPage() {
         return;
       }
 
-      // Obtener retos comprados por el usuario
+      // Obtener retos en los que el usuario participa
       const { data: purchases, error } = await supabase
         .from('challenge_purchases')
         .select(`
           id,
           challenge_id,
           access_granted,
-          payment_status,
           started_at,
           completed_at,
           challenges(
@@ -118,8 +116,8 @@ export default function MyChallengesPage() {
             )
           )
         `)
-        .eq('buyer_id', user.id)
-        .eq('payment_status', 'succeeded')
+        .eq('participant_id', user.id)
+        .eq('access_granted', true)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -129,7 +127,6 @@ export default function MyChallengesPage() {
         id: purchase.id,
         challenge_id: purchase.challenge_id,
         access_granted: purchase.access_granted,
-        payment_status: purchase.payment_status,
         started_at: purchase.started_at,
         completed_at: purchase.completed_at,
         challenge: Array.isArray(purchase.challenges) && purchase.challenges.length > 0
@@ -305,15 +302,17 @@ export default function MyChallengesPage() {
                   <CardTitle className="text-lg line-clamp-2">
                     {challenge.challenge.title}
                   </CardTitle>
-                  <div className="flex items-center gap-2 mt-2">
-                    <span className="text-sm text-muted-foreground">
-                      {challenge.challenge.professional_applications.first_name}{' '}
-                      {challenge.challenge.professional_applications.last_name}
-                    </span>
-                    {challenge.challenge.professional_applications.is_verified && (
-                      <VerifiedBadge size={14} />
-                    )}
-                  </div>
+                  {challenge.challenge.professional_applications && (
+                    <div className="flex items-center gap-2 mt-2">
+                      <span className="text-sm text-muted-foreground">
+                        {challenge.challenge.professional_applications.first_name}{' '}
+                        {challenge.challenge.professional_applications.last_name}
+                      </span>
+                      {challenge.challenge.professional_applications.is_verified && (
+                        <VerifiedBadge size={14} />
+                      )}
+                    </div>
+                  )}
                 </CardHeader>
                 <CardContent>
                   <div className="flex items-center gap-2 text-sm">

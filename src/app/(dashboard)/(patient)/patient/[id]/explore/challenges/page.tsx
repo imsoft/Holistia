@@ -20,19 +20,18 @@ interface Challenge {
   title: string;
   description: string;
   short_description?: string;
-  price: number;
-  currency: string;
   cover_image_url?: string;
   duration_days?: number;
   difficulty_level?: 'beginner' | 'intermediate' | 'advanced' | 'expert';
   category?: string;
-  sales_count?: number;
   created_at?: string;
   professional_first_name?: string;
   professional_last_name?: string;
   professional_photo?: string;
   professional_profession?: string;
   professional_is_verified?: boolean;
+  linked_patient_id?: string | null;
+  linked_professional_id?: string | null;
 }
 
 const difficultyOptions = [
@@ -46,9 +45,8 @@ const difficultyOptions = [
 const sortOptions = [
   { value: 'newest', label: 'Más recientes' },
   { value: 'oldest', label: 'Más antiguos' },
-  { value: 'price_low', label: 'Precio: menor a mayor' },
-  { value: 'price_high', label: 'Precio: mayor a menor' },
-  { value: 'popular', label: 'Más populares' },
+  { value: 'title_asc', label: 'Título: A-Z' },
+  { value: 'title_desc', label: 'Título: Z-A' },
 ];
 
 export default function ChallengesPage() {
@@ -75,8 +73,18 @@ export default function ChallengesPage() {
       setLoading(true);
 
       const { data: challengesData, error } = await supabase
-        .from('challenges_with_professional')
-        .select('*')
+        .from('challenges')
+        .select(`
+          *,
+          professional_applications(
+            first_name,
+            last_name,
+            profile_photo,
+            profession,
+            is_verified
+          )
+        `)
+        .eq('is_active', true)
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -84,8 +92,18 @@ export default function ChallengesPage() {
         return;
       }
 
-      setChallenges(challengesData || []);
-      setFilteredChallenges(challengesData || []);
+      // Transformar datos para incluir información del profesional
+      const transformedChallenges = (challengesData || []).map((challenge: any) => ({
+        ...challenge,
+        professional_first_name: challenge.professional_applications?.first_name,
+        professional_last_name: challenge.professional_applications?.last_name,
+        professional_photo: challenge.professional_applications?.profile_photo,
+        professional_profession: challenge.professional_applications?.profession,
+        professional_is_verified: challenge.professional_applications?.is_verified,
+      }));
+
+      setChallenges(transformedChallenges);
+      setFilteredChallenges(transformedChallenges);
 
     } catch (error) {
       console.error("Error fetching challenges:", error);
@@ -121,14 +139,11 @@ export default function ChallengesPage() {
       case 'oldest':
         filtered.sort((a, b) => new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime());
         break;
-      case 'price_low':
-        filtered.sort((a, b) => a.price - b.price);
+      case 'title_asc':
+        filtered.sort((a, b) => a.title.localeCompare(b.title));
         break;
-      case 'price_high':
-        filtered.sort((a, b) => b.price - a.price);
-        break;
-      case 'popular':
-        filtered.sort((a, b) => (b.sales_count || 0) - (a.sales_count || 0));
+      case 'title_desc':
+        filtered.sort((a, b) => b.title.localeCompare(a.title));
         break;
     }
 
@@ -250,7 +265,7 @@ export default function ChallengesPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredChallenges.map((challenge) => (
-              <ChallengeCard key={challenge.id} challenge={challenge} />
+              <ChallengeCard key={challenge.id} challenge={challenge} userId={userId} />
             ))}
           </div>
         )}

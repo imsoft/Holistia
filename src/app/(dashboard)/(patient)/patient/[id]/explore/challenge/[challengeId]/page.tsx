@@ -10,14 +10,13 @@ import { Separator } from "@/components/ui/separator";
 import {
   Calendar,
   Clock,
-  TrendingUp,
   User,
-  ShoppingBag,
   ArrowLeft,
   Check,
 } from "lucide-react";
 import { VerifiedBadge } from "@/components/ui/verified-badge";
 import { FavoriteButton } from "@/components/ui/favorite-button";
+import { JoinChallengeButton } from "@/components/ui/join-challenge-button";
 
 interface ChallengePageProps {
   params: Promise<{ id: string; challengeId: string }>;
@@ -44,7 +43,7 @@ export async function generateMetadata({
   const supabase = await createClient();
 
   const { data: challenge } = await supabase
-    .from("challenges_with_professional")
+    .from("challenges")
     .select("*")
     .eq("id", challengeId)
     .single();
@@ -67,8 +66,18 @@ export default async function ChallengePage({ params }: ChallengePageProps) {
 
   // Obtener información del reto
   const { data: challenge, error } = await supabase
-    .from("challenges_with_professional")
-    .select("*")
+    .from("challenges")
+    .select(`
+      *,
+      professional_applications(
+        id,
+        first_name,
+        last_name,
+        profile_photo,
+        profession,
+        is_verified
+      )
+    `)
     .eq("id", challengeId)
     .single();
 
@@ -154,18 +163,18 @@ export default async function ChallengePage({ params }: ChallengePageProps) {
 
             <Separator />
 
-            {/* Información del profesional */}
-            {challenge.professional_first_name && (
+            {/* Información del profesional creador */}
+            {challenge.professional_applications && (
               <div>
                 <h2 className="text-2xl font-semibold mb-4">
                   Creado por
                 </h2>
                 <div className="flex items-center gap-4">
-                  {challenge.professional_photo ? (
+                  {challenge.professional_applications.profile_photo ? (
                     <div className="relative h-16 w-16 rounded-full overflow-hidden">
                       <Image
-                        src={challenge.professional_photo}
-                        alt={`${challenge.professional_first_name} ${challenge.professional_last_name}`}
+                        src={challenge.professional_applications.profile_photo}
+                        alt={`${challenge.professional_applications.first_name} ${challenge.professional_applications.last_name}`}
                         fill
                         className="object-cover"
                       />
@@ -178,16 +187,16 @@ export default async function ChallengePage({ params }: ChallengePageProps) {
                   <div>
                     <div className="flex items-center gap-2">
                       <p className="font-semibold text-lg">
-                        {challenge.professional_first_name}{" "}
-                        {challenge.professional_last_name}
+                        {challenge.professional_applications.first_name}{" "}
+                        {challenge.professional_applications.last_name}
                       </p>
-                      {challenge.professional_is_verified && (
+                      {challenge.professional_applications.is_verified && (
                         <VerifiedBadge size={18} />
                       )}
                     </div>
-                    {challenge.professional_profession && (
+                    {challenge.professional_applications.profession && (
                       <p className="text-sm text-muted-foreground">
-                        {challenge.professional_profession}
+                        {challenge.professional_applications.profession}
                       </p>
                     )}
                   </div>
@@ -196,19 +205,10 @@ export default async function ChallengePage({ params }: ChallengePageProps) {
             )}
           </div>
 
-          {/* Sidebar - Tarjeta de compra */}
+          {/* Sidebar - Tarjeta de unirse */}
           <div className="lg:col-span-1">
             <Card className="sticky top-4">
               <CardContent className="p-6 space-y-6">
-                {/* Precio */}
-                <div>
-                  <p className="text-3xl font-bold text-primary">
-                    ${challenge.price.toFixed(2)} {challenge.currency}
-                  </p>
-                </div>
-
-                <Separator />
-
                 {/* Detalles del reto */}
                 <div className="space-y-3">
                   {challenge.duration_days && (
@@ -223,22 +223,6 @@ export default async function ChallengePage({ params }: ChallengePageProps) {
                       </div>
                     </div>
                   )}
-
-                  {challenge.sales_count !== undefined &&
-                    challenge.sales_count > 0 && (
-                      <div className="flex items-center gap-3">
-                        <TrendingUp className="h-5 w-5 text-muted-foreground" />
-                        <div className="flex-1">
-                          <p className="text-sm font-medium">Participantes</p>
-                          <p className="text-sm text-muted-foreground">
-                            {challenge.sales_count}{" "}
-                            {challenge.sales_count === 1
-                              ? "persona"
-                              : "personas"}
-                          </p>
-                        </div>
-                      </div>
-                    )}
 
                   {challenge.difficulty_level && (
                     <div className="flex items-center gap-3">
@@ -255,14 +239,8 @@ export default async function ChallengePage({ params }: ChallengePageProps) {
 
                 <Separator />
 
-                {/* Botón de compra */}
-                <form action="/api/stripe/challenge-checkout" method="POST">
-                  <input type="hidden" name="challenge_id" value={challenge.id} />
-                  <Button type="submit" className="w-full" size="lg">
-                    <ShoppingBag className="h-4 w-4 mr-2" />
-                    Comprar Reto
-                  </Button>
-                </form>
+                {/* Botón de unirse */}
+                <JoinChallengeButton challengeId={challenge.id} userId={userId} />
 
                 {/* Beneficios */}
                 <div className="space-y-2 pt-4">

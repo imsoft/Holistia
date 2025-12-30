@@ -5,7 +5,7 @@ import Image from "next/image";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Clock, TrendingUp, User, ShoppingBag } from "lucide-react";
+import { Calendar, Clock, User } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 import { toast } from "sonner";
 import { VerifiedBadge } from "@/components/ui/verified-badge";
@@ -16,23 +16,23 @@ interface Challenge {
   title: string;
   description?: string;
   short_description?: string;
-  price: number;
-  currency: string;
   cover_image_url?: string;
   duration_days?: number;
   difficulty_level?: 'beginner' | 'intermediate' | 'advanced' | 'expert';
   category?: string;
-  sales_count?: number;
   professional_first_name?: string;
   professional_last_name?: string;
   professional_photo?: string;
   professional_profession?: string;
   professional_is_verified?: boolean;
+  linked_patient_id?: string | null;
+  linked_professional_id?: string | null;
 }
 
 interface ChallengeCardProps {
   challenge: Challenge;
-  onPurchase?: () => void;
+  onJoin?: () => void;
+  userId?: string;
 }
 
 const difficultyLabels = {
@@ -49,50 +49,61 @@ const difficultyColors = {
   expert: 'bg-red-100 text-red-800',
 };
 
-export function ChallengeCard({ challenge, onPurchase }: ChallengeCardProps) {
-  const [isPurchasing, setIsPurchasing] = useState(false);
+export function ChallengeCard({ challenge, onJoin, userId }: ChallengeCardProps) {
+  const [isJoining, setIsJoining] = useState(false);
   const supabase = createClient();
 
-  const handlePurchase = async () => {
+  const handleJoin = async () => {
     try {
-      setIsPurchasing(true);
-      const toastId = toast.loading("Redirigiendo al pago...");
+      setIsJoining(true);
+      const toastId = toast.loading("Uniéndote al reto...");
 
-      const response = await fetch("/api/stripe/challenge-checkout", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error("Debes iniciar sesión");
+        return;
+      }
+
+      // Verificar si ya está participando
+      const { data: existingParticipation } = await supabase
+        .from('challenge_purchases')
+        .select('id')
+        .eq('challenge_id', challenge.id)
+        .eq('participant_id', user.id)
+        .maybeSingle();
+
+      if (existingParticipation) {
+        toast.dismiss(toastId);
+        toast.info("Ya estás participando en este reto");
+        return;
+      }
+
+      // Crear participación
+      const { error: participationError } = await supabase
+        .from('challenge_purchases')
+        .insert({
           challenge_id: challenge.id,
-        }),
-      });
+          participant_id: user.id,
+          access_granted: true,
+        });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Error al procesar el pago");
+      if (participationError) {
+        throw new Error(participationError.message || "Error al unirse al reto");
       }
 
       toast.dismiss(toastId);
-      toast.success("Redirigiendo a Stripe...");
+      toast.success("¡Te has unido al reto exitosamente!");
 
-      if (data.url) {
-        window.location.href = data.url;
-      } else {
-        throw new Error("No se recibió la URL de pago");
-      }
-
-      if (onPurchase) {
-        onPurchase();
+      if (onJoin) {
+        onJoin();
       }
     } catch (error) {
-      console.error("Error purchasing challenge:", error);
+      console.error("Error joining challenge:", error);
       toast.error(
-        error instanceof Error ? error.message : "Error al procesar el pago"
+        error instanceof Error ? error.message : "Error al unirse al reto"
       );
     } finally {
-      setIsPurchasing(false);
+      setIsJoining(false);
     }
   };
 
@@ -161,33 +172,33 @@ export function ChallengeCard({ challenge, onPurchase }: ChallengeCardProps) {
           </div>
         )}
 
-        {/* Ventas */}
-        {challenge.sales_count !== undefined && challenge.sales_count > 0 && (
+        {/* Información de vinculación */}
+        {challenge.linked_patient_id && (
           <div className="flex items-center gap-2 text-sm">
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+            <User className="h-4 w-4 text-muted-foreground" />
             <span className="text-muted-foreground">
-              {challenge.sales_count} {challenge.sales_count === 1 ? 'participante' : 'participantes'}
+              Reto vinculado a paciente
             </span>
           </div>
         )}
-
-        {/* Precio */}
-        <div className="flex items-center justify-between pt-2 border-t">
-          <span className="text-2xl font-bold text-primary">
-            ${challenge.price.toFixed(2)} {challenge.currency}
-          </span>
-        </div>
+        {challenge.linked_professional_id && (
+          <div className="flex items-center gap-2 text-sm">
+            <User className="h-4 w-4 text-muted-foreground" />
+            <span className="text-muted-foreground">
+              Reto vinculado a profesional
+            </span>
+          </div>
+        )}
       </CardContent>
 
       <CardFooter>
         <Button
-          onClick={handlePurchase}
-          disabled={isPurchasing}
+          onClick={handleJoin}
+          disabled={isJoining}
           className="w-full"
           size="lg"
         >
-          <ShoppingBag className="h-4 w-4 mr-2" />
-          {isPurchasing ? "Procesando..." : "Comprar Reto"}
+          {isJoining ? "Uniéndote..." : "Unirse al Reto"}
         </Button>
       </CardFooter>
     </Card>

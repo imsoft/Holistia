@@ -212,8 +212,18 @@ export function ExploreSection({ hideHeader = false, userId }: ExploreSectionPro
 
         // Cargar retos (6 para el carousel)
         const { data: challengesData, error: challengesError } = await supabase
-          .from("challenges_with_professional")
-          .select("*")
+          .from("challenges")
+          .select(`
+            *,
+            professional_applications(
+              first_name,
+              last_name,
+              profile_photo,
+              profession,
+              is_verified
+            )
+          `)
+          .eq('is_active', true)
           .order("created_at", { ascending: false })
           .limit(6);
 
@@ -223,7 +233,16 @@ export function ExploreSection({ hideHeader = false, userId }: ExploreSectionPro
 
         if (challengesData && challengesData.length > 0) {
           console.log("✅ Challenges loaded:", challengesData.length, challengesData);
-          setChallenges(challengesData);
+          // Transformar datos para incluir información del profesional
+          const transformedChallenges = challengesData.map((challenge: any) => ({
+            ...challenge,
+            professional_first_name: challenge.professional_applications?.first_name,
+            professional_last_name: challenge.professional_applications?.last_name,
+            professional_photo: challenge.professional_applications?.profile_photo,
+            professional_profession: challenge.professional_applications?.profession,
+            professional_is_verified: challenge.professional_applications?.is_verified,
+          }));
+          setChallenges(transformedChallenges);
         } else {
           console.log("⚠️ No challenges found or challenges array is empty");
           setChallenges([]);
@@ -737,7 +756,7 @@ export function ExploreSection({ hideHeader = false, userId }: ExploreSectionPro
             >
               {challenges.map((challenge) => (
                 <div key={challenge.id} className="flex-shrink-0 w-[280px] sm:w-[320px]">
-                  <ChallengeCard challenge={challenge} />
+                  <ChallengeCard challenge={challenge} userId={userId} />
                 </div>
               ))}
             </div>

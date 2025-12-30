@@ -80,6 +80,8 @@ interface Professional {
   stripe_account_id?: string;
   stripe_account_status?: 'not_connected' | 'pending' | 'connected' | 'restricted';
   stripe_onboarding_completed?: boolean;
+  stripe_charges_enabled?: boolean;
+  stripe_payouts_enabled?: boolean;
 }
 
 export default function AdminProfessionals() {
@@ -241,6 +243,8 @@ export default function AdminProfessionals() {
               stripe_account_id: prof.stripe_account_id,
               stripe_account_status: prof.stripe_account_status || 'not_connected',
               stripe_onboarding_completed: prof.stripe_onboarding_completed ?? false,
+              stripe_charges_enabled: prof.stripe_charges_enabled ?? false,
+              stripe_payouts_enabled: prof.stripe_payouts_enabled ?? false,
             };
           })
         );
@@ -962,7 +966,7 @@ export default function AdminProfessionals() {
                       >
                         {getStripeStatusIcon(professional.stripe_account_status || 'not_connected')}
                         <span className="text-xs">
-                          {professional.stripe_onboarding_completed ? 'Vinculado con Stripe' : 'Sin vincular Stripe'}
+                          {professional.stripe_charges_enabled && professional.stripe_payouts_enabled ? 'Vinculado con Stripe' : 'Sin vincular Stripe'}
                         </span>
                       </Badge>
                     </div>

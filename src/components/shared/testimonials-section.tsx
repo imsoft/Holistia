@@ -48,13 +48,15 @@ export const TestimonialsSection = () => {
                     <p>{`"${testimonial.body}"`}</p>
                   </blockquote>
                   <figcaption className="mt-6 flex items-center gap-x-4">
-                    <Image
-                      alt=""
-                      src={testimonial.author.imageUrl}
-                      className="size-10 rounded-full bg-muted"
-                      width={40}
-                      height={40}
-                    />
+                    <div className="relative size-10 shrink-0 overflow-hidden rounded-full bg-muted">
+                      <Image
+                        alt={testimonial.author.name}
+                        src={testimonial.author.imageUrl}
+                        className="object-cover"
+                        fill
+                        sizes="40px"
+                      />
+                    </div>
                     <div>
                       <div className="font-semibold text-foreground">
                         {testimonial.author.name}

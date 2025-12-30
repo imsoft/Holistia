@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { query, professionals, conversationHistory } = body;
+    const { query, professionals, challenges, events, conversationHistory } = body;
 
     if (!query || !professionals) {
       return NextResponse.json(
@@ -80,14 +80,75 @@ export async function POST(request: NextRequest) {
       telefono: prof.phone || 'No disponible'
     }));
 
+    // Preparar el contexto de challenges (retos)
+    interface Challenge {
+      id: string;
+      title: string;
+      description?: string;
+      short_description?: string;
+      category: string;
+      difficulty_level: string;
+      duration_days: number;
+      wellness_areas?: string[];
+      created_by_type?: string;
+    }
+
+    const challengesContext = (challenges || []).map((challenge: Challenge) => ({
+      id: challenge.id,
+      titulo: challenge.title,
+      descripcion: challenge.description || challenge.short_description || '',
+      categoria: challenge.category,
+      nivel_dificultad: challenge.difficulty_level,
+      duracion_dias: challenge.duration_days,
+      areas_bienestar: challenge.wellness_areas || [],
+      tipo_creador: challenge.created_by_type || 'professional'
+    }));
+
+    // Preparar el contexto de eventos
+    interface Event {
+      id: string;
+      name: string;
+      description?: string;
+      category: string;
+      location: string;
+      event_date: string;
+      event_time: string;
+      price: number;
+      is_free: boolean;
+      participant_level: string;
+      professional_id?: string;
+    }
+
+    const eventsContext = (events || []).map((event: Event) => ({
+      id: event.id,
+      nombre: event.name,
+      descripcion: event.description || '',
+      categoria: event.category,
+      ubicacion: event.location,
+      fecha: event.event_date,
+      hora: event.event_time,
+      precio: event.price,
+      es_gratis: event.is_free,
+      nivel_participante: event.participant_level,
+      profesional_id: event.professional_id || null
+    }));
+
     // Crear el prompt para ChatGPT
     const systemPrompt = `Eres un asistente experto en recomendar profesionales de la salud holística, bienestar, programas (retos/challenges) y eventos.
 Tu objetivo es ayudar a encontrar las mejores opciones basándote en:
 - DOLORES o SÍNTOMAS específicos que el usuario menciona (ej: ansiedad, depresión, dolor de espalda, insomnio, estrés, etc.)
 - OBJETIVOS DE MEJORA que el usuario quiere alcanzar (ej: perder peso, mejorar flexibilidad, meditar más, comer mejor, etc.)
 
-Tienes acceso a la siguiente lista de profesionales aprobados:
+Tienes acceso a la siguiente información:
+
+PROFESIONALES APROBADOS:
 ${JSON.stringify(professionalsContext, null, 2)}
+
+${challengesContext.length > 0 ? `RETOS/CHALLENGES DISPONIBLES:
+${JSON.stringify(challengesContext, null, 2)}` : ''}
+
+${eventsContext.length > 0 ? `EVENTOS Y TALLERES DISPONIBLES:
+${JSON.stringify(eventsContext, null, 2)}` : ''}
 
 ÁREAS DE BIENESTAR DISPONIBLES:
 - Salud mental: Ansiedad, depresión, estrés, trauma, terapia psicológica, coaching emocional
@@ -102,23 +163,28 @@ INSTRUCCIONES PARA RECOMENDAR:
    - ¿Qué OBJETIVO quiere lograr? (perder peso, meditar, mejorar relaciones, etc.)
    - ¿Qué ÁREA DE BIENESTAR corresponde? (Salud mental, Espiritualidad, Actividad física, Social, Alimentación)
 
-2. MATCHEA profesionales basándote en:
-   - Especialidades que coincidan con el dolor/síntoma u objetivo
-   - Áreas de bienestar que correspondan
-   - Servicios que ofrecen relacionados
-   - Biografía que mencione experiencia relevante
+2. MATCHEA opciones basándote en:
+   - PROFESIONALES: Especialidades, áreas de bienestar, servicios y biografía que coincidan
+   - RETOS/CHALLENGES: Título, descripción, categoría, nivel de dificultad y áreas de bienestar que coincidan
+   - EVENTOS: Nombre, descripción, categoría, ubicación y nivel de participante que coincidan
 
-3. PRIORIZA profesionales con:
-   - Mayor coincidencia en especialidades
-   - Áreas de bienestar que correspondan exactamente
-   - Experiencia relevante en la biografía
-   - Servicios específicos para el problema/objetivo
+3. PRIORIZA opciones con:
+   - Mayor coincidencia en áreas de bienestar
+   - Relevancia directa con el dolor/síntoma u objetivo
+   - Nivel de dificultad apropiado (para retos)
+   - Disponibilidad y ubicación (para eventos)
 
-4. RECOMIENDA máximo 3-5 profesionales ordenados por relevancia (score más alto primero)
+4. RECOMIENDA una combinación balanceada:
+   - Máximo 3-5 profesionales ordenados por relevancia
+   - Máximo 2-3 retos/challenges si son relevantes
+   - Máximo 2-3 eventos si son relevantes
+   - Ordena todo por score de relevancia (más alto primero)
 
 5. Para cada recomendación, explica CONCRETAMENTE por qué es adecuado:
-   - Menciona la especialidad o área de bienestar que coincide
+   - Menciona la especialidad, categoría o área de bienestar que coincide
    - Relaciona con el dolor/síntoma u objetivo mencionado
+   - Para retos: menciona duración y nivel de dificultad si es relevante
+   - Para eventos: menciona fecha, ubicación y si es gratis si es relevante
    - Sé específico y claro
 
 IMPORTANTE: Debes responder en formato JSON con la siguiente estructura:
@@ -126,13 +192,16 @@ IMPORTANTE: Debes responder en formato JSON con la siguiente estructura:
   "message": "Tu respuesta amigable explicando las recomendaciones y cómo se relacionan con el dolor/objetivo mencionado",
   "recommendations": [
     {
-      "id": "id del profesional",
-      "first_name": "nombre",
-      "last_name": "apellido",
-      "profession": "profesión",
-      "email": "email",
-      "phone": "teléfono",
-      "reason": "Razón específica y concreta de por qué es recomendado para este dolor/objetivo (máximo 80 palabras). Menciona especialidades, áreas de bienestar o servicios relevantes.",
+      "type": "professional" | "challenge" | "event",
+      "id": "id del profesional/reto/evento",
+      "first_name": "nombre (solo para profesionales)",
+      "last_name": "apellido (solo para profesionales)",
+      "profession": "profesión (solo para profesionales)",
+      "title": "título (solo para retos)",
+      "name": "nombre (solo para eventos)",
+      "email": "email (solo para profesionales)",
+      "phone": "teléfono (solo para profesionales)",
+      "reason": "Razón específica y concreta de por qué es recomendado para este dolor/objetivo (máximo 80 palabras). Menciona especialidades, áreas de bienestar, categorías o servicios relevantes.",
       "score": 0.95 // puntuación de 0 a 1 indicando qué tan bien coincide (0.9+ = excelente, 0.7-0.9 = bueno, <0.7 = moderado)
     }
   ]

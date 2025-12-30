@@ -12,6 +12,8 @@ import {
   DollarSign,
   Zap,
   MessageSquare,
+  Target,
+  Calendar,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -28,6 +30,9 @@ interface Message {
   content: string;
   timestamp: Date;
   professionals?: RecommendedProfessional[];
+  challenges?: RecommendedChallenge[];
+  events?: RecommendedEvent[];
+  recommendations?: Recommendation[];
 }
 
 interface RecommendedProfessional {
@@ -42,19 +47,62 @@ interface RecommendedProfessional {
   reason?: string;
 }
 
+interface RecommendedChallenge {
+  id: string;
+  title: string;
+  score?: number;
+  reason?: string;
+}
+
+interface RecommendedEvent {
+  id: string;
+  name: string;
+  score?: number;
+  reason?: string;
+}
+
+interface Recommendation {
+  type: 'professional' | 'challenge' | 'event';
+  id: string;
+  first_name?: string;
+  last_name?: string;
+  profession?: string;
+  title?: string;
+  name?: string;
+  email?: string;
+  phone?: string;
+  profile_photo?: string;
+  score?: number;
+  reason?: string;
+}
+
 export default function AIAgentPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [professionals, setProfessionals] = useState<RecommendedProfessional[]>([]);
+  const [challenges, setChallenges] = useState<any[]>([]);
+  const [events, setEvents] = useState<any[]>([]);
   const [totalTokens, setTotalTokens] = useState(0);
   const [totalCost, setTotalCost] = useState(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const supabase = createClient();
+  const [user, setUser] = useState<any>(null);
 
-  // Cargar profesionales al inicio
+  // Obtener usuario actual
+  useEffect(() => {
+    const getUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setUser(user);
+    };
+    getUser();
+  }, []);
+
+  // Cargar profesionales, challenges y eventos al inicio
   useEffect(() => {
     fetchProfessionals();
+    fetchChallenges();
+    fetchEvents();
   }, []);
 
   // Auto-scroll al último mensaje
@@ -123,6 +171,41 @@ export default function AIAgentPage() {
     }
   };
 
+  const fetchChallenges = async () => {
+    try {
+      const { data: challengesData, error } = await supabase
+        .from("challenges")
+        .select("id, title, description, short_description, category, difficulty_level, duration_days, wellness_areas, created_by_type")
+        .eq("is_active", true);
+
+      if (error) throw error;
+
+      console.log("📋 Challenges obtenidos:", challengesData?.length);
+      setChallenges(challengesData || []);
+    } catch (error) {
+      console.error("Error fetching challenges:", error);
+      toast.error("Error al cargar retos");
+    }
+  };
+
+  const fetchEvents = async () => {
+    try {
+      const { data: eventsData, error } = await supabase
+        .from("events_workshops")
+        .select("id, name, description, category, location, event_date, event_time, price, is_free, participant_level, professional_id")
+        .eq("is_active", true)
+        .gte("event_date", new Date().toISOString().split('T')[0]); // Solo eventos futuros
+
+      if (error) throw error;
+
+      console.log("📅 Eventos obtenidos:", eventsData?.length);
+      setEvents(eventsData || []);
+    } catch (error) {
+      console.error("Error fetching events:", error);
+      toast.error("Error al cargar eventos");
+    }
+  };
+
   const handleSendMessage = async () => {
     if (!inputValue.trim() || isLoading) return;
 
@@ -146,6 +229,8 @@ export default function AIAgentPage() {
         body: JSON.stringify({
           query: inputValue,
           professionals: professionals,
+          challenges: challenges,
+          events: events,
           conversationHistory: messages.map((m) => ({
             role: m.role,
             content: m.content,
@@ -159,12 +244,21 @@ export default function AIAgentPage() {
         throw new Error(data.error || "Error al procesar la solicitud");
       }
 
+      // Separar recomendaciones por tipo
+      const recommendations = data.recommendations || [];
+      const professionalRecs = recommendations.filter((r: Recommendation) => r.type === 'professional') as RecommendedProfessional[];
+      const challengeRecs = recommendations.filter((r: Recommendation) => r.type === 'challenge') as RecommendedChallenge[];
+      const eventRecs = recommendations.filter((r: Recommendation) => r.type === 'event') as RecommendedEvent[];
+
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: "assistant",
         content: data.message,
         timestamp: new Date(),
-        professionals: data.recommendations || [],
+        professionals: professionalRecs,
+        challenges: challengeRecs,
+        events: eventRecs,
+        recommendations: recommendations,
       };
 
       setMessages((prev) => [...prev, assistantMessage]);
@@ -229,7 +323,7 @@ export default function AIAgentPage() {
           <div className="flex items-center gap-2">
             <Badge variant="outline" className="gap-1">
               <Bot className="w-3 h-3" />
-              {professionals.length} profesionales
+              {professionals.length} profesionales, {challenges.length} retos, {events.length} eventos
             </Badge>
             {messages.length > 0 && (
               <Button variant="outline" size="sm" onClick={handleClearChat}>
@@ -326,55 +420,133 @@ export default function AIAgentPage() {
                     >
                       <p className="text-sm whitespace-pre-wrap">{message.content}</p>
 
-                      {/* Mostrar profesionales recomendados */}
-                      {message.professionals && message.professionals.length > 0 && (
-                        <div className="mt-4 space-y-3">
-                          <p className="text-xs font-semibold mb-2">Profesionales recomendados:</p>
-                          {message.professionals.map((prof) => (
-                            <Link
-                              key={prof.id}
-                              href={`/patient/${prof.id}/explore/professional/${prof.id}`}
-                              target="_blank"
-                            >
-                              <Card className="p-3 mt-2 bg-background hover:bg-muted/50 transition-colors cursor-pointer">
-                                <div className="flex items-start gap-3">
-                                  {/* Foto de perfil */}
-                                  <div className="flex-shrink-0">
-                                    <Image
-                                      src={prof.profile_photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(`${prof.first_name} ${prof.last_name}`)}&background=random&size=96`}
-                                      alt={`${prof.first_name} ${prof.last_name}`}
-                                      width={48}
-                                      height={48}
-                                      className="w-12 h-12 rounded-full object-cover border-2 border-primary/20"
-                                    />
-                                  </div>
+                      {/* Mostrar recomendaciones */}
+                      {((message.professionals?.length || 0) + (message.challenges?.length || 0) + (message.events?.length || 0)) > 0 && (
+                        <div className="mt-4 space-y-4">
+                          {/* Profesionales recomendados */}
+                          {message.professionals && message.professionals.length > 0 && (
+                            <div className="space-y-3">
+                              <p className="text-xs font-semibold mb-2 flex items-center gap-2">
+                                <User className="w-3 h-3" />
+                                Profesionales recomendados:
+                              </p>
+                              {message.professionals.map((prof) => (
+                                <Link
+                                  key={prof.id}
+                                  href={`/patient/${prof.id}/explore/professional/${prof.id}`}
+                                  target="_blank"
+                                >
+                                  <Card className="p-3 bg-background hover:bg-muted/50 transition-colors cursor-pointer">
+                                    <div className="flex items-start gap-3">
+                                      <div className="flex-shrink-0">
+                                        <Image
+                                          src={prof.profile_photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(`${prof.first_name} ${prof.last_name}`)}&background=random&size=96`}
+                                          alt={`${prof.first_name} ${prof.last_name}`}
+                                          width={48}
+                                          height={48}
+                                          className="w-12 h-12 rounded-full object-cover border-2 border-primary/20"
+                                        />
+                                      </div>
+                                      <div className="flex-1 min-w-0">
+                                        <div className="flex items-start justify-between gap-2">
+                                          <div className="flex-1 min-w-0">
+                                            <p className="font-semibold text-sm truncate">
+                                              {prof.first_name} {prof.last_name}
+                                            </p>
+                                            <p className="text-xs text-muted-foreground truncate">{prof.profession}</p>
+                                          </div>
+                                          {prof.score !== undefined && (
+                                            <Badge variant="secondary" className="text-xs flex-shrink-0">
+                                              {Math.round(prof.score * 100)}%
+                                            </Badge>
+                                          )}
+                                        </div>
+                                        {prof.reason && (
+                                          <p className="text-xs text-muted-foreground mt-1 italic line-clamp-2">
+                                            &quot;{prof.reason}&quot;
+                                          </p>
+                                        )}
+                                      </div>
+                                    </div>
+                                  </Card>
+                                </Link>
+                              ))}
+                            </div>
+                          )}
 
-                                  {/* Información del profesional */}
-                                  <div className="flex-1 min-w-0">
+                          {/* Retos/Challenges recomendados */}
+                          {message.challenges && message.challenges.length > 0 && (
+                            <div className="space-y-3">
+                              <p className="text-xs font-semibold mb-2 flex items-center gap-2">
+                                <Target className="w-3 h-3" />
+                                Retos recomendados:
+                              </p>
+                              {message.challenges.map((challenge) => (
+                                <Link
+                                  key={challenge.id}
+                                  href={`/patient/${user?.id || ''}/explore/challenge/${challenge.id}`}
+                                  target="_blank"
+                                >
+                                  <Card className="p-3 bg-background hover:bg-muted/50 transition-colors cursor-pointer">
                                     <div className="flex items-start justify-between gap-2">
                                       <div className="flex-1 min-w-0">
                                         <p className="font-semibold text-sm truncate">
-                                          {prof.first_name} {prof.last_name}
+                                          {challenge.title}
                                         </p>
-                                        <p className="text-xs text-muted-foreground truncate">{prof.profession}</p>
+                                        {challenge.reason && (
+                                          <p className="text-xs text-muted-foreground mt-1 italic line-clamp-2">
+                                            &quot;{challenge.reason}&quot;
+                                          </p>
+                                        )}
                                       </div>
-                                      {prof.score !== undefined && (
+                                      {challenge.score !== undefined && (
                                         <Badge variant="secondary" className="text-xs flex-shrink-0">
-                                          {Math.round(prof.score * 100)}%
+                                          {Math.round(challenge.score * 100)}%
                                         </Badge>
                                       )}
                                     </div>
+                                  </Card>
+                                </Link>
+                              ))}
+                            </div>
+                          )}
 
-                                    {prof.reason && (
-                                      <p className="text-xs text-muted-foreground mt-1 italic line-clamp-2">
-                                        &quot;{prof.reason}&quot;
-                                      </p>
-                                    )}
-                                  </div>
-                                </div>
-                              </Card>
-                            </Link>
-                          ))}
+                          {/* Eventos recomendados */}
+                          {message.events && message.events.length > 0 && (
+                            <div className="space-y-3">
+                              <p className="text-xs font-semibold mb-2 flex items-center gap-2">
+                                <Calendar className="w-3 h-3" />
+                                Eventos recomendados:
+                              </p>
+                              {message.events.map((event) => (
+                                <Link
+                                  key={event.id}
+                                  href={`/patient/${user?.id || ''}/explore/event/${event.id}`}
+                                  target="_blank"
+                                >
+                                  <Card className="p-3 bg-background hover:bg-muted/50 transition-colors cursor-pointer">
+                                    <div className="flex items-start justify-between gap-2">
+                                      <div className="flex-1 min-w-0">
+                                        <p className="font-semibold text-sm truncate">
+                                          {event.name}
+                                        </p>
+                                        {event.reason && (
+                                          <p className="text-xs text-muted-foreground mt-1 italic line-clamp-2">
+                                            &quot;{event.reason}&quot;
+                                          </p>
+                                        )}
+                                      </div>
+                                      {event.score !== undefined && (
+                                        <Badge variant="secondary" className="text-xs flex-shrink-0">
+                                          {Math.round(event.score * 100)}%
+                                        </Badge>
+                                      )}
+                                    </div>
+                                  </Card>
+                                </Link>
+                              ))}
+                            </div>
+                          )}
                         </div>
                       )}
 

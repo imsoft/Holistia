@@ -64,11 +64,12 @@ export default function AIAgentPage() {
 
   const fetchProfessionals = async () => {
     try {
-      // Obtener profesionales aprobados
+      // Obtener profesionales aprobados con toda la información relevante
       const { data: professionalsData, error } = await supabase
         .from("professional_applications")
-        .select("id, first_name, last_name, profession, email, phone, user_id, profile_photo")
-        .eq("status", "approved");
+        .select("id, first_name, last_name, profession, email, phone, user_id, profile_photo, specializations, wellness_areas, biography, services")
+        .eq("status", "approved")
+        .eq("is_active", true);
 
       if (error) throw error;
 
@@ -94,7 +95,9 @@ export default function AIAgentPage() {
           user_id: prof.user_id,
           avatar_url: profile?.avatar_url,
           profile_photo: prof.profile_photo,
-          final_photo: photoUrl
+          final_photo: photoUrl,
+          specializations: prof.specializations,
+          wellness_areas: prof.wellness_areas
         });
 
         return {
@@ -105,6 +108,10 @@ export default function AIAgentPage() {
           email: prof.email,
           phone: prof.phone,
           profile_photo: photoUrl,
+          specializations: prof.specializations || [],
+          wellness_areas: prof.wellness_areas || [],
+          biography: prof.biography || '',
+          services: prof.services || []
         };
       }) || [];
 
@@ -255,31 +262,45 @@ export default function AIAgentPage() {
                 <div>
                   <h3 className="text-lg font-semibold mb-2">¡Hola! Soy tu asistente de recomendaciones</h3>
                   <p className="text-muted-foreground max-w-md">
-                    Cuéntame qué tipo de profesional estás buscando y te ayudaré a encontrar
-                    las mejores opciones de nuestra base de datos.
+                    Cuéntame qué <strong>dolor o síntoma</strong> tienes, o qué <strong>objetivo de mejora</strong> quieres lograr, 
+                    y te ayudaré a encontrar los mejores profesionales, programas y eventos de nuestra plataforma.
                   </p>
                 </div>
                 <div className="flex flex-wrap gap-2 justify-center max-w-2xl">
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => setInputValue("Necesito un psicólogo que trabaje con ansiedad")}
+                    onClick={() => setInputValue("Tengo ansiedad y necesito ayuda")}
                   >
-                    Buscar psicólogo
+                    Ansiedad
                   </Button>
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => setInputValue("Recomiéndame un nutriólogo especializado en nutrición deportiva")}
+                    onClick={() => setInputValue("Quiero perder peso y mejorar mi alimentación")}
                   >
-                    Buscar nutriólogo
+                    Perder peso
                   </Button>
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => setInputValue("¿Quién puede ayudarme con terapias alternativas?")}
+                    onClick={() => setInputValue("Tengo dolor de espalda crónico")}
                   >
-                    Terapias alternativas
+                    Dolor de espalda
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setInputValue("Quiero aprender a meditar y mejorar mi bienestar espiritual")}
+                  >
+                    Meditación
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setInputValue("Necesito mejorar mis relaciones interpersonales")}
+                  >
+                    Relaciones
                   </Button>
                 </div>
               </div>

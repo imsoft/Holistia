@@ -112,12 +112,14 @@ export default function AIAgentPage() {
 
   const fetchProfessionals = async () => {
     try {
-      // Obtener profesionales aprobados con toda la información relevante
+      // Obtener profesionales aprobados, activos y con inscripción pagada
       const { data: professionalsData, error } = await supabase
         .from("professional_applications")
         .select("id, first_name, last_name, profession, email, phone, user_id, profile_photo, specializations, wellness_areas, biography, services")
         .eq("status", "approved")
-        .eq("is_active", true);
+        .eq("is_active", true)
+        .eq("registration_fee_paid", true)
+        .gt("registration_fee_expires_at", new Date().toISOString());
 
       if (error) throw error;
 
@@ -436,6 +438,8 @@ export default function AIAgentPage() {
                                 // Usar datos del profesional completo si está disponible, sino usar los de la recomendación
                                 const displayProf = fullProf || prof;
                                 const profilePhoto = displayProf.profile_photo;
+                                // Obtener especialidades del profesional completo
+                                const specializations = (fullProf as any)?.specializations || [];
                                 
                                 return (
                                 <Link
@@ -469,10 +473,23 @@ export default function AIAgentPage() {
                                             </Badge>
                                           )}
                                         </div>
-                                        {prof.reason && (
-                                          <p className="text-xs text-muted-foreground mt-1 italic line-clamp-2">
-                                            &quot;{prof.reason}&quot;
-                                          </p>
+                                        {/* Mostrar especialidades */}
+                                        {specializations && specializations.length > 0 && (
+                                          <div className="flex flex-wrap gap-1 mt-2">
+                                            {specializations.slice(0, 3).map((spec: string, idx: number) => (
+                                              <span
+                                                key={idx}
+                                                className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full"
+                                              >
+                                                {spec}
+                                              </span>
+                                            ))}
+                                            {specializations.length > 3 && (
+                                              <span className="text-xs text-muted-foreground">
+                                                +{specializations.length - 3} más
+                                              </span>
+                                            )}
+                                          </div>
                                         )}
                                       </div>
                                     </div>

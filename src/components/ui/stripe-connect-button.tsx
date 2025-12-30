@@ -4,8 +4,18 @@ import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { CreditCard, ExternalLink, CheckCircle, AlertCircle, Clock } from "lucide-react";
+import { CreditCard, ExternalLink, CheckCircle, AlertCircle, Clock, Unplug } from "lucide-react";
 import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface StripeConnectButtonProps {
   professionalId: string;
@@ -21,6 +31,8 @@ export function StripeConnectButton({ professionalId, initialStatus }: StripeCon
   const [loading, setLoading] = useState(false);
   const [accountStatus, setAccountStatus] = useState(initialStatus);
   const [checkingStatus, setCheckingStatus] = useState(false);
+  const [disconnecting, setDisconnecting] = useState(false);
+  const [showDisconnectDialog, setShowDisconnectDialog] = useState(false);
 
   const checkAccountStatus = useCallback(async () => {
     try {
@@ -104,6 +116,37 @@ export function StripeConnectButton({ professionalId, initialStatus }: StripeCon
       toast.error('Error al abrir dashboard de Stripe');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDisconnect = async () => {
+    try {
+      setDisconnecting(true);
+      const response = await fetch('/api/stripe/connect/disconnect', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ professional_id: professionalId }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        toast.success('Cuenta de Stripe desconectada exitosamente');
+        setAccountStatus({
+          stripe_account_id: null,
+          stripe_account_status: null,
+          stripe_charges_enabled: null,
+          stripe_payouts_enabled: null,
+        });
+        setShowDisconnectDialog(false);
+      } else {
+        toast.error(data.error || 'Error al desconectar cuenta de Stripe');
+      }
+    } catch (error) {
+      console.error('Error disconnecting Stripe account:', error);
+      toast.error('Error al desconectar cuenta de Stripe');
+    } finally {
+      setDisconnecting(false);
     }
   };
 
@@ -241,7 +284,59 @@ export function StripeConnectButton({ professionalId, initialStatus }: StripeCon
           <p>• Gestiona tus pagos desde el dashboard de Stripe</p>
           <p>• Sin costos ocultos ni cargos adicionales</p>
         </div>
+
+        {accountStatus?.stripe_account_id && (
+          <div className="pt-4 border-t">
+            <Button
+              onClick={() => setShowDisconnectDialog(true)}
+              disabled={disconnecting || loading}
+              variant="outline"
+              className="w-full text-destructive hover:text-destructive hover:bg-destructive/10"
+            >
+              <Unplug className="w-4 h-4 mr-2" />
+              Desconectar cuenta de Stripe
+            </Button>
+          </div>
+        )}
       </CardContent>
+
+      {/* Disconnect Confirmation Dialog */}
+      <AlertDialog open={showDisconnectDialog} onOpenChange={setShowDisconnectDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Desconectar cuenta de Stripe?</AlertDialogTitle>
+            <AlertDialogDescription className="space-y-2">
+              <p>
+                Esta acción desconectará tu cuenta de Stripe de Holistia.
+              </p>
+              <p className="font-medium text-foreground">
+                Esto significa que:
+              </p>
+              <ul className="list-disc list-inside space-y-1 text-sm">
+                <li>No podrás recibir nuevos pagos a través de Holistia</li>
+                <li>Los pagos pendientes se procesarán normalmente</li>
+                <li>Podrás volver a conectar tu cuenta en cualquier momento</li>
+                <li>Tu cuenta de Stripe no será eliminada, solo desvinculada</li>
+              </ul>
+              <p className="text-destructive font-medium pt-2">
+                ¿Estás seguro de que deseas continuar?
+              </p>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={disconnecting}>
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDisconnect}
+              disabled={disconnecting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {disconnecting ? 'Desconectando...' : 'Sí, desconectar'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   );
 }

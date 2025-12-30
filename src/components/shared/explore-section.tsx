@@ -309,13 +309,13 @@ export function ExploreSection({ hideHeader = false, userId }: ExploreSectionPro
           </div>
         )}
 
-        {/* Profesionales */}
+        {/* Expertos */}
         {professionals.length > 0 && (
           <div className="mb-16">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-2xl font-bold flex items-center gap-2">
                 <User className="w-6 h-6 text-primary" />
-                Profesionales
+                Expertos
               </h3>
               <div className="flex items-center gap-2">
                 <Button

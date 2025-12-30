@@ -82,49 +82,119 @@ export default function PublicProfessionalPage({
       setIsAuthenticated(!!user);
       setUserId(user?.id || null);
 
+      // Intentar extraer UUID del slug (formato: "nombre-apellido-{uuid}" o solo UUID)
       const uuidMatch = slug.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i);
-      const id = uuidMatch ? uuidMatch[0] : slug;
-      setProfessionalId(id);
+      let professionalData = null;
+      let professionalId = null;
+      let error = null;
 
-      const { data, error } = await supabase
-        .from("professional_applications")
-        .select(
+      if (uuidMatch) {
+        // Si hay UUID en el slug, usarlo directamente
+        professionalId = uuidMatch[0];
+        const result = await supabase
+          .from("professional_applications")
+          .select(
+            `
+            id,
+            first_name,
+            last_name,
+            biography,
+            profile_photo,
+            specializations,
+            experience,
+            certifications,
+            profession,
+            gallery
           `
-          id,
-          first_name,
-          last_name,
-          biography,
-          profile_photo,
-          specializations,
-          experience,
-          certifications,
-          profession,
-          gallery
-        `
-        )
-        .eq("id", id)
-        .eq("status", "approved")
-        .eq("is_active", true)
-        .single();
+          )
+          .eq("id", professionalId)
+          .eq("status", "approved")
+          .eq("is_active", true)
+          .single();
+        
+        professionalData = result.data;
+        error = result.error;
+      } else {
+        // Si no hay UUID, buscar por nombre (formato: "nombre-apellido")
+        // Parsear el slug para obtener nombre y apellido
+        const slugParts = slug.split('-');
+        if (slugParts.length >= 2) {
+          // Reconstruir nombre y apellido (puede haber guiones en el nombre)
+          const firstName = slugParts[0];
+          const lastName = slugParts.slice(1).join('-'); // En caso de apellidos compuestos
+          
+          // Normalizar para comparación (sin acentos, minúsculas)
+          const normalize = (text: string) => 
+            text.toLowerCase()
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .trim();
 
-      if (error) {
+          // Buscar todos los profesionales aprobados y activos
+          const { data: allProfessionals, error: fetchError } = await supabase
+            .from("professional_applications")
+            .select(
+              `
+              id,
+              first_name,
+              last_name,
+              biography,
+              profile_photo,
+              specializations,
+              experience,
+              certifications,
+              profession,
+              gallery
+            `
+            )
+            .eq("status", "approved")
+            .eq("is_active", true);
+
+          if (fetchError) {
+            error = fetchError;
+          } else if (allProfessionals) {
+            // Buscar coincidencia exacta en nombre y apellido normalizados
+            const matched = allProfessionals.find(prof => {
+              const profFirstName = normalize(prof.first_name || '');
+              const profLastName = normalize(prof.last_name || '');
+              return profFirstName === normalize(firstName) && profLastName === normalize(lastName);
+            });
+
+            if (matched) {
+              professionalData = matched;
+              professionalId = matched.id;
+            } else {
+              error = { code: 'PGRST116', message: 'Profesional no encontrado' };
+            }
+          }
+        } else {
+          error = { code: 'INVALID_SLUG', message: 'Formato de slug inválido' };
+        }
+      }
+
+      if (error || !professionalData) {
         console.error("Error loading professional:", error);
         toast.error("No se pudo cargar la información del profesional");
         setLoading(false);
         return;
       }
 
+      if (!professionalId) {
+        professionalId = professionalData.id;
+      }
+      setProfessionalId(professionalId);
+
       const { data: reviewStats } = await supabase
         .from("review_stats")
         .select("average_rating, total_reviews")
-        .eq("professional_id", id)
+        .eq("professional_id", professionalId)
         .maybeSingle();
 
       setProfessional({
-        ...data,
+        ...professionalData,
         average_rating: reviewStats?.average_rating || 0,
         total_reviews: reviewStats?.total_reviews || 0,
-        gallery: data.gallery || [],
+        gallery: professionalData.gallery || [],
       });
       setLoading(false);
 
@@ -132,7 +202,7 @@ export default function PublicProfessionalPage({
       const { data: servicesData, error: servicesError } = await supabase
         .from("professional_services")
         .select("*")
-        .eq("professional_id", id)
+        .eq("professional_id", professionalId)
         .eq("isactive", true)
         .order("created_at", { ascending: false });
 
@@ -148,7 +218,7 @@ export default function PublicProfessionalPage({
       const { data: challengesData, error: challengesError } = await supabase
         .from("challenges")
         .select("*")
-        .eq("professional_id", id)
+        .eq("professional_id", professionalId)
         .eq("is_active", true)
         .order("created_at", { ascending: false });
 

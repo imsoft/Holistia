@@ -137,10 +137,7 @@ export default async function SpecialtyPage({ params }: SpecialtyPageProps) {
           </Link>
 
           <h1 className="text-4xl md:text-5xl font-bold mb-4">
-            Profesionales de{" "}
-            <span className="bg-gradient-to-r from-primary via-purple-500 to-primary bg-clip-text text-transparent">
-              {profession}
-            </span>
+            Profesionales de {profession}
           </h1>
           <p className="text-lg text-muted-foreground max-w-2xl">
             Encuentra al experto ideal para tus necesidades. {professionals.length}{" "}

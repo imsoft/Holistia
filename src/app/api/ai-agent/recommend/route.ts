@@ -257,23 +257,27 @@ Si no encuentras profesionales adecuados, explica por qué y sugiere:
       };
     }
 
-    // Enriquecer recomendaciones de profesionales con datos completos (incluyendo profile_photo)
+    // Enriquecer recomendaciones de profesionales con datos completos de la lista original
     if (parsedResponse.recommendations && Array.isArray(parsedResponse.recommendations)) {
-      const enrichedRecommendations = await Promise.all(
-        parsedResponse.recommendations.map(async (rec: any) => {
-          if (rec.type === 'professional' && rec.id) {
-            // Buscar el profesional en la lista original para obtener profile_photo
-            const originalProf = professionals.find((p: Professional) => p.id === rec.id);
-            if (originalProf) {
-              return {
-                ...rec,
-                profile_photo: originalProf.profile_photo || null
-              };
-            }
+      const enrichedRecommendations = parsedResponse.recommendations.map((rec: any) => {
+        if (rec.type === 'professional' && rec.id) {
+          // Buscar el profesional en la lista original para obtener todos los datos correctos
+          const originalProf = professionals.find((p: Professional) => p.id === rec.id);
+          if (originalProf) {
+            return {
+              ...rec,
+              // Usar los datos correctos de la lista original, no los que devuelve el AI
+              first_name: originalProf.first_name,
+              last_name: originalProf.last_name,
+              profession: originalProf.profession,
+              email: originalProf.email,
+              phone: originalProf.phone,
+              profile_photo: originalProf.profile_photo || null
+            };
           }
-          return rec;
-        })
-      );
+        }
+        return rec;
+      });
       parsedResponse.recommendations = enrichedRecommendations;
     }
 

@@ -431,9 +431,11 @@ export default function AIAgentPage() {
                                 Profesionales recomendados:
                               </p>
                               {message.professionals.map((prof) => {
-                                // Buscar el profesional completo en la lista para obtener profile_photo
+                                // Buscar el profesional completo en la lista para obtener todos los datos correctos
                                 const fullProf = professionals.find(p => p.id === prof.id);
-                                const profilePhoto = fullProf?.profile_photo || prof.profile_photo;
+                                // Usar datos del profesional completo si está disponible, sino usar los de la recomendación
+                                const displayProf = fullProf || prof;
+                                const profilePhoto = displayProf.profile_photo;
                                 
                                 return (
                                 <Link
@@ -445,8 +447,8 @@ export default function AIAgentPage() {
                                     <div className="flex items-start gap-3">
                                       <div className="flex-shrink-0">
                                         <Image
-                                          src={profilePhoto || `https://ui-avatars.com/api/?name=${encodeURIComponent(`${prof.first_name} ${prof.last_name}`)}&background=random&size=96`}
-                                          alt={`${prof.first_name} ${prof.last_name}`}
+                                          src={profilePhoto || `https://ui-avatars.com/api/?name=${encodeURIComponent(`${displayProf.first_name} ${displayProf.last_name}`)}&background=random&size=96`}
+                                          alt={`${displayProf.first_name} ${displayProf.last_name}`}
                                           width={48}
                                           height={48}
                                           className="w-12 h-12 rounded-full object-cover border-2 border-primary/20"
@@ -457,9 +459,9 @@ export default function AIAgentPage() {
                                         <div className="flex items-start justify-between gap-2">
                                           <div className="flex-1 min-w-0">
                                             <p className="font-semibold text-sm truncate">
-                                              {prof.first_name} {prof.last_name}
+                                              {displayProf.first_name} {displayProf.last_name}
                                             </p>
-                                            <p className="text-xs text-muted-foreground truncate">{prof.profession}</p>
+                                            <p className="text-xs text-muted-foreground truncate">{displayProf.profession}</p>
                                           </div>
                                           {prof.score !== undefined && (
                                             <Badge variant="secondary" className="text-xs flex-shrink-0">

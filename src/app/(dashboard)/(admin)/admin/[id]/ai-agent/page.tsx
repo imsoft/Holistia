@@ -433,7 +433,7 @@ export default function AIAgentPage() {
                               {message.professionals.map((prof) => (
                                 <Link
                                   key={prof.id}
-                                  href={`/patient/${prof.id}/explore/professional/${prof.id}`}
+                                  href={user?.id ? `/patient/${user.id}/explore/professional/${prof.id}` : `/public/professional/${prof.id}`}
                                   target="_blank"
                                 >
                                   <Card className="p-3 bg-background hover:bg-muted/50 transition-colors cursor-pointer">
@@ -484,7 +484,7 @@ export default function AIAgentPage() {
                               {message.challenges.map((challenge) => (
                                 <Link
                                   key={challenge.id}
-                                  href={`/patient/${user?.id || ''}/explore/challenge/${challenge.id}`}
+                                  href={user?.id ? `/patient/${user.id}/explore/challenge/${challenge.id}` : `/explore/challenge/${challenge.id}`}
                                   target="_blank"
                                 >
                                   <Card className="p-3 bg-background hover:bg-muted/50 transition-colors cursor-pointer">
@@ -521,7 +521,7 @@ export default function AIAgentPage() {
                               {message.events.map((event) => (
                                 <Link
                                   key={event.id}
-                                  href={`/patient/${user?.id || ''}/explore/event/${event.id}`}
+                                  href={user?.id ? `/patient/${user.id}/explore/event/${event.id}` : `/explore/event/${event.id}`}
                                   target="_blank"
                                 >
                                   <Card className="p-3 bg-background hover:bg-muted/50 transition-colors cursor-pointer">

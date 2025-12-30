@@ -52,6 +52,7 @@ import {
 import { RestaurantCenterImageUploader } from "@/components/ui/restaurant-center-image-uploader";
 import { RestaurantMenuManager } from "@/components/ui/restaurant-menu-manager";
 import { RestaurantGalleryManager } from "@/components/ui/restaurant-gallery-manager";
+import { WellnessAreasSelector } from "@/components/ui/wellness-areas-selector";
 
 interface Restaurant {
   id: string;
@@ -66,6 +67,7 @@ interface Restaurant {
   cuisine_type?: string;
   price_range?: string;
   opening_hours?: DaySchedule[] | string;
+  wellness_areas?: string[];
   rating?: number;
   menu_pdf_url?: string | null;
   gallery?: string[];
@@ -86,6 +88,7 @@ interface FormData {
   cuisine_type: string;
   price_range: string;
   opening_hours: DaySchedule[];
+  wellness_areas: string[];
   menu_pdf_url: string | null;
   gallery: string[];
   is_active: boolean;
@@ -148,6 +151,7 @@ export default function AdminRestaurants() {
     cuisine_type: "",
     price_range: "",
     opening_hours: createEmptySchedule(),
+    wellness_areas: [],
     menu_pdf_url: null,
     gallery: [],
     is_active: true,
@@ -193,6 +197,7 @@ export default function AdminRestaurants() {
         cuisine_type: restaurant.cuisine_type || "",
         price_range: restaurant.price_range || "",
         opening_hours: parseScheduleFromString(restaurant.opening_hours),
+        wellness_areas: restaurant.wellness_areas || [],
         menu_pdf_url: restaurant.menu_pdf_url || null,
         gallery: restaurant.gallery || [],
         is_active: restaurant.is_active,
@@ -214,6 +219,7 @@ export default function AdminRestaurants() {
         cuisine_type: "",
         price_range: "",
         opening_hours: createEmptySchedule(),
+        wellness_areas: [],
         menu_pdf_url: null,
         gallery: [],
         is_active: true,
@@ -317,6 +323,7 @@ export default function AdminRestaurants() {
             image_url: formData.image_url.trim() || null,
             cuisine_type: formData.cuisine_type || null,
             price_range: formData.price_range || null,
+            wellness_areas: formData.wellness_areas || [],
             opening_hours: formData.opening_hours,
             menu_pdf_url: formData.menu_pdf_url,
             gallery: formData.gallery,
@@ -344,6 +351,7 @@ export default function AdminRestaurants() {
             image_url: formData.image_url.trim() || null,
             cuisine_type: formData.cuisine_type || null,
             price_range: formData.price_range || null,
+            wellness_areas: formData.wellness_areas || [],
             opening_hours: formData.opening_hours,
             menu_pdf_url: formData.menu_pdf_url,
             gallery: formData.gallery,
@@ -625,6 +633,14 @@ export default function AdminRestaurants() {
                 </Select>
               </div>
             </div>
+
+            {/* Áreas de Bienestar */}
+            <WellnessAreasSelector
+              selectedAreas={formData.wellness_areas}
+              onAreasChange={(areas) => setFormData({ ...formData, wellness_areas: areas })}
+              label="Áreas de Bienestar"
+              description="Selecciona las áreas de bienestar relacionadas con este restaurante"
+            />
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">

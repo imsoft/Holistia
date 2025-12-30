@@ -45,6 +45,7 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 import { createClient } from "@/utils/supabase/client";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Switch } from "@/components/ui/switch";
+import { WellnessAreasSelector } from "@/components/ui/wellness-areas-selector";
 
 interface Challenge {
   id: string;
@@ -58,6 +59,7 @@ interface Challenge {
   duration_days?: number;
   difficulty_level?: 'beginner' | 'intermediate' | 'advanced' | 'expert';
   category?: string;
+  wellness_areas?: string[];
   is_active: boolean;
   sales_count: number;
   created_at: string;
@@ -85,6 +87,7 @@ interface FormData {
   duration_days: string;
   difficulty_level: string;
   category: string;
+  wellness_areas: string[];
   is_active: boolean;
 }
 
@@ -121,6 +124,7 @@ export default function ProfessionalChallenges() {
     duration_days: "",
     difficulty_level: "",
     category: "",
+    wellness_areas: [],
     is_active: true,
   });
 
@@ -216,6 +220,7 @@ export default function ProfessionalChallenges() {
         duration_days: challenge.duration_days?.toString() || "",
         difficulty_level: challenge.difficulty_level || "",
         category: challenge.category || "",
+        wellness_areas: challenge.wellness_areas || [],
         is_active: challenge.is_active,
       });
       fetchChallengeFiles(challenge.id);
@@ -231,6 +236,7 @@ export default function ProfessionalChallenges() {
         duration_days: "",
         difficulty_level: "",
         category: "",
+        wellness_areas: [],
         is_active: true,
       });
       setChallengeFiles([]);
@@ -458,6 +464,7 @@ export default function ProfessionalChallenges() {
         duration_days: formData.duration_days ? parseInt(formData.duration_days) : null,
         difficulty_level: formData.difficulty_level || null,
         category: formData.category || null,
+        wellness_areas: formData.wellness_areas || [],
         is_active: formData.is_active,
       };
 
@@ -821,6 +828,14 @@ export default function ProfessionalChallenges() {
                 placeholder="Ej: Meditación, Fitness, Nutrición"
               />
             </div>
+
+            {/* Áreas de Bienestar */}
+            <WellnessAreasSelector
+              selectedAreas={formData.wellness_areas}
+              onAreasChange={(areas) => setFormData({ ...formData, wellness_areas: areas })}
+              label="Áreas de Bienestar"
+              description="Selecciona las áreas de bienestar relacionadas con este reto"
+            />
 
             {/* Imagen de portada */}
             <div>

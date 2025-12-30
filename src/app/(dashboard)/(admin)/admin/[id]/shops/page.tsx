@@ -52,6 +52,7 @@ import {
 import { RestaurantCenterImageUploader } from "@/components/ui/restaurant-center-image-uploader";
 import { ShopProductsManager } from "@/components/ui/shop-products-manager";
 import { ShopGalleryManager } from "@/components/ui/shop-gallery-manager";
+import { WellnessAreasSelector } from "@/components/ui/wellness-areas-selector";
 
 interface Shop {
   id: string;
@@ -66,6 +67,7 @@ interface Shop {
   image_url?: string;
   opening_hours?: DaySchedule[] | string;
   category?: string;
+  wellness_areas?: string[];
   catalog_pdf_url?: string | null;
   gallery?: string[];
   is_active: boolean;
@@ -85,6 +87,7 @@ interface FormData {
   image_url: string;
   opening_hours: DaySchedule[];
   category: string;
+  wellness_areas: string[];
   catalog_pdf_url: string | null;
   gallery: string[];
   is_active: boolean;
@@ -141,6 +144,7 @@ export default function AdminShops() {
     image_url: "",
     opening_hours: createEmptySchedule(),
     category: "",
+    wellness_areas: [],
     catalog_pdf_url: null,
     gallery: [],
     is_active: true,
@@ -186,6 +190,7 @@ export default function AdminShops() {
         image_url: shop.image_url || "",
         opening_hours: parseScheduleFromString(shop.opening_hours),
         category: shop.category || "",
+        wellness_areas: shop.wellness_areas || [],
         catalog_pdf_url: shop.catalog_pdf_url || null,
         gallery: shop.gallery || [],
         is_active: shop.is_active,
@@ -206,6 +211,7 @@ export default function AdminShops() {
         image_url: "",
         opening_hours: createEmptySchedule(),
         category: "",
+        wellness_areas: [],
         catalog_pdf_url: null,
         gallery: [],
         is_active: true,
@@ -294,6 +300,7 @@ export default function AdminShops() {
         image_url: formData.image_url.trim() || null,
         opening_hours: formData.opening_hours,
         category: formData.category || null,
+        wellness_areas: formData.wellness_areas || [],
         catalog_pdf_url: formData.catalog_pdf_url,
         gallery: formData.gallery,
         is_active: formData.is_active,
@@ -586,6 +593,14 @@ export default function AdminShops() {
                 </SelectContent>
               </Select>
             </div>
+
+            {/* Áreas de Bienestar */}
+            <WellnessAreasSelector
+              selectedAreas={formData.wellness_areas}
+              onAreasChange={(areas) => setFormData({ ...formData, wellness_areas: areas })}
+              label="Áreas de Bienestar"
+              description="Selecciona las áreas de bienestar relacionadas con este comercio"
+            />
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">

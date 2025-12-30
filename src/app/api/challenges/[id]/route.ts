@@ -98,6 +98,7 @@ export async function PUT(
       duration_days,
       difficulty_level,
       category,
+      wellness_areas,
       is_active,
     } = body;
 
@@ -112,6 +113,7 @@ export async function PUT(
     if (duration_days !== undefined) updateData.duration_days = duration_days ? parseInt(duration_days) : null;
     if (difficulty_level !== undefined) updateData.difficulty_level = difficulty_level;
     if (category !== undefined) updateData.category = category;
+    if (wellness_areas !== undefined) updateData.wellness_areas = wellness_areas || [];
     if (is_active !== undefined) updateData.is_active = is_active;
 
     const { data: challenge, error: updateError } = await supabase

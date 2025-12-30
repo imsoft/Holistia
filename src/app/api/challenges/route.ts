@@ -91,6 +91,7 @@ export async function POST(request: NextRequest) {
       duration_days,
       difficulty_level,
       category,
+      wellness_areas,
     } = body;
 
     // Validar campos requeridos
@@ -137,6 +138,7 @@ export async function POST(request: NextRequest) {
         duration_days: duration_days ? parseInt(duration_days) : null,
         difficulty_level: difficulty_level || null,
         category: category || null,
+        wellness_areas: wellness_areas || [],
         is_active: true,
       })
       .select()

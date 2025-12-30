@@ -146,7 +146,10 @@ export const ProfessionalCard = ({ professional, userId }: ProfessionalCardProps
   };
 
   // Construir la ruta correcta
-  const professionalRoute = userId 
+  // Si hay slug, usar ruta pública, si no, usar ruta con userId o ruta pública
+  const professionalRoute = professional.slug
+    ? `/public/professional/${professional.slug}`
+    : userId 
     ? `/patient/${userId}/explore/professional/${professional.id}` 
     : `/explore/professional/${professional.id}`;
 

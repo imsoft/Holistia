@@ -2,11 +2,9 @@ import { Metadata } from "next";
 import { createAnonClient } from "@/utils/supabase/server";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import Image from "next/image";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { MapPin, Calendar, ArrowLeft } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
+import { ProfessionalCard } from "@/components/ui/professional-card";
 
 interface SpecialtyPageProps {
   params: Promise<{ slug: string }>;
@@ -151,71 +149,23 @@ export default async function SpecialtyPage({ params }: SpecialtyPageProps) {
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {professionals.map((professional) => (
-              <Card
+              <ProfessionalCard
                 key={professional.id}
-                className="overflow-hidden hover:shadow-lg transition-shadow duration-300"
-              >
-                <CardContent className="p-0">
-                  {/* Imagen del profesional */}
-                  <div className="relative h-48 bg-gradient-to-br from-primary/10 to-purple-500/10">
-                    {professional.profile_photo ? (
-                      <Image
-                        src={professional.profile_photo}
-                        alt={`${professional.first_name} ${professional.last_name}`}
-                        fill
-                        className="object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <div className="w-24 h-24 rounded-full bg-primary/20 flex items-center justify-center">
-                          <span className="text-3xl font-bold text-primary">
-                            {professional.first_name[0]}
-                            {professional.last_name[0]}
-                          </span>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Información */}
-                  <div className="p-6">
-                    {/* Nombre y profesión */}
-                    <h3 className="text-xl font-bold mb-1">
-                      {professional.first_name} {professional.last_name}
-                    </h3>
-                    <Badge variant="secondary" className="mb-3">
-                      {professional.profession}
-                    </Badge>
-
-                    {/* Ubicación */}
-                    {(professional.city || professional.state) && (
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
-                        <MapPin className="h-4 w-4" />
-                        <span>
-                          {[professional.city, professional.state]
-                            .filter(Boolean)
-                            .join(", ")}
-                        </span>
-                      </div>
-                    )}
-
-                    {/* Biografía */}
-                    {professional.biography && (
-                      <p className="text-sm text-muted-foreground line-clamp-3 mb-4">
-                        {professional.biography}
-                      </p>
-                    )}
-
-                    {/* Botón de ver perfil */}
-                    <Link href={`/explore/professional/${professional.id}`}>
-                      <Button className="w-full gap-2">
-                        <Calendar className="h-4 w-4" />
-                        Ver perfil y agendar
-                      </Button>
-                    </Link>
-                  </div>
-                </CardContent>
-              </Card>
+                professional={{
+                  id: professional.id,
+                  name: `${professional.first_name} ${professional.last_name}`,
+                  first_name: professional.first_name,
+                  last_name: professional.last_name,
+                  email: "",
+                  profession: professional.profession,
+                  profile_photo: professional.profile_photo || undefined,
+                  avatar: professional.profile_photo || undefined,
+                  city: professional.city || undefined,
+                  state: professional.state || undefined,
+                  bio: professional.biography || undefined,
+                  biography: professional.biography || undefined,
+                }}
+              />
             ))}
           </div>
 

@@ -23,6 +23,7 @@ import { stripHtml } from "@/lib/text-utils";
 import { VerifiedBadge } from "@/components/ui/verified-badge";
 import { ChallengeCard } from "@/components/ui/challenge-card";
 import { FavoriteButton } from "@/components/ui/favorite-button";
+import { ProfessionalCard } from "@/components/ui/professional-card";
 
 interface Professional {
   id: string;
@@ -73,9 +74,10 @@ interface Event {
 
 interface ExploreSectionProps {
   hideHeader?: boolean;
+  userId?: string; // Para páginas públicas, no se pasa userId
 }
 
-export function ExploreSection({ hideHeader = false }: ExploreSectionProps) {
+export function ExploreSection({ hideHeader = false, userId }: ExploreSectionProps) {
   const [professionals, setProfessionals] = useState<Professional[]>([]);
   const [shops, setShops] = useState<Shop[]>([]);
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
@@ -347,78 +349,29 @@ export function ExploreSection({ hideHeader = false }: ExploreSectionProps) {
               }}
             >
               {professionals.map((prof) => {
-                const slug = `${prof.first_name.toLowerCase()}-${prof.last_name.toLowerCase()}-${prof.id}`;
                 return (
-                  <Card key={prof.id} className="flex-shrink-0 w-[280px] sm:w-[320px] h-[480px] flex flex-col hover:shadow-lg transition-shadow">
-                    <div className="relative w-full h-48 bg-gray-100 shrink-0">
-                      {prof.avatar_url ? (
-                        <Image
-                          src={prof.avatar_url}
-                          alt={`${prof.first_name} ${prof.last_name}`}
-                          fill
-                          className="object-cover"
-                          unoptimized
-                        />
-                      ) : (
-                        <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center">
-                          <User className="h-16 w-16 text-primary/40" />
-                        </div>
-                      )}
-                    </div>
-                    <CardHeader className="pb-1.5 px-4 pt-3">
-                      {prof.profession && (
-                        <CardTitle className="text-xl font-bold line-clamp-1">
-                          {prof.profession}
-                        </CardTitle>
-                      )}
-                      <div className="flex items-center justify-between gap-2 mt-1">
-                        <p className="text-sm text-muted-foreground truncate flex items-center gap-1">
-                          {prof.first_name} {prof.last_name}
-                          {prof.is_verified && <VerifiedBadge size={14} />}
-                        </p>
-                        {prof.average_rating > 0 && (
-                          <div className="flex items-center gap-1 flex-shrink-0">
-                            <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                            <span className="text-sm font-medium">
-                              {prof.average_rating.toFixed(1)}
-                            </span>
-                            <span className="text-xs text-muted-foreground">
-                              ({prof.total_reviews})
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                    </CardHeader>
-                    <CardContent className="px-4 pt-0 pb-3 flex flex-col grow">
-                      <div className="grow">
-                        {prof.specializations && prof.specializations.length > 0 && (
-                          <div className="flex flex-wrap gap-1.5 mb-2">
-                            {prof.specializations.slice(0, 2).map((spec, index) => (
-                              <Badge key={index} variant="secondary" className="text-xs">
-                                {spec}
-                              </Badge>
-                            ))}
-                            {prof.specializations.length > 2 && (
-                              <Badge variant="outline" className="text-xs">
-                                +{prof.specializations.length - 2}
-                              </Badge>
-                            )}
-                          </div>
-                        )}
-                        {prof.city && (
-                          <div className="flex items-center gap-1 text-sm text-muted-foreground mb-2">
-                            <MapPin className="w-3 h-3 shrink-0" />
-                            <span>{prof.city}</span>
-                          </div>
-                        )}
-                      </div>
-                      <Button variant="default" size="sm" className="w-full" asChild>
-                        <Link href={`/public/professional/${slug}`}>
-                          Ver perfil
-                        </Link>
-                      </Button>
-                    </CardContent>
-                  </Card>
+                  <div key={prof.id} className="flex-shrink-0 w-[280px] sm:w-[320px]">
+                    <ProfessionalCard
+                      userId={userId}
+                      professional={{
+                        id: prof.id,
+                        slug: `${prof.first_name.toLowerCase()}-${prof.last_name.toLowerCase()}-${prof.id}`,
+                        name: `${prof.first_name} ${prof.last_name}`,
+                        first_name: prof.first_name,
+                        last_name: prof.last_name,
+                        email: "",
+                        profession: prof.profession,
+                        profile_photo: prof.avatar_url || undefined,
+                        avatar: prof.avatar_url || undefined,
+                        therapyTypes: prof.specializations,
+                        city: prof.city || undefined,
+                        average_rating: prof.average_rating,
+                        total_reviews: prof.total_reviews,
+                        is_verified: prof.is_verified,
+                        verified: prof.is_verified,
+                      }}
+                    />
+                  </div>
                 );
               })}
             </div>

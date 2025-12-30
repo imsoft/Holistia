@@ -272,7 +272,9 @@ Si no encuentras profesionales adecuados, explica por qué y sugiere:
               profession: originalProf.profession,
               email: originalProf.email,
               phone: originalProf.phone,
-              profile_photo: originalProf.profile_photo || null
+              profile_photo: originalProf.profile_photo || null,
+              // Preservar el reason generado por el AI (no sobrescribirlo)
+              reason: rec.reason
             };
           }
         }

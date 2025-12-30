@@ -2,15 +2,13 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { useParams } from "next/navigation";
-import { Calendar, MapPin, Users, ChevronLeft, ChevronRight, Brain, Sparkles, Activity, Apple, UtensilsCrossed, Store, Target } from "lucide-react";
+import { Calendar, MapPin, Users, ChevronLeft, ChevronRight, Brain, Sparkles, Activity, Apple, UtensilsCrossed, Store } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { ProfessionalCard } from "@/components/ui/professional-card";
-import { ChallengeCard } from "@/components/ui/challenge-card";
 import { createClient } from "@/utils/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { EventWorkshop } from "@/types/event";
 import { formatEventDate, formatEventTime } from "@/utils/date-utils";
 import { determineProfessionalModality, transformServicesFromDB } from "@/utils/professional-utils";
@@ -143,12 +141,10 @@ const HomeUserPage = () => {
   const [events, setEvents] = useState<EventWorkshop[]>([]);
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [shops, setShops] = useState<Shop[]>([]);
-  const [challenges, setChallenges] = useState<any[]>([]);
   const eventsScrollRef = useRef<HTMLDivElement>(null);
   const professionalsScrollRef = useRef<HTMLDivElement>(null);
   const restaurantsScrollRef = useRef<HTMLDivElement>(null);
   const shopsScrollRef = useRef<HTMLDivElement>(null);
-  const challengesScrollRef = useRef<HTMLDivElement>(null);
   const supabase = createClient();
 
   useEffect(() => {
@@ -295,18 +291,6 @@ const HomeUserPage = () => {
         }
 
         // Obtener retos
-        const { data: challengesData, error: challengesError } = await supabase
-          .from("challenges_with_professional")
-          .select("*")
-          .order("created_at", { ascending: false })
-          .limit(20);
-
-        if (challengesError) {
-          console.error("❌ Error fetching challenges:", challengesError);
-        } else {
-          console.log("✅ Patient explore - Challenges loaded:", challengesData?.length || 0, challengesData);
-          setChallenges(challengesData || []);
-        }
       } catch (error) {
         console.error("Error fetching data:", error);
       } finally {
@@ -445,17 +429,6 @@ const HomeUserPage = () => {
     }
   };
 
-  const scrollChallengesLeft = () => {
-    if (challengesScrollRef.current) {
-      challengesScrollRef.current.scrollBy({ left: -400, behavior: 'smooth' });
-    }
-  };
-
-  const scrollChallengesRight = () => {
-    if (challengesScrollRef.current) {
-      challengesScrollRef.current.scrollBy({ left: 400, behavior: 'smooth' });
-    }
-  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -824,72 +797,6 @@ const HomeUserPage = () => {
                           )}
                         </CardContent>
                       </Card>
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Sección de Retos */}
-          <div className="relative z-5">
-            <div className="flex items-center justify-between mb-6">
-              <Link 
-                href={`/patient/${userId}/explore/challenges`}
-                className="group flex items-center gap-2"
-              >
-                <h2 className="text-3xl sm:text-4xl font-bold text-foreground group-hover:text-primary transition-colors">
-                  Retos
-                </h2>
-                <ChevronRight className="h-6 w-6 text-foreground group-hover:text-primary transition-colors" />
-              </Link>
-              {challenges.length > 0 && (
-                <Link href={`/patient/${userId}/explore/challenges`}>
-                  <Button variant="outline" size="sm">
-                    Ver todos
-                  </Button>
-                </Link>
-              )}
-            </div>
-
-            {loading ? (
-              <div className="flex items-center justify-center py-12">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-              </div>
-            ) : challenges.length === 0 ? (
-              <div className="text-center py-12">
-                <Target className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <p className="text-muted-foreground">No hay retos disponibles</p>
-              </div>
-            ) : (
-              <div className="relative">
-                <button
-                  onClick={scrollChallengesLeft}
-                  className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-background/80 backdrop-blur-sm rounded-full p-2 shadow-lg hover:bg-background transition-colors"
-                  aria-label="Scroll left"
-                >
-                  <ChevronLeft className="h-6 w-6" />
-                </button>
-                <button
-                  onClick={scrollChallengesRight}
-                  className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-background/80 backdrop-blur-sm rounded-full p-2 shadow-lg hover:bg-background transition-colors"
-                  aria-label="Scroll right"
-                >
-                  <ChevronRight className="h-6 w-6" />
-                </button>
-
-                <div
-                  ref={challengesScrollRef}
-                  className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar px-12"
-                  style={{ scrollPaddingLeft: '1rem', scrollPaddingRight: '1rem' }}
-                >
-                  {challenges.map((challenge) => (
-                    <Link
-                      key={challenge.id}
-                      href={`/patient/${userId}/explore/challenge/${challenge.id}`}
-                      className="shrink-0 w-80"
-                    >
-                      <ChallengeCard challenge={challenge} />
                     </Link>
                   ))}
                 </div>

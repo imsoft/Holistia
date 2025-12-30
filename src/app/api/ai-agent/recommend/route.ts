@@ -257,6 +257,26 @@ Si no encuentras profesionales adecuados, explica por qué y sugiere:
       };
     }
 
+    // Enriquecer recomendaciones de profesionales con datos completos (incluyendo profile_photo)
+    if (parsedResponse.recommendations && Array.isArray(parsedResponse.recommendations)) {
+      const enrichedRecommendations = await Promise.all(
+        parsedResponse.recommendations.map(async (rec: any) => {
+          if (rec.type === 'professional' && rec.id) {
+            // Buscar el profesional en la lista original para obtener profile_photo
+            const originalProf = professionals.find((p: Professional) => p.id === rec.id);
+            if (originalProf) {
+              return {
+                ...rec,
+                profile_photo: originalProf.profile_photo || null
+              };
+            }
+          }
+          return rec;
+        })
+      );
+      parsedResponse.recommendations = enrichedRecommendations;
+    }
+
     // Agregar información de uso de tokens
     return NextResponse.json({
       ...parsedResponse,

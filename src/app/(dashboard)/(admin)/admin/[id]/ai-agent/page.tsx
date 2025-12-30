@@ -425,26 +425,32 @@ export default function AIAgentPage() {
                         <div className="mt-4 space-y-4">
                           {/* Profesionales recomendados */}
                           {message.professionals && message.professionals.length > 0 && (
-                            <div className="space-y-3">
+                            <div className="space-y-4">
                               <p className="text-xs font-semibold mb-2 flex items-center gap-2">
                                 <User className="w-3 h-3" />
                                 Profesionales recomendados:
                               </p>
-                              {message.professionals.map((prof) => (
+                              {message.professionals.map((prof) => {
+                                // Buscar el profesional completo en la lista para obtener profile_photo
+                                const fullProf = professionals.find(p => p.id === prof.id);
+                                const profilePhoto = fullProf?.profile_photo || prof.profile_photo;
+                                
+                                return (
                                 <Link
                                   key={prof.id}
                                   href={user?.id ? `/patient/${user.id}/explore/professional/${prof.id}` : `/public/professional/${prof.id}`}
                                   target="_blank"
                                 >
-                                  <Card className="p-3 bg-background hover:bg-muted/50 transition-colors cursor-pointer">
+                                  <Card className="p-3 bg-background hover:bg-muted/50 transition-colors cursor-pointer mb-4">
                                     <div className="flex items-start gap-3">
                                       <div className="flex-shrink-0">
                                         <Image
-                                          src={prof.profile_photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(`${prof.first_name} ${prof.last_name}`)}&background=random&size=96`}
+                                          src={profilePhoto || `https://ui-avatars.com/api/?name=${encodeURIComponent(`${prof.first_name} ${prof.last_name}`)}&background=random&size=96`}
                                           alt={`${prof.first_name} ${prof.last_name}`}
                                           width={48}
                                           height={48}
                                           className="w-12 h-12 rounded-full object-cover border-2 border-primary/20"
+                                          unoptimized
                                         />
                                       </div>
                                       <div className="flex-1 min-w-0">
@@ -470,13 +476,14 @@ export default function AIAgentPage() {
                                     </div>
                                   </Card>
                                 </Link>
-                              ))}
+                                );
+                              })}
                             </div>
                           )}
 
                           {/* Retos/Challenges recomendados */}
                           {message.challenges && message.challenges.length > 0 && (
-                            <div className="space-y-3">
+                            <div className="space-y-4">
                               <p className="text-xs font-semibold mb-2 flex items-center gap-2">
                                 <Target className="w-3 h-3" />
                                 Retos recomendados:
@@ -487,7 +494,7 @@ export default function AIAgentPage() {
                                   href={user?.id ? `/patient/${user.id}/explore/challenge/${challenge.id}` : `/explore/challenge/${challenge.id}`}
                                   target="_blank"
                                 >
-                                  <Card className="p-3 bg-background hover:bg-muted/50 transition-colors cursor-pointer">
+                                  <Card className="p-3 bg-background hover:bg-muted/50 transition-colors cursor-pointer mb-4">
                                     <div className="flex items-start justify-between gap-2">
                                       <div className="flex-1 min-w-0">
                                         <p className="font-semibold text-sm truncate">
@@ -524,7 +531,7 @@ export default function AIAgentPage() {
                                   href={user?.id ? `/patient/${user.id}/explore/event/${event.id}` : `/explore/event/${event.id}`}
                                   target="_blank"
                                 >
-                                  <Card className="p-3 bg-background hover:bg-muted/50 transition-colors cursor-pointer">
+                                  <Card className="p-3 bg-background hover:bg-muted/50 transition-colors cursor-pointer mb-4">
                                     <div className="flex items-start justify-between gap-2">
                                       <div className="flex-1 min-w-0">
                                         <p className="font-semibold text-sm truncate">

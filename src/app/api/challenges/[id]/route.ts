@@ -66,10 +66,7 @@ export async function PUT(
     // Verificar que el reto existe y pertenece al usuario
     const { data: existingChallenge, error: checkError } = await supabase
       .from('challenges')
-      .select(`
-        *,
-        professional_applications!inner(user_id)
-      `)
+      .select('*')
       .eq('id', challengeId)
       .single();
 
@@ -80,9 +77,10 @@ export async function PUT(
       );
     }
 
-    if (existingChallenge.professional_applications.user_id !== user.id) {
+    // Verificar que el usuario es el creador del reto
+    if (existingChallenge.created_by_user_id !== user.id) {
       return NextResponse.json(
-        { error: 'No autorizado' },
+        { error: 'No autorizado: solo el creador puede actualizar el reto' },
         { status: 403 }
       );
     }
@@ -92,28 +90,44 @@ export async function PUT(
       title,
       description,
       short_description,
-      price,
-      currency,
       cover_image_url,
       duration_days,
       difficulty_level,
       category,
       wellness_areas,
+      linked_patient_id,
+      linked_professional_id,
       is_active,
     } = body;
+
+    // Si se vincula a un profesional, verificar que existe
+    if (linked_professional_id !== undefined && linked_professional_id) {
+      const { data: linkedProf, error: linkedProfError } = await supabase
+        .from('professional_applications')
+        .select('id, status, is_active')
+        .eq('id', linked_professional_id)
+        .single();
+
+      if (linkedProfError || !linkedProf) {
+        return NextResponse.json(
+          { error: 'Profesional vinculado no encontrado' },
+          { status: 400 }
+        );
+      }
+    }
 
     // Actualizar el reto
     const updateData: any = {};
     if (title !== undefined) updateData.title = title;
     if (description !== undefined) updateData.description = description;
     if (short_description !== undefined) updateData.short_description = short_description;
-    if (price !== undefined) updateData.price = parseFloat(price);
-    if (currency !== undefined) updateData.currency = currency;
     if (cover_image_url !== undefined) updateData.cover_image_url = cover_image_url;
     if (duration_days !== undefined) updateData.duration_days = duration_days ? parseInt(duration_days) : null;
     if (difficulty_level !== undefined) updateData.difficulty_level = difficulty_level;
     if (category !== undefined) updateData.category = category;
     if (wellness_areas !== undefined) updateData.wellness_areas = wellness_areas || [];
+    if (linked_patient_id !== undefined) updateData.linked_patient_id = linked_patient_id || null;
+    if (linked_professional_id !== undefined) updateData.linked_professional_id = linked_professional_id || null;
     if (is_active !== undefined) updateData.is_active = is_active;
 
     const { data: challenge, error: updateError } = await supabase
@@ -163,10 +177,7 @@ export async function DELETE(
     // Verificar que el reto existe y pertenece al usuario
     const { data: existingChallenge, error: checkError } = await supabase
       .from('challenges')
-      .select(`
-        *,
-        professional_applications!inner(user_id)
-      `)
+      .select('*')
       .eq('id', challengeId)
       .single();
 
@@ -177,14 +188,15 @@ export async function DELETE(
       );
     }
 
-    if (existingChallenge.professional_applications.user_id !== user.id) {
+    // Verificar que el usuario es el creador del reto
+    if (existingChallenge.created_by_user_id !== user.id) {
       return NextResponse.json(
-        { error: 'No autorizado' },
+        { error: 'No autorizado: solo el creador puede eliminar el reto' },
         { status: 403 }
       );
     }
 
-    // Eliminar el reto (CASCADE eliminará los archivos y compras asociadas)
+    // Eliminar el reto (CASCADE eliminará los archivos y participaciones asociadas)
     const { error: deleteError } = await supabase
       .from('challenges')
       .delete()

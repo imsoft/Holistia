@@ -8,9 +8,7 @@ import {
   Plus,
   Edit,
   Trash2,
-  DollarSign,
   Calendar,
-  TrendingUp,
   Upload,
   X,
   FileText,
@@ -19,6 +17,7 @@ import {
   Image as ImageIcon,
   File,
   Loader2,
+  User,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -49,19 +48,20 @@ import { WellnessAreasSelector } from "@/components/ui/wellness-areas-selector";
 
 interface Challenge {
   id: string;
-  professional_id: string;
+  professional_id?: string | null;
+  created_by_user_id?: string;
+  created_by_type?: 'professional' | 'patient';
+  linked_patient_id?: string | null;
+  linked_professional_id?: string | null;
   title: string;
   description: string;
   short_description?: string;
-  price: number;
-  currency: string;
   cover_image_url?: string;
   duration_days?: number;
   difficulty_level?: 'beginner' | 'intermediate' | 'advanced' | 'expert';
   category?: string;
   wellness_areas?: string[];
   is_active: boolean;
-  sales_count: number;
   created_at: string;
   updated_at: string;
 }
@@ -81,13 +81,12 @@ interface FormData {
   title: string;
   description: string;
   short_description: string;
-  price: string;
-  currency: string;
   cover_image_url: string;
   duration_days: string;
   difficulty_level: string;
   category: string;
   wellness_areas: string[];
+  linked_patient_id: string;
   is_active: boolean;
 }
 
@@ -113,18 +112,19 @@ export default function ProfessionalChallenges() {
   const [challengeFiles, setChallengeFiles] = useState<ChallengeFile[]>([]);
   const [uploadingFile, setUploadingFile] = useState(false);
   const [uploadingCover, setUploadingCover] = useState(false);
+  const [patients, setPatients] = useState<Array<{ patient_id: string; full_name: string; email: string }>>([]);
+  const [loadingPatients, setLoadingPatients] = useState(false);
 
   const [formData, setFormData] = useState<FormData>({
     title: "",
     description: "",
     short_description: "",
-    price: "",
-    currency: "MXN",
     cover_image_url: "",
     duration_days: "",
     difficulty_level: "",
     category: "",
     wellness_areas: [],
+    linked_patient_id: "",
     is_active: true,
   });
 
@@ -140,7 +140,70 @@ export default function ProfessionalChallenges() {
 
   useEffect(() => {
     fetchChallenges();
+    fetchPatients();
   }, []);
+
+  const fetchPatients = async () => {
+    try {
+      setLoadingPatients(true);
+      const userId = params.id as string;
+      
+      // Obtener professional_id
+      const { data: professionalData, error: profError } = await supabase
+        .from('professional_applications')
+        .select('id')
+        .eq('user_id', userId)
+        .eq('status', 'approved')
+        .single();
+
+      if (profError || !professionalData) {
+        return;
+      }
+
+      // Cargar pacientes desde professional_patient_info
+      const { data: patientsData, error: patientsError } = await supabase
+        .from('professional_patient_info')
+        .select('patient_id, full_name, email')
+        .eq('professional_id', professionalData.id)
+        .order('full_name', { ascending: true });
+
+      if (patientsError) {
+        console.error('Error cargando pacientes:', patientsError);
+        return;
+      }
+
+      // También cargar todos los pacientes registrados
+      const { data: allPatientsData, error: allPatientsError } = await supabase
+        .from('profiles')
+        .select('id, full_name, email, first_name, last_name')
+        .eq('type', 'patient')
+        .eq('account_active', true)
+        .order('full_name', { ascending: true });
+
+      if (allPatientsError) {
+        console.error('Error cargando todos los pacientes:', allPatientsError);
+        return;
+      }
+
+      // Combinar y formatear
+      const formattedAllPatients = (allPatientsData || []).map(profile => ({
+        patient_id: profile.id,
+        full_name: profile.full_name || `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || 'Paciente',
+        email: profile.email || '',
+      }));
+
+      // Eliminar duplicados
+      const uniquePatients = Array.from(
+        new Map(formattedAllPatients.map(p => [p.patient_id, p])).values()
+      );
+
+      setPatients(uniquePatients);
+    } catch (error) {
+      console.error("Error fetching patients:", error);
+    } finally {
+      setLoadingPatients(false);
+    }
+  };
 
   const fetchChallenges = async () => {
     try {
@@ -175,15 +238,12 @@ export default function ProfessionalChallenges() {
 
       setChallenges(data.challenges || []);
 
-      // Calcular estadísticas
-      const totalSales = data.challenges?.reduce((sum: number, c: Challenge) => sum + c.sales_count, 0) || 0;
-      const totalRevenue = data.challenges?.reduce((sum: number, c: Challenge) => sum + (c.price * c.sales_count), 0) || 0;
-
+      // Calcular estadísticas (sin ventas)
       setStats({
         totalChallenges: data.challenges?.length || 0,
         activeChallenges: data.challenges?.filter((c: Challenge) => c.is_active).length || 0,
-        totalSales,
-        totalRevenue,
+        totalSales: 0,
+        totalRevenue: 0,
       });
 
     } catch (error) {
@@ -214,13 +274,12 @@ export default function ProfessionalChallenges() {
         title: challenge.title,
         description: challenge.description,
         short_description: challenge.short_description || "",
-        price: challenge.price.toString(),
-        currency: challenge.currency,
         cover_image_url: challenge.cover_image_url || "",
         duration_days: challenge.duration_days?.toString() || "",
         difficulty_level: challenge.difficulty_level || "",
         category: challenge.category || "",
         wellness_areas: challenge.wellness_areas || [],
+        linked_patient_id: challenge.linked_patient_id || "",
         is_active: challenge.is_active,
       });
       fetchChallengeFiles(challenge.id);
@@ -230,13 +289,12 @@ export default function ProfessionalChallenges() {
         title: "",
         description: "",
         short_description: "",
-        price: "",
-        currency: "MXN",
         cover_image_url: "",
         duration_days: "",
         difficulty_level: "",
         category: "",
         wellness_areas: [],
+        linked_patient_id: "",
         is_active: true,
       });
       setChallengeFiles([]);
@@ -287,12 +345,19 @@ export default function ProfessionalChallenges() {
 
       // Si es un reto nuevo, crear primero el reto con datos mínimos
       if (!challengeId) {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          toast.error("Debes iniciar sesión");
+          return;
+        }
+
         const tempChallenge = {
           professional_id: professionalData.id,
+          created_by_user_id: user.id,
+          created_by_type: 'professional',
           title: formData.title || "Nuevo Reto",
           description: formData.description || "",
-          price: parseFloat(formData.price) || 0,
-          currency: formData.currency,
+          linked_patient_id: formData.linked_patient_id || null,
           is_active: false,
         };
 
@@ -431,7 +496,7 @@ export default function ProfessionalChallenges() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.title || !formData.description || !formData.price) {
+    if (!formData.title || !formData.description) {
       toast.error("Por favor completa los campos requeridos");
       return;
     }
@@ -441,6 +506,13 @@ export default function ProfessionalChallenges() {
 
       // Obtener el professional_id desde el user_id
       const userId = params.id as string;
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        toast.error("Debes iniciar sesión");
+        return;
+      }
+
       const { data: professionalData, error: profError } = await supabase
         .from('professional_applications')
         .select('id')
@@ -455,16 +527,17 @@ export default function ProfessionalChallenges() {
 
       const challengeData = {
         professional_id: professionalData.id,
+        created_by_user_id: user.id,
+        created_by_type: 'professional',
         title: formData.title,
         description: formData.description,
         short_description: formData.short_description || null,
-        price: parseFloat(formData.price),
-        currency: formData.currency,
         cover_image_url: formData.cover_image_url || null,
         duration_days: formData.duration_days ? parseInt(formData.duration_days) : null,
         difficulty_level: formData.difficulty_level || null,
         category: formData.category || null,
         wellness_areas: formData.wellness_areas || [],
+        linked_patient_id: formData.linked_patient_id || null,
         is_active: formData.is_active,
       };
 
@@ -583,23 +656,11 @@ export default function ProfessionalChallenges() {
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
-                Total Ventas
+                Retos Activos
               </CardTitle>
             </CardHeader>
             <CardContent className="py-4">
-              <div className="text-2xl font-bold">{stats.totalSales}</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Ingresos Totales
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="py-4">
-              <div className="text-2xl font-bold">
-                ${stats.totalRevenue.toFixed(2)} MXN
-              </div>
+              <div className="text-2xl font-bold">{stats.activeChallenges}</div>
             </CardContent>
           </Card>
         </div>
@@ -646,21 +707,24 @@ export default function ProfessionalChallenges() {
                   <CardTitle className="line-clamp-2">{challenge.title}</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-2xl font-bold text-primary">
-                      ${challenge.price.toFixed(2)} {challenge.currency}
-                    </span>
-                  </div>
                   {challenge.duration_days && (
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <Calendar className="h-4 w-4" />
                       {challenge.duration_days} {challenge.duration_days === 1 ? 'día' : 'días'}
                     </div>
                   )}
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <TrendingUp className="h-4 w-4" />
-                    {challenge.sales_count} {challenge.sales_count === 1 ? 'venta' : 'ventas'}
-                  </div>
+                  {challenge.linked_patient_id && (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <User className="h-4 w-4" />
+                      Reto vinculado a paciente
+                    </div>
+                  )}
+                  {challenge.linked_professional_id && (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <User className="h-4 w-4" />
+                      Reto vinculado a profesional
+                    </div>
+                  )}
                 </CardContent>
                 <CardContent className="pt-0">
                   <div className="flex gap-2">
@@ -746,39 +810,34 @@ export default function ProfessionalChallenges() {
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="price" className="mb-2 block">
-                  Precio *
-                </Label>
-                <Input
-                  id="price"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={formData.price}
-                  onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                  placeholder="0.00"
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="currency" className="mb-2 block">
-                  Moneda
-                </Label>
-                <Select
-                  value={formData.currency}
-                  onValueChange={(value) => setFormData({ ...formData, currency: value })}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="MXN">MXN</SelectItem>
-                    <SelectItem value="USD">USD</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+            {/* Selector de Paciente (Opcional) */}
+            <div>
+              <Label htmlFor="linked_patient_id" className="mb-2 block">
+                Vincular a Paciente (Opcional)
+              </Label>
+              <Select
+                value={formData.linked_patient_id}
+                onValueChange={(value) => setFormData({ ...formData, linked_patient_id: value })}
+                disabled={loadingPatients}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder={loadingPatients ? "Cargando pacientes..." : "Selecciona un paciente (opcional)"} />
+                </SelectTrigger>
+                <SelectContent className="max-h-[300px]">
+                  <SelectItem value="">Ninguno (Reto público)</SelectItem>
+                  {patients.map((patient) => (
+                    <SelectItem key={patient.patient_id} value={patient.patient_id}>
+                      <div className="flex flex-col">
+                        <span>{patient.full_name}</span>
+                        <span className="text-xs text-muted-foreground">{patient.email}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground mt-1">
+                Si seleccionas un paciente, el reto estará vinculado específicamente a él. Si no seleccionas ninguno, será un reto público.
+              </p>
             </div>
 
             <div className="grid grid-cols-2 gap-4">

@@ -1,19 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 
-// GET - Obtener retos de un profesional
+// GET - Obtener retos
 export async function GET(request: NextRequest) {
   try {
     const supabase = await createClient();
     const { searchParams } = new URL(request.url);
     const professional_id = searchParams.get('professional_id');
-
-    if (!professional_id) {
-      return NextResponse.json(
-        { error: 'Falta el ID del profesional' },
-        { status: 400 }
-      );
-    }
+    const user_id = searchParams.get('user_id'); // Para obtener retos de un usuario específico
 
     // Verificar autenticación
     const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -24,26 +18,37 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Verificar que el profesional existe y pertenece al usuario
-    const { data: professional, error: profError } = await supabase
-      .from('professional_applications')
-      .select('id, user_id')
-      .eq('id', professional_id)
-      .eq('user_id', user.id)
-      .single();
+    let query = supabase
+      .from('challenges')
+      .select('*');
 
-    if (profError || !professional) {
-      return NextResponse.json(
-        { error: 'Profesional no encontrado o no autorizado' },
-        { status: 403 }
-      );
+    // Si se especifica professional_id, obtener retos de ese profesional
+    if (professional_id) {
+      // Verificar que el profesional existe y pertenece al usuario
+      const { data: professional, error: profError } = await supabase
+        .from('professional_applications')
+        .select('id, user_id')
+        .eq('id', professional_id)
+        .eq('user_id', user.id)
+        .single();
+
+      if (profError || !professional) {
+        return NextResponse.json(
+          { error: 'Profesional no encontrado o no autorizado' },
+          { status: 403 }
+        );
+      }
+
+      query = query.eq('professional_id', professional_id);
+    } else if (user_id) {
+      // Obtener retos creados por un usuario específico
+      query = query.eq('created_by_user_id', user_id);
+    } else {
+      // Obtener todos los retos del usuario autenticado (creados o vinculados)
+      query = query.or(`created_by_user_id.eq.${user.id},linked_patient_id.eq.${user.id}`);
     }
 
-    // Obtener retos del profesional
-    const { data: challenges, error: challengesError } = await supabase
-      .from('challenges')
-      .select('*')
-      .eq('professional_id', professional_id)
+    const { data: challenges, error: challengesError } = await query
       .order('created_at', { ascending: false });
 
     if (challengesError) {
@@ -82,65 +87,97 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const {
       professional_id,
+      created_by_user_id,
+      created_by_type,
       title,
       description,
       short_description,
-      price,
-      currency = 'MXN',
       cover_image_url,
       duration_days,
       difficulty_level,
       category,
       wellness_areas,
+      linked_patient_id,
+      linked_professional_id,
     } = body;
 
     // Validar campos requeridos
-    if (!professional_id || !title || !description || price === undefined) {
+    if (!title || !description) {
       return NextResponse.json(
-        { error: 'Faltan campos requeridos' },
+        { error: 'Faltan campos requeridos: título y descripción son obligatorios' },
         { status: 400 }
       );
     }
 
-    // Verificar que el profesional existe y pertenece al usuario
-    const { data: professional, error: profError } = await supabase
-      .from('professional_applications')
-      .select('id, user_id, status, is_active')
-      .eq('id', professional_id)
-      .eq('user_id', user.id)
-      .single();
-
-    if (profError || !professional) {
+    // Validar created_by_type
+    if (created_by_type && !['professional', 'patient'].includes(created_by_type)) {
       return NextResponse.json(
-        { error: 'Profesional no encontrado o no autorizado' },
-        { status: 403 }
+        { error: 'created_by_type debe ser "professional" o "patient"' },
+        { status: 400 }
       );
     }
 
-    if (professional.status !== 'approved' || !professional.is_active) {
-      return NextResponse.json(
-        { error: 'El profesional no está aprobado o activo' },
-        { status: 403 }
-      );
+    // Si es profesional, verificar que existe y está aprobado
+    if (professional_id) {
+      const { data: professional, error: profError } = await supabase
+        .from('professional_applications')
+        .select('id, user_id, status, is_active')
+        .eq('id', professional_id)
+        .eq('user_id', user.id)
+        .single();
+
+      if (profError || !professional) {
+        return NextResponse.json(
+          { error: 'Profesional no encontrado o no autorizado' },
+          { status: 403 }
+        );
+      }
+
+      if (professional.status !== 'approved' || !professional.is_active) {
+        return NextResponse.json(
+          { error: 'El profesional no está aprobado o activo' },
+          { status: 403 }
+        );
+      }
+    }
+
+    // Si se vincula a un profesional, verificar que existe
+    if (linked_professional_id) {
+      const { data: linkedProf, error: linkedProfError } = await supabase
+        .from('professional_applications')
+        .select('id, status, is_active')
+        .eq('id', linked_professional_id)
+        .single();
+
+      if (linkedProfError || !linkedProf) {
+        return NextResponse.json(
+          { error: 'Profesional vinculado no encontrado' },
+          { status: 400 }
+        );
+      }
     }
 
     // Crear el reto
+    const challengeData: any = {
+      professional_id: professional_id || null,
+      created_by_user_id: created_by_user_id || user.id,
+      created_by_type: created_by_type || (professional_id ? 'professional' : 'patient'),
+      title,
+      description,
+      short_description: short_description || null,
+      cover_image_url: cover_image_url || null,
+      duration_days: duration_days ? parseInt(duration_days) : null,
+      difficulty_level: difficulty_level || null,
+      category: category || null,
+      wellness_areas: wellness_areas || [],
+      linked_patient_id: linked_patient_id || null,
+      linked_professional_id: linked_professional_id || null,
+      is_active: true,
+    };
+
     const { data: challenge, error: challengeError } = await supabase
       .from('challenges')
-      .insert({
-        professional_id,
-        title,
-        description,
-        short_description: short_description || null,
-        price: parseFloat(price),
-        currency,
-        cover_image_url: cover_image_url || null,
-        duration_days: duration_days ? parseInt(duration_days) : null,
-        difficulty_level: difficulty_level || null,
-        category: category || null,
-        wellness_areas: wellness_areas || [],
-        is_active: true,
-      })
+      .insert(challengeData)
       .select()
       .single();
 

@@ -177,6 +177,7 @@ export function BasicInfoTab({ professional, onUpdate }: BasicInfoTabProps) {
         .update({
           first_name: formData.first_name,
           last_name: formData.last_name,
+          email: formData.email, // El administrador puede editar el email
           phone: formData.phone,
           profession: formData.profession,
           specializations: formData.specializations,
@@ -190,7 +191,6 @@ export function BasicInfoTab({ professional, onUpdate }: BasicInfoTabProps) {
           biography: formData.biography || formData.bio,
           bio: formData.biography || formData.bio,
           experience: formData.experience,
-          // Nota: years_of_experience no existe en BD, solo existe 'experience' VARCHAR(50)
           certifications: formData.certifications,
           languages: formData.languages,
           instagram: formData.instagram,
@@ -283,9 +283,12 @@ export function BasicInfoTab({ professional, onUpdate }: BasicInfoTabProps) {
                 id="email"
                 type="email"
                 value={formData.email}
-                disabled
-                className="bg-muted"
+                onChange={(e) => handleChange('email', e.target.value)}
+                placeholder="email@ejemplo.com"
               />
+              <p className="text-xs text-muted-foreground">
+                El administrador puede editar el email del profesional
+              </p>
             </div>
             <div className="space-y-2">
               <Label htmlFor="phone">Teléfono</Label>

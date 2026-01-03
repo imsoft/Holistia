@@ -2,12 +2,13 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
-import { Shield, ShieldCheck, Eye, EyeOff, Ban, CreditCard, CheckCircle2, XCircle, Clock, FileText } from "lucide-react";
+import { Shield, ShieldCheck, Eye, EyeOff, Ban, CreditCard, CheckCircle2, XCircle, Clock, FileText, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
 import { createClient } from "@/utils/supabase/client";
 import {
   Select,
@@ -49,6 +50,8 @@ interface SettingsTabProps {
 export function SettingsTab({ professional, onUpdate }: SettingsTabProps) {
   const supabase = createClient();
   const [formData, setFormData] = useState(professional);
+  const [reviewNotes, setReviewNotes] = useState(professional.review_notes || '');
+  const [savingNotes, setSavingNotes] = useState(false);
 
   const handleToggle = async (field: 'is_active' | 'is_verified', value: boolean) => {
     try {
@@ -333,14 +336,54 @@ export function SettingsTab({ professional, onUpdate }: SettingsTabProps) {
               </span>
             </div>
           )}
-          {formData.review_notes && (
-            <div className="space-y-2">
-              <span className="text-sm font-medium">Notas de Revisión:</span>
-              <p className="text-sm text-muted-foreground bg-muted p-3 rounded">
-                {formData.review_notes}
-              </p>
-            </div>
-          )}
+          <div className="space-y-2">
+            <Label htmlFor="review_notes">Notas de Revisión</Label>
+            <Textarea
+              id="review_notes"
+              value={reviewNotes}
+              onChange={(e) => setReviewNotes(e.target.value)}
+              placeholder="Agregar o editar notas sobre la revisión del profesional..."
+              rows={4}
+            />
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={async () => {
+                try {
+                  setSavingNotes(true);
+                  const { error } = await supabase
+                    .from('professional_applications')
+                    .update({ review_notes: reviewNotes })
+                    .eq('id', professional.id);
+
+                  if (error) throw error;
+
+                  const updated = { ...formData, review_notes: reviewNotes };
+                  setFormData(updated);
+                  onUpdate(updated);
+                  toast.success('Notas de revisión guardadas');
+                } catch (error) {
+                  console.error('Error saving review notes:', error);
+                  toast.error('Error al guardar las notas');
+                } finally {
+                  setSavingNotes(false);
+                }
+              }}
+              disabled={savingNotes}
+            >
+              {savingNotes ? (
+                <>
+                  <Clock className="mr-2 h-4 w-4 animate-spin" />
+                  Guardando...
+                </>
+              ) : (
+                <>
+                  <Save className="mr-2 h-4 w-4" />
+                  Guardar Notas
+                </>
+              )}
+            </Button>
+          </div>
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium">Términos Aceptados:</span>
             <Badge variant={formData.terms_accepted ? 'default' : 'secondary'}>

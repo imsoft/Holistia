@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { createClient } from "@/utils/supabase/client";
 import { WellnessAreasSelector } from "@/components/ui/wellness-areas-selector";
+import { RichTextEditor } from "@/components/ui/rich-text-editor";
 import Image from "next/image";
 
 interface Professional {
@@ -399,16 +400,18 @@ export function BasicInfoTab({ professional, onUpdate }: BasicInfoTabProps) {
           {/* Bio */}
           <div className="space-y-2">
             <Label htmlFor="bio">Biografía</Label>
-            <Textarea
-              id="bio"
-              value={formData.biography || formData.bio || ''}
-              onChange={(e) => {
-                handleChange('biography', e.target.value);
-                handleChange('bio', e.target.value);
+            <RichTextEditor
+              content={formData.biography || formData.bio || ''}
+              onChange={(content) => {
+                handleChange('biography', content);
+                handleChange('bio', content);
               }}
-              rows={6}
-              placeholder="Descripción profesional..."
+              placeholder="Escribe aquí la biografía del profesional..."
+              maxLength={2000}
             />
+            <p className="text-xs text-muted-foreground">
+              Usa la barra de herramientas para formatear el texto (negrita, cursiva, listas, etc.)
+            </p>
           </div>
 
           {/* Experience */}

@@ -47,6 +47,7 @@ interface Professional {
   country?: string;
   address?: string;
   profile_photo?: string;
+  image_position?: string;
   status: string;
   is_active: boolean;
   is_verified: boolean;
@@ -55,6 +56,7 @@ interface Professional {
   experience?: string;
   years_of_experience?: number;
   certifications?: string[];
+  languages?: string[];
   instagram?: string;
   services?: any[];
   gallery?: string[];
@@ -67,10 +69,22 @@ interface Professional {
   registration_fee_paid?: boolean;
   registration_fee_amount?: number;
   registration_fee_currency?: string;
+  registration_fee_payment_id?: string;
+  registration_fee_stripe_session_id?: string;
   registration_fee_paid_at?: string;
   registration_fee_expires_at?: string;
   stripe_account_id?: string;
   stripe_account_status?: string;
+  stripe_onboarding_completed?: boolean;
+  stripe_charges_enabled?: boolean;
+  stripe_payouts_enabled?: boolean;
+  stripe_connected_at?: string;
+  submitted_at?: string;
+  reviewed_at?: string;
+  reviewed_by?: string;
+  review_notes?: string;
+  terms_accepted?: boolean;
+  privacy_accepted?: boolean;
   created_at?: string;
   updated_at?: string;
 }

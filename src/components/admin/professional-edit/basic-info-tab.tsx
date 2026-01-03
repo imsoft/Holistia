@@ -28,6 +28,7 @@ interface Professional {
   country?: string;
   address?: string;
   profile_photo?: string;
+  image_position?: string;
   status: string;
   is_active: boolean;
   is_verified: boolean;
@@ -36,7 +37,9 @@ interface Professional {
   experience?: string;
   years_of_experience?: number;
   certifications?: string[];
+  languages?: string[];
   instagram?: string;
+  tolerance_minutes?: number;
 }
 
 interface BasicInfoTabProps {
@@ -53,9 +56,13 @@ export function BasicInfoTab({ professional, onUpdate }: BasicInfoTabProps) {
     country: professional.country || 'México',
     address: professional.address || '',
     experience: professional.experience || '',
+    languages: professional.languages || ['Español'],
+    image_position: professional.image_position || 'center center',
+    tolerance_minutes: professional.tolerance_minutes || 15,
   });
   const [newSpecialization, setNewSpecialization] = useState("");
   const [newCertification, setNewCertification] = useState("");
+  const [newLanguage, setNewLanguage] = useState("");
   const [uploading, setUploading] = useState(false);
 
   const handleChange = (field: string, value: any) => {
@@ -95,6 +102,34 @@ export function BasicInfoTab({ professional, onUpdate }: BasicInfoTabProps) {
       ...formData,
       certifications: formData.certifications?.filter((_, i) => i !== index) || []
     };
+    setFormData(updated);
+  };
+
+  const handleAddLanguage = () => {
+    if (!newLanguage.trim()) return;
+    const lang = newLanguage.trim();
+    if (formData.languages?.includes(lang)) {
+      toast.error('Este idioma ya está agregado');
+      return;
+    }
+    const updated = {
+      ...formData,
+      languages: [...(formData.languages || []), lang]
+    };
+    setFormData(updated);
+    setNewLanguage("");
+  };
+
+  const handleRemoveLanguage = (index: number) => {
+    const updated = {
+      ...formData,
+      languages: formData.languages?.filter((_, i) => i !== index) || []
+    };
+    // No permitir eliminar si solo queda uno
+    if (updated.languages.length === 0) {
+      toast.error('Debe haber al menos un idioma');
+      return;
+    }
     setFormData(updated);
   };
 
@@ -150,12 +185,15 @@ export function BasicInfoTab({ professional, onUpdate }: BasicInfoTabProps) {
           country: formData.country,
           address: formData.address,
           profile_photo: formData.profile_photo,
+          image_position: formData.image_position,
           biography: formData.biography || formData.bio,
           bio: formData.biography || formData.bio,
           experience: formData.experience,
           years_of_experience: formData.years_of_experience,
           certifications: formData.certifications,
+          languages: formData.languages,
           instagram: formData.instagram,
+          tolerance_minutes: formData.tolerance_minutes,
         })
         .eq('id', professional.id);
 
@@ -329,6 +367,35 @@ export function BasicInfoTab({ professional, onUpdate }: BasicInfoTabProps) {
             />
           </div>
 
+          {/* Image Position */}
+          <div>
+            <Label htmlFor="image_position">Posición de Imagen en Card</Label>
+            <Input
+              id="image_position"
+              value={formData.image_position || 'center center'}
+              onChange={(e) => handleChange('image_position', e.target.value)}
+              placeholder="center center, top left, etc."
+            />
+            <p className="text-xs text-muted-foreground mt-1">
+              Controla cómo se muestra la foto de perfil en las cards (ej: "center center", "top left")
+            </p>
+          </div>
+
+          {/* Tolerance Minutes */}
+          <div>
+            <Label htmlFor="tolerance_minutes">Tiempo de Tolerancia (minutos)</Label>
+            <Input
+              id="tolerance_minutes"
+              type="number"
+              min="0"
+              value={formData.tolerance_minutes || 15}
+              onChange={(e) => handleChange('tolerance_minutes', parseInt(e.target.value) || 15)}
+            />
+            <p className="text-xs text-muted-foreground mt-1">
+              Tiempo que el profesional espera a sus pacientes antes de considerar la cita como no asistida
+            </p>
+          </div>
+
           {/* Bio */}
           <div>
             <Label htmlFor="bio">Biografía</Label>
@@ -418,6 +485,38 @@ export function BasicInfoTab({ professional, onUpdate }: BasicInfoTabProps) {
                 </Badge>
               ))}
             </div>
+          </div>
+
+          {/* Languages */}
+          <div>
+            <Label>Idiomas</Label>
+            <div className="mt-2 flex gap-2">
+              <Input
+                placeholder="Agregar idioma (ej: Inglés, Francés)..."
+                value={newLanguage}
+                onChange={(e) => setNewLanguage(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && handleAddLanguage()}
+              />
+              <Button onClick={handleAddLanguage}>Agregar</Button>
+            </div>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {formData.languages?.map((lang, index) => (
+                <Badge key={index} variant="secondary">
+                  {lang}
+                  {formData.languages && formData.languages.length > 1 && (
+                    <button
+                      onClick={() => handleRemoveLanguage(index)}
+                      className="ml-2 hover:text-destructive"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  )}
+                </Badge>
+              ))}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Idiomas que habla el profesional
+            </p>
           </div>
         </CardContent>
       </Card>

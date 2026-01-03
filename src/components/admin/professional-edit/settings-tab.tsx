@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
-import { Shield, ShieldCheck, Eye, EyeOff, Ban } from "lucide-react";
+import { Shield, ShieldCheck, Eye, EyeOff, Ban, CreditCard, CheckCircle2, XCircle, Clock, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -22,6 +22,23 @@ interface Professional {
   status: string;
   is_active: boolean;
   is_verified: boolean;
+  registration_fee_paid?: boolean;
+  registration_fee_amount?: number;
+  registration_fee_currency?: string;
+  registration_fee_paid_at?: string;
+  registration_fee_expires_at?: string;
+  stripe_account_id?: string;
+  stripe_account_status?: string;
+  stripe_onboarding_completed?: boolean;
+  stripe_charges_enabled?: boolean;
+  stripe_payouts_enabled?: boolean;
+  stripe_connected_at?: string;
+  submitted_at?: string;
+  reviewed_at?: string;
+  reviewed_by?: string;
+  review_notes?: string;
+  terms_accepted?: boolean;
+  privacy_accepted?: boolean;
 }
 
 interface SettingsTabProps {
@@ -186,6 +203,154 @@ export function SettingsTab({ professional, onUpdate }: SettingsTabProps) {
             <span className="text-sm font-medium">Verificación:</span>
             <Badge variant={formData.is_verified ? 'default' : 'secondary'}>
               {formData.is_verified ? 'Verificado' : 'No Verificado'}
+            </Badge>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Registration Fee */}
+      <Card className="py-4">
+        <CardHeader>
+          <CardTitle>Pago de Inscripción</CardTitle>
+          <CardDescription>Información sobre el pago de inscripción del profesional</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-medium">Estado del Pago:</span>
+            <Badge variant={formData.registration_fee_paid ? 'default' : 'secondary'}>
+              {formData.registration_fee_paid ? (
+                <><CheckCircle2 className="mr-1 h-3 w-3" /> Pagado</>
+              ) : (
+                <><XCircle className="mr-1 h-3 w-3" /> Pendiente</>
+              )}
+            </Badge>
+          </div>
+          {formData.registration_fee_paid && formData.registration_fee_amount && (
+            <>
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium">Monto:</span>
+                <span className="text-sm">
+                  ${formData.registration_fee_amount} {formData.registration_fee_currency?.toUpperCase() || 'MXN'}
+                </span>
+              </div>
+              {formData.registration_fee_paid_at && (
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium">Fecha de Pago:</span>
+                  <span className="text-sm">
+                    {new Date(formData.registration_fee_paid_at).toLocaleDateString('es-MX')}
+                  </span>
+                </div>
+              )}
+              {formData.registration_fee_expires_at && (
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium">Expira:</span>
+                  <span className="text-sm">
+                    {new Date(formData.registration_fee_expires_at).toLocaleDateString('es-MX')}
+                  </span>
+                </div>
+              )}
+            </>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Stripe Connect */}
+      {formData.stripe_account_id && (
+        <Card className="py-4">
+          <CardHeader>
+            <CardTitle>Stripe Connect</CardTitle>
+            <CardDescription>Estado de la integración con Stripe</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium">Estado:</span>
+              <Badge variant={
+                formData.stripe_account_status === 'connected' ? 'default' :
+                formData.stripe_account_status === 'pending' ? 'secondary' : 'destructive'
+              }>
+                {formData.stripe_account_status === 'connected' && 'Conectado'}
+                {formData.stripe_account_status === 'pending' && 'Pendiente'}
+                {formData.stripe_account_status === 'not_connected' && 'No Conectado'}
+                {formData.stripe_account_status === 'restricted' && 'Restringido'}
+              </Badge>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium">Account ID:</span>
+              <span className="text-xs font-mono text-muted-foreground">
+                {formData.stripe_account_id}
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium">Onboarding:</span>
+              <Badge variant={formData.stripe_onboarding_completed ? 'default' : 'secondary'}>
+                {formData.stripe_onboarding_completed ? 'Completado' : 'Pendiente'}
+              </Badge>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium">Puede Recibir Pagos:</span>
+              <Badge variant={formData.stripe_charges_enabled ? 'default' : 'secondary'}>
+                {formData.stripe_charges_enabled ? 'Sí' : 'No'}
+              </Badge>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium">Puede Recibir Transferencias:</span>
+              <Badge variant={formData.stripe_payouts_enabled ? 'default' : 'secondary'}>
+                {formData.stripe_payouts_enabled ? 'Sí' : 'No'}
+              </Badge>
+            </div>
+            {formData.stripe_connected_at && (
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium">Conectado el:</span>
+                <span className="text-sm">
+                  {new Date(formData.stripe_connected_at).toLocaleDateString('es-MX')}
+                </span>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Review Information */}
+      <Card className="py-4">
+        <CardHeader>
+          <CardTitle>Información de Revisión</CardTitle>
+          <CardDescription>Detalles sobre la revisión de la aplicación</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {formData.submitted_at && (
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium">Enviado el:</span>
+              <span className="text-sm">
+                {new Date(formData.submitted_at).toLocaleDateString('es-MX')}
+              </span>
+            </div>
+          )}
+          {formData.reviewed_at && (
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium">Revisado el:</span>
+              <span className="text-sm">
+                {new Date(formData.reviewed_at).toLocaleDateString('es-MX')}
+              </span>
+            </div>
+          )}
+          {formData.review_notes && (
+            <div className="space-y-2">
+              <span className="text-sm font-medium">Notas de Revisión:</span>
+              <p className="text-sm text-muted-foreground bg-muted p-3 rounded">
+                {formData.review_notes}
+              </p>
+            </div>
+          )}
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-medium">Términos Aceptados:</span>
+            <Badge variant={formData.terms_accepted ? 'default' : 'secondary'}>
+              {formData.terms_accepted ? 'Sí' : 'No'}
+            </Badge>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-medium">Privacidad Aceptada:</span>
+            <Badge variant={formData.privacy_accepted ? 'default' : 'secondary'}>
+              {formData.privacy_accepted ? 'Sí' : 'No'}
             </Badge>
           </div>
         </CardContent>

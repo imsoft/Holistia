@@ -44,13 +44,35 @@ interface Professional {
   wellness_areas?: string[];
   city: string;
   state: string;
+  country?: string;
+  address?: string;
   profile_photo?: string;
   status: string;
   is_active: boolean;
   is_verified: boolean;
+  biography?: string;
   bio?: string;
+  experience?: string;
   years_of_experience?: number;
   certifications?: string[];
+  instagram?: string;
+  services?: any[];
+  gallery?: string[];
+  working_days?: number[];
+  working_start_time?: string;
+  working_end_time?: string;
+  session_duration?: number;
+  break_time?: number;
+  tolerance_minutes?: number;
+  registration_fee_paid?: boolean;
+  registration_fee_amount?: number;
+  registration_fee_currency?: string;
+  registration_fee_paid_at?: string;
+  registration_fee_expires_at?: string;
+  stripe_account_id?: string;
+  stripe_account_status?: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export default function AdminProfessionalEdit() {

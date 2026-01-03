@@ -25,11 +25,15 @@ interface Professional {
   wellness_areas?: string[];
   city: string;
   state: string;
+  country?: string;
+  address?: string;
   profile_photo?: string;
   status: string;
   is_active: boolean;
   is_verified: boolean;
+  biography?: string;
   bio?: string;
+  experience?: string;
   years_of_experience?: number;
   certifications?: string[];
   instagram?: string;
@@ -42,7 +46,14 @@ interface BasicInfoTabProps {
 
 export function BasicInfoTab({ professional, onUpdate }: BasicInfoTabProps) {
   const supabase = createClient();
-  const [formData, setFormData] = useState(professional);
+  const [formData, setFormData] = useState({
+    ...professional,
+    biography: professional.biography || professional.bio || '',
+    bio: professional.biography || professional.bio || '',
+    country: professional.country || 'México',
+    address: professional.address || '',
+    experience: professional.experience || '',
+  });
   const [newSpecialization, setNewSpecialization] = useState("");
   const [newCertification, setNewCertification] = useState("");
   const [uploading, setUploading] = useState(false);
@@ -136,8 +147,12 @@ export function BasicInfoTab({ professional, onUpdate }: BasicInfoTabProps) {
           wellness_areas: formData.wellness_areas,
           city: formData.city,
           state: formData.state,
+          country: formData.country,
+          address: formData.address,
           profile_photo: formData.profile_photo,
-          bio: formData.bio,
+          biography: formData.biography || formData.bio,
+          bio: formData.biography || formData.bio,
+          experience: formData.experience,
           years_of_experience: formData.years_of_experience,
           certifications: formData.certifications,
           instagram: formData.instagram,
@@ -244,12 +259,12 @@ export function BasicInfoTab({ professional, onUpdate }: BasicInfoTabProps) {
           </div>
 
           {/* Location */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-3 gap-4">
             <div>
               <Label htmlFor="city">Ciudad</Label>
               <Input
                 id="city"
-                value={formData.city}
+                value={formData.city || ''}
                 onChange={(e) => handleChange('city', e.target.value)}
               />
             </div>
@@ -257,10 +272,29 @@ export function BasicInfoTab({ professional, onUpdate }: BasicInfoTabProps) {
               <Label htmlFor="state">Estado</Label>
               <Input
                 id="state"
-                value={formData.state}
+                value={formData.state || ''}
                 onChange={(e) => handleChange('state', e.target.value)}
               />
             </div>
+            <div>
+              <Label htmlFor="country">País</Label>
+              <Input
+                id="country"
+                value={formData.country || 'México'}
+                onChange={(e) => handleChange('country', e.target.value)}
+              />
+            </div>
+          </div>
+
+          {/* Address */}
+          <div>
+            <Label htmlFor="address">Dirección</Label>
+            <Input
+              id="address"
+              value={formData.address || ''}
+              onChange={(e) => handleChange('address', e.target.value)}
+              placeholder="Dirección completa..."
+            />
           </div>
 
           {/* Profession */}
@@ -300,10 +334,25 @@ export function BasicInfoTab({ professional, onUpdate }: BasicInfoTabProps) {
             <Label htmlFor="bio">Biografía</Label>
             <Textarea
               id="bio"
-              value={formData.bio || ''}
-              onChange={(e) => handleChange('bio', e.target.value)}
-              rows={4}
+              value={formData.biography || formData.bio || ''}
+              onChange={(e) => {
+                handleChange('biography', e.target.value);
+                handleChange('bio', e.target.value);
+              }}
+              rows={6}
               placeholder="Descripción profesional..."
+            />
+          </div>
+
+          {/* Experience */}
+          <div>
+            <Label htmlFor="experience">Experiencia (texto libre)</Label>
+            <Textarea
+              id="experience"
+              value={formData.experience || ''}
+              onChange={(e) => handleChange('experience', e.target.value)}
+              rows={3}
+              placeholder="Describe tu experiencia profesional..."
             />
           </div>
 

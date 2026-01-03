@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-// import { useParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
   UserCheck,
@@ -85,6 +85,7 @@ interface Professional {
 }
 
 export default function AdminProfessionals() {
+  const router = useRouter();
   const [professionals, setProfessionals] = useState<Professional[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -1112,6 +1113,15 @@ export default function AdminProfessionals() {
                   >
                     <Eye className="h-4 w-4 mr-2" />
                     Ver Perfil
+                  </Button>
+                  <Button
+                    variant="default"
+                    size="sm"
+                    className="flex-1"
+                    onClick={() => router.push(`/admin/${professional.user_id}/professionals/${professional.id}`)}
+                  >
+                    <Edit3 className="h-4 w-4 mr-2" />
+                    Editar Todo
                   </Button>
                   {!professional.reviewed_at && (
                     <Button

@@ -139,8 +139,24 @@ export async function PUT(
 
     if (updateError) {
       console.error('Error updating challenge:', updateError);
+      
+      // Mensajes más descriptivos basados en el código de error
+      let errorMessage = 'Error al actualizar el reto';
+      
+      if (updateError.code === '23502') {
+        errorMessage = 'Faltan campos requeridos. Por favor, completa todos los campos obligatorios.';
+      } else if (updateError.code === '23503') {
+        errorMessage = 'Error de referencia: El profesional o paciente vinculado no existe. Por favor, verifica la información.';
+      } else if (updateError.code === '23505') {
+        errorMessage = 'Ya existe un reto con este título. Por favor, usa un título diferente.';
+      } else if (updateError.code === 'PGRST301' || updateError.code === '42501') {
+        errorMessage = 'No tienes permisos para actualizar este reto. Solo el creador puede modificarlo.';
+      } else if (updateError.message) {
+        errorMessage = updateError.message;
+      }
+      
       return NextResponse.json(
-        { error: 'Error al actualizar el reto' },
+        { error: errorMessage, details: updateError.details, code: updateError.code },
         { status: 500 }
       );
     }
@@ -149,8 +165,16 @@ export async function PUT(
 
   } catch (error) {
     console.error('Error in PUT /api/challenges/[id]:', error);
+    
+    const errorMessage = error instanceof Error 
+      ? error.message 
+      : 'Error interno del servidor. Si el problema persiste, contacta al soporte de Holistia.';
+    
     return NextResponse.json(
-      { error: 'Error interno del servidor' },
+      { 
+        error: errorMessage,
+        isSystemError: true
+      },
       { status: 500 }
     );
   }
@@ -204,8 +228,20 @@ export async function DELETE(
 
     if (deleteError) {
       console.error('Error deleting challenge:', deleteError);
+      
+      // Mensajes más descriptivos basados en el código de error
+      let errorMessage = 'Error al eliminar el reto';
+      
+      if (deleteError.code === '23503') {
+        errorMessage = 'No se puede eliminar el reto porque tiene registros relacionados (participantes, check-ins, etc.). Por favor, elimina primero los registros relacionados.';
+      } else if (deleteError.code === 'PGRST301' || deleteError.code === '42501') {
+        errorMessage = 'No tienes permisos para eliminar este reto. Solo el creador puede eliminarlo.';
+      } else if (deleteError.message) {
+        errorMessage = deleteError.message;
+      }
+      
       return NextResponse.json(
-        { error: 'Error al eliminar el reto' },
+        { error: errorMessage, details: deleteError.details, code: deleteError.code },
         { status: 500 }
       );
     }
@@ -214,8 +250,16 @@ export async function DELETE(
 
   } catch (error) {
     console.error('Error in DELETE /api/challenges/[id]:', error);
+    
+    const errorMessage = error instanceof Error 
+      ? error.message 
+      : 'Error interno del servidor. Si el problema persiste, contacta al soporte de Holistia.';
+    
     return NextResponse.json(
-      { error: 'Error interno del servidor' },
+      { 
+        error: errorMessage,
+        isSystemError: true
+      },
       { status: 500 }
     );
   }

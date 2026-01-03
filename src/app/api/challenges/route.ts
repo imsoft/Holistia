@@ -183,8 +183,24 @@ export async function POST(request: NextRequest) {
 
     if (challengeError) {
       console.error('Error creating challenge:', challengeError);
+      
+      // Mensajes más descriptivos basados en el código de error
+      let errorMessage = 'Error al crear el reto';
+      
+      if (challengeError.code === '23502') {
+        errorMessage = 'Faltan campos requeridos. Por favor, completa todos los campos obligatorios (título y descripción).';
+      } else if (challengeError.code === '23503') {
+        errorMessage = 'Error de referencia: El profesional o paciente vinculado no existe. Por favor, verifica la información.';
+      } else if (challengeError.code === '23505') {
+        errorMessage = 'Ya existe un reto con este título. Por favor, usa un título diferente.';
+      } else if (challengeError.code === 'PGRST301' || challengeError.code === '42501') {
+        errorMessage = 'No tienes permisos para crear retos. Verifica que tu cuenta esté aprobada y activa.';
+      } else if (challengeError.message) {
+        errorMessage = challengeError.message;
+      }
+      
       return NextResponse.json(
-        { error: 'Error al crear el reto' },
+        { error: errorMessage, details: challengeError.details, code: challengeError.code },
         { status: 500 }
       );
     }
@@ -193,8 +209,16 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('Error in POST /api/challenges:', error);
+    
+    const errorMessage = error instanceof Error 
+      ? error.message 
+      : 'Error interno del servidor. Si el problema persiste, contacta al soporte de Holistia.';
+    
     return NextResponse.json(
-      { error: 'Error interno del servidor' },
+      { 
+        error: errorMessage,
+        isSystemError: true
+      },
       { status: 500 }
     );
   }

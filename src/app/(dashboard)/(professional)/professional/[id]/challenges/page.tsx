@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { useParams } from "next/navigation";
 import Image from "next/image";
 import { toast } from "sonner";
+import { getDescriptiveErrorMessage, getFullErrorMessage, isSystemError } from "@/lib/error-messages";
 import {
   Plus,
   Edit,
@@ -368,7 +369,12 @@ export default function ProfessionalChallenges() {
         });
 
         const data = await response.json();
-        if (!response.ok) throw new Error(data.error || "Error al crear reto");
+        if (!response.ok) {
+          const errorMsg = getFullErrorMessage(data.error || "Error al crear reto", "Error al crear el reto temporal");
+          toast.error(errorMsg, { duration: 6000 });
+          setUploadingCover(false);
+          return;
+        }
 
         challengeId = data.challenge.id;
         setEditingChallenge(data.challenge);
@@ -398,7 +404,8 @@ export default function ProfessionalChallenges() {
 
     } catch (error) {
       console.error("Error uploading cover image:", error);
-      toast.error("Error al subir la imagen de portada");
+      const errorMsg = getFullErrorMessage(error, "Error al subir la imagen de portada");
+      toast.error(errorMsg, { duration: 6000 });
     } finally {
       setUploadingCover(false);
     }
@@ -458,14 +465,21 @@ export default function ProfessionalChallenges() {
       });
 
       const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "Error al guardar archivo");
+      if (!response.ok) {
+        const errorMsg = getFullErrorMessage(data.error || "Error al guardar archivo", "Error al guardar el archivo");
+        toast.error(errorMsg, { duration: 6000 });
+        setUploadingFile(false);
+        if (fileInputRef.current) fileInputRef.current.value = '';
+        return;
+      }
 
       setChallengeFiles([...challengeFiles, data.file]);
       toast.success("Archivo subido exitosamente");
 
     } catch (error) {
       console.error("Error uploading file:", error);
-      toast.error("Error al subir el archivo");
+      const errorMsg = getFullErrorMessage(error, "Error al subir el archivo");
+      toast.error(errorMsg, { duration: 6000 });
     } finally {
       setUploadingFile(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
@@ -481,7 +495,10 @@ export default function ProfessionalChallenges() {
       });
 
       if (!response.ok) {
-        throw new Error("Error al eliminar archivo");
+        const data = await response.json();
+        const errorMsg = getFullErrorMessage(data.error || "Error al eliminar archivo", "Error al eliminar el archivo");
+        toast.error(errorMsg, { duration: 6000 });
+        return;
       }
 
       setChallengeFiles(challengeFiles.filter(f => f.id !== fileId));
@@ -489,15 +506,28 @@ export default function ProfessionalChallenges() {
 
     } catch (error) {
       console.error("Error removing file:", error);
-      toast.error("Error al eliminar el archivo");
+      const errorMsg = getFullErrorMessage(error, "Error al eliminar el archivo");
+      toast.error(errorMsg, { duration: 6000 });
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.title || !formData.description) {
-      toast.error("Por favor completa los campos requeridos");
+    // Validaciones más específicas
+    if (!formData.title?.trim()) {
+      toast.error("El título es requerido. Por favor, ingresa un título para tu reto.");
+      return;
+    }
+
+    if (!formData.description?.trim()) {
+      toast.error("La descripción es requerida. Por favor, describe tu reto.");
+      return;
+    }
+
+    // Validar duration_days si se proporciona
+    if (formData.duration_days && (isNaN(parseInt(formData.duration_days)) || parseInt(formData.duration_days) < 1)) {
+      toast.error("La duración en días debe ser un número válido mayor a 0.");
       return;
     }
 
@@ -506,22 +536,33 @@ export default function ProfessionalChallenges() {
 
       // Obtener el professional_id desde el user_id
       const userId = params.id as string;
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
       
-      if (!user) {
-        toast.error("Debes iniciar sesión");
+      if (authError || !user) {
+        toast.error("Debes iniciar sesión para crear o editar retos. Por favor, inicia sesión e intenta nuevamente.");
         return;
       }
 
       const { data: professionalData, error: profError } = await supabase
         .from('professional_applications')
-        .select('id')
+        .select('id, status, is_active')
         .eq('user_id', userId)
         .eq('status', 'approved')
         .single();
 
-      if (profError || !professionalData) {
-        toast.error("No se encontró el profesional");
+      if (profError) {
+        const errorMsg = getFullErrorMessage(profError, "Error al verificar tu perfil");
+        toast.error(errorMsg, { duration: 6000 });
+        return;
+      }
+
+      if (!professionalData) {
+        toast.error("No se encontró tu perfil de profesional aprobado. Solo los profesionales aprobados pueden crear retos. Contacta al administrador si crees que esto es un error.");
+        return;
+      }
+
+      if (professionalData.status !== 'approved') {
+        toast.error(`Tu perfil está en estado "${professionalData.status}". Solo los profesionales aprobados pueden crear retos. Contacta al administrador si crees que esto es un error.`);
         return;
       }
 
@@ -529,9 +570,9 @@ export default function ProfessionalChallenges() {
         professional_id: professionalData.id,
         created_by_user_id: user.id,
         created_by_type: 'professional',
-        title: formData.title,
-        description: formData.description,
-        short_description: formData.short_description || null,
+        title: formData.title.trim(),
+        description: formData.description.trim(),
+        short_description: formData.short_description?.trim() || null,
         cover_image_url: formData.cover_image_url || null,
         duration_days: formData.duration_days ? parseInt(formData.duration_days) : null,
         difficulty_level: formData.difficulty_level || null,
@@ -549,7 +590,11 @@ export default function ProfessionalChallenges() {
         });
 
         const data = await response.json();
-        if (!response.ok) throw new Error(data.error || "Error al actualizar reto");
+        if (!response.ok) {
+          const errorMsg = getFullErrorMessage(data.error || "Error al actualizar reto", "Error al actualizar el reto");
+          toast.error(errorMsg, { duration: 6000 });
+          return;
+        }
 
         toast.success("Reto actualizado exitosamente");
       } else {
@@ -560,7 +605,11 @@ export default function ProfessionalChallenges() {
         });
 
         const data = await response.json();
-        if (!response.ok) throw new Error(data.error || "Error al crear reto");
+        if (!response.ok) {
+          const errorMsg = getFullErrorMessage(data.error || "Error al crear reto", "Error al crear el reto");
+          toast.error(errorMsg, { duration: 6000 });
+          return;
+        }
 
         toast.success("Reto creado exitosamente");
       }
@@ -569,7 +618,8 @@ export default function ProfessionalChallenges() {
       fetchChallenges();
     } catch (error) {
       console.error("Error saving challenge:", error);
-      toast.error(error instanceof Error ? error.message : "Error al guardar reto");
+      const errorMsg = getFullErrorMessage(error, "Error al guardar el reto");
+      toast.error(errorMsg, { duration: 6000 });
     } finally {
       setSaving(false);
     }
@@ -585,7 +635,9 @@ export default function ProfessionalChallenges() {
 
       if (!response.ok) {
         const data = await response.json();
-        throw new Error(data.error || "Error al eliminar reto");
+        const errorMsg = getFullErrorMessage(data.error || "Error al eliminar reto", "Error al eliminar el reto");
+        toast.error(errorMsg, { duration: 6000 });
+        return;
       }
 
       toast.success("Reto eliminado exitosamente");
@@ -594,7 +646,8 @@ export default function ProfessionalChallenges() {
       fetchChallenges();
     } catch (error) {
       console.error("Error deleting challenge:", error);
-      toast.error(error instanceof Error ? error.message : "Error al eliminar reto");
+      const errorMsg = getFullErrorMessage(error, "Error al eliminar el reto");
+      toast.error(errorMsg, { duration: 6000 });
     }
   };
 

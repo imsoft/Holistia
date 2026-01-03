@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { useParams } from "next/navigation";
 import Image from "next/image";
 import { toast } from "sonner";
+import { getDescriptiveErrorMessage, getFullErrorMessage, isSystemError } from "@/lib/error-messages";
 import {
   Plus,
   Edit,
@@ -220,37 +221,70 @@ export default function ProfessionalDigitalProducts() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.title || !formData.description || !formData.price) {
-      toast.error("Por favor completa los campos requeridos");
+    // Validaciones más específicas
+    if (!formData.title?.trim()) {
+      toast.error("El título es requerido. Por favor, ingresa un título para tu programa.");
+      return;
+    }
+
+    if (!formData.description?.trim()) {
+      toast.error("La descripción es requerida. Por favor, describe tu programa.");
+      return;
+    }
+
+    if (!formData.price || isNaN(parseFloat(formData.price)) || parseFloat(formData.price) < 0) {
+      toast.error("El precio es requerido y debe ser un número válido mayor o igual a 0.");
+      return;
+    }
+
+    if (!formData.category) {
+      toast.error("Por favor, selecciona una categoría para tu programa.");
       return;
     }
 
     try {
       setSaving(true);
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
 
-      if (!user) {
-        toast.error("Debes iniciar sesión");
+      if (authError || !user) {
+        toast.error("Debes iniciar sesión para crear o editar programas. Por favor, inicia sesión e intenta nuevamente.");
         return;
       }
 
-      const { data: professional } = await supabase
+      const { data: professional, error: profError } = await supabase
         .from("professional_applications")
-        .select("id")
+        .select("id, status, is_active")
         .eq("user_id", user.id)
         .single();
 
+      if (profError) {
+        const errorMsg = getFullErrorMessage(profError, "Error al verificar tu perfil");
+        toast.error(errorMsg);
+        return;
+      }
+
       if (!professional) {
-        toast.error("No se encontró tu perfil de profesional");
+        toast.error("No se encontró tu perfil de profesional. Por favor, completa tu registro como profesional primero.");
+        return;
+      }
+
+      if (professional.status !== 'approved') {
+        toast.error(`Tu perfil está en estado "${professional.status}". Solo los profesionales aprobados pueden crear programas. Contacta al administrador si crees que esto es un error.`);
+        return;
+      }
+
+      const priceValue = parseFloat(formData.price);
+      if (priceValue < 0) {
+        toast.error("El precio no puede ser negativo. Por favor, ingresa un precio válido.");
         return;
       }
 
       const productData = {
-        title: formData.title,
-        description: formData.description,
+        title: formData.title.trim(),
+        description: formData.description.trim(),
         category: formData.category,
-        price: parseFloat(formData.price),
-        currency: formData.currency,
+        price: priceValue,
+        currency: formData.currency || 'MXN',
         cover_image_url: formData.cover_image_url || null,
         file_url: formData.file_url || null,
         duration_minutes: formData.duration_minutes ? parseInt(formData.duration_minutes) : null,
@@ -264,7 +298,13 @@ export default function ProfessionalDigitalProducts() {
           .update(productData)
           .eq("id", editingProduct.id);
 
-        if (error) throw error;
+        if (error) {
+          const errorMsg = getFullErrorMessage(error, "Error al actualizar el programa");
+          toast.error(errorMsg, {
+            duration: 6000,
+          });
+          return;
+        }
         toast.success("Programa actualizado exitosamente");
       } else {
         const { error } = await supabase
@@ -274,7 +314,13 @@ export default function ProfessionalDigitalProducts() {
             professional_id: professional.id,
           });
 
-        if (error) throw error;
+        if (error) {
+          const errorMsg = getFullErrorMessage(error, "Error al crear el programa");
+          toast.error(errorMsg, {
+            duration: 6000,
+          });
+          return;
+        }
         toast.success("Programa creado exitosamente");
       }
 
@@ -282,7 +328,10 @@ export default function ProfessionalDigitalProducts() {
       fetchProducts();
     } catch (error) {
       console.error("Error saving product:", error);
-      toast.error("Error al guardar programa");
+      const errorMsg = getFullErrorMessage(error, "Error al guardar el programa");
+      toast.error(errorMsg, {
+        duration: 6000,
+      });
     } finally {
       setSaving(false);
     }
@@ -297,7 +346,13 @@ export default function ProfessionalDigitalProducts() {
         .delete()
         .eq("id", deletingProduct.id);
 
-      if (error) throw error;
+      if (error) {
+        const errorMsg = getFullErrorMessage(error, "Error al eliminar el programa");
+        toast.error(errorMsg, {
+          duration: 6000,
+        });
+        return;
+      }
 
       toast.success("Programa eliminado exitosamente");
       setIsDeleteOpen(false);
@@ -305,7 +360,10 @@ export default function ProfessionalDigitalProducts() {
       fetchProducts();
     } catch (error) {
       console.error("Error deleting product:", error);
-      toast.error("Error al eliminar programa");
+      const errorMsg = getFullErrorMessage(error, "Error al eliminar el programa");
+      toast.error(errorMsg, {
+        duration: 6000,
+      });
     }
   };
 
@@ -393,7 +451,10 @@ export default function ProfessionalDigitalProducts() {
 
         if (createError) {
           console.error('Error creating product:', createError);
-          throw new Error('Error al crear el producto');
+          const errorMsg = getFullErrorMessage(createError, "Error al crear el producto");
+          toast.error(errorMsg, { duration: 6000 });
+          setUploadingCover(false);
+          return;
         }
 
         productId = tempProduct.id;
@@ -416,10 +477,10 @@ export default function ProfessionalDigitalProducts() {
 
       if (uploadError) {
         console.error('Storage upload error:', uploadError);
-        if (uploadError.message.includes('Bucket not found') || uploadError.message.includes('not found')) {
-          throw new Error('El bucket digital-products no existe. Por favor, crea el bucket primero.');
-        }
-        throw new Error('Error al subir la imagen');
+        const errorMsg = getFullErrorMessage(uploadError, "Error al subir la imagen de portada");
+        toast.error(errorMsg, { duration: 6000 });
+        setUploadingCover(false);
+        return;
       }
 
       // Obtener URL pública de la imagen
@@ -436,7 +497,8 @@ export default function ProfessionalDigitalProducts() {
       }
     } catch (error) {
       console.error('Error uploading cover image:', error);
-      toast.error(error instanceof Error ? error.message : 'Error al subir la imagen');
+      const errorMsg = getFullErrorMessage(error, "Error al subir la imagen de portada");
+      toast.error(errorMsg, { duration: 6000 });
     } finally {
       setUploadingCover(false);
     }

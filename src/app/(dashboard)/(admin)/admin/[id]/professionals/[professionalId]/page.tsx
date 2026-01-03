@@ -70,20 +70,33 @@ export default function AdminProfessionalEdit() {
   const fetchProfessional = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
+      
+      // Obtener datos del profesional
+      const { data: professionalData, error: professionalError } = await supabase
         .from('professional_applications')
-        .select(`
-          *,
-          profiles!professional_applications_user_id_fkey(email)
-        `)
+        .select('*')
         .eq('id', params.professionalId)
         .single();
 
-      if (error) throw error;
+      if (professionalError) throw professionalError;
+
+      // Obtener email del perfil si existe user_id
+      let email = professionalData.email || '';
+      if (professionalData.user_id) {
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('email')
+          .eq('id', professionalData.user_id)
+          .maybeSingle();
+        
+        if (profileData?.email) {
+          email = profileData.email;
+        }
+      }
 
       setProfessional({
-        ...data,
-        email: data.profiles?.email || '',
+        ...professionalData,
+        email: email,
       });
     } catch (error) {
       console.error('Error fetching professional:', error);

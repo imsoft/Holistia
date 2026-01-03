@@ -175,10 +175,10 @@ export default function ProfessionalChallenges() {
       // También cargar todos los pacientes registrados
       const { data: allPatientsData, error: allPatientsError } = await supabase
         .from('profiles')
-        .select('id, full_name, email, first_name, last_name')
+        .select('id, email, first_name, last_name')
         .eq('type', 'patient')
         .eq('account_active', true)
-        .order('full_name', { ascending: true });
+        .order('first_name', { ascending: true });
 
       if (allPatientsError) {
         console.error('Error cargando todos los pacientes:', allPatientsError);
@@ -188,7 +188,7 @@ export default function ProfessionalChallenges() {
       // Combinar y formatear
       const formattedAllPatients = (allPatientsData || []).map(profile => ({
         patient_id: profile.id,
-        full_name: profile.full_name || `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || 'Paciente',
+        full_name: `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || 'Paciente',
         email: profile.email || '',
       }));
 

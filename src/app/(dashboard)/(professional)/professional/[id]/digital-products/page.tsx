@@ -285,6 +285,22 @@ export default function ProfessionalDigitalProducts() {
         return;
       }
 
+      // Validar URL del archivo si se proporciona
+      let fileUrl = formData.file_url?.trim() || null;
+      if (fileUrl) {
+        try {
+          // Intentar crear un objeto URL para validar el formato
+          // Si no tiene protocolo, intentar agregar https://
+          if (!fileUrl.match(/^https?:\/\//i)) {
+            fileUrl = `https://${fileUrl}`;
+          }
+          new URL(fileUrl);
+        } catch {
+          toast.error("La URL del archivo no es válida. Por favor, ingresa una URL completa que empiece con http:// o https://. Por ejemplo: https://ejemplo.com/archivo.pdf", { duration: 7000 });
+          return;
+        }
+      }
+
       const productData = {
         title: formData.title.trim(),
         description: formData.description.trim(),
@@ -292,7 +308,7 @@ export default function ProfessionalDigitalProducts() {
         price: priceValue,
         currency: formData.currency || 'MXN',
         cover_image_url: formData.cover_image_url || null,
-        file_url: formData.file_url || null,
+        file_url: fileUrl,
         duration_minutes: formData.duration_minutes ? parseInt(formData.duration_minutes) : null,
         pages_count: formData.pages_count ? parseInt(formData.pages_count) : null,
         is_active: formData.is_active,
@@ -870,16 +886,24 @@ export default function ProfessionalDigitalProducts() {
             </div>
 
             <div>
-              <Label htmlFor="file_url" className="mb-2 block">URL del Archivo (producto final)</Label>
+              <Label htmlFor="file_url" className="mb-2 block">
+                URL del Archivo (producto final) <span className="text-muted-foreground font-normal">(opcional)</span>
+              </Label>
               <Input
                 id="file_url"
+                type="url"
                 value={formData.file_url}
                 onChange={(e) => setFormData({ ...formData, file_url: e.target.value })}
-                placeholder="https://..."
+                placeholder="https://ejemplo.com/archivo.pdf"
               />
               <p className="text-xs text-muted-foreground mt-1">
-                Los compradores recibirán acceso a este archivo después del pago
+                Los compradores recibirán acceso a este archivo después del pago. Puedes dejar este campo vacío si no tienes un archivo para compartir.
               </p>
+              {formData.file_url && formData.file_url.trim() && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  💡 Tip: Si no tienes https://, lo agregaremos automáticamente. Ejemplo: "ejemplo.com/archivo.pdf" se convertirá en "https://ejemplo.com/archivo.pdf"
+                </p>
+              )}
             </div>
 
             {shouldShowDuration && (

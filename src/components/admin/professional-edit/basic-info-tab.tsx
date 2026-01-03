@@ -189,7 +189,6 @@ export function BasicInfoTab({ professional, onUpdate }: BasicInfoTabProps) {
           profile_photo: formData.profile_photo,
           image_position: formData.image_position,
           biography: formData.biography || formData.bio,
-          bio: formData.biography || formData.bio,
           experience: formData.experience,
           certifications: formData.certifications,
           languages: formData.languages,

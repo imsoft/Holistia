@@ -817,10 +817,7 @@ export default function ProfessionalChallenges() {
                   <SelectItem value="">Ninguno (Reto público)</SelectItem>
                   {patients.map((patient) => (
                     <SelectItem key={patient.patient_id} value={patient.patient_id}>
-                      <div className="flex flex-col">
-                        <span>{patient.full_name}</span>
-                        <span className="text-xs text-muted-foreground">{patient.email}</span>
-                      </div>
+                      {patient.full_name} - {patient.email}
                     </SelectItem>
                   ))}
                 </SelectContent>

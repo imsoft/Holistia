@@ -120,7 +120,7 @@ export function SettingsTab({ professional, onUpdate }: SettingsTabProps) {
                 <SelectItem value="suspended">Suspendido</SelectItem>
               </SelectContent>
             </Select>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-xs text-muted-foreground">
               {formData.status === 'pending' && 'La aplicación está pendiente de revisión'}
               {formData.status === 'approved' && 'El profesional puede acceder a la plataforma'}
               {formData.status === 'rejected' && 'La aplicación fue rechazada'}

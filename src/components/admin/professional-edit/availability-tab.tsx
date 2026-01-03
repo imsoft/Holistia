@@ -133,7 +133,7 @@ export function AvailabilityTab({ professionalId }: AvailabilityTabProps) {
 
           {/* Working Hours */}
           <div className="grid grid-cols-2 gap-4">
-            <div>
+            <div className="space-y-2">
               <Label htmlFor="start_time">Hora de Inicio</Label>
               <Input
                 id="start_time"
@@ -142,7 +142,7 @@ export function AvailabilityTab({ professionalId }: AvailabilityTabProps) {
                 onChange={(e) => setWorkingStartTime(e.target.value)}
               />
             </div>
-            <div>
+            <div className="space-y-2">
               <Label htmlFor="end_time">Hora de Fin</Label>
               <Input
                 id="end_time"

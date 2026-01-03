@@ -256,7 +256,7 @@ export function BasicInfoTab({ professional, onUpdate }: BasicInfoTabProps) {
 
           {/* Name */}
           <div className="grid grid-cols-2 gap-4">
-            <div>
+            <div className="space-y-2">
               <Label htmlFor="first_name">Nombre</Label>
               <Input
                 id="first_name"
@@ -264,7 +264,7 @@ export function BasicInfoTab({ professional, onUpdate }: BasicInfoTabProps) {
                 onChange={(e) => handleChange('first_name', e.target.value)}
               />
             </div>
-            <div>
+            <div className="space-y-2">
               <Label htmlFor="last_name">Apellido</Label>
               <Input
                 id="last_name"
@@ -276,7 +276,7 @@ export function BasicInfoTab({ professional, onUpdate }: BasicInfoTabProps) {
 
           {/* Contact */}
           <div className="grid grid-cols-2 gap-4">
-            <div>
+            <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
@@ -286,7 +286,7 @@ export function BasicInfoTab({ professional, onUpdate }: BasicInfoTabProps) {
                 className="bg-muted"
               />
             </div>
-            <div>
+            <div className="space-y-2">
               <Label htmlFor="phone">Teléfono</Label>
               <Input
                 id="phone"
@@ -298,7 +298,7 @@ export function BasicInfoTab({ professional, onUpdate }: BasicInfoTabProps) {
 
           {/* Location */}
           <div className="grid grid-cols-3 gap-4">
-            <div>
+            <div className="space-y-2">
               <Label htmlFor="city">Ciudad</Label>
               <Input
                 id="city"
@@ -306,7 +306,7 @@ export function BasicInfoTab({ professional, onUpdate }: BasicInfoTabProps) {
                 onChange={(e) => handleChange('city', e.target.value)}
               />
             </div>
-            <div>
+            <div className="space-y-2">
               <Label htmlFor="state">Estado</Label>
               <Input
                 id="state"
@@ -314,7 +314,7 @@ export function BasicInfoTab({ professional, onUpdate }: BasicInfoTabProps) {
                 onChange={(e) => handleChange('state', e.target.value)}
               />
             </div>
-            <div>
+            <div className="space-y-2">
               <Label htmlFor="country">País</Label>
               <Input
                 id="country"
@@ -325,7 +325,7 @@ export function BasicInfoTab({ professional, onUpdate }: BasicInfoTabProps) {
           </div>
 
           {/* Address */}
-          <div>
+          <div className="space-y-2">
             <Label htmlFor="address">Dirección</Label>
             <Input
               id="address"
@@ -337,7 +337,7 @@ export function BasicInfoTab({ professional, onUpdate }: BasicInfoTabProps) {
 
           {/* Profession */}
           <div className="grid grid-cols-2 gap-4">
-            <div>
+            <div className="space-y-2">
               <Label htmlFor="profession">Profesión</Label>
               <Input
                 id="profession"
@@ -345,7 +345,7 @@ export function BasicInfoTab({ professional, onUpdate }: BasicInfoTabProps) {
                 onChange={(e) => handleChange('profession', e.target.value)}
               />
             </div>
-            <div>
+            <div className="space-y-2">
               <Label htmlFor="years">Años de Experiencia</Label>
               <Input
                 id="years"
@@ -357,7 +357,7 @@ export function BasicInfoTab({ professional, onUpdate }: BasicInfoTabProps) {
           </div>
 
           {/* Instagram */}
-          <div>
+          <div className="space-y-2">
             <Label htmlFor="instagram">Instagram (opcional)</Label>
             <Input
               id="instagram"
@@ -368,7 +368,7 @@ export function BasicInfoTab({ professional, onUpdate }: BasicInfoTabProps) {
           </div>
 
           {/* Image Position */}
-          <div>
+          <div className="space-y-2">
             <Label htmlFor="image_position">Posición de Imagen en Card</Label>
             <Input
               id="image_position"
@@ -376,13 +376,13 @@ export function BasicInfoTab({ professional, onUpdate }: BasicInfoTabProps) {
               onChange={(e) => handleChange('image_position', e.target.value)}
               placeholder="center center, top left, etc."
             />
-            <p className="text-xs text-muted-foreground mt-1">
+            <p className="text-xs text-muted-foreground">
               Controla cómo se muestra la foto de perfil en las cards (ej: "center center", "top left")
             </p>
           </div>
 
           {/* Tolerance Minutes */}
-          <div>
+          <div className="space-y-2">
             <Label htmlFor="tolerance_minutes">Tiempo de Tolerancia (minutos)</Label>
             <Input
               id="tolerance_minutes"
@@ -391,13 +391,13 @@ export function BasicInfoTab({ professional, onUpdate }: BasicInfoTabProps) {
               value={formData.tolerance_minutes || 15}
               onChange={(e) => handleChange('tolerance_minutes', parseInt(e.target.value) || 15)}
             />
-            <p className="text-xs text-muted-foreground mt-1">
+            <p className="text-xs text-muted-foreground">
               Tiempo que el profesional espera a sus pacientes antes de considerar la cita como no asistida
             </p>
           </div>
 
           {/* Bio */}
-          <div>
+          <div className="space-y-2">
             <Label htmlFor="bio">Biografía</Label>
             <Textarea
               id="bio"
@@ -412,7 +412,7 @@ export function BasicInfoTab({ professional, onUpdate }: BasicInfoTabProps) {
           </div>
 
           {/* Experience */}
-          <div>
+          <div className="space-y-2">
             <Label htmlFor="experience">Experiencia (texto libre)</Label>
             <Textarea
               id="experience"
@@ -424,7 +424,7 @@ export function BasicInfoTab({ professional, onUpdate }: BasicInfoTabProps) {
           </div>
 
           {/* Wellness Areas */}
-          <div>
+          <div className="space-y-2">
             <WellnessAreasSelector
               selectedAreas={formData.wellness_areas || []}
               onAreasChange={(areas) => handleChange('wellness_areas', areas)}
@@ -434,9 +434,9 @@ export function BasicInfoTab({ professional, onUpdate }: BasicInfoTabProps) {
           </div>
 
           {/* Specializations */}
-          <div>
+          <div className="space-y-2">
             <Label>Especializaciones</Label>
-            <div className="mt-2 flex gap-2">
+            <div className="flex gap-2">
               <Input
                 placeholder="Agregar especialización..."
                 value={newSpecialization}
@@ -445,7 +445,7 @@ export function BasicInfoTab({ professional, onUpdate }: BasicInfoTabProps) {
               />
               <Button onClick={handleAddSpecialization}>Agregar</Button>
             </div>
-            <div className="mt-2 flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2">
               {formData.specializations?.map((spec, index) => (
                 <Badge key={index} variant="secondary">
                   {spec}
@@ -461,9 +461,9 @@ export function BasicInfoTab({ professional, onUpdate }: BasicInfoTabProps) {
           </div>
 
           {/* Certifications */}
-          <div>
+          <div className="space-y-2">
             <Label>Certificaciones</Label>
-            <div className="mt-2 flex gap-2">
+            <div className="flex gap-2">
               <Input
                 placeholder="Agregar certificación..."
                 value={newCertification}
@@ -472,7 +472,7 @@ export function BasicInfoTab({ professional, onUpdate }: BasicInfoTabProps) {
               />
               <Button onClick={handleAddCertification}>Agregar</Button>
             </div>
-            <div className="mt-2 flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2">
               {formData.certifications?.map((cert, index) => (
                 <Badge key={index} variant="secondary">
                   {cert}
@@ -488,9 +488,9 @@ export function BasicInfoTab({ professional, onUpdate }: BasicInfoTabProps) {
           </div>
 
           {/* Languages */}
-          <div>
+          <div className="space-y-2">
             <Label>Idiomas</Label>
-            <div className="mt-2 flex gap-2">
+            <div className="flex gap-2">
               <Input
                 placeholder="Agregar idioma (ej: Inglés, Francés)..."
                 value={newLanguage}
@@ -499,7 +499,7 @@ export function BasicInfoTab({ professional, onUpdate }: BasicInfoTabProps) {
               />
               <Button onClick={handleAddLanguage}>Agregar</Button>
             </div>
-            <div className="mt-2 flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2">
               {formData.languages?.map((lang, index) => (
                 <Badge key={index} variant="secondary">
                   {lang}
@@ -514,7 +514,7 @@ export function BasicInfoTab({ professional, onUpdate }: BasicInfoTabProps) {
                 </Badge>
               ))}
             </div>
-            <p className="text-xs text-muted-foreground mt-1">
+            <p className="text-xs text-muted-foreground">
               Idiomas que habla el profesional
             </p>
           </div>

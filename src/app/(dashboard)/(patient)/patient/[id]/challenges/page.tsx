@@ -678,12 +678,7 @@ export default function PatientChallenges() {
                   <SelectItem value="">Ninguno (Reto público)</SelectItem>
                   {professionals.map((prof) => (
                     <SelectItem key={prof.id} value={prof.id}>
-                      <div className="flex items-center gap-2">
-                        <span>{prof.first_name} {prof.last_name}</span>
-                        {prof.profession && (
-                          <span className="text-xs text-muted-foreground">- {prof.profession}</span>
-                        )}
-                      </div>
+                      {prof.first_name} {prof.last_name}{prof.profession ? ` - ${prof.profession}` : ''}
                     </SelectItem>
                   ))}
                 </SelectContent>

@@ -39,7 +39,17 @@ export const metadata: Metadata = {
     "meditación",
     "eventos de bienestar",
     "talleres salud mental",
-    "profesionales de la salud"
+    "profesionales de la salud",
+    "productos digitales bienestar",
+    "programas de meditación",
+    "ebooks de salud mental",
+    "cursos online bienestar",
+    "retos de bienestar",
+    "desafíos personales",
+    "transformación personal",
+    "hábitos saludables",
+    "crecimiento personal",
+    "desarrollo personal"
   ],
   authors: [{ name: "Holistia", url: "https://holistia.io" }],
   creator: "Holistia",

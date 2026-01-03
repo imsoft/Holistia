@@ -23,6 +23,11 @@ interface ChallengeSitemap {
   updated_at: string;
 }
 
+interface DigitalProductSitemap {
+  id: string;
+  updated_at: string;
+}
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const supabase = await createClient();
   
@@ -135,7 +140,29 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.6,
     }));
 
-    return [...staticPages, ...challengePages, ...professionalPages, ...eventPages, ...blogPages];
+    // Obtener productos digitales activos de profesionales verificados
+    const { data: digitalProducts } = await supabase
+      .from('digital_products')
+      .select(`
+        id,
+        updated_at,
+        professional_applications!inner(
+          is_verified,
+          status
+        )
+      `)
+      .eq('is_active', true)
+      .eq('professional_applications.is_verified', true)
+      .eq('professional_applications.status', 'approved');
+
+    const digitalProductPages: MetadataRoute.Sitemap = (digitalProducts || []).map((product: DigitalProductSitemap) => ({
+      url: `${BASE_URL}/productos/${product.id}`,
+      lastModified: new Date(product.updated_at),
+      changeFrequency: 'weekly' as const,
+      priority: 0.7,
+    }));
+
+    return [...staticPages, ...challengePages, ...professionalPages, ...eventPages, ...blogPages, ...digitalProductPages];
   } catch (error) {
     console.error('Error generating sitemap:', error);
     return staticPages;

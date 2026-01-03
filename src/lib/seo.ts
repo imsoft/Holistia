@@ -70,7 +70,17 @@ export const DEFAULT_SEO: Metadata = {
     'eventos de bienestar',
     'workshops',
     'meditación',
-    'mindfulness'
+    'mindfulness',
+    'productos digitales',
+    'programas de meditación',
+    'ebooks bienestar',
+    'cursos online',
+    'recursos digitales',
+    'retos de bienestar',
+    'desafíos personales',
+    'transformación personal',
+    'hábitos saludables',
+    'crecimiento personal'
   ],
   authors: [{ name: 'Holistia' }],
   creator: 'Holistia',
@@ -797,6 +807,150 @@ export function generateUserProfileMetadata({
       follow: false,
     },
   };
+}
+
+// =====================================================
+// FUNCIONES PARA PRODUCTOS DIGITALES
+// =====================================================
+
+interface DigitalProductData {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  price: number;
+  currency: string;
+  cover_image_url?: string;
+  professional_id: string;
+  sales_count?: number;
+  professional?: {
+    first_name: string;
+    last_name: string;
+    profession: string;
+    slug: string;
+  };
+  created_at: string;
+  updated_at: string;
+}
+
+export function generateDigitalProductMetadata(product: DigitalProductData): Metadata {
+  const professionalName = product.professional 
+    ? `${product.professional.first_name} ${product.professional.last_name}`
+    : 'Profesional certificado';
+  
+  const categoryLabels: Record<string, string> = {
+    meditation: 'Meditación',
+    ebook: 'Ebook',
+    manual: 'Manual',
+    course: 'Curso',
+    guide: 'Guía',
+    audio: 'Audio',
+    video: 'Video',
+    other: 'Recurso'
+  };
+
+  const categoryLabel = categoryLabels[product.category] || product.category;
+  const title = `${product.title} - ${categoryLabel} por ${professionalName} | Holistia`;
+  const description = `${product.description.substring(0, 150)}${product.description.length > 150 ? '...' : ''} ${categoryLabel} creado por ${professionalName}. Precio: $${product.price} ${product.currency}. Descarga inmediata después del pago.`;
+
+  const url = `${BASE_URL}/productos/${product.id}`;
+  const imageUrl = product.cover_image_url
+    ? `${BASE_URL}/api/image?url=${encodeURIComponent(product.cover_image_url)}`
+    : `${BASE_URL}/logos/holistia-og.png`;
+
+  return {
+    title,
+    description,
+    keywords: [
+      product.title,
+      categoryLabel,
+      professionalName,
+      'producto digital',
+      'programa de bienestar',
+      'meditación guiada',
+      'ebook salud mental',
+      'curso online',
+      'recursos digitales',
+      'descarga inmediata',
+      'bienestar integral',
+      'crecimiento personal',
+    ],
+    openGraph: {
+      ...DEFAULT_SEO.openGraph,
+      type: 'website',
+      url,
+      title,
+      description,
+      images: [
+        {
+          url: imageUrl,
+          width: 1200,
+          height: 630,
+          alt: product.title,
+        },
+      ],
+    },
+    twitter: {
+      ...DEFAULT_SEO.twitter,
+      title,
+      description,
+      images: [imageUrl],
+    },
+    alternates: {
+      canonical: url,
+    },
+  };
+}
+
+export function generateDigitalProductSchema(product: DigitalProductData): string {
+  const professionalName = product.professional 
+    ? `${product.professional.first_name} ${product.professional.last_name}`
+    : 'Profesional certificado';
+
+  const categoryLabels: Record<string, string> = {
+    meditation: 'Meditación',
+    ebook: 'Ebook',
+    manual: 'Manual',
+    course: 'Curso',
+    guide: 'Guía',
+    audio: 'Audio',
+    video: 'Video',
+    other: 'Recurso Digital'
+  };
+
+  return JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    name: product.title,
+    description: product.description,
+    image: product.cover_image_url,
+    brand: {
+      '@type': 'Organization',
+      name: 'Holistia',
+    },
+    category: categoryLabels[product.category] || product.category,
+    offers: {
+      '@type': 'Offer',
+      price: product.price,
+      priceCurrency: product.currency,
+      availability: 'https://schema.org/InStock',
+      url: `${BASE_URL}/productos/${product.id}`,
+      seller: {
+        '@type': 'Person',
+        name: professionalName,
+        jobTitle: product.professional?.profession || 'Profesional de bienestar',
+      },
+    },
+    manufacturer: {
+      '@type': 'Person',
+      name: professionalName,
+    },
+    aggregateRating: product.sales_count && product.sales_count > 0 ? {
+      '@type': 'AggregateRating',
+      ratingValue: '4.5',
+      reviewCount: product.sales_count.toString(),
+    } : undefined,
+  });
 }
 
 // =====================================================

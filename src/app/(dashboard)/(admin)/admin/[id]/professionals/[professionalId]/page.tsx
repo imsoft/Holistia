@@ -180,14 +180,6 @@ export default function AdminProfessionalEdit() {
       <div className="flex items-center justify-between border-b bg-background px-6 py-4">
         <div className="flex items-center gap-4">
           <SidebarTrigger />
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => router.back()}
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Volver
-          </Button>
           <div>
             <h1 className="text-2xl font-bold text-foreground">
               {professional.first_name} {professional.last_name}

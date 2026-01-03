@@ -222,7 +222,7 @@ export default function PatientChallenges() {
         difficulty_level: challenge.difficulty_level || "",
         category: challenge.category || "",
         wellness_areas: challenge.wellness_areas || [],
-        linked_professional_id: challenge.linked_professional_id || "",
+        linked_professional_id: challenge.linked_professional_id || "none",
         is_active: challenge.is_active,
       });
       fetchChallengeFiles(challenge.id);
@@ -237,7 +237,7 @@ export default function PatientChallenges() {
         difficulty_level: "",
         category: "",
         wellness_areas: [],
-        linked_professional_id: "",
+        linked_professional_id: "none",
         is_active: true,
       });
       setChallengeFiles([]);
@@ -276,7 +276,7 @@ export default function PatientChallenges() {
           created_by_type: 'patient',
           title: formData.title || "Nuevo Reto",
           description: formData.description || "",
-          linked_professional_id: formData.linked_professional_id || null,
+          linked_professional_id: formData.linked_professional_id && formData.linked_professional_id !== 'none' ? formData.linked_professional_id : null,
           is_active: false,
         };
 
@@ -436,7 +436,7 @@ export default function PatientChallenges() {
         difficulty_level: formData.difficulty_level || null,
         category: formData.category || null,
         wellness_areas: formData.wellness_areas || [],
-        linked_professional_id: formData.linked_professional_id || null,
+        linked_professional_id: formData.linked_professional_id && formData.linked_professional_id !== 'none' ? formData.linked_professional_id : null,
         is_active: formData.is_active,
       };
 
@@ -675,7 +675,7 @@ export default function PatientChallenges() {
                   <SelectValue placeholder={loadingProfessionals ? "Cargando profesionales..." : "Selecciona un profesional (opcional)"} />
                 </SelectTrigger>
                 <SelectContent className="max-h-[300px]">
-                  <SelectItem value="">Ninguno (Reto público)</SelectItem>
+                  <SelectItem value="none">Ninguno (Reto público)</SelectItem>
                   {professionals.map((prof) => (
                     <SelectItem key={prof.id} value={prof.id}>
                       {prof.first_name} {prof.last_name}{prof.profession ? ` - ${prof.profession}` : ''}

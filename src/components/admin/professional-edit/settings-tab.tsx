@@ -81,7 +81,7 @@ export function SettingsTab({ professional, onUpdate }: SettingsTabProps) {
   return (
     <div className="space-y-6">
       {/* Status Card */}
-      <Card>
+      <Card className="py-4">
         <CardHeader>
           <CardTitle>Estado de la Cuenta</CardTitle>
           <CardDescription>Controla el estado general del profesional en la plataforma</CardDescription>
@@ -152,7 +152,7 @@ export function SettingsTab({ professional, onUpdate }: SettingsTabProps) {
       </Card>
 
       {/* Current Status Summary */}
-      <Card>
+      <Card className="py-4">
         <CardHeader>
           <CardTitle>Resumen de Estado Actual</CardTitle>
         </CardHeader>
@@ -192,7 +192,7 @@ export function SettingsTab({ professional, onUpdate }: SettingsTabProps) {
       </Card>
 
       {/* Danger Zone */}
-      <Card className="border-destructive">
+      <Card className="border-destructive py-4">
         <CardHeader>
           <CardTitle className="text-destructive">Zona de Peligro</CardTitle>
           <CardDescription>Acciones irreversibles o de alto impacto</CardDescription>

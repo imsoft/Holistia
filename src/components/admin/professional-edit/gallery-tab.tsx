@@ -8,7 +8,7 @@ interface GalleryTabProps {
 
 export function GalleryTab({ professionalId }: GalleryTabProps) {
   return (
-    <Card>
+    <Card className="py-4">
       <CardHeader>
         <CardTitle>Galería</CardTitle>
         <CardDescription>Gestiona las imágenes de la galería del profesional</CardDescription>

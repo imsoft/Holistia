@@ -8,7 +8,7 @@ interface EventsTabProps {
 
 export function EventsTab({ professionalId }: EventsTabProps) {
   return (
-    <Card>
+    <Card className="py-4">
       <CardHeader>
         <CardTitle>Eventos y Talleres</CardTitle>
         <CardDescription>Gestiona los eventos organizados por este profesional</CardDescription>

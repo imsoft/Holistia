@@ -156,7 +156,7 @@ export function BasicInfoTab({ professional, onUpdate }: BasicInfoTabProps) {
 
   return (
     <div className="space-y-6">
-      <Card>
+      <Card className="py-4">
         <CardHeader>
           <CardTitle>Información Personal</CardTitle>
           <CardDescription>Datos básicos del profesional</CardDescription>

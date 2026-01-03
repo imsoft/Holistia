@@ -8,7 +8,7 @@ interface AvailabilityTabProps {
 
 export function AvailabilityTab({ professionalId }: AvailabilityTabProps) {
   return (
-    <Card>
+    <Card className="py-4">
       <CardHeader>
         <CardTitle>Disponibilidad</CardTitle>
         <CardDescription>Gestiona los horarios disponibles del profesional</CardDescription>

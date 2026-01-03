@@ -62,7 +62,7 @@ export function ChallengesTab({ professionalId }: ChallengesTabProps) {
 
   return (
     <div className="space-y-6">
-      <Card>
+      <Card className="py-4">
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>

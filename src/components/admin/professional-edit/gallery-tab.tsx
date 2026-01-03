@@ -36,11 +36,38 @@ export function GalleryTab({ professionalId }: GalleryTabProps) {
 
       if (professionalData) {
         setUserId(professionalData.user_id);
-        // gallery puede ser un array de strings o null
-        setGalleryImages(professionalData.gallery || []);
+        
+        // gallery puede ser un array de strings, null, o un array vacío
+        let galleryArray: string[] = [];
+        
+        if (professionalData.gallery) {
+          // Asegurarse de que es un array
+          if (Array.isArray(professionalData.gallery)) {
+            galleryArray = professionalData.gallery.filter((url: any) => url && typeof url === 'string');
+          } else if (typeof professionalData.gallery === 'string') {
+            // Si es un string, intentar parsearlo como JSON
+            try {
+              const parsed = JSON.parse(professionalData.gallery);
+              if (Array.isArray(parsed)) {
+                galleryArray = parsed.filter((url: any) => url && typeof url === 'string');
+              }
+            } catch {
+              // Si no es JSON válido, tratarlo como un solo string
+              galleryArray = [professionalData.gallery];
+            }
+          }
+        }
+        
+        console.log('🔍 Gallery data loaded:', {
+          raw: professionalData.gallery,
+          processed: galleryArray,
+          count: galleryArray.length
+        });
+        
+        setGalleryImages(galleryArray);
       }
     } catch (error) {
-      console.error('Error fetching gallery:', error);
+      console.error('❌ Error fetching gallery:', error);
       toast.error('Error al cargar la galería');
     } finally {
       setLoading(false);
@@ -49,18 +76,29 @@ export function GalleryTab({ professionalId }: GalleryTabProps) {
 
   const handleImagesUpdate = async (newImages: string[]) => {
     try {
+      console.log('💾 Updating gallery:', newImages);
+      
+      // Asegurarse de que newImages es un array válido
+      const validImages = Array.isArray(newImages) 
+        ? newImages.filter(url => url && typeof url === 'string')
+        : [];
+      
       // Actualizar el campo gallery en professional_applications
       const { error } = await supabase
         .from('professional_applications')
-        .update({ gallery: newImages })
+        .update({ gallery: validImages })
         .eq('id', professionalId);
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Supabase update error:', error);
+        throw error;
+      }
 
-      setGalleryImages(newImages);
+      console.log('✅ Gallery updated successfully');
+      setGalleryImages(validImages);
       toast.success('Galería actualizada exitosamente');
     } catch (error) {
-      console.error('Error updating gallery:', error);
+      console.error('❌ Error updating gallery:', error);
       toast.error('Error al actualizar la galería');
     }
   };
@@ -99,6 +137,24 @@ export function GalleryTab({ professionalId }: GalleryTabProps) {
           </CardDescription>
         </CardHeader>
         <CardContent>
+          {galleryImages.length > 0 && (
+            <div className="mb-4 p-3 bg-muted rounded-lg">
+              <p className="text-sm text-muted-foreground">
+                📸 {galleryImages.length} imagen{galleryImages.length !== 1 ? 'es' : ''} en la galería
+              </p>
+              {/* Debug info - remover en producción si es necesario */}
+              {process.env.NODE_ENV === 'development' && (
+                <details className="mt-2">
+                  <summary className="text-xs cursor-pointer text-muted-foreground">
+                    Debug info
+                  </summary>
+                  <pre className="text-xs mt-2 overflow-auto">
+                    {JSON.stringify(galleryImages, null, 2)}
+                  </pre>
+                </details>
+              )}
+            </div>
+          )}
           <ImageGalleryManager
             professionalId={userId}
             currentImages={galleryImages}

@@ -279,7 +279,7 @@ export default function ProfessionalChallenges() {
         difficulty_level: challenge.difficulty_level || "",
         category: challenge.category || "",
         wellness_areas: challenge.wellness_areas || [],
-        linked_patient_id: challenge.linked_patient_id || "",
+        linked_patient_id: challenge.linked_patient_id || "none",
         is_active: challenge.is_active,
       });
       fetchChallengeFiles(challenge.id);
@@ -294,7 +294,7 @@ export default function ProfessionalChallenges() {
         difficulty_level: "",
         category: "",
         wellness_areas: [],
-        linked_patient_id: "",
+        linked_patient_id: "none",
         is_active: true,
       });
       setChallengeFiles([]);
@@ -357,7 +357,7 @@ export default function ProfessionalChallenges() {
           created_by_type: 'professional',
           title: formData.title || "Nuevo Reto",
           description: formData.description || "",
-          linked_patient_id: formData.linked_patient_id || null,
+          linked_patient_id: formData.linked_patient_id && formData.linked_patient_id !== 'none' ? formData.linked_patient_id : null,
           is_active: false,
         };
 
@@ -537,7 +537,7 @@ export default function ProfessionalChallenges() {
         difficulty_level: formData.difficulty_level || null,
         category: formData.category || null,
         wellness_areas: formData.wellness_areas || [],
-        linked_patient_id: formData.linked_patient_id || null,
+        linked_patient_id: formData.linked_patient_id && formData.linked_patient_id !== 'none' ? formData.linked_patient_id : null,
         is_active: formData.is_active,
       };
 
@@ -814,7 +814,7 @@ export default function ProfessionalChallenges() {
                   <SelectValue placeholder={loadingPatients ? "Cargando pacientes..." : "Selecciona un paciente (opcional)"} />
                 </SelectTrigger>
                 <SelectContent className="max-h-[300px]">
-                  <SelectItem value="">Ninguno (Reto público)</SelectItem>
+                  <SelectItem value="none">Ninguno (Reto público)</SelectItem>
                   {patients.map((patient) => (
                     <SelectItem key={patient.patient_id} value={patient.patient_id}>
                       {patient.full_name} - {patient.email}

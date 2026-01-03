@@ -253,12 +253,8 @@ export default function ProfessionalDigitalProducts() {
         currency: formData.currency,
         cover_image_url: formData.cover_image_url || null,
         file_url: formData.file_url || null,
-        preview_url: null,
         duration_minutes: formData.duration_minutes ? parseInt(formData.duration_minutes) : null,
         pages_count: formData.pages_count ? parseInt(formData.pages_count) : null,
-        file_size_mb: null,
-        file_format: null,
-        tags: null,
         is_active: formData.is_active,
       };
 

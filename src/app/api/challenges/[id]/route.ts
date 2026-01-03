@@ -144,13 +144,13 @@ export async function PUT(
       let errorMessage = 'Error al actualizar el reto';
       
       if (updateError.code === '23502') {
-        errorMessage = 'Faltan campos requeridos. Por favor, completa todos los campos obligatorios.';
+        errorMessage = 'Falta completar algunos campos obligatorios. Por favor, asegúrate de llenar el título y la descripción del reto.';
       } else if (updateError.code === '23503') {
-        errorMessage = 'Error de referencia: El profesional o paciente vinculado no existe. Por favor, verifica la información.';
+        errorMessage = 'El profesional o paciente que intentas vincular no existe o fue eliminado. Por favor, verifica la información e intenta nuevamente.';
       } else if (updateError.code === '23505') {
-        errorMessage = 'Ya existe un reto con este título. Por favor, usa un título diferente.';
+        errorMessage = 'Ya tienes otro reto con este título. Por favor, usa un título diferente.';
       } else if (updateError.code === 'PGRST301' || updateError.code === '42501') {
-        errorMessage = 'No tienes permisos para actualizar este reto. Solo el creador puede modificarlo.';
+        errorMessage = 'Solo puedes editar los retos que tú creaste. Si este reto no es tuyo, no puedes modificarlo.';
       } else if (updateError.message) {
         errorMessage = updateError.message;
       }
@@ -233,9 +233,9 @@ export async function DELETE(
       let errorMessage = 'Error al eliminar el reto';
       
       if (deleteError.code === '23503') {
-        errorMessage = 'No se puede eliminar el reto porque tiene registros relacionados (participantes, check-ins, etc.). Por favor, elimina primero los registros relacionados.';
+        errorMessage = 'No puedes eliminar este reto porque ya tiene participantes o personas que lo están siguiendo. Primero debes eliminar o finalizar todas las participaciones, y luego podrás eliminar el reto.';
       } else if (deleteError.code === 'PGRST301' || deleteError.code === '42501') {
-        errorMessage = 'No tienes permisos para eliminar este reto. Solo el creador puede eliminarlo.';
+        errorMessage = 'Solo puedes eliminar los retos que tú creaste. Si este reto no es tuyo, no puedes eliminarlo.';
       } else if (deleteError.message) {
         errorMessage = deleteError.message;
       }

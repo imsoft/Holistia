@@ -179,7 +179,7 @@ export default function ProfessionalDigitalProducts() {
 
     } catch (error) {
       console.error("Error fetching products:", error);
-      toast.error("Error al cargar programas");
+      toast.error("No pudimos cargar tus programas. Por favor, recarga la página e intenta nuevamente.");
     } finally {
       setLoading(false);
     }
@@ -258,18 +258,24 @@ export default function ProfessionalDigitalProducts() {
         .single();
 
       if (profError) {
-        const errorMsg = getFullErrorMessage(profError, "Error al verificar tu perfil");
-        toast.error(errorMsg);
+        const errorMsg = getFullErrorMessage(profError, "No pudimos verificar tu perfil");
+        toast.error(errorMsg, { duration: 6000 });
         return;
       }
 
       if (!professional) {
-        toast.error("No se encontró tu perfil de profesional. Por favor, completa tu registro como profesional primero.");
+        toast.error("No encontramos tu perfil de profesional. Por favor, completa tu registro como profesional primero. Si ya lo completaste, contacta al soporte de Holistia.", { duration: 6000 });
         return;
       }
 
       if (professional.status !== 'approved') {
-        toast.error(`Tu perfil está en estado "${professional.status}". Solo los profesionales aprobados pueden crear programas. Contacta al administrador si crees que esto es un error.`);
+        const statusMessages: Record<string, string> = {
+          'pending': 'Tu perfil está en revisión. Espera a que un administrador lo apruebe antes de crear programas.',
+          'rejected': 'Tu perfil fue rechazado. Contacta al administrador para más información.',
+          'draft': 'Tu perfil no está completo. Por favor, completa tu registro primero.'
+        };
+        const message = statusMessages[professional.status] || `Tu perfil está en estado "${professional.status}". Solo los profesionales aprobados pueden crear programas. Contacta al administrador si crees que esto es un error.`;
+        toast.error(message, { duration: 6000 });
         return;
       }
 

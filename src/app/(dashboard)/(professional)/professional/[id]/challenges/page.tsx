@@ -249,7 +249,7 @@ export default function ProfessionalChallenges() {
 
     } catch (error) {
       console.error("Error fetching challenges:", error);
-      toast.error("Error al cargar retos");
+      toast.error("No pudimos cargar tus retos. Por favor, recarga la página e intenta nuevamente.");
     } finally {
       setLoading(false);
     }
@@ -337,8 +337,16 @@ export default function ProfessionalChallenges() {
         .eq('status', 'approved')
         .single();
 
-      if (profError || !professionalData) {
-        toast.error("No se encontró el profesional");
+      if (profError) {
+        const errorMsg = getFullErrorMessage(profError, "No pudimos verificar tu perfil");
+        toast.error(errorMsg, { duration: 6000 });
+        setUploadingCover(false);
+        return;
+      }
+
+      if (!professionalData) {
+        toast.error("No encontramos tu perfil de profesional. Por favor, verifica que tu cuenta esté aprobada.", { duration: 6000 });
+        setUploadingCover(false);
         return;
       }
 
@@ -551,18 +559,24 @@ export default function ProfessionalChallenges() {
         .single();
 
       if (profError) {
-        const errorMsg = getFullErrorMessage(profError, "Error al verificar tu perfil");
+        const errorMsg = getFullErrorMessage(profError, "No pudimos verificar tu perfil");
         toast.error(errorMsg, { duration: 6000 });
         return;
       }
 
       if (!professionalData) {
-        toast.error("No se encontró tu perfil de profesional aprobado. Solo los profesionales aprobados pueden crear retos. Contacta al administrador si crees que esto es un error.");
+        toast.error("No encontramos tu perfil de profesional aprobado. Solo los profesionales aprobados pueden crear retos. Si ya completaste tu registro, contacta al administrador.", { duration: 6000 });
         return;
       }
 
       if (professionalData.status !== 'approved') {
-        toast.error(`Tu perfil está en estado "${professionalData.status}". Solo los profesionales aprobados pueden crear retos. Contacta al administrador si crees que esto es un error.`);
+        const statusMessages: Record<string, string> = {
+          'pending': 'Tu perfil está en revisión. Espera a que un administrador lo apruebe antes de crear retos.',
+          'rejected': 'Tu perfil fue rechazado. Contacta al administrador para más información.',
+          'draft': 'Tu perfil no está completo. Por favor, completa tu registro primero.'
+        };
+        const message = statusMessages[professionalData.status] || `Tu perfil está en estado "${professionalData.status}". Solo los profesionales aprobados pueden crear retos. Contacta al administrador si crees que esto es un error.`;
+        toast.error(message, { duration: 6000 });
         return;
       }
 

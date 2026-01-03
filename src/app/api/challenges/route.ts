@@ -188,13 +188,13 @@ export async function POST(request: NextRequest) {
       let errorMessage = 'Error al crear el reto';
       
       if (challengeError.code === '23502') {
-        errorMessage = 'Faltan campos requeridos. Por favor, completa todos los campos obligatorios (título y descripción).';
+        errorMessage = 'Falta completar algunos campos obligatorios. Por favor, asegúrate de llenar el título y la descripción del reto.';
       } else if (challengeError.code === '23503') {
-        errorMessage = 'Error de referencia: El profesional o paciente vinculado no existe. Por favor, verifica la información.';
+        errorMessage = 'El profesional o paciente que intentas vincular no existe o fue eliminado. Por favor, verifica la información e intenta nuevamente.';
       } else if (challengeError.code === '23505') {
-        errorMessage = 'Ya existe un reto con este título. Por favor, usa un título diferente.';
+        errorMessage = 'Ya tienes un reto con este título. Por favor, usa un título diferente para tu nuevo reto.';
       } else if (challengeError.code === 'PGRST301' || challengeError.code === '42501') {
-        errorMessage = 'No tienes permisos para crear retos. Verifica que tu cuenta esté aprobada y activa.';
+        errorMessage = 'No tienes permiso para crear retos. Tu cuenta debe estar aprobada y activa. Si crees que esto es un error, contacta al administrador.';
       } else if (challengeError.message) {
         errorMessage = challengeError.message;
       }

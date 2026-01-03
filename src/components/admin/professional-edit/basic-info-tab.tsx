@@ -35,8 +35,7 @@ interface Professional {
   is_verified: boolean;
   biography?: string;
   bio?: string;
-  experience?: string;
-  years_of_experience?: number;
+  experience?: string; // VARCHAR(50) en BD - texto libre sobre experiencia
   certifications?: string[];
   languages?: string[];
   instagram?: string;
@@ -56,10 +55,11 @@ export function BasicInfoTab({ professional, onUpdate }: BasicInfoTabProps) {
     bio: professional.biography || professional.bio || '',
     country: professional.country || 'México',
     address: professional.address || '',
-    experience: professional.experience || '',
+    experience: professional.experience || '', // Campo VARCHAR(50) de la BD
     languages: professional.languages || ['Español'],
     image_position: professional.image_position || 'center center',
     tolerance_minutes: professional.tolerance_minutes || 15,
+    // Remover years_of_experience ya que no existe en BD
   });
   const [newSpecialization, setNewSpecialization] = useState("");
   const [newCertification, setNewCertification] = useState("");
@@ -190,7 +190,7 @@ export function BasicInfoTab({ professional, onUpdate }: BasicInfoTabProps) {
           biography: formData.biography || formData.bio,
           bio: formData.biography || formData.bio,
           experience: formData.experience,
-          years_of_experience: formData.years_of_experience,
+          // Nota: years_of_experience no existe en BD, solo existe 'experience' VARCHAR(50)
           certifications: formData.certifications,
           languages: formData.languages,
           instagram: formData.instagram,
@@ -337,24 +337,13 @@ export function BasicInfoTab({ professional, onUpdate }: BasicInfoTabProps) {
           </div>
 
           {/* Profession */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="profession">Profesión</Label>
-              <Input
-                id="profession"
-                value={formData.profession}
-                onChange={(e) => handleChange('profession', e.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="years">Años de Experiencia</Label>
-              <Input
-                id="years"
-                type="number"
-                value={formData.years_of_experience || ''}
-                onChange={(e) => handleChange('years_of_experience', parseInt(e.target.value) || 0)}
-              />
-            </div>
+          <div className="space-y-2">
+            <Label htmlFor="profession">Profesión</Label>
+            <Input
+              id="profession"
+              value={formData.profession}
+              onChange={(e) => handleChange('profession', e.target.value)}
+            />
           </div>
 
           {/* Instagram */}

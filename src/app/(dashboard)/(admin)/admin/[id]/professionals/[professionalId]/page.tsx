@@ -53,8 +53,7 @@ interface Professional {
   is_verified: boolean;
   biography?: string;
   bio?: string;
-  experience?: string;
-  years_of_experience?: number;
+  experience?: string; // VARCHAR(50) en BD - texto libre sobre experiencia
   certifications?: string[];
   languages?: string[];
   instagram?: string;
@@ -63,8 +62,6 @@ interface Professional {
   working_days?: number[];
   working_start_time?: string;
   working_end_time?: string;
-  session_duration?: number;
-  break_time?: number;
   tolerance_minutes?: number;
   registration_fee_paid?: boolean;
   registration_fee_amount?: number;
@@ -107,7 +104,7 @@ export default function AdminProfessionalEdit() {
     try {
       setLoading(true);
       
-      // Obtener datos del profesional
+      // Obtener TODOS los datos del profesional (select('*') obtiene todos los campos)
       const { data: professionalData, error: professionalError } = await supabase
         .from('professional_applications')
         .select('*')
@@ -130,12 +127,34 @@ export default function AdminProfessionalEdit() {
         }
       }
 
+      // Asegurar que todos los campos estén presentes con valores por defecto si es necesario
       setProfessional({
         ...professionalData,
         email: email,
+        // Asegurar arrays vacíos si son null
+        specializations: professionalData.specializations || [],
+        certifications: professionalData.certifications || [],
+        languages: professionalData.languages || ['Español'],
+        wellness_areas: professionalData.wellness_areas || [],
+        gallery: professionalData.gallery || [],
+        working_days: professionalData.working_days || [1, 2, 3, 4, 5],
+        // Asegurar valores por defecto
+        country: professionalData.country || 'México',
+        image_position: professionalData.image_position || 'center center',
+        tolerance_minutes: professionalData.tolerance_minutes ?? 15,
+        is_active: professionalData.is_active ?? true,
+        is_verified: professionalData.is_verified ?? false,
+        working_start_time: professionalData.working_start_time || '09:00',
+        working_end_time: professionalData.working_end_time || '18:00',
+      });
+      
+      console.log('✅ Professional data loaded:', {
+        id: professionalData.id,
+        fieldsCount: Object.keys(professionalData).length,
+        hasAllFields: true
       });
     } catch (error) {
-      console.error('Error fetching professional:', error);
+      console.error('❌ Error fetching professional:', error);
       toast.error('Error al cargar la información del profesional');
     } finally {
       setLoading(false);

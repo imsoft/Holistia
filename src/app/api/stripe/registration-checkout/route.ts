@@ -82,7 +82,7 @@ export async function POST(request: Request) {
       }
     }
 
-    const registrationFeeAmount = application.registration_fee_amount || 299.00;
+    const registrationFeeAmount = application.registration_fee_amount || 888.00;
     const currency = application.registration_fee_currency || "mxn";
 
     console.log('🔵 [Registration Checkout] Creando pago:', {

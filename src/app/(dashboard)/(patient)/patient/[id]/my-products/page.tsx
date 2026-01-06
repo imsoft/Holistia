@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, use } from "react";
+import { useState, useEffect } from "react";
+import { useParams } from "next/navigation";
 import Image from "next/image";
 import { toast } from "sonner";
 import {
@@ -70,8 +71,9 @@ const CATEGORY_LABELS: Record<string, string> = {
   other: "Otro",
 };
 
-export default function MyProducts({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params);
+export default function MyProducts() {
+  const params = useParams();
+  const id = params.id as string;
   const [products, setProducts] = useState<PurchasedProduct[]>([]);
   const [loading, setLoading] = useState(true);
   const [downloading, setDownloading] = useState<string | null>(null);

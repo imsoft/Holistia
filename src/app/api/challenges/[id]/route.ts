@@ -77,13 +77,13 @@ export async function PUT(
     }
 
     // Verificar si es admin
-    const { data: adminUser } = await supabase
-      .from('admin_users')
-      .select('id')
-      .eq('user_id', user.id)
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('type, account_active')
+      .eq('id', user.id)
       .single();
 
-    const isAdmin = !!adminUser;
+    const isAdmin = profile?.type === 'admin' && profile?.account_active === true;
 
     // Verificar que el usuario es el creador del reto o es admin
     if (!isAdmin && existingChallenge.created_by_user_id !== user.id) {
@@ -244,13 +244,13 @@ export async function DELETE(
     }
 
     // Verificar si es admin
-    const { data: adminUser } = await supabase
-      .from('admin_users')
-      .select('id')
-      .eq('user_id', user.id)
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('type, account_active')
+      .eq('id', user.id)
       .single();
 
-    const isAdmin = !!adminUser;
+    const isAdmin = profile?.type === 'admin' && profile?.account_active === true;
 
     // Verificar que el usuario es el creador del reto o es admin
     if (!isAdmin && existingChallenge.created_by_user_id !== user.id) {

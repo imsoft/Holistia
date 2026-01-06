@@ -118,13 +118,13 @@ export async function POST(request: NextRequest) {
     }
 
     // Verificar si es admin
-    const { data: adminUser } = await supabase
-      .from('admin_users')
-      .select('id')
-      .eq('user_id', user.id)
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('type, account_active')
+      .eq('id', user.id)
       .single();
 
-    const isAdmin = !!adminUser;
+    const isAdmin = profile?.type === 'admin' && profile?.account_active === true;
 
     // Si es admin, puede crear retos sin restricciones de profesional
     if (isAdmin && created_by_type === 'admin') {

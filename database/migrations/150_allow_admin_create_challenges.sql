@@ -36,8 +36,10 @@ WITH CHECK (
   AND (
     -- Si es admin, puede crear sin restricciones
     (created_by_type = 'admin' AND EXISTS (
-      SELECT 1 FROM public.admin_users
-      WHERE user_id = auth.uid()
+      SELECT 1 FROM public.profiles
+      WHERE id = auth.uid()
+      AND type = 'admin'
+      AND account_active = true
     ))
     OR
     -- Si es profesional, debe existir y estar aprobado
@@ -64,8 +66,10 @@ TO authenticated
 USING (
   -- Admins pueden ver todos los retos
   EXISTS (
-    SELECT 1 FROM public.admin_users
-    WHERE user_id = auth.uid()
+    SELECT 1 FROM public.profiles
+    WHERE id = auth.uid()
+    AND type = 'admin'
+    AND account_active = true
   )
   OR
   -- Puede ver si lo creó
@@ -110,8 +114,10 @@ TO authenticated
 USING (
   -- Admins pueden actualizar cualquier reto
   EXISTS (
-    SELECT 1 FROM public.admin_users
-    WHERE user_id = auth.uid()
+    SELECT 1 FROM public.profiles
+    WHERE id = auth.uid()
+    AND type = 'admin'
+    AND account_active = true
   )
   OR
   -- O si es el creador
@@ -120,8 +126,10 @@ USING (
 WITH CHECK (
   -- Admins pueden actualizar cualquier reto
   EXISTS (
-    SELECT 1 FROM public.admin_users
-    WHERE user_id = auth.uid()
+    SELECT 1 FROM public.profiles
+    WHERE id = auth.uid()
+    AND type = 'admin'
+    AND account_active = true
   )
   OR
   -- O si es el creador
@@ -138,8 +146,10 @@ TO authenticated
 USING (
   -- Admins pueden eliminar cualquier reto
   EXISTS (
-    SELECT 1 FROM public.admin_users
-    WHERE user_id = auth.uid()
+    SELECT 1 FROM public.profiles
+    WHERE id = auth.uid()
+    AND type = 'admin'
+    AND account_active = true
   )
   OR
   -- O si es el creador

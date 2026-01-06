@@ -179,7 +179,7 @@ export default function UserLayout({
   return (
     <div className="min-h-screen bg-background">
       {/* Navigation */}
-      <nav className="border-b border-border bg-card">
+      <nav className="border-b border-sidebar-border bg-sidebar">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 justify-between">
             <div className="flex">
@@ -204,8 +204,8 @@ export default function UserLayout({
                     href={item.href}
                     className={`inline-flex items-center border-b-2 px-1 pt-1 text-sm font-medium ${
                       isActive(item.href)
-                        ? "border-primary text-foreground"
-                        : "border-transparent text-muted-foreground hover:border-border hover:text-foreground"
+                        ? "border-sidebar-primary text-sidebar-foreground"
+                        : "border-transparent text-sidebar-foreground/70 hover:border-sidebar-border hover:text-sidebar-foreground"
                     }`}
                   >
                     {item.name}
@@ -323,8 +323,8 @@ export default function UserLayout({
                         href={item.href}
                         className={`block rounded-lg px-3 py-3 text-base font-semibold transition-colors ${
                           isActive(item.href)
-                            ? "bg-primary text-primary-foreground"
-                            : "text-foreground hover:bg-accent"
+                            ? "bg-sidebar-primary text-sidebar-primary-foreground"
+                            : "text-sidebar-foreground hover:bg-sidebar-accent"
                         }`}
                         onClick={() => setMobileMenuOpen(false)}
                       >
@@ -333,7 +333,7 @@ export default function UserLayout({
                     ))}
                   </div>
 
-                  <div className="mt-8 border-t border-border pt-8">
+                  <div className="mt-8 border-t border-sidebar-border pt-8">
                     <div className="flex items-center space-x-4">
                       <Image
                         src={profile.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=random`}
@@ -343,10 +343,10 @@ export default function UserLayout({
                         className="h-12 w-12 aspect-square rounded-full object-cover border-2 border-primary/20 flex-shrink-0"
                       />
                       <div>
-                        <div className="text-base font-medium text-foreground">
+                        <div className="text-base font-medium text-sidebar-foreground">
                           {userName}
                         </div>
-                        <div className="text-sm text-muted-foreground">
+                        <div className="text-sm text-sidebar-foreground/70">
                           {profile.email}
                         </div>
                       </div>
@@ -361,7 +361,7 @@ export default function UserLayout({
                               setMobileMenuOpen(false);
                               handleSignOut();
                             }}
-                            className="flex items-center space-x-2 rounded-lg px-3 py-3 text-base font-medium text-foreground hover:bg-accent transition-colors w-full text-left"
+                            className="flex items-center space-x-2 rounded-lg px-3 py-3 text-base font-medium text-sidebar-foreground hover:bg-sidebar-accent transition-colors w-full text-left"
                           >
                             <item.icon className="h-5 w-5" />
                             <span>{item.name}</span>
@@ -370,7 +370,7 @@ export default function UserLayout({
                           <Link
                             key={item.name}
                             href={item.href}
-                            className="flex items-center space-x-2 rounded-lg px-3 py-3 text-base font-medium text-foreground hover:bg-accent transition-colors"
+                            className="flex items-center space-x-2 rounded-lg px-3 py-3 text-base font-medium text-sidebar-foreground hover:bg-sidebar-accent transition-colors"
                             onClick={() => setMobileMenuOpen(false)}
                           >
                             <item.icon className="h-5 w-5" />

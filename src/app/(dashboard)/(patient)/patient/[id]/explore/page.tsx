@@ -539,7 +539,7 @@ const HomeUserPage = () => {
             <div className="relative z-10">
               <div className="flex items-center justify-between mb-6">
                 <Link
-                  href={`/patient/${userId}/explore/professionals`}
+                  href={`/patient/${userId}/explore/programs`}
                   className="group flex items-center gap-2"
                 >
                   <h2 className="text-3xl sm:text-4xl font-bold text-foreground group-hover:text-primary transition-colors">

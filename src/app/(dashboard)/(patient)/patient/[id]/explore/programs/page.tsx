@@ -143,18 +143,22 @@ export default function ProgramsPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-        <div className="mb-8 text-center">
-          <h1 className="text-3xl sm:text-4xl font-bold text-foreground mb-2">
-            Programas Digitales
-          </h1>
-          <p className="text-muted-foreground">
-            Descubre meditaciones, ebooks, guías y más recursos para tu bienestar
-          </p>
+      {/* Header */}
+      <div className="border-b border-border bg-card">
+        <div className="flex h-16 items-center justify-between px-6">
+          <div>
+            <h1 className="text-2xl font-bold text-foreground">Programas Digitales</h1>
+            <p className="text-sm text-muted-foreground">
+              Descubre meditaciones, ebooks, guías y más recursos para tu bienestar
+            </p>
+          </div>
         </div>
+      </div>
 
+      {/* Main Content */}
+      <div className="p-6 space-y-6">
         {/* Filtros */}
-        <div className="mb-6 sm:mb-8 space-y-4 sm:space-y-0 sm:flex sm:gap-4">
+        <div className="space-y-4 sm:space-y-0 sm:flex sm:gap-4">
           <div className="flex-1">
             <Input
               placeholder="Buscar por título, descripción o profesional..."
@@ -244,7 +248,7 @@ export default function ProgramsPage() {
             ))}
           </div>
         )}
-      </main>
+      </div>
     </div>
   );
 }

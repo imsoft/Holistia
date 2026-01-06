@@ -576,7 +576,7 @@ const HomeUserPage = () => {
                       href={`/patient/${userId}/my-products`}
                       className="shrink-0 w-80"
                     >
-                      <Card className="overflow-hidden hover:shadow-lg transition-shadow">
+                      <Card className="overflow-hidden hover:shadow-lg transition-shadow py-4">
                         <div className="relative h-48">
                           {product.cover_image_url ? (
                             <Image

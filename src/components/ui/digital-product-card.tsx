@@ -176,7 +176,7 @@ export function DigitalProductCard({
 
   return (
     <>
-      <Card className="hover:shadow-lg transition-all duration-300 overflow-hidden group cursor-pointer" onClick={handleOpenDetails}>
+      <Card className="hover:shadow-lg transition-all duration-300 overflow-hidden group cursor-pointer py-4" onClick={handleOpenDetails}>
         <div className="relative h-56 bg-gradient-to-br from-primary/10 to-primary/5 overflow-hidden">
           {product.cover_image_url ? (
             <Image

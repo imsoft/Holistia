@@ -663,7 +663,7 @@ export default function ProfessionalDigitalProducts() {
             {products.map((product) => {
               const CategoryIcon = getCategoryIcon(product.category);
               return (
-                <Card key={product.id} className="hover:shadow-lg transition-shadow overflow-hidden">
+                <Card key={product.id} className="hover:shadow-lg transition-shadow overflow-hidden py-4">
                   <div className="relative h-48 bg-gradient-to-br from-primary/10 to-primary/5">
                     {product.cover_image_url ? (
                       <Image

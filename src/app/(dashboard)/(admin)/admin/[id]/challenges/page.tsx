@@ -621,7 +621,7 @@ export default function AdminChallengesPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredChallenges.map((challenge) => (
-              <Card key={challenge.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+              <Card key={challenge.id} className="overflow-hidden hover:shadow-lg transition-shadow py-4">
                 <div className="relative h-48">
                   {challenge.cover_image_url ? (
                     <Image

@@ -559,7 +559,7 @@ export default function MyChallengesPage() {
                 {challenges.map((challenge) => (
               <Card
                 key={challenge.id}
-                className={`cursor-pointer hover:shadow-lg transition-shadow ${
+                className={`cursor-pointer hover:shadow-lg transition-shadow py-4 ${
                   selectedChallenge?.id === challenge.id ? 'ring-2 ring-primary' : ''
                 }`}
                 onClick={() => handleOpenChallenge(challenge)}
@@ -794,7 +794,7 @@ export default function MyChallengesPage() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {createdChallenges.map((challenge) => (
-                <Card key={challenge.id} className="overflow-hidden">
+                <Card key={challenge.id} className="overflow-hidden py-4">
                   <div className="relative h-48">
                     {challenge.cover_image_url ? (
                       <Image

@@ -299,7 +299,7 @@ export default function MyProducts({ params }: { params: Promise<{ id: string }>
               const CategoryIcon = CATEGORY_ICONS[product.category] || Tag;
 
               return (
-                <Card key={product.id} className="hover:shadow-lg transition-shadow overflow-hidden">
+                <Card key={product.id} className="hover:shadow-lg transition-shadow overflow-hidden py-4">
                   <div className="relative h-48 bg-gradient-to-br from-primary/10 to-primary/5">
                     {product.cover_image_url ? (
                       <Image

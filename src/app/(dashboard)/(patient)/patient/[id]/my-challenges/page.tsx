@@ -82,7 +82,8 @@ interface CreatedChallenge {
   duration_days?: number;
   difficulty_level?: string;
   category?: string;
-  created_by_type: 'professional' | 'patient';
+  wellness_areas?: string[];
+  created_by_type: 'professional' | 'patient' | 'admin';
   linked_professional_id?: string;
   is_active: boolean;
   created_at: string;
@@ -111,6 +112,8 @@ export default function MyChallengesPage() {
   const [teamId, setTeamId] = useState<string | null>(null);
   const [teamName, setTeamName] = useState<string | null>(null);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [editingChallenge, setEditingChallenge] = useState<CreatedChallenge | null>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [uploadingCover, setUploadingCover] = useState(false);
   const [professionals, setProfessionals] = useState<any[]>([]);
@@ -127,7 +130,20 @@ export default function MyChallengesPage() {
     linked_professional_id: "none",
     is_active: true,
   });
+  const [editFormData, setEditFormData] = useState({
+    title: "",
+    description: "",
+    short_description: "",
+    cover_image_url: "",
+    duration_days: "",
+    difficulty_level: "",
+    category: "",
+    wellness_areas: [] as string[],
+    linked_professional_id: "none",
+    is_active: true,
+  });
   const coverFileInputRef = React.useRef<HTMLInputElement>(null);
+  const editCoverFileInputRef = React.useRef<HTMLInputElement>(null);
 
   const DIFFICULTY_OPTIONS = [
     { value: 'beginner', label: 'Principiante' },
@@ -430,6 +446,127 @@ export default function MyChallengesPage() {
       toast.error("Error al subir la imagen de portada");
     } finally {
       setUploadingCover(false);
+    }
+  };
+
+  const handleOpenEditForm = (challenge: CreatedChallenge) => {
+    setEditingChallenge(challenge);
+    setEditFormData({
+      title: challenge.title,
+      description: challenge.description,
+      short_description: challenge.short_description || "",
+      cover_image_url: challenge.cover_image_url || "",
+      duration_days: challenge.duration_days?.toString() || "",
+      difficulty_level: challenge.difficulty_level || "",
+      category: challenge.category || "",
+      wellness_areas: challenge.wellness_areas || [],
+      linked_professional_id: challenge.linked_professional_id || "none",
+      is_active: challenge.is_active,
+    });
+    setIsEditDialogOpen(true);
+  };
+
+  const handleEditCoverImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast.error('Por favor selecciona un archivo de imagen válido');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('El archivo es demasiado grande. El tamaño máximo es 5MB.');
+      return;
+    }
+
+    if (!editingChallenge) return;
+
+    try {
+      setUploadingCover(true);
+      const challengeId = editingChallenge.id;
+
+      const fileExt = file.name.split('.').pop();
+      const fileName = `cover.${fileExt}`;
+      const filePath = `${challengeId}/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('challenges')
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: true
+        });
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('challenges')
+        .getPublicUrl(filePath);
+
+      setEditFormData({ ...editFormData, cover_image_url: publicUrl });
+      toast.success("Imagen de portada subida exitosamente");
+
+    } catch (error) {
+      console.error("Error uploading cover image:", error);
+      toast.error("Error al subir la imagen de portada");
+    } finally {
+      setUploadingCover(false);
+    }
+  };
+
+  const handleEditSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!editingChallenge) return;
+
+    if (!editFormData.title?.trim() || !editFormData.description?.trim()) {
+      toast.error("Por favor completa el título y la descripción");
+      return;
+    }
+
+    try {
+      setSaving(true);
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        toast.error("Debes iniciar sesión");
+        return;
+      }
+
+      const challengeData = {
+        professional_id: null,
+        created_by_user_id: user.id,
+        created_by_type: 'patient',
+        title: editFormData.title.trim(),
+        description: editFormData.description.trim(),
+        short_description: editFormData.short_description?.trim() || null,
+        cover_image_url: editFormData.cover_image_url || null,
+        duration_days: editFormData.duration_days ? parseInt(editFormData.duration_days) : null,
+        difficulty_level: editFormData.difficulty_level || null,
+        category: editFormData.category || null,
+        wellness_areas: editFormData.wellness_areas || [],
+        linked_professional_id: editFormData.linked_professional_id && editFormData.linked_professional_id !== 'none' ? editFormData.linked_professional_id : null,
+        is_active: editFormData.is_active,
+      };
+
+      const response = await fetch(`/api/challenges/${editingChallenge.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(challengeData),
+      });
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Error al actualizar reto");
+
+      toast.success("Reto actualizado exitosamente");
+      setIsEditDialogOpen(false);
+      setEditingChallenge(null);
+      fetchChallenges();
+    } catch (error) {
+      console.error("Error updating challenge:", error);
+      toast.error(error instanceof Error ? error.message : "Error al actualizar reto");
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -847,12 +984,10 @@ export default function MyChallengesPage() {
                         variant="outline"
                         size="sm"
                         className="flex-1"
-                        asChild
+                        onClick={() => handleOpenEditForm(challenge)}
                       >
-                        <a href={`/patient/${userId}/challenges`}>
-                          <Edit className="h-4 w-4 mr-2" />
-                          Editar
-                        </a>
+                        <Edit className="h-4 w-4 mr-2" />
+                        Editar
                       </Button>
                       <Button
                         variant="outline"
@@ -1118,6 +1253,215 @@ export default function MyChallengesPage() {
                   </>
                 ) : (
                   "Crear Reto"
+                )}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Diálogo para editar reto personal */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Editar Reto Personal</DialogTitle>
+            <DialogDescription>
+              Modifica la información de tu reto personalizado
+            </DialogDescription>
+          </DialogHeader>
+
+          <form onSubmit={handleEditSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="edit-title">
+                Título *
+              </Label>
+              <Input
+                id="edit-title"
+                value={editFormData.title}
+                onChange={(e) => setEditFormData({ ...editFormData, title: e.target.value })}
+                placeholder="Ej: Reto de Meditación 21 Días"
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="edit-short_description">
+                Descripción Corta
+              </Label>
+              <Input
+                id="edit-short_description"
+                value={editFormData.short_description}
+                onChange={(e) => setEditFormData({ ...editFormData, short_description: e.target.value })}
+                placeholder="Breve descripción para mostrar en cards"
+                maxLength={150}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="edit-description">
+                Descripción Completa *
+              </Label>
+              <Textarea
+                id="edit-description"
+                value={editFormData.description}
+                onChange={(e) => setEditFormData({ ...editFormData, description: e.target.value })}
+                placeholder="Describe el reto en detalle..."
+                rows={5}
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="edit-linked_professional_id">
+                Vincular a Profesional (Opcional)
+              </Label>
+              <Select
+                value={editFormData.linked_professional_id}
+                onValueChange={(value) => setEditFormData({ ...editFormData, linked_professional_id: value })}
+                disabled={loadingProfessionals}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder={loadingProfessionals ? "Cargando..." : "Selecciona un profesional (opcional)"} />
+                </SelectTrigger>
+                <SelectContent className="max-h-[300px]">
+                  <SelectItem value="none">Ninguno (Reto público)</SelectItem>
+                  {professionals.map((prof) => (
+                    <SelectItem key={prof.id} value={prof.id}>
+                      {prof.first_name} {prof.last_name}{prof.profession ? ` - ${prof.profession}` : ''}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit-duration_days">
+                  Duración (días)
+                </Label>
+                <Input
+                  id="edit-duration_days"
+                  type="number"
+                  min="1"
+                  value={editFormData.duration_days}
+                  onChange={(e) => setEditFormData({ ...editFormData, duration_days: e.target.value })}
+                  placeholder="Ej: 21"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-difficulty_level">
+                  Nivel de Dificultad
+                </Label>
+                <Select
+                  value={editFormData.difficulty_level}
+                  onValueChange={(value) => setEditFormData({ ...editFormData, difficulty_level: value })}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Selecciona nivel" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {DIFFICULTY_OPTIONS.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="edit-category">
+                Categoría
+              </Label>
+              <Input
+                id="edit-category"
+                value={editFormData.category}
+                onChange={(e) => setEditFormData({ ...editFormData, category: e.target.value })}
+                placeholder="Ej: Meditación, Fitness, Nutrición"
+              />
+            </div>
+
+            <WellnessAreasSelector
+              selectedAreas={editFormData.wellness_areas}
+              onAreasChange={(areas) => setEditFormData({ ...editFormData, wellness_areas: areas })}
+              label="Áreas de Bienestar"
+              description="Selecciona las áreas de bienestar relacionadas con este reto"
+            />
+
+            <div className="space-y-2">
+              <Label>Imagen de Portada</Label>
+              <div className="space-y-3">
+                {editFormData.cover_image_url ? (
+                  <div className="relative h-48 w-full rounded-lg overflow-hidden border-2 border-dashed border-muted">
+                    <Image
+                      src={editFormData.cover_image_url}
+                      alt="Portada"
+                      fill
+                      className="object-cover"
+                    />
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      size="icon"
+                      className="absolute top-2 right-2 shadow-lg"
+                      onClick={() => setEditFormData({ ...editFormData, cover_image_url: "" })}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="relative h-48 w-full rounded-lg border-2 border-dashed border-muted bg-muted/10 flex flex-col items-center justify-center gap-2 hover:bg-muted/20 transition-colors">
+                    <Upload className="h-8 w-8 text-muted-foreground" />
+                    <p className="text-sm text-muted-foreground">Subir imagen de portada</p>
+                    <input
+                      ref={editCoverFileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handleEditCoverImageUpload}
+                      className="hidden"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => editCoverFileInputRef.current?.click()}
+                      disabled={uploadingCover}
+                    >
+                      {uploadingCover ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Subiendo...
+                        </>
+                      ) : (
+                        "Seleccionar Imagen"
+                      )}
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="flex gap-2 pt-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  setIsEditDialogOpen(false);
+                  setEditingChallenge(null);
+                }}
+                className="flex-1"
+              >
+                Cancelar
+              </Button>
+              <Button type="submit" disabled={saving} className="flex-1">
+                {saving ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Guardando...
+                  </>
+                ) : (
+                  "Actualizar Reto"
                 )}
               </Button>
             </div>

@@ -9,7 +9,6 @@ import {
   Download,
   Clock,
   FileText,
-  ArrowLeft,
   Star,
   Sparkles,
   BookOpen,
@@ -226,64 +225,47 @@ export default function ProgramDetailPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="border-b border-border bg-card">
-        <div className="flex h-16 items-center gap-4 px-6">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => router.back()}
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <div>
-            <h1 className="text-2xl font-bold text-foreground">{product.title}</h1>
-            <p className="text-sm text-muted-foreground">
-              Programa Digital
-            </p>
-          </div>
-        </div>
-      </div>
-
       {/* Main Content */}
       <div className="p-6">
         <div className="max-w-5xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Left Column - Product Details */}
             <div className="lg:col-span-2 space-y-6">
+              {/* Title */}
+              <div className="space-y-2">
+                <h1 className="text-3xl font-bold text-foreground">{product.title}</h1>
+                <p className="text-sm text-muted-foreground">Programa Digital</p>
+              </div>
+
               {/* Cover Image */}
-              <Card>
-                <CardContent className="p-0">
-                  <div className="relative h-96 bg-gradient-to-br from-primary/10 to-primary/5 overflow-hidden rounded-t-lg">
-                    {product.cover_image_url ? (
-                      <Image
-                        src={product.cover_image_url}
-                        alt={product.title}
-                        fill
-                        className="object-cover"
-                      />
-                    ) : (
-                      <div className="flex items-center justify-center h-full">
-                        <CategoryIcon className="h-32 w-32 text-primary/40" />
-                      </div>
-                    )}
-                    <div className="absolute top-4 left-4">
-                      <Badge variant="default" className="bg-primary/90 backdrop-blur-sm">
-                        <CategoryIcon className="h-3 w-3 mr-1" />
-                        {CATEGORY_LABELS[product.category] || product.category}
-                      </Badge>
-                    </div>
-                    {product.sales_count > 0 && (
-                      <div className="absolute top-4 right-4">
-                        <Badge variant="secondary" className="bg-background/90 backdrop-blur-sm">
-                          <Star className="h-3 w-3 mr-1 fill-yellow-400 text-yellow-400" />
-                          {product.sales_count} ventas
-                        </Badge>
-                      </div>
-                    )}
+              <div className="relative h-96 bg-gradient-to-br from-primary/10 to-primary/5 overflow-hidden rounded-lg">
+                {product.cover_image_url ? (
+                  <Image
+                    src={product.cover_image_url}
+                    alt={product.title}
+                    fill
+                    className="object-cover"
+                  />
+                ) : (
+                  <div className="flex items-center justify-center h-full">
+                    <CategoryIcon className="h-32 w-32 text-primary/40" />
                   </div>
-                </CardContent>
-              </Card>
+                )}
+                <div className="absolute top-4 left-4">
+                  <Badge variant="default" className="bg-primary/90 backdrop-blur-sm">
+                    <CategoryIcon className="h-3 w-3 mr-1" />
+                    {CATEGORY_LABELS[product.category] || product.category}
+                  </Badge>
+                </div>
+                {product.sales_count > 0 && (
+                  <div className="absolute top-4 right-4">
+                    <Badge variant="secondary" className="bg-background/90 backdrop-blur-sm">
+                      <Star className="h-3 w-3 mr-1 fill-yellow-400 text-yellow-400" />
+                      {product.sales_count} ventas
+                    </Badge>
+                  </div>
+                )}
+              </div>
 
               {/* Description */}
               <Card>

@@ -573,7 +573,7 @@ const HomeUserPage = () => {
                   {digitalProducts.map((product) => (
                     <Link
                       key={product.id}
-                      href={`/patient/${userId}/my-products`}
+                      href={`/patient/${userId}/explore/program/${product.id}`}
                       className="shrink-0 w-80"
                     >
                       <Card className="overflow-hidden hover:shadow-lg transition-shadow py-4">

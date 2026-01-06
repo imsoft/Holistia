@@ -21,7 +21,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { SidebarTrigger } from "@/components/ui/sidebar";
 import { createClient } from "@/utils/supabase/client";
 import { VerifiedBadge } from "@/components/ui/verified-badge";
 
@@ -222,14 +221,11 @@ export default function MyProducts() {
       {/* Header */}
       <div className="border-b border-border bg-card">
         <div className="flex h-16 items-center justify-between px-6">
-          <div className="flex items-center gap-4">
-            <SidebarTrigger />
-            <div>
-              <h1 className="text-2xl font-bold text-foreground">Mis Programas</h1>
-              <p className="text-sm text-muted-foreground">
-                Programas que has comprado
-              </p>
-            </div>
+          <div>
+            <h1 className="text-2xl font-bold text-foreground">Mis Programas</h1>
+            <p className="text-sm text-muted-foreground">
+              Programas que has comprado
+            </p>
           </div>
         </div>
       </div>

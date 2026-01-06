@@ -53,8 +53,8 @@ SET
   registration_fee_paid = TRUE,
   registration_fee_paid_at = NOW(),
   registration_fee_expires_at = NOW() + INTERVAL '1 year',
-  -- Mantener el monto actual si existe, sino usar 888.00 (monto estándar actual)
-  registration_fee_amount = COALESCE(registration_fee_amount, 888.00),
+  -- Establecer el monto a 888.00 (monto estándar actual de inscripción)
+  registration_fee_amount = 888.00,
   registration_fee_currency = COALESCE(registration_fee_currency, 'mxn')
 WHERE email = 'holisticobymariana@gmail.com'
    OR (first_name ILIKE '%Mariana%' AND last_name ILIKE '%Ondarreta%');

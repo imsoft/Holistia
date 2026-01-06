@@ -1,10 +1,9 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import { useParams, useRouter } from "next/navigation";
 import {
   ShoppingBag,
-  Download,
   Clock,
   FileText,
   Tag,
@@ -18,16 +17,6 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import { createClient } from "@/utils/supabase/client";
-import { toast } from "sonner";
 
 interface DigitalProductCardProps {
   product: {
@@ -76,107 +65,18 @@ export function DigitalProductCard({
   product,
   showProfessional = false,
 }: DigitalProductCardProps) {
-  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
-  const [hasPurchased, setHasPurchased] = useState(false);
-  const [isPurchasing, setIsPurchasing] = useState(false);
-  const supabase = createClient();
+  const params = useParams();
+  const router = useRouter();
+  const userId = params.id as string;
 
   const CategoryIcon = CATEGORY_ICONS[product.category] || Tag;
 
-  const checkIfPurchased = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return false;
-
-    const { data } = await supabase
-      .from("digital_product_purchases")
-      .select("id")
-      .eq("product_id", product.id)
-      .eq("buyer_id", user.id)
-      .eq("payment_status", "succeeded")
-      .maybeSingle();
-
-    return !!data;
-  };
-
-  const handleOpenDetails = async () => {
-    setIsDetailsOpen(true);
-    const purchased = await checkIfPurchased();
-    setHasPurchased(purchased);
-  };
-
-  const handlePurchase = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      toast.error("Debes iniciar sesión para comprar");
-      return;
-    }
-
-    try {
-      setIsPurchasing(true);
-      toast.loading("Procesando compra...");
-      
-      const response = await fetch('/api/stripe/digital-product-checkout', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          product_id: product.id,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Error al procesar la compra');
-      }
-
-      // Redirect to Stripe Checkout
-      if (data.url) {
-        window.location.href = data.url;
-      } else {
-        throw new Error('No se recibió la URL de checkout');
-      }
-    } catch (error) {
-      console.error('Error processing purchase:', error);
-      toast.error(error instanceof Error ? error.message : 'Error al procesar la compra');
-      setIsPurchasing(false);
-    }
-  };
-
-  const handleDownload = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      toast.error("Debes iniciar sesión");
-      return;
-    }
-
-    // Obtener la URL del archivo del producto
-    const { data: productData } = await supabase
-      .from("digital_products")
-      .select("file_url")
-      .eq("id", product.id)
-      .single();
-
-    if (!productData?.file_url) {
-      toast.error("No hay archivo disponible para descargar");
-      return;
-    }
-
-    // Incrementar contador de descargas
-    await supabase.rpc("increment_download_count", {
-      p_product_id: product.id,
-      p_user_id: user.id,
-    });
-
-    // Abrir el archivo en nueva pestaña
-    window.open(productData.file_url, "_blank");
-    toast.success("Descargando producto...");
+  const handleClick = () => {
+    router.push(`/patient/${userId}/explore/program/${product.id}`);
   };
 
   return (
-    <>
-      <Card className="hover:shadow-lg transition-all duration-300 overflow-hidden group cursor-pointer py-4" onClick={handleOpenDetails}>
+    <Card className="hover:shadow-lg transition-all duration-300 overflow-hidden group cursor-pointer py-4" onClick={handleClick}>
         <div className="relative h-56 bg-gradient-to-br from-primary/10 to-primary/5 overflow-hidden">
           {product.cover_image_url ? (
             <Image
@@ -274,120 +174,5 @@ export function DigitalProductCard({
           </div>
         </CardContent>
       </Card>
-
-      {/* Details Dialog */}
-      <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="text-2xl">{product.title}</DialogTitle>
-            <DialogDescription>
-              <Badge variant="outline" className="mt-2">
-                <CategoryIcon className="h-3 w-3 mr-1" />
-                {CATEGORY_LABELS[product.category] || product.category}
-              </Badge>
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-6">
-            {/* Cover Image */}
-            {product.cover_image_url && (
-              <div className="relative h-64 rounded-lg overflow-hidden">
-                <Image
-                  src={product.cover_image_url}
-                  alt={product.title}
-                  fill
-                  className="object-cover"
-                />
-              </div>
-            )}
-
-            {/* Description */}
-            <div>
-              <h3 className="font-semibold mb-2">Descripción</h3>
-              <p className="text-muted-foreground whitespace-pre-wrap">{product.description}</p>
-            </div>
-
-            {/* Details */}
-            <div className="grid grid-cols-2 gap-4">
-              {product.duration_minutes && (
-                <div className="flex items-center gap-2">
-                  <Clock className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm">Duración: {product.duration_minutes} minutos</span>
-                </div>
-              )}
-              {product.pages_count && (
-                <div className="flex items-center gap-2">
-                  <FileText className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm">Páginas: {product.pages_count}</span>
-                </div>
-              )}
-              {product.sales_count > 0 && (
-                <div className="flex items-center gap-2">
-                  <Download className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm">{product.sales_count} personas lo compraron</span>
-                </div>
-              )}
-            </div>
-
-
-
-            {/* Professional Info */}
-            {showProfessional && product.professional_first_name && (
-              <div className="flex items-center gap-3 p-4 bg-muted rounded-lg">
-                {product.professional_photo ? (
-                  <Image
-                    src={product.professional_photo}
-                    alt=""
-                    width={48}
-                    height={48}
-                    className="rounded-full"
-                  />
-                ) : (
-                  <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                    <span className="text-lg font-medium text-primary">
-                      {product.professional_first_name[0]}
-                    </span>
-                  </div>
-                )}
-                <div>
-                  <p className="font-medium">
-                    {product.professional_first_name} {product.professional_last_name}
-                  </p>
-                  {product.professional_is_verified && (
-                    <Badge variant="outline" className="text-xs mt-1">Profesional Verificado</Badge>
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
-
-          <DialogFooter className="flex-col sm:flex-row gap-3">
-            <div className="flex-1">
-              <p className="text-3xl font-bold text-primary">
-                ${product.price.toLocaleString('es-MX')}
-              </p>
-              <p className="text-sm text-muted-foreground">{product.currency}</p>
-            </div>
-
-            {hasPurchased ? (
-              <div className="flex gap-2">
-                <Badge variant="default" className="text-sm py-2 px-4">
-                  Ya compraste este producto
-                </Badge>
-                <Button onClick={handleDownload}>
-                  <Download className="h-4 w-4 mr-2" />
-                  Descargar
-                </Button>
-              </div>
-            ) : (
-              <Button size="lg" onClick={handlePurchase} disabled={isPurchasing} className="gap-2">
-                <ShoppingBag className="h-5 w-5" />
-                {isPurchasing ? 'Procesando...' : 'Comprar Ahora'}
-              </Button>
-            )}
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </>
   );
 }

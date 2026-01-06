@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import {
   ChevronLeft,
   ChevronRight,
@@ -50,7 +50,6 @@ import { Appointment } from "@/types";
 import { createClient } from "@/utils/supabase/client";
 import { AppointmentActionsDialog } from "@/components/appointments/appointment-actions-dialog";
 import { RescheduleAppointmentDialog } from "@/components/appointments/reschedule-appointment-dialog";
-import { CreateAppointmentDialog } from "@/components/appointments/create-appointment-dialog";
 import { toast } from "sonner";
 import { listUserGoogleCalendarEvents, syncAllAppointmentsToGoogleCalendar } from "@/actions/google-calendar";
 import { RefreshCw } from "lucide-react";
@@ -79,6 +78,7 @@ const viewLabels = {
 
 export default function ProfessionalAppointments() {
   const params = useParams();
+  const router = useRouter();
   const userId = params.id as string;
   const supabase = createClient();
 
@@ -123,8 +123,6 @@ export default function ProfessionalAppointments() {
     currentDate: "",
     currentTime: "",
   });
-
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
   useEffect(() => {
     const fetchAppointments = async () => {
@@ -663,15 +661,6 @@ export default function ProfessionalAppointments() {
     window.location.reload();
   };
 
-  const handleCreateDialogClose = () => {
-    setIsCreateDialogOpen(false);
-  };
-
-  const handleCreateSuccess = () => {
-    toast.success("Cita creada exitosamente");
-    window.location.reload();
-  };
-
   const getStatusColor = (status: string) => {
     switch (status) {
       case "confirmed":
@@ -1181,6 +1170,13 @@ export default function ProfessionalAppointments() {
 
           <div className="flex items-center gap-2">
             <Button
+              size="sm"
+              onClick={() => router.push(`/professional/${userId}/appointments/new`)}
+              className="w-full sm:w-auto"
+            >
+              + Nueva Cita
+            </Button>
+            <Button
               variant="outline"
               size="sm"
               onClick={handleSyncCalendar}
@@ -1363,13 +1359,6 @@ export default function ProfessionalAppointments() {
           onSuccess={handleRescheduleSuccess}
         />
       )}
-
-      <CreateAppointmentDialog
-        isOpen={isCreateDialogOpen}
-        onClose={handleCreateDialogClose}
-        professionalId={professionalAppId}
-        onSuccess={handleCreateSuccess}
-      />
 
       {/* Google Calendar Integration */}
       <div className="p-6">

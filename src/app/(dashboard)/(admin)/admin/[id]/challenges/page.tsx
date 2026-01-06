@@ -179,31 +179,48 @@ export default function AdminChallengesPage() {
         return;
       }
 
-      // Obtener todos los retos con información del profesional (si existe)
+      // Obtener todos los retos
       const { data: challengesData, error } = await supabase
         .from('challenges')
-        .select(`
-          *,
-          professional_applications(
-            first_name,
-            last_name,
-            email
-          )
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching challenges:", error);
+        throw error;
+      }
+
+      // Obtener información de profesionales para los retos que tienen professional_id
+      const professionalIds = (challengesData || [])
+        .filter((c: any) => c.professional_id)
+        .map((c: any) => c.professional_id);
+      
+      let professionalsMap: Record<string, any> = {};
+      if (professionalIds.length > 0) {
+        const { data: professionalsData } = await supabase
+          .from('professional_applications')
+          .select('id, first_name, last_name, email')
+          .in('id', professionalIds);
+
+        if (professionalsData) {
+          professionalsMap = professionalsData.reduce((acc: Record<string, any>, prof: any) => {
+            acc[prof.id] = prof;
+            return acc;
+          }, {});
+        }
+      }
 
       const formattedChallenges = (challengesData || []).map((challenge: any) => {
-        const professional = Array.isArray(challenge.professional_applications) 
-          ? challenge.professional_applications[0]
-          : challenge.professional_applications;
+        const professional = challenge.professional_id ? professionalsMap[challenge.professional_id] : null;
         
         return {
           ...challenge,
           professional_name: professional
             ? `${professional.first_name} ${professional.last_name}`
-            : challenge.created_by_type === 'admin' ? 'Administrador' : challenge.created_by_type === 'patient' ? 'Paciente' : 'Desconocido',
+            : challenge.created_by_type === 'admin' ? 'Administrador' 
+            : challenge.created_by_type === 'patient' ? 'Paciente' 
+            : challenge.created_by_type === 'professional' ? 'Profesional' 
+            : 'Desconocido',
           professional_email: professional?.email,
         };
       });
@@ -221,9 +238,10 @@ export default function AdminChallengesPage() {
         totalParticipants: participantsCount || 0,
       });
 
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error fetching challenges:", error);
-      toast.error("Error al cargar retos");
+      const errorMessage = getFullErrorMessage(error, "Error al cargar retos");
+      toast.error(errorMessage, { duration: 6000 });
     } finally {
       setLoading(false);
     }

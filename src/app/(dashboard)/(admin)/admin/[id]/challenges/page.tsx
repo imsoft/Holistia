@@ -537,7 +537,7 @@ export default function AdminChallengesPage() {
 
       <div className="flex-1 overflow-y-auto p-6">
         {/* Estadísticas */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
           <Card className="py-4">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
@@ -581,11 +581,11 @@ export default function AdminChallengesPage() {
               placeholder="Buscar por título, profesional, email o categoría..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
+              className="pl-10 w-full"
             />
           </div>
           <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger>
+            <SelectTrigger className="w-full">
               <SelectValue placeholder="Estado" />
             </SelectTrigger>
             <SelectContent>
@@ -595,7 +595,7 @@ export default function AdminChallengesPage() {
             </SelectContent>
           </Select>
           <Select value={difficultyFilter} onValueChange={setDifficultyFilter}>
-            <SelectTrigger>
+            <SelectTrigger className="w-full">
               <SelectValue placeholder="Dificultad" />
             </SelectTrigger>
             <SelectContent>

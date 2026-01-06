@@ -17,8 +17,15 @@ export async function GET(request: Request) {
     const unreadOnly = searchParams.get("unreadOnly") === "true";
 
     let query = supabase
-      .from("notifications_with_details")
-      .select("*")
+      .from("notifications")
+      .select(`
+        *,
+        related_user:profiles!notifications_related_user_id_fkey(
+          first_name,
+          last_name,
+          avatar_url
+        )
+      `)
       .eq("user_id", user.id)
       .order("created_at", { ascending: false });
 
@@ -33,6 +40,14 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
+    // Transformar datos para incluir información del usuario relacionado
+    const transformedData = (data || []).map((notification: any) => ({
+      ...notification,
+      related_user_first_name: notification.related_user?.first_name || null,
+      related_user_last_name: notification.related_user?.last_name || null,
+      related_user_avatar: notification.related_user?.avatar_url || null,
+    }));
+
     // Obtener conteo de no leídas
     const { count: unreadCount } = await supabase
       .from("notifications")
@@ -41,10 +56,10 @@ export async function GET(request: Request) {
       .eq("is_read", false);
 
     return NextResponse.json({
-      data: data || [],
+      data: transformedData || [],
       count: count || 0,
       unreadCount: unreadCount || 0,
-      hasMore: (data?.length || 0) === limit,
+      hasMore: (transformedData?.length || 0) === limit,
     });
   } catch (error) {
     console.error("Error fetching notifications:", error);

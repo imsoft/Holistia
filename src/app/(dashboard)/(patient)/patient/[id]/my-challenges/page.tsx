@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import Image from "next/image";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,7 +9,18 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { createClient } from "@/utils/supabase/client";
 import { toast } from "sonner";
-import { Calendar, Target, Loader2, CheckCircle2, Circle, Users, Plus, Edit } from "lucide-react";
+import { Calendar, Target, Loader2, CheckCircle2, Circle, Users, Plus, Edit, Upload, X } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { WellnessAreasSelector } from "@/components/ui/wellness-areas-selector";
 import { CheckinForm } from "@/components/ui/checkin-form";
 import { ChallengeProgress } from "@/components/ui/challenge-progress";
 import { ChallengeBadges } from "@/components/ui/challenge-badges";
@@ -100,10 +111,58 @@ export default function MyChallengesPage() {
   const [teamId, setTeamId] = useState<string | null>(null);
   const [teamName, setTeamName] = useState<string | null>(null);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [uploadingCover, setUploadingCover] = useState(false);
+  const [professionals, setProfessionals] = useState<any[]>([]);
+  const [loadingProfessionals, setLoadingProfessionals] = useState(false);
+  const [createFormData, setCreateFormData] = useState({
+    title: "",
+    description: "",
+    short_description: "",
+    cover_image_url: "",
+    duration_days: "",
+    difficulty_level: "",
+    category: "",
+    wellness_areas: [] as string[],
+    linked_professional_id: "none",
+    is_active: true,
+  });
+  const coverFileInputRef = React.useRef<HTMLInputElement>(null);
+
+  const DIFFICULTY_OPTIONS = [
+    { value: 'beginner', label: 'Principiante' },
+    { value: 'intermediate', label: 'Intermedio' },
+    { value: 'advanced', label: 'Avanzado' },
+    { value: 'expert', label: 'Experto' },
+  ] as const;
 
   useEffect(() => {
     fetchChallenges();
+    fetchProfessionals();
   }, []);
+
+  const fetchProfessionals = async () => {
+    try {
+      setLoadingProfessionals(true);
+      const { data, error } = await supabase
+        .from('professional_applications')
+        .select('id, first_name, last_name, profession, is_verified')
+        .eq('status', 'approved')
+        .eq('is_active', true)
+        .order('first_name', { ascending: true });
+
+      if (error) {
+        console.error('Error cargando profesionales:', error);
+        return;
+      }
+
+      setProfessionals(data || []);
+    } catch (error) {
+      console.error("Error fetching professionals:", error);
+    } finally {
+      setLoadingProfessionals(false);
+    }
+  };
 
   const fetchChallenges = async () => {
     try {
@@ -135,7 +194,7 @@ export default function MyChallengesPage() {
             category,
             created_by_type,
             linked_professional_id,
-            professional_applications(
+            professional_applications:challenges_linked_professional_id_fkey(
               first_name,
               last_name,
               profile_photo,
@@ -300,6 +359,143 @@ export default function MyChallengesPage() {
       expert: 'bg-red-100 text-red-800',
     };
     return colors[level || ''] || 'bg-gray-100 text-gray-800';
+  };
+
+  const handleCreateCoverImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast.error('Por favor selecciona un archivo de imagen válido');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('El archivo es demasiado grande. El tamaño máximo es 5MB.');
+      return;
+    }
+
+    try {
+      setUploadingCover(true);
+      const { data: { user } } = await supabase.auth.getUser();
+
+      if (!user) {
+        toast.error("Debes iniciar sesión");
+        return;
+      }
+
+      // Crear reto temporal para subir imagen
+      const tempChallenge = {
+        created_by_user_id: user.id,
+        created_by_type: 'patient',
+        title: createFormData.title || "Nuevo Reto",
+        description: createFormData.description || "",
+        linked_professional_id: createFormData.linked_professional_id && createFormData.linked_professional_id !== 'none' ? createFormData.linked_professional_id : null,
+        is_active: false,
+      };
+
+      const response = await fetch('/api/challenges', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(tempChallenge),
+      });
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Error al crear reto temporal");
+
+      const challengeId = data.challenge.id;
+
+      const fileExt = file.name.split('.').pop();
+      const fileName = `cover.${fileExt}`;
+      const filePath = `${challengeId}/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('challenges')
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: true
+        });
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('challenges')
+        .getPublicUrl(filePath);
+
+      setCreateFormData({ ...createFormData, cover_image_url: publicUrl });
+      toast.success("Imagen de portada subida exitosamente");
+
+    } catch (error) {
+      console.error("Error uploading cover image:", error);
+      toast.error("Error al subir la imagen de portada");
+    } finally {
+      setUploadingCover(false);
+    }
+  };
+
+  const handleCreateSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!createFormData.title?.trim() || !createFormData.description?.trim()) {
+      toast.error("Por favor completa el título y la descripción");
+      return;
+    }
+
+    try {
+      setSaving(true);
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        toast.error("Debes iniciar sesión");
+        return;
+      }
+
+      const challengeData = {
+        professional_id: null,
+        created_by_user_id: user.id,
+        created_by_type: 'patient',
+        title: createFormData.title.trim(),
+        description: createFormData.description.trim(),
+        short_description: createFormData.short_description?.trim() || null,
+        cover_image_url: createFormData.cover_image_url || null,
+        duration_days: createFormData.duration_days ? parseInt(createFormData.duration_days) : null,
+        difficulty_level: createFormData.difficulty_level || null,
+        category: createFormData.category || null,
+        wellness_areas: createFormData.wellness_areas || [],
+        linked_professional_id: createFormData.linked_professional_id && createFormData.linked_professional_id !== 'none' ? createFormData.linked_professional_id : null,
+        is_active: createFormData.is_active,
+      };
+
+      const response = await fetch('/api/challenges', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(challengeData),
+      });
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Error al crear reto");
+
+      toast.success("Reto creado exitosamente");
+      setIsCreateDialogOpen(false);
+      setCreateFormData({
+        title: "",
+        description: "",
+        short_description: "",
+        cover_image_url: "",
+        duration_days: "",
+        difficulty_level: "",
+        category: "",
+        wellness_areas: [],
+        linked_professional_id: "none",
+        is_active: true,
+      });
+      fetchChallenges();
+    } catch (error) {
+      console.error("Error saving challenge:", error);
+      toast.error(error instanceof Error ? error.message : "Error al guardar reto");
+    } finally {
+      setSaving(false);
+    }
   };
 
   if (loading) {
@@ -725,35 +921,207 @@ export default function MyChallengesPage() {
 
       {/* Diálogo para crear reto personal */}
       <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Crear Reto Personal</DialogTitle>
             <DialogDescription>
               Crea tu propio reto personalizado. Podrás invitar hasta 5 amigos y opcionalmente vincularlo a un profesional para supervisión.
             </DialogDescription>
           </DialogHeader>
-          <div className="py-4">
-            <p className="text-sm text-muted-foreground mb-4">
-              Para crear y editar tu reto con todas las opciones disponibles, serás redirigido a la página de gestión de retos.
-            </p>
-            <div className="flex gap-2">
+
+          <form onSubmit={handleCreateSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="create-title">
+                Título *
+              </Label>
+              <Input
+                id="create-title"
+                value={createFormData.title}
+                onChange={(e) => setCreateFormData({ ...createFormData, title: e.target.value })}
+                placeholder="Ej: Reto de Meditación 21 Días"
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="create-short_description">
+                Descripción Corta
+              </Label>
+              <Input
+                id="create-short_description"
+                value={createFormData.short_description}
+                onChange={(e) => setCreateFormData({ ...createFormData, short_description: e.target.value })}
+                placeholder="Breve descripción para mostrar en cards"
+                maxLength={150}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="create-description">
+                Descripción Completa *
+              </Label>
+              <Textarea
+                id="create-description"
+                value={createFormData.description}
+                onChange={(e) => setCreateFormData({ ...createFormData, description: e.target.value })}
+                placeholder="Describe el reto en detalle..."
+                rows={5}
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="create-linked_professional_id">
+                Vincular a Profesional (Opcional)
+              </Label>
+              <Select
+                value={createFormData.linked_professional_id}
+                onValueChange={(value) => setCreateFormData({ ...createFormData, linked_professional_id: value })}
+                disabled={loadingProfessionals}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder={loadingProfessionals ? "Cargando..." : "Selecciona un profesional (opcional)"} />
+                </SelectTrigger>
+                <SelectContent className="max-h-[300px]">
+                  <SelectItem value="none">Ninguno (Reto público)</SelectItem>
+                  {professionals.map((prof) => (
+                    <SelectItem key={prof.id} value={prof.id}>
+                      {prof.first_name} {prof.last_name}{prof.profession ? ` - ${prof.profession}` : ''}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="create-duration_days">
+                  Duración (días)
+                </Label>
+                <Input
+                  id="create-duration_days"
+                  type="number"
+                  min="1"
+                  value={createFormData.duration_days}
+                  onChange={(e) => setCreateFormData({ ...createFormData, duration_days: e.target.value })}
+                  placeholder="Ej: 21"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="create-difficulty_level">
+                  Nivel de Dificultad
+                </Label>
+                <Select
+                  value={createFormData.difficulty_level}
+                  onValueChange={(value) => setCreateFormData({ ...createFormData, difficulty_level: value })}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Selecciona nivel" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {DIFFICULTY_OPTIONS.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="create-category">
+                Categoría
+              </Label>
+              <Input
+                id="create-category"
+                value={createFormData.category}
+                onChange={(e) => setCreateFormData({ ...createFormData, category: e.target.value })}
+                placeholder="Ej: Meditación, Fitness, Nutrición"
+              />
+            </div>
+
+            <WellnessAreasSelector
+              selectedAreas={createFormData.wellness_areas}
+              onAreasChange={(areas) => setCreateFormData({ ...createFormData, wellness_areas: areas })}
+              label="Áreas de Bienestar"
+              description="Selecciona las áreas de bienestar relacionadas con este reto"
+            />
+
+            <div className="space-y-2">
+              <Label>Imagen de Portada</Label>
+              <div className="space-y-3">
+                {createFormData.cover_image_url ? (
+                  <div className="relative h-48 w-full rounded-lg overflow-hidden border-2 border-dashed border-muted">
+                    <Image
+                      src={createFormData.cover_image_url}
+                      alt="Portada"
+                      fill
+                      className="object-cover"
+                    />
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      size="icon"
+                      className="absolute top-2 right-2 shadow-lg"
+                      onClick={() => setCreateFormData({ ...createFormData, cover_image_url: "" })}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="relative h-48 w-full rounded-lg border-2 border-dashed border-muted bg-muted/10 flex flex-col items-center justify-center gap-2 hover:bg-muted/20 transition-colors">
+                    <Upload className="h-8 w-8 text-muted-foreground" />
+                    <p className="text-sm text-muted-foreground">Subir imagen de portada</p>
+                    <input
+                      ref={coverFileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handleCreateCoverImageUpload}
+                      className="hidden"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => coverFileInputRef.current?.click()}
+                      disabled={uploadingCover}
+                    >
+                      {uploadingCover ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Subiendo...
+                        </>
+                      ) : (
+                        "Seleccionar Imagen"
+                      )}
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="flex gap-2 pt-4">
               <Button
+                type="button"
                 variant="outline"
                 onClick={() => setIsCreateDialogOpen(false)}
                 className="flex-1"
               >
                 Cancelar
               </Button>
-              <Button
-                onClick={() => {
-                  window.location.href = `/patient/${userId}/challenges`;
-                }}
-                className="flex-1"
-              >
-                Ir a Crear Reto
+              <Button type="submit" disabled={saving} className="flex-1">
+                {saving ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Guardando...
+                  </>
+                ) : (
+                  "Crear Reto"
+                )}
               </Button>
             </div>
-          </div>
+          </form>
         </DialogContent>
       </Dialog>
     </div>

@@ -23,11 +23,19 @@ export async function GET(request: Request) {
           team_name,
           max_members,
           is_full,
-          challenge:challenges(id, title, cover_image_url),
-          creator:profiles!challenge_teams_creator_id_fkey(first_name, last_name, avatar_url)
+          creator_id,
+          challenge:challenges(id, title, cover_image_url)
         ),
-        inviter:profiles!challenge_team_invitations_inviter_id_fkey(first_name, last_name, avatar_url),
-        invitee:profiles!challenge_team_invitations_invitee_id_fkey(first_name, last_name, avatar_url)
+        inviter:profiles!challenge_team_invitations_inviter_id_fkey(
+          first_name,
+          last_name,
+          avatar_url
+        ),
+        invitee:profiles!challenge_team_invitations_invitee_id_fkey(
+          first_name,
+          last_name,
+          avatar_url
+        )
       `)
       .order("created_at", { ascending: false });
 
@@ -40,10 +48,33 @@ export async function GET(request: Request) {
     const { data, error } = await query;
 
     if (error) {
+      console.error("Error fetching invitations:", error);
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    return NextResponse.json({ data: data || [] });
+    // Obtener información del creador del equipo por separado si es necesario
+    const enrichedData = await Promise.all(
+      (data || []).map(async (invitation: any) => {
+        if (invitation.team?.creator_id) {
+          const { data: creator } = await supabase
+            .from("profiles")
+            .select("first_name, last_name, avatar_url")
+            .eq("id", invitation.team.creator_id)
+            .single();
+
+          return {
+            ...invitation,
+            team: {
+              ...invitation.team,
+              creator: creator || null,
+            },
+          };
+        }
+        return invitation;
+      })
+    );
+
+    return NextResponse.json({ data: enrichedData || [] });
   } catch (error) {
     console.error("Error fetching invitations:", error);
     return NextResponse.json({ error: "Error al obtener invitaciones" }, { status: 500 });

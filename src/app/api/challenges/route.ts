@@ -110,34 +110,63 @@ export async function POST(request: NextRequest) {
     }
 
     // Validar created_by_type
-    if (created_by_type && !['professional', 'patient'].includes(created_by_type)) {
+    if (created_by_type && !['professional', 'patient', 'admin'].includes(created_by_type)) {
       return NextResponse.json(
-        { error: 'created_by_type debe ser "professional" o "patient"' },
+        { error: 'created_by_type debe ser "professional", "patient" o "admin"' },
         { status: 400 }
       );
     }
 
-    // Si es profesional, verificar que existe y está aprobado
-    if (professional_id) {
+    // Verificar si es admin
+    const { data: adminUser } = await supabase
+      .from('admin_users')
+      .select('id')
+      .eq('user_id', user.id)
+      .single();
+
+    const isAdmin = !!adminUser;
+
+    // Si es admin, puede crear retos sin restricciones de profesional
+    if (isAdmin && created_by_type === 'admin') {
+      // Los admins pueden crear retos sin professional_id o con cualquier professional_id
+      // No se requiere validación adicional
+    } else if (professional_id) {
+      // Si es profesional, verificar que existe y está aprobado
       const { data: professional, error: profError } = await supabase
         .from('professional_applications')
         .select('id, user_id, status, is_active')
-        .eq('id', professional_id)
-        .eq('user_id', user.id)
-        .single();
+        .eq('id', professional_id);
 
-      if (profError || !professional) {
-        return NextResponse.json(
-          { error: 'Profesional no encontrado o no autorizado' },
-          { status: 403 }
-        );
-      }
+      // Si no es admin, debe ser el dueño del profesional
+      if (!isAdmin) {
+        const profQuery = profError ? null : await supabase
+          .from('professional_applications')
+          .select('id, user_id, status, is_active')
+          .eq('id', professional_id)
+          .eq('user_id', user.id)
+          .single();
 
-      if (professional.status !== 'approved' || !professional.is_active) {
-        return NextResponse.json(
-          { error: 'El profesional no está aprobado o activo' },
-          { status: 403 }
-        );
+        if (profQuery?.error || !profQuery?.data) {
+          return NextResponse.json(
+            { error: 'Profesional no encontrado o no autorizado' },
+            { status: 403 }
+          );
+        }
+
+        if (profQuery.data.status !== 'approved' || !profQuery.data.is_active) {
+          return NextResponse.json(
+            { error: 'El profesional no está aprobado o activo' },
+            { status: 403 }
+          );
+        }
+      } else {
+        // Admin puede usar cualquier professional_id, solo verificar que existe
+        if (profError || !professional) {
+          return NextResponse.json(
+            { error: 'Profesional no encontrado' },
+            { status: 400 }
+          );
+        }
       }
     }
 
@@ -161,7 +190,7 @@ export async function POST(request: NextRequest) {
     const challengeData: any = {
       professional_id: professional_id || null,
       created_by_user_id: created_by_user_id || user.id,
-      created_by_type: created_by_type || (professional_id ? 'professional' : 'patient'),
+      created_by_type: created_by_type || (isAdmin ? 'admin' : (professional_id ? 'professional' : 'patient')),
       title,
       description,
       short_description: short_description || null,

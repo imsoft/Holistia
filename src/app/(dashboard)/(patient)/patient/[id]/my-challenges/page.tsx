@@ -163,7 +163,7 @@ export default function MyChallengesPage() {
 
       setChallenges(transformedPurchases);
 
-      // Obtener retos creados por el usuario
+      // Obtener retos creados por el usuario (todos los tipos: patient, professional, admin)
       const { data: created, error: createdError } = await supabase
         .from('challenges')
         .select(`
@@ -187,7 +187,6 @@ export default function MyChallengesPage() {
           )
         `)
         .eq('created_by_user_id', user.id)
-        .eq('created_by_type', 'patient')
         .order('created_at', { ascending: false });
 
       if (createdError) throw createdError;

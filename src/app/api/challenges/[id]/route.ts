@@ -14,7 +14,7 @@ export async function GET(
       .from('challenges')
       .select(`
         *,
-        professional_applications!inner(
+        professional_applications(
           id,
           first_name,
           last_name,
@@ -24,7 +24,6 @@ export async function GET(
         )
       `)
       .eq('id', challengeId)
-      .eq('is_active', true)
       .single();
 
     if (error || !challenge) {
@@ -63,7 +62,7 @@ export async function PUT(
       );
     }
 
-    // Verificar que el reto existe y pertenece al usuario
+    // Verificar que el reto existe
     const { data: existingChallenge, error: checkError } = await supabase
       .from('challenges')
       .select('*')
@@ -77,10 +76,19 @@ export async function PUT(
       );
     }
 
-    // Verificar que el usuario es el creador del reto
-    if (existingChallenge.created_by_user_id !== user.id) {
+    // Verificar si es admin
+    const { data: adminUser } = await supabase
+      .from('admin_users')
+      .select('id')
+      .eq('user_id', user.id)
+      .single();
+
+    const isAdmin = !!adminUser;
+
+    // Verificar que el usuario es el creador del reto o es admin
+    if (!isAdmin && existingChallenge.created_by_user_id !== user.id) {
       return NextResponse.json(
-        { error: 'No autorizado: solo el creador puede actualizar el reto' },
+        { error: 'No autorizado: solo el creador o un administrador puede actualizar el reto' },
         { status: 403 }
       );
     }
@@ -97,6 +105,7 @@ export async function PUT(
       wellness_areas,
       linked_patient_id,
       linked_professional_id,
+      professional_id,
       is_active,
     } = body;
 
@@ -116,6 +125,22 @@ export async function PUT(
       }
     }
 
+    // Si se asigna a un profesional (professional_id), verificar que existe
+    if (professional_id !== undefined && professional_id) {
+      const { data: prof, error: profError } = await supabase
+        .from('professional_applications')
+        .select('id, status, is_active')
+        .eq('id', professional_id)
+        .single();
+
+      if (profError || !prof) {
+        return NextResponse.json(
+          { error: 'Profesional asignado no encontrado' },
+          { status: 400 }
+        );
+      }
+    }
+
     // Actualizar el reto
     const updateData: any = {};
     if (title !== undefined) updateData.title = title;
@@ -128,6 +153,10 @@ export async function PUT(
     if (wellness_areas !== undefined) updateData.wellness_areas = wellness_areas || [];
     if (linked_patient_id !== undefined) updateData.linked_patient_id = linked_patient_id || null;
     if (linked_professional_id !== undefined) updateData.linked_professional_id = linked_professional_id || null;
+    // Solo admins pueden cambiar professional_id
+    if (isAdmin && professional_id !== undefined) {
+      updateData.professional_id = professional_id || null;
+    }
     if (is_active !== undefined) updateData.is_active = is_active;
 
     const { data: challenge, error: updateError } = await supabase
@@ -150,7 +179,9 @@ export async function PUT(
       } else if (updateError.code === '23505') {
         errorMessage = 'Ya tienes otro reto con este título. Por favor, usa un título diferente.';
       } else if (updateError.code === 'PGRST301' || updateError.code === '42501') {
-        errorMessage = 'Solo puedes editar los retos que tú creaste. Si este reto no es tuyo, no puedes modificarlo.';
+        errorMessage = isAdmin 
+          ? 'Error de permisos al actualizar el reto. Si el problema persiste, contacta al soporte de Holistia.'
+          : 'Solo puedes editar los retos que tú creaste. Si este reto no es tuyo, no puedes modificarlo.';
       } else if (updateError.message) {
         errorMessage = updateError.message;
       }
@@ -198,7 +229,7 @@ export async function DELETE(
       );
     }
 
-    // Verificar que el reto existe y pertenece al usuario
+    // Verificar que el reto existe
     const { data: existingChallenge, error: checkError } = await supabase
       .from('challenges')
       .select('*')
@@ -212,10 +243,19 @@ export async function DELETE(
       );
     }
 
-    // Verificar que el usuario es el creador del reto
-    if (existingChallenge.created_by_user_id !== user.id) {
+    // Verificar si es admin
+    const { data: adminUser } = await supabase
+      .from('admin_users')
+      .select('id')
+      .eq('user_id', user.id)
+      .single();
+
+    const isAdmin = !!adminUser;
+
+    // Verificar que el usuario es el creador del reto o es admin
+    if (!isAdmin && existingChallenge.created_by_user_id !== user.id) {
       return NextResponse.json(
-        { error: 'No autorizado: solo el creador puede eliminar el reto' },
+        { error: 'No autorizado: solo el creador o un administrador puede eliminar el reto' },
         { status: 403 }
       );
     }
@@ -235,7 +275,9 @@ export async function DELETE(
       if (deleteError.code === '23503') {
         errorMessage = 'No puedes eliminar este reto porque ya tiene participantes o personas que lo están siguiendo. Primero debes eliminar o finalizar todas las participaciones, y luego podrás eliminar el reto.';
       } else if (deleteError.code === 'PGRST301' || deleteError.code === '42501') {
-        errorMessage = 'Solo puedes eliminar los retos que tú creaste. Si este reto no es tuyo, no puedes eliminarlo.';
+        errorMessage = isAdmin
+          ? 'Error de permisos al eliminar el reto. Si el problema persiste, contacta al soporte de Holistia.'
+          : 'Solo puedes eliminar los retos que tú creaste. Si este reto no es tuyo, no puedes eliminarlo.';
       } else if (deleteError.message) {
         errorMessage = deleteError.message;
       }

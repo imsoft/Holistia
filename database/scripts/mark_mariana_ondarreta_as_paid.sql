@@ -35,7 +35,7 @@ BEGIN
   -- Mostrar información actual
   RAISE NOTICE 'Profesional encontrado:';
   RAISE NOTICE '  ID: %', v_professional_id;
-  RAISE NOTICE '  Monto actual: %', COALESCE(v_current_amount, 'NULL');
+  RAISE NOTICE '  Monto actual: %', COALESCE(v_current_amount::TEXT, 'NULL');
   RAISE NOTICE '  Estado de pago actual: %', COALESCE(v_current_paid::TEXT, 'NULL');
 
   -- Si ya está marcado como pagado, mostrar advertencia

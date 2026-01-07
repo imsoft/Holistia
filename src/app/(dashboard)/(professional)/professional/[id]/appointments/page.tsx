@@ -49,7 +49,6 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Appointment } from "@/types";
 import { createClient } from "@/utils/supabase/client";
 import { AppointmentActionsDialog } from "@/components/appointments/appointment-actions-dialog";
-import { RescheduleAppointmentDialog } from "@/components/appointments/reschedule-appointment-dialog";
 import { toast } from "sonner";
 import { listUserGoogleCalendarEvents, syncAllAppointmentsToGoogleCalendar } from "@/actions/google-calendar";
 import { RefreshCw } from "lucide-react";
@@ -106,22 +105,6 @@ export default function ProfessionalAppointments() {
     isOpen: false,
     appointmentId: null,
     actionType: null,
-  });
-
-  const [rescheduleDialogState, setRescheduleDialogState] = useState<{
-    isOpen: boolean;
-    appointmentId: string | null;
-    currentDate: string;
-    currentTime: string;
-    appointmentDetails?: {
-      patientName?: string;
-      cost: number;
-    };
-  }>({
-    isOpen: false,
-    appointmentId: null,
-    currentDate: "",
-    currentTime: "",
   });
 
   useEffect(() => {
@@ -625,31 +608,7 @@ export default function ProfessionalAppointments() {
   };
 
   const openRescheduleDialog = (appointment: Appointment) => {
-    const patientName = appointment.patient?.name || "Paciente";
-    setRescheduleDialogState({
-      isOpen: true,
-      appointmentId: appointment.id,
-      currentDate: appointment.date,
-      currentTime: appointment.time,
-      appointmentDetails: {
-        patientName: patientName,
-        cost: appointment.cost || 0,
-      },
-    });
-  };
-
-  const closeRescheduleDialog = () => {
-    setRescheduleDialogState({
-      isOpen: false,
-      appointmentId: null,
-      currentDate: "",
-      currentTime: "",
-    });
-  };
-
-  const handleRescheduleSuccess = () => {
-    closeRescheduleDialog();
-    window.location.reload();
+    router.push(`/professional/${userId}/appointments/${appointment.id}/reschedule`);
   };
 
   const handleDialogSuccess = () => {
@@ -1344,19 +1303,6 @@ export default function ProfessionalAppointments() {
           userRole="professional"
           appointmentDetails={dialogState.appointmentDetails}
           onSuccess={handleDialogSuccess}
-        />
-      )}
-
-      {rescheduleDialogState.isOpen && rescheduleDialogState.appointmentId && (
-        <RescheduleAppointmentDialog
-          isOpen={rescheduleDialogState.isOpen}
-          onClose={closeRescheduleDialog}
-          appointmentId={rescheduleDialogState.appointmentId}
-          currentDate={rescheduleDialogState.currentDate}
-          currentTime={rescheduleDialogState.currentTime}
-          userRole="professional"
-          appointmentDetails={rescheduleDialogState.appointmentDetails}
-          onSuccess={handleRescheduleSuccess}
         />
       )}
 

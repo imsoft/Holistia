@@ -48,7 +48,6 @@ import {
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Appointment } from "@/types";
 import { createClient } from "@/utils/supabase/client";
-import { AppointmentActionsDialog } from "@/components/appointments/appointment-actions-dialog";
 import { toast } from "sonner";
 import { listUserGoogleCalendarEvents, syncAllAppointmentsToGoogleCalendar } from "@/actions/google-calendar";
 import { RefreshCw } from "lucide-react";
@@ -90,22 +89,6 @@ export default function ProfessionalAppointments() {
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [professionalAppId, setProfessionalAppId] = useState<string>("");
-  const [dialogState, setDialogState] = useState<{
-    isOpen: boolean;
-    appointmentId: string | null;
-    actionType: "cancel" | "no-show" | null;
-    appointmentDetails?: {
-      professionalName?: string;
-      patientName?: string;
-      date: string;
-      time: string;
-      cost: number;
-    };
-  }>({
-    isOpen: false,
-    appointmentId: null,
-    actionType: null,
-  });
 
   useEffect(() => {
     const fetchAppointments = async () => {
@@ -560,64 +543,15 @@ export default function ProfessionalAppointments() {
   };
 
   const openCancelDialog = (appointment: Appointment) => {
-    const patientName = appointment.patient?.name || "Paciente";
-    setDialogState({
-      isOpen: true,
-      appointmentId: appointment.id,
-      actionType: "cancel",
-      appointmentDetails: {
-        patientName: patientName,
-        date: new Date(appointment.date).toLocaleDateString("es-MX", {
-          weekday: "long",
-          year: "numeric",
-          month: "long",
-          day: "numeric",
-        }),
-        time: appointment.time.substring(0, 5),
-        cost: appointment.cost || 0,
-      },
-    });
+    router.push(`/professional/${userId}/appointments/${appointment.id}/cancel`);
   };
 
   const openNoShowDialog = (appointment: Appointment) => {
-    const patientName = appointment.patient?.name || "Paciente";
-    setDialogState({
-      isOpen: true,
-      appointmentId: appointment.id,
-      actionType: "no-show",
-      appointmentDetails: {
-        patientName: patientName,
-        date: new Date(appointment.date).toLocaleDateString("es-MX", {
-          weekday: "long",
-          year: "numeric",
-          month: "long",
-          day: "numeric",
-        }),
-        time: appointment.time.substring(0, 5),
-        cost: appointment.cost || 0,
-      },
-    });
-  };
-
-  const closeDialog = () => {
-    setDialogState({
-      isOpen: false,
-      appointmentId: null,
-      actionType: null,
-    });
+    router.push(`/professional/${userId}/appointments/${appointment.id}/no-show`);
   };
 
   const openRescheduleDialog = (appointment: Appointment) => {
     router.push(`/professional/${userId}/appointments/${appointment.id}/reschedule`);
-  };
-
-  const handleDialogSuccess = () => {
-    toast.success(
-      dialogState.actionType === "cancel"
-        ? "Cita cancelada exitosamente. El paciente recibirá un crédito."
-        : "Inasistencia reportada exitosamente."
-    );
-    window.location.reload();
   };
 
   const getStatusColor = (status: string) => {
@@ -1293,18 +1227,6 @@ export default function ProfessionalAppointments() {
           })()}
         </DialogContent>
       </Dialog>
-
-      {dialogState.isOpen && dialogState.appointmentId && dialogState.actionType && (
-        <AppointmentActionsDialog
-          isOpen={dialogState.isOpen}
-          onClose={closeDialog}
-          appointmentId={dialogState.appointmentId}
-          actionType={dialogState.actionType}
-          userRole="professional"
-          appointmentDetails={dialogState.appointmentDetails}
-          onSuccess={handleDialogSuccess}
-        />
-      )}
 
       {/* Google Calendar Integration */}
       <div className="p-6">

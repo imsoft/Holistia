@@ -21,8 +21,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { createClient } from "@/utils/supabase/client";
-import { AppointmentActionsDialog } from "@/components/appointments/appointment-actions-dialog";
-import { RescheduleAppointmentDialog } from "@/components/appointments/reschedule-appointment-dialog";
 
 interface Professional {
   id: string;
@@ -109,38 +107,6 @@ export default function AppointmentsPage() {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [dialogState, setDialogState] = useState<{
-    isOpen: boolean;
-    appointmentId: string | null;
-    actionType: 'cancel' | 'no-show' | null;
-    appointmentDetails?: {
-      professionalName?: string;
-      patientName?: string;
-      date: string;
-      time: string;
-      cost: number;
-    };
-  }>({
-    isOpen: false,
-    appointmentId: null,
-    actionType: null,
-  });
-
-  const [rescheduleDialogState, setRescheduleDialogState] = useState<{
-    isOpen: boolean;
-    appointmentId: string | null;
-    currentDate: string;
-    currentTime: string;
-    appointmentDetails?: {
-      professionalName?: string;
-      cost: number;
-    };
-  }>({
-    isOpen: false,
-    appointmentId: null,
-    currentDate: '',
-    currentTime: '',
-  });
   const params = useParams();
   const router = useRouter();
   const supabase = createClient();
@@ -301,159 +267,15 @@ export default function AppointmentsPage() {
   }, [userId, supabase, router]);
 
   const openCancelDialog = (appointment: Appointment) => {
-    setDialogState({
-      isOpen: true,
-      appointmentId: appointment.id,
-      actionType: 'cancel',
-      appointmentDetails: {
-        professionalName: appointment.professional.full_name,
-        date: formatDate(appointment.appointment_date),
-        time: appointment.appointment_time.substring(0, 5),
-        cost: appointment.cost,
-      },
-    });
+    router.push(`/patient/${userId}/appointments/${appointment.id}/cancel`);
   };
 
   const openNoShowDialog = (appointment: Appointment) => {
-    setDialogState({
-      isOpen: true,
-      appointmentId: appointment.id,
-      actionType: 'no-show',
-      appointmentDetails: {
-        professionalName: appointment.professional.full_name,
-        date: formatDate(appointment.appointment_date),
-        time: appointment.appointment_time.substring(0, 5),
-        cost: appointment.cost,
-      },
-    });
-  };
-
-  const closeDialog = () => {
-    setDialogState({
-      isOpen: false,
-      appointmentId: null,
-      actionType: null,
-    });
+    router.push(`/patient/${userId}/appointments/${appointment.id}/no-show`);
   };
 
   const openRescheduleDialog = (appointment: Appointment) => {
-    setRescheduleDialogState({
-      isOpen: true,
-      appointmentId: appointment.id,
-      currentDate: appointment.appointment_date,
-      currentTime: appointment.appointment_time,
-      appointmentDetails: {
-        professionalName: appointment.professional.full_name,
-        cost: appointment.cost,
-      },
-    });
-  };
-
-  const closeRescheduleDialog = () => {
-    setRescheduleDialogState({
-      isOpen: false,
-      appointmentId: null,
-      currentDate: '',
-      currentTime: '',
-    });
-  };
-
-  const handleRescheduleSuccess = async () => {
-    // Recargar las citas después de reprogramar
-    closeRescheduleDialog();
-
-    // Recargar la lista de citas
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
-      const { data: appointmentsData } = await supabase
-        .from('appointments')
-        .select('*')
-        .eq('patient_id', user.id)
-        .order('appointment_date', { ascending: true })
-        .order('appointment_time', { ascending: true });
-
-      if (appointmentsData) {
-        const professionalIds = [...new Set(appointmentsData.map(apt => apt.professional_id))];
-        const { data: professionalsData } = await supabase
-          .from('professional_applications')
-          .select('id, first_name, last_name, profession, profile_photo, user_id')
-          .in('id', professionalIds);
-
-        const userIds = professionalsData?.map(p => p.user_id).filter(Boolean) || [];
-        const { data: profilesData } = await supabase
-          .from('profiles')
-          .select('id, avatar_url')
-          .in('id', userIds);
-
-        const formattedAppointments = appointmentsData.map(apt => {
-          const prof = professionalsData?.find(p => p.id === apt.professional_id);
-          const profile = profilesData?.find(p => p.id === prof?.user_id);
-
-          return {
-            ...apt,
-            professional: {
-              id: prof?.id || '',
-              full_name: prof ? `${prof.first_name} ${prof.last_name}` : 'Profesional',
-              avatar_url: profile?.avatar_url || prof?.profile_photo,
-              especialidad: prof?.profession
-            }
-          };
-        });
-
-        setAppointments(formattedAppointments);
-      }
-    }
-  };
-
-  const handleDialogSuccess = async () => {
-    // Recargar las citas después de una acción exitosa
-    toast.success(
-      dialogState.actionType === 'cancel'
-        ? 'Cita cancelada exitosamente. Recibirás un crédito para tu próxima cita.'
-        : 'Inasistencia reportada exitosamente.'
-    );
-
-    // Recargar la lista de citas
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
-      const { data: appointmentsData } = await supabase
-        .from('appointments')
-        .select('*')
-        .eq('patient_id', user.id)
-        .order('appointment_date', { ascending: true })
-        .order('appointment_time', { ascending: true });
-
-      if (appointmentsData) {
-        const professionalIds = [...new Set(appointmentsData.map(apt => apt.professional_id))];
-        const { data: professionalsData } = await supabase
-          .from('professional_applications')
-          .select('id, first_name, last_name, profession, profile_photo, user_id')
-          .in('id', professionalIds);
-
-        const userIds = professionalsData?.map(p => p.user_id).filter(Boolean) || [];
-        const { data: profilesData } = await supabase
-          .from('profiles')
-          .select('id, avatar_url')
-          .in('id', userIds);
-
-        const formattedAppointments = appointmentsData.map(apt => {
-          const prof = professionalsData?.find(p => p.id === apt.professional_id);
-          const profile = profilesData?.find(p => p.id === prof?.user_id);
-
-          return {
-            ...apt,
-            professional: {
-              id: prof?.id || '',
-              full_name: prof ? `${prof.first_name} ${prof.last_name}` : 'Profesional',
-              avatar_url: profile?.avatar_url || prof?.profile_photo,
-              especialidad: prof?.profession
-            }
-          };
-        });
-
-        setAppointments(formattedAppointments);
-      }
-    }
+    router.push(`/patient/${userId}/appointments/${appointment.id}/reschedule`);
   };
 
   // Función para navegar a la página de explorar profesionales
@@ -770,31 +592,6 @@ export default function AppointmentsPage() {
       </div>
 
       {/* Dialog para cancelar o marcar no-show */}
-      {dialogState.isOpen && dialogState.appointmentId && dialogState.actionType && (
-        <AppointmentActionsDialog
-          isOpen={dialogState.isOpen}
-          onClose={closeDialog}
-          appointmentId={dialogState.appointmentId}
-          actionType={dialogState.actionType}
-          userRole="patient"
-          appointmentDetails={dialogState.appointmentDetails}
-          onSuccess={handleDialogSuccess}
-        />
-      )}
-
-      {/* Dialog para reprogramar */}
-      {rescheduleDialogState.isOpen && rescheduleDialogState.appointmentId && (
-        <RescheduleAppointmentDialog
-          isOpen={rescheduleDialogState.isOpen}
-          onClose={closeRescheduleDialog}
-          appointmentId={rescheduleDialogState.appointmentId}
-          currentDate={rescheduleDialogState.currentDate}
-          currentTime={rescheduleDialogState.currentTime}
-          userRole="patient"
-          appointmentDetails={rescheduleDialogState.appointmentDetails}
-          onSuccess={handleRescheduleSuccess}
-        />
-      )}
     </div>
   );
 }

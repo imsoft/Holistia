@@ -107,11 +107,6 @@ CREATE POLICY "Users can view challenge meetings" ON public.challenge_meetings
         OR c.linked_patient_id = auth.uid()
         OR c.linked_professional_id = auth.uid()
         OR EXISTS (
-          SELECT 1 FROM public.challenge_purchases cp
-          WHERE cp.challenge_id = c.id
-          AND cp.buyer_id = auth.uid()
-        )
-        OR EXISTS (
           SELECT 1 FROM public.challenge_teams ct
           JOIN public.challenge_team_members ctm ON ct.id = ctm.team_id
           WHERE ct.challenge_id = c.id

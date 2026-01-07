@@ -109,7 +109,7 @@ CREATE POLICY "Users can view challenge meetings" ON public.challenge_meetings
         OR EXISTS (
           SELECT 1 FROM public.challenge_purchases cp
           WHERE cp.challenge_id = c.id
-          AND cp.user_id = auth.uid()
+          AND cp.buyer_id = auth.uid()
         )
         OR EXISTS (
           SELECT 1 FROM public.challenge_teams ct

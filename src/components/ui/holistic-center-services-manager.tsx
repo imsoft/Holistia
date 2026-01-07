@@ -1,19 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter, useParams } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Edit, Trash2, Upload, X, Users, User, Loader2 } from "lucide-react";
@@ -55,20 +46,13 @@ export function HolisticCenterServicesManager({
   centerId,
   centerName,
 }: HolisticCenterServicesManagerProps) {
+  const router = useRouter();
+  const params = useParams();
+  const adminId = params.id as string;
+
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const [editingService, setEditingService] = useState<Service | null>(null);
-  const [saving, setSaving] = useState(false);
   const [uploadingImages, setUploadingImages] = useState(false);
-  const [formData, setFormData] = useState<FormData>({
-    name: "",
-    description: "",
-    price: "",
-    service_type: "individual",
-    max_capacity: "",
-    is_active: true,
-  });
 
   const supabase = createClient();
 
@@ -112,85 +96,6 @@ export function HolisticCenterServicesManager({
     }
   };
 
-  const handleOpenForm = (service?: Service) => {
-    if (service) {
-      setEditingService(service);
-      setFormData({
-        name: service.name,
-        description: service.description || "",
-        price: service.price?.toString() || "",
-        service_type: service.service_type,
-        max_capacity: service.max_capacity?.toString() || "",
-        is_active: service.is_active,
-      });
-    } else {
-      setEditingService(null);
-      setFormData({
-        name: "",
-        description: "",
-        price: "",
-        service_type: "individual",
-        max_capacity: "",
-        is_active: true,
-      });
-    }
-    setIsFormOpen(true);
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!formData.name.trim()) {
-      toast.error("El nombre es requerido");
-      return;
-    }
-
-    if (formData.service_type === "group" && (!formData.max_capacity || parseInt(formData.max_capacity) <= 0)) {
-      toast.error("Los servicios grupales requieren una capacidad máxima mayor a 0");
-      return;
-    }
-
-    try {
-      setSaving(true);
-
-      const serviceData = {
-        center_id: centerId,
-        name: formData.name.trim(),
-        description: formData.description.trim() || null,
-        price: formData.price ? parseFloat(formData.price) : null,
-        service_type: formData.service_type,
-        max_capacity: formData.service_type === "group" && formData.max_capacity
-          ? parseInt(formData.max_capacity)
-          : null,
-        is_active: formData.is_active,
-      };
-
-      if (editingService) {
-        const { error } = await supabase
-          .from("holistic_center_services")
-          .update(serviceData)
-          .eq("id", editingService.id);
-
-        if (error) throw error;
-        toast.success("Servicio actualizado exitosamente");
-      } else {
-        const { error } = await supabase
-          .from("holistic_center_services")
-          .insert(serviceData);
-
-        if (error) throw error;
-        toast.success("Servicio creado exitosamente");
-      }
-
-      setIsFormOpen(false);
-      fetchServices();
-    } catch (error) {
-      console.error("Error saving service:", error);
-      toast.error("Error al guardar el servicio");
-    } finally {
-      setSaving(false);
-    }
-  };
 
   const handleDelete = async (serviceId: string) => {
     if (!confirm("¿Estás seguro de eliminar este servicio?")) return;
@@ -289,7 +194,7 @@ export function HolisticCenterServicesManager({
             Gestiona los servicios que ofrece el centro
           </p>
         </div>
-        <Button onClick={() => handleOpenForm()}>
+        <Button onClick={() => router.push(`/admin/${adminId}/holistic-centers/${centerId}/services/new`)}>
           <Plus className="w-4 h-4 mr-2" />
           Agregar Servicio
         </Button>
@@ -340,7 +245,7 @@ export function HolisticCenterServicesManager({
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => handleOpenForm(service)}
+                      onClick={() => router.push(`/admin/${adminId}/holistic-centers/${centerId}/services/${service.id}/edit`)}
                     >
                       <Edit className="w-4 h-4" />
                     </Button>
@@ -410,109 +315,6 @@ export function HolisticCenterServicesManager({
           ))}
         </div>
       )}
-
-      {/* Form Dialog */}
-      <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-        <DialogContent className="max-w-xl">
-          <DialogHeader>
-            <DialogTitle>
-              {editingService ? "Editar Servicio" : "Nuevo Servicio"}
-            </DialogTitle>
-            <DialogDescription>
-              {editingService ? "Modifica la información del servicio" : "Agrega un nuevo servicio al centro"}
-            </DialogDescription>
-          </DialogHeader>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="name">Nombre del Servicio *</Label>
-              <Input
-                id="name"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                placeholder="Ej: Yoga Terapéutico"
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="description">Descripción</Label>
-              <Textarea
-                id="description"
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                placeholder="Describe el servicio..."
-                rows={3}
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="price">Precio</Label>
-                <Input
-                  id="price"
-                  type="number"
-                  step="0.01"
-                  value={formData.price}
-                  onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                  placeholder="0.00"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="service_type">Tipo de Servicio</Label>
-                <select
-                  id="service_type"
-                  value={formData.service_type}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    service_type: e.target.value as "individual" | "group",
-                    max_capacity: e.target.value === "individual" ? "" : formData.max_capacity
-                  })}
-                  className="w-full px-3 py-2 border rounded-md"
-                >
-                  <option value="individual">Individual</option>
-                  <option value="group">Grupal</option>
-                </select>
-              </div>
-            </div>
-
-            {formData.service_type === "group" && (
-              <div className="space-y-2">
-                <Label htmlFor="max_capacity">Capacidad Máxima *</Label>
-                <Input
-                  id="max_capacity"
-                  type="number"
-                  min="1"
-                  value={formData.max_capacity}
-                  onChange={(e) => setFormData({ ...formData, max_capacity: e.target.value })}
-                  placeholder="Ej: 15"
-                  required={formData.service_type === "group"}
-                />
-              </div>
-            )}
-
-            <div className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                id="is_active"
-                checked={formData.is_active}
-                onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
-                className="rounded"
-              />
-              <Label htmlFor="is_active">Servicio activo</Label>
-            </div>
-
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setIsFormOpen(false)}>
-                Cancelar
-              </Button>
-              <Button type="submit" disabled={saving}>
-                {saving ? "Guardando..." : editingService ? "Actualizar" : "Crear"}
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

@@ -92,7 +92,7 @@ export default function EditProfessionalChallengePage() {
       </div>
 
       <div className="py-4 px-6">
-        <div className="max-w-3xl mx-auto space-y-6">
+        <div className="max-w-3xl mx-auto py-4 space-y-6">
           <ChallengeForm
             userId={professionalId}
             challenge={challenge}

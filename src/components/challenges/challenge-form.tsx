@@ -390,49 +390,18 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
           />
 
           {isProfessional && (
-            <Card className="bg-muted/50">
-              <CardHeader>
-                <CardTitle className="text-base">Precio del Reto (Opcional)</CardTitle>
-                <p className="text-sm text-muted-foreground">
-                  Configura el precio si deseas monetizar este reto. Déjalo en blanco para que sea gratuito.
-                </p>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-3 gap-4">
-                  <div className="col-span-2 space-y-2">
-                    <Label htmlFor="price">Precio</Label>
-                    <Input
-                      id="price"
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={formData.price}
-                      onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                      placeholder="0.00"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="currency">Moneda</Label>
-                    <Select
-                      value={formData.currency}
-                      onValueChange={(value) => setFormData({ ...formData, currency: value })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="MXN">MXN</SelectItem>
-                        <SelectItem value="USD">USD</SelectItem>
-                        <SelectItem value="EUR">EUR</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Los retos gratuitos son más accesibles y pueden atraer más participantes.
-                </p>
-              </CardContent>
-            </Card>
+            <div className="space-y-2">
+              <Label htmlFor="price">Precio (MXN)</Label>
+              <Input
+                id="price"
+                type="number"
+                min="0"
+                step="0.01"
+                value={formData.price}
+                onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                placeholder="0.00"
+              />
+            </div>
           )}
 
           <div className="space-y-2">

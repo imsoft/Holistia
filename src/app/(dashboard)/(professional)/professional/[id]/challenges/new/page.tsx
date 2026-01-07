@@ -26,7 +26,7 @@ export default function NewProfessionalChallengePage() {
       </div>
 
       <div className="py-4 px-6">
-        <div className="max-w-3xl mx-auto">
+        <div className="max-w-3xl mx-auto py-4">
           <ChallengeForm
             userId={professionalId}
             challenge={null}

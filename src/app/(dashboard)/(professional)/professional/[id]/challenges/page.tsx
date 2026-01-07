@@ -167,7 +167,7 @@ export default function ProfessionalChallenges() {
                 Total Retos
               </CardTitle>
             </CardHeader>
-            <CardContent className="py-4">
+            <CardContent className="pt-0 pb-4">
               <div className="text-2xl font-bold">{stats.totalChallenges}</div>
             </CardContent>
           </Card>
@@ -177,7 +177,7 @@ export default function ProfessionalChallenges() {
                 Retos Activos
               </CardTitle>
             </CardHeader>
-            <CardContent className="py-4">
+            <CardContent className="pt-0 pb-4">
               <div className="text-2xl font-bold">{stats.activeChallenges}</div>
             </CardContent>
           </Card>

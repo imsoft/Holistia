@@ -1,0 +1,453 @@
+"use client";
+
+import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import Image from "next/image";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { WellnessAreasSelector } from "@/components/ui/wellness-areas-selector";
+import { Upload, X, Loader2 } from "lucide-react";
+import { toast } from "sonner";
+import { createClient } from "@/utils/supabase/client";
+
+interface ChallengeFormProps {
+  userId: string;
+  challenge?: any | null;
+  redirectPath: string;
+}
+
+interface ChallengeFormData {
+  title: string;
+  description: string;
+  short_description: string;
+  cover_image_url: string;
+  duration_days: string;
+  difficulty_level: string;
+  category: string;
+  wellness_areas: string[];
+  linked_professional_id: string;
+  is_active: boolean;
+}
+
+const DIFFICULTY_OPTIONS = [
+  { value: 'beginner', label: 'Principiante' },
+  { value: 'intermediate', label: 'Intermedio' },
+  { value: 'advanced', label: 'Avanzado' },
+  { value: 'expert', label: 'Experto' },
+] as const;
+
+export function ChallengeForm({ userId, challenge, redirectPath }: ChallengeFormProps) {
+  const router = useRouter();
+  const supabase = createClient();
+
+  const [formData, setFormData] = useState<ChallengeFormData>({
+    title: "",
+    description: "",
+    short_description: "",
+    cover_image_url: "",
+    duration_days: "",
+    difficulty_level: "",
+    category: "",
+    wellness_areas: [],
+    linked_professional_id: "none",
+    is_active: true,
+  });
+
+  const [professionals, setProfessionals] = useState<any[]>([]);
+  const [loadingProfessionals, setLoadingProfessionals] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [uploadingCover, setUploadingCover] = useState(false);
+  const coverFileInputRef = React.useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    fetchProfessionals();
+  }, []);
+
+  useEffect(() => {
+    if (challenge) {
+      setFormData({
+        title: challenge.title,
+        description: challenge.description,
+        short_description: challenge.short_description || "",
+        cover_image_url: challenge.cover_image_url || "",
+        duration_days: challenge.duration_days?.toString() || "",
+        difficulty_level: challenge.difficulty_level || "",
+        category: challenge.category || "",
+        wellness_areas: challenge.wellness_areas || [],
+        linked_professional_id: challenge.linked_professional_id || "none",
+        is_active: challenge.is_active,
+      });
+    }
+  }, [challenge]);
+
+  const fetchProfessionals = async () => {
+    try {
+      setLoadingProfessionals(true);
+      const { data, error } = await supabase
+        .from('professional_applications')
+        .select('id, first_name, last_name, profession, is_verified')
+        .eq('status', 'approved')
+        .eq('is_active', true)
+        .order('first_name', { ascending: true });
+
+      if (error) {
+        console.error('Error cargando profesionales:', error);
+        return;
+      }
+
+      setProfessionals(data || []);
+    } catch (error) {
+      console.error("Error fetching professionals:", error);
+    } finally {
+      setLoadingProfessionals(false);
+    }
+  };
+
+  const handleCoverImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast.error('Por favor selecciona un archivo de imagen válido');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('El archivo es demasiado grande. El tamaño máximo es 5MB.');
+      return;
+    }
+
+    try {
+      setUploadingCover(true);
+      const { data: { user } } = await supabase.auth.getUser();
+
+      if (!user) {
+        toast.error("Debes iniciar sesión");
+        return;
+      }
+
+      let challengeId = challenge?.id;
+
+      // Si estamos creando, crear reto temporal
+      if (!challengeId) {
+        const tempChallenge = {
+          created_by_user_id: user.id,
+          created_by_type: 'patient',
+          title: formData.title || "Nuevo Reto",
+          description: formData.description || "",
+          linked_professional_id: formData.linked_professional_id && formData.linked_professional_id !== 'none' ? formData.linked_professional_id : null,
+          is_active: false,
+        };
+
+        const response = await fetch('/api/challenges', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(tempChallenge),
+        });
+
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || "Error al crear reto temporal");
+
+        challengeId = data.challenge.id;
+      }
+
+      const fileExt = file.name.split('.').pop();
+      const fileName = `cover.${fileExt}`;
+      const filePath = `${challengeId}/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('challenges')
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: true
+        });
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('challenges')
+        .getPublicUrl(filePath);
+
+      setFormData({ ...formData, cover_image_url: publicUrl });
+      toast.success("Imagen de portada subida exitosamente");
+
+    } catch (error) {
+      console.error("Error uploading cover image:", error);
+      toast.error("Error al subir la imagen de portada");
+    } finally {
+      setUploadingCover(false);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!formData.title?.trim() || !formData.description?.trim()) {
+      toast.error("Por favor completa el título y la descripción");
+      return;
+    }
+
+    try {
+      setSaving(true);
+      const { data: { user } } = await supabase.auth.getUser();
+
+      if (!user) {
+        toast.error("Debes iniciar sesión");
+        return;
+      }
+
+      const challengeData = {
+        professional_id: null,
+        created_by_user_id: user.id,
+        created_by_type: 'patient',
+        title: formData.title.trim(),
+        description: formData.description.trim(),
+        short_description: formData.short_description?.trim() || null,
+        cover_image_url: formData.cover_image_url || null,
+        duration_days: formData.duration_days ? parseInt(formData.duration_days) : null,
+        difficulty_level: formData.difficulty_level || null,
+        category: formData.category || null,
+        wellness_areas: formData.wellness_areas || [],
+        linked_professional_id: formData.linked_professional_id && formData.linked_professional_id !== 'none' ? formData.linked_professional_id : null,
+        is_active: formData.is_active,
+      };
+
+      if (challenge) {
+        // Actualizar reto existente
+        const response = await fetch(`/api/challenges/${challenge.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(challengeData),
+        });
+
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || "Error al actualizar reto");
+
+        toast.success("Reto actualizado exitosamente");
+      } else {
+        // Crear nuevo reto
+        const response = await fetch('/api/challenges', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(challengeData),
+        });
+
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || "Error al crear reto");
+
+        toast.success("Reto creado exitosamente");
+      }
+
+      router.push(redirectPath);
+    } catch (error) {
+      console.error("Error saving challenge:", error);
+      toast.error(error instanceof Error ? error.message : "Error al guardar reto");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>{challenge ? "Editar Reto Personal" : "Crear Reto Personal"}</CardTitle>
+          <p className="text-sm text-muted-foreground">
+            {challenge
+              ? "Modifica la información de tu reto personalizado"
+              : "Crea tu propio reto personalizado. Podrás invitar hasta 5 amigos y opcionalmente vincularlo a un profesional para supervisión."}
+          </p>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="title">Título *</Label>
+            <Input
+              id="title"
+              value={formData.title}
+              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+              placeholder="Ej: Reto de Meditación 21 Días"
+              required
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="short_description">Descripción Corta</Label>
+            <Input
+              id="short_description"
+              value={formData.short_description}
+              onChange={(e) => setFormData({ ...formData, short_description: e.target.value })}
+              placeholder="Breve descripción para mostrar en cards"
+              maxLength={150}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="description">Descripción Completa *</Label>
+            <Textarea
+              id="description"
+              value={formData.description}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              placeholder="Describe el reto en detalle..."
+              rows={5}
+              required
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="linked_professional_id">Vincular a Profesional (Opcional)</Label>
+            <Select
+              value={formData.linked_professional_id}
+              onValueChange={(value) => setFormData({ ...formData, linked_professional_id: value })}
+              disabled={loadingProfessionals}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder={loadingProfessionals ? "Cargando..." : "Selecciona un profesional (opcional)"} />
+              </SelectTrigger>
+              <SelectContent className="max-h-[300px]">
+                <SelectItem value="none">Ninguno (Reto público)</SelectItem>
+                {professionals.map((prof) => (
+                  <SelectItem key={prof.id} value={prof.id}>
+                    {prof.first_name} {prof.last_name}{prof.profession ? ` - ${prof.profession}` : ''}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="duration_days">Duración (días)</Label>
+              <Input
+                id="duration_days"
+                type="number"
+                min="1"
+                value={formData.duration_days}
+                onChange={(e) => setFormData({ ...formData, duration_days: e.target.value })}
+                placeholder="Ej: 21"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="difficulty_level">Nivel de Dificultad</Label>
+              <Select
+                value={formData.difficulty_level}
+                onValueChange={(value) => setFormData({ ...formData, difficulty_level: value })}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Selecciona nivel" />
+                </SelectTrigger>
+                <SelectContent>
+                  {DIFFICULTY_OPTIONS.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="category">Categoría</Label>
+            <Input
+              id="category"
+              value={formData.category}
+              onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+              placeholder="Ej: Meditación, Fitness, Nutrición"
+            />
+          </div>
+
+          <WellnessAreasSelector
+            selectedAreas={formData.wellness_areas}
+            onAreasChange={(areas) => setFormData({ ...formData, wellness_areas: areas })}
+            label="Áreas de Bienestar"
+            description="Selecciona las áreas de bienestar relacionadas con este reto"
+          />
+
+          <div className="space-y-2">
+            <Label>Imagen de Portada</Label>
+            <div className="space-y-3">
+              {formData.cover_image_url ? (
+                <div className="relative h-48 w-full rounded-lg overflow-hidden border-2 border-dashed border-muted">
+                  <Image
+                    src={formData.cover_image_url}
+                    alt="Portada"
+                    fill
+                    className="object-cover"
+                  />
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="icon"
+                    className="absolute top-2 right-2 shadow-lg"
+                    onClick={() => setFormData({ ...formData, cover_image_url: "" })}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              ) : (
+                <div className="relative h-48 w-full rounded-lg border-2 border-dashed border-muted bg-muted/10 flex flex-col items-center justify-center gap-2 hover:bg-muted/20 transition-colors">
+                  <Upload className="h-8 w-8 text-muted-foreground" />
+                  <p className="text-sm text-muted-foreground">Subir imagen de portada</p>
+                  <input
+                    ref={coverFileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleCoverImageUpload}
+                    className="hidden"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => coverFileInputRef.current?.click()}
+                    disabled={uploadingCover}
+                  >
+                    {uploadingCover ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Subiendo...
+                      </>
+                    ) : (
+                      "Seleccionar Imagen"
+                    )}
+                  </Button>
+                </div>
+              )}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <div className="flex gap-3 justify-end">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => router.push(redirectPath)}
+          disabled={saving}
+        >
+          Cancelar
+        </Button>
+        <Button type="submit" disabled={saving}>
+          {saving ? (
+            <>
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              Guardando...
+            </>
+          ) : (
+            challenge ? "Actualizar Reto" : "Crear Reto"
+          )}
+        </Button>
+      </div>
+    </form>
+  );
+}

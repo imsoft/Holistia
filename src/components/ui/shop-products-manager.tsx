@@ -1,19 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter, useParams } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Edit, Trash2, Upload, X, Loader2, Tag, Star, Package } from "lucide-react";
@@ -67,23 +57,13 @@ export function ShopProductsManager({
   catalogPdfUrl,
   onPdfUpdated
 }: ShopProductsManagerProps) {
+  const router = useRouter();
+  const params = useParams();
+  const adminId = params.id as string;
+
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
-  const [saving, setSaving] = useState(false);
   const [uploadingImages, setUploadingImages] = useState(false);
-  const [formData, setFormData] = useState<FormData>({
-    name: "",
-    description: "",
-    price: "",
-    discount_price: "",
-    stock: "0",
-    sku: "",
-    category: "",
-    is_featured: false,
-    is_active: true,
-  });
 
   const supabase = createClient();
 
@@ -127,96 +107,6 @@ export function ShopProductsManager({
     }
   };
 
-  const handleOpenForm = (product?: Product) => {
-    if (product) {
-      setEditingProduct(product);
-      setFormData({
-        name: product.name,
-        description: product.description || "",
-        price: product.price?.toString() || "",
-        discount_price: product.discount_price?.toString() || "",
-        stock: product.stock.toString(),
-        sku: product.sku || "",
-        category: product.category || "",
-        is_featured: product.is_featured,
-        is_active: product.is_active,
-      });
-    } else {
-      setEditingProduct(null);
-      setFormData({
-        name: "",
-        description: "",
-        price: "",
-        discount_price: "",
-        stock: "0",
-        sku: "",
-        category: "",
-        is_featured: false,
-        is_active: true,
-      });
-    }
-    setIsFormOpen(true);
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!formData.name.trim()) {
-      toast.error("El nombre es requerido");
-      return;
-    }
-
-    if (formData.discount_price && formData.price) {
-      const price = parseFloat(formData.price);
-      const discountPrice = parseFloat(formData.discount_price);
-      if (discountPrice >= price) {
-        toast.error("El precio con descuento debe ser menor al precio normal");
-        return;
-      }
-    }
-
-    try {
-      setSaving(true);
-
-      const productData = {
-        shop_id: shopId,
-        name: formData.name.trim(),
-        description: formData.description.trim() || null,
-        price: formData.price ? parseFloat(formData.price) : null,
-        discount_price: formData.discount_price ? parseFloat(formData.discount_price) : null,
-        stock: parseInt(formData.stock) || 0,
-        sku: formData.sku.trim() || null,
-        category: formData.category.trim() || null,
-        is_featured: formData.is_featured,
-        is_active: formData.is_active,
-      };
-
-      if (editingProduct) {
-        const { error } = await supabase
-          .from("shop_products")
-          .update(productData)
-          .eq("id", editingProduct.id);
-
-        if (error) throw error;
-        toast.success("Producto actualizado exitosamente");
-      } else {
-        const { error } = await supabase
-          .from("shop_products")
-          .insert(productData);
-
-        if (error) throw error;
-        toast.success("Producto creado exitosamente");
-      }
-
-      setIsFormOpen(false);
-      fetchProducts();
-    } catch (error) {
-      console.error("Error saving product:", error);
-      toast.error("Error al guardar el producto");
-    } finally {
-      setSaving(false);
-    }
-  };
 
   const handleDelete = async (productId: string) => {
     if (!confirm("¿Estás seguro de eliminar este producto?")) return;
@@ -340,7 +230,7 @@ export function ShopProductsManager({
             <p className="text-sm text-muted-foreground">
               Agrega productos individuales con imágenes y descripciones
             </p>
-            <Button onClick={() => handleOpenForm()}>
+            <Button onClick={() => router.push(`/admin/${adminId}/shops/${shopId}/products/new`)}>
               <Plus className="w-4 h-4 mr-2" />
               Agregar Producto
             </Button>
@@ -407,7 +297,7 @@ export function ShopProductsManager({
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => handleOpenForm(product)}
+                      onClick={() => router.push(`/admin/${adminId}/shops/${shopId}/products/${product.id}/edit`)}
                     >
                       <Edit className="w-4 h-4" />
                     </Button>
@@ -428,7 +318,7 @@ export function ShopProductsManager({
 
                 {/* Images Section */}
                 <div>
-                  <Label className="text-sm font-medium">Imágenes (máx. 6)</Label>
+                  <div className="text-sm font-medium mb-2">Imágenes (máx. 6)</div>
                   <div className="grid grid-cols-6 gap-2 mt-2">
                     {[0, 1, 2, 3, 4, 5].map((order) => {
                       const image = product.images?.find((img) => img.image_order === order);
@@ -476,135 +366,6 @@ export function ShopProductsManager({
       )}
 
       {/* Form Dialog */}
-      <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-        <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>
-              {editingProduct ? "Editar Producto" : "Nuevo Producto"}
-            </DialogTitle>
-            <DialogDescription>
-              {editingProduct ? "Modifica la información del producto" : "Agrega un nuevo producto al catálogo"}
-            </DialogDescription>
-          </DialogHeader>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="name">Nombre del Producto *</Label>
-              <Input
-                id="name"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                placeholder="Ej: Collar de Plata"
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="description">Descripción</Label>
-              <Textarea
-                id="description"
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                placeholder="Describe el producto..."
-                rows={3}
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="price">Precio</Label>
-                <Input
-                  id="price"
-                  type="number"
-                  step="0.01"
-                  value={formData.price}
-                  onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                  placeholder="0.00"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="discount_price">Precio con Descuento</Label>
-                <Input
-                  id="discount_price"
-                  type="number"
-                  step="0.01"
-                  value={formData.discount_price}
-                  onChange={(e) => setFormData({ ...formData, discount_price: e.target.value })}
-                  placeholder="0.00 (opcional)"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="stock">Stock/Inventario</Label>
-                <Input
-                  id="stock"
-                  type="number"
-                  min="0"
-                  value={formData.stock}
-                  onChange={(e) => setFormData({ ...formData, stock: e.target.value })}
-                  placeholder="0"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="sku">SKU/Código</Label>
-                <Input
-                  id="sku"
-                  value={formData.sku}
-                  onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
-                  placeholder="COL-001"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="category">Categoría</Label>
-              <Input
-                id="category"
-                value={formData.category}
-                onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                placeholder="Ej: Joyería, Accesorios"
-              />
-            </div>
-
-            <div className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                id="is_featured"
-                checked={formData.is_featured}
-                onChange={(e) => setFormData({ ...formData, is_featured: e.target.checked })}
-                className="rounded"
-              />
-              <Label htmlFor="is_featured" className="flex items-center gap-1">
-                <Star className="w-4 h-4" />
-                Producto destacado
-              </Label>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                id="is_active"
-                checked={formData.is_active}
-                onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
-                className="rounded"
-              />
-              <Label htmlFor="is_active">Producto activo</Label>
-            </div>
-
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setIsFormOpen(false)}>
-                Cancelar
-              </Button>
-              <Button type="submit" disabled={saving}>
-                {saving ? "Guardando..." : editingProduct ? "Actualizar" : "Crear"}
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
         </TabsContent>
       </Tabs>
     </div>

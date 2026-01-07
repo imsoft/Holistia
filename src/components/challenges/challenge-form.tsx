@@ -276,7 +276,7 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <Card>
-        <CardHeader>
+        <CardHeader className="py-4">
           <CardTitle>{challenge ? "Editar Reto Personal" : "Crear Reto Personal"}</CardTitle>
           <p className="text-sm text-muted-foreground">
             {challenge
@@ -284,7 +284,7 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
               : "Crea tu propio reto personalizado. Podrás invitar hasta 5 amigos y opcionalmente vincularlo a un profesional para supervisión."}
           </p>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="py-4 space-y-4">
           <div className="space-y-2">
             <Label htmlFor="title">Título *</Label>
             <Input

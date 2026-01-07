@@ -226,7 +226,7 @@ export function ServiceForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <Card>
-        <CardContent className="p-6 space-y-6">
+        <CardContent className="py-4 px-6 space-y-6">
           <div className="space-y-2">
             <Label htmlFor="name">Nombre del Servicio *</Label>
             <Input

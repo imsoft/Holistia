@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -24,7 +24,6 @@ import { WellnessAreasSelector } from "@/components/ui/wellness-areas-selector";
 import { CheckinForm } from "@/components/ui/checkin-form";
 import { ChallengeProgress } from "@/components/ui/challenge-progress";
 import { ChallengeBadges } from "@/components/ui/challenge-badges";
-import { TeamChallengeDialog } from "@/components/ui/team-challenge-dialog";
 import { TeamInvitationsList } from "@/components/ui/team-invitations-list";
 import { TeamChat } from "@/components/ui/team-chat";
 import {
@@ -97,6 +96,7 @@ interface CreatedChallenge {
 
 export default function MyChallengesPage() {
   const params = useParams();
+  const router = useRouter();
   const userId = params.id as string;
   const supabase = createClient();
 
@@ -107,8 +107,6 @@ export default function MyChallengesPage() {
   const [checkins, setCheckins] = useState<Checkin[]>([]);
   const [isCheckinDialogOpen, setIsCheckinDialogOpen] = useState(false);
   const [nextDayNumber, setNextDayNumber] = useState(1);
-  const [isTeamDialogOpen, setIsTeamDialogOpen] = useState(false);
-  const [selectedChallengeForTeam, setSelectedChallengeForTeam] = useState<ChallengePurchase | null>(null);
   const [teamId, setTeamId] = useState<string | null>(null);
   const [teamName, setTeamName] = useState<string | null>(null);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -753,8 +751,7 @@ export default function MyChallengesPage() {
                     className="w-full gap-2"
                     onClick={(e) => {
                       e.stopPropagation();
-                      setSelectedChallengeForTeam(challenge);
-                      setIsTeamDialogOpen(true);
+                      router.push(`/patient/${userId}/my-challenges/${challenge.challenge_id}/team/create`);
                     }}
                   >
                     <Users className="h-4 w-4" />
@@ -994,15 +991,7 @@ export default function MyChallengesPage() {
                         size="sm"
                         className="flex-1"
                         onClick={() => {
-                          // Convertir a formato ChallengePurchase para usar el diálogo de equipo
-                          const challengeForTeam = {
-                            id: challenge.id,
-                            challenge_id: challenge.id,
-                            challenge: challenge,
-                            access_granted: true,
-                          };
-                          setSelectedChallengeForTeam(challengeForTeam as any);
-                          setIsTeamDialogOpen(true);
+                          router.push(`/patient/${userId}/my-challenges/${challenge.id}/team/create`);
                         }}
                       >
                         <Users className="h-4 w-4 mr-2" />
@@ -1036,23 +1025,6 @@ export default function MyChallengesPage() {
           )}
         </DialogContent>
       </Dialog>
-
-      {/* Diálogo para crear equipo */}
-      {selectedChallengeForTeam && (
-        <TeamChallengeDialog
-          open={isTeamDialogOpen}
-          onOpenChange={setIsTeamDialogOpen}
-          challengeId={selectedChallengeForTeam.challenge_id}
-          challengeTitle={selectedChallengeForTeam.challenge.title}
-          onTeamCreated={() => {
-            toast.success("Equipo creado exitosamente");
-            // Recargar el equipo si el reto seleccionado coincide
-            if (selectedChallenge?.challenge_id === selectedChallengeForTeam.challenge_id) {
-              fetchTeam(selectedChallengeForTeam.challenge_id);
-            }
-          }}
-        />
-      )}
 
       {/* Diálogo para crear reto personal */}
       <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>

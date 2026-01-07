@@ -1,0 +1,291 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ArrowLeft, UserPlus, Check, Loader2, Users } from "lucide-react";
+import { toast } from "sonner";
+import { createClient } from "@/utils/supabase/client";
+
+interface AvailableUser {
+  id: string;
+  first_name: string;
+  last_name: string;
+  avatar_url: string | null;
+}
+
+interface TeamMember {
+  id: string;
+  user_id: string;
+  profile: {
+    first_name: string;
+    last_name: string;
+    avatar_url: string | null;
+  };
+}
+
+interface Team {
+  id: string;
+  team_name: string | null;
+  max_members: number;
+  is_full: boolean;
+  members: TeamMember[];
+}
+
+export default function InviteTeamMembersPage() {
+  const params = useParams();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const patientId = params.id as string;
+  const challengeId = params.challengeId as string;
+  const teamId = searchParams.get("teamId");
+
+  const [team, setTeam] = useState<Team | null>(null);
+  const [availableUsers, setAvailableUsers] = useState<AvailableUser[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [inviting, setInviting] = useState<string | null>(null);
+  const supabase = createClient();
+
+  useEffect(() => {
+    if (teamId) {
+      loadTeam();
+      loadAvailableUsers();
+    }
+  }, [teamId]);
+
+  const loadTeam = async () => {
+    if (!teamId) return;
+
+    try {
+      const { data, error } = await supabase
+        .from("challenge_teams")
+        .select(`
+          id,
+          team_name,
+          max_members,
+          is_full,
+          members:challenge_team_members(
+            id,
+            user_id,
+            profile:profiles(first_name, last_name, avatar_url)
+          )
+        `)
+        .eq("id", teamId)
+        .single();
+
+      if (error) throw error;
+      setTeam(data as any);
+    } catch (error) {
+      console.error("Error loading team:", error);
+      toast.error("Error al cargar equipo");
+      router.push(`/patient/${patientId}/my-challenges`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadAvailableUsers = async () => {
+    if (!teamId) return;
+
+    try {
+      const response = await fetch(
+        `/api/challenges/teams/available-users?teamId=${teamId}&challengeId=${challengeId}`
+      );
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Error al cargar usuarios");
+      }
+
+      setAvailableUsers(data.data || []);
+    } catch (error) {
+      console.error("Error loading available users:", error);
+    }
+  };
+
+  const handleInviteUser = async (userId: string) => {
+    if (!team) return;
+
+    try {
+      setInviting(userId);
+
+      const response = await fetch("/api/challenges/teams/invitations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          teamId: team.id,
+          inviteeId: userId,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Error al enviar invitación");
+      }
+
+      toast.success("Invitación enviada");
+      setAvailableUsers((prev) => prev.filter((u) => u.id !== userId));
+    } catch (error) {
+      console.error("Error inviting user:", error);
+      toast.error(error instanceof Error ? error.message : "Error al enviar invitación");
+    } finally {
+      setInviting(null);
+    }
+  };
+
+  const getUserInitials = (firstName: string, lastName: string) => {
+    return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <div className="border-b border-border bg-card">
+        <div className="flex h-16 items-center gap-4 px-6">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => router.push(`/patient/${patientId}/my-challenges`)}
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <div className="flex-1">
+            <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
+              <UserPlus className="h-6 w-6" />
+              Invitar Miembros
+            </h1>
+            <p className="text-sm text-muted-foreground">
+              {team?.team_name || "Tu equipo"} - {team?.members.length || 0}/{team?.max_members || 5} miembros
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="p-6">
+        <div className="max-w-4xl mx-auto space-y-6">
+          {/* Miembros actuales */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Miembros del equipo</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ScrollArea className="h-[200px]">
+                <div className="space-y-2">
+                  {team?.members.map((member) => (
+                    <div
+                      key={member.id}
+                      className="flex items-center gap-2 p-2 rounded-lg bg-muted"
+                    >
+                      <Avatar className="h-8 w-8">
+                        <AvatarImage src={member.profile.avatar_url || undefined} />
+                        <AvatarFallback>
+                          {getUserInitials(
+                            member.profile.first_name,
+                            member.profile.last_name
+                          )}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1">
+                        <p className="text-sm font-medium">
+                          {member.profile.first_name} {member.profile.last_name}
+                        </p>
+                      </div>
+                      <Check className="h-4 w-4 text-green-500" />
+                    </div>
+                  ))}
+                </div>
+              </ScrollArea>
+            </CardContent>
+          </Card>
+
+          {/* Usuarios disponibles para invitar */}
+          {!team?.is_full ? (
+            <Card>
+              <CardHeader>
+                <CardTitle>Usuarios disponibles para invitar</CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  Solo puedes invitar a usuarios que sigues y que han comprado el reto
+                </p>
+              </CardHeader>
+              <CardContent>
+                <ScrollArea className="h-[300px]">
+                  {availableUsers.length === 0 ? (
+                    <div className="flex items-center justify-center h-full text-sm text-muted-foreground py-8">
+                      No hay usuarios disponibles para invitar
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {availableUsers.map((user) => (
+                        <div
+                          key={user.id}
+                          className="flex items-center gap-2 p-2 rounded-lg hover:bg-muted transition-colors"
+                        >
+                          <Avatar className="h-8 w-8">
+                            <AvatarImage src={user.avatar_url || undefined} />
+                            <AvatarFallback>
+                              {getUserInitials(user.first_name, user.last_name)}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1">
+                            <p className="text-sm font-medium">
+                              {user.first_name} {user.last_name}
+                            </p>
+                          </div>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleInviteUser(user.id)}
+                            disabled={inviting === user.id}
+                          >
+                            {inviting === user.id ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <>
+                                <UserPlus className="h-4 w-4 mr-1" />
+                                Invitar
+                              </>
+                            )}
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </ScrollArea>
+              </CardContent>
+            </Card>
+          ) : (
+            <Card>
+              <CardContent className="py-8">
+                <Badge variant="secondary" className="w-full justify-center py-2">
+                  <Users className="h-4 w-4 mr-2" />
+                  Equipo completo
+                </Badge>
+              </CardContent>
+            </Card>
+          )}
+
+          <div className="flex justify-end">
+            <Button onClick={() => router.push(`/patient/${patientId}/my-challenges`)}>
+              Finalizar
+            </Button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

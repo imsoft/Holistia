@@ -27,7 +27,7 @@ export default function NewChallengePage() {
       </div>
 
       {/* Main Content */}
-      <div className="p-6">
+      <div className="py-4 px-6">
         <div className="max-w-3xl mx-auto">
           <ChallengeForm
             userId={patientId}

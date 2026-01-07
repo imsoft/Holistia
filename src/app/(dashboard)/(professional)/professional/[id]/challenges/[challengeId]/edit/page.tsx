@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { ChallengeForm } from "@/components/challenges/challenge-form";
+import { ChallengeResourcesManager } from "@/components/challenges/challenge-resources-manager";
 import { createClient } from "@/utils/supabase/client";
 import { toast } from "sonner";
 
@@ -90,13 +91,15 @@ export default function EditProfessionalChallengePage() {
       </div>
 
       <div className="p-6">
-        <div className="max-w-3xl mx-auto">
+        <div className="max-w-3xl mx-auto space-y-6">
           <ChallengeForm
             userId={professionalId}
             challenge={challenge}
             redirectPath={`/professional/${professionalId}/challenges`}
             userType="professional"
           />
+
+          <ChallengeResourcesManager challengeId={challengeId} />
         </div>
       </div>
     </div>

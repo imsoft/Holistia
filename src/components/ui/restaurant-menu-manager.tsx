@@ -1,25 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter, useParams } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import {
   Card,
   CardContent,
   CardTitle,
 } from "@/components/ui/card";
-import { MenuImagesUploader } from "@/components/ui/menu-images-uploader";
 import { PDFUploader } from "@/components/ui/pdf-uploader";
 import { Plus, Edit, Trash2, UtensilsCrossed } from "lucide-react";
 import { toast } from "sonner";
@@ -53,22 +42,14 @@ export function RestaurantMenuManager({
   menuPdfUrl,
   onPdfUpdated
 }: RestaurantMenuManagerProps) {
+  const router = useRouter();
+  const params = useParams();
+  const adminId = params.id as string;
+
   const [menus, setMenus] = useState<RestaurantMenu[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isFormOpen, setIsFormOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
-  const [editingMenu, setEditingMenu] = useState<RestaurantMenu | null>(null);
   const [deletingMenu, setDeletingMenu] = useState<RestaurantMenu | null>(null);
-  const [saving, setSaving] = useState(false);
-  const [tempMenuId, setTempMenuId] = useState<string | null>(null);
-  
-  const [formData, setFormData] = useState({
-    title: "",
-    description: "",
-    price: "",
-    images: [] as string[],
-    is_active: true,
-  });
 
   const supabase = createClient();
 
@@ -101,94 +82,6 @@ export function RestaurantMenuManager({
       toast.error("Error al cargar los menús");
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleOpenForm = (menu?: RestaurantMenu) => {
-    if (menu) {
-      setEditingMenu(menu);
-      setTempMenuId(null);
-      setFormData({
-        title: menu.title,
-        description: menu.description || "",
-        price: menu.price?.toString() || "",
-        images: menu.images || [],
-        is_active: menu.is_active,
-      });
-    } else {
-      const newTempId = crypto.randomUUID();
-      setTempMenuId(newTempId);
-      setEditingMenu(null);
-      setFormData({
-        title: "",
-        description: "",
-        price: "",
-        images: [],
-        is_active: true,
-      });
-    }
-    setIsFormOpen(true);
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!formData.title.trim()) {
-      toast.error("El título es requerido");
-      return;
-    }
-
-    setSaving(true);
-
-    try {
-      const menuData: {
-        restaurant_id: string;
-        title: string;
-        description: string | null;
-        price: number | null;
-        images: string[];
-        is_active: boolean;
-        id?: string;
-      } = {
-        restaurant_id: restaurantId,
-        title: formData.title.trim(),
-        description: formData.description.trim() || null,
-        price: formData.price ? parseFloat(formData.price) : null,
-        images: formData.images,
-        is_active: formData.is_active,
-      };
-
-      if (editingMenu) {
-        // Actualizar menú existente
-        const { error } = await supabase
-          .from("restaurant_menus")
-          .update(menuData)
-          .eq("id", editingMenu.id);
-
-        if (error) throw error;
-        toast.success("Menú actualizado exitosamente");
-      } else {
-        // Crear nuevo menú
-        // Si hay tempMenuId, usarlo para mantener consistencia con las imágenes
-        if (tempMenuId) {
-          menuData.id = tempMenuId;
-        }
-
-        const { error } = await supabase
-          .from("restaurant_menus")
-          .insert(menuData);
-
-        if (error) throw error;
-        toast.success("Menú creado exitosamente");
-      }
-
-      setIsFormOpen(false);
-      fetchMenus();
-    } catch (error) {
-      console.error("Error saving menu:", error);
-      toast.error("Error al guardar el menú");
-    } finally {
-      setSaving(false);
     }
   };
 
@@ -227,10 +120,6 @@ export function RestaurantMenuManager({
       console.error("Error deleting menu:", error);
       toast.error("Error al eliminar el menú");
     }
-  };
-
-  const handleImagesUpdated = (images: string[]) => {
-    setFormData({ ...formData, images });
   };
 
   if (loading) {
@@ -277,7 +166,10 @@ export function RestaurantMenuManager({
             <p className="text-sm text-muted-foreground">
               Agrega platillos individuales con imágenes y descripciones
             </p>
-            <Button type="button" onClick={() => handleOpenForm()}>
+            <Button
+              type="button"
+              onClick={() => router.push(`/admin/${adminId}/restaurants/${restaurantId}/menus/new`)}
+            >
               <Plus className="mr-2 h-4 w-4" />
               Agregar Platillo
             </Button>
@@ -337,7 +229,7 @@ export function RestaurantMenuManager({
                           type="button"
                           variant="outline"
                           size="sm"
-                          onClick={() => handleOpenForm(menu)}
+                          onClick={() => router.push(`/admin/${adminId}/restaurants/${restaurantId}/menus/${menu.id}/edit`)}
                         >
                           <Edit className="h-4 w-4" />
                         </Button>
@@ -363,91 +255,6 @@ export function RestaurantMenuManager({
       )}
         </TabsContent>
       </Tabs>
-
-      {/* Dialog de formulario */}
-      <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>
-              {editingMenu ? "Editar Menú" : "Nuevo Menú"}
-            </DialogTitle>
-            <DialogDescription>
-              {editingMenu
-                ? "Actualiza la información del menú"
-                : "Agrega un nuevo elemento al menú del restaurante"}
-            </DialogDescription>
-          </DialogHeader>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="title">Título *</Label>
-              <Input
-                id="title"
-                value={formData.title}
-                onChange={(e) =>
-                  setFormData({ ...formData, title: e.target.value })
-                }
-                placeholder="Ej: Ensalada César"
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="description">Descripción</Label>
-              <Textarea
-                id="description"
-                value={formData.description}
-                onChange={(e) =>
-                  setFormData({ ...formData, description: e.target.value })
-                }
-                placeholder="Describe el plato..."
-                rows={3}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="price">Precio</Label>
-              <Input
-                id="price"
-                type="number"
-                step="0.01"
-                min="0"
-                value={formData.price}
-                onChange={(e) =>
-                  setFormData({ ...formData, price: e.target.value })
-                }
-                placeholder="Ej: 250.00"
-              />
-            </div>
-
-            {/* Uploader de imágenes */}
-            <MenuImagesUploader
-              restaurantId={restaurantId}
-              menuId={editingMenu?.id || tempMenuId || ""}
-              currentImages={formData.images}
-              onImagesUpdated={handleImagesUpdated}
-              maxImages={4}
-            />
-
-            <DialogFooter>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setIsFormOpen(false)}
-                disabled={saving}
-              >
-                Cancelar
-              </Button>
-              <Button type="submit" disabled={saving}>
-                {saving
-                  ? "Guardando..."
-                  : editingMenu
-                  ? "Actualizar"
-                  : "Crear Menú"}
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
 
       {/* Dialog de confirmación de eliminación */}
       <ConfirmDialog

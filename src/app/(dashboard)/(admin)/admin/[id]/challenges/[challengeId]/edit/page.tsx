@@ -95,6 +95,7 @@ export default function EditAdminChallengePage() {
             userId={adminId}
             challenge={challenge}
             redirectPath={`/admin/${adminId}/challenges`}
+            userType="admin"
           />
         </div>
       </div>

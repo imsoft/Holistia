@@ -95,6 +95,7 @@ export default function EditProfessionalChallengePage() {
             userId={professionalId}
             challenge={challenge}
             redirectPath={`/professional/${professionalId}/challenges`}
+            userType="professional"
           />
         </div>
       </div>

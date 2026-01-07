@@ -31,6 +31,7 @@ export default function NewProfessionalChallengePage() {
             userId={professionalId}
             challenge={null}
             redirectPath={`/professional/${professionalId}/challenges`}
+            userType="professional"
           />
         </div>
       </div>

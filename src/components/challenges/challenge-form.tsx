@@ -24,6 +24,7 @@ interface ChallengeFormProps {
   userId: string;
   challenge?: any | null;
   redirectPath: string;
+  userType?: 'professional' | 'patient' | 'admin'; // Tipo de usuario creando el reto
 }
 
 interface ChallengeFormData {
@@ -36,6 +37,8 @@ interface ChallengeFormData {
   category: string;
   wellness_areas: string[];
   linked_professional_id: string;
+  price: string;
+  currency: string;
   is_active: boolean;
 }
 
@@ -46,9 +49,10 @@ const DIFFICULTY_OPTIONS = [
   { value: 'expert', label: 'Experto' },
 ] as const;
 
-export function ChallengeForm({ userId, challenge, redirectPath }: ChallengeFormProps) {
+export function ChallengeForm({ userId, challenge, redirectPath, userType = 'patient' }: ChallengeFormProps) {
   const router = useRouter();
   const supabase = createClient();
+  const isProfessional = userType === 'professional';
 
   const [formData, setFormData] = useState<ChallengeFormData>({
     title: "",
@@ -60,6 +64,8 @@ export function ChallengeForm({ userId, challenge, redirectPath }: ChallengeForm
     category: "",
     wellness_areas: [],
     linked_professional_id: "none",
+    price: "",
+    currency: "MXN",
     is_active: true,
   });
 
@@ -85,6 +91,8 @@ export function ChallengeForm({ userId, challenge, redirectPath }: ChallengeForm
         category: challenge.category || "",
         wellness_areas: challenge.wellness_areas || [],
         linked_professional_id: challenge.linked_professional_id || "none",
+        price: challenge.price?.toString() || "",
+        currency: challenge.currency || "MXN",
         is_active: challenge.is_active,
       });
     }
@@ -206,10 +214,16 @@ export function ChallengeForm({ userId, challenge, redirectPath }: ChallengeForm
         return;
       }
 
+      // Validar precio si es profesional
+      if (isProfessional && formData.price && parseFloat(formData.price) < 0) {
+        toast.error("El precio no puede ser negativo");
+        return;
+      }
+
       const challengeData = {
         professional_id: null,
         created_by_user_id: user.id,
-        created_by_type: 'patient',
+        created_by_type: userType,
         title: formData.title.trim(),
         description: formData.description.trim(),
         short_description: formData.short_description?.trim() || null,
@@ -219,6 +233,8 @@ export function ChallengeForm({ userId, challenge, redirectPath }: ChallengeForm
         category: formData.category || null,
         wellness_areas: formData.wellness_areas || [],
         linked_professional_id: formData.linked_professional_id && formData.linked_professional_id !== 'none' ? formData.linked_professional_id : null,
+        price: isProfessional && formData.price ? parseFloat(formData.price) : null,
+        currency: isProfessional && formData.price ? formData.currency : null,
         is_active: formData.is_active,
       };
 
@@ -372,6 +388,52 @@ export function ChallengeForm({ userId, challenge, redirectPath }: ChallengeForm
             label="Áreas de Bienestar"
             description="Selecciona las áreas de bienestar relacionadas con este reto"
           />
+
+          {isProfessional && (
+            <Card className="bg-muted/50">
+              <CardHeader>
+                <CardTitle className="text-base">Precio del Reto (Opcional)</CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  Configura el precio si deseas monetizar este reto. Déjalo en blanco para que sea gratuito.
+                </p>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="col-span-2 space-y-2">
+                    <Label htmlFor="price">Precio</Label>
+                    <Input
+                      id="price"
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={formData.price}
+                      onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                      placeholder="0.00"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="currency">Moneda</Label>
+                    <Select
+                      value={formData.currency}
+                      onValueChange={(value) => setFormData({ ...formData, currency: value })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="MXN">MXN</SelectItem>
+                        <SelectItem value="USD">USD</SelectItem>
+                        <SelectItem value="EUR">EUR</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Los retos gratuitos son más accesibles y pueden atraer más participantes.
+                </p>
+              </CardContent>
+            </Card>
+          )}
 
           <div className="space-y-2">
             <Label>Imagen de Portada</Label>

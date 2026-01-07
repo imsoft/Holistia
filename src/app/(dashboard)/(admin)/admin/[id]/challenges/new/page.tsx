@@ -31,6 +31,7 @@ export default function NewAdminChallengePage() {
             userId={adminId}
             challenge={null}
             redirectPath={`/admin/${adminId}/challenges`}
+            userType="admin"
           />
         </div>
       </div>

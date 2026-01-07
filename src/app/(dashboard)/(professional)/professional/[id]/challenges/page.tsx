@@ -71,33 +71,24 @@ export default function ProfessionalChallenges() {
         return;
       }
 
-      // Obtener el professional_id desde el user_id
-      const userId = params.id as string;
-      const { data: professionalData, error: profError } = await supabase
-        .from('professional_applications')
-        .select('id')
-        .eq('user_id', userId)
-        .eq('status', 'approved')
-        .single();
+      // Buscar challenges creados por este profesional usando created_by_user_id
+      const { data: challengesData, error: challengesError } = await supabase
+        .from('challenges')
+        .select('*')
+        .eq('created_by_user_id', user.id)
+        .eq('created_by_type', 'professional')
+        .order('created_at', { ascending: false });
 
-      if (profError || !professionalData) {
-        toast.error("No se encontró el profesional");
-        return;
+      if (challengesError) {
+        throw challengesError;
       }
 
-      const response = await fetch(`/api/challenges?professional_id=${professionalData.id}`);
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Error al cargar retos");
-      }
-
-      setChallenges(data.challenges || []);
+      setChallenges(challengesData || []);
 
       // Calcular estadísticas (sin ventas)
       setStats({
-        totalChallenges: data.challenges?.length || 0,
-        activeChallenges: data.challenges?.filter((c: Challenge) => c.is_active).length || 0,
+        totalChallenges: challengesData?.length || 0,
+        activeChallenges: challengesData?.filter((c: Challenge) => c.is_active).length || 0,
         totalSales: 0,
         totalRevenue: 0,
       });

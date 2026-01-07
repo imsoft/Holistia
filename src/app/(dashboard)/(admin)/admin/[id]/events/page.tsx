@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
+import { useParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -30,17 +31,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { EventForm } from "@/components/ui/event-form";
-
 const EventsAdminPage = () => {
+  const params = useParams();
+  const router = useRouter();
+  const adminId = params.id as string;
   const [events, setEvents] = useState<EventWorkshop[]>([]);
   const [professionals, setProfessionals] = useState<Professional[]>([]);
   const [loading, setLoading] = useState(true);
@@ -49,8 +43,6 @@ const EventsAdminPage = () => {
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [eventToDelete, setEventToDelete] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const [editingEvent, setEditingEvent] = useState<EventWorkshop | null>(null);
 
   const supabase = createClient();
 
@@ -167,19 +159,7 @@ const EventsAdminPage = () => {
   };
 
   const handleEditEvent = (event: EventWorkshop) => {
-    console.log('🎯 handleEditEvent - Evento a editar:', event);
-    setEditingEvent(event);
-    setIsFormOpen(true);
-  };
-
-  const handleFormClose = () => {
-    setIsFormOpen(false);
-    setEditingEvent(null);
-  };
-
-  const handleFormSuccess = () => {
-    fetchEvents();
-    handleFormClose();
+    router.push(`/admin/${adminId}/events/${event.id}/edit`);
   };
 
   const filteredEvents = events.filter((event) => {
@@ -250,35 +230,14 @@ const EventsAdminPage = () => {
               </p>
             </div>
           </div>
-          <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-            <DialogTrigger asChild>
-              <Button onClick={() => setEditingEvent(null)} className="w-full sm:w-auto">
-                <Plus className="w-4 h-4 mr-2" />
-                <span className="hidden sm:inline">Nuevo Evento</span>
-                <span className="sm:hidden">Nuevo</span>
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle>
-                  {editingEvent ? "Editar Evento" : "Crear Nuevo Evento"}
-                </DialogTitle>
-                <DialogDescription>
-                  {editingEvent 
-                    ? "Modifica la información del evento" 
-                    : "Agrega un nuevo evento o taller a la plataforma"
-                  }
-                </DialogDescription>
-              </DialogHeader>
-              <EventForm
-                key={editingEvent?.id || 'new'}
-                event={editingEvent}
-                professionals={professionals}
-                onSuccess={handleFormSuccess}
-                onCancel={handleFormClose}
-              />
-            </DialogContent>
-          </Dialog>
+          <Button
+            onClick={() => router.push(`/admin/${adminId}/events/new`)}
+            className="w-full sm:w-auto"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            <span className="hidden sm:inline">Nuevo Evento</span>
+            <span className="sm:hidden">Nuevo</span>
+          </Button>
         </div>
       </div>
 
@@ -336,7 +295,7 @@ const EventsAdminPage = () => {
                   : "No se encontraron eventos que coincidan con los filtros aplicados."
                 }
               </p>
-              <Button onClick={() => setIsFormOpen(true)}>
+              <Button onClick={() => router.push(`/admin/${adminId}/events/new`)}>
                 <Plus className="w-4 h-4 mr-2" />
                 Crear Primer Evento
               </Button>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { toast } from "sonner";
@@ -80,6 +80,7 @@ const DIFFICULTY_OPTIONS = [
 
 export default function AdminChallengesPage() {
   const params = useParams();
+  const router = useRouter();
   const adminId = params.id as string;
   const supabase = createClient();
 
@@ -292,44 +293,6 @@ export default function AdminChallengesPage() {
     }
   };
 
-  const handleOpenForm = (challenge?: Challenge) => {
-    if (challenge) {
-      setEditingChallenge(challenge);
-      setFormData({
-        title: challenge.title,
-        description: challenge.description,
-        short_description: challenge.short_description || "",
-        cover_image_url: challenge.cover_image_url || "",
-        duration_days: challenge.duration_days?.toString() || "",
-        difficulty_level: challenge.difficulty_level || "",
-        category: challenge.category || "",
-        wellness_areas: challenge.wellness_areas || [],
-        linked_patient_id: challenge.linked_patient_id || "none",
-        linked_professional_id: challenge.linked_professional_id || "none",
-        professional_id: challenge.professional_id || "none",
-        is_active: challenge.is_active,
-      });
-      fetchChallengeFiles(challenge.id);
-    } else {
-      setEditingChallenge(null);
-      setFormData({
-        title: "",
-        description: "",
-        short_description: "",
-        cover_image_url: "",
-        duration_days: "",
-        difficulty_level: "",
-        category: "",
-        wellness_areas: [],
-        linked_patient_id: "none",
-        linked_professional_id: "none",
-        professional_id: "none",
-        is_active: true,
-      });
-      setChallengeFiles([]);
-    }
-    setIsFormOpen(true);
-  };
 
   const fetchChallengeFiles = async (challengeId: string) => {
     try {
@@ -528,7 +491,7 @@ export default function AdminChallengesPage() {
               Gestiona y visualiza todos los retos de la plataforma
             </p>
           </div>
-          <Button onClick={() => handleOpenForm()}>
+          <Button onClick={() => router.push(`/admin/${adminId}/challenges/new`)}>
             <Plus className="h-4 w-4 mr-2" />
             Nuevo Reto
           </Button>
@@ -703,7 +666,7 @@ export default function AdminChallengesPage() {
                       variant="outline"
                       size="sm"
                       className="flex-1"
-                      onClick={() => handleOpenForm(challenge)}
+                      onClick={() => router.push(`/admin/${adminId}/challenges/${challenge.id}/edit`)}
                     >
                       <Edit className="h-4 w-4 mr-2" />
                       Editar
@@ -724,261 +687,6 @@ export default function AdminChallengesPage() {
           </div>
         )}
       </div>
-
-      {/* Dialog de formulario */}
-      <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>
-              {editingChallenge ? "Editar Reto" : "Nuevo Reto"}
-            </DialogTitle>
-            <DialogDescription>
-              {editingChallenge ? "Modifica la información del reto" : "Crea un nuevo reto para la plataforma"}
-            </DialogDescription>
-          </DialogHeader>
-
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="title">
-                Título *
-              </Label>
-              <Input
-                id="title"
-                value={formData.title}
-                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                placeholder="Ej: Reto de Meditación 21 Días"
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="short_description">
-                Descripción Corta
-              </Label>
-              <Input
-                id="short_description"
-                value={formData.short_description}
-                onChange={(e) => setFormData({ ...formData, short_description: e.target.value })}
-                placeholder="Breve descripción para mostrar en cards"
-                maxLength={150}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="description">
-                Descripción Completa *
-              </Label>
-              <Textarea
-                id="description"
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                placeholder="Describe el reto en detalle..."
-                rows={5}
-                required
-              />
-            </div>
-
-            {/* Selector de Profesional (Opcional) */}
-            <div className="space-y-2">
-              <Label htmlFor="professional_id">
-                Asignar a Profesional (Opcional)
-              </Label>
-              <Select
-                value={formData.professional_id}
-                onValueChange={(value) => setFormData({ ...formData, professional_id: value, linked_professional_id: value })}
-                disabled={loadingProfessionals}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder={loadingProfessionals ? "Cargando..." : "Selecciona un profesional (opcional)"} />
-                </SelectTrigger>
-                <SelectContent className="max-h-[300px]">
-                  <SelectItem value="none">Ninguno (Reto general)</SelectItem>
-                  {professionals.map((prof) => (
-                    <SelectItem key={prof.id} value={prof.id}>
-                      {prof.first_name} {prof.last_name} - {prof.profession}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Selector de Paciente (Opcional) */}
-            <div className="space-y-2">
-              <Label htmlFor="linked_patient_id">
-                Vincular a Paciente (Opcional)
-              </Label>
-              <Select
-                value={formData.linked_patient_id}
-                onValueChange={(value) => setFormData({ ...formData, linked_patient_id: value })}
-                disabled={loadingPatients}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder={loadingPatients ? "Cargando..." : "Selecciona un paciente (opcional)"} />
-                </SelectTrigger>
-                <SelectContent className="max-h-[300px]">
-                  <SelectItem value="none">Ninguno (Reto público)</SelectItem>
-                  {patients.map((patient) => (
-                    <SelectItem key={patient.id} value={patient.id}>
-                      {patient.first_name} {patient.last_name} - {patient.email}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="duration_days">
-                  Duración (días)
-                </Label>
-                <Input
-                  id="duration_days"
-                  type="number"
-                  min="1"
-                  value={formData.duration_days}
-                  onChange={(e) => setFormData({ ...formData, duration_days: e.target.value })}
-                  placeholder="Ej: 21"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="difficulty_level">
-                  Nivel de Dificultad
-                </Label>
-                <Select
-                  value={formData.difficulty_level}
-                  onValueChange={(value) => setFormData({ ...formData, difficulty_level: value })}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Selecciona nivel" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {DIFFICULTY_OPTIONS.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="category">
-                Categoría
-              </Label>
-              <Input
-                id="category"
-                value={formData.category}
-                onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                placeholder="Ej: Meditación, Fitness, Nutrición"
-              />
-            </div>
-
-            {/* Áreas de Bienestar */}
-            <WellnessAreasSelector
-              selectedAreas={formData.wellness_areas}
-              onAreasChange={(areas) => setFormData({ ...formData, wellness_areas: areas })}
-              label="Áreas de Bienestar"
-              description="Selecciona las áreas de bienestar relacionadas con este reto"
-            />
-
-            {/* Imagen de portada */}
-            <div className="space-y-2">
-              <Label>Imagen de Portada</Label>
-              <div className="space-y-3">
-                {formData.cover_image_url ? (
-                  <div className="relative h-48 w-full rounded-lg overflow-hidden border-2 border-dashed border-muted">
-                    <Image
-                      src={formData.cover_image_url}
-                      alt="Portada"
-                      fill
-                      className="object-cover"
-                    />
-                    <Button
-                      type="button"
-                      variant="destructive"
-                      size="icon"
-                      className="absolute top-2 right-2 shadow-lg"
-                      onClick={() => setFormData({ ...formData, cover_image_url: "" })}
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="relative h-48 w-full rounded-lg border-2 border-dashed border-muted bg-muted/10 flex flex-col items-center justify-center gap-2 hover:bg-muted/20 transition-colors">
-                    <Upload className="h-8 w-8 text-muted-foreground" />
-                    <p className="text-sm text-muted-foreground">No se ha subido ninguna imagen</p>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        const input = document.createElement('input');
-                        input.type = 'file';
-                        input.accept = 'image/*';
-                        input.onchange = (e) => {
-                          const file = (e.target as HTMLInputElement).files?.[0];
-                          if (file) handleCoverImageUpload(file);
-                        };
-                        input.click();
-                      }}
-                      disabled={uploadingCover}
-                    >
-                      {uploadingCover ? (
-                        <>
-                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                          Subiendo...
-                        </>
-                      ) : (
-                        <>
-                          <Upload className="h-4 w-4 mr-2" />
-                          Subir Imagen
-                        </>
-                      )}
-                    </Button>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label htmlFor="is_active">Reto Activo</Label>
-                <p className="text-xs text-muted-foreground">
-                  Los retos inactivos no serán visibles para los usuarios
-                </p>
-              </div>
-              <Switch
-                id="is_active"
-                checked={formData.is_active}
-                onCheckedChange={(checked) => setFormData({ ...formData, is_active: checked })}
-              />
-            </div>
-
-            <DialogFooter>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setIsFormOpen(false)}
-              >
-                Cancelar
-              </Button>
-              <Button type="submit" disabled={saving}>
-                {saving ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Guardando...
-                  </>
-                ) : editingChallenge ? (
-                  "Actualizar Reto"
-                ) : (
-                  "Crear Reto"
-                )}
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

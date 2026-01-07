@@ -2,8 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import { ArrowLeft, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { ChallengeForm } from "@/components/challenges/challenge-form";
 import { createClient } from "@/utils/supabase/client";
 import { toast } from "sonner";
@@ -66,30 +65,13 @@ export default function EditChallengePage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="border-b border-border bg-card">
-        <div className="flex h-16 items-center gap-4 px-6">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => router.push(`/patient/${patientId}/my-challenges`)}
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <h1 className="text-2xl font-bold text-foreground">Editar Reto Personal</h1>
-        </div>
-      </div>
-
-      {/* Main Content */}
-      <div className="py-4 px-6">
-        <div className="max-w-3xl mx-auto py-4">
-          <ChallengeForm
-            userId={patientId}
-            challenge={challenge}
-            redirectPath={`/patient/${patientId}/my-challenges`}
-          />
-        </div>
+    <div className="py-4 px-6">
+      <div className="max-w-3xl mx-auto py-4">
+        <ChallengeForm
+          userId={patientId}
+          challenge={challenge}
+          redirectPath={`/patient/${patientId}/my-challenges`}
+        />
       </div>
     </div>
   );

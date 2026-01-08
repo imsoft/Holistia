@@ -82,133 +82,40 @@ USING (
 );
 
 -- ============================================================================
--- PARTE 2: CORREGIR POLÍTICAS DE STORAGE PARA PROFESSIONAL-SERVICES
+-- PARTE 2: VERIFICAR BUCKET DE STORAGE
 -- ============================================================================
--- NOTA: Las políticas de storage deben crearse desde el Dashboard de Supabase
--- o ejecutarse con permisos de superusuario. Este script solo verifica.
+-- NOTA IMPORTANTE: Las políticas de storage NO se pueden crear desde SQL
+-- sin permisos de superusuario. Deben crearse manualmente desde el Dashboard.
+-- Ver archivo: database/scripts/crear_storage_policies_professional_services.md
 -- ============================================================================
 
--- Verificar que el bucket existe, si no, crear instrucciones
+-- Solo verificar que el bucket existe
 DO $$ 
 BEGIN
   IF NOT EXISTS (SELECT 1 FROM storage.buckets WHERE id = 'professional-services') THEN
-    RAISE NOTICE 'El bucket professional-services no existe. Créalo desde Storage → New bucket con nombre: professional-services, público: true';
+    RAISE NOTICE '⚠️ El bucket professional-services no existe. Créalo desde Storage → New bucket';
+    RAISE NOTICE '   - Name: professional-services';
+    RAISE NOTICE '   - Public: true';
+    RAISE NOTICE '   - File size limit: 5242880 (5MB)';
   ELSE
-    RAISE NOTICE 'Bucket professional-services encontrado';
+    RAISE NOTICE '✅ Bucket professional-services encontrado';
   END IF;
 END $$;
 
--- Intentar eliminar políticas existentes de storage (solo si tenemos permisos)
--- Si falla, se ignorará y se mostrará un mensaje
-DO $$ 
-BEGIN
-  BEGIN
-    DROP POLICY IF EXISTS "Public can view service images" ON storage.objects;
-    DROP POLICY IF EXISTS "Professionals can upload service images" ON storage.objects;
-    DROP POLICY IF EXISTS "Professionals can update service images" ON storage.objects;
-    DROP POLICY IF EXISTS "Professionals can delete service images" ON storage.objects;
-    DROP POLICY IF EXISTS "Admins can upload service images" ON storage.objects;
-    DROP POLICY IF EXISTS "Admins can update service images" ON storage.objects;
-    DROP POLICY IF EXISTS "Admins can delete service images" ON storage.objects;
-    RAISE NOTICE 'Políticas de storage eliminadas (si existían)';
-  EXCEPTION WHEN insufficient_privilege THEN
-    RAISE NOTICE 'No se tienen permisos para eliminar políticas de storage. Esto es normal. Las políticas deben crearse desde el Dashboard.';
-  END;
-END $$;
-
 -- ============================================================================
--- IMPORTANTE: Las políticas de storage deben crearse desde el Dashboard
+-- NOTA SOBRE POLÍTICAS DE STORAGE
 -- ============================================================================
--- Las políticas de storage requieren permisos de superusuario.
--- Sigue estas instrucciones para crearlas manualmente:
---
--- 1. Ve a Supabase Dashboard → Storage → professional-services → Policies
--- 2. Crea las siguientes políticas:
---
--- POLÍTICA 1: "Public can view service images"
---   - Operation: SELECT
---   - Target roles: public
---   - USING expression: bucket_id = 'professional-services'
---
--- POLÍTICA 2: "Professionals can upload service images"
---   - Operation: INSERT
---   - Target roles: authenticated
---   - WITH CHECK expression:
---     bucket_id = 'professional-services' 
---     AND (storage.foldername(name))[1] = auth.uid()::text
---
--- POLÍTICA 3: "Admins can upload service images"
---   - Operation: INSERT
---   - Target roles: authenticated
---   - WITH CHECK expression:
---     bucket_id = 'professional-services'
---     AND EXISTS (
---       SELECT 1 FROM public.profiles
---       WHERE profiles.id = auth.uid()
---       AND profiles.type = 'admin'
---       AND profiles.account_active = true
---     )
---
--- POLÍTICA 4: "Professionals can update service images"
---   - Operation: UPDATE
---   - Target roles: authenticated
---   - USING expression:
---     bucket_id = 'professional-services' 
---     AND (storage.foldername(name))[1] = auth.uid()::text
---   - WITH CHECK expression: (mismo que USING)
---
--- POLÍTICA 5: "Admins can update service images"
---   - Operation: UPDATE
---   - Target roles: authenticated
---   - USING expression:
---     bucket_id = 'professional-services'
---     AND EXISTS (
---       SELECT 1 FROM public.profiles
---       WHERE profiles.id = auth.uid()
---       AND profiles.type = 'admin'
---       AND profiles.account_active = true
---     )
---   - WITH CHECK expression: (mismo que USING)
---
--- POLÍTICA 6: "Professionals can delete service images"
---   - Operation: DELETE
---   - Target roles: authenticated
---   - USING expression:
---     bucket_id = 'professional-services' 
---     AND (storage.foldername(name))[1] = auth.uid()::text
---
--- POLÍTICA 7: "Admins can delete service images"
---   - Operation: DELETE
---   - Target roles: authenticated
---   - USING expression:
---     bucket_id = 'professional-services'
---     AND EXISTS (
---       SELECT 1 FROM public.profiles
---       WHERE profiles.id = auth.uid()
---       AND profiles.type = 'admin'
---       AND profiles.account_active = true
---     )
+-- Las políticas de storage NO pueden crearse desde SQL sin permisos de superusuario.
+-- 
+-- INSTRUCCIONES: Ve al archivo:
+-- database/scripts/crear_storage_policies_professional_services.md
+-- 
+-- Allí encontrarás una guía paso a paso para crear las políticas desde el Dashboard.
+-- 
+-- El bucket professional-services ya existe (según tu captura de pantalla).
+-- Solo necesitas verificar/actualizar las políticas desde:
+-- Supabase Dashboard → Storage → professional-services → Policies
 -- ============================================================================
-
--- Intentar crear políticas (solo si tenemos permisos)
-DO $$ 
-BEGIN
-  BEGIN
-    -- Política de lectura pública
-    CREATE POLICY "Public can view service images"
-    ON storage.objects
-    FOR SELECT
-    TO public
-    USING (bucket_id = 'professional-services');
-    
-    RAISE NOTICE 'Políticas de storage creadas exitosamente';
-  EXCEPTION 
-    WHEN insufficient_privilege THEN
-      RAISE NOTICE 'No se tienen permisos para crear políticas de storage. Por favor, créalas manualmente desde el Dashboard siguiendo las instrucciones arriba.';
-    WHEN duplicate_object THEN
-      RAISE NOTICE 'Algunas políticas de storage ya existen. Verifica que todas estén creadas correctamente.';
-  END;
-END $$;
 
 -- ============================================================================
 -- COMENTARIOS
@@ -244,12 +151,11 @@ FROM pg_policies
 WHERE tablename = 'professional_services'
 ORDER BY policyname;
 
--- Verificar políticas de storage
+-- Verificar políticas de storage (solo lectura, no requiere permisos especiales)
+-- Si esta query falla, es normal - las políticas de storage se gestionan desde el Dashboard
 SELECT 
   policyname,
-  cmd,
-  qual,
-  with_check
+  cmd
 FROM pg_policies
 WHERE schemaname = 'storage'
   AND tablename = 'objects'

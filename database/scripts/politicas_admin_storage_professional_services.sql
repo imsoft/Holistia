@@ -1,10 +1,20 @@
 -- ============================================================================
--- ⚠️ IMPORTANTE: ESTE ARCHIVO NO SE EJECUTA COMO SQL ⚠️
+-- ⚠️⚠️⚠️ ADVERTENCIA CRÍTICA ⚠️⚠️⚠️
 -- ============================================================================
--- Este archivo es solo una REFERENCIA con las expresiones SQL que debes
--- copiar y pegar en el Dashboard de Supabase al crear las políticas.
+-- ESTE ARCHIVO NO ES UN SCRIPT SQL EJECUTABLE
+-- NO LO EJECUTES EN EL SQL EDITOR - CAUSARÁ ERRORES DE SINTAXIS
+-- ============================================================================
 -- 
--- NO ejecutes este archivo en el SQL Editor - causará errores de sintaxis.
+-- Este archivo es SOLO una REFERENCIA con las expresiones SQL que debes
+-- COPIAR Y PEGAR en el Dashboard de Supabase al crear las políticas.
+-- 
+-- INSTRUCCIONES CORRECTAS:
+-- 1. Abre este archivo para ver las expresiones SQL
+-- 2. Ve a Supabase Dashboard → Storage → professional-services → Policies
+-- 3. Crea cada política manualmente desde el Dashboard
+-- 4. Copia SOLO las expresiones SQL (sin los comentarios) y pégala en el Dashboard
+-- 
+-- NO copies todo el archivo al SQL Editor - solo las expresiones individuales
 -- ============================================================================
 
 -- ============================================================================

@@ -1,19 +1,30 @@
 -- ============================================================================
+-- ⚠️ IMPORTANTE: ESTE ARCHIVO NO SE EJECUTA COMO SQL ⚠️
+-- ============================================================================
+-- Este archivo es solo una REFERENCIA con las expresiones SQL que debes
+-- copiar y pegar en el Dashboard de Supabase al crear las políticas.
+-- 
+-- NO ejecutes este archivo en el SQL Editor - causará errores de sintaxis.
+-- ============================================================================
+
+-- ============================================================================
 -- POLÍTICAS DE STORAGE PARA ADMINS - PROFESSIONAL SERVICES
 -- ============================================================================
 -- INSTRUCCIONES:
 -- 1. Ve a Supabase Dashboard → Storage → professional-services → Policies
 -- 2. Para cada política, haz clic en "New policy" → "Create a policy from scratch"
--- 3. Copia y pega la configuración de cada política
+-- 3. Copia SOLO la expresión SQL (no los comentarios) y pégala en el campo correspondiente
 -- ============================================================================
 
 -- ============================================================================
 -- POLÍTICA 1: Admins can upload service images
 -- ============================================================================
--- Policy name: Admins can upload service images
--- Allowed operation: INSERT
--- Target roles: authenticated
--- WITH CHECK expression:
+-- Configuración en Dashboard:
+--   Policy name: Admins can upload service images
+--   Allowed operation: INSERT
+--   Target roles: authenticated
+--   WITH CHECK expression (copia SOLO esto):
+-- ============================================================================
 bucket_id = 'professional-services'
 AND EXISTS (
   SELECT 1 FROM public.profiles
@@ -25,10 +36,12 @@ AND EXISTS (
 -- ============================================================================
 -- POLÍTICA 2: Admins can update service images
 -- ============================================================================
--- Policy name: Admins can update service images
--- Allowed operation: UPDATE
--- Target roles: authenticated
--- USING expression:
+-- Configuración en Dashboard:
+--   Policy name: Admins can update service images
+--   Allowed operation: UPDATE
+--   Target roles: authenticated
+--   USING expression (copia SOLO esto):
+-- ============================================================================
 bucket_id = 'professional-services'
 AND EXISTS (
   SELECT 1 FROM public.profiles
@@ -36,7 +49,7 @@ AND EXISTS (
   AND profiles.type = 'admin'
   AND profiles.account_active = true
 )
--- WITH CHECK expression (mismo que USING):
+-- WITH CHECK expression (copia lo mismo que USING):
 bucket_id = 'professional-services'
 AND EXISTS (
   SELECT 1 FROM public.profiles
@@ -48,10 +61,12 @@ AND EXISTS (
 -- ============================================================================
 -- POLÍTICA 3: Admins can delete service images
 -- ============================================================================
--- Policy name: Admins can delete service images
--- Allowed operation: DELETE
--- Target roles: authenticated
--- USING expression:
+-- Configuración en Dashboard:
+--   Policy name: Admins can delete service images
+--   Allowed operation: DELETE
+--   Target roles: authenticated
+--   USING expression (copia SOLO esto):
+-- ============================================================================
 bucket_id = 'professional-services'
 AND EXISTS (
   SELECT 1 FROM public.profiles

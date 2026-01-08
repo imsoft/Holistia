@@ -167,9 +167,9 @@ export function DigitalProductForm({ professionalId, product, redirectPath }: Di
       const fileName = `cover-${Date.now()}.${fileExt}`;
       const filePath = `${productId}/${fileName}`;
 
-      // Subir imagen a Supabase Storage (bucket digital_products)
+      // Subir imagen a Supabase Storage (bucket digital-products)
       const { error: uploadError } = await supabase.storage
-        .from('digital_products')
+        .from('digital-products')
         .upload(filePath, file, {
           cacheControl: '3600',
           upsert: true
@@ -181,7 +181,7 @@ export function DigitalProductForm({ professionalId, product, redirectPath }: Di
 
       // Obtener URL pública de la imagen
       const { data: { publicUrl } } = supabase.storage
-        .from('digital_products')
+        .from('digital-products')
         .getPublicUrl(filePath);
 
       setFormData({ ...formData, cover_image_url: publicUrl });
@@ -206,7 +206,7 @@ export function DigitalProductForm({ professionalId, product, redirectPath }: Di
 
         // Eliminar de Supabase Storage
         const { error: deleteError } = await supabase.storage
-          .from('digital_products')
+          .from('digital-products')
           .remove([filePath]);
 
         if (deleteError && !deleteError.message.includes('not found')) {

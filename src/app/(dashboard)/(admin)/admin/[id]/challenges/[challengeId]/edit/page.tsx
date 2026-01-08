@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { ChallengeForm } from "@/components/challenges/challenge-form";
@@ -31,8 +31,10 @@ interface Challenge {
 export default function EditAdminChallengePage() {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const adminId = params.id as string;
   const challengeId = params.challengeId as string;
+  const professionalId = searchParams.get('professional_id');
 
   const [challenge, setChallenge] = useState<Challenge | null>(null);
   const [loading, setLoading] = useState(true);
@@ -55,14 +57,17 @@ export default function EditAdminChallengePage() {
       } catch (error) {
         console.error("Error fetching challenge:", error);
         toast.error("Error al cargar el reto");
-        router.push(`/admin/${adminId}/challenges`);
+        const redirectPath = professionalId 
+          ? `/admin/${adminId}/professionals/${professionalId}`
+          : `/admin/${adminId}/challenges`;
+        router.push(redirectPath);
       } finally {
         setLoading(false);
       }
     };
 
     fetchChallenge();
-  }, [challengeId, adminId, router, supabase]);
+  }, [challengeId, adminId, professionalId, router, supabase]);
 
   if (loading) {
     return (
@@ -83,7 +88,12 @@ export default function EditAdminChallengePage() {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => router.push(`/admin/${adminId}/challenges`)}
+            onClick={() => {
+              const redirectPath = professionalId 
+                ? `/admin/${adminId}/professionals/${professionalId}`
+                : `/admin/${adminId}/challenges`;
+              router.push(redirectPath);
+            }}
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>
@@ -96,7 +106,9 @@ export default function EditAdminChallengePage() {
           <ChallengeForm
             userId={adminId}
             challenge={challenge}
-            redirectPath={`/admin/${adminId}/challenges`}
+            redirectPath={professionalId 
+              ? `/admin/${adminId}/professionals/${professionalId}`
+              : `/admin/${adminId}/challenges`}
             userType="admin"
           />
 

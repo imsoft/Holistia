@@ -118,7 +118,12 @@ export function DigitalProductsTab({ professionalId }: DigitalProductsTabProps) 
                       </span>
                     </div>
                     <div className="flex gap-2 mt-4">
-                      <Button variant="outline" size="sm" className="flex-1">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="flex-1"
+                        onClick={() => router.push(`/admin/${adminId}/digital-products/${product.id}/edit?professional_id=${professionalId}`)}
+                      >
                         <Edit className="h-4 w-4 mr-2" />
                         Editar
                       </Button>

@@ -121,7 +121,11 @@ export function ChallengesTab({ professionalId }: ChallengesTabProps) {
                     )}
                   </div>
                   <div className="flex gap-2 shrink-0">
-                    <Button variant="outline" size="sm">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => router.push(`/admin/${adminId}/challenges/${challenge.id}/edit?professional_id=${professionalId}`)}
+                    >
                       <Edit className="h-4 w-4" />
                     </Button>
                     <Button variant="outline" size="sm">

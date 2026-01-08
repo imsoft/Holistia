@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useParams } from "next/navigation";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,6 +13,8 @@ interface ServicesTabProps {
 }
 
 export function ServicesTab({ professionalId }: ServicesTabProps) {
+  const params = useParams();
+  const adminId = params.id as string;
   const supabase = createClient();
   const [userId, setUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -69,7 +72,12 @@ export function ServicesTab({ professionalId }: ServicesTabProps) {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <ServiceManager professionalId={professionalId} userId={userId} />
+          <ServiceManager 
+            professionalId={professionalId} 
+            userId={userId} 
+            adminId={adminId}
+            isAdminContext={true}
+          />
         </CardContent>
       </Card>
     </div>

@@ -28,9 +28,11 @@ import { MapModal } from "@/components/ui/map-modal";
 interface ServiceManagerProps {
   professionalId: string;
   userId: string;
+  adminId?: string;
+  isAdminContext?: boolean;
 }
 
-export function ServiceManager({ professionalId, userId }: ServiceManagerProps) {
+export function ServiceManager({ professionalId, userId, adminId, isAdminContext = false }: ServiceManagerProps) {
   const router = useRouter();
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
@@ -40,6 +42,25 @@ export function ServiceManager({ professionalId, userId }: ServiceManagerProps) 
   const [selectedServiceForMap, setSelectedServiceForMap] = useState<Service | null>(null);
 
   const supabase = createClient();
+  
+  // Determinar rutas según el contexto
+  const getServicePath = (action: 'new' | 'edit', serviceId?: string) => {
+    if (isAdminContext && adminId) {
+      return action === 'new' 
+        ? `/admin/${adminId}/professionals/${professionalId}/services/new`
+        : `/admin/${adminId}/professionals/${professionalId}/services/${serviceId}/edit`;
+    }
+    return action === 'new'
+      ? `/professional/${userId}/services/new`
+      : `/professional/${userId}/services/${serviceId}/edit`;
+  };
+  
+  const getRedirectPath = () => {
+    if (isAdminContext && adminId) {
+      return `/admin/${adminId}/professionals/${professionalId}`;
+    }
+    return `/professional/${userId}/services`;
+  };
 
   const fetchServices = useCallback(async () => {
     try {
@@ -64,7 +85,7 @@ export function ServiceManager({ professionalId, userId }: ServiceManagerProps) 
   }, [fetchServices]);
 
   const handleEdit = (service: Service) => {
-    router.push(`/professional/${userId}/services/${service.id}/edit`);
+    router.push(getServicePath('edit', service.id));
   };
 
   const handleDelete = (serviceId: string) => {
@@ -174,7 +195,7 @@ export function ServiceManager({ professionalId, userId }: ServiceManagerProps) 
             Gestiona los servicios que ofreces a tus pacientes
           </p>
         </div>
-        <Button onClick={() => router.push(`/professional/${userId}/services/new`)}>
+        <Button onClick={() => router.push(getServicePath('new'))}>
           <Plus className="w-4 h-4 mr-2" />
           Agregar Servicio
         </Button>
@@ -188,7 +209,7 @@ export function ServiceManager({ professionalId, userId }: ServiceManagerProps) 
             <p className="text-muted-foreground text-center mb-4">
               Agrega tu primer servicio para que los pacientes puedan reservar citas contigo
             </p>
-            <Button onClick={() => router.push(`/professional/${userId}/services/new`)}>
+            <Button onClick={() => router.push(getServicePath('new'))}>
               <Plus className="w-4 h-4 mr-2" />
               Agregar Servicio
             </Button>

@@ -124,14 +124,8 @@ END $$;
 COMMENT ON POLICY "Admins can manage all services" ON public.professional_services
 IS 'Permite a administradores gestionar todos los servicios de profesionales';
 
-COMMENT ON POLICY "Public can view service images" ON storage.objects
-IS 'Permite a todos los usuarios ver imágenes de servicios (bucket público)';
-
-COMMENT ON POLICY "Professionals can upload service images" ON storage.objects
-IS 'Permite a profesionales subir imágenes en su carpeta personal (formato: {user_id}/...)';
-
-COMMENT ON POLICY "Admins can upload service images" ON storage.objects
-IS 'Permite a administradores subir imágenes de servicios de cualquier profesional';
+-- NOTA: Los comentarios de políticas de storage requieren permisos de superusuario
+-- Se omiten aquí. Las políticas de storage se gestionan desde el Dashboard.
 
 -- ============================================================================
 -- VERIFICACIÓN

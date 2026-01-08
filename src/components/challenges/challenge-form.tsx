@@ -221,7 +221,7 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
       }
 
       const challengeData = {
-        professional_id: null,
+        professional_id: challenge?.professional_id || (isProfessional ? userId : null),
         created_by_user_id: user.id,
         created_by_type: userType,
         title: formData.title.trim(),

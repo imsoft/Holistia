@@ -1,6 +1,7 @@
 "use client";
 
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { ChallengeForm } from "@/components/challenges/challenge-form";
@@ -8,7 +9,9 @@ import { ChallengeForm } from "@/components/challenges/challenge-form";
 export default function NewAdminChallengePage() {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const adminId = params.id as string;
+  const professionalId = searchParams.get('professional_id');
 
   return (
     <div className="min-h-screen bg-background">
@@ -17,7 +20,13 @@ export default function NewAdminChallengePage() {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => router.push(`/admin/${adminId}/challenges`)}
+            onClick={() => {
+              if (professionalId) {
+                router.push(`/admin/${adminId}/professionals/${professionalId}`);
+              } else {
+                router.push(`/admin/${adminId}/challenges`);
+              }
+            }}
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>
@@ -29,8 +38,8 @@ export default function NewAdminChallengePage() {
         <div className="max-w-3xl mx-auto py-4">
           <ChallengeForm
             userId={adminId}
-            challenge={null}
-            redirectPath={`/admin/${adminId}/challenges`}
+            challenge={professionalId ? { professional_id: professionalId } : null}
+            redirectPath={professionalId ? `/admin/${adminId}/professionals/${professionalId}` : `/admin/${adminId}/challenges`}
             userType="admin"
           />
         </div>

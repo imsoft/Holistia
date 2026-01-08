@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Plus, Edit, Trash2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -26,6 +27,9 @@ interface DigitalProduct {
 }
 
 export function DigitalProductsTab({ professionalId }: DigitalProductsTabProps) {
+  const router = useRouter();
+  const params = useParams();
+  const adminId = params.id as string;
   const supabase = createClient();
   const [products, setProducts] = useState<DigitalProduct[]>([]);
   const [loading, setLoading] = useState(true);
@@ -70,7 +74,7 @@ export function DigitalProductsTab({ professionalId }: DigitalProductsTabProps) 
               <CardTitle>Programas y Productos Digitales</CardTitle>
               <CardDescription>Gestiona los productos digitales que vende este profesional</CardDescription>
             </div>
-            <Button>
+            <Button onClick={() => router.push(`/admin/${adminId}/digital-products/new?professional_id=${professionalId}`)}>
               <Plus className="mr-2 h-4 w-4" />
               Nuevo Producto
             </Button>

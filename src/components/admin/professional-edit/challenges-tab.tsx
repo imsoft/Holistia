@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Plus, Edit, Trash2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -25,6 +26,9 @@ interface Challenge {
 }
 
 export function ChallengesTab({ professionalId }: ChallengesTabProps) {
+  const router = useRouter();
+  const params = useParams();
+  const adminId = params.id as string;
   const supabase = createClient();
   const [challenges, setChallenges] = useState<Challenge[]>([]);
   const [loading, setLoading] = useState(true);
@@ -69,7 +73,7 @@ export function ChallengesTab({ professionalId }: ChallengesTabProps) {
               <CardTitle>Retos</CardTitle>
               <CardDescription>Gestiona los retos creados por este profesional</CardDescription>
             </div>
-            <Button>
+            <Button onClick={() => router.push(`/admin/${adminId}/challenges/new?professional_id=${professionalId}`)}>
               <Plus className="mr-2 h-4 w-4" />
               Nuevo Reto
             </Button>

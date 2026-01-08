@@ -37,7 +37,7 @@ export function ProfessionalServicesDisplay({
         .from("professional_services")
         .select("*")
         .eq("professional_id", professionalId)
-        .eq("isActive", true)
+        .eq("isactive", true)
         .order("created_at", { ascending: false });
 
       if (error) throw error;

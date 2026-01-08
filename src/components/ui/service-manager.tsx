@@ -64,16 +64,22 @@ export function ServiceManager({ professionalId, userId, adminId, isAdminContext
 
   const fetchServices = useCallback(async () => {
     try {
+      console.log("🔍 ServiceManager: Buscando servicios para professional_id:", professionalId);
       const { data, error } = await supabase
         .from("professional_services")
         .select("*")
         .eq("professional_id", professionalId)
         .order("created_at", { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error("❌ Error fetching services:", error);
+        throw error;
+      }
+      
+      console.log("✅ ServiceManager: Servicios encontrados:", data?.length || 0, data);
       setServices(data || []);
     } catch (error) {
-      console.error("Error fetching services:", error);
+      console.error("❌ Error fetching services:", error);
       toast.error("Error al cargar los servicios");
     } finally {
       setLoading(false);

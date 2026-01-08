@@ -118,9 +118,17 @@ export function ServiceForm({
 
     try {
       setUploadingImage(true);
+      
+      // Obtener el user_id actual para usar en el path
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('Usuario no autenticado');
+      }
+
       const fileExt = imageFile.name.split('.').pop();
       const fileName = `${serviceId}-${Date.now()}.${fileExt}`;
-      const filePath = `${professionalId}/${fileName}`;
+      // Usar userId como primer folder para cumplir con las políticas RLS
+      const filePath = `${user.id}/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
         .from('professional-services')
@@ -129,7 +137,10 @@ export function ServiceForm({
           upsert: true
         });
 
-      if (uploadError) throw uploadError;
+      if (uploadError) {
+        console.error('Storage upload error:', uploadError);
+        throw uploadError;
+      }
 
       const { data: urlData } = supabase.storage
         .from('professional-services')
@@ -138,7 +149,8 @@ export function ServiceForm({
       return urlData.publicUrl;
     } catch (error) {
       console.error('Error uploading image:', error);
-      toast.error('Error al subir la imagen');
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
+      toast.error(`Error al subir la imagen: ${errorMessage}`);
       return null;
     } finally {
       setUploadingImage(false);

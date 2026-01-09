@@ -89,8 +89,9 @@ holistia/
 - [MAPBOX_PRODUCTION_SETUP.md](./MAPBOX_PRODUCTION_SETUP.md) - Configuración completa de Mapbox (setup y producción)
 
 ### 📅 Google Calendar
-- [GOOGLE_CALENDAR.md](./GOOGLE_CALENDAR.md) - Configuración y uso de Google Calendar
-- [GOOGLE_CALENDAR_USAGE_EXAMPLES.md](./GOOGLE_CALENDAR_USAGE_EXAMPLES.md) - Ejemplos de código
+- [GOOGLE_CALENDAR.md](./GOOGLE_CALENDAR.md) - Configuración y uso completo de Google Calendar (incluye sincronización bidireccional y auto-sync)
+- [GOOGLE_CALENDAR_USAGE_EXAMPLES.md](./GOOGLE_CALENDAR_USAGE_EXAMPLES.md) - Ejemplos de código y uso práctico
+- [GOOGLE_APP_VERIFICATION.md](./GOOGLE_APP_VERIFICATION.md) - Guía para verificar la aplicación en Google Cloud Console
 
 ### 📧 Sistema de Emails
 - [EMAIL_SYSTEM.md](./EMAIL_SYSTEM.md) - Sistema completo de emails (configuración y uso)
@@ -158,5 +159,5 @@ Al agregar nueva funcionalidad:
 ---
 
 **Proyecto**: Holistia  
-**Última actualización**: Noviembre 2025  
-**Total de documentos**: ~30
+**Última actualización**: Diciembre 2025  
+**Total de documentos**: 32 documentos activos

@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
+import Link from "next/link";
 import { toast } from "sonner";
 import {
   ShoppingBag,
@@ -236,6 +237,45 @@ export default function ProgramDetailPage() {
                 <h1 className="text-3xl font-bold text-foreground">{product.title}</h1>
                 <p className="text-sm text-muted-foreground">Programa Digital</p>
               </div>
+
+              {/* Professional Info */}
+              {product.professional_applications && (
+                <Card>
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-3">
+                      {product.professional_applications.profile_photo ? (
+                        <Image
+                          src={product.professional_applications.profile_photo}
+                          alt={`${product.professional_applications.first_name} ${product.professional_applications.last_name}`}
+                          width={56}
+                          height={56}
+                          className="rounded-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                          <User className="h-7 w-7 text-primary" />
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm text-muted-foreground mb-1">Creado por</p>
+                        <Link
+                          href={`/patient/${userId}/explore/professional/${product.professional_id}`}
+                          className="font-semibold text-foreground hover:text-primary transition-colors flex items-center gap-2 group"
+                        >
+                          {product.professional_applications.first_name}{' '}
+                          {product.professional_applications.last_name}
+                          {product.professional_applications.is_verified && (
+                            <VerifiedBadge size={16} />
+                          )}
+                          <span className="text-xs text-muted-foreground group-hover:text-primary transition-colors">
+                            Ver perfil →
+                          </span>
+                        </Link>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
 
               {/* Cover Image */}
               <div className="relative h-96 bg-gradient-to-br from-primary/10 to-primary/5 overflow-hidden rounded-lg">

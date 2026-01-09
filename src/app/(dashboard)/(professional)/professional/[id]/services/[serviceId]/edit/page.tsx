@@ -30,6 +30,17 @@ export default function EditServicePage() {
           .single();
 
         if (error) throw error;
+        
+        console.log('📦 [EditServicePage] Servicio cargado desde BD:', {
+          id: data?.id,
+          name: data?.name,
+          type: data?.type,
+          description: data?.description,
+          modality: data?.modality,
+          cost: data?.cost,
+          program_duration: data?.program_duration,
+        });
+        
         setService(data);
       } catch (error) {
         console.error("Error fetching service:", error);

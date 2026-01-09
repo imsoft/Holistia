@@ -59,6 +59,15 @@ export function ServiceForm({
   // Cargar datos del servicio si estamos editando
   useEffect(() => {
     if (service) {
+      console.log('🔍 [ServiceForm] Cargando servicio:', {
+        id: service.id,
+        name: service.name,
+        type: service.type,
+        description: service.description,
+        modality: service.modality,
+        cost: service.cost,
+      });
+
       let serviceCost: number | undefined;
       if (typeof service.cost === 'number') {
         serviceCost = service.cost;
@@ -66,22 +75,41 @@ export function ServiceForm({
         serviceCost = service.cost.presencial || service.cost.online;
       }
 
-      setFormData({
+      // Asegurar que type sea válido
+      const serviceType = (service.type === 'session' || service.type === 'program') 
+        ? service.type 
+        : 'session'; // Default si no es válido
+
+      const formDataToSet = {
         name: service.name || "",
         description: service.description || "", // Asegurar que siempre sea string
-        type: service.type,
-        modality: service.modality,
-        duration: service.duration,
+        type: serviceType as "session" | "program",
+        modality: (service.modality === 'presencial' || service.modality === 'online' || service.modality === 'both')
+          ? service.modality
+          : 'both' as "presencial" | "online" | "both",
+        duration: service.duration || 60,
         cost: serviceCost,
         address: service.address || "",
         image_url: service.image_url,
-      });
+      };
+
+      console.log('📝 [ServiceForm] Datos del formulario a establecer:', formDataToSet);
+
+      setFormData(formDataToSet);
 
       if (service.image_url) {
         setImagePreview(service.image_url);
       }
 
-      if (service.type === "program") {
+      // Cargar program_duration si existe y es un programa
+      if (serviceType === "program" && service.program_duration) {
+        if (typeof service.program_duration === 'object' && 'value' in service.program_duration && 'unit' in service.program_duration) {
+          setProgramDuration({
+            value: service.program_duration.value || 1,
+            unit: service.program_duration.unit || "semanas"
+          });
+        }
+      } else if (serviceType === "program") {
         setProgramDuration({
           value: 1,
           unit: "semanas"
@@ -435,13 +463,13 @@ export function ServiceForm({
           <div className="space-y-2">
             <Label htmlFor="type">Tipo de Servicio *</Label>
             <Select
-              value={formData.type}
+              value={formData.type || "session"}
               onValueChange={(value: "session" | "program") =>
                 setFormData({ ...formData, type: value })
               }
             >
               <SelectTrigger className="w-full">
-                <SelectValue />
+                <SelectValue placeholder="Selecciona el tipo de servicio" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="session">Sesión Individual</SelectItem>

@@ -96,10 +96,32 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
   const [editingResourceIndex, setEditingResourceIndex] = useState<number | null>(null);
 
   useEffect(() => {
-    if (userType !== 'professional') {
-      fetchProfessionals();
+    fetchProfessionals();
+  }, []);
+
+  // Si es profesional, vincular automáticamente al profesional actual
+  useEffect(() => {
+    if (isProfessional && userId && formData.linked_professional_id === "none") {
+      // Buscar el professional_id basado en el user_id
+      const findProfessionalId = async () => {
+        try {
+          const { data: professionalData } = await supabase
+            .from('professional_applications')
+            .select('id')
+            .eq('user_id', userId)
+            .eq('status', 'approved')
+            .single();
+
+          if (professionalData) {
+            setFormData({ ...formData, linked_professional_id: professionalData.id });
+          }
+        } catch (error) {
+          console.error('Error finding professional ID:', error);
+        }
+      };
+      findProfessionalId();
     }
-  }, [userType]);
+  }, [isProfessional, userId]);
 
   useEffect(() => {
     if (challenge) {
@@ -241,8 +263,23 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
         return;
       }
 
+      // Si es profesional, obtener el professional_id basado en user_id
+      let finalProfessionalId = professionalId || challenge?.professional_id;
+      if (isProfessional && !finalProfessionalId) {
+        const { data: professionalData } = await supabase
+          .from('professional_applications')
+          .select('id')
+          .eq('user_id', userId)
+          .eq('status', 'approved')
+          .single();
+        
+        if (professionalData) {
+          finalProfessionalId = professionalData.id;
+        }
+      }
+
       const challengeData = {
-        professional_id: professionalId || challenge?.professional_id || (isProfessional ? userId : null),
+        professional_id: finalProfessionalId || null,
         created_by_user_id: user.id,
         created_by_type: userType,
         title: formData.title.trim(),
@@ -383,28 +420,33 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
             />
           </div>
 
-          {userType !== 'professional' && (
-            <div className="space-y-2">
-              <Label htmlFor="linked_professional_id">Vincular a Profesional (Opcional)</Label>
-              <Select
-                value={formData.linked_professional_id}
-                onValueChange={(value) => setFormData({ ...formData, linked_professional_id: value })}
-                disabled={loadingProfessionals}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder={loadingProfessionals ? "Cargando..." : "Selecciona un profesional (opcional)"} />
-                </SelectTrigger>
-                <SelectContent className="max-h-[300px]">
-                  <SelectItem value="none">Ninguno (Reto público)</SelectItem>
-                  {professionals.map((prof) => (
-                    <SelectItem key={prof.id} value={prof.id}>
-                      {prof.first_name} {prof.last_name}{prof.profession ? ` - ${prof.profession}` : ''}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
+          <div className="space-y-2">
+            <Label htmlFor="linked_professional_id">
+              {isProfessional ? "Profesional Vinculado" : "Vincular a Profesional (Opcional)"}
+            </Label>
+            <Select
+              value={formData.linked_professional_id}
+              onValueChange={(value) => setFormData({ ...formData, linked_professional_id: value })}
+              disabled={loadingProfessionals || isProfessional}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder={loadingProfessionals ? "Cargando..." : isProfessional ? "Este reto está vinculado a ti" : "Selecciona un profesional (opcional)"} />
+              </SelectTrigger>
+              <SelectContent className="max-h-[300px]">
+                {!isProfessional && <SelectItem value="none">Ninguno (Reto público)</SelectItem>}
+                {professionals.map((prof) => (
+                  <SelectItem key={prof.id} value={prof.id}>
+                    {prof.first_name} {prof.last_name}{prof.profession ? ` - ${prof.profession}` : ''}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {isProfessional && (
+              <p className="text-xs text-muted-foreground">
+                Este reto se vinculará automáticamente a tu perfil profesional
+              </p>
+            )}
+          </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">

@@ -53,7 +53,7 @@ export function ChallengeProgress({
 
   if (loading) {
     return (
-      <Card>
+      <Card className="py-4">
         <CardContent className="p-6">
           <div className="animate-pulse space-y-4">
             <div className="h-4 bg-muted rounded w-3/4"></div>
@@ -74,7 +74,7 @@ export function ChallengeProgress({
   return (
     <div className="space-y-4">
       {/* Progreso general */}
-      <Card>
+      <Card className="py-4">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Target className="h-5 w-5 text-primary" />
@@ -123,7 +123,7 @@ export function ChallengeProgress({
       </Card>
 
       {/* Racha */}
-      <Card>
+      <Card className="py-4">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Flame className="h-5 w-5 text-orange-500" />

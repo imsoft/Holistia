@@ -62,7 +62,7 @@ export function ChallengeBadges({ challengePurchaseId }: ChallengeBadgesProps) {
 
   if (loading) {
     return (
-      <Card>
+      <Card className="py-4">
         <CardContent className="p-6">
           <div className="animate-pulse space-y-4">
             <div className="h-4 bg-muted rounded w-1/2"></div>
@@ -81,7 +81,7 @@ export function ChallengeBadges({ challengePurchaseId }: ChallengeBadgesProps) {
     <div className="space-y-6">
       {/* Badges desbloqueados */}
       {unlockedBadges.length > 0 && (
-        <Card>
+        <Card className="py-4">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Trophy className="h-5 w-5 text-yellow-500" />
@@ -121,7 +121,7 @@ export function ChallengeBadges({ challengePurchaseId }: ChallengeBadgesProps) {
 
       {/* Badges bloqueados */}
       {lockedBadges.length > 0 && (
-        <Card>
+        <Card className="py-4">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Lock className="h-5 w-5 text-muted-foreground" />
@@ -152,7 +152,7 @@ export function ChallengeBadges({ challengePurchaseId }: ChallengeBadgesProps) {
       )}
 
       {unlockedBadges.length === 0 && lockedBadges.length === 0 && (
-        <Card>
+        <Card className="py-4">
           <CardContent className="p-6 text-center">
             <p className="text-muted-foreground">
               No hay badges disponibles para este reto

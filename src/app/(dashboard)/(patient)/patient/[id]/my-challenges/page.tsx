@@ -130,20 +130,38 @@ export default function MyChallengesPage() {
     const challengeId = searchParams.get('challenge');
     const teamIdParam = searchParams.get('team');
     
-    if (challengeId && allChallenges.length > 0) {
+    if (challengeId && allChallenges.length > 0 && !selectedChallenge) {
       const challenge = allChallenges.find((c: any) => c.id === challengeId);
       if (challenge) {
+        // Si viene un teamId en los query params, establecerlo primero
+        if (teamIdParam) {
+          setTeamId(teamIdParam);
+          // Obtener nombre del equipo
+          supabase
+            .from("challenge_teams")
+            .select("team_name")
+            .eq("id", teamIdParam)
+            .single()
+            .then(({ data }) => {
+              if (data) {
+                setTeamName(data.team_name || "Equipo sin nombre");
+              }
+            });
+        }
+        
         // Abrir el reto
         handleOpenChallenge(challenge).then(() => {
           // Limpiar query params después de abrir
-          if (window.history.replaceState) {
-            window.history.replaceState({}, '', `/patient/${userId}/my-challenges`);
-          }
+          setTimeout(() => {
+            if (window.history.replaceState) {
+              window.history.replaceState({}, '', `/patient/${userId}/my-challenges`);
+            }
+          }, 500);
         });
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams, allChallenges.length]);
+  }, [searchParams, allChallenges.length, selectedChallenge]);
 
   const fetchChallenges = async () => {
     try {
@@ -806,7 +824,7 @@ export default function MyChallengesPage() {
           {/* Detalles del reto seleccionado */}
           {selectedChallenge && (
             <div className="lg:col-span-2 space-y-6">
-              <Tabs defaultValue="resources" className="w-full">
+              <Tabs defaultValue={searchParams.get('team') ? "chat" : "resources"} className="w-full">
                 <TabsList className={`grid w-full ${teamId ? 'grid-cols-5' : 'grid-cols-4'}`}>
                   <TabsTrigger value="progress">Progreso</TabsTrigger>
                   <TabsTrigger value="checkins">Check-ins</TabsTrigger>

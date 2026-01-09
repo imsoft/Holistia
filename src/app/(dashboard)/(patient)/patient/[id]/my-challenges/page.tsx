@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { createClient } from "@/utils/supabase/client";
 import { toast } from "sonner";
-import { Calendar, Target, Loader2, CheckCircle2, Circle, Users, Plus, Edit } from "lucide-react";
+import { Calendar, Target, Loader2, CheckCircle2, Circle, Users, Plus, Edit, Trash2 } from "lucide-react";
 import { CheckinForm } from "@/components/ui/checkin-form";
 import { ChallengeProgress } from "@/components/ui/challenge-progress";
 import { ChallengeBadges } from "@/components/ui/challenge-badges";
@@ -23,6 +23,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { VerifiedBadge } from "@/components/ui/verified-badge";
+import { DeleteConfirmation } from "@/components/ui/confirmation-dialog";
 
 interface ChallengePurchase {
   id: string;
@@ -98,6 +99,9 @@ export default function MyChallengesPage() {
   const [nextDayNumber, setNextDayNumber] = useState(1);
   const [teamId, setTeamId] = useState<string | null>(null);
   const [teamName, setTeamName] = useState<string | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [challengeToDelete, setChallengeToDelete] = useState<CreatedChallenge | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     fetchChallenges();
@@ -298,6 +302,39 @@ export default function MyChallengesPage() {
       expert: 'bg-red-100 text-red-800',
     };
     return colors[level || ''] || 'bg-gray-100 text-gray-800';
+  };
+
+  const handleDeleteClick = (challenge: CreatedChallenge) => {
+    setChallengeToDelete(challenge);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!challengeToDelete) return;
+
+    try {
+      setDeleting(true);
+      const response = await fetch(`/api/challenges/${challengeToDelete.id}`, {
+        method: 'DELETE',
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Error al eliminar el reto');
+      }
+
+      toast.success('Reto eliminado exitosamente');
+      fetchChallenges();
+      setDeleteDialogOpen(false);
+      setChallengeToDelete(null);
+    } catch (error) {
+      console.error('Error deleting challenge:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Error al eliminar el reto';
+      toast.error(errorMessage);
+    } finally {
+      setDeleting(false);
+    }
   };
 
 
@@ -665,6 +702,16 @@ export default function MyChallengesPage() {
                         <Users className="h-4 w-4 mr-2" />
                         Invitar
                       </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteClick(challenge);
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </div>
                   </CardContent>
                 </Card>
@@ -693,6 +740,15 @@ export default function MyChallengesPage() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Dialog de confirmación para eliminar reto */}
+      <DeleteConfirmation
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        onConfirm={handleDeleteConfirm}
+        itemName={challengeToDelete?.title || 'este reto'}
+        loading={deleting}
+      />
     </div>
   );
 }

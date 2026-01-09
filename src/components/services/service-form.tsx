@@ -94,8 +94,20 @@ export function ServiceForm({
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error("La imagen debe ser menor a 5MB");
+    // Validar tipo MIME
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      toast.error(`Tipo de archivo no permitido. Solo se permiten imágenes: JPG, PNG, GIF, WEBP`);
+      e.target.value = ''; // Limpiar el input
+      return;
+    }
+
+    // Validar tamaño (5MB = 5 * 1024 * 1024 bytes)
+    const maxSize = 5 * 1024 * 1024;
+    if (file.size > maxSize) {
+      const sizeInMB = (file.size / (1024 * 1024)).toFixed(2);
+      toast.error(`La imagen es demasiado grande (${sizeInMB}MB). El tamaño máximo permitido es 5MB`);
+      e.target.value = ''; // Limpiar el input
       return;
     }
 
@@ -113,11 +125,50 @@ export function ServiceForm({
     setFormData({ ...formData, image_url: undefined });
   };
 
+  /**
+   * Sanitiza el nombre de archivo removiendo caracteres especiales problemáticos
+   * pero manteniendo caracteres válidos como acentos y espacios
+   */
+  const sanitizeFileName = (fileName: string): string => {
+    // Obtener la extensión
+    const lastDotIndex = fileName.lastIndexOf('.');
+    const nameWithoutExt = lastDotIndex > 0 ? fileName.substring(0, lastDotIndex) : fileName;
+    const extension = lastDotIndex > 0 ? fileName.substring(lastDotIndex) : '';
+    
+    // Reemplazar caracteres problemáticos pero mantener acentos y caracteres válidos
+    // Remover solo caracteres que pueden causar problemas en URLs/paths
+    let sanitized = nameWithoutExt
+      .replace(/[<>:"|?*\x00-\x1F]/g, '') // Remover caracteres de control y caracteres problemáticos
+      .replace(/\s+/g, '-') // Reemplazar espacios múltiples con un guión
+      .replace(/^-+|-+$/g, ''); // Remover guiones al inicio y final
+    
+    // Si después de sanitizar queda vacío, usar un nombre por defecto
+    if (!sanitized || sanitized.trim().length === 0) {
+      sanitized = 'imagen';
+    }
+    
+    return `${sanitized}${extension}`;
+  };
+
   const uploadServiceImage = async (serviceId: string): Promise<string | null> => {
     if (!imageFile) return null;
 
     try {
       setUploadingImage(true);
+      
+      // Validar nuevamente antes de subir (por si acaso)
+      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+      if (!allowedTypes.includes(imageFile.type)) {
+        toast.error(`Tipo de archivo no permitido: ${imageFile.type}. Solo se permiten imágenes: JPG, PNG, GIF, WEBP`);
+        return null;
+      }
+
+      const maxSize = 5 * 1024 * 1024;
+      if (imageFile.size > maxSize) {
+        const sizeInMB = (imageFile.size / (1024 * 1024)).toFixed(2);
+        toast.error(`La imagen es demasiado grande (${sizeInMB}MB). El tamaño máximo permitido es 5MB`);
+        return null;
+      }
       
       // Obtener el user_id actual para usar en el path
       const { data: { user } } = await supabase.auth.getUser();
@@ -125,8 +176,17 @@ export function ServiceForm({
         throw new Error('Usuario no autenticado');
       }
 
-      const fileExt = imageFile.name.split('.').pop();
-      const fileName = `${serviceId}-${Date.now()}.${fileExt}`;
+      // Sanitizar el nombre del archivo original
+      const sanitizedOriginalName = sanitizeFileName(imageFile.name);
+      
+      // Obtener la extensión del archivo original (después de sanitizar)
+      const fileExt = sanitizedOriginalName.split('.').pop()?.toLowerCase() || 'jpg';
+      
+      // Crear nombre único: usar el nombre sanitizado + timestamp + extensión
+      // Si el nombre original tenía caracteres especiales, se mantendrán los válidos
+      const baseName = sanitizedOriginalName.substring(0, sanitizedOriginalName.lastIndexOf('.')) || 'imagen';
+      const fileName = `${baseName}-${Date.now()}.${fileExt}`;
+      
       // Usar userId como primer folder para cumplir con las políticas RLS
       const filePath = `${user.id}/${fileName}`;
 
@@ -134,12 +194,29 @@ export function ServiceForm({
         .from('professional-services')
         .upload(filePath, imageFile, {
           cacheControl: '3600',
-          upsert: true
+          upsert: true,
+          contentType: imageFile.type, // Especificar el tipo MIME explícitamente
         });
 
       if (uploadError) {
         console.error('Storage upload error:', uploadError);
-        throw uploadError;
+        
+        // Mensajes de error más específicos
+        let errorMessage = 'Error desconocido al subir la imagen';
+        if (uploadError.message.includes('File size')) {
+          errorMessage = 'El archivo es demasiado grande. El tamaño máximo permitido es 5MB';
+        } else if (uploadError.message.includes('Invalid file type')) {
+          errorMessage = 'Tipo de archivo no válido. Solo se permiten imágenes: JPG, PNG, GIF, WEBP';
+        } else if (uploadError.message.includes('permission') || uploadError.message.includes('policy')) {
+          errorMessage = 'No tienes permiso para subir imágenes. Por favor, contacta al soporte';
+        } else if (uploadError.message.includes('character') || uploadError.message.includes('name')) {
+          errorMessage = 'El nombre del archivo contiene caracteres no permitidos. Por favor, renombra el archivo';
+        } else {
+          errorMessage = `Error al subir la imagen: ${uploadError.message}`;
+        }
+        
+        toast.error(errorMessage);
+        throw new Error(errorMessage);
       }
 
       const { data: urlData } = supabase.storage
@@ -150,7 +227,10 @@ export function ServiceForm({
     } catch (error) {
       console.error('Error uploading image:', error);
       const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
-      toast.error(`Error al subir la imagen: ${errorMessage}`);
+      // No mostrar toast aquí si ya se mostró arriba
+      if (!errorMessage.includes('Error al subir la imagen')) {
+        toast.error(`Error al subir la imagen: ${errorMessage}`);
+      }
       return null;
     } finally {
       setUploadingImage(false);
@@ -160,13 +240,81 @@ export function ServiceForm({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.name.trim()) {
-      toast.error("El nombre del servicio es requerido");
-      return;
+    // Validación exhaustiva de todos los campos antes de proceder
+    const errors: string[] = [];
+
+    // Validar nombre
+    if (!formData.name || !formData.name.trim()) {
+      errors.push("El nombre del servicio es requerido");
+    } else if (formData.name.trim().length < 3) {
+      errors.push("El nombre del servicio debe tener al menos 3 caracteres");
+    } else if (formData.name.trim().length > 100) {
+      errors.push("El nombre del servicio no puede exceder 100 caracteres");
     }
 
-    if (!formData.cost) {
-      toast.error("El costo del servicio es requerido");
+    // Validar descripción (opcional pero si se proporciona, debe tener límites)
+    if (formData.description && formData.description.length > 2000) {
+      errors.push("La descripción no puede exceder 2000 caracteres");
+    }
+
+    // Validar modalidad
+    if (!formData.modality || !['presencial', 'online', 'both'].includes(formData.modality)) {
+      errors.push("Debes seleccionar una modalidad válida");
+    }
+
+    // Validar tipo
+    if (!formData.type || !['session', 'program'].includes(formData.type)) {
+      errors.push("Debes seleccionar un tipo de servicio válido");
+    }
+
+    // Validar duración según el tipo
+    if (formData.type === 'session') {
+      if (!formData.duration || formData.duration < 15) {
+        errors.push("La duración de la sesión debe ser de al menos 15 minutos");
+      } else if (formData.duration > 480) {
+        errors.push("La duración de la sesión no puede exceder 480 minutos (8 horas)");
+      }
+    } else if (formData.type === 'program') {
+      if (!programDuration.value || programDuration.value < 1) {
+        errors.push("La duración del programa debe ser de al menos 1 unidad");
+      }
+    }
+
+    // Validar costo
+    if (!formData.cost || formData.cost <= 0) {
+      errors.push("El costo del servicio debe ser mayor a 0");
+    } else if (formData.cost > 1000000) {
+      errors.push("El costo del servicio no puede exceder $1,000,000 MXN");
+    }
+
+    // Validar imagen si se proporciona
+    if (imageFile) {
+      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+      if (!allowedTypes.includes(imageFile.type)) {
+        errors.push(`Tipo de archivo no permitido: ${imageFile.type}. Solo se permiten imágenes: JPG, PNG, GIF, WEBP`);
+      }
+
+      const maxSize = 5 * 1024 * 1024;
+      if (imageFile.size > maxSize) {
+        const sizeInMB = (imageFile.size / (1024 * 1024)).toFixed(2);
+        errors.push(`La imagen es demasiado grande (${sizeInMB}MB). El tamaño máximo permitido es 5MB`);
+      }
+
+      // Validar nombre del archivo
+      if (imageFile.name) {
+        // Verificar caracteres problemáticos en el nombre
+        const problematicChars = /[<>:"|?*\x00-\x1F]/;
+        if (problematicChars.test(imageFile.name)) {
+          errors.push(`El nombre del archivo contiene caracteres no permitidos. Por favor, renombra el archivo antes de subirlo`);
+        }
+      }
+    }
+
+    // Mostrar todos los errores encontrados
+    if (errors.length > 0) {
+      errors.forEach((error) => {
+        toast.error(error);
+      });
       return;
     }
 

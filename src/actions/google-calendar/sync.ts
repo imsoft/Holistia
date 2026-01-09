@@ -214,13 +214,29 @@ export async function syncGoogleCalendarEvents(userId: string) {
         if (isAllDay) {
           const startDate = event.start!.date!;
           eventKey = `${event.id}_${startDate}_full_day_full_day`;
-        } else if (event.start?.dateTime && event.end?.dateTime) {
-          const startDateTime = new Date(event.start.dateTime);
-          const endDateTime = new Date(event.end.dateTime);
-          const startDate = startDateTime.toISOString().split('T')[0];
-          const startTime = startDateTime.toTimeString().substring(0, 5);
-          const endTime = endDateTime.toTimeString().substring(0, 5);
-          eventKey = `${event.id}_${startDate}_${startTime}_${endTime}`;
+      } else if (event.start?.dateTime && event.end?.dateTime) {
+        const startDateTime = new Date(event.start.dateTime);
+        const endDateTime = new Date(event.end.dateTime);
+        const eventTimeZone = event.start.timeZone || 'America/Mexico_City';
+        
+        // Convertir a la zona horaria del evento
+        const formatOptions: Intl.DateTimeFormatOptions = {
+          timeZone: eventTimeZone,
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: false,
+        };
+        
+        const startFormatted = new Intl.DateTimeFormat('en-CA', formatOptions).formatToParts(startDateTime);
+        const endFormatted = new Intl.DateTimeFormat('en-CA', formatOptions).formatToParts(endDateTime);
+        
+        const startDate = `${startFormatted.find(p => p.type === 'year')?.value}-${startFormatted.find(p => p.type === 'month')?.value}-${startFormatted.find(p => p.type === 'day')?.value}`;
+        const startTime = `${startFormatted.find(p => p.type === 'hour')?.value}:${startFormatted.find(p => p.type === 'minute')?.value}`;
+        const endTime = `${endFormatted.find(p => p.type === 'hour')?.value}:${endFormatted.find(p => p.type === 'minute')?.value}`;
+        eventKey = `${event.id}_${startDate}_${startTime}_${endTime}`;
         } else {
           eventKey = '';
         }
@@ -295,14 +311,35 @@ export async function syncGoogleCalendarEvents(userId: string) {
         };
       } else {
         // Evento con hora específica
+        // IMPORTANTE: Google Calendar devuelve las fechas en ISO 8601 con timezone
+        // Necesitamos convertir correctamente a la zona horaria del evento
         const startDateTime = new Date(event.start!.dateTime!);
         const endDateTime = new Date(event.end!.dateTime!);
-
-        // Formatear fecha y hora
-        const startDate = startDateTime.toISOString().split('T')[0];
-        const endDate = endDateTime.toISOString().split('T')[0]; // Agregar end_date
-        const startTime = startDateTime.toTimeString().substring(0, 5);
-        const endTime = endDateTime.toTimeString().substring(0, 5);
+        
+        // Obtener la zona horaria del evento (por defecto 'America/Mexico_City' si no está especificada)
+        const eventTimeZone = event.start!.timeZone || 'America/Mexico_City';
+        
+        // Convertir a la zona horaria del evento usando Intl.DateTimeFormat
+        const formatOptions: Intl.DateTimeFormatOptions = {
+          timeZone: eventTimeZone,
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: false,
+        };
+        
+        // Formatear fecha y hora en la zona horaria del evento
+        // 'en-CA' da formato YYYY-MM-DD que es lo que necesitamos
+        const startFormatted = new Intl.DateTimeFormat('en-CA', formatOptions).formatToParts(startDateTime);
+        const endFormatted = new Intl.DateTimeFormat('en-CA', formatOptions).formatToParts(endDateTime);
+        
+        // Extraer componentes de fecha y hora
+        const startDate = `${startFormatted.find(p => p.type === 'year')?.value}-${startFormatted.find(p => p.type === 'month')?.value}-${startFormatted.find(p => p.type === 'day')?.value}`;
+        const endDate = `${endFormatted.find(p => p.type === 'year')?.value}-${endFormatted.find(p => p.type === 'month')?.value}-${endFormatted.find(p => p.type === 'day')?.value}`;
+        const startTime = `${startFormatted.find(p => p.type === 'hour')?.value}:${startFormatted.find(p => p.type === 'minute')?.value}`;
+        const endTime = `${endFormatted.find(p => p.type === 'hour')?.value}:${endFormatted.find(p => p.type === 'minute')?.value}`;
 
         blockData = {
           id: randomUUID(),
@@ -379,9 +416,25 @@ export async function syncGoogleCalendarEvents(userId: string) {
       } else {
         const startDateTime = new Date(event.start.dateTime!);
         const endDateTime = new Date(event.end.dateTime!);
-        const startDate = startDateTime.toISOString().split('T')[0];
-        const startTime = startDateTime.toTimeString().substring(0, 5);
-        const endTime = endDateTime.toTimeString().substring(0, 5);
+        const eventTimeZone = event.start.timeZone || 'America/Mexico_City';
+        
+        // Convertir a la zona horaria del evento
+        const formatOptions: Intl.DateTimeFormatOptions = {
+          timeZone: eventTimeZone,
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: false,
+        };
+        
+        const startFormatted = new Intl.DateTimeFormat('en-CA', formatOptions).formatToParts(startDateTime);
+        const endFormatted = new Intl.DateTimeFormat('en-CA', formatOptions).formatToParts(endDateTime);
+        
+        const startDate = `${startFormatted.find(p => p.type === 'year')?.value}-${startFormatted.find(p => p.type === 'month')?.value}-${startFormatted.find(p => p.type === 'day')?.value}`;
+        const startTime = `${startFormatted.find(p => p.type === 'hour')?.value}:${startFormatted.find(p => p.type === 'minute')?.value}`;
+        const endTime = `${endFormatted.find(p => p.type === 'hour')?.value}:${endFormatted.find(p => p.type === 'minute')?.value}`;
         currentGoogleEventKeys.add(`${event.id}_${startDate}_${startTime}_${endTime}`);
       }
     });

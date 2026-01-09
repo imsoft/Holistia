@@ -226,20 +226,29 @@ export default function MyChallengesPage() {
       setCreatedChallenges(transformedCreated);
 
       // Combinar todos los retos en una sola lista
+      const participatingChallenges = transformedPurchases.map((p: any) => ({
+        ...p.challenge,
+        purchaseId: p.id,
+        type: 'participating' as const,
+        access_granted: p.access_granted,
+        started_at: p.started_at,
+        completed_at: p.completed_at,
+      }));
+
+      const createdChallenges = transformedCreated.map((c: any) => ({
+        ...c,
+        type: 'created' as const,
+        purchaseId: null,
+      }));
+
+      // Filtrar duplicados: si un reto aparece tanto en participating como en created,
+      // priorizar el que tiene purchaseId (participating)
+      const challengeIds = new Set(participatingChallenges.map((c: any) => c.id));
+      const uniqueCreatedChallenges = createdChallenges.filter((c: any) => !challengeIds.has(c.id));
+
       const combinedChallenges = [
-        ...transformedPurchases.map((p: any) => ({
-          ...p.challenge,
-          purchaseId: p.id,
-          type: 'participating' as const,
-          access_granted: p.access_granted,
-          started_at: p.started_at,
-          completed_at: p.completed_at,
-        })),
-        ...transformedCreated.map((c: any) => ({
-          ...c,
-          type: 'created' as const,
-          purchaseId: null,
-        })),
+        ...participatingChallenges,
+        ...uniqueCreatedChallenges,
       ];
 
       setAllChallenges(combinedChallenges);

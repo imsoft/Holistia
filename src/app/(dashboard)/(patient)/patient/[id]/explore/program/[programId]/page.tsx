@@ -110,12 +110,41 @@ export default function ProgramDetailPage() {
 
       if (productError) throw productError;
 
+      let professionalData = null;
+      
+      // Intentar obtener datos del profesional desde la relación
+      if (productData.professional_applications) {
+        if (Array.isArray(productData.professional_applications) && productData.professional_applications.length > 0) {
+          professionalData = productData.professional_applications[0];
+        } else if (!Array.isArray(productData.professional_applications)) {
+          professionalData = productData.professional_applications;
+        }
+      }
+
+      // Si no se obtuvo el profesional desde la relación, intentar obtenerlo manualmente
+      if (!professionalData && productData.professional_id) {
+        console.log("⚠️ No se obtuvo profesional desde relación, buscando manualmente...");
+        const { data: professionalManual, error: professionalError } = await supabase
+          .from("professional_applications")
+          .select("first_name, last_name, profile_photo, is_verified, profession, specializations")
+          .eq("id", productData.professional_id)
+          .single();
+        
+        if (!professionalError && professionalManual) {
+          professionalData = professionalManual;
+          console.log("✅ Profesional obtenido manualmente:", professionalData);
+        } else {
+          console.error("❌ Error obteniendo profesional manualmente:", professionalError);
+        }
+      }
+
       const transformedProduct = {
         ...productData,
-        professional_applications: Array.isArray(productData.professional_applications) && productData.professional_applications.length > 0
-          ? productData.professional_applications[0]
-          : undefined,
+        professional_applications: professionalData || undefined,
       };
+
+      console.log("🔍 Final product:", transformedProduct);
+      console.log("🔍 Professional applications:", transformedProduct.professional_applications);
 
       setProduct(transformedProduct);
 

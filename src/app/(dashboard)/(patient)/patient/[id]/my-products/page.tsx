@@ -217,21 +217,18 @@ export default function MyProducts() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="border-b border-border bg-card">
-        <div className="flex h-16 items-center justify-between px-6">
-          <div>
-            <h1 className="text-2xl font-bold text-foreground">Mis Programas</h1>
-            <p className="text-sm text-muted-foreground">
-              Programas que has comprado
-            </p>
-          </div>
+    <div className="container mx-auto px-4 py-8 max-w-7xl">
+      <div className="mb-8 flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-foreground mb-2">Mis Programas</h1>
+          <p className="text-muted-foreground">
+            Programas digitales que has comprado
+          </p>
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="p-6 space-y-6">
+      <div className="space-y-6">
         {/* Stats */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
           <Card>

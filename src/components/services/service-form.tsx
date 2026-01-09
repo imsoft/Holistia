@@ -67,8 +67,8 @@ export function ServiceForm({
       }
 
       setFormData({
-        name: service.name,
-        description: service.description,
+        name: service.name || "",
+        description: service.description || "", // Asegurar que siempre sea string
         type: service.type,
         modality: service.modality,
         duration: service.duration,
@@ -403,6 +403,7 @@ export function ServiceForm({
           <div className="space-y-2">
             <Label htmlFor="description">Descripción</Label>
             <RichTextEditor
+              key={service?.id || 'new-service'} // Forzar recreación cuando cambia el servicio
               content={formData.description || ""}
               onChange={(content) =>
                 setFormData({ ...formData, description: content })

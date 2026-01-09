@@ -130,14 +130,31 @@ export function RichTextEditor({
 
   // Actualizar el contenido del editor cuando cambia la prop content (solo si es diferente)
   useEffect(() => {
-    if (editor && content !== editor.getHTML()) {
+    if (editor && isMounted) {
       const currentContent = editor.getHTML();
-      // Solo actualizar si el contenido realmente cambió (evitar loops)
-      if (content !== currentContent && content !== '<p></p>') {
-        editor.commands.setContent(content, { emitUpdate: false });
+      const normalizedContent = content || '';
+      const normalizedCurrent = currentContent || '';
+      
+      // Normalizar contenido vacío para comparación
+      const isEmpty = (html: string) => {
+        if (!html || html.trim() === '') return true;
+        // Remover tags HTML y espacios para verificar si está realmente vacío
+        const text = html.replace(/<[^>]*>/g, '').trim();
+        return text === '';
+      };
+      
+      // Solo actualizar si el contenido realmente cambió
+      // Permitir actualizar incluso si el contenido está vacío (para resetear)
+      if (normalizedContent !== normalizedCurrent) {
+        // Si el contenido nuevo está vacío y el actual también, no hacer nada
+        if (isEmpty(normalizedContent) && isEmpty(normalizedCurrent)) {
+          return;
+        }
+        
+        editor.commands.setContent(normalizedContent || '<p></p>', { emitUpdate: false });
       }
     }
-  }, [content, editor]);
+  }, [content, editor, isMounted]);
 
   if (!editor || !isMounted) {
     return (

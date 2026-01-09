@@ -38,9 +38,10 @@ export default function NewAdminChallengePage() {
         <div className="max-w-3xl mx-auto py-4">
           <ChallengeForm
             userId={adminId}
-            challenge={professionalId ? { professional_id: professionalId } : null}
+            challenge={null}
             redirectPath={professionalId ? `/admin/${adminId}/professionals/${professionalId}` : `/admin/${adminId}/challenges`}
             userType="admin"
+            professionalId={professionalId || null}
           />
         </div>
       </div>

@@ -25,6 +25,7 @@ interface ChallengeFormProps {
   challenge?: any | null;
   redirectPath: string;
   userType?: 'professional' | 'patient' | 'admin'; // Tipo de usuario creando el reto
+  professionalId?: string | null; // ID del profesional para asignar el reto (solo para creación)
 }
 
 interface ChallengeFormData {
@@ -48,7 +49,7 @@ const DIFFICULTY_OPTIONS = [
   { value: 'expert', label: 'Experto' },
 ] as const;
 
-export function ChallengeForm({ userId, challenge, redirectPath, userType = 'patient' }: ChallengeFormProps) {
+export function ChallengeForm({ userId, challenge, redirectPath, userType = 'patient', professionalId }: ChallengeFormProps) {
   const router = useRouter();
   const supabase = createClient();
   const isProfessional = userType === 'professional';
@@ -143,7 +144,7 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
 
       let challengeId = challenge?.id;
 
-      // Si estamos creando, crear reto temporal
+      // Si estamos creando (no hay challenge.id), crear reto temporal
       if (!challengeId) {
         const tempChallenge = {
           created_by_user_id: user.id,
@@ -218,7 +219,7 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
       }
 
       const challengeData = {
-        professional_id: challenge?.professional_id || (isProfessional ? userId : null),
+        professional_id: professionalId || challenge?.professional_id || (isProfessional ? userId : null),
         created_by_user_id: user.id,
         created_by_type: userType,
         title: formData.title.trim(),
@@ -235,7 +236,7 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
         is_active: formData.is_active,
       };
 
-      if (challenge) {
+      if (challenge && challenge.id) {
         // Actualizar reto existente
         const response = await fetch(`/api/challenges/${challenge.id}`, {
           method: 'PUT',

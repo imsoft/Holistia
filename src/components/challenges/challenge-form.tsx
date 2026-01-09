@@ -30,7 +30,6 @@ interface ChallengeFormProps {
 interface ChallengeFormData {
   title: string;
   description: string;
-  short_description: string;
   cover_image_url: string;
   duration_days: string;
   difficulty_level: string;
@@ -57,7 +56,6 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
   const [formData, setFormData] = useState<ChallengeFormData>({
     title: "",
     description: "",
-    short_description: "",
     cover_image_url: "",
     duration_days: "",
     difficulty_level: "",
@@ -84,7 +82,6 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
       setFormData({
         title: challenge.title,
         description: challenge.description,
-        short_description: challenge.short_description || "",
         cover_image_url: challenge.cover_image_url || "",
         duration_days: challenge.duration_days?.toString() || "",
         difficulty_level: challenge.difficulty_level || "",
@@ -226,7 +223,7 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
         created_by_type: userType,
         title: formData.title.trim(),
         description: formData.description.trim(),
-        short_description: formData.short_description?.trim() || null,
+        short_description: null,
         cover_image_url: formData.cover_image_url || null,
         duration_days: formData.duration_days ? parseInt(formData.duration_days) : null,
         difficulty_level: formData.difficulty_level || null,
@@ -297,18 +294,7 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="short_description">Descripción Corta</Label>
-            <Input
-              id="short_description"
-              value={formData.short_description}
-              onChange={(e) => setFormData({ ...formData, short_description: e.target.value })}
-              placeholder="Breve descripción para mostrar en cards"
-              maxLength={150}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="description">Descripción Completa *</Label>
+            <Label htmlFor="description">Descripción *</Label>
             <Textarea
               id="description"
               value={formData.description}

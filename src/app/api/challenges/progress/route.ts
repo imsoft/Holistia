@@ -44,11 +44,11 @@ export async function GET(request: NextRequest) {
       // Verificar que el usuario es el dueño
       const { data: purchase } = await supabase
         .from('challenge_purchases')
-        .select('buyer_id')
+        .select('participant_id')
         .eq('id', challenge_purchase_id)
         .single();
 
-      if (!purchase || purchase.buyer_id !== user.id) {
+      if (!purchase || purchase.participant_id !== user.id) {
         return NextResponse.json(
           { error: 'No autorizado' },
           { status: 403 }

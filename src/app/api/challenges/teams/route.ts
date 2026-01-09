@@ -67,7 +67,7 @@ export async function POST(request: Request) {
     const { data: purchase, error: purchaseError } = await supabase
       .from("challenge_purchases")
       .select("id")
-      .eq("buyer_id", user.id)
+      .eq("participant_id", user.id)
       .eq("challenge_id", challengeId)
       .maybeSingle();
 

@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
     // Verificar que el usuario es el dueño de la compra
     const { data: purchase, error: purchaseError } = await supabase
       .from('challenge_purchases')
-      .select('buyer_id')
+      .select('participant_id')
       .eq('id', challenge_purchase_id)
       .single();
 
@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    if (purchase.buyer_id !== user.id) {
+    if (purchase.participant_id !== user.id) {
       return NextResponse.json(
         { error: 'No autorizado' },
         { status: 403 }
@@ -105,7 +105,7 @@ export async function POST(request: NextRequest) {
     // Verificar que el usuario es el dueño de la compra y tiene acceso
     const { data: purchase, error: purchaseError } = await supabase
       .from('challenge_purchases')
-      .select('buyer_id, access_granted, challenge_id, challenges(duration_days)')
+      .select('participant_id, access_granted, challenge_id, challenges(duration_days)')
       .eq('id', challenge_purchase_id)
       .single();
 
@@ -116,7 +116,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (purchase.buyer_id !== user.id) {
+    if (purchase.participant_id !== user.id) {
       return NextResponse.json(
         { error: 'No autorizado' },
         { status: 403 }

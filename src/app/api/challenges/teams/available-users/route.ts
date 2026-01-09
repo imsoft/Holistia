@@ -37,11 +37,11 @@ export async function GET(request: Request) {
     // Obtener usuarios que han comprado el reto
     const { data: purchases } = await supabase
       .from("challenge_purchases")
-      .select("buyer_id")
+      .select("participant_id")
       .eq("challenge_id", challengeId)
-      .in("buyer_id", followingIds);
+      .in("participant_id", followingIds);
 
-    const purchasedUserIds = purchases?.map((p) => p.buyer_id) || [];
+    const purchasedUserIds = purchases?.map((p) => p.participant_id) || [];
 
     if (purchasedUserIds.length === 0) {
       return NextResponse.json({ data: [] });

@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
     // Verificar que el usuario es el dueño de la compra
     const { data: purchase, error: purchaseError } = await supabase
       .from('challenge_purchases')
-      .select('buyer_id, access_granted')
+      .select('participant_id, access_granted')
       .eq('id', challenge_purchase_id)
       .single();
 
@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (purchase.buyer_id !== user.id) {
+    if (purchase.participant_id !== user.id) {
       return NextResponse.json(
         { error: 'No autorizado' },
         { status: 403 }

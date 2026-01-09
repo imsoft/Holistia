@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { createClient } from "@/utils/supabase/client";
 import Image from "next/image";
+import { DeleteConfirmation } from "@/components/ui/confirmation-dialog";
 
 interface ChallengesTabProps {
   professionalId: string;
@@ -32,6 +33,9 @@ export function ChallengesTab({ professionalId }: ChallengesTabProps) {
   const supabase = createClient();
   const [challenges, setChallenges] = useState<Challenge[]>([]);
   const [loading, setLoading] = useState(true);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [challengeToDelete, setChallengeToDelete] = useState<Challenge | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     fetchChallenges();
@@ -53,6 +57,39 @@ export function ChallengesTab({ professionalId }: ChallengesTabProps) {
       toast.error('Error al cargar los retos');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDeleteClick = (challenge: Challenge) => {
+    setChallengeToDelete(challenge);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!challengeToDelete) return;
+
+    try {
+      setDeleting(true);
+      const response = await fetch(`/api/challenges/${challengeToDelete.id}`, {
+        method: 'DELETE',
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Error al eliminar el reto');
+      }
+
+      toast.success('Reto eliminado exitosamente');
+      fetchChallenges();
+      setDeleteDialogOpen(false);
+      setChallengeToDelete(null);
+    } catch (error) {
+      console.error('Error deleting challenge:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Error al eliminar el reto';
+      toast.error(errorMessage);
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -128,7 +165,11 @@ export function ChallengesTab({ professionalId }: ChallengesTabProps) {
                     >
                       <Edit className="h-4 w-4" />
                     </Button>
-                    <Button variant="outline" size="sm">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => handleDeleteClick(challenge)}
+                    >
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
@@ -138,6 +179,14 @@ export function ChallengesTab({ professionalId }: ChallengesTabProps) {
           )}
         </CardContent>
       </Card>
+
+      <DeleteConfirmation
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        onConfirm={handleDeleteConfirm}
+        itemName={challengeToDelete?.title || 'este reto'}
+        loading={deleting}
+      />
     </div>
   );
 }

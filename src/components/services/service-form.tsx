@@ -80,9 +80,14 @@ export function ServiceForm({
         ? service.type 
         : 'session'; // Default si no es válido
 
+      // Normalizar descripción - puede venir como null, undefined, o string
+      const normalizedDescription = service.description 
+        ? String(service.description).trim() 
+        : "";
+
       const formDataToSet = {
         name: service.name || "",
-        description: service.description || "", // Asegurar que siempre sea string
+        description: normalizedDescription, // Asegurar que siempre sea string
         type: serviceType as "session" | "program",
         modality: (service.modality === 'presencial' || service.modality === 'online' || service.modality === 'both')
           ? service.modality
@@ -93,7 +98,11 @@ export function ServiceForm({
         image_url: service.image_url,
       };
 
-      console.log('📝 [ServiceForm] Datos del formulario a establecer:', formDataToSet);
+      console.log('📝 [ServiceForm] Datos del formulario a establecer:', {
+        ...formDataToSet,
+        description_length: formDataToSet.description.length,
+        description_preview: formDataToSet.description.substring(0, 50),
+      });
 
       setFormData(formDataToSet);
 
@@ -431,11 +440,12 @@ export function ServiceForm({
           <div className="space-y-2">
             <Label htmlFor="description">Descripción</Label>
             <RichTextEditor
-              key={service?.id || 'new-service'} // Forzar recreación cuando cambia el servicio
+              key={`service-${service?.id || 'new'}-${formData.description?.substring(0, 10) || 'empty'}`} // Forzar recreación cuando cambia el servicio o la descripción
               content={formData.description || ""}
-              onChange={(content) =>
-                setFormData({ ...formData, description: content })
-              }
+              onChange={(content) => {
+                console.log('📝 [ServiceForm] Descripción cambiada:', content.substring(0, 50));
+                setFormData({ ...formData, description: content });
+              }}
               placeholder="Describe qué incluye este servicio..."
               maxLength={500}
             />

@@ -76,8 +76,8 @@ export function DigitalProductCard({
   };
 
   return (
-    <Card className="hover:shadow-lg transition-all duration-300 overflow-hidden group cursor-pointer py-4" onClick={handleClick}>
-        <div className="relative h-56 bg-gradient-to-br from-primary/10 to-primary/5 overflow-hidden">
+    <Card className="hover:shadow-lg transition-all duration-300 overflow-hidden group cursor-pointer h-full flex flex-col" onClick={handleClick}>
+        <div className="relative h-48 bg-gradient-to-br from-primary/10 to-primary/5 overflow-hidden">
           {product.cover_image_url ? (
             <Image
               src={product.cover_image_url}
@@ -110,7 +110,7 @@ export function DigitalProductCard({
           </CardTitle>
         </CardHeader>
 
-        <CardContent className="px-6 pb-6 space-y-4">
+        <CardContent className="px-6 pb-6 space-y-4 flex-1 flex flex-col">
           <p className="text-sm text-muted-foreground line-clamp-2">
             {product.description}
           </p>
@@ -160,7 +160,7 @@ export function DigitalProductCard({
           )}
 
           {/* Price and CTA */}
-          <div className="flex items-center justify-between pt-3 border-t">
+          <div className="flex items-center justify-between pt-3 border-t mt-auto">
             <div>
               <p className="text-2xl font-bold text-primary">
                 ${product.price.toLocaleString('es-MX')}

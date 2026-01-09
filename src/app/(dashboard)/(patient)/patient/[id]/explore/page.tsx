@@ -783,7 +783,7 @@ const HomeUserPage = () => {
                   style={{ scrollPaddingLeft: '1rem', scrollPaddingRight: '1rem' }}
                 >
                   {filteredProfessionals.map((professional) => (
-                    <div key={professional.id} className="shrink-0 w-96">
+                    <div key={professional.id} className="shrink-0 w-80">
                       <ProfessionalCard
                         userId={userId}
                         professional={{

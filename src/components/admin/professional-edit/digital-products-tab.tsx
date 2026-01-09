@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { createClient } from "@/utils/supabase/client";
 import Image from "next/image";
+import { DeleteConfirmation } from "@/components/ui/confirmation-dialog";
 
 interface DigitalProductsTabProps {
   professionalId: string;
@@ -33,6 +34,9 @@ export function DigitalProductsTab({ professionalId }: DigitalProductsTabProps) 
   const supabase = createClient();
   const [products, setProducts] = useState<DigitalProduct[]>([]);
   const [loading, setLoading] = useState(true);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [productToDelete, setProductToDelete] = useState<DigitalProduct | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     fetchProducts();
@@ -54,6 +58,38 @@ export function DigitalProductsTab({ professionalId }: DigitalProductsTabProps) 
       toast.error('Error al cargar los productos digitales');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDeleteClick = (product: DigitalProduct) => {
+    setProductToDelete(product);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!productToDelete) return;
+
+    try {
+      setDeleting(true);
+      const { error } = await supabase
+        .from('digital_products')
+        .delete()
+        .eq('id', productToDelete.id);
+
+      if (error) {
+        throw new Error(error.message || 'Error al eliminar el producto');
+      }
+
+      toast.success('Producto eliminado exitosamente');
+      fetchProducts();
+      setDeleteDialogOpen(false);
+      setProductToDelete(null);
+    } catch (error) {
+      console.error('Error deleting product:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Error al eliminar el producto';
+      toast.error(errorMessage);
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -127,7 +163,11 @@ export function DigitalProductsTab({ professionalId }: DigitalProductsTabProps) 
                         <Edit className="h-4 w-4 mr-2" />
                         Editar
                       </Button>
-                      <Button variant="outline" size="sm">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleDeleteClick(product)}
+                      >
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
@@ -138,6 +178,14 @@ export function DigitalProductsTab({ professionalId }: DigitalProductsTabProps) 
           )}
         </CardContent>
       </Card>
+
+      <DeleteConfirmation
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        onConfirm={handleDeleteConfirm}
+        itemName={productToDelete?.title || 'este producto'}
+        loading={deleting}
+      />
     </div>
   );
 }

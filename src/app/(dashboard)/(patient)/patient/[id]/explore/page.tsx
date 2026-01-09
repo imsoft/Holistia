@@ -649,8 +649,8 @@ const HomeUserPage = () => {
                       href={`/patient/${userId}/explore/program/${product.id}`}
                       className="shrink-0 w-96"
                     >
-                      <Card className="overflow-hidden hover:shadow-lg transition-shadow py-4">
-                        <div className="relative h-64">
+                      <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full flex flex-col">
+                        <div className="relative h-64 w-full">
                           {product.cover_image_url ? (
                             <Image
                               src={product.cover_image_url}
@@ -664,7 +664,7 @@ const HomeUserPage = () => {
                             </div>
                           )}
                         </div>
-                        <CardHeader>
+                        <CardHeader className="pb-3">
                           <CardTitle className="line-clamp-2">{product.title}</CardTitle>
                           {product.professional_applications && (
                             <div className="flex items-center gap-2 mt-2 text-sm text-muted-foreground">
@@ -672,7 +672,7 @@ const HomeUserPage = () => {
                             </div>
                           )}
                         </CardHeader>
-                        <CardContent>
+                        <CardContent className="flex-1 pb-4">
                           <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
                             {product.description}
                           </p>

@@ -30,6 +30,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { getFullErrorMessage } from "@/lib/error-messages";
+import { WellnessAreasSelector } from "@/components/ui/wellness-areas-selector";
 
 interface DigitalProduct {
   id: string;
@@ -44,6 +45,7 @@ interface DigitalProduct {
   duration_minutes?: number;
   pages_count?: number;
   is_active: boolean;
+  wellness_areas?: string[];
 }
 
 interface DigitalProductFormProps {
@@ -81,6 +83,7 @@ export function DigitalProductForm({ professionalId, product, redirectPath, isAd
     duration_minutes: product?.duration_minutes?.toString() || "",
     pages_count: product?.pages_count?.toString() || "",
     is_active: product?.is_active ?? true,
+    wellness_areas: product?.wellness_areas || [],
   });
 
   // Determinar qué campos mostrar según la categoría
@@ -154,6 +157,7 @@ export function DigitalProductForm({ professionalId, product, redirectPath, isAd
             is_active: formData.is_active,
             duration_minutes: formData.duration_minutes ? parseInt(formData.duration_minutes) : null,
             pages_count: formData.pages_count ? parseInt(formData.pages_count) : null,
+            wellness_areas: formData.wellness_areas && formData.wellness_areas.length > 0 ? formData.wellness_areas : [],
           })
           .select()
           .single();
@@ -324,6 +328,7 @@ export function DigitalProductForm({ professionalId, product, redirectPath, isAd
         duration_minutes: formData.duration_minutes ? parseInt(formData.duration_minutes) : null,
         pages_count: formData.pages_count ? parseInt(formData.pages_count) : null,
         is_active: formData.is_active,
+        wellness_areas: formData.wellness_areas && formData.wellness_areas.length > 0 ? formData.wellness_areas : [],
       };
 
       if (product) {
@@ -379,7 +384,7 @@ export function DigitalProductForm({ professionalId, product, redirectPath, isAd
       </div>
 
       <div>
-        <Label htmlFor="category" className="mb-2 block">Categoría *</Label>
+        <Label htmlFor="category" className="mb-2 block">Tipo de Programa *</Label>
         <Select
           value={formData.category}
           onValueChange={(value) => setFormData({ ...formData, category: value as 'meditation' | 'ebook' | 'manual' | 'guide' | 'audio' | 'video' | 'other' })}
@@ -401,6 +406,18 @@ export function DigitalProductForm({ professionalId, product, redirectPath, isAd
             })}
           </SelectContent>
         </Select>
+        <p className="text-xs text-muted-foreground mt-1">
+          Selecciona el tipo de programa (meditación, ebook, audio, etc.)
+        </p>
+      </div>
+
+      <div>
+        <WellnessAreasSelector
+          selectedAreas={formData.wellness_areas}
+          onAreasChange={(areas) => setFormData({ ...formData, wellness_areas: areas })}
+          label="Categoría de Bienestar"
+          description="Selecciona a qué categoría de bienestar pertenece este programa. Esto ayudará a que los usuarios lo encuentren más fácilmente."
+        />
       </div>
 
       <div>

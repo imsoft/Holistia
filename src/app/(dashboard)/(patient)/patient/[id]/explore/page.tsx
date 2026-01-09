@@ -124,6 +124,7 @@ interface DigitalProduct {
   pages_count?: number;
   is_active: boolean;
   created_at: string;
+  wellness_areas?: string[];
   professional_applications?: {
     first_name: string;
     last_name: string;
@@ -440,24 +441,37 @@ const HomeUserPage = () => {
       eventsScrollRef.current.scrollTo({ left: 0, behavior: 'smooth' });
     }
 
-    // Filtrar programas (productos digitales) por el profesional asociado
+    // Filtrar programas (productos digitales) por wellness_areas del programa o del profesional
     let filteredProds = [...digitalProducts];
     if (categoryIds.length > 0) {
       filteredProds = filteredProds.filter((product) => {
-        // Si el producto tiene un profesional asociado con wellness_areas, filtrar por eso
-        const professional = product.professional_applications;
-        if (professional && professional.wellness_areas && Array.isArray(professional.wellness_areas)) {
-          const professionalWellnessAreas = professional.wellness_areas;
-          return categoryIds.some((categoryId) => {
-            const mappedAreas = categoryToWellnessAreas[categoryId] || [];
-            if (mappedAreas.length === 0) return false;
-            
-            // Verificar si alguna de las áreas de bienestar del profesional coincide con las áreas mapeadas
-            return professionalWellnessAreas.some((area) => mappedAreas.includes(area));
-          });
+        // Priorizar wellness_areas del programa si existe y no está vacío
+        let productWellnessAreas: string[] = [];
+        
+        if (product.wellness_areas && Array.isArray(product.wellness_areas) && product.wellness_areas.length > 0) {
+          // Usar wellness_areas del programa directamente
+          productWellnessAreas = product.wellness_areas;
+        } else {
+          // Fallback: usar wellness_areas del profesional asociado
+          const professional = product.professional_applications;
+          if (professional && professional.wellness_areas && Array.isArray(professional.wellness_areas)) {
+            productWellnessAreas = professional.wellness_areas;
+          }
         }
-        // Si no tiene profesional asociado o wellness_areas, ocultar cuando hay filtros activos
-        return false;
+        
+        // Si no tiene wellness_areas ni del programa ni del profesional, ocultar cuando hay filtros activos
+        if (productWellnessAreas.length === 0) {
+          return false;
+        }
+        
+        // Verificar si alguna de las áreas de bienestar coincide con las categorías seleccionadas
+        return categoryIds.some((categoryId) => {
+          const mappedAreas = categoryToWellnessAreas[categoryId] || [];
+          if (mappedAreas.length === 0) return false;
+          
+          // Verificar si alguna de las áreas de bienestar coincide con las áreas mapeadas
+          return productWellnessAreas.some((area) => mappedAreas.includes(area));
+        });
       });
     } else {
       // Si no hay filtros, mostrar todos los programas

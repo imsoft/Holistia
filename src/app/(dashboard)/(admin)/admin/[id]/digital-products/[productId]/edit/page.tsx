@@ -21,6 +21,7 @@ interface DigitalProduct {
   duration_minutes?: number;
   pages_count?: number;
   is_active: boolean;
+  wellness_areas?: string[];
 }
 
 export default function EditAdminDigitalProductPage() {

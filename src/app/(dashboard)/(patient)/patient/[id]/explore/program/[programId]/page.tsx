@@ -282,13 +282,15 @@ export default function ProgramDetailPage() {
                           className="flex-shrink-0"
                         >
                           {product.professional_applications.profile_photo ? (
-                            <Image
-                              src={product.professional_applications.profile_photo}
-                              alt={`${product.professional_applications.first_name} ${product.professional_applications.last_name}`}
-                              width={80}
-                              height={80}
-                              className="rounded-full object-cover border-2 border-primary/20 hover:border-primary/40 transition-colors"
-                            />
+                            <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-primary/20 hover:border-primary/40 transition-colors">
+                              <Image
+                                src={product.professional_applications.profile_photo}
+                                alt={`${product.professional_applications.first_name} ${product.professional_applications.last_name}`}
+                                width={80}
+                                height={80}
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
                           ) : (
                             <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center border-2 border-primary/20 hover:border-primary/40 transition-colors">
                               <User className="h-10 w-10 text-primary" />
@@ -456,13 +458,15 @@ export default function ProgramDetailPage() {
                       <h4 className="font-semibold text-sm">Creado por</h4>
                       <div className="flex items-center gap-3">
                         {product.professional_applications.profile_photo ? (
-                          <Image
-                            src={product.professional_applications.profile_photo}
-                            alt=""
-                            width={48}
-                            height={48}
-                            className="rounded-full"
-                          />
+                          <div className="w-12 h-12 rounded-full overflow-hidden">
+                            <Image
+                              src={product.professional_applications.profile_photo}
+                              alt=""
+                              width={48}
+                              height={48}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
                         ) : (
                           <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
                             <User className="h-6 w-6 text-primary" />

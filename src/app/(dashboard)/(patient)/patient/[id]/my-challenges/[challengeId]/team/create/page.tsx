@@ -53,18 +53,16 @@ export default function CreateTeamPage() {
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-7xl">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-foreground mb-2 flex items-center gap-2">
-          <Users className="h-8 w-8" />
-          Crear Equipo
-        </h1>
-        <p className="text-muted-foreground">
-          Forma un equipo de hasta 5 personas para completar el reto juntos
-        </p>
-      </div>
-
-      {/* Main Content */}
       <div className="max-w-2xl mx-auto">
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold text-foreground mb-2 flex items-center gap-2">
+            <Users className="h-8 w-8" />
+            Crear Equipo
+          </h1>
+          <p className="text-muted-foreground">
+            Forma un equipo de hasta 5 personas para completar el reto juntos
+          </p>
+        </div>
         <Card className="py-4">
           <CardHeader>
             <CardTitle>Información del Equipo</CardTitle>

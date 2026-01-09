@@ -255,7 +255,7 @@ const EventDetailPage = () => {
                   <div>
                     <h3 className="text-base sm:text-lg font-semibold mb-2 sm:mb-3">Descripción</h3>
                     <div 
-                      className="text-sm sm:text-base text-muted-foreground leading-relaxed prose prose-sm sm:prose-base max-w-none"
+                      className="text-sm sm:text-base text-foreground leading-relaxed prose prose-sm sm:prose-base max-w-none prose-p:text-foreground prose-headings:text-foreground prose-strong:text-foreground"
                       dangerouslySetInnerHTML={{ __html: event.description }}
                     />
                   </div>

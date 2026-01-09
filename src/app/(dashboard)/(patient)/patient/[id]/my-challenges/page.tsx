@@ -331,25 +331,74 @@ export default function MyChallengesPage() {
       await fetchTeam(challenge.id);
       await fetchResources(challenge.id);
     } else if (challenge.type === 'created') {
-      // Si es un reto creado, crear un objeto compatible para mostrar detalles
-      // No tiene purchaseId, pero podemos mostrar recursos y otros detalles
-      const createdChallenge: ChallengePurchase = {
-        id: challenge.id, // Usar challenge.id como ID temporal
-        challenge_id: challenge.id,
-        challenge: {
-          ...challenge,
-          type: 'created' as const,
-        },
-        access_granted: true, // Los creadores siempre tienen acceso
-        started_at: undefined,
-        completed_at: undefined,
-      };
-      setSelectedChallenge(createdChallenge);
-      // No hay check-ins ni progreso para retos creados (solo para participantes)
-      setCheckins([]);
-      setTeamId(null);
-      setTeamName(null);
-      await fetchResources(challenge.id);
+      // Si es un reto creado, buscar o crear un purchase automáticamente
+      // para que el creador pueda ver progreso, check-ins y badges
+      try {
+        // Buscar si ya existe un purchase para este reto y usuario
+        const response = await fetch(
+          `/api/challenges/${challenge.id}/purchase?user_id=${userId}`
+        );
+        const data = await response.json();
+        
+        let purchaseId: string;
+        
+        if (response.ok && data.purchase) {
+          // Ya existe un purchase
+          purchaseId = data.purchase.id;
+        } else {
+          // Crear un purchase automáticamente para el creador
+          const createResponse = await fetch(`/api/challenges/${challenge.id}/purchase`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ auto_join: true }),
+          });
+          
+          const createData = await createResponse.json();
+          
+          if (createResponse.ok && createData.purchase) {
+            purchaseId = createData.purchase.id;
+          } else {
+            // Si falla la creación, usar challenge.id como fallback
+            purchaseId = challenge.id;
+            toast.error('No se pudo crear la participación automática');
+          }
+        }
+        
+        const createdChallenge: ChallengePurchase = {
+          id: purchaseId,
+          challenge_id: challenge.id,
+          challenge: {
+            ...challenge,
+            type: 'created' as const,
+          },
+          access_granted: true, // Los creadores siempre tienen acceso
+          started_at: undefined,
+          completed_at: undefined,
+        };
+        setSelectedChallenge(createdChallenge);
+        await fetchCheckins(purchaseId);
+        await fetchTeam(challenge.id);
+        await fetchResources(challenge.id);
+      } catch (error) {
+        console.error('Error al obtener/crear purchase para reto creado:', error);
+        // Fallback: mostrar solo recursos
+        const createdChallenge: ChallengePurchase = {
+          id: challenge.id,
+          challenge_id: challenge.id,
+          challenge: {
+            ...challenge,
+            type: 'created' as const,
+          },
+          access_granted: true,
+          started_at: undefined,
+          completed_at: undefined,
+        };
+        setSelectedChallenge(createdChallenge);
+        setCheckins([]);
+        setTeamId(null);
+        setTeamName(null);
+        await fetchResources(challenge.id);
+      }
     }
   };
 
@@ -728,14 +777,10 @@ export default function MyChallengesPage() {
           {selectedChallenge && (
             <div className="lg:col-span-2 space-y-6">
               <Tabs defaultValue="resources" className="w-full">
-                <TabsList className={`grid w-full ${teamId ? 'grid-cols-5' : selectedChallenge.challenge.type === 'created' ? 'grid-cols-1' : 'grid-cols-4'}`}>
-                  {selectedChallenge.challenge.type !== 'created' && (
-                    <>
-                      <TabsTrigger value="progress">Progreso</TabsTrigger>
-                      <TabsTrigger value="checkins">Check-ins</TabsTrigger>
-                      <TabsTrigger value="badges">Badges</TabsTrigger>
-                    </>
-                  )}
+                <TabsList className={`grid w-full ${teamId ? 'grid-cols-5' : 'grid-cols-4'}`}>
+                  <TabsTrigger value="progress">Progreso</TabsTrigger>
+                  <TabsTrigger value="checkins">Check-ins</TabsTrigger>
+                  <TabsTrigger value="badges">Badges</TabsTrigger>
                   <TabsTrigger value="resources">Recursos</TabsTrigger>
                   {teamId && (
                     <TabsTrigger value="chat" className="gap-2">
@@ -745,17 +790,14 @@ export default function MyChallengesPage() {
                   )}
                 </TabsList>
 
-                {selectedChallenge.challenge.type !== 'created' && (
-                  <TabsContent value="progress" className="space-y-4">
-                    <ChallengeProgress
-                      challengePurchaseId={selectedChallenge.id}
-                      challengeDurationDays={selectedChallenge.challenge.duration_days}
-                    />
-                  </TabsContent>
-                )}
+                <TabsContent value="progress" className="space-y-4">
+                  <ChallengeProgress
+                    challengePurchaseId={selectedChallenge.id}
+                    challengeDurationDays={selectedChallenge.challenge.duration_days}
+                  />
+                </TabsContent>
 
-                {selectedChallenge.challenge.type !== 'created' && (
-                  <TabsContent value="checkins" className="space-y-4">
+                <TabsContent value="checkins" className="space-y-4">
                     <Card className="py-4">
                       <CardHeader>
                         <div className="flex items-center justify-between">
@@ -845,13 +887,10 @@ export default function MyChallengesPage() {
                       </CardContent>
                     </Card>
                   </TabsContent>
-                )}
 
-                {selectedChallenge.challenge.type !== 'created' && (
-                  <TabsContent value="badges">
-                    <ChallengeBadges challengePurchaseId={selectedChallenge.id} />
-                  </TabsContent>
-                )}
+                <TabsContent value="badges">
+                  <ChallengeBadges challengePurchaseId={selectedChallenge.id} />
+                </TabsContent>
 
                 <TabsContent value="resources" className="space-y-4">
                   <Card className="py-4">

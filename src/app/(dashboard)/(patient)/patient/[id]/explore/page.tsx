@@ -158,6 +158,9 @@ const HomeUserPage = () => {
   const [professionals, setProfessionals] = useState<Professional[]>([]);
   const [filteredProfessionals, setFilteredProfessionals] = useState<Professional[]>([]);
   const [filteredEvents, setFilteredEvents] = useState<EventWorkshop[]>([]);
+  const [filteredRestaurants, setFilteredRestaurants] = useState<Restaurant[]>([]);
+  const [filteredShops, setFilteredShops] = useState<Shop[]>([]);
+  const [filteredDigitalProducts, setFilteredDigitalProducts] = useState<DigitalProduct[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [events, setEvents] = useState<EventWorkshop[]>([]);
@@ -297,6 +300,7 @@ const HomeUserPage = () => {
         } else {
           console.log("🍽️ Restaurants data:", restaurantsData?.map(r => ({ id: r.id, name: r.name, image_url: r.image_url })));
           setRestaurants(restaurantsData || []);
+          setFilteredRestaurants(restaurantsData || []);
         }
 
         // Obtener comercios
@@ -312,6 +316,7 @@ const HomeUserPage = () => {
         } else {
           console.log("🛍️ Shops data:", shopsData?.map(s => ({ id: s.id, name: s.name, image_url: s.image_url })));
           setShops(shopsData || []);
+          setFilteredShops(shopsData || []);
         }
 
         // Obtener programas (productos digitales)
@@ -323,7 +328,8 @@ const HomeUserPage = () => {
               first_name,
               last_name,
               profile_photo,
-              is_verified
+              is_verified,
+              wellness_areas
             )
           `)
           .eq("is_active", true)
@@ -340,6 +346,7 @@ const HomeUserPage = () => {
               : undefined,
           }));
           setDigitalProducts(transformedProducts);
+          setFilteredDigitalProducts(transformedProducts);
         }
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -376,19 +383,30 @@ const HomeUserPage = () => {
   };
 
   const applyFilters = (categoryIds: string[]) => {
+    // Mapeo de categorías a áreas de bienestar
+    const categoryToWellnessAreas: Record<string, string[]> = {
+      professionals: ["Salud mental"],
+      spirituality: ["Espiritualidad"],
+      "physical-activity": ["Actividad física"],
+      social: ["Social"],
+      nutrition: ["Alimentación"],
+    };
+
+    // Mapeo de categorías a categorías de eventos
+    const categoryToEventCategory: Record<string, string> = {
+      professionals: "salud_mental",
+      spirituality: "espiritualidad",
+      "physical-activity": "salud_fisica",
+      social: "social",
+      nutrition: "alimentacion",
+    };
+
     // Filtrar profesionales
     let filteredProfs = [...professionals];
     if (categoryIds.length > 0) {
       filteredProfs = filteredProfs.filter((professional) => {
         return categoryIds.some((categoryId) => {
-          const categoryMap: Record<string, string[]> = {
-            professionals: ["Salud mental"],
-            spirituality: ["Espiritualidad"],
-            "physical-activity": ["Actividad física"],
-            social: ["Social"],
-            nutrition: ["Alimentación"],
-          };
-          const mappedAreas = categoryMap[categoryId] || [];
+          const mappedAreas = categoryToWellnessAreas[categoryId] || [];
           return (
             mappedAreas.length > 0 &&
             professional.wellness_areas &&
@@ -409,14 +427,7 @@ const HomeUserPage = () => {
     if (categoryIds.length > 0) {
       filteredEvts = filteredEvts.filter(event => {
         return categoryIds.some(categoryId => {
-          const categoryMap: Record<string, string> = {
-            professionals: "salud_mental",
-            spirituality: "espiritualidad",
-            "physical-activity": "salud_fisica",
-            social: "social",
-            nutrition: "alimentacion",
-          };
-          const eventCategory = categoryMap[categoryId];
+          const eventCategory = categoryToEventCategory[categoryId];
           return eventCategory && event.category === eventCategory;
         });
       });
@@ -426,6 +437,68 @@ const HomeUserPage = () => {
     // Reiniciar scroll del carrusel de eventos al inicio
     if (eventsScrollRef.current) {
       eventsScrollRef.current.scrollTo({ left: 0, behavior: 'smooth' });
+    }
+
+    // Filtrar programas (productos digitales) por el profesional asociado
+    let filteredProds = [...digitalProducts];
+    if (categoryIds.length > 0) {
+      filteredProds = filteredProds.filter((product) => {
+        // Si el producto tiene un profesional asociado con wellness_areas, filtrar por eso
+        if (product.professional_applications && (product.professional_applications as any).wellness_areas) {
+          const professionalWellnessAreas = (product.professional_applications as any).wellness_areas as string[];
+          return categoryIds.some((categoryId) => {
+            const mappedAreas = categoryToWellnessAreas[categoryId] || [];
+            return (
+              mappedAreas.length > 0 &&
+              professionalWellnessAreas &&
+              professionalWellnessAreas.some((area) => mappedAreas.includes(area))
+            );
+          });
+        }
+        // Si no tiene profesional asociado o wellness_areas, ocultar cuando hay filtros activos
+        return false;
+      });
+    }
+    setFilteredDigitalProducts(filteredProds);
+
+    // Reiniciar scroll del carrusel de programas al inicio
+    if (digitalProductsScrollRef.current) {
+      digitalProductsScrollRef.current.scrollTo({ left: 0, behavior: 'smooth' });
+    }
+
+    // Filtrar restaurantes - siempre mostrar en "Alimentación"
+    let filteredRests = [...restaurants];
+    if (categoryIds.length > 0) {
+      if (categoryIds.includes("nutrition")) {
+        // Si se selecciona "Alimentación", mostrar todos los restaurantes
+        setFilteredRestaurants(filteredRests);
+      } else {
+        // Si no se selecciona "Alimentación", ocultar restaurantes
+        setFilteredRestaurants([]);
+      }
+    } else {
+      // Si no hay filtros, mostrar todos
+      setFilteredRestaurants(filteredRests);
+    }
+
+    // Reiniciar scroll del carrusel de restaurantes al inicio
+    if (restaurantsScrollRef.current) {
+      restaurantsScrollRef.current.scrollTo({ left: 0, behavior: 'smooth' });
+    }
+
+    // Filtrar comercios - mostrar en todas las categorías o sin filtro
+    let filteredShps = [...shops];
+    if (categoryIds.length > 0) {
+      // Por ahora, mostrar comercios en todas las categorías seleccionadas
+      // (puedes ajustar esta lógica según necesites)
+      setFilteredShops(filteredShps);
+    } else {
+      setFilteredShops(filteredShps);
+    }
+
+    // Reiniciar scroll del carrusel de comercios al inicio
+    if (shopsScrollRef.current) {
+      shopsScrollRef.current.scrollTo({ left: 0, behavior: 'smooth' });
     }
   };
 
@@ -501,7 +574,7 @@ const HomeUserPage = () => {
               Filtrar por categorías
             </h3>
             <p className="text-xs sm:text-sm text-muted-foreground">
-              Selecciona una categoría para filtrar profesionales
+              Selecciona una categoría para filtrar profesionales, programas, eventos, restaurantes y comercios
             </p>
           </div>
           <div className="flex gap-3 sm:gap-4 justify-center overflow-x-auto pb-2">
@@ -535,7 +608,7 @@ const HomeUserPage = () => {
 
         <div className="space-y-12 relative">
           {/* Sección de Programas - Solo mostrar si hay datos */}
-          {digitalProducts.length > 0 && (
+          {filteredDigitalProducts.length > 0 && (
             <div className="relative z-10">
               <div className="flex items-center justify-between mb-6">
                 <Link
@@ -570,7 +643,7 @@ const HomeUserPage = () => {
                   className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar px-12"
                   style={{ scrollPaddingLeft: '1rem', scrollPaddingRight: '1rem' }}
                 >
-                  {digitalProducts.map((product) => (
+                  {filteredDigitalProducts.map((product) => (
                     <Link
                       key={product.id}
                       href={`/patient/${userId}/explore/program/${product.id}`}
@@ -858,7 +931,7 @@ const HomeUserPage = () => {
           )}
 
           {/* Sección de Restaurantes - Solo mostrar si hay datos */}
-          {restaurants.length > 0 && (
+          {filteredRestaurants.length > 0 && (
           <div>
             <div className="flex items-center justify-between mb-6">
               <Link
@@ -876,10 +949,14 @@ const HomeUserPage = () => {
               <div className="flex items-center justify-center py-12">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
               </div>
-            ) : restaurants.length === 0 ? (
+            ) : filteredRestaurants.length === 0 ? (
               <div className="text-center py-12">
                 <UtensilsCrossed className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <p className="text-muted-foreground">No hay restaurantes disponibles</p>
+                <p className="text-muted-foreground">
+                  {restaurants.length === 0
+                    ? "No hay restaurantes disponibles"
+                    : "No se encontraron restaurantes que coincidan con los filtros aplicados."}
+                </p>
               </div>
             ) : (
               <div className="relative">
@@ -902,7 +979,7 @@ const HomeUserPage = () => {
                   ref={restaurantsScrollRef}
                   className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar justify-center px-12"
                 >
-                  {restaurants.map((restaurant) => (
+                  {filteredRestaurants.map((restaurant) => (
                     <Link
                       key={restaurant.id}
                       href={`/patient/${userId}/explore/restaurant/${restaurant.id}`}
@@ -959,7 +1036,7 @@ const HomeUserPage = () => {
           )}
 
           {/* Sección de Comercios - Solo mostrar si hay datos */}
-          {shops.length > 0 && (
+          {filteredShops.length > 0 && (
           <div>
             <div className="flex items-center justify-between mb-6">
               <Link
@@ -977,10 +1054,14 @@ const HomeUserPage = () => {
               <div className="flex items-center justify-center py-12">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
               </div>
-            ) : shops.length === 0 ? (
+            ) : filteredShops.length === 0 ? (
               <div className="text-center py-12">
                 <Store className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <p className="text-muted-foreground">No hay comercios disponibles</p>
+                <p className="text-muted-foreground">
+                  {shops.length === 0
+                    ? "No hay comercios disponibles"
+                    : "No se encontraron comercios que coincidan con los filtros aplicados."}
+                </p>
               </div>
             ) : (
               <div className="relative">
@@ -1003,7 +1084,7 @@ const HomeUserPage = () => {
                   ref={shopsScrollRef}
                   className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar justify-center px-12"
                 >
-                  {shops.map((shop) => (
+                  {filteredShops.map((shop) => (
                     <Link
                       key={shop.id}
                       href={`/patient/${userId}/explore/shop/${shop.id}`}

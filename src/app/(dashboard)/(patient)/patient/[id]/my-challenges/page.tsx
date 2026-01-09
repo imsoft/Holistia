@@ -708,12 +708,12 @@ export default function MyChallengesPage() {
             {filteredChallenges.map((challenge) => (
               <Card
                 key={`${challenge.type}-${challenge.id}`}
-                className={`hover:shadow-lg transition-shadow overflow-hidden cursor-pointer h-full flex flex-col ${
+                className={`hover:shadow-lg transition-shadow overflow-hidden cursor-pointer gap-0 ${
                   selectedChallenge?.challenge_id === challenge.id ? 'ring-2 ring-primary' : ''
                 }`}
                 onClick={() => handleOpenChallenge(challenge)}
               >
-                <div className="relative h-32 w-full">
+                <div className="relative h-32 w-full -mx-6 -mt-6 mb-0">
                   {challenge.cover_image_url ? (
                     <Image
                       src={challenge.cover_image_url}
@@ -737,7 +737,7 @@ export default function MyChallengesPage() {
                     </div>
                   )}
                 </div>
-                <CardHeader className="pb-3">
+                <CardHeader>
                   <CardTitle className="text-lg line-clamp-2">
                     {challenge.title}
                   </CardTitle>
@@ -753,7 +753,7 @@ export default function MyChallengesPage() {
                     </div>
                   )}
                 </CardHeader>
-                <CardContent className="flex-1 pb-4">
+                <CardContent>
                   <div className="flex items-center gap-2 text-sm">
                     {challenge.duration_days && (
                       <Badge variant="outline" className="text-xs">

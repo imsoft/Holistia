@@ -7,9 +7,17 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { createClient } from "@/utils/supabase/client";
 import { toast } from "sonner";
-import { Calendar, Target, Loader2, CheckCircle2, Circle, Users, Plus, Edit, Trash2, Link as LinkIcon, Book, Headphones, Video, FileText, ExternalLink } from "lucide-react";
+import { Calendar, Target, Loader2, CheckCircle2, Circle, Users, Plus, Edit, Trash2, Link as LinkIcon, Book, Headphones, Video, FileText, ExternalLink, Search, Filter } from "lucide-react";
 import { CheckinForm } from "@/components/ui/checkin-form";
 import { ChallengeProgress } from "@/components/ui/challenge-progress";
 import { ChallengeBadges } from "@/components/ui/challenge-badges";
@@ -104,6 +112,12 @@ export default function MyChallengesPage() {
   const [deleting, setDeleting] = useState(false);
   const [challengeResources, setChallengeResources] = useState<any[]>([]);
   const [loadingResources, setLoadingResources] = useState(false);
+  const [allChallenges, setAllChallenges] = useState<any[]>([]);
+  const [filteredChallenges, setFilteredChallenges] = useState<any[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [typeFilter, setTypeFilter] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [difficultyFilter, setDifficultyFilter] = useState<string>("all");
 
   useEffect(() => {
     fetchChallenges();
@@ -193,7 +207,12 @@ export default function MyChallengesPage() {
         .eq('created_by_user_id', user.id)
         .order('created_at', { ascending: false });
 
-      if (createdError) throw createdError;
+      if (createdError) {
+        console.error('Error fetching created challenges:', createdError);
+        throw createdError;
+      }
+
+      console.log('🔍 Retos creados encontrados:', created?.length || 0, created);
 
       // Transformar datos de retos creados
       const transformedCreated = (created || []).map((challenge: any) => ({
@@ -205,12 +224,71 @@ export default function MyChallengesPage() {
 
       setCreatedChallenges(transformedCreated);
 
+      // Combinar todos los retos en una sola lista
+      const combinedChallenges = [
+        ...transformedPurchases.map((p: any) => ({
+          ...p.challenge,
+          purchaseId: p.id,
+          type: 'participating' as const,
+          access_granted: p.access_granted,
+          started_at: p.started_at,
+          completed_at: p.completed_at,
+        })),
+        ...transformedCreated.map((c: any) => ({
+          ...c,
+          type: 'created' as const,
+          purchaseId: null,
+        })),
+      ];
+
+      setAllChallenges(combinedChallenges);
+      setFilteredChallenges(combinedChallenges);
+
     } catch (error) {
       console.error("Error fetching challenges:", error);
       toast.error("Error al cargar retos");
     } finally {
       setLoading(false);
     }
+  };
+
+  useEffect(() => {
+    applyFilters();
+  }, [searchTerm, typeFilter, statusFilter, difficultyFilter, allChallenges]);
+
+  const applyFilters = () => {
+    let filtered = [...allChallenges];
+
+    // Filtrar por búsqueda
+    if (searchTerm) {
+      filtered = filtered.filter((c) =>
+        c.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        c.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        c.category?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    // Filtrar por tipo
+    if (typeFilter !== "all") {
+      filtered = filtered.filter((c) => c.type === typeFilter);
+    }
+
+    // Filtrar por estado (solo para retos creados)
+    if (statusFilter !== "all") {
+      filtered = filtered.filter((c) => {
+        if (c.type === 'created') {
+          return statusFilter === "active" ? c.is_active : !c.is_active;
+        }
+        return true; // Para retos participados, no aplicar filtro de estado
+      });
+    }
+
+    // Filtrar por dificultad
+    if (difficultyFilter !== "all") {
+      filtered = filtered.filter((c) => c.difficulty_level === difficultyFilter);
+    }
+
+    setFilteredChallenges(filtered);
   };
 
   const fetchCheckins = async (challengePurchaseId: string) => {
@@ -233,11 +311,25 @@ export default function MyChallengesPage() {
     }
   };
 
-  const handleOpenChallenge = async (challenge: ChallengePurchase) => {
-    setSelectedChallenge(challenge);
-    await fetchCheckins(challenge.id); // challenge.id es el challenge_purchase_id
-    await fetchTeam(challenge.challenge_id);
-    await fetchResources(challenge.challenge_id);
+  const handleOpenChallenge = async (challenge: any) => {
+    // Si es un reto participado, usar purchaseId
+    if (challenge.type === 'participating' && challenge.purchaseId) {
+      const purchaseChallenge: ChallengePurchase = {
+        id: challenge.purchaseId,
+        challenge_id: challenge.id,
+        challenge: challenge,
+        access_granted: challenge.access_granted,
+        started_at: challenge.started_at,
+        completed_at: challenge.completed_at,
+      };
+      setSelectedChallenge(purchaseChallenge);
+      await fetchCheckins(challenge.purchaseId);
+      await fetchTeam(challenge.id);
+      await fetchResources(challenge.id);
+    } else {
+      // Si es un reto creado, no se puede abrir para ver detalles (no tiene purchase)
+      toast.info("Este es un reto que creaste. Puedes editarlo desde el botón de editar.");
+    }
   };
 
   const fetchResources = async (challengeId: string) => {
@@ -416,49 +508,100 @@ export default function MyChallengesPage() {
         <TeamInvitationsList />
       </div>
 
-      {/* Tabs para separar retos participados y creados */}
-      <Tabs defaultValue="participating" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 mb-6">
-          <TabsTrigger value="participating">
-            Retos en los que Participo ({challenges.length})
-          </TabsTrigger>
-          <TabsTrigger value="created">
-            Retos que Creé ({createdChallenges.length})
-          </TabsTrigger>
-        </TabsList>
+      {/* Filtros */}
+      <div className="mb-6 grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Buscar retos..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+        <Select value={typeFilter} onValueChange={setTypeFilter}>
+          <SelectTrigger>
+            <SelectValue placeholder="Tipo de reto" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos los tipos</SelectItem>
+            <SelectItem value="participating">En los que participo</SelectItem>
+            <SelectItem value="created">Que creé</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <SelectTrigger>
+            <SelectValue placeholder="Estado" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos los estados</SelectItem>
+            <SelectItem value="active">Activos</SelectItem>
+            <SelectItem value="inactive">Inactivos</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select value={difficultyFilter} onValueChange={setDifficultyFilter}>
+          <SelectTrigger>
+            <SelectValue placeholder="Dificultad" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todas las dificultades</SelectItem>
+            <SelectItem value="beginner">Principiante</SelectItem>
+            <SelectItem value="intermediate">Intermedio</SelectItem>
+            <SelectItem value="advanced">Avanzado</SelectItem>
+            <SelectItem value="expert">Experto</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
 
-        {/* Tab de retos en los que participa */}
-        <TabsContent value="participating">
-          {challenges.length === 0 ? (
-            <Card className="py-4">
-              <CardContent className="flex flex-col items-center justify-center py-12">
-                <Target className="h-16 w-16 text-muted-foreground mb-4" />
-                <h3 className="text-xl font-semibold mb-2">No estás participando en retos aún</h3>
-                <p className="text-muted-foreground text-center mb-6">
-                  Explora los retos disponibles y comienza tu transformación
-                </p>
-                <Button asChild>
-                  <a href={`/patient/${userId}/explore/challenges`}>Explorar Retos</a>
-                </Button>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Lista de retos */}
-              <div className="lg:col-span-1 space-y-4">
-                {challenges.map((challenge) => (
+      {/* Lista de retos */}
+      {loading ? (
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      ) : filteredChallenges.length === 0 ? (
+        <Card className="py-4">
+          <CardContent className="flex flex-col items-center justify-center py-12">
+            <Target className="h-16 w-16 text-muted-foreground mb-4" />
+            <h3 className="text-xl font-semibold mb-2">
+              {allChallenges.length === 0
+                ? "No tienes retos aún"
+                : "No se encontraron retos con los filtros aplicados"}
+            </h3>
+            <p className="text-muted-foreground text-center mb-6">
+              {allChallenges.length === 0
+                ? "Explora los retos disponibles o crea tu propio reto personalizado"
+                : "Intenta ajustar los filtros para ver más resultados"}
+            </p>
+            <div className="flex gap-2">
+              <Button asChild variant="outline">
+                <a href={`/patient/${userId}/explore/challenges`}>Explorar Retos</a>
+              </Button>
+              <Button onClick={() => router.push(`/patient/${userId}/my-challenges/new`)}>
+                <Plus className="h-4 w-4 mr-2" />
+                Crear Reto
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Lista de retos */}
+          <div className="lg:col-span-1 space-y-4">
+            {filteredChallenges.map((challenge) => (
               <Card
-                key={challenge.id}
-                className={`cursor-pointer hover:shadow-lg transition-shadow py-4 ${
-                  selectedChallenge?.id === challenge.id ? 'ring-2 ring-primary' : ''
+                key={`${challenge.type}-${challenge.id}`}
+                className={`hover:shadow-lg transition-shadow py-4 ${
+                  challenge.type === 'participating' ? 'cursor-pointer' : ''
+                } ${
+                  selectedChallenge?.id === challenge.purchaseId ? 'ring-2 ring-primary' : ''
                 }`}
-                onClick={() => handleOpenChallenge(challenge)}
+                onClick={() => challenge.type === 'participating' && handleOpenChallenge(challenge)}
               >
                 <div className="relative h-32">
-                  {challenge.challenge.cover_image_url ? (
+                  {challenge.cover_image_url ? (
                     <Image
-                      src={challenge.challenge.cover_image_url}
-                      alt={challenge.challenge.title}
+                      src={challenge.cover_image_url}
+                      alt={challenge.title}
                       fill
                       className="object-cover rounded-t-lg"
                     />
@@ -467,18 +610,28 @@ export default function MyChallengesPage() {
                       <Target className="h-12 w-12 text-primary/40" />
                     </div>
                   )}
+                  {challenge.type === 'created' && !challenge.is_active && (
+                    <div className="absolute top-2 right-2">
+                      <Badge variant="secondary">Inactivo</Badge>
+                    </div>
+                  )}
+                  {challenge.type === 'created' && (
+                    <div className="absolute top-2 left-2">
+                      <Badge variant="default">Creado por ti</Badge>
+                    </div>
+                  )}
                 </div>
                 <CardHeader>
                   <CardTitle className="text-lg line-clamp-2">
-                    {challenge.challenge.title}
+                    {challenge.title}
                   </CardTitle>
-                  {challenge.challenge.professional_applications && (
+                  {challenge.professional_applications && (
                     <div className="flex items-center gap-2 mt-2">
                       <span className="text-sm text-muted-foreground">
-                        {challenge.challenge.professional_applications.first_name}{' '}
-                        {challenge.challenge.professional_applications.last_name}
+                        {challenge.professional_applications.first_name}{' '}
+                        {challenge.professional_applications.last_name}
                       </span>
-                      {challenge.challenge.professional_applications.is_verified && (
+                      {challenge.professional_applications.is_verified && (
                         <VerifiedBadge size={14} />
                       )}
                     </div>
@@ -486,32 +639,67 @@ export default function MyChallengesPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="flex items-center gap-2 text-sm">
-                    {challenge.challenge.duration_days && (
+                    {challenge.duration_days && (
                       <Badge variant="outline" className="text-xs">
                         <Calendar className="h-3 w-3 mr-1" />
-                        {challenge.challenge.duration_days} días
+                        {challenge.duration_days} días
                       </Badge>
                     )}
-                    {challenge.challenge.difficulty_level && (
-                      <Badge className={`text-xs ${getDifficultyColor(challenge.challenge.difficulty_level)}`}>
-                        {getDifficultyLabel(challenge.challenge.difficulty_level)}
+                    {challenge.difficulty_level && (
+                      <Badge className={`text-xs ${getDifficultyColor(challenge.difficulty_level)}`}>
+                        {getDifficultyLabel(challenge.difficulty_level)}
                       </Badge>
                     )}
                   </div>
                 </CardContent>
-                <div className="px-6 pb-4">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="w-full gap-2"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      router.push(`/patient/${userId}/my-challenges/${challenge.challenge_id}/team/create`);
-                    }}
-                  >
-                    <Users className="h-4 w-4" />
-                    Crear/Ver Equipo
-                  </Button>
+                <div className="px-6 pb-4 space-y-2">
+                  {challenge.type === 'participating' ? (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full gap-2"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        router.push(`/patient/${userId}/my-challenges/${challenge.id}/team/create`);
+                      }}
+                    >
+                      <Users className="h-4 w-4" />
+                      Crear/Ver Equipo
+                    </Button>
+                  ) : (
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex-1"
+                        onClick={() => router.push(`/patient/${userId}/my-challenges/${challenge.id}/edit`)}
+                      >
+                        <Edit className="h-4 w-4 mr-2" />
+                        Editar
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex-1"
+                        onClick={() => {
+                          router.push(`/patient/${userId}/my-challenges/${challenge.id}/team/create`);
+                        }}
+                      >
+                        <Users className="h-4 w-4 mr-2" />
+                        Invitar
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteClick(challenge);
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  )}
                 </div>
               </Card>
             ))}
@@ -736,114 +924,6 @@ export default function MyChallengesPage() {
           )}
             </div>
           )}
-        </TabsContent>
-
-        {/* Tab de retos creados por el usuario */}
-        <TabsContent value="created">
-          {createdChallenges.length === 0 ? (
-            <Card className="py-4">
-              <CardContent className="flex flex-col items-center justify-center py-12">
-                <Target className="h-16 w-16 text-muted-foreground mb-4" />
-                <h3 className="text-xl font-semibold mb-2">No has creado retos personales</h3>
-                <p className="text-muted-foreground text-center mb-6">
-                  Crea tu propio reto personalizado y compártelo con tus amigos
-                </p>
-                <Button onClick={() => router.push(`/patient/${userId}/my-challenges/new`)}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Crear Mi Primer Reto
-                </Button>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {createdChallenges.map((challenge) => (
-                <Card key={challenge.id} className="overflow-hidden py-4">
-                  <div className="relative h-48">
-                    {challenge.cover_image_url ? (
-                      <Image
-                        src={challenge.cover_image_url}
-                        alt={challenge.title}
-                        fill
-                        className="object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center">
-                        <Target className="h-12 w-12 text-primary/40" />
-                      </div>
-                    )}
-                    {!challenge.is_active && (
-                      <div className="absolute top-2 right-2">
-                        <Badge variant="secondary">Inactivo</Badge>
-                      </div>
-                    )}
-                  </div>
-                  <CardHeader>
-                    <CardTitle className="line-clamp-2">{challenge.title}</CardTitle>
-                    {challenge.professional_applications && (
-                      <div className="flex items-center gap-2 mt-2">
-                        <Badge variant="outline" className="text-xs">
-                          <Users className="h-3 w-3 mr-1" />
-                          Supervisado por {challenge.professional_applications.first_name} {challenge.professional_applications.last_name}
-                        </Badge>
-                        {challenge.professional_applications.is_verified && (
-                          <VerifiedBadge size={14} />
-                        )}
-                      </div>
-                    )}
-                  </CardHeader>
-                  <CardContent className="space-y-2">
-                    {challenge.duration_days && (
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Calendar className="h-4 w-4" />
-                        {challenge.duration_days} {challenge.duration_days === 1 ? 'día' : 'días'}
-                      </div>
-                    )}
-                    {challenge.difficulty_level && (
-                      <Badge className={`text-xs ${getDifficultyColor(challenge.difficulty_level)}`}>
-                        {getDifficultyLabel(challenge.difficulty_level)}
-                      </Badge>
-                    )}
-                  </CardContent>
-                  <CardContent className="pt-0">
-                    <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="flex-1"
-                        onClick={() => router.push(`/patient/${userId}/my-challenges/${challenge.id}/edit`)}
-                      >
-                        <Edit className="h-4 w-4 mr-2" />
-                        Editar
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="flex-1"
-                        onClick={() => {
-                          router.push(`/patient/${userId}/my-challenges/${challenge.id}/team/create`);
-                        }}
-                      >
-                        <Users className="h-4 w-4 mr-2" />
-                        Invitar
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDeleteClick(challenge);
-                        }}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
-        </TabsContent>
-      </Tabs>
 
       {/* Dialog para nuevo check-in */}
       <Dialog open={isCheckinDialogOpen} onOpenChange={setIsCheckinDialogOpen}>

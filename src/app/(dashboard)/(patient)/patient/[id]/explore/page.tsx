@@ -129,6 +129,7 @@ interface DigitalProduct {
     last_name: string;
     profile_photo?: string;
     is_verified?: boolean;
+    wellness_areas?: string[];
   };
 }
 
@@ -458,6 +459,9 @@ const HomeUserPage = () => {
         // Si no tiene profesional asociado o wellness_areas, ocultar cuando hay filtros activos
         return false;
       });
+    } else {
+      // Si no hay filtros, mostrar todos los programas
+      filteredProds = [...digitalProducts];
     }
     setFilteredDigitalProducts(filteredProds);
 

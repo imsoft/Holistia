@@ -46,6 +46,7 @@ export default function NewAdminDigitalProductPage() {
             professionalId={professionalId}
             product={null}
             redirectPath={`/admin/${adminId}/professionals/${professionalId}`}
+            isAdminContext={true}
           />
         </div>
       </div>

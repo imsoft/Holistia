@@ -115,6 +115,7 @@ export default function EditAdminDigitalProductPage() {
             professionalId={product.professional_id}
             product={product}
             redirectPath={redirectPath}
+            isAdminContext={true}
           />
         </div>
       </div>

@@ -50,6 +50,7 @@ interface DigitalProductFormProps {
   professionalId: string;
   product: DigitalProduct | null;
   redirectPath: string;
+  isAdminContext?: boolean;
 }
 
 const CATEGORY_OPTIONS = [
@@ -62,7 +63,7 @@ const CATEGORY_OPTIONS = [
   { value: 'other', label: 'Otro', icon: Tag },
 ] as const;
 
-export function DigitalProductForm({ professionalId, product, redirectPath }: DigitalProductFormProps) {
+export function DigitalProductForm({ professionalId, product, redirectPath, isAdminContext = false }: DigitalProductFormProps) {
   const router = useRouter();
   const [saving, setSaving] = useState(false);
   const [uploadingCover, setUploadingCover] = useState(false);
@@ -127,10 +128,12 @@ export function DigitalProductForm({ professionalId, product, redirectPath }: Di
         }
 
         // Obtener professional_id
+        // Si es contexto de admin, professionalId es el id del profesional
+        // Si es contexto de profesional, professionalId es el user_id
         const { data: professionalData } = await supabase
           .from("professional_applications")
           .select("id")
-          .eq("user_id", professionalId)
+          .eq(isAdminContext ? "id" : "user_id", professionalId)
           .eq("status", "approved")
           .single();
 
@@ -256,10 +259,12 @@ export function DigitalProductForm({ professionalId, product, redirectPath }: Di
         return;
       }
 
+      // Si es contexto de admin, professionalId es el id del profesional
+      // Si es contexto de profesional, professionalId es el user_id
       const { data: professionalData, error: profError } = await supabase
         .from("professional_applications")
-        .select("id, status, is_active")
-        .eq("user_id", professionalId)
+        .select("id, status, is_active, user_id")
+        .eq(isAdminContext ? "id" : "user_id", professionalId)
         .eq("status", "approved")
         .single();
 

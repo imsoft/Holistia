@@ -97,10 +97,34 @@ export function BlockCreatorTabs({
     let blockType: 'weekly_range' | 'full_day' = 'full_day';
     if (value === 'weekly_range') blockType = 'weekly_range';
 
-    setFormData(prev => ({
-      ...prev,
-      block_type: blockType
-    }));
+    // Si se cambia a weekly_range y no hay fechas, inicializarlas
+    if (value === 'weekly_range' && (!formData.start_date || !formData.end_date)) {
+      const today = new Date();
+      const currentDay = today.getDay();
+      // Calcular próximo lunes (día 1)
+      let daysToMonday = (1 - currentDay + 7) % 7;
+      if (daysToMonday === 0) daysToMonday = 7;
+      const nextMonday = new Date(today);
+      nextMonday.setDate(today.getDate() + daysToMonday);
+      
+      // Calcular próximo viernes (día 5)
+      let daysToFriday = (5 - currentDay + 7) % 7;
+      if (daysToFriday === 0) daysToFriday = 7;
+      const nextFriday = new Date(today);
+      nextFriday.setDate(today.getDate() + daysToFriday);
+
+      setFormData(prev => ({
+        ...prev,
+        block_type: blockType,
+        start_date: nextMonday.toISOString().split('T')[0],
+        end_date: nextFriday.toISOString().split('T')[0],
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        block_type: blockType
+      }));
+    }
   };
 
   const validateForm = () => {
@@ -110,29 +134,73 @@ export function BlockCreatorTabs({
     }
 
     if (activeTab === 'full_day') {
-      if (!formData.start_date || !formData.end_date) {
-        toast.error('Las fechas de inicio y fin son obligatorias');
+      // Validar que las fechas no estén vacías y sean válidas
+      if (!formData.start_date || formData.start_date.trim() === '') {
+        toast.error('La fecha de inicio es obligatoria');
         return false;
       }
-      if (new Date(formData.start_date) > new Date(formData.end_date)) {
-        toast.error('La fecha de inicio debe ser anterior a la fecha de fin');
+      if (!formData.end_date || formData.end_date.trim() === '') {
+        toast.error('La fecha de fin es obligatoria');
+        return false;
+      }
+      
+      // Validar que las fechas sean válidas
+      const startDate = new Date(formData.start_date);
+      const endDate = new Date(formData.end_date);
+      
+      if (isNaN(startDate.getTime())) {
+        toast.error('La fecha de inicio no es válida');
+        return false;
+      }
+      if (isNaN(endDate.getTime())) {
+        toast.error('La fecha de fin no es válida');
+        return false;
+      }
+      
+      if (startDate > endDate) {
+        toast.error('La fecha de inicio debe ser anterior o igual a la fecha de fin');
         return false;
       }
     } else {
-      if (!formData.start_date || !formData.end_date) {
-        toast.error('Las fechas de inicio y fin son obligatorias');
+      // Validar que las fechas no estén vacías y sean válidas
+      if (!formData.start_date || formData.start_date.trim() === '') {
+        toast.error('La fecha de inicio es obligatoria. Por favor, selecciona un día de inicio.');
         return false;
       }
-      if (!formData.start_time || !formData.end_time) {
-        toast.error('Los horarios de inicio y fin son obligatorios');
+      if (!formData.end_date || formData.end_date.trim() === '') {
+        toast.error('La fecha de fin es obligatoria. Por favor, selecciona un día de fin.');
         return false;
       }
-      if (new Date(formData.start_date) > new Date(formData.end_date)) {
-        toast.error('La fecha de inicio debe ser anterior a la fecha de fin');
+      
+      // Validar que las fechas sean válidas
+      const startDate = new Date(formData.start_date);
+      const endDate = new Date(formData.end_date);
+      
+      if (isNaN(startDate.getTime())) {
+        toast.error('La fecha de inicio no es válida');
         return false;
       }
+      if (isNaN(endDate.getTime())) {
+        toast.error('La fecha de fin no es válida');
+        return false;
+      }
+      
+      if (startDate > endDate) {
+        toast.error('La fecha de inicio debe ser anterior o igual a la fecha de fin');
+        return false;
+      }
+      
+      if (!formData.start_time || formData.start_time.trim() === '') {
+        toast.error('La hora de inicio es obligatoria');
+        return false;
+      }
+      if (!formData.end_time || formData.end_time.trim() === '') {
+        toast.error('La hora de fin es obligatoria');
+        return false;
+      }
+      
       if (formData.start_time >= formData.end_time) {
-        toast.error('El horario de inicio debe ser anterior al horario de fin');
+        toast.error('La hora de inicio debe ser anterior a la hora de fin');
         return false;
       }
     }
@@ -348,9 +416,18 @@ export function BlockCreatorTabs({
                         const currentDay = today.getDay();
                         let daysToAdd = targetDay - currentDay;
                         if (daysToAdd < 0) daysToAdd += 7;
+                        if (daysToAdd === 0) daysToAdd = 7; // Si es hoy, usar la próxima semana
                         const targetDate = new Date(today);
                         targetDate.setDate(today.getDate() + daysToAdd);
-                        handleInputChange('start_date', targetDate.toISOString().split('T')[0]);
+                        const newStartDate = targetDate.toISOString().split('T')[0];
+                        handleInputChange('start_date', newStartDate);
+                        
+                        // Si la fecha de fin es anterior a la nueva fecha de inicio, actualizarla
+                        if (formData.end_date && new Date(formData.end_date) < new Date(newStartDate)) {
+                          const endDate = new Date(targetDate);
+                          endDate.setDate(targetDate.getDate() + 4); // Viernes de la misma semana
+                          handleInputChange('end_date', endDate.toISOString().split('T')[0]);
+                        }
                       }}
                     >
                       <SelectTrigger className="w-full mt-1">
@@ -371,11 +448,24 @@ export function BlockCreatorTabs({
                       value={formData.end_date ? new Date(formData.end_date + 'T00:00:00').getDay().toString() : '5'}
                       onValueChange={(value) => {
                         const dayOfWeek = parseInt(value);
-                        const startDate = formData.start_date ? new Date(formData.start_date + 'T00:00:00') : new Date();
+                        const startDate = formData.start_date 
+                          ? new Date(formData.start_date + 'T00:00:00') 
+                          : (() => {
+                              // Si no hay fecha de inicio, inicializarla primero
+                              const today = new Date();
+                              const currentDay = today.getDay();
+                              let daysToMonday = (1 - currentDay + 7) % 7;
+                              if (daysToMonday === 0) daysToMonday = 7;
+                              const nextMonday = new Date(today);
+                              nextMonday.setDate(today.getDate() + daysToMonday);
+                              handleInputChange('start_date', nextMonday.toISOString().split('T')[0]);
+                              return nextMonday;
+                            })();
                         const targetDay = dayOfWeek === 0 ? 0 : dayOfWeek;
                         const startDay = startDate.getDay();
                         let daysToAdd = targetDay - startDay;
                         if (daysToAdd < 0) daysToAdd += 7;
+                        if (daysToAdd === 0 && targetDay === startDay) daysToAdd = 7; // Si es el mismo día, usar la próxima semana
                         const targetDate = new Date(startDate);
                         targetDate.setDate(startDate.getDate() + daysToAdd);
                         handleInputChange('end_date', targetDate.toISOString().split('T')[0]);

@@ -445,15 +445,15 @@ const HomeUserPage = () => {
     if (categoryIds.length > 0) {
       filteredProds = filteredProds.filter((product) => {
         // Si el producto tiene un profesional asociado con wellness_areas, filtrar por eso
-        if (product.professional_applications && (product.professional_applications as any).wellness_areas) {
-          const professionalWellnessAreas = (product.professional_applications as any).wellness_areas as string[];
+        const professional = product.professional_applications;
+        if (professional && professional.wellness_areas && Array.isArray(professional.wellness_areas)) {
+          const professionalWellnessAreas = professional.wellness_areas;
           return categoryIds.some((categoryId) => {
             const mappedAreas = categoryToWellnessAreas[categoryId] || [];
-            return (
-              mappedAreas.length > 0 &&
-              professionalWellnessAreas &&
-              professionalWellnessAreas.some((area) => mappedAreas.includes(area))
-            );
+            if (mappedAreas.length === 0) return false;
+            
+            // Verificar si alguna de las áreas de bienestar del profesional coincide con las áreas mapeadas
+            return professionalWellnessAreas.some((area) => mappedAreas.includes(area));
           });
         }
         // Si no tiene profesional asociado o wellness_areas, ocultar cuando hay filtros activos

@@ -45,6 +45,8 @@ interface DigitalProduct {
     last_name: string;
     profile_photo?: string;
     is_verified?: boolean;
+    profession?: string;
+    specializations?: string[];
   };
 }
 
@@ -97,7 +99,9 @@ export default function ProgramDetailPage() {
             first_name,
             last_name,
             profile_photo,
-            is_verified
+            is_verified,
+            profession,
+            specializations
           )
         `)
         .eq("id", programId)
@@ -240,37 +244,70 @@ export default function ProgramDetailPage() {
 
               {/* Professional Info */}
               {product.professional_applications && (
-                <Card>
-                  <CardContent className="p-4">
-                    <div className="flex items-center gap-3">
-                      {product.professional_applications.profile_photo ? (
-                        <Image
-                          src={product.professional_applications.profile_photo}
-                          alt={`${product.professional_applications.first_name} ${product.professional_applications.last_name}`}
-                          width={56}
-                          height={56}
-                          className="rounded-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                          <User className="h-7 w-7 text-primary" />
-                        </div>
-                      )}
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm text-muted-foreground mb-1">Creado por</p>
+                <Card className="hover:shadow-md transition-shadow">
+                  <CardContent className="p-6">
+                    <div className="space-y-4">
+                      <div className="flex items-start gap-4">
                         <Link
                           href={`/patient/${userId}/explore/professional/${product.professional_id}`}
-                          className="font-semibold text-foreground hover:text-primary transition-colors flex items-center gap-2 group"
+                          className="flex-shrink-0"
                         >
-                          {product.professional_applications.first_name}{' '}
-                          {product.professional_applications.last_name}
-                          {product.professional_applications.is_verified && (
-                            <VerifiedBadge size={16} />
+                          {product.professional_applications.profile_photo ? (
+                            <Image
+                              src={product.professional_applications.profile_photo}
+                              alt={`${product.professional_applications.first_name} ${product.professional_applications.last_name}`}
+                              width={80}
+                              height={80}
+                              className="rounded-full object-cover border-2 border-primary/20 hover:border-primary/40 transition-colors"
+                            />
+                          ) : (
+                            <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center border-2 border-primary/20 hover:border-primary/40 transition-colors">
+                              <User className="h-10 w-10 text-primary" />
+                            </div>
                           )}
-                          <span className="text-xs text-muted-foreground group-hover:text-primary transition-colors">
-                            Ver perfil →
-                          </span>
                         </Link>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm text-muted-foreground mb-2">Creado por</p>
+                          <Link
+                            href={`/patient/${userId}/explore/professional/${product.professional_id}`}
+                            className="group"
+                          >
+                            <h3 className="font-semibold text-lg text-foreground hover:text-primary transition-colors flex items-center gap-2 mb-1">
+                              {product.professional_applications.first_name}{' '}
+                              {product.professional_applications.last_name}
+                              {product.professional_applications.is_verified && (
+                                <VerifiedBadge size={18} />
+                              )}
+                            </h3>
+                          </Link>
+                          {product.professional_applications.profession && (
+                            <p className="text-sm text-muted-foreground mb-2">
+                              {product.professional_applications.profession}
+                            </p>
+                          )}
+                          {product.professional_applications.specializations && 
+                           product.professional_applications.specializations.length > 0 && (
+                            <div className="flex flex-wrap gap-2 mt-3">
+                              {product.professional_applications.specializations.slice(0, 3).map((spec, index) => (
+                                <Badge key={index} variant="secondary" className="text-xs">
+                                  {spec}
+                                </Badge>
+                              ))}
+                              {product.professional_applications.specializations.length > 3 && (
+                                <Badge variant="outline" className="text-xs">
+                                  +{product.professional_applications.specializations.length - 3} más
+                                </Badge>
+                              )}
+                            </div>
+                          )}
+                          <Link
+                            href={`/patient/${userId}/explore/professional/${product.professional_id}`}
+                            className="inline-flex items-center gap-1 text-sm text-primary hover:text-primary/80 font-medium mt-3 group"
+                          >
+                            Ver perfil completo
+                            <span className="group-hover:translate-x-1 transition-transform">→</span>
+                          </Link>
+                        </div>
                       </div>
                     </div>
                   </CardContent>

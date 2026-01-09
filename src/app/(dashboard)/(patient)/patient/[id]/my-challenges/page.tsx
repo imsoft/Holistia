@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { createClient } from "@/utils/supabase/client";
 import { toast } from "sonner";
-import { Calendar, Target, Loader2, CheckCircle2, Circle, Users, Plus, Edit, Trash2 } from "lucide-react";
+import { Calendar, Target, Loader2, CheckCircle2, Circle, Users, Plus, Edit, Trash2, Link as LinkIcon, Book, Headphones, Video, FileText, ExternalLink } from "lucide-react";
 import { CheckinForm } from "@/components/ui/checkin-form";
 import { ChallengeProgress } from "@/components/ui/challenge-progress";
 import { ChallengeBadges } from "@/components/ui/challenge-badges";
@@ -102,6 +102,8 @@ export default function MyChallengesPage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [challengeToDelete, setChallengeToDelete] = useState<CreatedChallenge | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [challengeResources, setChallengeResources] = useState<any[]>([]);
+  const [loadingResources, setLoadingResources] = useState(false);
 
   useEffect(() => {
     fetchChallenges();
@@ -235,6 +237,54 @@ export default function MyChallengesPage() {
     setSelectedChallenge(challenge);
     await fetchCheckins(challenge.id); // challenge.id es el challenge_purchase_id
     await fetchTeam(challenge.challenge_id);
+    await fetchResources(challenge.challenge_id);
+  };
+
+  const fetchResources = async (challengeId: string) => {
+    try {
+      setLoadingResources(true);
+      const response = await fetch(`/api/challenges/${challengeId}/resources`);
+      const data = await response.json();
+      
+      if (response.ok) {
+        setChallengeResources(data.resources || []);
+      }
+    } catch (error) {
+      console.error("Error fetching resources:", error);
+    } finally {
+      setLoadingResources(false);
+    }
+  };
+
+  const getResourceIcon = (resourceType: string) => {
+    switch (resourceType) {
+      case 'ebook':
+      case 'pdf':
+        return <Book className="h-4 w-4" />;
+      case 'audio':
+        return <Headphones className="h-4 w-4" />;
+      case 'video':
+        return <Video className="h-4 w-4" />;
+      case 'link':
+        return <LinkIcon className="h-4 w-4" />;
+      default:
+        return <FileText className="h-4 w-4" />;
+    }
+  };
+
+  const formatResourceInfo = (resource: any) => {
+    const parts: string[] = [];
+    if (resource.pages_count) {
+      parts.push(`${resource.pages_count} páginas`);
+    }
+    if (resource.duration_minutes) {
+      parts.push(`${resource.duration_minutes} min`);
+    }
+    if (resource.file_size_bytes) {
+      const sizeMB = (resource.file_size_bytes / (1024 * 1024)).toFixed(2);
+      parts.push(`${sizeMB} MB`);
+    }
+    return parts.length > 0 ? ` • ${parts.join(' • ')}` : '';
   };
 
   const fetchTeam = async (challengeId: string) => {
@@ -471,10 +521,11 @@ export default function MyChallengesPage() {
           {selectedChallenge && (
             <div className="lg:col-span-2 space-y-6">
               <Tabs defaultValue="progress" className="w-full">
-                <TabsList className={`grid w-full ${teamId ? 'grid-cols-4' : 'grid-cols-3'}`}>
+                <TabsList className={`grid w-full ${teamId ? 'grid-cols-5' : 'grid-cols-4'}`}>
                   <TabsTrigger value="progress">Progreso</TabsTrigger>
                   <TabsTrigger value="checkins">Check-ins</TabsTrigger>
                   <TabsTrigger value="badges">Badges</TabsTrigger>
+                  <TabsTrigger value="resources">Recursos</TabsTrigger>
                   {teamId && (
                     <TabsTrigger value="chat" className="gap-2">
                       <Users className="h-4 w-4" />
@@ -583,6 +634,79 @@ export default function MyChallengesPage() {
 
                 <TabsContent value="badges">
                   <ChallengeBadges challengePurchaseId={selectedChallenge.id} />
+                </TabsContent>
+
+                <TabsContent value="resources" className="space-y-4">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Recursos y Enlaces</CardTitle>
+                      <p className="text-sm text-muted-foreground">
+                        Materiales adicionales proporcionados por el profesional
+                      </p>
+                    </CardHeader>
+                    <CardContent>
+                      {loadingResources ? (
+                        <div className="flex items-center justify-center py-8">
+                          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                        </div>
+                      ) : challengeResources.length === 0 ? (
+                        <div className="text-center py-8">
+                          <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                          <p className="text-muted-foreground">
+                            No hay recursos disponibles para este reto
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="space-y-3">
+                          {challengeResources.map((resource) => (
+                            <div
+                              key={resource.id}
+                              className="flex items-start gap-3 p-4 border rounded-lg hover:bg-muted/50 transition-colors"
+                            >
+                              <div className="flex-shrink-0 mt-1">
+                                {getResourceIcon(resource.resource_type)}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-start justify-between gap-2">
+                                  <div className="flex-1">
+                                    <h4 className="font-semibold text-sm mb-1">
+                                      {resource.title}
+                                    </h4>
+                                    {resource.description && (
+                                      <p className="text-sm text-muted-foreground mb-2 line-clamp-2">
+                                        {resource.description}
+                                      </p>
+                                    )}
+                                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                      <Badge variant="outline" className="text-xs">
+                                        {resource.resource_type === 'ebook' ? 'Ebook' :
+                                         resource.resource_type === 'audio' ? 'Audio' :
+                                         resource.resource_type === 'video' ? 'Video' :
+                                         resource.resource_type === 'pdf' ? 'PDF' :
+                                         resource.resource_type === 'link' ? 'Enlace' : 'Otro'}
+                                      </Badge>
+                                      {formatResourceInfo(resource)}
+                                    </div>
+                                  </div>
+                                </div>
+                                {resource.url && (
+                                  <a
+                                    href={resource.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-1 text-sm text-primary hover:underline mt-2"
+                                  >
+                                    Abrir recurso
+                                    <ExternalLink className="h-3 w-3" />
+                                  </a>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
                 </TabsContent>
 
                 {teamId && (

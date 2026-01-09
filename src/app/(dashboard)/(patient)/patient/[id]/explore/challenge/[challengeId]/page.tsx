@@ -240,7 +240,11 @@ export default async function ChallengePage({ params }: ChallengePageProps) {
                 <Separator />
 
                 {/* Botón de unirse */}
-                <JoinChallengeButton challengeId={challenge.id} userId={userId} />
+                <JoinChallengeButton 
+                  challengeId={challenge.id} 
+                  userId={userId}
+                  challengePrice={challenge.price}
+                />
 
                 {/* Beneficios */}
                 <div className="space-y-2 pt-4">

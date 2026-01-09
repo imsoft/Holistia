@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Clock, User } from "lucide-react";
+import { Calendar, Clock, User, Loader2, Check } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 import { toast } from "sonner";
 import { VerifiedBadge } from "@/components/ui/verified-badge";
@@ -20,6 +21,8 @@ interface Challenge {
   duration_days?: number;
   difficulty_level?: 'beginner' | 'intermediate' | 'advanced' | 'expert';
   category?: string;
+  price?: number | null;
+  currency?: string;
   professional_first_name?: string;
   professional_last_name?: string;
   professional_photo?: string;
@@ -51,7 +54,38 @@ const difficultyColors = {
 
 export function ChallengeCard({ challenge, onJoin, userId }: ChallengeCardProps) {
   const [isJoining, setIsJoining] = useState(false);
+  const [isParticipating, setIsParticipating] = useState(false);
+  const [loading, setLoading] = useState(true);
   const supabase = createClient();
+  const router = useRouter();
+
+  // Verificar si ya está participando al cargar
+  useEffect(() => {
+    const checkParticipation = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          setLoading(false);
+          return;
+        }
+
+        const { data: existingParticipation } = await supabase
+          .from('challenge_purchases')
+          .select('id')
+          .eq('challenge_id', challenge.id)
+          .eq('participant_id', user.id)
+          .maybeSingle();
+
+        setIsParticipating(!!existingParticipation);
+      } catch (error) {
+        console.error("Error checking participation:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    checkParticipation();
+  }, [challenge.id, supabase]);
 
   const handleJoin = async () => {
     try {
@@ -75,10 +109,23 @@ export function ChallengeCard({ challenge, onJoin, userId }: ChallengeCardProps)
       if (existingParticipation) {
         toast.dismiss(toastId);
         toast.info("Ya estás participando en este reto");
+        setIsParticipating(true);
+        if (userId) {
+          router.push(`/patient/${userId}/my-challenges`);
+        }
         return;
       }
 
-      // Crear participación
+      // Si el reto tiene precio, redirigir al checkout
+      if (challenge.price && challenge.price > 0) {
+        toast.dismiss(toastId);
+        if (userId) {
+          router.push(`/patient/${userId}/explore/challenge/${challenge.id}/checkout`);
+        }
+        return;
+      }
+
+      // Si no tiene precio, unirse directamente
       const { error: participationError } = await supabase
         .from('challenge_purchases')
         .insert({
@@ -93,9 +140,14 @@ export function ChallengeCard({ challenge, onJoin, userId }: ChallengeCardProps)
 
       toast.dismiss(toastId);
       toast.success("¡Te has unido al reto exitosamente!");
+      setIsParticipating(true);
 
       if (onJoin) {
         onJoin();
+      }
+
+      if (userId) {
+        router.push(`/patient/${userId}/my-challenges`);
       }
     } catch (error) {
       console.error("Error joining challenge:", error);
@@ -192,14 +244,40 @@ export function ChallengeCard({ challenge, onJoin, userId }: ChallengeCardProps)
       </CardContent>
 
       <CardFooter>
-        <Button
-          onClick={handleJoin}
-          disabled={isJoining}
-          className="w-full"
-          size="lg"
-        >
-          {isJoining ? "Uniéndote..." : "Unirse al Reto"}
-        </Button>
+        {loading ? (
+          <Button disabled className="w-full" size="lg">
+            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            Cargando...
+          </Button>
+        ) : isParticipating ? (
+          <Button
+            onClick={() => userId && router.push(`/patient/${userId}/my-challenges`)}
+            className="w-full"
+            size="lg"
+            variant="outline"
+          >
+            <Check className="h-4 w-4 mr-2" />
+            Ya estás participando
+          </Button>
+        ) : (
+          <Button
+            onClick={handleJoin}
+            disabled={isJoining}
+            className="w-full"
+            size="lg"
+          >
+            {isJoining ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Uniéndote...
+              </>
+            ) : challenge.price && challenge.price > 0 ? (
+              `Unirse al Reto - $${challenge.price} ${challenge.currency || 'MXN'}`
+            ) : (
+              "Unirse al Reto"
+            )}
+          </Button>
+        )}
       </CardFooter>
     </Card>
   );

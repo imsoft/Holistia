@@ -521,12 +521,24 @@ export async function POST(request: NextRequest) {
           break; // Exit early for digital products
         }
 
-        // Challenge purchases are now free - no payment processing needed
-        // This code is kept for backward compatibility with old purchases
+        // Handle challenge purchases (with payment)
         if (payment_type === 'challenge' && purchase_id) {
-          console.log('⚠️ Challenge purchase webhook received but challenges are now free. Purchase ID:', purchase_id);
-          // No action needed - challenges are now free and access is granted automatically
-          break;
+          const { error: purchaseUpdateError } = await supabase
+            .from('challenge_purchases')
+            .update({
+              stripe_payment_intent_id: session.payment_intent as string,
+              stripe_charge_id: session.payment_intent as string,
+              payment_status: 'succeeded',
+              access_granted: true,
+            })
+            .eq('id', purchase_id);
+
+          if (purchaseUpdateError) {
+            console.error('Error updating challenge purchase:', purchaseUpdateError);
+          } else {
+            console.log('✅ Challenge purchase confirmed and access granted:', purchase_id);
+          }
+          break; // Exit early for challenges
         }
 
         // For other payment types, require payment_id

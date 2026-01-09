@@ -32,6 +32,7 @@ import { createClient } from "@/utils/supabase/client";
 import { getDescriptiveErrorMessage, getFullErrorMessage } from "@/lib/error-messages";
 import { WellnessAreasSelector } from "@/components/ui/wellness-areas-selector";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { DeleteConfirmation } from "@/components/ui/confirmation-dialog";
 import {
   Dialog,
   DialogContent,
@@ -121,6 +122,9 @@ export default function AdminChallengesPage() {
   const [uploadingCover, setUploadingCover] = useState(false);
   const [challengeFiles, setChallengeFiles] = useState<any[]>([]);
   const [uploadingFile, setUploadingFile] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [challengeToDelete, setChallengeToDelete] = useState<Challenge | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     fetchChallenges();
@@ -391,6 +395,39 @@ export default function AdminChallengesPage() {
       toast.error(errorMsg, { duration: 6000 });
     } finally {
       setUploadingCover(false);
+    }
+  };
+
+  const handleDeleteClick = (challenge: Challenge) => {
+    setChallengeToDelete(challenge);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!challengeToDelete) return;
+
+    try {
+      setDeleting(true);
+      const response = await fetch(`/api/challenges/${challengeToDelete.id}`, {
+        method: 'DELETE',
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Error al eliminar el reto');
+      }
+
+      toast.success('Reto eliminado exitosamente');
+      fetchChallenges();
+      setDeleteDialogOpen(false);
+      setChallengeToDelete(null);
+    } catch (error) {
+      console.error('Error deleting challenge:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Error al eliminar el reto';
+      toast.error(errorMessage);
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -680,6 +717,13 @@ export default function AdminChallengesPage() {
                         Ver
                       </Button>
                     </Link>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleDeleteClick(challenge)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
@@ -687,6 +731,14 @@ export default function AdminChallengesPage() {
           </div>
         )}
       </div>
+
+      <DeleteConfirmation
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        onConfirm={handleDeleteConfirm}
+        itemName={challengeToDelete?.title || 'este reto'}
+        loading={deleting}
+      />
     </div>
   );
 }

@@ -77,7 +77,7 @@ export function DigitalProductCard({
 
   return (
     <Card className="hover:shadow-lg transition-all duration-300 overflow-hidden group cursor-pointer h-full flex flex-col" onClick={handleClick}>
-        <div className="relative h-48 bg-gradient-to-br from-primary/10 to-primary/5 overflow-hidden">
+        <div className="relative h-64 bg-gradient-to-br from-primary/10 to-primary/5 overflow-hidden">
           {product.cover_image_url ? (
             <Image
               src={product.cover_image_url}

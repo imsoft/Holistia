@@ -504,63 +504,63 @@ const HomeUserPage = () => {
 
   const scrollEventsLeft = () => {
     if (eventsScrollRef.current) {
-      eventsScrollRef.current.scrollBy({ left: -400, behavior: 'smooth' });
+      eventsScrollRef.current.scrollBy({ left: -416, behavior: 'smooth' }); // w-96 (384px) + gap (16px) + padding
     }
   };
 
   const scrollEventsRight = () => {
     if (eventsScrollRef.current) {
-      eventsScrollRef.current.scrollBy({ left: 400, behavior: 'smooth' });
+      eventsScrollRef.current.scrollBy({ left: 416, behavior: 'smooth' });
     }
   };
 
   const scrollProfessionalsLeft = () => {
     if (professionalsScrollRef.current) {
-      const scrollAmount = 400; // Ancho de la card (w-96 = 384px) + gap (16px)
+      const scrollAmount = 416; // Ancho de la card (w-96 = 384px) + gap (16px) + padding
       professionalsScrollRef.current.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
     }
   };
 
   const scrollProfessionalsRight = () => {
     if (professionalsScrollRef.current) {
-      const scrollAmount = 400; // Ancho de la card (w-96 = 384px) + gap (16px)
+      const scrollAmount = 416; // Ancho de la card (w-96 = 384px) + gap (16px) + padding
       professionalsScrollRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
     }
   };
 
   const scrollRestaurantsLeft = () => {
     if (restaurantsScrollRef.current) {
-      restaurantsScrollRef.current.scrollBy({ left: -400, behavior: 'smooth' });
+      restaurantsScrollRef.current.scrollBy({ left: -416, behavior: 'smooth' });
     }
   };
 
   const scrollRestaurantsRight = () => {
     if (restaurantsScrollRef.current) {
-      restaurantsScrollRef.current.scrollBy({ left: 400, behavior: 'smooth' });
+      restaurantsScrollRef.current.scrollBy({ left: 416, behavior: 'smooth' });
     }
   };
 
   const scrollShopsLeft = () => {
     if (shopsScrollRef.current) {
-      shopsScrollRef.current.scrollBy({ left: -400, behavior: 'smooth' });
+      shopsScrollRef.current.scrollBy({ left: -416, behavior: 'smooth' });
     }
   };
 
   const scrollShopsRight = () => {
     if (shopsScrollRef.current) {
-      shopsScrollRef.current.scrollBy({ left: 400, behavior: 'smooth' });
+      shopsScrollRef.current.scrollBy({ left: 416, behavior: 'smooth' });
     }
   };
 
   const scrollDigitalProductsLeft = () => {
     if (digitalProductsScrollRef.current) {
-      digitalProductsScrollRef.current.scrollBy({ left: -400, behavior: 'smooth' });
+      digitalProductsScrollRef.current.scrollBy({ left: -416, behavior: 'smooth' });
     }
   };
 
   const scrollDigitalProductsRight = () => {
     if (digitalProductsScrollRef.current) {
-      digitalProductsScrollRef.current.scrollBy({ left: 400, behavior: 'smooth' });
+      digitalProductsScrollRef.current.scrollBy({ left: 416, behavior: 'smooth' });
     }
   };
 
@@ -647,10 +647,10 @@ const HomeUserPage = () => {
                     <Link
                       key={product.id}
                       href={`/patient/${userId}/explore/program/${product.id}`}
-                      className="shrink-0 w-80"
+                      className="shrink-0 w-96"
                     >
                       <Card className="overflow-hidden hover:shadow-lg transition-shadow py-4">
-                        <div className="relative h-48">
+                        <div className="relative h-64">
                           {product.cover_image_url ? (
                             <Image
                               src={product.cover_image_url}
@@ -745,10 +745,10 @@ const HomeUserPage = () => {
                     <Link
                       key={event.id}
                       href={`/patient/${userId}/explore/event/${generateEventSlug(event.name, event.id!)}`}
-                      className="shrink-0 w-80"
+                      className="shrink-0 w-96"
                     >
                       <Card className="hover:shadow-lg hover:-translate-y-2 transition-all duration-300 overflow-hidden cursor-pointer h-full flex flex-col">
-                        <div className="relative w-full h-48 bg-gray-100">
+                        <div className="relative w-full h-64 bg-gray-100">
                           <Image
                             src={(event.gallery_images && event.gallery_images.length > 0 && event.gallery_images[0]) || event.image_url || "/logos/holistia-black.png"}
                             alt={event.name}
@@ -856,7 +856,7 @@ const HomeUserPage = () => {
                   style={{ scrollPaddingLeft: '1rem', scrollPaddingRight: '1rem' }}
                 >
                   {filteredProfessionals.map((professional) => (
-                    <div key={professional.id} className="shrink-0 w-80">
+                    <div key={professional.id} className="shrink-0 w-96">
                       <ProfessionalCard
                         userId={userId}
                         professional={{
@@ -983,10 +983,10 @@ const HomeUserPage = () => {
                     <Link
                       key={restaurant.id}
                       href={`/patient/${userId}/explore/restaurant/${restaurant.id}`}
-                      className="shrink-0 w-80"
+                      className="shrink-0 w-96"
                     >
                       <Card className="hover:shadow-lg hover:-translate-y-2 transition-all duration-300 overflow-hidden cursor-pointer h-full flex flex-col">
-                        <div className="relative w-full h-48 bg-gray-100">
+                        <div className="relative w-full h-64 bg-gray-100">
                           {restaurant.image_url ? (
                             <Image
                               src={restaurant.image_url}
@@ -1088,10 +1088,10 @@ const HomeUserPage = () => {
                     <Link
                       key={shop.id}
                       href={`/patient/${userId}/explore/shop/${shop.id}`}
-                      className="shrink-0 w-80"
+                      className="shrink-0 w-96"
                     >
                       <Card className="hover:shadow-lg hover:-translate-y-2 transition-all duration-300 overflow-hidden cursor-pointer h-full flex flex-col">
-                        <div className="relative w-full h-48 bg-gray-100">
+                        <div className="relative w-full h-64 bg-gray-100">
                           {shop.image_url ? (
                             <Image
                               src={shop.image_url}

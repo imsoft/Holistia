@@ -158,7 +158,7 @@ export const ProfessionalCard = ({ professional, userId }: ProfessionalCardProps
   return (
     <Link href={professionalRoute}>
       <Card className="group overflow-hidden hover:shadow-xl hover:-translate-y-2 transition-all duration-300 border-border cursor-pointer h-full flex flex-col">
-      <div className="relative w-full h-48 overflow-hidden bg-gray-100">
+      <div className="relative w-full h-64 overflow-hidden bg-gray-100">
         <Image
           src={professional.profile_photo || professional.profilePhoto || professional.avatar || "/logos/holistia-black.png"}
           alt={professional.name || `${professional.first_name || ''} ${professional.last_name || ''}`.trim()}

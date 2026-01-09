@@ -17,11 +17,17 @@ BEGIN
   RAISE NOTICE '=== DATOS COMPLETOS DEL SERVICIO ===';
 END $$;
 
--- Ver todos los datos del servicio
+-- Ver todos los datos del servicio (INCLUYENDO DESCRIPTION)
 SELECT 
   id,
   name,
-  description,
+  description, -- ⚠️ ESTE CAMPO ES EL IMPORTANTE
+  CASE 
+    WHEN description IS NULL THEN '❌ NULL'
+    WHEN description = '' THEN '⚠️ VACÍO'
+    ELSE '✅ TIENE CONTENIDO (' || LENGTH(description) || ' caracteres)'
+  END as descripcion_estado,
+  LEFT(description, 200) as descripcion_preview, -- Primeros 200 caracteres
   type,
   modality,
   duration,
@@ -35,17 +41,18 @@ SELECT
 FROM professional_services
 WHERE id = '77b20482-5e50-40ae-9ea4-3673b88e8f23'; -- ⚠️ CAMBIAR ESTE ID
 
--- Verificar si description es NULL o vacío
+-- ⚠️ ESTE ES EL QUERY MÁS IMPORTANTE - Verificar description
 SELECT 
   id,
   name,
+  description, -- ⚠️ CAMPO CRÍTICO
   CASE 
     WHEN description IS NULL THEN '❌ NULL'
     WHEN description = '' THEN '⚠️ VACÍO'
     ELSE '✅ TIENE CONTENIDO'
   END as descripcion_estado,
   LENGTH(COALESCE(description, '')) as descripcion_longitud,
-  LEFT(description, 100) as descripcion_preview, -- Primeros 100 caracteres
+  LEFT(COALESCE(description, ''), 200) as descripcion_preview, -- Primeros 200 caracteres
   CASE 
     WHEN type IS NULL THEN '❌ NULL'
     WHEN type NOT IN ('session', 'program') THEN '⚠️ INVÁLIDO: ' || type

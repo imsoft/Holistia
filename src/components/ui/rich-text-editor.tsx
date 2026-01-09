@@ -143,14 +143,26 @@ export function RichTextEditor({
         return text === '';
       };
       
-      // Solo actualizar si el contenido realmente cambió
-      // Permitir actualizar incluso si el contenido está vacío (para resetear)
-      if (normalizedContent !== normalizedCurrent) {
-        // Si el contenido nuevo está vacío y el actual también, no hacer nada
-        if (isEmpty(normalizedContent) && isEmpty(normalizedCurrent)) {
-          return;
-        }
+      // Normalizar ambos contenidos para comparación (sin espacios/tags)
+      const normalizeForComparison = (html: string) => {
+        if (!html) return '';
+        return html.replace(/<[^>]*>/g, '').trim().toLowerCase();
+      };
+      
+      const normalizedContentForCompare = normalizeForComparison(normalizedContent);
+      const normalizedCurrentForCompare = normalizeForComparison(normalizedCurrent);
+      
+      // Solo actualizar si el contenido realmente cambió (comparando contenido normalizado)
+      if (normalizedContentForCompare !== normalizedCurrentForCompare) {
+        console.log('🔄 [RichTextEditor] Actualizando contenido:', {
+          nuevo: normalizedContent.substring(0, 50),
+          actual: normalizedCurrent.substring(0, 50),
+          nuevo_normalizado: normalizedContentForCompare.substring(0, 50),
+          actual_normalizado: normalizedCurrentForCompare.substring(0, 50),
+        });
         
+        // Siempre actualizar si el contenido cambió, incluso si ambos están vacíos
+        // Esto asegura que cuando se carga un servicio con description NULL, se muestre vacío
         editor.commands.setContent(normalizedContent || '<p></p>', { emitUpdate: false });
       }
     }

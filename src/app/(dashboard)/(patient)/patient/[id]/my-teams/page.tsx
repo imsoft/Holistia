@@ -299,7 +299,7 @@ export default function MyTeamsPage() {
                 <Button
                   className="w-full"
                   onClick={() =>
-                    router.push(`/patient/${userId}/my-challenges/${team.challenge_id}`)
+                    router.push(`/patient/${userId}/my-challenges?challenge=${team.challenge_id}&team=${team.id}`)
                   }
                 >
                   Ver Equipo

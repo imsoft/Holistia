@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -96,6 +96,7 @@ interface CreatedChallenge {
 export default function MyChallengesPage() {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const userId = params.id as string;
   const supabase = createClient();
 
@@ -123,6 +124,26 @@ export default function MyChallengesPage() {
   useEffect(() => {
     fetchChallenges();
   }, []);
+
+  // Abrir reto automáticamente si viene de query parameter
+  useEffect(() => {
+    const challengeId = searchParams.get('challenge');
+    const teamIdParam = searchParams.get('team');
+    
+    if (challengeId && allChallenges.length > 0) {
+      const challenge = allChallenges.find((c: any) => c.id === challengeId);
+      if (challenge) {
+        // Abrir el reto
+        handleOpenChallenge(challenge).then(() => {
+          // Limpiar query params después de abrir
+          if (window.history.replaceState) {
+            window.history.replaceState({}, '', `/patient/${userId}/my-challenges`);
+          }
+        });
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams, allChallenges.length]);
 
   const fetchChallenges = async () => {
     try {
@@ -321,7 +342,7 @@ export default function MyChallengesPage() {
     }
   };
 
-  const handleOpenChallenge = async (challenge: any) => {
+  const handleOpenChallenge = async (challenge: any): Promise<void> => {
     // Si es un reto participado, usar purchaseId
     if (challenge.type === 'participating' && challenge.purchaseId) {
       const purchaseChallenge: ChallengePurchase = {

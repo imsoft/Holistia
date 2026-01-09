@@ -430,7 +430,7 @@ export default function MyChallengesPage() {
         {/* Tab de retos en los que participa */}
         <TabsContent value="participating">
           {challenges.length === 0 ? (
-            <Card>
+            <Card className="py-4">
               <CardContent className="flex flex-col items-center justify-center py-12">
                 <Target className="h-16 w-16 text-muted-foreground mb-4" />
                 <h3 className="text-xl font-semibold mb-2">No estás participando en retos aún</h3>
@@ -542,7 +542,7 @@ export default function MyChallengesPage() {
                 </TabsContent>
 
                 <TabsContent value="checkins" className="space-y-4">
-                  <Card>
+                  <Card className="py-4">
                     <CardHeader>
                       <div className="flex items-center justify-between">
                         <CardTitle>Check-ins Diarios</CardTitle>
@@ -637,7 +637,7 @@ export default function MyChallengesPage() {
                 </TabsContent>
 
                 <TabsContent value="resources" className="space-y-4">
-                  <Card>
+                  <Card className="py-4">
                     <CardHeader>
                       <CardTitle>Recursos y Enlaces</CardTitle>
                       <p className="text-sm text-muted-foreground">
@@ -711,7 +711,7 @@ export default function MyChallengesPage() {
 
                 {teamId && (
                   <TabsContent value="chat">
-                    <Card>
+                    <Card className="py-4">
                       <CardHeader>
                         <CardTitle className="flex items-center gap-2">
                           <Users className="h-5 w-5" />
@@ -741,7 +741,7 @@ export default function MyChallengesPage() {
         {/* Tab de retos creados por el usuario */}
         <TabsContent value="created">
           {createdChallenges.length === 0 ? (
-            <Card>
+            <Card className="py-4">
               <CardContent className="flex flex-col items-center justify-center py-12">
                 <Target className="h-16 w-16 text-muted-foreground mb-4" />
                 <h3 className="text-xl font-semibold mb-2">No has creado retos personales</h3>

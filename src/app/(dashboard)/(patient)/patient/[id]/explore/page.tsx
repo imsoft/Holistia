@@ -977,7 +977,7 @@ const HomeUserPage = () => {
 
                 <div
                   ref={restaurantsScrollRef}
-                  className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar justify-center px-12"
+                  className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar px-12"
                 >
                   {filteredRestaurants.map((restaurant) => (
                     <Link
@@ -1082,7 +1082,7 @@ const HomeUserPage = () => {
 
                 <div
                   ref={shopsScrollRef}
-                  className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar justify-center px-12"
+                  className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar px-12"
                 >
                   {filteredShops.map((shop) => (
                     <Link

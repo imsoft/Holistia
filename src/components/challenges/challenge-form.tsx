@@ -16,7 +16,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { WellnessAreasSelector } from "@/components/ui/wellness-areas-selector";
-import { Upload, X, Loader2 } from "lucide-react";
+import { Upload, X, Loader2, Plus, Trash2, BookOpen, Headphones, Video, FileText, ExternalLink, File } from "lucide-react";
 import { toast } from "sonner";
 import { createClient } from "@/utils/supabase/client";
 
@@ -42,11 +42,30 @@ interface ChallengeFormData {
   is_active: boolean;
 }
 
+interface ResourceFormData {
+  title: string;
+  description: string;
+  resource_type: 'ebook' | 'audio' | 'video' | 'pdf' | 'link' | 'other';
+  url: string;
+  pages_count?: string;
+  duration_minutes?: string;
+  file_size_mb?: string;
+}
+
 const DIFFICULTY_OPTIONS = [
   { value: 'beginner', label: 'Principiante' },
   { value: 'intermediate', label: 'Intermedio' },
   { value: 'advanced', label: 'Avanzado' },
   { value: 'expert', label: 'Experto' },
+] as const;
+
+const RESOURCE_TYPE_OPTIONS = [
+  { value: 'ebook', label: 'eBook', icon: BookOpen },
+  { value: 'audio', label: 'Audio', icon: Headphones },
+  { value: 'video', label: 'Video', icon: Video },
+  { value: 'pdf', label: 'Documento PDF', icon: FileText },
+  { value: 'link', label: 'Enlace externo', icon: ExternalLink },
+  { value: 'other', label: 'Otro', icon: File },
 ] as const;
 
 export function ChallengeForm({ userId, challenge, redirectPath, userType = 'patient', professionalId }: ChallengeFormProps) {
@@ -73,10 +92,14 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
   const [saving, setSaving] = useState(false);
   const [uploadingCover, setUploadingCover] = useState(false);
   const coverFileInputRef = React.useRef<HTMLInputElement>(null);
+  const [resources, setResources] = useState<ResourceFormData[]>([]);
+  const [editingResourceIndex, setEditingResourceIndex] = useState<number | null>(null);
 
   useEffect(() => {
-    fetchProfessionals();
-  }, []);
+    if (userType !== 'professional') {
+      fetchProfessionals();
+    }
+  }, [userType]);
 
   useEffect(() => {
     if (challenge) {
@@ -236,6 +259,8 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
         is_active: formData.is_active,
       };
 
+      let createdChallengeId: string;
+
       if (challenge && challenge.id) {
         // Actualizar reto existente
         const response = await fetch(`/api/challenges/${challenge.id}`, {
@@ -247,6 +272,7 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
         const data = await response.json();
         if (!response.ok) throw new Error(data.error || "Error al actualizar reto");
 
+        createdChallengeId = challenge.id;
         toast.success("Reto actualizado exitosamente");
       } else {
         // Crear nuevo reto
@@ -259,7 +285,58 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
         const data = await response.json();
         if (!response.ok) throw new Error(data.error || "Error al crear reto");
 
+        createdChallengeId = data.challenge.id;
         toast.success("Reto creado exitosamente");
+      }
+
+      // Guardar recursos si hay alguno
+      if (resources.length > 0 && createdChallengeId) {
+        try {
+          for (let i = 0; i < resources.length; i++) {
+            const resource = resources[i];
+            if (!resource.title.trim() || !resource.url.trim()) {
+              continue; // Saltar recursos incompletos
+            }
+
+            const resourceData: any = {
+              challenge_id: createdChallengeId,
+              title: resource.title.trim(),
+              description: resource.description?.trim() || null,
+              resource_type: resource.resource_type,
+              url: resource.url.trim(),
+              display_order: i,
+              is_active: true,
+            };
+
+            // Agregar campos específicos según el tipo
+            if (resource.resource_type === 'ebook' || resource.resource_type === 'pdf') {
+              // Para ebooks/PDFs, podríamos usar file_size_bytes si tenemos el tamaño
+              // Por ahora solo guardamos la URL
+            }
+
+            if (resource.resource_type === 'audio' || resource.resource_type === 'video') {
+              if (resource.duration_minutes) {
+                resourceData.duration_minutes = parseInt(resource.duration_minutes);
+              }
+            }
+
+            const resourceResponse = await fetch(`/api/challenges/${createdChallengeId}/resources`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(resourceData),
+            });
+
+            if (!resourceResponse.ok) {
+              const errorData = await resourceResponse.json();
+              console.error('Error guardando recurso:', errorData);
+              // Continuar con los demás recursos aunque uno falle
+            }
+          }
+        } catch (error) {
+          console.error('Error guardando recursos:', error);
+          // No bloquear la navegación si falla guardar recursos
+          toast.error("El reto se creó pero algunos recursos no se pudieron guardar");
+        }
       }
 
       router.push(redirectPath);
@@ -306,26 +383,28 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="linked_professional_id">Vincular a Profesional (Opcional)</Label>
-            <Select
-              value={formData.linked_professional_id}
-              onValueChange={(value) => setFormData({ ...formData, linked_professional_id: value })}
-              disabled={loadingProfessionals}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder={loadingProfessionals ? "Cargando..." : "Selecciona un profesional (opcional)"} />
-              </SelectTrigger>
-              <SelectContent className="max-h-[300px]">
-                <SelectItem value="none">Ninguno (Reto público)</SelectItem>
-                {professionals.map((prof) => (
-                  <SelectItem key={prof.id} value={prof.id}>
-                    {prof.first_name} {prof.last_name}{prof.profession ? ` - ${prof.profession}` : ''}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          {userType !== 'professional' && (
+            <div className="space-y-2">
+              <Label htmlFor="linked_professional_id">Vincular a Profesional (Opcional)</Label>
+              <Select
+                value={formData.linked_professional_id}
+                onValueChange={(value) => setFormData({ ...formData, linked_professional_id: value })}
+                disabled={loadingProfessionals}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder={loadingProfessionals ? "Cargando..." : "Selecciona un profesional (opcional)"} />
+                </SelectTrigger>
+                <SelectContent className="max-h-[300px]">
+                  <SelectItem value="none">Ninguno (Reto público)</SelectItem>
+                  {professionals.map((prof) => (
+                    <SelectItem key={prof.id} value={prof.id}>
+                      {prof.first_name} {prof.last_name}{prof.profession ? ` - ${prof.profession}` : ''}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
@@ -443,6 +522,190 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
               )}
             </div>
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Sección de Recursos */}
+      <Card>
+        <CardHeader className="py-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>Recursos y Enlaces</CardTitle>
+              <p className="text-sm text-muted-foreground">
+                Agrega ebooks, audios, videos y otros recursos para los participantes
+              </p>
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setResources([...resources, {
+                  title: "",
+                  description: "",
+                  resource_type: "link",
+                  url: "",
+                }]);
+                setEditingResourceIndex(resources.length);
+              }}
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Agregar Recurso
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent className="py-4 space-y-4">
+          {resources.length === 0 ? (
+            <p className="text-center text-muted-foreground py-4">
+              No hay recursos agregados. Haz clic en "Agregar Recurso" para comenzar.
+            </p>
+          ) : (
+            resources.map((resource, index) => {
+              const ResourceIcon = RESOURCE_TYPE_OPTIONS.find(opt => opt.value === resource.resource_type)?.icon || File;
+              const isEditing = editingResourceIndex === index;
+              const showPages = resource.resource_type === 'ebook' || resource.resource_type === 'pdf';
+              const showDuration = resource.resource_type === 'audio' || resource.resource_type === 'video';
+
+              return (
+                <Card key={index} className="border-2">
+                  <CardContent className="pt-6 space-y-4">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-2">
+                        <ResourceIcon className="h-5 w-5 text-muted-foreground" />
+                        <span className="font-semibold">Recurso {index + 1}</span>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => {
+                          setResources(resources.filter((_, i) => i !== index));
+                          if (editingResourceIndex === index) {
+                            setEditingResourceIndex(null);
+                          } else if (editingResourceIndex !== null && editingResourceIndex > index) {
+                            setEditingResourceIndex(editingResourceIndex - 1);
+                          }
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                      </Button>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Título del Recurso *</Label>
+                      <Input
+                        value={resource.title}
+                        onChange={(e) => {
+                          const updated = [...resources];
+                          updated[index].title = e.target.value;
+                          setResources(updated);
+                        }}
+                        placeholder="Ej: Guía de Meditación"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Tipo de Recurso *</Label>
+                      <Select
+                        value={resource.resource_type}
+                        onValueChange={(value: 'ebook' | 'audio' | 'video' | 'pdf' | 'link' | 'other') => {
+                          const updated = [...resources];
+                          updated[index].resource_type = value;
+                          // Limpiar campos específicos cuando cambia el tipo
+                          if (value !== 'ebook' && value !== 'pdf') {
+                            delete updated[index].pages_count;
+                          }
+                          if (value !== 'audio' && value !== 'video') {
+                            delete updated[index].duration_minutes;
+                          }
+                          setResources(updated);
+                        }}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {RESOURCE_TYPE_OPTIONS.map((option) => {
+                            const Icon = option.icon;
+                            return (
+                              <SelectItem key={option.value} value={option.value}>
+                                <div className="flex items-center gap-2">
+                                  <Icon className="h-4 w-4" />
+                                  {option.label}
+                                </div>
+                              </SelectItem>
+                            );
+                          })}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>URL del Recurso *</Label>
+                      <Input
+                        type="url"
+                        value={resource.url}
+                        onChange={(e) => {
+                          const updated = [...resources];
+                          updated[index].url = e.target.value;
+                          setResources(updated);
+                        }}
+                        placeholder="https://ejemplo.com/recurso"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Descripción (Opcional)</Label>
+                      <Textarea
+                        value={resource.description}
+                        onChange={(e) => {
+                          const updated = [...resources];
+                          updated[index].description = e.target.value;
+                          setResources(updated);
+                        }}
+                        placeholder="Descripción breve del recurso"
+                        rows={2}
+                      />
+                    </div>
+
+                    {showPages && (
+                      <div className="space-y-2">
+                        <Label>Número de Páginas</Label>
+                        <Input
+                          type="number"
+                          min="0"
+                          value={resource.pages_count || ""}
+                          onChange={(e) => {
+                            const updated = [...resources];
+                            updated[index].pages_count = e.target.value;
+                            setResources(updated);
+                          }}
+                          placeholder="Ej: 150"
+                        />
+                      </div>
+                    )}
+
+                    {showDuration && (
+                      <div className="space-y-2">
+                        <Label>Duración (minutos)</Label>
+                        <Input
+                          type="number"
+                          min="0"
+                          value={resource.duration_minutes || ""}
+                          onChange={(e) => {
+                            const updated = [...resources];
+                            updated[index].duration_minutes = e.target.value;
+                            setResources(updated);
+                          }}
+                          placeholder="Ej: 30"
+                        />
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              );
+            })
+          )}
         </CardContent>
       </Card>
 

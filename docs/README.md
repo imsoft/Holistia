@@ -160,4 +160,4 @@ Al agregar nueva funcionalidad:
 
 **Proyecto**: Holistia  
 **Última actualización**: Diciembre 2025  
-**Total de documentos**: 32 documentos activos
+**Total de documentos**: 31 documentos activos

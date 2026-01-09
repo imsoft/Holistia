@@ -139,18 +139,19 @@ FROM storage.buckets;
 
 ## 🔄 Historial de Cambios
 
-### Última Limpieza: Octubre 2025
-- ✅ Eliminados 16 archivos SQL obsoletos y duplicados
-- ✅ Consolidados READMEs redundantes
-- ✅ Organizada documentación por categorías
-- ✅ Mantenidas solo 39 migraciones activas y necesarias
+### Última Limpieza: Diciembre 2025
+- ✅ Eliminados 50+ archivos temporales y scripts de una sola vez
+- ✅ Eliminados scripts de diagnóstico obsoletos
+- ✅ Eliminados scripts de corrección temporales específicos
+- ✅ Eliminados archivos EJECUTAR temporales de migrations
+- ✅ Mantenidos solo scripts útiles y reutilizables
 
 ### Archivos Eliminados:
-- Archivos `SOLUCION_*.sql` (temporales)
-- Scripts `APLICAR_*.sql` (consolidados)
-- Migraciones duplicadas de eventos
-- Versiones obsoletas de blog posts
-- READMEs temporales de troubleshooting
+- Scripts temporales: `fix_*`, `corregir_*`, `marcar_*`, `mark_*`, `delete_*`, `recreate_*`
+- Scripts de diagnóstico obsoletos: `diagnosticar_*`, `verificar_*`, `verify_*`
+- Instrucciones temporales: `INSTRUCCIONES_*`, `LEER_PRIMERO_*`, `ACTUALIZAR_POLITICA_*`
+- Archivos EJECUTAR temporales en migrations
+- Scripts específicos de profesionales ya aplicados
 
 ## 📞 Soporte
 
@@ -161,6 +162,7 @@ FROM storage.buckets;
 
 ---
 
-**Última actualización**: Octubre 12, 2025  
-**Total de migraciones activas**: 39  
+**Última actualización**: Diciembre 11, 2025  
+**Total de migraciones activas**: ~60+ (numeradas y organizadas)  
+**Total de scripts útiles**: 13 scripts reutilizables  
 **Total de tablas**: 9 principales + storage buckets

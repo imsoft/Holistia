@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { useParams } from "next/navigation";
 import { SocialFeedPost } from "@/components/ui/social-feed-post";
 import { Button } from "@/components/ui/button";
@@ -31,33 +31,35 @@ export default function SocialFeedPage() {
     searchQuery: "",
   });
 
-  useEffect(() => {
-    loadFeed(true);
-  }, [filter, advancedFilters]);
+  // Memoizar las dependencias para evitar loops infinitos
+  const filtersKey = useMemo(() => 
+    JSON.stringify({ filter, categories: advancedFilters.categories, difficulties: advancedFilters.difficulties, searchQuery: advancedFilters.searchQuery }),
+    [filter, advancedFilters.categories, advancedFilters.difficulties, advancedFilters.searchQuery]
+  );
 
-  const loadFeed = async (reset = false) => {
+  const loadFeed = useCallback(async (reset = false) => {
     try {
       setLoading(true);
       const currentOffset = reset ? 0 : offset;
 
       // Build query params
-      const params = new URLSearchParams({
+      const queryParams = new URLSearchParams({
         limit: limit.toString(),
         offset: currentOffset.toString(),
         filter,
       });
 
       if (advancedFilters.categories.length > 0) {
-        params.append('categories', advancedFilters.categories.join(','));
+        queryParams.append('categories', advancedFilters.categories.join(','));
       }
       if (advancedFilters.difficulties.length > 0) {
-        params.append('difficulties', advancedFilters.difficulties.join(','));
+        queryParams.append('difficulties', advancedFilters.difficulties.join(','));
       }
       if (advancedFilters.searchQuery) {
-        params.append('search', advancedFilters.searchQuery);
+        queryParams.append('search', advancedFilters.searchQuery);
       }
 
-      const response = await fetch(`/api/social-feed?${params.toString()}`);
+      const response = await fetch(`/api/social-feed?${queryParams.toString()}`);
       const data = await response.json();
 
       if (!response.ok) throw new Error(data.error || "Error al cargar feed");
@@ -77,16 +79,20 @@ export default function SocialFeedPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filter, advancedFilters.categories, advancedFilters.difficulties, advancedFilters.searchQuery, offset, limit]);
 
-  const handleRefresh = async () => {
+  useEffect(() => {
+    loadFeed(true);
+  }, [filtersKey]);
+
+  const handleRefresh = useCallback(async () => {
     await loadFeed(true);
     toast.success("Feed actualizado");
-  };
+  }, [loadFeed]);
 
-  const handleLoadMore = async () => {
+  const handleLoadMore = useCallback(async () => {
     await loadFeed(false);
-  };
+  }, [loadFeed]);
 
   // Pull to refresh
   const { pullDistance, isRefreshing } = usePullToRefresh({

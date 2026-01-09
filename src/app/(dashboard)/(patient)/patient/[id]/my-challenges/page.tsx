@@ -702,123 +702,130 @@ export default function MyChallengesPage() {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className={`grid grid-cols-1 gap-6 ${selectedChallenge ? 'lg:grid-cols-3' : 'lg:grid-cols-2 xl:grid-cols-3'}`}>
           {/* Lista de retos */}
-          <div className="lg:col-span-1 space-y-4">
-            {filteredChallenges.map((challenge) => (
-              <Card
-                key={`${challenge.type}-${challenge.id}`}
-                className={`hover:shadow-lg transition-shadow overflow-hidden cursor-pointer gap-0 ${
-                  selectedChallenge?.challenge_id === challenge.id ? 'ring-2 ring-primary' : ''
-                }`}
-                onClick={() => handleOpenChallenge(challenge)}
-              >
-                <div className="relative h-32 w-full -mx-6 -mt-6 mb-0">
-                  {challenge.cover_image_url ? (
-                    <Image
-                      src={challenge.cover_image_url}
-                      alt={challenge.title}
-                      fill
-                      className="object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center">
-                      <Target className="h-12 w-12 text-primary/40" />
-                    </div>
-                  )}
-                  {challenge.type === 'created' && !challenge.is_active && (
-                    <div className="absolute top-2 right-2">
-                      <Badge variant="secondary">Inactivo</Badge>
-                    </div>
-                  )}
-                  {challenge.type === 'created' && (
-                    <div className="absolute top-2 left-2">
-                      <Badge variant="default">Creado por ti</Badge>
-                    </div>
-                  )}
-                </div>
-                <CardHeader>
-                  <CardTitle className="text-lg line-clamp-2">
-                    {challenge.title}
-                  </CardTitle>
-                  {challenge.professional_applications && (
-                    <div className="flex items-center gap-2 mt-2">
-                      <span className="text-sm text-muted-foreground">
-                        {challenge.professional_applications.first_name}{' '}
-                        {challenge.professional_applications.last_name}
-                      </span>
-                      {challenge.professional_applications.is_verified && (
-                        <VerifiedBadge size={14} />
-                      )}
-                    </div>
-                  )}
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center gap-2 text-sm">
-                    {challenge.duration_days && (
-                      <Badge variant="outline" className="text-xs">
-                        <Calendar className="h-3 w-3 mr-1" />
-                        {challenge.duration_days} días
-                      </Badge>
+          <div className={`space-y-4 ${selectedChallenge ? 'lg:col-span-1' : 'lg:col-span-2 xl:col-span-3'}`}>
+            <div className={`grid grid-cols-1 ${selectedChallenge ? '' : 'md:grid-cols-2 xl:grid-cols-3'} gap-6`}>
+              {filteredChallenges.map((challenge) => (
+                <Card
+                  key={`${challenge.type}-${challenge.id}`}
+                  className={`hover:shadow-lg transition-shadow overflow-hidden cursor-pointer gap-0 min-h-[400px] flex flex-col ${
+                    selectedChallenge?.challenge_id === challenge.id ? 'ring-2 ring-primary' : ''
+                  }`}
+                  onClick={() => handleOpenChallenge(challenge)}
+                >
+                  <div className="relative h-40 w-full -mx-6 -mt-6 mb-0">
+                    {challenge.cover_image_url ? (
+                      <Image
+                        src={challenge.cover_image_url}
+                        alt={challenge.title}
+                        fill
+                        className="object-cover rounded-t-lg"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center rounded-t-lg">
+                        <Target className="h-12 w-12 text-primary/40" />
+                      </div>
                     )}
-                    {challenge.difficulty_level && (
-                      <Badge className={`text-xs ${getDifficultyColor(challenge.difficulty_level)}`}>
-                        {getDifficultyLabel(challenge.difficulty_level)}
-                      </Badge>
+                    {challenge.type === 'created' && !challenge.is_active && (
+                      <div className="absolute top-2 right-2">
+                        <Badge variant="secondary">Inactivo</Badge>
+                      </div>
+                    )}
+                    {challenge.type === 'created' && (
+                      <div className="absolute top-2 left-2">
+                        <Badge variant="default">Creado por ti</Badge>
+                      </div>
                     )}
                   </div>
-                </CardContent>
-                <div className="px-6 pb-4 space-y-2">
-                  {challenge.type === 'participating' ? (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="w-full gap-2"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        router.push(`/patient/${userId}/my-challenges/${challenge.id}/team/create`);
-                      }}
-                    >
-                      <Users className="h-4 w-4" />
-                      Crear/Ver Equipo
-                    </Button>
-                  ) : (
-                    <div className="flex gap-2">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-lg line-clamp-2">
+                      {challenge.title}
+                    </CardTitle>
+                    {challenge.professional_applications && (
+                      <div className="flex items-center gap-2 mt-2">
+                        <span className="text-sm text-muted-foreground">
+                          {challenge.professional_applications.first_name}{' '}
+                          {challenge.professional_applications.last_name}
+                        </span>
+                        {challenge.professional_applications.is_verified && (
+                          <VerifiedBadge size={14} />
+                        )}
+                      </div>
+                    )}
+                  </CardHeader>
+                  <CardContent className="flex-1 pb-4">
+                    <div className="flex items-center gap-2 text-sm mb-4">
+                      {challenge.duration_days && (
+                        <Badge variant="outline" className="text-xs">
+                          <Calendar className="h-3 w-3 mr-1" />
+                          {challenge.duration_days} días
+                        </Badge>
+                      )}
+                      {challenge.difficulty_level && (
+                        <Badge className={`text-xs ${getDifficultyColor(challenge.difficulty_level)}`}>
+                          {getDifficultyLabel(challenge.difficulty_level)}
+                        </Badge>
+                      )}
+                    </div>
+                    {challenge.description && (
+                      <p className="text-sm text-muted-foreground line-clamp-3 mb-4">
+                        {challenge.description}
+                      </p>
+                    )}
+                  </CardContent>
+                  <div className="px-6 pb-6 mt-auto">
+                    {challenge.type === 'participating' ? (
                       <Button
                         variant="outline"
                         size="sm"
-                        className="flex-1"
-                        onClick={() => router.push(`/patient/${userId}/my-challenges/${challenge.id}/edit`)}
-                      >
-                        <Edit className="h-4 w-4 mr-2" />
-                        Editar
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="flex-1"
-                        onClick={() => {
+                        className="w-full gap-2"
+                        onClick={(e) => {
+                          e.stopPropagation();
                           router.push(`/patient/${userId}/my-challenges/${challenge.id}/team/create`);
                         }}
                       >
-                        <Users className="h-4 w-4 mr-2" />
-                        Invitar
+                        <Users className="h-4 w-4" />
+                        Crear/Ver Equipo
                       </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDeleteClick(challenge);
-                        }}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              </Card>
-            ))}
+                    ) : (
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="flex-1"
+                          onClick={() => router.push(`/patient/${userId}/my-challenges/${challenge.id}/edit`)}
+                        >
+                          <Edit className="h-4 w-4 mr-2" />
+                          Editar
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="flex-1"
+                          onClick={() => {
+                            router.push(`/patient/${userId}/my-challenges/${challenge.id}/team/create`);
+                          }}
+                        >
+                          <Users className="h-4 w-4 mr-2" />
+                          Invitar
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteClick(challenge);
+                          }}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                </Card>
+              ))}
+            </div>
           </div>
 
           {/* Detalles del reto seleccionado */}

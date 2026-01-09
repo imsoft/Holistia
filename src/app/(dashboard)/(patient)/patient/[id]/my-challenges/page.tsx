@@ -47,6 +47,7 @@ interface ChallengePurchase {
     category?: string;
     created_by_type?: 'professional' | 'patient';
     linked_professional_id?: string;
+    type?: 'participating' | 'created';
     professional_applications?: {
       first_name: string;
       last_name: string;
@@ -317,7 +318,10 @@ export default function MyChallengesPage() {
       const purchaseChallenge: ChallengePurchase = {
         id: challenge.purchaseId,
         challenge_id: challenge.id,
-        challenge: challenge,
+        challenge: {
+          ...challenge,
+          type: 'participating' as const,
+        },
         access_granted: challenge.access_granted,
         started_at: challenge.started_at,
         completed_at: challenge.completed_at,
@@ -326,9 +330,26 @@ export default function MyChallengesPage() {
       await fetchCheckins(challenge.purchaseId);
       await fetchTeam(challenge.id);
       await fetchResources(challenge.id);
-    } else {
-      // Si es un reto creado, no se puede abrir para ver detalles (no tiene purchase)
-      toast.info("Este es un reto que creaste. Puedes editarlo desde el botón de editar.");
+    } else if (challenge.type === 'created') {
+      // Si es un reto creado, crear un objeto compatible para mostrar detalles
+      // No tiene purchaseId, pero podemos mostrar recursos y otros detalles
+      const createdChallenge: ChallengePurchase = {
+        id: challenge.id, // Usar challenge.id como ID temporal
+        challenge_id: challenge.id,
+        challenge: {
+          ...challenge,
+          type: 'created' as const,
+        },
+        access_granted: true, // Los creadores siempre tienen acceso
+        started_at: undefined,
+        completed_at: undefined,
+      };
+      setSelectedChallenge(createdChallenge);
+      // No hay check-ins ni progreso para retos creados (solo para participantes)
+      setCheckins([]);
+      setTeamId(null);
+      setTeamName(null);
+      await fetchResources(challenge.id);
     }
   };
 
@@ -516,11 +537,11 @@ export default function MyChallengesPage() {
             placeholder="Buscar retos..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
+            className="pl-10 w-full"
           />
         </div>
         <Select value={typeFilter} onValueChange={setTypeFilter}>
-          <SelectTrigger>
+          <SelectTrigger className="w-full">
             <SelectValue placeholder="Tipo de reto" />
           </SelectTrigger>
           <SelectContent>
@@ -530,7 +551,7 @@ export default function MyChallengesPage() {
           </SelectContent>
         </Select>
         <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger>
+          <SelectTrigger className="w-full">
             <SelectValue placeholder="Estado" />
           </SelectTrigger>
           <SelectContent>
@@ -540,7 +561,7 @@ export default function MyChallengesPage() {
           </SelectContent>
         </Select>
         <Select value={difficultyFilter} onValueChange={setDifficultyFilter}>
-          <SelectTrigger>
+          <SelectTrigger className="w-full">
             <SelectValue placeholder="Dificultad" />
           </SelectTrigger>
           <SelectContent>
@@ -590,12 +611,10 @@ export default function MyChallengesPage() {
             {filteredChallenges.map((challenge) => (
               <Card
                 key={`${challenge.type}-${challenge.id}`}
-                className={`hover:shadow-lg transition-shadow py-4 ${
-                  challenge.type === 'participating' ? 'cursor-pointer' : ''
-                } ${
-                  selectedChallenge?.id === challenge.purchaseId ? 'ring-2 ring-primary' : ''
+                className={`hover:shadow-lg transition-shadow py-4 cursor-pointer ${
+                  selectedChallenge?.challenge_id === challenge.id ? 'ring-2 ring-primary' : ''
                 }`}
-                onClick={() => challenge.type === 'participating' && handleOpenChallenge(challenge)}
+                onClick={() => handleOpenChallenge(challenge)}
               >
                 <div className="relative h-32">
                   {challenge.cover_image_url ? (
@@ -708,11 +727,15 @@ export default function MyChallengesPage() {
           {/* Detalles del reto seleccionado */}
           {selectedChallenge && (
             <div className="lg:col-span-2 space-y-6">
-              <Tabs defaultValue="progress" className="w-full">
-                <TabsList className={`grid w-full ${teamId ? 'grid-cols-5' : 'grid-cols-4'}`}>
-                  <TabsTrigger value="progress">Progreso</TabsTrigger>
-                  <TabsTrigger value="checkins">Check-ins</TabsTrigger>
-                  <TabsTrigger value="badges">Badges</TabsTrigger>
+              <Tabs defaultValue="resources" className="w-full">
+                <TabsList className={`grid w-full ${teamId ? 'grid-cols-5' : selectedChallenge.challenge.type === 'created' ? 'grid-cols-1' : 'grid-cols-4'}`}>
+                  {selectedChallenge.challenge.type !== 'created' && (
+                    <>
+                      <TabsTrigger value="progress">Progreso</TabsTrigger>
+                      <TabsTrigger value="checkins">Check-ins</TabsTrigger>
+                      <TabsTrigger value="badges">Badges</TabsTrigger>
+                    </>
+                  )}
                   <TabsTrigger value="resources">Recursos</TabsTrigger>
                   {teamId && (
                     <TabsTrigger value="chat" className="gap-2">
@@ -722,107 +745,113 @@ export default function MyChallengesPage() {
                   )}
                 </TabsList>
 
-                <TabsContent value="progress" className="space-y-4">
-                  <ChallengeProgress
-                    challengePurchaseId={selectedChallenge.id}
-                    challengeDurationDays={selectedChallenge.challenge.duration_days}
-                  />
-                </TabsContent>
+                {selectedChallenge.challenge.type !== 'created' && (
+                  <TabsContent value="progress" className="space-y-4">
+                    <ChallengeProgress
+                      challengePurchaseId={selectedChallenge.id}
+                      challengeDurationDays={selectedChallenge.challenge.duration_days}
+                    />
+                  </TabsContent>
+                )}
 
-                <TabsContent value="checkins" className="space-y-4">
-                  <Card className="py-4">
-                    <CardHeader>
-                      <div className="flex items-center justify-between">
-                        <CardTitle>Check-ins Diarios</CardTitle>
-                        <Button
-                          onClick={() => setIsCheckinDialogOpen(true)}
-                          disabled={!selectedChallenge.access_granted}
-                        >
-                          Nuevo Check-in
-                        </Button>
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      {checkins.length === 0 ? (
-                        <div className="text-center py-8">
-                          <Circle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                          <p className="text-muted-foreground mb-4">
-                            Aún no has completado ningún check-in
-                          </p>
-                          <Button onClick={() => setIsCheckinDialogOpen(true)}>
-                            Comenzar Día 1
+                {selectedChallenge.challenge.type !== 'created' && (
+                  <TabsContent value="checkins" className="space-y-4">
+                    <Card className="py-4">
+                      <CardHeader>
+                        <div className="flex items-center justify-between">
+                          <CardTitle>Check-ins Diarios</CardTitle>
+                          <Button
+                            onClick={() => setIsCheckinDialogOpen(true)}
+                            disabled={!selectedChallenge.access_granted}
+                          >
+                            Nuevo Check-in
                           </Button>
                         </div>
-                      ) : (
-                        <div className="space-y-4">
-                          {Array.from({ length: selectedChallenge.challenge.duration_days || 30 }, (_, i) => i + 1).map((day) => {
-                            const checkin = checkins.find(c => c.day_number === day);
-                            return (
-                              <div
-                                key={day}
-                                className={`flex items-center gap-4 p-4 border rounded-lg ${
-                                  checkin ? 'bg-green-50 border-green-200' : 'bg-muted/30'
-                                }`}
-                              >
-                                <div className="flex-shrink-0">
-                                  {checkin ? (
-                                    <CheckCircle2 className="h-6 w-6 text-green-600" />
-                                  ) : (
-                                    <Circle className="h-6 w-6 text-muted-foreground" />
-                                  )}
-                                </div>
-                                <div className="flex-1">
-                                  <div className="flex items-center gap-2 mb-1">
-                                    <span className="font-semibold">Día {day}</span>
-                                    {checkin && (
-                                      <>
-                                        <Badge variant="secondary" className="text-xs">
-                                          +{checkin.points_earned} pts
-                                        </Badge>
-                                        {checkin.verified_by_professional && (
-                                          <Badge variant="default" className="text-xs">
-                                            Verificado
-                                          </Badge>
-                                        )}
-                                      </>
+                      </CardHeader>
+                      <CardContent>
+                        {checkins.length === 0 ? (
+                          <div className="text-center py-8">
+                            <Circle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                            <p className="text-muted-foreground mb-4">
+                              Aún no has completado ningún check-in
+                            </p>
+                            <Button onClick={() => setIsCheckinDialogOpen(true)}>
+                              Comenzar Día 1
+                            </Button>
+                          </div>
+                        ) : (
+                          <div className="space-y-4">
+                            {Array.from({ length: selectedChallenge.challenge.duration_days || 30 }, (_, i) => i + 1).map((day) => {
+                              const checkin = checkins.find(c => c.day_number === day);
+                              return (
+                                <div
+                                  key={day}
+                                  className={`flex items-center gap-4 p-4 border rounded-lg ${
+                                    checkin ? 'bg-green-50 border-green-200' : 'bg-muted/30'
+                                  }`}
+                                >
+                                  <div className="flex-shrink-0">
+                                    {checkin ? (
+                                      <CheckCircle2 className="h-6 w-6 text-green-600" />
+                                    ) : (
+                                      <Circle className="h-6 w-6 text-muted-foreground" />
                                     )}
                                   </div>
-                                  {checkin && (
-                                    <div className="text-sm text-muted-foreground">
-                                      {checkin.notes && (
-                                        <p className="mb-1">{checkin.notes}</p>
-                                      )}
-                                      {checkin.evidence_url && (
-                                        <div className="mt-2">
-                                          {checkin.evidence_type === 'photo' && (
-                                            <Image
-                                              src={checkin.evidence_url}
-                                              alt="Evidencia"
-                                              width={100}
-                                              height={100}
-                                              className="rounded-lg object-cover"
-                                            />
+                                  <div className="flex-1">
+                                    <div className="flex items-center gap-2 mb-1">
+                                      <span className="font-semibold">Día {day}</span>
+                                      {checkin && (
+                                        <>
+                                          <Badge variant="secondary" className="text-xs">
+                                            +{checkin.points_earned} pts
+                                          </Badge>
+                                          {checkin.verified_by_professional && (
+                                            <Badge variant="default" className="text-xs">
+                                              Verificado
+                                            </Badge>
                                           )}
-                                        </div>
+                                        </>
                                       )}
-                                      <p className="text-xs mt-1">
-                                        {new Date(checkin.checkin_date).toLocaleDateString('es-ES')}
-                                      </p>
                                     </div>
-                                  )}
+                                    {checkin && (
+                                      <div className="text-sm text-muted-foreground">
+                                        {checkin.notes && (
+                                          <p className="mb-1">{checkin.notes}</p>
+                                        )}
+                                        {checkin.evidence_url && (
+                                          <div className="mt-2">
+                                            {checkin.evidence_type === 'photo' && (
+                                              <Image
+                                                src={checkin.evidence_url}
+                                                alt="Evidencia"
+                                                width={100}
+                                                height={100}
+                                                className="rounded-lg object-cover"
+                                              />
+                                            )}
+                                          </div>
+                                        )}
+                                        <p className="text-xs mt-1">
+                                          {new Date(checkin.checkin_date).toLocaleDateString('es-ES')}
+                                        </p>
+                                      </div>
+                                    )}
+                                  </div>
                                 </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                </TabsContent>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  </TabsContent>
+                )}
 
-                <TabsContent value="badges">
-                  <ChallengeBadges challengePurchaseId={selectedChallenge.id} />
-                </TabsContent>
+                {selectedChallenge.challenge.type !== 'created' && (
+                  <TabsContent value="badges">
+                    <ChallengeBadges challengePurchaseId={selectedChallenge.id} />
+                  </TabsContent>
+                )}
 
                 <TabsContent value="resources" className="space-y-4">
                   <Card className="py-4">
@@ -922,8 +951,8 @@ export default function MyChallengesPage() {
               </Tabs>
             </div>
           )}
-            </div>
-          )}
+        </div>
+      )}
 
       {/* Dialog para nuevo check-in */}
       <Dialog open={isCheckinDialogOpen} onOpenChange={setIsCheckinDialogOpen}>

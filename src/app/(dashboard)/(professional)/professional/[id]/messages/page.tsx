@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -39,6 +39,7 @@ interface Conversation {
 export default function ProfessionalMessagesPage() {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const professionalId = params.id as string;
   const supabase = createClient();
 
@@ -65,6 +66,24 @@ export default function ProfessionalMessagesPage() {
       return () => clearInterval(interval);
     }
   }, [currentUserId]);
+
+  // Abrir conversación desde parámetro de URL
+  useEffect(() => {
+    const conversationId = searchParams.get('conversation');
+    if (conversationId && conversations.length > 0) {
+      const conversation = conversations.find(c => c.id === conversationId);
+      if (conversation) {
+        setSelectedConversation(conversation);
+        // Limpiar el parámetro de la URL después de abrir la conversación
+        const newSearchParams = new URLSearchParams(searchParams.toString());
+        newSearchParams.delete('conversation');
+        const newUrl = newSearchParams.toString() 
+          ? `${window.location.pathname}?${newSearchParams.toString()}`
+          : window.location.pathname;
+        router.replace(newUrl);
+      }
+    }
+  }, [conversations, searchParams, router]);
 
   const loadConversations = async () => {
     try {

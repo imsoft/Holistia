@@ -25,6 +25,7 @@ import { VerifiedBadge } from "@/components/ui/verified-badge";
 import { ChallengeCard } from "@/components/ui/challenge-card";
 import { FavoriteButton } from "@/components/ui/favorite-button";
 import { ProfessionalCard } from "@/components/ui/professional-card";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface Professional {
   id: string;
@@ -381,18 +382,44 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
     });
   };
 
-  if (loading) {
-    return (
-      <section className="py-16 bg-background">
-        <div className="container mx-auto px-4">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-            <p className="mt-4 text-muted-foreground">Cargando...</p>
-          </div>
+  // Componente de skeleton para cards genéricas
+  const CardSkeleton = () => (
+    <Card className="shrink-0 w-[280px] sm:w-[320px] h-[480px] flex flex-col">
+      <Skeleton className="w-full h-48 shrink-0 rounded-t-lg" />
+      <CardHeader className="pb-1.5 px-4 pt-3">
+        <Skeleton className="h-6 w-3/4 mb-2" />
+        <div className="flex gap-1.5 mt-1">
+          <Skeleton className="h-5 w-16" />
+          <Skeleton className="h-5 w-12" />
         </div>
-      </section>
-    );
-  }
+      </CardHeader>
+      <CardContent className="px-4 pt-0 pb-3 flex flex-col grow">
+        <Skeleton className="h-4 w-full mb-2" />
+        <Skeleton className="h-4 w-5/6 mb-4" />
+        <Skeleton className="h-9 w-full mt-auto" />
+      </CardContent>
+    </Card>
+  );
+
+  // Componente de skeleton para cards de profesionales
+  const ProfessionalCardSkeleton = () => (
+    <div className="shrink-0 w-[280px] sm:w-[320px]">
+      <Card className="h-full flex flex-col">
+        <Skeleton className="w-full h-64 shrink-0 rounded-t-lg" />
+        <CardContent className="px-4 pt-3 pb-4 flex flex-col grow">
+          <Skeleton className="h-5 w-3/4 mb-2" />
+          <Skeleton className="h-4 w-1/2 mb-3" />
+          <div className="flex gap-1 mb-2">
+            <Skeleton className="h-5 w-20" />
+            <Skeleton className="h-5 w-16" />
+          </div>
+          <Skeleton className="h-3 w-full mb-1" />
+          <Skeleton className="h-3 w-5/6 mb-4" />
+          <Skeleton className="h-3 w-2/3 mt-auto" />
+        </CardContent>
+      </Card>
+    </div>
+  );
 
   return (
     <section className="py-16 bg-background">
@@ -410,13 +437,13 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
         )}
 
         {/* Expertos */}
-        {professionals.length > 0 && (
-          <div className="mb-16">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-2xl font-bold flex items-center gap-2">
-                <User className="w-6 h-6 text-primary" />
-                Expertos
-              </h3>
+        <div className="mb-16">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-2xl font-bold flex items-center gap-2">
+              <User className="w-6 h-6 text-primary" />
+              Expertos
+            </h3>
+            {!loading && professionals.length > 0 && (
               <div className="flex items-center gap-2">
                 <Button
                   variant="outline"
@@ -438,17 +465,23 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
                   </Link>
                 </Button>
               </div>
-            </div>
-            <div
-              ref={professionalsRef}
-              className="flex gap-6 overflow-x-auto pb-4"
-              style={{
-                scrollbarWidth: 'none',
-                msOverflowStyle: 'none',
-                WebkitOverflowScrolling: 'touch'
-              }}
-            >
-              {professionals.map((prof) => {
+            )}
+          </div>
+          <div
+            ref={professionalsRef}
+            className="flex gap-6 overflow-x-auto pb-4"
+            style={{
+              scrollbarWidth: 'none',
+              msOverflowStyle: 'none',
+              WebkitOverflowScrolling: 'touch'
+            }}
+          >
+            {loading ? (
+              Array.from({ length: 6 }).map((_, i) => (
+                <ProfessionalCardSkeleton key={`professional-skeleton-${i}`} />
+              ))
+            ) : (
+              professionals.map((prof) => {
                 return (
                   <div key={prof.id} className="shrink-0 w-[280px] sm:w-[320px]">
                     <ProfessionalCard
@@ -474,21 +507,21 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
                     />
                   </div>
                 );
-              })}
-            </div>
+              })
+            )}
           </div>
-        )}
+        </div>
 
         {/* Comercios */}
-        {shops.length > 0 && (
-          <div className="mb-16">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-2">
-              <div>
-                <h3 className="text-2xl font-bold flex items-center gap-2">
-                  <Store className="w-6 h-6 text-primary" />
-                  Comercios Holísticos
-                </h3>
-              </div>
+        <div className="mb-16">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-2">
+            <div>
+              <h3 className="text-2xl font-bold flex items-center gap-2">
+                <Store className="w-6 h-6 text-primary" />
+                Comercios Holísticos
+              </h3>
+            </div>
+            {!loading && shops.length > 0 && (
               <div className="flex items-center gap-2">
                 <Button
                   variant="outline"
@@ -510,17 +543,23 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
                   </Link>
                 </Button>
               </div>
-            </div>
-            <div
-              ref={shopsRef}
-              className="flex gap-6 overflow-x-auto pb-4"
-              style={{
-                scrollbarWidth: 'none',
-                msOverflowStyle: 'none',
-                WebkitOverflowScrolling: 'touch'
-              }}
-            >
-              {shops.map((shop) => {
+            )}
+          </div>
+          <div
+            ref={shopsRef}
+            className="flex gap-6 overflow-x-auto pb-4"
+            style={{
+              scrollbarWidth: 'none',
+              msOverflowStyle: 'none',
+              WebkitOverflowScrolling: 'touch'
+            }}
+          >
+            {loading ? (
+              Array.from({ length: 6 }).map((_, i) => (
+                <CardSkeleton key={`shop-skeleton-${i}`} />
+              ))
+            ) : (
+              shops.map((shop) => {
                 // Obtener la imagen principal: primero image_url, luego gallery[0], luego null
                 // Verificar si gallery es un array o string
                 let galleryArray: string[] = [];
@@ -607,19 +646,19 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
                     </CardContent>
                   </Card>
                 );
-              })}
-            </div>
+              })
+            )}
           </div>
-        )}
+        </div>
 
         {/* Restaurantes */}
-        {restaurants.length > 0 && (
-          <div className="mb-16">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-2xl font-bold flex items-center gap-2">
-                <UtensilsCrossed className="w-6 h-6 text-primary" />
-                Restaurantes Saludables
-              </h3>
+        <div className="mb-16">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-2xl font-bold flex items-center gap-2">
+              <UtensilsCrossed className="w-6 h-6 text-primary" />
+              Restaurantes Saludables
+            </h3>
+            {!loading && restaurants.length > 0 && (
               <div className="flex items-center gap-2">
                 <Button
                   variant="outline"
@@ -641,17 +680,23 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
                   </Link>
                 </Button>
               </div>
-            </div>
-            <div
-              ref={restaurantsRef}
-              className="flex gap-6 overflow-x-auto pb-4"
-              style={{
-                scrollbarWidth: 'none',
-                msOverflowStyle: 'none',
-                WebkitOverflowScrolling: 'touch'
-              }}
-            >
-              {restaurants.map((restaurant) => (
+            )}
+          </div>
+          <div
+            ref={restaurantsRef}
+            className="flex gap-6 overflow-x-auto pb-4"
+            style={{
+              scrollbarWidth: 'none',
+              msOverflowStyle: 'none',
+              WebkitOverflowScrolling: 'touch'
+            }}
+          >
+            {loading ? (
+              Array.from({ length: 6 }).map((_, i) => (
+                <CardSkeleton key={`restaurant-skeleton-${i}`} />
+              ))
+            ) : (
+              restaurants.map((restaurant) => (
                 <Card key={restaurant.id} className="relative shrink-0 w-[280px] sm:w-[320px] h-[480px] flex flex-col hover:shadow-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer">
                   <div className="relative w-full h-48 bg-gray-100 shrink-0">
                     <div className="absolute inset-0 overflow-hidden">
@@ -708,19 +753,19 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
                     </Button>
                   </CardContent>
                 </Card>
-              ))}
-            </div>
+              ))
+            )}
           </div>
-        )}
+        </div>
 
         {/* Eventos */}
-        {events.length > 0 && (
-          <div className="mb-16">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-2xl font-bold flex items-center gap-2">
-                <Calendar className="w-6 h-6 text-primary" />
-                Eventos y Talleres
-              </h3>
+        <div className="mb-16">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-2xl font-bold flex items-center gap-2">
+              <Calendar className="w-6 h-6 text-primary" />
+              Eventos y Talleres
+            </h3>
+            {!loading && events.length > 0 && (
               <div className="flex items-center gap-2">
                 <Button
                   variant="outline"
@@ -742,17 +787,23 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
                   </Link>
                 </Button>
               </div>
-            </div>
-            <div
-              ref={eventsRef}
-              className="flex gap-6 overflow-x-auto pb-4"
-              style={{
-                scrollbarWidth: 'none',
-                msOverflowStyle: 'none',
-                WebkitOverflowScrolling: 'touch'
-              }}
-            >
-              {events.map((event) => {
+            )}
+          </div>
+          <div
+            ref={eventsRef}
+            className="flex gap-6 overflow-x-auto pb-4"
+            style={{
+              scrollbarWidth: 'none',
+              msOverflowStyle: 'none',
+              WebkitOverflowScrolling: 'touch'
+            }}
+          >
+            {loading ? (
+              Array.from({ length: 6 }).map((_, i) => (
+                <CardSkeleton key={`event-skeleton-${i}`} />
+              ))
+            ) : (
+              events.map((event) => {
                 return (
                   <Card key={event.id} className="relative shrink-0 w-[280px] sm:w-[320px] h-[480px] flex flex-col hover:shadow-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer">
                     <div className="relative w-full h-48 bg-gray-100 shrink-0">
@@ -818,19 +869,19 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
                     </CardContent>
                   </Card>
                 );
-              })}
-            </div>
+              })
+            )}
           </div>
-        )}
+        </div>
 
         {/* Programas */}
-        {digitalProducts.length > 0 && (
-          <div className="mb-16">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-2xl font-bold flex items-center gap-2">
-                <Sparkles className="w-6 h-6 text-primary" />
-                Programas
-              </h3>
+        <div className="mb-16">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-2xl font-bold flex items-center gap-2">
+              <Sparkles className="w-6 h-6 text-primary" />
+              Programas
+            </h3>
+            {!loading && digitalProducts.length > 0 && (
               <div className="flex items-center gap-2">
                 <Button
                   variant="outline"
@@ -852,17 +903,23 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
                   </Link>
                 </Button>
               </div>
-            </div>
-            <div
-              ref={digitalProductsRef}
-              className="flex gap-6 overflow-x-auto pb-4"
-              style={{
-                scrollbarWidth: 'none',
-                msOverflowStyle: 'none',
-                WebkitOverflowScrolling: 'touch'
-              }}
-            >
-              {digitalProducts.map((product) => {
+            )}
+          </div>
+          <div
+            ref={digitalProductsRef}
+            className="flex gap-6 overflow-x-auto pb-4"
+            style={{
+              scrollbarWidth: 'none',
+              msOverflowStyle: 'none',
+              WebkitOverflowScrolling: 'touch'
+            }}
+          >
+            {loading ? (
+              Array.from({ length: 6 }).map((_, i) => (
+                <CardSkeleton key={`program-skeleton-${i}`} />
+              ))
+            ) : (
+              digitalProducts.map((product) => {
                 const cleanDescription = product.description ? stripHtml(product.description) : null;
                 return (
                   <Link
@@ -931,19 +988,19 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
                     </Card>
                   </Link>
                 );
-              })}
-            </div>
+              })
+            )}
           </div>
-        )}
+        </div>
 
-        {/* Retos - Solo mostrar si hay retos disponibles */}
-        {!loading && challenges.length > 0 && (
-          <div className="mb-16">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-2xl font-bold flex items-center gap-2">
-                <Target className="w-6 h-6 text-primary" />
-                Retos
-              </h3>
+        {/* Retos */}
+        <div className="mb-16">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-2xl font-bold flex items-center gap-2">
+              <Target className="w-6 h-6 text-primary" />
+              Retos
+            </h3>
+            {!loading && challenges.length > 0 && (
               <div className="flex items-center gap-2">
                 <Button
                   variant="outline"
@@ -965,25 +1022,30 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
                   </Link>
                 </Button>
               </div>
-            </div>
-
-            <div
-              ref={challengesRef}
-              className="flex gap-6 overflow-x-auto pb-4"
-              style={{
-                scrollbarWidth: 'none',
-                msOverflowStyle: 'none',
-                WebkitOverflowScrolling: 'touch'
-              }}
-            >
-              {challenges.map((challenge) => (
+            )}
+          </div>
+          <div
+            ref={challengesRef}
+            className="flex gap-6 overflow-x-auto pb-4"
+            style={{
+              scrollbarWidth: 'none',
+              msOverflowStyle: 'none',
+              WebkitOverflowScrolling: 'touch'
+            }}
+          >
+            {loading ? (
+              Array.from({ length: 6 }).map((_, i) => (
+                <CardSkeleton key={`challenge-skeleton-${i}`} />
+              ))
+            ) : (
+              challenges.map((challenge) => (
                 <div key={challenge.id} className="shrink-0 w-[280px] sm:w-[320px]">
                   <ChallengeCard challenge={challenge} userId={currentUserId} />
                 </div>
-              ))}
-            </div>
+              ))
+            )}
           </div>
-        )}
+        </div>
 
         {/* Call to action */}
         <div className="mt-12 text-center">

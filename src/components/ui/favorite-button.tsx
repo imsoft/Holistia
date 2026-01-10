@@ -6,7 +6,7 @@ import { createClient } from "@/utils/supabase/client";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-type FavoriteType = "professional" | "challenge" | "event" | "restaurant" | "shop" | "digital_product";
+type FavoriteType = "professional" | "challenge" | "event" | "restaurant" | "shop" | "digital_product" | "holistic_center";
 
 interface FavoriteButtonProps {
   itemId: string;

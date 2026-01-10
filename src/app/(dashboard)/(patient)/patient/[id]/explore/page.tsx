@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { useParams } from "next/navigation";
-import { Calendar, MapPin, Users, ChevronLeft, ChevronRight, Brain, Sparkles, Activity, Apple, UtensilsCrossed, Store } from "lucide-react";
+import { Calendar, MapPin, Users, ChevronLeft, ChevronRight, Brain, Sparkles, Activity, Apple, UtensilsCrossed, Store, Building2 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { ProfessionalCard } from "@/components/ui/professional-card";
@@ -136,6 +136,21 @@ interface DigitalProduct {
   };
 }
 
+interface HolisticCenter {
+  id: string;
+  name: string;
+  description?: string;
+  address?: string;
+  city?: string;
+  phone?: string;
+  email?: string;
+  website?: string;
+  instagram?: string;
+  image_url?: string;
+  is_active: boolean;
+  created_at: string;
+}
+
 const getCategoryLabel = (category: string) => {
   const categories: Record<string, string> = {
     espiritualidad: "Espiritualidad",
@@ -165,6 +180,8 @@ const HomeUserPage = () => {
   const [filteredRestaurants, setFilteredRestaurants] = useState<Restaurant[]>([]);
   const [filteredShops, setFilteredShops] = useState<Shop[]>([]);
   const [filteredDigitalProducts, setFilteredDigitalProducts] = useState<DigitalProduct[]>([]);
+  const [holisticCenters, setHolisticCenters] = useState<HolisticCenter[]>([]);
+  const [filteredHolisticCenters, setFilteredHolisticCenters] = useState<HolisticCenter[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Componentes de skeleton
@@ -216,6 +233,7 @@ const HomeUserPage = () => {
   const restaurantsScrollRef = useRef<HTMLDivElement>(null);
   const shopsScrollRef = useRef<HTMLDivElement>(null);
   const digitalProductsScrollRef = useRef<HTMLDivElement>(null);
+  const holisticCentersScrollRef = useRef<HTMLDivElement>(null);
   const supabase = createClient();
 
   useEffect(() => {
@@ -391,6 +409,22 @@ const HomeUserPage = () => {
           }));
           setDigitalProducts(transformedProducts);
           setFilteredDigitalProducts(transformedProducts);
+        }
+
+        // Obtener centros holísticos
+        const { data: holisticCentersData, error: holisticCentersError } = await supabase
+          .from("holistic_centers")
+          .select("*")
+          .eq("is_active", true)
+          .order("created_at", { ascending: false })
+          .limit(10);
+
+        if (holisticCentersError) {
+          console.error("Error fetching holistic centers:", holisticCentersError);
+        } else {
+          console.log("🏢 Holistic centers data:", holisticCentersData?.map(c => ({ id: c.id, name: c.name, image_url: c.image_url })));
+          setHolisticCenters(holisticCentersData || []);
+          setFilteredHolisticCenters(holisticCentersData || []);
         }
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -1241,6 +1275,133 @@ const HomeUserPage = () => {
                               <span className="line-clamp-2">
                                 {shop.address && shop.city ? `${shop.address}, ${shop.city}` : shop.address || shop.city}
                               </span>
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+          )}
+
+          {/* Sección de Centros Holísticos - Solo mostrar si hay datos */}
+          {filteredHolisticCenters.length > 0 && (
+          <div>
+            <div className="flex items-center justify-between mb-6">
+              <Link
+                href={`/patient/${userId}/explore/holistic-centers`}
+                className="group flex items-center gap-2 hover:opacity-80 transition-opacity"
+              >
+                <h2 className="text-3xl sm:text-4xl font-bold text-foreground group-hover:text-primary transition-colors">
+                  Centros Holísticos
+                </h2>
+                <ChevronRight className="h-6 w-6 text-foreground group-hover:text-primary transition-colors" />
+              </Link>
+            </div>
+
+            {loading ? (
+              <div className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar px-12">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <CardSkeleton key={`holistic-center-skeleton-${i}`} />
+                ))}
+              </div>
+            ) : filteredHolisticCenters.length === 0 ? (
+              <div className="text-center py-12">
+                <Building2 className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <p className="text-muted-foreground">
+                  {holisticCenters.length === 0
+                    ? "No hay centros holísticos disponibles"
+                    : "No se encontraron centros holísticos que coincidan con los filtros aplicados."}
+                </p>
+              </div>
+            ) : (
+              <div className="relative">
+                <button
+                  onClick={() => {
+                    if (holisticCentersScrollRef.current) {
+                      holisticCentersScrollRef.current.scrollBy({ left: -400, behavior: 'smooth' });
+                    }
+                  }}
+                  className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-background/80 backdrop-blur-sm rounded-full p-2 shadow-lg hover:bg-background transition-colors"
+                  aria-label="Scroll left"
+                >
+                  <ChevronLeft className="h-6 w-6" />
+                </button>
+                <button
+                  onClick={() => {
+                    if (holisticCentersScrollRef.current) {
+                      holisticCentersScrollRef.current.scrollBy({ left: 400, behavior: 'smooth' });
+                    }
+                  }}
+                  className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-background/80 backdrop-blur-sm rounded-full p-2 shadow-lg hover:bg-background transition-colors"
+                  aria-label="Scroll right"
+                >
+                  <ChevronRight className="h-6 w-6" />
+                </button>
+
+                <div
+                  ref={holisticCentersScrollRef}
+                  className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar px-12"
+                  style={{ scrollPaddingLeft: '1rem', scrollPaddingRight: '1rem' }}
+                >
+                  {filteredHolisticCenters.map((center) => (
+                    <Link
+                      key={center.id}
+                      href={`/patient/${userId}/explore/holistic-center/${center.id}`}
+                      className="shrink-0 w-96"
+                    >
+                      <Card className="hover:shadow-lg hover:-translate-y-2 transition-all duration-300 overflow-hidden cursor-pointer h-full flex flex-col">
+                        <div className="relative w-full h-64 bg-gray-100">
+                          <div className="absolute inset-0 overflow-hidden">
+                            {center.image_url ? (
+                              <Image
+                                src={center.image_url}
+                                alt={center.name}
+                                fill
+                                className="object-cover"
+                                unoptimized
+                              />
+                            ) : (
+                              <div className="w-full h-full bg-linear-to-br from-primary/20 to-primary/10 flex items-center justify-center">
+                                <Building2 className="h-16 w-16 text-primary/40" />
+                              </div>
+                            )}
+                          </div>
+                          <div 
+                            className="absolute top-3 right-3 pointer-events-auto" 
+                            style={{ zIndex: 9999, position: 'absolute', top: '12px', right: '12px' }}
+                          >
+                            <FavoriteButton
+                              itemId={center.id}
+                              favoriteType="holistic_center"
+                              variant="floating"
+                            />
+                          </div>
+                        </div>
+                        <CardHeader className="pb-3">
+                          <CardTitle className="line-clamp-2">{center.name}</CardTitle>
+                          <div className="flex gap-2 mt-1.5">
+                            {center.city && (
+                              <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                <MapPin className="w-3 h-3 shrink-0" />
+                                <span>{center.city}</span>
+                              </div>
+                            )}
+                          </div>
+                        </CardHeader>
+                        <CardContent className="space-y-2 flex-1 pb-4">
+                          {center.description && (
+                            <p className="text-sm text-muted-foreground line-clamp-2">
+                              {center.description.replace(/<[^>]*>/g, '')}
+                            </p>
+                          )}
+                          {center.address && (
+                            <div className="flex items-start gap-2 text-sm text-muted-foreground">
+                              <MapPin className="w-4 h-4 shrink-0 mt-0.5" />
+                              <span className="line-clamp-2">{center.address}</span>
                             </div>
                           )}
                         </CardContent>

@@ -73,9 +73,10 @@ interface FiltersProps {
     date: string;
   };
   onEventFilterChange?: (filterType: string, value: string) => void;
+  hideFilters?: string[]; // Array de IDs de filtros a ocultar: 'category', 'location', 'eventFilters'
 }
 
-export const Filters = ({ onFilterChange, eventFilters, onEventFilterChange }: FiltersProps) => {
+export const Filters = ({ onFilterChange, eventFilters, onEventFilterChange, hideFilters = [] }: FiltersProps) => {
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [selectedFilters, setSelectedFilters] = useState<Record<string, string[]>>({});
 
@@ -179,12 +180,14 @@ export const Filters = ({ onFilterChange, eventFilters, onEventFilterChange }: F
             )}
           </div>
           <form className="divide-y divide-border">
-            {filters.map((section) => (
-              <FilterSection key={section.id} section={section} />
-            ))}
+            {filters
+              .filter((section) => !hideFilters.includes(section.id))
+              .map((section) => (
+                <FilterSection key={section.id} section={section} />
+              ))}
             
             {/* Filtros de Eventos - Mobile */}
-            {eventFilters && onEventFilterChange && (
+            {eventFilters && onEventFilterChange && !hideFilters.includes('eventFilters') && (
               <div className="py-6">
                 <h3 className="text-sm font-medium text-foreground mb-4">Filtros de Eventos</h3>
                 <div className="space-y-6">
@@ -351,12 +354,14 @@ export const Filters = ({ onFilterChange, eventFilters, onEventFilterChange }: F
           )}
         </div>
         <form className="divide-y divide-border">
-          {filters.map((section) => (
-            <FilterSection key={section.id} section={section} />
-          ))}
+          {filters
+            .filter((section) => !hideFilters.includes(section.id))
+            .map((section) => (
+              <FilterSection key={section.id} section={section} />
+            ))}
           
           {/* Filtros de Eventos - Desktop */}
-          {eventFilters && onEventFilterChange && (
+          {eventFilters && onEventFilterChange && !hideFilters.includes('eventFilters') && (
             <div className="py-6">
               <h3 className="text-sm font-medium text-foreground mb-4">Filtros de Eventos</h3>
               <div className="space-y-4">

@@ -399,8 +399,7 @@ export default function ProfessionalsPage() {
           <aside className="lg:col-span-1 mb-6 lg:mb-0">
             <Filters 
               onFilterChange={handleFilterChange} 
-              eventFilters={{ category: "all", price: "all", date: "all" }}
-              onEventFilterChange={() => {}}
+              hideFilters={['category', 'location', 'eventFilters']}
             />
           </aside>
 

@@ -16,7 +16,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { WellnessAreasSelector } from "@/components/ui/wellness-areas-selector";
-import { Upload, X, Loader2, Plus, Trash2, BookOpen, Headphones, Video, FileText, ExternalLink, File } from "lucide-react";
+import { Upload, X, Loader2, Plus, Trash2, BookOpen, Headphones, Video, FileText, ExternalLink, File, UserPlus, Users } from "lucide-react";
 import { toast } from "sonner";
 import { createClient } from "@/utils/supabase/client";
 
@@ -94,10 +94,19 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
   const coverFileInputRef = React.useRef<HTMLInputElement>(null);
   const [resources, setResources] = useState<ResourceFormData[]>([]);
   const [editingResourceIndex, setEditingResourceIndex] = useState<number | null>(null);
+  const [patients, setPatients] = useState<any[]>([]);
+  const [loadingPatients, setLoadingPatients] = useState(false);
+  const [selectedPatientIds, setSelectedPatientIds] = useState<string[]>([]);
 
   useEffect(() => {
     fetchProfessionals();
   }, []);
+
+  useEffect(() => {
+    if (isProfessional) {
+      fetchPatients();
+    }
+  }, [isProfessional, userId]);
 
   // Si es profesional, vincular automáticamente al profesional actual
   useEffect(() => {
@@ -161,6 +170,54 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
       console.error("Error fetching professionals:", error);
     } finally {
       setLoadingProfessionals(false);
+    }
+  };
+
+  const fetchPatients = async () => {
+    try {
+      setLoadingPatients(true);
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) return;
+
+      // Obtener el professional_id del usuario
+      const { data: professionalApp } = await supabase
+        .from('professional_applications')
+        .select('id')
+        .eq('user_id', userId)
+        .eq('status', 'approved')
+        .single();
+
+      if (!professionalApp) return;
+
+      // Obtener pacientes que han tenido citas con el profesional
+      const { data: appointments } = await supabase
+        .from('appointments')
+        .select('patient_id')
+        .eq('professional_id', professionalApp.id);
+
+      if (!appointments || appointments.length === 0) {
+        setPatients([]);
+        return;
+      }
+
+      // Obtener IDs únicos de pacientes
+      const uniquePatientIds = [...new Set(appointments.map(apt => apt.patient_id))];
+
+      // Obtener información de pacientes
+      const { data: patientsData } = await supabase
+        .from('profiles')
+        .select('id, first_name, last_name, email, avatar_url')
+        .in('id', uniquePatientIds)
+        .eq('type', 'patient')
+        .eq('account_active', true)
+        .order('first_name', { ascending: true });
+
+      setPatients(patientsData || []);
+    } catch (error) {
+      console.error("Error fetching patients:", error);
+    } finally {
+      setLoadingPatients(false);
     }
   };
 
@@ -324,6 +381,29 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
 
         createdChallengeId = data.challenge.id;
         toast.success("Reto creado exitosamente");
+      }
+
+      // Agregar pacientes seleccionados al reto (solo para profesionales)
+      if (isProfessional && selectedPatientIds.length > 0 && createdChallengeId) {
+        try {
+          const addPatientsResponse = await fetch(`/api/challenges/${createdChallengeId}/add-patients`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ patient_ids: selectedPatientIds }),
+          });
+
+          const addPatientsData = await addPatientsResponse.json();
+          
+          if (!addPatientsResponse.ok) {
+            console.error('Error agregando pacientes:', addPatientsData);
+            toast.warning("El reto se creó pero algunos pacientes no se pudieron agregar");
+          } else {
+            toast.success(`${selectedPatientIds.length} paciente(s) agregado(s) al reto`);
+          }
+        } catch (error) {
+          console.error('Error agregando pacientes:', error);
+          toast.warning("El reto se creó pero hubo un error al agregar pacientes");
+        }
       }
 
       // Guardar recursos si hay alguno
@@ -498,18 +578,94 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
           />
 
           {isProfessional && (
-            <div className="space-y-2">
-              <Label htmlFor="price">Precio (MXN)</Label>
-              <Input
-                id="price"
-                type="number"
-                min="0"
-                step="0.01"
-                value={formData.price}
-                onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                placeholder="0.00"
-              />
-            </div>
+            <>
+              <div className="space-y-2">
+                <Label htmlFor="price">Precio (MXN)</Label>
+                <Input
+                  id="price"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={formData.price}
+                  onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                  placeholder="0.00"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Agregar Pacientes al Reto (Opcional)</Label>
+                <p className="text-xs text-muted-foreground mb-2">
+                  Selecciona los pacientes que deseas agregar automáticamente a este reto
+                </p>
+                {loadingPatients ? (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Cargando pacientes...
+                  </div>
+                ) : patients.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">
+                    No tienes pacientes aún. Los pacientes aparecerán aquí después de tener citas con ellos.
+                  </p>
+                ) : (
+                  <div className="space-y-2 max-h-60 overflow-y-auto border rounded-lg p-3">
+                    {patients.map((patient) => {
+                      const isSelected = selectedPatientIds.includes(patient.id);
+                      return (
+                        <div
+                          key={patient.id}
+                          className={`flex items-center gap-3 p-2 rounded-lg cursor-pointer transition-colors ${
+                            isSelected
+                              ? 'bg-primary/10 border border-primary'
+                              : 'hover:bg-muted border border-transparent'
+                          }`}
+                          onClick={() => {
+                            if (isSelected) {
+                              setSelectedPatientIds(selectedPatientIds.filter(id => id !== patient.id));
+                            } else {
+                              setSelectedPatientIds([...selectedPatientIds, patient.id]);
+                            }
+                          }}
+                        >
+                          <div className="flex items-center gap-2 flex-1">
+                            {patient.avatar_url ? (
+                              <Image
+                                src={patient.avatar_url}
+                                alt={`${patient.first_name} ${patient.last_name}`}
+                                width={32}
+                                height={32}
+                                className="rounded-full"
+                              />
+                            ) : (
+                              <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
+                                <Users className="h-4 w-4 text-primary" />
+                              </div>
+                            )}
+                            <div>
+                              <p className="text-sm font-medium">
+                                {patient.first_name} {patient.last_name}
+                              </p>
+                              {patient.email && (
+                                <p className="text-xs text-muted-foreground">{patient.email}</p>
+                              )}
+                            </div>
+                          </div>
+                          {isSelected && (
+                            <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center">
+                              <X className="h-3 w-3 text-primary-foreground" />
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+                {selectedPatientIds.length > 0 && (
+                  <p className="text-xs text-muted-foreground">
+                    {selectedPatientIds.length} paciente(s) seleccionado(s)
+                  </p>
+                )}
+              </div>
+            </>
           )}
 
           <div className="space-y-2">

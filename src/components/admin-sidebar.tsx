@@ -25,6 +25,7 @@ import {
   Palette,
   Briefcase,
   Target,
+  GitBranch as GitBranchIcon,
 } from "lucide-react";
 import {
   Sidebar,
@@ -225,6 +226,11 @@ export function AdminSidebar() {
       title: "UI Playground",
       url: `/admin/${userId}/ui-playground`,
       icon: Palette,
+    },
+    {
+      title: "Commits de GitHub",
+      url: `/admin/${userId}/github-commits`,
+      icon: GitBranchIcon,
     },
   ];
 

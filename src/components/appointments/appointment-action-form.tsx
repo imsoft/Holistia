@@ -52,13 +52,11 @@ export function AppointmentActionForm({
         .from("appointments")
         .select(`
           id,
-          scheduled_date,
-          scheduled_time,
+          appointment_date,
+          appointment_time,
           cost,
-          patient_applications!appointments_patient_id_fkey(
-            first_name,
-            last_name
-          ),
+          patient_id,
+          professional_id,
           professional_applications!appointments_professional_id_fkey(
             first_name,
             last_name
@@ -72,23 +70,32 @@ export function AppointmentActionForm({
       const professionalData = Array.isArray(appointment.professional_applications)
         ? appointment.professional_applications[0]
         : appointment.professional_applications;
-      const patientData = Array.isArray(appointment.patient_applications)
-        ? appointment.patient_applications[0]
-        : appointment.patient_applications;
+
+      // Obtener información del paciente desde profiles
+      let patientName: string | undefined;
+      if (appointment.patient_id) {
+        const { data: patientProfile } = await supabase
+          .from("profiles")
+          .select("first_name, last_name")
+          .eq("id", appointment.patient_id)
+          .single();
+        
+        if (patientProfile) {
+          patientName = `${patientProfile.first_name} ${patientProfile.last_name}`;
+        }
+      }
 
       setAppointmentDetails({
         professionalName: professionalData
           ? `${professionalData.first_name} ${professionalData.last_name}`
           : undefined,
-        patientName: patientData
-          ? `${patientData.first_name} ${patientData.last_name}`
-          : undefined,
-        date: new Date(appointment.scheduled_date).toLocaleDateString('es-MX', {
+        patientName: patientName,
+        date: new Date(appointment.appointment_date).toLocaleDateString('es-MX', {
           year: 'numeric',
           month: 'long',
           day: 'numeric'
         }),
-        time: appointment.scheduled_time,
+        time: appointment.appointment_time,
         cost: appointment.cost,
       });
     } catch (error) {

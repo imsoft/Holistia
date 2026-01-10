@@ -625,9 +625,11 @@ interface NewMessageNotificationData {
   recipient_email: string;
   sender_name: string;
   sender_type: 'user' | 'professional';
+  sender_avatar_url?: string | null;
   message_preview: string;
   message_time: string;
   messages_url: string;
+  conversation_id?: string;
 }
 
 // Send notification when a new message is received
@@ -660,14 +662,31 @@ export async function sendNewMessageNotification(data: NewMessageNotificationDat
       ? 'Profesional' 
       : 'Usuario';
 
+    // Construir URL del logo de Holistia
+    const logoUrl = 'https://www.holistia.io/logos/holistia-black.png';
+    
+    // Construir URL de la foto de perfil del remitente o usar iniciales
+    const senderAvatarUrl = data.sender_avatar_url || '';
+    
+    // Construir URL del mensaje con conversation_id si está disponible
+    let messagesUrl = data.messages_url;
+    if (data.conversation_id) {
+      // Si tenemos conversation_id, agregarlo como parámetro para abrir el chat específico
+      const url = new URL(data.messages_url);
+      url.searchParams.set('conversation', data.conversation_id);
+      messagesUrl = url.toString();
+    }
+
     // Replace placeholders in the template
     const emailContent = emailTemplate
       .replace(/\{\{sender_name\}\}/g, data.sender_name)
       .replace(/\{\{sender_initials\}\}/g, senderInitials)
       .replace(/\{\{sender_type_label\}\}/g, senderTypeLabel)
+      .replace(/\{\{sender_avatar_url\}\}/g, senderAvatarUrl)
       .replace(/\{\{message_preview\}\}/g, data.message_preview)
       .replace(/\{\{message_time\}\}/g, data.message_time)
-      .replace(/\{\{messages_url\}\}/g, data.messages_url);
+      .replace(/\{\{messages_url\}\}/g, messagesUrl)
+      .replace(/\{\{logo_url\}\}/g, logoUrl);
 
     // Send email using Resend
     const { data: emailData, error } = await resend.emails.send({

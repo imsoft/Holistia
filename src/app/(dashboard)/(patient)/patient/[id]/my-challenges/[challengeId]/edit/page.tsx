@@ -37,8 +37,10 @@ export default function EditChallengePage() {
           category,
           wellness_areas,
           created_by_type,
+          created_by_user_id,
           linked_professional_id,
           is_active,
+          is_public,
           created_at
         `)
         .eq('id', challengeId)

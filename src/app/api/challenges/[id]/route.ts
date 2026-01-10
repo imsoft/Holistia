@@ -107,6 +107,7 @@ export async function PUT(
       linked_professional_id,
       professional_id,
       is_active,
+      is_public,
     } = body;
 
     // Si se vincula a un profesional, verificar que existe
@@ -158,6 +159,7 @@ export async function PUT(
       updateData.professional_id = professional_id || null;
     }
     if (is_active !== undefined) updateData.is_active = is_active;
+    if (is_public !== undefined) updateData.is_public = is_public;
 
     const { data: challenge, error: updateError } = await supabase
       .from('challenges')

@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Switch } from "@/components/ui/switch";
 import {
   Select,
   SelectContent,
@@ -16,7 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { WellnessAreasSelector } from "@/components/ui/wellness-areas-selector";
-import { Upload, X, Loader2, Plus, Trash2, BookOpen, Headphones, Video, FileText, ExternalLink, File, UserPlus, Users } from "lucide-react";
+import { Upload, X, Loader2, Plus, Trash2, BookOpen, Headphones, Video, FileText, ExternalLink, File, UserPlus, Users, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 import { createClient } from "@/utils/supabase/client";
 
@@ -31,6 +32,7 @@ interface ChallengeFormProps {
 interface ChallengeFormData {
   title: string;
   description: string;
+  short_description: string;
   cover_image_url: string;
   duration_days: string;
   difficulty_level: string;
@@ -40,6 +42,7 @@ interface ChallengeFormData {
   price: string;
   currency: string;
   is_active: boolean;
+  is_public: boolean;
 }
 
 interface ResourceFormData {
@@ -76,6 +79,7 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
   const [formData, setFormData] = useState<ChallengeFormData>({
     title: "",
     description: "",
+    short_description: "",
     cover_image_url: "",
     duration_days: "",
     difficulty_level: "",
@@ -85,6 +89,7 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
     price: "",
     currency: "MXN",
     is_active: true,
+    is_public: false, // Por defecto privado para pacientes
   });
 
   const [professionals, setProfessionals] = useState<any[]>([]);
@@ -135,8 +140,9 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
   useEffect(() => {
     if (challenge) {
       setFormData({
-        title: challenge.title,
-        description: challenge.description,
+        title: challenge.title || "",
+        description: challenge.description || "",
+        short_description: challenge.short_description || "",
         cover_image_url: challenge.cover_image_url || "",
         duration_days: challenge.duration_days?.toString() || "",
         difficulty_level: challenge.difficulty_level || "",
@@ -145,7 +151,8 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
         linked_professional_id: challenge.linked_professional_id || "none",
         price: challenge.price?.toString() || "",
         currency: challenge.currency || "MXN",
-        is_active: challenge.is_active,
+        is_active: challenge.is_active !== undefined ? challenge.is_active : true,
+        is_public: challenge.is_public !== undefined ? challenge.is_public : false,
       });
     }
   }, [challenge]);
@@ -335,13 +342,13 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
         }
       }
 
-      const challengeData = {
+      const challengeData: any = {
         professional_id: finalProfessionalId || null,
         created_by_user_id: user.id,
         created_by_type: userType,
         title: formData.title.trim(),
         description: formData.description.trim(),
-        short_description: null,
+        short_description: formData.short_description?.trim() || null,
         cover_image_url: formData.cover_image_url || null,
         duration_days: formData.duration_days ? parseInt(formData.duration_days) : null,
         difficulty_level: formData.difficulty_level || null,
@@ -352,6 +359,11 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
         currency: isProfessional && formData.price ? formData.currency : null,
         is_active: formData.is_active,
       };
+
+      // Agregar is_public si está definido (después de ejecutar la migración 175)
+      if (typeof formData.is_public === 'boolean') {
+        challengeData.is_public = formData.is_public;
+      }
 
       let createdChallengeId: string;
 
@@ -501,6 +513,21 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
           </div>
 
           <div className="space-y-2">
+            <Label htmlFor="short_description">Descripción Corta (Opcional)</Label>
+            <Textarea
+              id="short_description"
+              value={formData.short_description}
+              onChange={(e) => setFormData({ ...formData, short_description: e.target.value })}
+              placeholder="Descripción breve para mostrar en cards..."
+              rows={2}
+              maxLength={200}
+            />
+            <p className="text-xs text-muted-foreground">
+              {formData.short_description.length}/200 caracteres
+            </p>
+          </div>
+
+          <div className="space-y-2">
             <Label htmlFor="linked_professional_id">
               {isProfessional ? "Profesional Vinculado" : "Vincular a Profesional (Opcional)"}
             </Label>
@@ -527,6 +554,34 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
               </p>
             )}
           </div>
+
+          {/* Visibilidad Pública/Privada - Solo para pacientes */}
+          {!isProfessional && (
+            <div className="flex items-center justify-between space-x-4 rounded-lg border p-4">
+              <div className="flex-1 space-y-1">
+                <div className="flex items-center gap-2">
+                  {formData.is_public ? (
+                    <Eye className="h-4 w-4" />
+                  ) : (
+                    <EyeOff className="h-4 w-4" />
+                  )}
+                  <Label htmlFor="is_public" className="cursor-pointer">
+                    Reto Público
+                  </Label>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  {formData.is_public
+                    ? "El reto será visible para todos los usuarios en la plataforma"
+                    : "El reto será privado, solo visible para ti y las personas que invites"}
+                </p>
+              </div>
+              <Switch
+                id="is_public"
+                checked={formData.is_public}
+                onCheckedChange={(checked) => setFormData({ ...formData, is_public: checked })}
+              />
+            </div>
+          )}
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">

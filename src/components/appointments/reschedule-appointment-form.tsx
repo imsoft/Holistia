@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Calendar, Clock, Loader2, AlertCircle, ArrowLeft } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Card, CardContent } from "@/components/ui/card";
@@ -27,6 +28,7 @@ export function RescheduleAppointmentForm({
   const [currentTime, setCurrentTime] = useState("");
   const [newDate, setNewDate] = useState("");
   const [newTime, setNewTime] = useState("");
+  const [rescheduleReason, setRescheduleReason] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -109,6 +111,15 @@ export function RescheduleAppointmentForm({
       return;
     }
 
+    // Validar que solo se pueda reprogramar hasta una hora antes de la cita
+    const appointmentDateTime = new Date(`${currentDate}T${currentTime}`);
+    const oneHourBefore = new Date(appointmentDateTime.getTime() - 60 * 60 * 1000); // Restar 1 hora
+
+    if (now >= oneHourBefore) {
+      setError("Solo puedes reprogramar una cita hasta una hora antes de la fecha y hora programada");
+      return;
+    }
+
     // Validar que la nueva fecha sea diferente a la actual
     if (newDate === currentDate && newTime === currentTime) {
       setError("La nueva fecha y hora deben ser diferentes a la actual");
@@ -129,6 +140,7 @@ export function RescheduleAppointmentForm({
           newDate,
           newTime,
           rescheduledBy: userRole,
+          rescheduleReason: rescheduleReason.trim() || null,
         }),
       });
 
@@ -246,6 +258,25 @@ export function RescheduleAppointmentForm({
             />
             <p className="text-xs text-muted-foreground">
               * Selecciona la hora de inicio de la cita
+            </p>
+          </div>
+
+          {/* Razón de reprogramación (opcional) */}
+          <div className="space-y-2">
+            <Label htmlFor="rescheduleReason">
+              Razón de reprogramación (opcional)
+            </Label>
+            <Textarea
+              id="rescheduleReason"
+              value={rescheduleReason}
+              onChange={(e) => setRescheduleReason(e.target.value)}
+              disabled={isSubmitting}
+              className="w-full min-h-[100px]"
+              placeholder="Explica brevemente por qué necesitas reprogramar esta cita..."
+              maxLength={500}
+            />
+            <p className="text-xs text-muted-foreground">
+              {rescheduleReason.length}/500 caracteres
             </p>
           </div>
 

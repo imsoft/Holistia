@@ -22,7 +22,7 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { appointmentId, newDate, newTime, rescheduledBy } = body;
+    const { appointmentId, newDate, newTime, rescheduledBy, rescheduleReason } = body;
 
     if (!appointmentId || !newDate || !newTime || !rescheduledBy) {
       return NextResponse.json(
@@ -86,16 +86,20 @@ export async function POST(request: Request) {
     const oldTime = appointment.appointment_time;
 
     // Actualizar la cita
+    const updateData: any = {
+      appointment_date: newDate,
+      appointment_time: newTime,
+      updated_at: new Date().toISOString(),
+    };
+
+    // Agregar razón de reprogramación si se proporciona
+    if (rescheduleReason && rescheduleReason.trim()) {
+      updateData.reschedule_reason = rescheduleReason.trim();
+    }
+
     const { error: updateError } = await supabase
       .from("appointments")
-      .update({
-        appointment_date: newDate,
-        appointment_time: newTime,
-        updated_at: new Date().toISOString(),
-        // Opcional: agregar campo para tracking de reprogramación
-        // rescheduled_at: new Date().toISOString(),
-        // rescheduled_by: rescheduledBy,
-      })
+      .update(updateData)
       .eq("id", appointmentId);
 
     if (updateError) {

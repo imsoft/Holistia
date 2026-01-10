@@ -19,6 +19,7 @@ import {
   Languages,
   ShoppingBag,
   MessageSquare,
+  FileText,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import MapboxMap from "@/components/ui/mapbox-map";
@@ -69,10 +70,12 @@ interface Professional {
   experience: string;
   certifications: string[];
   services: Array<{
+    id?: string;
     name: string;
     description: string;
     presencialCost: string;
     onlineCost: string;
+    pricing_type?: "fixed" | "quote";
     image_url?: string;
   }>;
   address: string;
@@ -105,7 +108,8 @@ interface ProfessionalService {
   isactive: boolean;
   created_at: string;
   updated_at: string;
-  cost: number;
+  cost: number | null;
+  pricing_type?: "fixed" | "quote";
   program_duration: Record<string, unknown> | null;
   image_url?: string | null;
 }
@@ -161,6 +165,14 @@ export default function ProfessionalProfilePage() {
   const [challenges, setChallenges] = useState<any[]>([]);
   const [isMessageDialogOpen, setIsMessageDialogOpen] = useState(false);
   const [conversationId, setConversationId] = useState<string | null>(null);
+  const [isQuoteDialogOpen, setIsQuoteDialogOpen] = useState(false);
+  const [selectedServiceForQuote, setSelectedServiceForQuote] = useState<{
+    id?: string;
+    name: string;
+    description: string;
+  } | null>(null);
+  const [quoteDetails, setQuoteDetails] = useState("");
+  const [quoteLoading, setQuoteLoading] = useState(false);
 
   const params = useParams();
   const supabase = createClient();
@@ -272,17 +284,22 @@ export default function ProfessionalProfilePage() {
         // Convertir servicios de la nueva estructura a la estructura esperada
         // Agrupar servicios por nombre para combinar modalidades
         const servicesMap = new Map<string, {
+          id: string;
           name: string;
           description: string;
           presencialCost: string;
           onlineCost: string;
+          pricing_type?: "fixed" | "quote";
           image_url?: string;
         }>();
 
         // Procesar servicios de la tabla professional_services
         (servicesData as ProfessionalService[] || []).forEach((service: ProfessionalService) => {
           console.log('🔍 Procesando servicio de professional_services:', {
+            id: service.id,
             name: service.name,
+            pricing_type: service.pricing_type,
+            cost: service.cost,
             image_url: service.image_url,
             hasImage: !!service.image_url
           });
@@ -290,15 +307,23 @@ export default function ProfessionalProfilePage() {
           const existing = servicesMap.get(service.name);
 
           if (existing) {
-            // Si ya existe, actualizar costos según la modalidad
-            const costStr = service.cost ? service.cost.toString() : '';
-            if (service.modality === 'presencial') {
-              existing.presencialCost = costStr;
-            } else if (service.modality === 'online') {
-              existing.onlineCost = costStr;
-            } else if (service.modality === 'both') {
-              existing.presencialCost = costStr;
-              existing.onlineCost = costStr;
+            // Si ya existe, actualizar costos según la modalidad (solo si es precio fijo)
+            if (service.pricing_type === 'fixed' && service.cost) {
+              const costStr = service.cost.toString();
+              if (service.modality === 'presencial') {
+                existing.presencialCost = costStr;
+              } else if (service.modality === 'online') {
+                existing.onlineCost = costStr;
+              } else if (service.modality === 'both') {
+                existing.presencialCost = costStr;
+                existing.onlineCost = costStr;
+              }
+            }
+            // Actualizar pricing_type si es cotización (tiene prioridad)
+            if (service.pricing_type === 'quote') {
+              existing.pricing_type = 'quote';
+              existing.presencialCost = '';
+              existing.onlineCost = '';
             }
             // Priorizar imagen: si el servicio actual tiene imagen, usarla (incluso si el existente ya tiene una)
             // Esto asegura que siempre tengamos la imagen más reciente
@@ -308,14 +333,40 @@ export default function ProfessionalProfilePage() {
             }
           } else {
             // Crear nuevo servicio
-            const costStr = service.cost ? service.cost.toString() : '';
-            servicesMap.set(service.name, {
+            const serviceObj: {
+              id: string;
+              name: string;
+              description: string;
+              presencialCost: string;
+              onlineCost: string;
+              pricing_type?: "fixed" | "quote";
+              image_url?: string;
+            } = {
+              id: service.id,
               name: service.name,
               description: service.description || '',
-              presencialCost: (service.modality === 'presencial' || service.modality === 'both') ? costStr : '',
-              onlineCost: (service.modality === 'online' || service.modality === 'both') ? costStr : '',
+              presencialCost: '',
+              onlineCost: '',
+              pricing_type: service.pricing_type || 'fixed',
               image_url: service.image_url || undefined
-            });
+            };
+            
+            // Si es precio fijo, asignar costos según modalidad
+            if (service.pricing_type === 'fixed' && service.cost) {
+              const costStr = service.cost.toString();
+              if (service.modality === 'presencial' || service.modality === 'both') {
+                serviceObj.presencialCost = costStr;
+              }
+              if (service.modality === 'online' || service.modality === 'both') {
+                serviceObj.onlineCost = costStr;
+              }
+            } else if (service.pricing_type === 'quote') {
+              // Si es cotización, no asignar costos
+              serviceObj.presencialCost = '';
+              serviceObj.onlineCost = '';
+            }
+            
+            servicesMap.set(service.name, serviceObj);
             if (service.image_url) {
               console.log('✅ Agregando servicio con imagen:', service.name, service.image_url);
             }
@@ -339,12 +390,14 @@ export default function ProfessionalProfilePage() {
                 existing.onlineCost = service.onlineCost.toString();
               }
             } else {
-              // Crear nuevo servicio
+              // Crear nuevo servicio (legacy - no tiene id ni pricing_type)
               servicesMap.set(service.name, {
+                id: `legacy-${service.name}`, // ID temporal para servicios legacy
                 name: service.name,
                 description: service.description || '',
                 presencialCost: service.presencialCost ? service.presencialCost.toString() : '',
                 onlineCost: service.onlineCost ? service.onlineCost.toString() : '',
+                pricing_type: 'fixed', // Los servicios legacy son precio fijo
                 image_url: undefined // Los servicios legacy no tienen imagen
               });
             }
@@ -355,10 +408,11 @@ export default function ProfessionalProfilePage() {
         
         const convertedServices = Array.from(servicesMap.values());
         
-        // Filtrar servicios que tengan al menos un costo configurado
+        // Filtrar servicios: mostrar si tienen costo (precio fijo) o si son de cotización
         const validServices = convertedServices.filter(service => 
-          (service.presencialCost && service.presencialCost !== '') || 
-          (service.onlineCost && service.onlineCost !== '')
+          service.pricing_type === 'quote' || // Mostrar servicios de cotización
+          (service.presencialCost && service.presencialCost !== '' && service.presencialCost !== '0' && Number(service.presencialCost) > 0) || 
+          (service.onlineCost && service.onlineCost !== '' && service.onlineCost !== '0' && Number(service.onlineCost) > 0)
         );
         
         console.log('📋 Servicios de professional_services:', servicesData);
@@ -662,12 +716,12 @@ export default function ProfessionalProfilePage() {
 
   // Función para compartir el perfil del profesional (solo copiar enlace)
   const handleShare = async () => {
-    if (!professional) return;
+    if (!professional || !patientId) return;
 
-    const publicUrl = `${window.location.origin}/public/professional/${professional.id}`;
+    const shareUrl = `${window.location.origin}/patient/${patientId}/explore/professional/${professional.id}`;
 
     try {
-      await navigator.clipboard.writeText(publicUrl);
+      await navigator.clipboard.writeText(shareUrl);
       toast.success('Enlace copiado al portapapeles');
     } catch (error) {
       console.error('Error al copiar enlace:', error);
@@ -702,6 +756,67 @@ export default function ProfessionalProfilePage() {
   };
 
 
+
+  const handleRequestQuote = async () => {
+    if (!selectedServiceForQuote || !currentUser || !professional || !quoteDetails.trim()) {
+      toast.error('Por favor, describe qué necesitas del servicio');
+      return;
+    }
+
+    try {
+      setQuoteLoading(true);
+
+      // Crear o obtener la conversación con el profesional
+      const conversationResponse = await fetch('/api/messages/conversations', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          professional_id: professional.id,
+        }),
+      });
+
+      if (!conversationResponse.ok) {
+        const errorData = await conversationResponse.json();
+        throw new Error(errorData.error || 'Error al crear conversación');
+      }
+
+      const { conversation } = await conversationResponse.json();
+
+      // Enviar mensaje inicial con los detalles de la cotización
+      const messageContent = `Solicitud de cotización para: "${selectedServiceForQuote.name}"\n\nDetalles:\n${quoteDetails.trim()}`;
+
+      const messageResponse = await fetch(`/api/messages/conversations/${conversation.id}/messages`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          content: messageContent,
+        }),
+      });
+
+      if (!messageResponse.ok) {
+        const errorData = await messageResponse.json();
+        throw new Error(errorData.error || 'Error al enviar mensaje');
+      }
+
+      toast.success('Solicitud de cotización enviada. El profesional te contactará pronto.');
+      setIsQuoteDialogOpen(false);
+      setQuoteDetails("");
+      setSelectedServiceForQuote(null);
+      
+      // Abrir el chat para que el usuario pueda ver la conversación
+      setConversationId(conversation.id);
+      setIsMessageDialogOpen(true);
+    } catch (error) {
+      console.error('Error requesting quote:', error);
+      toast.error(error instanceof Error ? error.message : 'Error al solicitar cotización');
+    } finally {
+      setQuoteLoading(false);
+    }
+  };
 
   const handleOpenMessageDialog = async () => {
     if (!professional) {
@@ -1134,12 +1249,10 @@ export default function ProfessionalProfilePage() {
                   Servicios
                 </h2>
                 <div className="space-y-4">
-                  {professional.services.filter(service => 
-                    (service.presencialCost && service.presencialCost !== '') || 
-                    (service.onlineCost && service.onlineCost !== '')
-                  ).map((service, index) => {
-                    const hasPresencial = service.presencialCost && service.presencialCost !== '' && service.presencialCost !== '0' && Number(service.presencialCost) > 0;
-                    const hasOnline = service.onlineCost && service.onlineCost !== '' && service.onlineCost !== '0' && Number(service.onlineCost) > 0;
+                  {professional.services.map((service, index) => {
+                    const isQuote = service.pricing_type === 'quote';
+                    const hasPresencial = !isQuote && service.presencialCost && service.presencialCost !== '' && service.presencialCost !== '0' && Number(service.presencialCost) > 0;
+                    const hasOnline = !isQuote && service.onlineCost && service.onlineCost !== '' && service.onlineCost !== '0' && Number(service.onlineCost) > 0;
 
                     return (
                     <div
@@ -1171,35 +1284,56 @@ export default function ProfessionalProfilePage() {
                             />
                           )}
                           <div className="flex flex-wrap gap-2 sm:gap-3">
-                            {hasPresencial && (
+                            {isQuote ? (
                               <button
                                 onClick={() => {
-                                  setSelectedService(`${service.name}-presencial`);
-                                  setIsBookingModalOpen(true);
+                                  setSelectedServiceForQuote({
+                                    id: service.id,
+                                    name: service.name,
+                                    description: service.description || '',
+                                  });
+                                  setIsQuoteDialogOpen(true);
                                 }}
                                 className="flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 bg-primary hover:bg-primary/90 text-white rounded-lg transition-colors cursor-pointer"
                               >
-                                <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                                <FileText className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                                 <span className="text-xs sm:text-sm font-medium">
-                                  Presencial: {formatPrice(parseInt(service.presencialCost))}
+                                  Solicitar Cotización
                                 </span>
-                                <Calendar className="h-3.5 w-3.5 sm:h-4 sm:w-4 ml-1" />
                               </button>
-                            )}
-                            {hasOnline && (
-                              <button
-                                onClick={() => {
-                                  setSelectedService(`${service.name}-online`);
-                                  setIsBookingModalOpen(true);
-                                }}
-                                className="flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 bg-primary hover:bg-primary/90 text-white rounded-lg transition-colors cursor-pointer"
-                              >
-                                <Monitor className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                                <span className="text-xs sm:text-sm font-medium">
-                                  En línea: {formatPrice(parseInt(service.onlineCost))}
-                                </span>
-                                <Calendar className="h-3.5 w-3.5 sm:h-4 sm:w-4 ml-1" />
-                              </button>
+                            ) : (
+                              <>
+                                {hasPresencial && (
+                                  <button
+                                    onClick={() => {
+                                      setSelectedService(`${service.name}-presencial`);
+                                      setIsBookingModalOpen(true);
+                                    }}
+                                    className="flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 bg-primary hover:bg-primary/90 text-white rounded-lg transition-colors cursor-pointer"
+                                  >
+                                    <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                                    <span className="text-xs sm:text-sm font-medium">
+                                      Presencial: {formatPrice(parseInt(service.presencialCost))}
+                                    </span>
+                                    <Calendar className="h-3.5 w-3.5 sm:h-4 sm:w-4 ml-1" />
+                                  </button>
+                                )}
+                                {hasOnline && (
+                                  <button
+                                    onClick={() => {
+                                      setSelectedService(`${service.name}-online`);
+                                      setIsBookingModalOpen(true);
+                                    }}
+                                    className="flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 bg-primary hover:bg-primary/90 text-white rounded-lg transition-colors cursor-pointer"
+                                  >
+                                    <Monitor className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                                    <span className="text-xs sm:text-sm font-medium">
+                                      En línea: {formatPrice(parseInt(service.onlineCost))}
+                                    </span>
+                                    <Calendar className="h-3.5 w-3.5 sm:h-4 sm:w-4 ml-1" />
+                                  </button>
+                                )}
+                              </>
                             )}
                           </div>
                         </div>

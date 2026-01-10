@@ -189,10 +189,10 @@ const EventDetailPage = () => {
   };
 
   const handleShare = async () => {
-    const publicUrl = `${window.location.origin}/public/event/${eventId}`;
+    const shareUrl = `${window.location.origin}/patient/${userId}/explore/event/${slug}`;
 
     try {
-      await navigator.clipboard.writeText(publicUrl);
+      await navigator.clipboard.writeText(shareUrl);
       toast.success("Enlace copiado al portapapeles");
     } catch (error) {
       console.error("Error copying to clipboard:", error);

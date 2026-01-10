@@ -444,7 +444,7 @@ export default function AIAgentPage() {
                                 return (
                                 <Link
                                   key={prof.id}
-                                  href={user?.id ? `/patient/${user.id}/explore/professional/${prof.id}` : `/public/professional/${prof.id}`}
+                                  href={user?.id ? `/patient/${user.id}/explore/professional/${prof.id}` : `/login?redirect=/explore/professional/${prof.id}`}
                                   target="_blank"
                                 >
                                   <Card className="p-3 bg-background hover:bg-muted/50 transition-colors cursor-pointer mb-4">

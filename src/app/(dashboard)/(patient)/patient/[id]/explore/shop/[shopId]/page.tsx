@@ -65,6 +65,7 @@ interface ProductImage {
 export default function ShopDetailPage() {
   const params = useParams();
   const router = useRouter();
+  const userId = params.id as string;
   const shopId = params.shopId as string;
   const [shop, setShop] = useState<Shop | null>(null);
   const [products, setProducts] = useState<ShopProduct[]>([]);
@@ -72,10 +73,10 @@ export default function ShopDetailPage() {
   const supabase = createClient();
 
   const handleShare = async () => {
-    const publicUrl = `${window.location.origin}/public/shop/${shopId}`;
+    const shareUrl = `${window.location.origin}/patient/${userId}/explore/shop/${shopId}`;
 
     try {
-      await navigator.clipboard.writeText(publicUrl);
+      await navigator.clipboard.writeText(shareUrl);
       toast.success("Enlace copiado al portapapeles");
     } catch (error) {
       console.error("Error copying to clipboard:", error);

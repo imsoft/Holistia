@@ -16,11 +16,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Upload, X } from "lucide-react";
+import { Upload, X, DollarSign, FileText } from "lucide-react";
 import { Service, ServiceFormData } from "@/types/service";
 import { createClient } from "@/utils/supabase/client";
 import { toast } from "sonner";
 import { toTitleCase } from "@/lib/text-utils";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 interface ServiceFormProps {
   professionalId: string;
@@ -45,6 +46,7 @@ export function ServiceForm({
     modality: "both",
     duration: 60,
     cost: undefined,
+    pricing_type: "fixed",
   });
 
   const [programDuration, setProgramDuration] = useState({
@@ -94,6 +96,9 @@ export function ServiceForm({
           : 'both' as "presencial" | "online" | "both",
         duration: service.duration || 60,
         cost: serviceCost,
+        pricing_type: (service.pricing_type === 'quote' || service.pricing_type === 'fixed') 
+          ? service.pricing_type 
+          : (serviceCost !== null && serviceCost !== undefined) ? 'fixed' : 'quote' as "fixed" | "quote",
         address: service.address || "",
         image_url: service.image_url,
       };
@@ -317,11 +322,18 @@ export function ServiceForm({
       }
     }
 
-    // Validar costo
-    if (!formData.cost || formData.cost <= 0) {
-      errors.push("El costo del servicio debe ser mayor a 0");
-    } else if (formData.cost > 1000000) {
-      errors.push("El costo del servicio no puede exceder $1,000,000 MXN");
+    // Validar costo solo si es precio fijo
+    if (formData.pricing_type === 'fixed') {
+      if (!formData.cost || formData.cost <= 0) {
+        errors.push("El costo del servicio debe ser mayor a 0 cuando el tipo de precio es fijo");
+      } else if (formData.cost > 1000000) {
+        errors.push("El costo del servicio no puede exceder $1,000,000 MXN");
+      }
+    } else if (formData.pricing_type === 'quote') {
+      // Si es cotización, no debe tener costo
+      if (formData.cost !== null && formData.cost !== undefined) {
+        errors.push("Los servicios con cotización no deben tener un precio fijo");
+      }
     }
 
     // Validar imagen si se proporciona
@@ -368,7 +380,8 @@ export function ServiceForm({
           value: programDuration.value,
           unit: programDuration.unit
         } : null,
-        cost: formData.cost,
+        cost: formData.pricing_type === 'quote' ? null : formData.cost,
+        pricing_type: formData.pricing_type || 'fixed',
         address: formData.address?.trim() || null,
         image_url: formData.image_url || null,
         isactive: true,
@@ -543,23 +556,60 @@ export function ServiceForm({
           )}
 
           <div className="space-y-2">
-            <Label htmlFor="cost">Costo del Servicio (MXN) *</Label>
-            <Input
-              id="cost"
-              type="number"
-              value={formData.cost || ""}
-              onChange={(e) =>
+            <Label>Tipo de Precio *</Label>
+            <RadioGroup
+              value={formData.pricing_type || "fixed"}
+              onValueChange={(value: "fixed" | "quote") => {
                 setFormData({
                   ...formData,
-                  cost: e.target.value ? parseFloat(e.target.value) : undefined,
-                })
-              }
-              placeholder="800"
-              min="0"
-              step="0.01"
-              required
-            />
+                  pricing_type: value,
+                  cost: value === 'quote' ? null : formData.cost, // Limpiar costo si es cotización
+                });
+              }}
+            >
+              <div className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-muted/50 transition-colors">
+                <RadioGroupItem value="fixed" id="fixed" />
+                <Label htmlFor="fixed" className="flex items-center gap-2 cursor-pointer flex-1">
+                  <DollarSign className="w-4 h-4" />
+                  <div>
+                    <p className="font-medium">Precio Fijo</p>
+                    <p className="text-sm text-muted-foreground">Establece un precio específico para el servicio</p>
+                  </div>
+                </Label>
+              </div>
+              <div className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-muted/50 transition-colors">
+                <RadioGroupItem value="quote" id="quote" />
+                <Label htmlFor="quote" className="flex items-center gap-2 cursor-pointer flex-1">
+                  <FileText className="w-4 h-4" />
+                  <div>
+                    <p className="font-medium">Cotizar</p>
+                    <p className="text-sm text-muted-foreground">El usuario solicitará una cotización personalizada</p>
+                  </div>
+                </Label>
+              </div>
+            </RadioGroup>
           </div>
+
+          {formData.pricing_type === 'fixed' && (
+            <div className="space-y-2">
+              <Label htmlFor="cost">Costo del Servicio (MXN) *</Label>
+              <Input
+                id="cost"
+                type="number"
+                value={formData.cost || ""}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    cost: e.target.value ? parseFloat(e.target.value) : undefined,
+                  })
+                }
+                placeholder="800"
+                min="0"
+                step="0.01"
+                required
+              />
+            </div>
+          )}
 
           <div className="space-y-2">
             <Label htmlFor="address">Dirección del Servicio (Opcional)</Label>

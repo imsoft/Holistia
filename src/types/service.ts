@@ -9,7 +9,8 @@ export interface Service {
     value: number;
     unit: "meses" | "semanas" | "dias" | "horas";
   };
-  cost: number | { presencial?: number; online?: number }; // Temporal: puede ser number o jsonb
+  cost: number | { presencial?: number; online?: number } | null; // Temporal: puede ser number o jsonb, null si es cotización
+  pricing_type?: "fixed" | "quote"; // Tipo de precio: fijo o cotización
   address?: string; // Dirección específica del servicio (opcional)
   image_url?: string; // URL de la imagen del servicio
   isactive: boolean; // Nombre del campo en la base de datos
@@ -23,7 +24,8 @@ export interface ServiceFormData {
   type: "session" | "program";
   modality: "presencial" | "online" | "both";
   duration: number;
-  cost?: number; // Precio único
+  cost?: number | null; // Precio único, null si es cotización
+  pricing_type?: "fixed" | "quote"; // Tipo de precio
   address?: string; // Dirección específica del servicio (opcional)
   image_url?: string; // URL de la imagen del servicio
 }

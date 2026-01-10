@@ -44,16 +44,17 @@ interface HolisticCenter {
 export default function HolisticCenterDetailPage() {
   const params = useParams();
   const router = useRouter();
+  const userId = params.id as string;
   const centerId = params.centerId as string;
   const [center, setCenter] = useState<HolisticCenter | null>(null);
   const [loading, setLoading] = useState(true);
   const supabase = createClient();
 
   const handleShare = async () => {
-    const publicUrl = `${window.location.origin}/public/holistic-center/${centerId}`;
+    const shareUrl = `${window.location.origin}/patient/${userId}/explore/holistic-center/${centerId}`;
 
     try {
-      await navigator.clipboard.writeText(publicUrl);
+      await navigator.clipboard.writeText(shareUrl);
       toast.success("Enlace copiado al portapapeles");
     } catch (error) {
       console.error("Error copying to clipboard:", error);

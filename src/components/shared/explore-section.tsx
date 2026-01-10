@@ -663,7 +663,7 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
                         )}
                       </div>
                       <Button variant="default" size="sm" className="w-full" asChild>
-                        <Link href={`/public/shop/${shop.id}`}>
+                        <Link href={currentUserId ? `/patient/${currentUserId}/explore/shop/${shop.id}` : `/login?redirect=/explore/shop/${shop.id}`}>
                           Ver comercio
                         </Link>
                       </Button>
@@ -771,7 +771,7 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
                       )}
                     </div>
                     <Button variant="default" size="sm" className="w-full" asChild>
-                      <Link href={`/public/restaurant/${restaurant.id}`}>
+                      <Link href={currentUserId ? `/patient/${currentUserId}/explore/restaurant/${restaurant.id}` : `/login?redirect=/explore/restaurant/${restaurant.id}`}>
                         Ver restaurante
                       </Link>
                     </Button>
@@ -886,7 +886,7 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
                         )}
                       </div>
                       <Button variant="default" size="sm" className="w-full" asChild>
-                        <Link href={`/public/event/${event.id}`}>
+                        <Link href={currentUserId ? `/patient/${currentUserId}/explore/event/${event.id}` : `/login?redirect=/explore/event/${event.id}`}>
                           Ver evento
                         </Link>
                       </Button>
@@ -948,7 +948,7 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
                 return (
                   <Link
                     key={product.id}
-                    href={currentUserId ? `/patient/${currentUserId}/explore/program/${product.id}` : `/public/program/${product.id}`}
+                    href={currentUserId ? `/patient/${currentUserId}/explore/program/${product.id}` : `/login?redirect=/explore/program/${product.id}`}
                     className="shrink-0 w-[280px] sm:w-[320px]"
                   >
                     <Card className="group relative h-[480px] flex flex-col hover:shadow-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer">
@@ -1135,7 +1135,7 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
                           )}
                         </div>
                         <Button variant="default" size="sm" className="w-full" asChild>
-                          <Link href={`/public/holistic-center/${center.id}`}>
+                          <Link href={currentUserId ? `/patient/${currentUserId}/explore/holistic-center/${center.id}` : `/login?redirect=/explore/holistic-center/${center.id}`}>
                             Ver centro
                           </Link>
                         </Button>

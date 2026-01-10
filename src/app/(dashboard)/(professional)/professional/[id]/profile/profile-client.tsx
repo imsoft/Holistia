@@ -32,12 +32,12 @@ export function ProfessionalProfileClient({
   const [profilePhoto, setProfilePhoto] = useState(initialProfilePhoto);
 
   const handleShare = async () => {
-    // Crear slug: nombre-apellido-id
-    const slug = `${firstName.toLowerCase()}-${lastName.toLowerCase()}-${userId}`;
-    const publicUrl = `${window.location.origin}/public/professional/${slug}`;
+    // Usar el professionalId directamente (la ruta del dashboard del paciente usa el ID del profesional)
+    // Nota: El enlace compartido requerirá que el usuario inicie sesión para ver el perfil
+    const shareUrl = `${window.location.origin}/login?redirect=/explore/professional/${professionalId}`;
 
     try {
-      await navigator.clipboard.writeText(publicUrl);
+      await navigator.clipboard.writeText(shareUrl);
       toast.success("Enlace copiado al portapapeles");
     } catch (error) {
       console.error("Error copying to clipboard:", error);

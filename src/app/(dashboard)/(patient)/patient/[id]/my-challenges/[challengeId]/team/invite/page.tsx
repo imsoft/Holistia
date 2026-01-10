@@ -8,7 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, UserPlus, Check, Loader2, Users } from "lucide-react";
+import { UserPlus, Check, Loader2, Users } from "lucide-react";
 import { toast } from "sonner";
 import { createClient } from "@/utils/supabase/client";
 
@@ -185,31 +185,20 @@ export default function InviteTeamMembersPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="border-b border-border bg-card">
-        <div className="flex h-16 items-center gap-4 px-6">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => router.push(`/patient/${patientId}/my-challenges`)}
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <div className="flex-1">
+      {/* Main Content */}
+      <div className="p-6">
+        <div className="max-w-4xl mx-auto space-y-6">
+          {/* Título y subtítulo */}
+          <div>
             <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
               <UserPlus className="h-6 w-6" />
               Invitar Miembros
             </h1>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm text-muted-foreground mt-1">
               {team?.team_name || "Tu equipo"} - {team?.members.length || 0}/{team?.max_members || 5} miembros
             </p>
           </div>
-        </div>
-      </div>
 
-      {/* Main Content */}
-      <div className="p-6">
-        <div className="max-w-4xl mx-auto space-y-6">
           {/* Miembros actuales */}
           <Card>
             <CardHeader>

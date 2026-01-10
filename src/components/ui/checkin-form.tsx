@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Upload, Image as ImageIcon, Video, Headphones, FileText, Loader2, X } from "lucide-react";
+import { Upload, Image as ImageIcon, Headphones, FileText, Loader2, X } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 import { toast } from "sonner";
 import Image from "next/image";
@@ -23,7 +23,7 @@ export function CheckinForm({
   challengeDurationDays,
   onCheckinComplete,
 }: CheckinFormProps) {
-  const [evidenceType, setEvidenceType] = useState<'text' | 'photo' | 'video' | 'audio' | 'none'>('text');
+  const [evidenceType, setEvidenceType] = useState<'text' | 'photo' | 'audio' | 'none'>('text');
   const [notes, setNotes] = useState("");
   const [evidenceUrl, setEvidenceUrl] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -141,7 +141,6 @@ export function CheckinForm({
   const getFileIcon = () => {
     switch (evidenceType) {
       case 'photo': return ImageIcon;
-      case 'video': return Video;
       case 'audio': return Headphones;
       default: return FileText;
     }
@@ -169,10 +168,6 @@ export function CheckinForm({
             <Label htmlFor="photo" className="cursor-pointer">Foto</Label>
           </div>
           <div className="flex items-center space-x-2">
-            <RadioGroupItem value="video" id="video" />
-            <Label htmlFor="video" className="cursor-pointer">Video</Label>
-          </div>
-          <div className="flex items-center space-x-2">
             <RadioGroupItem value="audio" id="audio" />
             <Label htmlFor="audio" className="cursor-pointer">Audio</Label>
           </div>
@@ -182,7 +177,7 @@ export function CheckinForm({
       {evidenceType !== 'none' && evidenceType !== 'text' && (
         <div>
           <Label className="mb-2 block">
-            Subir {evidenceType === 'photo' ? 'foto' : evidenceType === 'video' ? 'video' : 'audio'}
+            Subir {evidenceType === 'photo' ? 'foto' : 'audio'}
           </Label>
           <div className="space-y-2">
             {evidenceUrl ? (
@@ -229,7 +224,6 @@ export function CheckinForm({
                   type="file"
                   accept={
                     evidenceType === 'photo' ? 'image/*' :
-                    evidenceType === 'video' ? 'video/*' :
                     'audio/*'
                   }
                   onChange={handleFileSelect}
@@ -250,7 +244,7 @@ export function CheckinForm({
                   ) : (
                     <>
                       <Upload className="h-4 w-4 mr-2" />
-                      Subir {evidenceType === 'photo' ? 'foto' : evidenceType === 'video' ? 'video' : 'audio'}
+                      Subir {evidenceType === 'photo' ? 'foto' : 'audio'}
                     </>
                   )}
                 </Button>

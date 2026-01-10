@@ -312,7 +312,7 @@ export default function HolisticCentersPage() {
                         )}
                         {center.address && (
                           <div className="flex items-start gap-2 mt-3 text-sm text-muted-foreground">
-                            <MapPin className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                            <MapPin className="h-4 w-4 mt-0.5 shrink-0" />
                             <span className="line-clamp-2">{center.address}</span>
                           </div>
                         )}

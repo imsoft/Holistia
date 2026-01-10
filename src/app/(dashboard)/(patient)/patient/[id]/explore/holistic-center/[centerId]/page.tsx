@@ -189,7 +189,7 @@ export default function HolisticCenterDetailPage() {
                 fallbackSrc="/logos/holistia-black.png"
               />
             ) : (
-              <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center">
+              <div className="w-full h-full bg-linear-to-br from-primary/20 to-primary/10 flex items-center justify-center">
                 <Building2 className="h-32 w-32 text-primary/40" />
               </div>
             )}
@@ -238,14 +238,14 @@ export default function HolisticCenterDetailPage() {
             <div className="space-y-3">
               {center.address && (
                 <div className="flex items-start gap-3 text-foreground">
-                  <MapPin className="h-5 w-5 flex-shrink-0 mt-0.5" />
+                  <MapPin className="h-5 w-5 shrink-0 mt-0.5" />
                   <span>{center.address}</span>
                 </div>
               )}
 
               {center.phone && (
                 <div className="flex items-center gap-3 text-foreground">
-                  <Phone className="h-5 w-5 flex-shrink-0" />
+                  <Phone className="h-5 w-5 shrink-0" />
                   <a href={`tel:${center.phone}`} className="hover:text-primary transition-colors">
                     {center.phone}
                   </a>
@@ -254,7 +254,7 @@ export default function HolisticCenterDetailPage() {
 
               {center.email && (
                 <div className="flex items-center gap-3 text-foreground">
-                  <Mail className="h-5 w-5 flex-shrink-0" />
+                  <Mail className="h-5 w-5 shrink-0" />
                   <a href={`mailto:${center.email}`} className="hover:text-primary transition-colors">
                     {center.email}
                   </a>
@@ -263,7 +263,7 @@ export default function HolisticCenterDetailPage() {
 
               {center.website && (
                 <div className="flex items-center gap-3 text-foreground">
-                  <Globe className="h-5 w-5 flex-shrink-0" />
+                  <Globe className="h-5 w-5 shrink-0" />
                   <a
                     href={center.website}
                     target="_blank"
@@ -278,7 +278,7 @@ export default function HolisticCenterDetailPage() {
 
               {center.instagram && (
                 <div className="flex items-center gap-3 text-foreground">
-                  <Instagram className="h-5 w-5 flex-shrink-0" />
+                  <Instagram className="h-5 w-5 shrink-0" />
                   <a
                     href={`https://instagram.com/${center.instagram.replace('@', '')}`}
                     target="_blank"

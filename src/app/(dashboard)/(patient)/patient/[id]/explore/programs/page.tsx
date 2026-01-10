@@ -7,7 +7,6 @@ import { createClient } from "@/utils/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { DigitalProductCard } from "@/components/ui/digital-product-card";
-import { Input } from "@/components/ui/input";
 
 interface DigitalProduct {
   id: string;
@@ -97,7 +96,6 @@ export default function ProgramsPage() {
   const [products, setProducts] = useState<DigitalProduct[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<DigitalProduct[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedCategoryTypes, setSelectedCategoryTypes] = useState<string[]>([]);
   const [selectedPriceOptions, setSelectedPriceOptions] = useState<string[]>([]);
@@ -182,17 +180,6 @@ export default function ProgramsPage() {
   useEffect(() => {
     let filtered = [...products];
 
-    // Filtrar por término de búsqueda
-    if (searchTerm) {
-      filtered = filtered.filter(
-        (product) =>
-          product.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          product.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          product.professional_applications?.first_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          product.professional_applications?.last_name?.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-
     // Filtrar por categorías de bienestar (wellness_areas)
     if (selectedCategories.length > 0) {
       filtered = filtered.filter((product) => {
@@ -242,7 +229,7 @@ export default function ProgramsPage() {
     }
 
     setFilteredProducts(filtered);
-  }, [searchTerm, selectedCategories, selectedCategoryTypes, selectedPriceOptions, products]);
+  }, [selectedCategories, selectedCategoryTypes, selectedPriceOptions, products]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -301,16 +288,6 @@ export default function ProgramsPage() {
               <h2 className="text-lg font-medium text-foreground">Filtros</h2>
             </div>
             <form className="divide-y divide-border space-y-6">
-              {/* Búsqueda */}
-              <div className="py-6 first:pt-0">
-                <Input
-                  placeholder="Buscar por título, descripción o profesional..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full"
-                />
-              </div>
-
               {/* Tipo de categoría */}
               <div className="py-6">
                 <fieldset>

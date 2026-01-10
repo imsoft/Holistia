@@ -533,15 +533,17 @@ export function ExploreSection({ hideHeader = false, userId }: ExploreSectionPro
                           unoptimized
                         />
                       ) : (
-                        <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center">
+                        <div className="w-full h-full bg-linear-to-br from-primary/20 to-primary/10 flex items-center justify-center">
                           <Store className="h-16 w-16 text-primary/40" />
                         </div>
                       )}
-                      <FavoriteButton
-                        itemId={shop.id}
-                        favoriteType="shop"
-                        variant="floating"
-                      />
+                      {userId && (
+                        <FavoriteButton
+                          itemId={shop.id}
+                          favoriteType="shop"
+                          variant="floating"
+                        />
+                      )}
                     </div>
                     <CardHeader className="pb-1.5 px-4 pt-3">
                       <CardTitle className="text-lg line-clamp-2">{shop.name}</CardTitle>
@@ -635,15 +637,17 @@ export function ExploreSection({ hideHeader = false, userId }: ExploreSectionPro
                         unoptimized
                       />
                     ) : (
-                      <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center">
+                      <div className="w-full h-full bg-linear-to-br from-primary/20 to-primary/10 flex items-center justify-center">
                         <UtensilsCrossed className="h-16 w-16 text-primary/40" />
                       </div>
                     )}
-                    <FavoriteButton
-                      itemId={restaurant.id}
-                      favoriteType="restaurant"
-                      variant="floating"
-                    />
+                    {userId && (
+                      <FavoriteButton
+                        itemId={restaurant.id}
+                        favoriteType="restaurant"
+                        variant="floating"
+                      />
+                    )}
                   </div>
                   <CardHeader className="pb-1.5 px-4 pt-3">
                     <CardTitle className="text-lg line-clamp-2">{restaurant.name}</CardTitle>
@@ -728,15 +732,17 @@ export function ExploreSection({ hideHeader = false, userId }: ExploreSectionPro
                           unoptimized
                         />
                       ) : (
-                        <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center">
+                        <div className="w-full h-full bg-linear-to-br from-primary/20 to-primary/10 flex items-center justify-center">
                           <Calendar className="h-16 w-16 text-primary/40" />
                         </div>
                       )}
-                      <FavoriteButton
-                        itemId={event.id}
-                        favoriteType="event"
-                        variant="floating"
-                      />
+                      {userId && (
+                        <FavoriteButton
+                          itemId={event.id}
+                          favoriteType="event"
+                          variant="floating"
+                        />
+                      )}
                     </div>
                     <CardHeader className="pb-1.5 px-4 pt-3">
                       <CardTitle className="text-lg line-clamp-2">{event.name}</CardTitle>
@@ -821,7 +827,7 @@ export function ExploreSection({ hideHeader = false, userId }: ExploreSectionPro
                 return (
                   <Link
                     key={product.id}
-                    href={userId ? `/patient/${userId}/explore/program/${product.id}` : `/signup`}
+                    href={userId ? `/patient/${userId}/explore/program/${product.id}` : `/public/program/${product.id}`}
                     className="flex-shrink-0 w-[280px] sm:w-[320px]"
                   >
                     <Card className="h-[480px] flex flex-col hover:shadow-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer">
@@ -838,6 +844,13 @@ export function ExploreSection({ hideHeader = false, userId }: ExploreSectionPro
                           <div className="w-full h-full bg-linear-to-br from-primary/20 to-primary/10 flex items-center justify-center">
                             <Sparkles className="h-16 w-16 text-primary/40" />
                           </div>
+                        )}
+                        {userId && (
+                          <FavoriteButton
+                            itemId={product.id}
+                            favoriteType="digital_product"
+                            variant="floating"
+                          />
                         )}
                       </div>
                       <CardHeader className="pb-1.5 px-4 pt-3">

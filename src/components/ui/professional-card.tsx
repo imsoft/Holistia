@@ -1,14 +1,13 @@
 "use client";
 
 import { Card, CardContent } from "@/components/ui/card";
-import { MapPin, Monitor, Heart } from "lucide-react";
+import { MapPin, Monitor } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { Professional } from "@/types";
-import { useState } from "react";
-import { createClient } from "@/utils/supabase/client";
 import { StarRating } from "@/components/reviews/star-rating";
 import { VerifiedBadge } from "@/components/ui/verified-badge";
+import { FavoriteButton } from "@/components/ui/favorite-button";
 
 interface ProfessionalCardProps {
   professional: Professional;
@@ -17,9 +16,6 @@ interface ProfessionalCardProps {
 }
 
 export const ProfessionalCard = ({ professional, userId, showFavoriteButton = true }: ProfessionalCardProps) => {
-  const [isFavorite, setIsFavorite] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const supabase = createClient();
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('es-MX', {
       style: 'currency',
@@ -111,41 +107,6 @@ export const ProfessionalCard = ({ professional, userId, showFavoriteButton = tr
     return 'Presencial';
   };
 
-  const handleToggleFavorite = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    if (isLoading) return;
-    
-    setIsLoading(true);
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      if (isFavorite) {
-        // Remove from favorites
-        await supabase
-          .from('user_favorites')
-          .delete()
-          .eq('user_id', user.id)
-          .eq('professional_id', professional.id);
-      } else {
-        // Add to favorites
-        await supabase
-          .from('user_favorites')
-          .insert({
-            user_id: user.id,
-            professional_id: professional.id
-          });
-      }
-      setIsFavorite(!isFavorite);
-    } catch (error) {
-      console.error('Error toggling favorite:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   // Construir la ruta correcta
   // Si hay userId, siempre usar ruta del paciente (no ruta pública)
   // Si no hay userId pero hay slug, usar ruta pública
@@ -160,23 +121,28 @@ export const ProfessionalCard = ({ professional, userId, showFavoriteButton = tr
     <Link href={professionalRoute}>
       <Card className="group overflow-hidden hover:shadow-xl hover:-translate-y-2 transition-all duration-300 border-border cursor-pointer h-full flex flex-col">
       <div className="relative w-full h-64 overflow-hidden bg-gray-100">
-        <Image
-          src={professional.profile_photo || professional.profilePhoto || professional.avatar || "/logos/holistia-black.png"}
-          alt={professional.name || `${professional.first_name || ''} ${professional.last_name || ''}`.trim()}
-          fill
-          className="object-cover"
-          style={{ objectPosition: professional.imagePosition || "center 20%" }}
-          unoptimized
-        />
+        <div className="absolute inset-0 overflow-hidden">
+          <Image
+            src={professional.profile_photo || professional.profilePhoto || professional.avatar || "/logos/holistia-black.png"}
+            alt={professional.name || `${professional.first_name || ''} ${professional.last_name || ''}`.trim()}
+            fill
+            className="object-cover"
+            style={{ objectPosition: professional.imagePosition || "center 20%" }}
+            unoptimized
+          />
+        </div>
         {/* Favorite button */}
         {showFavoriteButton && (
-          <button
-            onClick={handleToggleFavorite}
-            disabled={isLoading}
-            className="absolute top-3 right-3 p-2 bg-white/90 backdrop-blur-sm rounded-full hover:bg-white transition-colors shadow-sm group/favorite"
+          <div 
+            className="absolute top-3 right-3 pointer-events-auto" 
+            style={{ zIndex: 9999, position: 'absolute', top: '12px', right: '12px' }}
           >
-            <Heart className={`h-4 w-4 transition-colors ${isFavorite ? 'text-red-500 fill-red-500' : 'text-muted-foreground hover:text-red-500 hover:fill-red-500'}`} />
-          </button>
+            <FavoriteButton
+              itemId={professional.id}
+              favoriteType="professional"
+              variant="floating"
+            />
+          </div>
         )}
       </div>
 

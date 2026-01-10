@@ -36,12 +36,27 @@ export default function EditServicePage() {
           name: data?.name,
           type: data?.type,
           description: data?.description,
+          description_type: typeof data?.description,
+          description_is_null: data?.description === null,
+          description_is_undefined: data?.description === undefined,
+          description_length: data?.description ? data.description.length : 0,
           modality: data?.modality,
           cost: data?.cost,
           program_duration: data?.program_duration,
         });
         
-        setService(data);
+        // Asegurar que description siempre sea string, incluso si es null
+        const serviceWithDescription = {
+          ...data,
+          description: data?.description ?? "", // Convertir null/undefined a string vacío
+        };
+        
+        console.log('📦 [EditServicePage] Servicio normalizado:', {
+          ...serviceWithDescription,
+          description_length: serviceWithDescription.description.length,
+        });
+        
+        setService(serviceWithDescription);
       } catch (error) {
         console.error("Error fetching service:", error);
         toast.error("Error al cargar el servicio");

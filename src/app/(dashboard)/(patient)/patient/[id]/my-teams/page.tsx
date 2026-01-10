@@ -295,16 +295,32 @@ export default function MyTeamsPage() {
                   </div>
                 </div>
 
-                {/* Botón de acción */}
-                <Button
-                  className="w-full"
-                  onClick={() =>
-                    router.push(`/patient/${userId}/my-challenges?challenge=${team.challenge_id}&team=${team.id}`)
-                  }
-                >
-                  Ver Equipo
-                  <ArrowRight className="h-4 w-4 ml-2" />
-                </Button>
+                {/* Botones de acción */}
+                <div className="space-y-2">
+                  <Button
+                    className="w-full"
+                    onClick={() =>
+                      router.push(`/patient/${userId}/my-challenges?challenge=${team.challenge_id}&team=${team.id}`)
+                    }
+                  >
+                    Ver Equipo
+                    <ArrowRight className="h-4 w-4 ml-2" />
+                  </Button>
+                  {team.is_creator && !team.is_full && (
+                    <Button
+                      variant="outline"
+                      className="w-full"
+                      onClick={() =>
+                        router.push(
+                          `/patient/${userId}/my-challenges/${team.challenge_id}/team/invite?teamId=${team.id}`
+                        )
+                      }
+                    >
+                      <UserPlus className="h-4 w-4 mr-2" />
+                      Invitar Miembros
+                    </Button>
+                  )}
+                </div>
               </CardContent>
             </Card>
           ))}

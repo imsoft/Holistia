@@ -22,8 +22,7 @@ export async function GET(request: Request) {
         members:challenge_team_members(
           id,
           user_id,
-          joined_at,
-          profile:profiles(first_name, last_name, avatar_url)
+          joined_at
         )
       `);
 
@@ -35,6 +34,42 @@ export async function GET(request: Request) {
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    // Obtener perfiles de los miembros por separado
+    if (data && data.length > 0) {
+      const allUserIds = new Set<string>();
+      data.forEach((team: any) => {
+        if (team.members) {
+          team.members.forEach((member: any) => {
+            allUserIds.add(member.user_id);
+          });
+        }
+      });
+
+      if (allUserIds.size > 0) {
+        const { data: profilesData } = await supabase
+          .from("profiles")
+          .select("id, first_name, last_name, avatar_url")
+          .in("id", Array.from(allUserIds));
+
+        if (profilesData) {
+          const profilesMap: Record<string, any> = {};
+          profilesData.forEach((profile) => {
+            profilesMap[profile.id] = profile;
+          });
+
+          // Agregar perfiles a los miembros
+          data.forEach((team: any) => {
+            if (team.members) {
+              team.members = team.members.map((member: any) => ({
+                ...member,
+                profile: profilesMap[member.user_id] || null,
+              }));
+            }
+          });
+        }
+      }
     }
 
     return NextResponse.json({ data: data || [] });

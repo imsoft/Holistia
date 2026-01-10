@@ -89,26 +89,61 @@ export function TeamChallengeDialog({
       const { data: membership } = await supabase
         .from("challenge_team_members")
         .select(`
-          team:challenge_teams(
+          team_id,
+          challenge_teams!inner(
             id,
             team_name,
             max_members,
             is_full,
-            challenge_id,
-            members:challenge_team_members(
-              id,
-              user_id,
-              profile:profiles(first_name, last_name, avatar_url)
-            )
+            challenge_id
           )
         `)
         .eq("user_id", user.id)
+        .eq("challenge_teams.challenge_id", challengeId)
         .maybeSingle();
 
-      if (membership?.team) {
-        const teamData = Array.isArray(membership.team) ? membership.team[0] : membership.team;
+      if (membership?.challenge_teams) {
+        const teamData = Array.isArray(membership.challenge_teams) 
+          ? membership.challenge_teams[0] 
+          : membership.challenge_teams;
+        
         if (teamData && teamData.challenge_id === challengeId) {
-          setTeam(teamData as any);
+          const teamId = teamData.id;
+
+          // Obtener miembros del equipo por separado
+          const { data: membersData } = await supabase
+            .from("challenge_team_members")
+            .select("id, user_id")
+            .eq("team_id", teamId);
+
+          // Obtener perfiles de los miembros
+          const userIds = (membersData || []).map((m) => m.user_id);
+          let profilesMap: Record<string, any> = {};
+
+          if (userIds.length > 0) {
+            const { data: profilesData } = await supabase
+              .from("profiles")
+              .select("id, first_name, last_name, avatar_url")
+              .in("id", userIds);
+
+            if (profilesData) {
+              profilesData.forEach((profile) => {
+                profilesMap[profile.id] = profile;
+              });
+            }
+          }
+
+          // Combinar datos
+          const members = (membersData || []).map((member) => ({
+            id: member.id,
+            user_id: member.user_id,
+            profile: profilesMap[member.user_id] || null,
+          }));
+
+          setTeam({
+            ...teamData,
+            members,
+          } as any);
           setStep("invite");
         }
       }

@@ -62,24 +62,56 @@ export default function InviteTeamMembersPage() {
     if (!teamId) return;
 
     try {
-      const { data, error } = await supabase
+      // Obtener el equipo
+      const { data: teamData, error: teamError } = await supabase
         .from("challenge_teams")
         .select(`
           id,
           team_name,
           max_members,
-          is_full,
-          members:challenge_team_members(
-            id,
-            user_id,
-            profile:profiles(first_name, last_name, avatar_url)
-          )
+          is_full
         `)
         .eq("id", teamId)
         .single();
 
-      if (error) throw error;
-      setTeam(data as any);
+      if (teamError) throw teamError;
+
+      // Obtener miembros del equipo
+      const { data: membersData, error: membersError } = await supabase
+        .from("challenge_team_members")
+        .select("id, user_id")
+        .eq("team_id", teamId);
+
+      if (membersError) throw membersError;
+
+      // Obtener perfiles de los miembros
+      const userIds = (membersData || []).map((m) => m.user_id);
+      let profilesMap: Record<string, any> = {};
+
+      if (userIds.length > 0) {
+        const { data: profilesData } = await supabase
+          .from("profiles")
+          .select("id, first_name, last_name, avatar_url")
+          .in("id", userIds);
+
+        if (profilesData) {
+          profilesData.forEach((profile) => {
+            profilesMap[profile.id] = profile;
+          });
+        }
+      }
+
+      // Combinar datos
+      const members = (membersData || []).map((member) => ({
+        id: member.id,
+        user_id: member.user_id,
+        profile: profilesMap[member.user_id] || null,
+      }));
+
+      setTeam({
+        ...teamData,
+        members,
+      } as any);
     } catch (error) {
       console.error("Error loading team:", error);
       toast.error("Error al cargar equipo");

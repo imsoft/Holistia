@@ -427,7 +427,7 @@ export default function RestaurantsPage() {
                 key={restaurant.id}
                 href={`/patient/${userId}/explore/restaurant/${restaurant.id}`}
               >
-                <Card className="hover:shadow-lg hover:-translate-y-2 transition-all duration-300 overflow-hidden cursor-pointer h-full flex flex-col">
+                <Card className="group hover:shadow-lg hover:-translate-y-2 transition-all duration-300 overflow-hidden cursor-pointer h-full flex flex-col">
                   <div className="relative w-full h-48">
                     {restaurant.image_url ? (
                       <StableImage
@@ -443,7 +443,7 @@ export default function RestaurantsPage() {
                     )}
                   </div>
                   <CardHeader>
-                    <CardTitle className="line-clamp-2">{restaurant.name}</CardTitle>
+                    <CardTitle className="line-clamp-2 group-hover:text-primary transition-colors">{restaurant.name}</CardTitle>
                     <div className="flex gap-2 mt-2">
                       {restaurant.cuisine_type && (
                         <Badge variant="secondary">{restaurant.cuisine_type}</Badge>

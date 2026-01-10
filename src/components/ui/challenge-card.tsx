@@ -160,7 +160,7 @@ export function ChallengeCard({ challenge, onJoin, userId }: ChallengeCardProps)
   };
 
   return (
-    <Card className="overflow-hidden hover:shadow-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer py-4">
+    <Card className="group overflow-hidden hover:shadow-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer py-4">
       <div className="relative h-48 w-full">
         <Image
           src={
@@ -189,7 +189,7 @@ export function ChallengeCard({ challenge, onJoin, userId }: ChallengeCardProps)
 
       <CardHeader>
         <div className="flex items-start justify-between gap-2">
-          <h3 className="font-semibold text-lg line-clamp-2 flex-1">
+          <h3 className="font-semibold text-lg line-clamp-2 flex-1 group-hover:text-primary transition-colors">
             {challenge.title}
           </h3>
         </div>

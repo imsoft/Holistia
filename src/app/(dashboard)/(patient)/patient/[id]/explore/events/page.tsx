@@ -303,7 +303,7 @@ export default function EventsPage() {
                     key={event.id}
                     href={`/patient/${userId}/explore/event/${generateEventSlug(event.name, event.id!)}`}
                   >
-                      <Card className="hover:shadow-lg hover:-translate-y-2 transition-all duration-300 overflow-hidden cursor-pointer h-full flex flex-col">
+                      <Card className="group hover:shadow-lg hover:-translate-y-2 transition-all duration-300 overflow-hidden cursor-pointer h-full flex flex-col">
                         <div className="relative w-full h-48">
                           <div className="absolute inset-0 overflow-hidden">
                             <StableImage
@@ -328,7 +328,7 @@ export default function EventsPage() {
                           </div>
                         </div>
                         <CardHeader className="pb-3">
-                          <CardTitle className="text-lg mb-1.5">{event.name}</CardTitle>
+                          <CardTitle className="text-lg mb-1.5 group-hover:text-primary transition-colors">{event.name}</CardTitle>
                           <div className="flex flex-wrap gap-2 mb-2">
                             <Badge variant="secondary">
                               {getCategoryLabel(event.category)}

@@ -743,7 +743,7 @@ const HomeUserPage = () => {
                       href={`/patient/${userId}/explore/program/${product.id}`}
                       className="shrink-0 w-96"
                     >
-                      <Card className="overflow-hidden hover:shadow-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer h-full flex flex-col">
+                      <Card className="group overflow-hidden hover:shadow-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer h-full flex flex-col">
                         <div className="relative h-64 w-full">
                           <div className="absolute inset-0 overflow-hidden">
                             {product.cover_image_url ? (
@@ -771,7 +771,7 @@ const HomeUserPage = () => {
                           </div>
                         </div>
                         <CardHeader className="pb-3">
-                          <CardTitle className="line-clamp-2">{product.title}</CardTitle>
+                          <CardTitle className="line-clamp-2 group-hover:text-primary transition-colors">{product.title}</CardTitle>
                           {product.professional_applications && (
                             <div className="flex items-center gap-2 mt-2 text-sm text-muted-foreground">
                               <span>Por {product.professional_applications.first_name} {product.professional_applications.last_name}</span>
@@ -855,7 +855,7 @@ const HomeUserPage = () => {
                       href={`/patient/${userId}/explore/event/${generateEventSlug(event.name, event.id!)}`}
                       className="shrink-0 w-96"
                     >
-                      <Card className="hover:shadow-lg hover:-translate-y-2 transition-all duration-300 overflow-hidden cursor-pointer h-full flex flex-col">
+                      <Card className="group hover:shadow-lg hover:-translate-y-2 transition-all duration-300 overflow-hidden cursor-pointer h-full flex flex-col">
                         <div className="relative w-full h-64 bg-gray-100">
                           <div className="absolute inset-0 overflow-hidden">
                             <Image
@@ -879,7 +879,7 @@ const HomeUserPage = () => {
                           </div>
                         </div>
                         <CardHeader className="pb-3">
-                          <CardTitle className="text-lg mb-1.5">{event.name}</CardTitle>
+                          <CardTitle className="text-lg mb-1.5 group-hover:text-primary transition-colors">{event.name}</CardTitle>
                           <div className="flex flex-wrap gap-2 mb-2">
                             <Badge variant="secondary">
                               {getCategoryLabel(event.category)}
@@ -1109,7 +1109,7 @@ const HomeUserPage = () => {
                       href={`/patient/${userId}/explore/restaurant/${restaurant.id}`}
                       className="shrink-0 w-96"
                     >
-                      <Card className="hover:shadow-lg hover:-translate-y-2 transition-all duration-300 overflow-hidden cursor-pointer h-full flex flex-col">
+                      <Card className="group hover:shadow-lg hover:-translate-y-2 transition-all duration-300 overflow-hidden cursor-pointer h-full flex flex-col">
                         <div className="relative w-full h-64 bg-gray-100">
                           <div className="absolute inset-0 overflow-hidden">
                             {restaurant.image_url ? (
@@ -1138,7 +1138,7 @@ const HomeUserPage = () => {
                           </div>
                         </div>
                         <CardHeader className="pb-3">
-                          <CardTitle className="line-clamp-2">{restaurant.name}</CardTitle>
+                          <CardTitle className="line-clamp-2 group-hover:text-primary transition-colors">{restaurant.name}</CardTitle>
                           <div className="flex gap-2 mt-1.5">
                             {restaurant.cuisine_type && (
                               <Badge variant="secondary">{restaurant.cuisine_type}</Badge>
@@ -1228,7 +1228,7 @@ const HomeUserPage = () => {
                       href={`/patient/${userId}/explore/shop/${shop.id}`}
                       className="shrink-0 w-96"
                     >
-                      <Card className="hover:shadow-lg hover:-translate-y-2 transition-all duration-300 overflow-hidden cursor-pointer h-full flex flex-col">
+                      <Card className="group hover:shadow-lg hover:-translate-y-2 transition-all duration-300 overflow-hidden cursor-pointer h-full flex flex-col">
                         <div className="relative w-full h-64 bg-gray-100">
                           <div className="absolute inset-0 overflow-hidden">
                             {shop.image_url ? (
@@ -1257,7 +1257,7 @@ const HomeUserPage = () => {
                           </div>
                         </div>
                         <CardHeader className="pb-3">
-                          <CardTitle className="line-clamp-2">{shop.name}</CardTitle>
+                          <CardTitle className="line-clamp-2 group-hover:text-primary transition-colors">{shop.name}</CardTitle>
                           {shop.category && (
                             <Badge variant="secondary" className="w-fit mt-1.5">{shop.category}</Badge>
                           )}
@@ -1353,7 +1353,7 @@ const HomeUserPage = () => {
                       href={`/patient/${userId}/explore/holistic-center/${center.id}`}
                       className="shrink-0 w-96"
                     >
-                      <Card className="hover:shadow-lg hover:-translate-y-2 transition-all duration-300 overflow-hidden cursor-pointer h-full flex flex-col">
+                      <Card className="group hover:shadow-lg hover:-translate-y-2 transition-all duration-300 overflow-hidden cursor-pointer h-full flex flex-col">
                         <div className="relative w-full h-64 bg-gray-100">
                           <div className="absolute inset-0 overflow-hidden">
                             {center.image_url ? (
@@ -1382,7 +1382,7 @@ const HomeUserPage = () => {
                           </div>
                         </div>
                         <CardHeader className="pb-3">
-                          <CardTitle className="line-clamp-2">{center.name}</CardTitle>
+                          <CardTitle className="line-clamp-2 group-hover:text-primary transition-colors">{center.name}</CardTitle>
                           <div className="flex gap-2 mt-1.5">
                             {center.city && (
                               <div className="flex items-center gap-1 text-xs text-muted-foreground">

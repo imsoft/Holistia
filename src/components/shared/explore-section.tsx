@@ -952,7 +952,7 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
                     href={currentUserId ? `/patient/${currentUserId}/explore/program/${product.id}` : `/public/program/${product.id}`}
                     className="shrink-0 w-[280px] sm:w-[320px]"
                   >
-                    <Card className="relative h-[480px] flex flex-col hover:shadow-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer">
+                    <Card className="group relative h-[480px] flex flex-col hover:shadow-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer">
                       <div className="relative w-full h-48 bg-gray-100 shrink-0">
                         <div className="absolute inset-0 overflow-hidden">
                           {product.cover_image_url ? (
@@ -983,7 +983,7 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
                         )}
                       </div>
                       <CardHeader className="pb-1.5 px-4 pt-3">
-                        <CardTitle className="text-lg line-clamp-2">{product.title}</CardTitle>
+                        <CardTitle className="text-lg line-clamp-2 group-hover:text-primary transition-colors">{product.title}</CardTitle>
                         <div className="flex flex-wrap gap-1.5 mt-1">
                           <Badge variant="secondary" className="text-xs">{product.category}</Badge>
                           {product.professional_applications && (
@@ -1069,7 +1069,7 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
                 const cleanDescription = center.description ? stripHtml(center.description) : null;
                 
                 return (
-                  <Card key={center.id} className="relative shrink-0 w-[280px] sm:w-[320px] h-[480px] flex flex-col hover:shadow-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer">
+                  <Card key={center.id} className="group relative shrink-0 w-[280px] sm:w-[320px] h-[480px] flex flex-col hover:shadow-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer">
                     <div className="relative w-full h-48 bg-gray-100 shrink-0">
                       <div className="absolute inset-0 overflow-hidden">
                         {center.image_url ? (
@@ -1100,7 +1100,7 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
                       )}
                     </div>
                     <CardHeader className="pb-1.5 px-4 pt-3">
-                      <CardTitle className="text-lg line-clamp-2">{center.name}</CardTitle>
+                      <CardTitle className="text-lg line-clamp-2 group-hover:text-primary transition-colors">{center.name}</CardTitle>
                       <div className="flex flex-wrap gap-1.5 mt-1">
                         {center.city && (
                           <div className="flex items-center gap-1 text-xs text-muted-foreground">

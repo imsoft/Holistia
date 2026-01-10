@@ -154,7 +154,8 @@ export default function GitHubCommitsPage() {
     // Prefijos comunes de commits convencionales
     const prefixes = [
       'feat', 'fix', 'refactor', 'chore', 'docs', 'style', 'test', 
-      'perf', 'build', 'ci', 'revert', 'merge', 'hotfix', 'release'
+      'perf', 'build', 'ci', 'revert', 'merge', 'hotfix', 'release',
+      'seo', 'ui', 'database'
     ];
     
     // Dividir el mensaje en líneas

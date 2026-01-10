@@ -299,9 +299,11 @@ export async function POST(
           recipient_email: recipientEmail,
           sender_name: senderName,
           sender_type: senderType,
+          sender_avatar_url: senderProfile?.avatar_url || null,
           message_preview: messagePreview,
           message_time: messageTime,
           messages_url: messagesUrl,
+          conversation_id: conversationId,
         });
       }
     } catch (emailError) {

@@ -665,8 +665,13 @@ export async function sendNewMessageNotification(data: NewMessageNotificationDat
     // Construir URL del logo de Holistia
     const logoUrl = 'https://www.holistia.io/logos/holistia-black.png';
     
-    // Construir URL de la foto de perfil del remitente o usar iniciales
-    const senderAvatarUrl = data.sender_avatar_url || '';
+    // Construir HTML del avatar del remitente (imagen si existe, sino iniciales)
+    let senderAvatarHtml = '';
+    if (data.sender_avatar_url) {
+      senderAvatarHtml = `<img src="${data.sender_avatar_url}" alt="${data.sender_name}" />`;
+    } else {
+      senderAvatarHtml = senderInitials;
+    }
     
     // Construir URL del mensaje con conversation_id si está disponible
     let messagesUrl = data.messages_url;
@@ -682,7 +687,7 @@ export async function sendNewMessageNotification(data: NewMessageNotificationDat
       .replace(/\{\{sender_name\}\}/g, data.sender_name)
       .replace(/\{\{sender_initials\}\}/g, senderInitials)
       .replace(/\{\{sender_type_label\}\}/g, senderTypeLabel)
-      .replace(/\{\{sender_avatar_url\}\}/g, senderAvatarUrl)
+      .replace(/\{\{sender_avatar_html\}\}/g, senderAvatarHtml)
       .replace(/\{\{message_preview\}\}/g, data.message_preview)
       .replace(/\{\{message_time\}\}/g, data.message_time)
       .replace(/\{\{messages_url\}\}/g, messagesUrl)

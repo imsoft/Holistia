@@ -9,6 +9,8 @@ import { createClient } from "@/utils/supabase/client";
 import { determineProfessionalModality, transformServicesFromDB } from "@/utils/professional-utils";
 import { Heart } from "lucide-react";
 import { FavoriteButton } from "@/components/ui/favorite-button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 
 interface Favorite {
   id: string;
@@ -166,38 +168,38 @@ const FavoritesPage = () => {
     }
   }, [userId, supabase]);
 
-  const handleRemoveFavorite = async (professionalId: string) => {
-    try {
-      console.log('Removing favorite:', professionalId);
-      
-      const { error } = await supabase
-        .from('user_favorites')
-        .delete()
-        .eq('user_id', userId)
-        .eq('professional_id', professionalId);
-
-      if (error) {
-        console.error('Error removing favorite:', {
-          message: error.message,
-          details: error.details,
-          hint: error.hint,
-          code: error.code
-        });
-        toast.error(`Error al eliminar de favoritos: ${error.message}`);
-        return;
-      }
-
-      console.log('Favorite removed successfully');
-      
-      // Actualizar el estado local
-      setFavorites(prev => prev.filter(fav => fav.professional_id !== professionalId));
-      setProfessionals(prev => prev.filter(prof => prof.id !== professionalId));
-      
-    } catch (error) {
-      console.error('Unexpected error removing favorite:', error);
-      toast.error('Error inesperado al eliminar de favoritos. Por favor intenta de nuevo.');
-    }
-  };
+  // Componente de skeleton para las cards de profesionales
+  const ProfessionalCardSkeleton = () => (
+    <div className="relative">
+      <Card className="h-full flex flex-col group overflow-hidden hover:shadow-xl hover:-translate-y-2 transition-all duration-300 border-border">
+        <div className="relative w-full h-64 overflow-hidden bg-gray-100">
+          <Skeleton className="w-full h-full" />
+        </div>
+        <CardContent className="px-4 pt-3 pb-4 flex flex-col grow">
+          <div className="space-y-2 flex flex-col grow">
+            <div>
+              <Skeleton className="h-5 w-3/4 mb-2" />
+              <div className="flex items-center justify-between gap-2 mt-1">
+                <Skeleton className="h-4 w-1/2" />
+                <Skeleton className="h-4 w-16" />
+              </div>
+            </div>
+            <div className="flex gap-1 mb-2">
+              <Skeleton className="h-5 w-20 rounded-full" />
+              <Skeleton className="h-5 w-16 rounded-full" />
+            </div>
+            <div className="space-y-1 mt-auto">
+              <Skeleton className="h-4 w-3/4" />
+              <Skeleton className="h-4 w-2/3" />
+            </div>
+          </div>
+        </CardContent>
+        <div className="absolute top-3 right-3 pointer-events-auto" style={{ zIndex: 9999 }}>
+          <Skeleton className="h-8 w-8 rounded-full" />
+        </div>
+      </Card>
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-background">
@@ -210,11 +212,12 @@ const FavoritesPage = () => {
         </div>
 
         {loading ? (
-          <div className="flex items-center justify-center py-12">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-              <p className="mt-2 text-sm text-muted-foreground">Cargando favoritos...</p>
-            </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={`favorite-skeleton-${i}`} className="relative">
+                <ProfessionalCardSkeleton />
+              </div>
+            ))}
           </div>
         ) : error ? (
           <div className="flex items-center justify-center py-12 px-4">

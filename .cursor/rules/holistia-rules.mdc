@@ -5,8 +5,8 @@ alwaysApply: true
 # Cursor Rules para Holistia Platform
 
 ## Stack Tecnológico Principal
-- Framework: Next.js 15.5.6 (App Router con Turbopack)
-- React: 19.2.0
+- Framework: Next.js 16.1.1 (App Router con Turbopack)
+- React: 19.2.3
 - TypeScript: 5 (strict mode habilitado)
 - Base de datos: Supabase (PostgreSQL con RLS)
 - Pagos: Stripe + Stripe Connect
@@ -189,6 +189,7 @@ alwaysApply: true
 - Commits descriptivos en español
 - Separar cambios lógicos en commits diferentes
 - No commitear `.env.local` o archivos sensibles
+- En los commits hacer dos tipos de explicaciones una técnica y otra para que cualquier persona (una persona no tecnica) lo pueda entender
 
 ## Comandos Útiles
 

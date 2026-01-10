@@ -136,6 +136,60 @@ export default function GitHubCommitsPage() {
     fetchCommits();
   }, [owner, repo, branch, perPage, page]);
 
+  // Función para escapar HTML de forma segura (funciona en cliente y servidor)
+  const escapeHtml = (text: string): string => {
+    if (!text) return '';
+    return text
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  };
+
+  // Función para formatear el mensaje del commit con prefijos en negrita
+  const formatCommitMessage = (message: string): string => {
+    if (!message) return '';
+    
+    // Prefijos comunes de commits convencionales
+    const prefixes = [
+      'feat', 'fix', 'refactor', 'chore', 'docs', 'style', 'test', 
+      'perf', 'build', 'ci', 'revert', 'merge', 'hotfix', 'release'
+    ];
+    
+    // Dividir el mensaje en líneas
+    const lines = message.split('\n');
+    const firstLine = lines[0];
+    const restLines = lines.slice(1);
+    
+    // Crear regex para detectar prefijos al inicio del mensaje
+    const prefixPattern = new RegExp(`^(${prefixes.join('|')})(\\([^)]+\\))?:\\s*(.+)`, 'i');
+    const match = firstLine.match(prefixPattern);
+    
+    let formattedFirstLine: string;
+    
+    if (match) {
+      const prefix = match[1];
+      const scope = match[2] || '';
+      const rest = match[3];
+      
+      // Escapar el resto del mensaje y formatear con negrita el prefijo y scope
+      formattedFirstLine = `<strong>${escapeHtml(prefix)}${escapeHtml(scope)}:</strong> ${escapeHtml(rest)}`;
+    } else {
+      // Si no hay prefijo, solo escapar HTML
+      formattedFirstLine = escapeHtml(firstLine);
+    }
+    
+    // Escapar y formatear las líneas restantes
+    const formattedRestLines = restLines
+      .map(line => escapeHtml(line))
+      .join('<br>');
+    
+    // Combinar primera línea con el resto
+    return restLines.length > 0 
+      ? `${formattedFirstLine}<br>${formattedRestLines}`
+      : formattedFirstLine;
+  };
 
   const getShortSha = (sha: string) => sha.substring(0, 7);
 
@@ -282,9 +336,12 @@ export default function GitHubCommitsPage() {
                         <div className="flex-1 min-w-0">
                           <div className="flex items-start justify-between gap-4 mb-2">
                             <div className="flex-1 min-w-0">
-                              <p className="text-sm text-foreground whitespace-pre-wrap wrap-break-word">
-                                {commit.message}
-                              </p>
+                              <p 
+                                className="text-sm text-foreground wrap-break-word"
+                                dangerouslySetInnerHTML={{ 
+                                  __html: formatCommitMessage(commit.message)
+                                }}
+                              />
                             </div>
                             <Button
                               variant="ghost"

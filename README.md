@@ -5,21 +5,33 @@ Plataforma integral de bienestar que conecta profesionales de la salud con perso
 ## Características Principales
 
 ### Para Pacientes/Usuarios
-- Explorar y descubrir profesionales de bienestar
+- Explorar y descubrir profesionales de bienestar (expertos)
 - Agendar citas con profesionales verificados
 - Registrarse a eventos y talleres
-- Sistema de favoritos para profesionales
+- Sistema de favoritos para profesionales, programas, eventos, restaurantes y centros holísticos
 - Gestión de citas y eventos registrados
 - Perfil personal editable
+- Sistema de mensajería directa con profesionales
+- Crear y participar en retos de bienestar
+- Formar equipos para retos
+- Sistema de seguimiento (follows) de usuarios y expertos
+- Feed social con publicaciones de check-ins de retos
+- Sistema de preguntas y respuestas en eventos
+- Explorar programas digitales, restaurantes y centros holísticos
 
 ### Para Profesionales
-- Gestión de servicios (sesiones individuales o programas)
+- Gestión de servicios (sesiones individuales, programas o cotizaciones)
 - Configuración de disponibilidad y horarios
+- Sincronización con Google Calendar
 - Gestión de citas y pacientes
 - Creación y organización de eventos
+- Sistema de preguntas y respuestas en eventos
 - Galería de fotos profesional
 - Integración con Stripe Connect para pagos
 - Dashboard con métricas y gestión
+- Sistema de mensajería directa con pacientes
+- Crear retos de bienestar para pacientes
+- Agregar pacientes existentes a retos
 
 ### Para Administradores
 - Revisión y aprobación de aplicaciones de profesionales
@@ -52,9 +64,10 @@ Plataforma integral de bienestar que conecta profesionales de la salud con perso
 
 ### Integraciones
 - **Pagos:** Stripe + Stripe Connect (comisiones: 15% citas, 20% eventos)
-- **Email:** Resend API + React Email
+- **Email:** Resend API con templates HTML personalizados
 - **Analytics:** Vercel Analytics + Google Analytics 4
 - **Maps:** Mapbox GL para visualización de ubicaciones
+- **Calendario:** Google Calendar API para sincronización de citas
 
 ## Configuración del Proyecto
 
@@ -179,16 +192,27 @@ pnpm run start
 
 ### Tablas Principales
 - `auth.users` - Usuarios del sistema
+- `profiles` - Perfiles de usuarios (pacientes, profesionales, admins)
 - `professional_applications` - Perfiles y aplicaciones de profesionales
 - `appointments` - Reservas de citas
-- `professional_services` - Servicios ofrecidos
+- `professional_services` - Servicios ofrecidos (con opción de cotización)
 - `availability_blocks` - Bloques de tiempo no disponibles
 - `events_workshops` - Eventos y talleres
 - `event_registrations` - Registros a eventos
+- `event_questions` - Preguntas y respuestas en eventos
 - `payments` - Transacciones de pago
-- `user_favorites` - Profesionales favoritos
+- `user_favorites` - Favoritos (profesionales, programas, eventos, restaurantes, centros)
 - `blog_posts` - Artículos del blog
 - `stripe_connect_accounts` - Cuentas de Stripe Connect
+- `challenges` - Retos de bienestar
+- `challenge_purchases` - Compras/participaciones en retos
+- `challenge_checkins` - Check-ins de progreso en retos
+- `challenge_teams` - Equipos de retos
+- `challenge_team_members` - Miembros de equipos
+- `direct_conversations` - Conversaciones de mensajería directa
+- `direct_messages` - Mensajes individuales
+- `user_follows` - Sistema de seguimiento entre usuarios
+- `social_feed_checkins` - Publicaciones en el feed social
 
 ## Administración
 

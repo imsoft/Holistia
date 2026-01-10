@@ -48,6 +48,7 @@ export function AppointmentActionForm({
     try {
       setLoading(true);
 
+      // Obtener la cita sin relaciones anidadas
       const { data: appointment, error: appointmentError } = await supabase
         .from("appointments")
         .select(`
@@ -56,20 +57,26 @@ export function AppointmentActionForm({
           appointment_time,
           cost,
           patient_id,
-          professional_id,
-          professional_applications!appointments_professional_id_fkey(
-            first_name,
-            last_name
-          )
+          professional_id
         `)
         .eq("id", appointmentId)
         .single();
 
       if (appointmentError) throw appointmentError;
 
-      const professionalData = Array.isArray(appointment.professional_applications)
-        ? appointment.professional_applications[0]
-        : appointment.professional_applications;
+      // Obtener información del profesional por separado
+      let professionalData: { first_name: string; last_name: string } | null = null;
+      if (appointment.professional_id) {
+        const { data: professional } = await supabase
+          .from("professional_applications")
+          .select("first_name, last_name")
+          .eq("id", appointment.professional_id)
+          .maybeSingle();
+        
+        if (professional) {
+          professionalData = professional;
+        }
+      }
 
       // Obtener información del paciente desde profiles
       let patientName: string | undefined;
@@ -78,7 +85,7 @@ export function AppointmentActionForm({
           .from("profiles")
           .select("first_name, last_name")
           .eq("id", appointment.patient_id)
-          .single();
+          .maybeSingle();
         
         if (patientProfile) {
           patientName = `${patientProfile.first_name} ${patientProfile.last_name}`;

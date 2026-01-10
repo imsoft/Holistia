@@ -440,14 +440,17 @@ export function ServiceForm({
           <div className="space-y-2">
             <Label htmlFor="description">Descripción</Label>
             <RichTextEditor
-              key={`service-${service?.id || 'new'}-${formData.description?.substring(0, 10) || 'empty'}`} // Forzar recreación cuando cambia el servicio o la descripción
+              key={`service-${service?.id || 'new'}-desc-${formData.description ? formData.description.length : 0}`} // Forzar recreación cuando cambia el servicio o la longitud de descripción
               content={formData.description || ""}
               onChange={(content) => {
-                console.log('📝 [ServiceForm] Descripción cambiada:', content.substring(0, 50));
+                console.log('📝 [ServiceForm] Descripción cambiada:', {
+                  longitud: content.length,
+                  preview: content.substring(0, 100),
+                });
                 setFormData({ ...formData, description: content });
               }}
               placeholder="Describe qué incluye este servicio..."
-              maxLength={500}
+              maxLength={2000}
             />
           </div>
 

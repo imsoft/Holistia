@@ -54,7 +54,7 @@ export function RichTextEditor({
         limit: maxLength,
       }),
     ],
-    content,
+    content: content || '<p></p>', // Asegurar que siempre tenga contenido inicial
     onUpdate: ({ editor }) => {
       onChange(editor.getHTML());
       // Forzar actualización para reflejar cambios en el estado activo de los botones
@@ -128,42 +128,39 @@ export function RichTextEditor({
     setIsMounted(true);
   }, []);
 
-  // Actualizar el contenido del editor cuando cambia la prop content (solo si es diferente)
+  // Actualizar el contenido del editor cuando cambia la prop content
   useEffect(() => {
     if (editor && isMounted) {
       const currentContent = editor.getHTML();
-      const normalizedContent = content || '';
-      const normalizedCurrent = currentContent || '';
+      const newContent = content || '<p></p>';
       
-      // Normalizar contenido vacío para comparación
-      const isEmpty = (html: string) => {
-        if (!html || html.trim() === '') return true;
-        // Remover tags HTML y espacios para verificar si está realmente vacío
-        const text = html.replace(/<[^>]*>/g, '').trim();
-        return text === '';
-      };
-      
-      // Normalizar ambos contenidos para comparación (sin espacios/tags)
-      const normalizeForComparison = (html: string) => {
+      // Normalizar contenido para comparación - remover espacios en blanco y normalizar
+      const normalizeHTML = (html: string) => {
         if (!html) return '';
-        return html.replace(/<[^>]*>/g, '').trim().toLowerCase();
+        // Remover espacios en blanco excesivos y normalizar
+        return html
+          .replace(/\s+/g, ' ')
+          .replace(/>\s+</g, '><')
+          .trim();
       };
       
-      const normalizedContentForCompare = normalizeForComparison(normalizedContent);
-      const normalizedCurrentForCompare = normalizeForComparison(normalizedCurrent);
+      const normalizedCurrent = normalizeHTML(currentContent);
+      const normalizedNew = normalizeHTML(newContent);
       
-      // Solo actualizar si el contenido realmente cambió (comparando contenido normalizado)
-      if (normalizedContentForCompare !== normalizedCurrentForCompare) {
-        console.log('🔄 [RichTextEditor] Actualizando contenido:', {
-          nuevo: normalizedContent.substring(0, 50),
-          actual: normalizedCurrent.substring(0, 50),
-          nuevo_normalizado: normalizedContentForCompare.substring(0, 50),
-          actual_normalizado: normalizedCurrentForCompare.substring(0, 50),
+      // Solo actualizar si el contenido realmente cambió
+      if (normalizedCurrent !== normalizedNew) {
+        console.log('🔄 [RichTextEditor] Actualizando contenido del editor:', {
+          contenido_nuevo_length: newContent.length,
+          contenido_actual_length: currentContent.length,
+          contenido_nuevo_preview: newContent.substring(0, 100).replace(/\n/g, ' '),
+          contenido_actual_preview: currentContent.substring(0, 100).replace(/\n/g, ' '),
+          son_diferentes: normalizedCurrent !== normalizedNew,
         });
         
-        // Siempre actualizar si el contenido cambió, incluso si ambos están vacíos
-        // Esto asegura que cuando se carga un servicio con description NULL, se muestre vacío
-        editor.commands.setContent(normalizedContent || '<p></p>', { emitUpdate: false });
+        // Usar setContent con emitUpdate: false para evitar loops
+        editor.commands.setContent(newContent, { emitUpdate: false });
+      } else {
+        console.log('⏭️ [RichTextEditor] Contenido no cambió, omitiendo actualización');
       }
     }
   }, [content, editor, isMounted]);

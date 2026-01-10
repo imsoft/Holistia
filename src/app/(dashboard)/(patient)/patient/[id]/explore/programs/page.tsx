@@ -7,6 +7,7 @@ import { createClient } from "@/utils/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { DigitalProductCard } from "@/components/ui/digital-product-card";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface DigitalProduct {
   id: string;
@@ -380,13 +381,24 @@ export default function ProgramsPage() {
           <div className="lg:col-span-2">
             {/* Lista de productos */}
         {loading ? (
-          <div className="flex items-center justify-center py-12">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-              <p className="mt-2 text-sm text-muted-foreground">
-                Cargando programas...
-              </p>
-            </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <Card key={`program-skeleton-${i}`} className="h-full flex flex-col">
+                <Skeleton className="w-full h-48 shrink-0 rounded-t-lg" />
+                <CardHeader className="pb-1.5 px-4 pt-3">
+                  <Skeleton className="h-6 w-3/4 mb-2" />
+                  <div className="flex gap-1.5 mt-1">
+                    <Skeleton className="h-5 w-16" />
+                    <Skeleton className="h-5 w-12" />
+                  </div>
+                </CardHeader>
+                <CardContent className="px-4 pt-0 pb-3 flex flex-col grow">
+                  <Skeleton className="h-4 w-full mb-2" />
+                  <Skeleton className="h-4 w-5/6 mb-4" />
+                  <Skeleton className="h-9 w-full mt-auto" />
+                </CardContent>
+              </Card>
+            ))}
           </div>
         ) : filteredProducts.length === 0 ? (
           <div className="text-center py-12">

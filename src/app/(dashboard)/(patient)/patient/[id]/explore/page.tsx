@@ -14,6 +14,7 @@ import { formatEventDate, formatEventTime } from "@/utils/date-utils";
 import { determineProfessionalModality, transformServicesFromDB } from "@/utils/professional-utils";
 import { sortProfessionalsByRanking } from "@/utils/professional-ranking";
 import { FavoriteButton } from "@/components/ui/favorite-button";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const categories = [
   {
@@ -165,6 +166,46 @@ const HomeUserPage = () => {
   const [filteredShops, setFilteredShops] = useState<Shop[]>([]);
   const [filteredDigitalProducts, setFilteredDigitalProducts] = useState<DigitalProduct[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Componentes de skeleton
+  const ProfessionalCardSkeleton = () => (
+    <div className="shrink-0 w-96">
+      <Card className="h-full flex flex-col">
+        <Skeleton className="w-full h-64 shrink-0 rounded-t-lg" />
+        <CardContent className="px-4 pt-3 pb-4 flex flex-col grow">
+          <Skeleton className="h-5 w-3/4 mb-2" />
+          <Skeleton className="h-4 w-1/2 mb-3" />
+          <div className="flex gap-1 mb-2">
+            <Skeleton className="h-5 w-20" />
+            <Skeleton className="h-5 w-16" />
+          </div>
+          <Skeleton className="h-3 w-full mb-1" />
+          <Skeleton className="h-3 w-5/6 mb-4" />
+          <Skeleton className="h-3 w-2/3 mt-auto" />
+        </CardContent>
+      </Card>
+    </div>
+  );
+
+  const CardSkeleton = () => (
+    <div className="shrink-0 w-96">
+      <Card className="h-full flex flex-col">
+        <Skeleton className="w-full h-64 shrink-0 rounded-t-lg" />
+        <CardHeader className="pb-1.5 px-4 pt-3">
+          <Skeleton className="h-6 w-3/4 mb-2" />
+          <div className="flex gap-1.5 mt-1">
+            <Skeleton className="h-5 w-16" />
+            <Skeleton className="h-5 w-12" />
+          </div>
+        </CardHeader>
+        <CardContent className="px-4 pt-0 pb-3 flex flex-col grow">
+          <Skeleton className="h-4 w-full mb-2" />
+          <Skeleton className="h-4 w-5/6 mb-4" />
+          <Skeleton className="h-9 w-full mt-auto" />
+        </CardContent>
+      </Card>
+    </div>
+  );
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [events, setEvents] = useState<EventWorkshop[]>([]);
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
@@ -738,8 +779,10 @@ const HomeUserPage = () => {
             </div>
 
             {loading ? (
-              <div className="flex items-center justify-center py-12">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+              <div className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar px-12">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <CardSkeleton key={`event-skeleton-${i}`} />
+                ))}
               </div>
             ) : filteredEvents.length === 0 ? (
               <div className="text-center py-12">
@@ -864,8 +907,10 @@ const HomeUserPage = () => {
             </div>
 
             {loading ? (
-              <div className="flex items-center justify-center py-12">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+              <div className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar px-12">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <ProfessionalCardSkeleton key={`professional-skeleton-${i}`} />
+                ))}
               </div>
             ) : filteredProfessionals.length === 0 ? (
               <div className="text-center py-12">
@@ -989,8 +1034,10 @@ const HomeUserPage = () => {
             </div>
 
             {loading ? (
-              <div className="flex items-center justify-center py-12">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+              <div className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar px-12">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <CardSkeleton key={`restaurant-skeleton-${i}`} />
+                ))}
               </div>
             ) : filteredRestaurants.length === 0 ? (
               <div className="text-center py-12">
@@ -1106,8 +1153,10 @@ const HomeUserPage = () => {
             </div>
 
             {loading ? (
-              <div className="flex items-center justify-center py-12">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+              <div className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar px-12">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <CardSkeleton key={`shop-skeleton-${i}`} />
+                ))}
               </div>
             ) : filteredShops.length === 0 ? (
               <div className="text-center py-12">

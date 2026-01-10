@@ -9,6 +9,7 @@ import { createClient } from "@/utils/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Select,
   SelectContent,
@@ -108,10 +109,46 @@ export default function ShopsPage() {
     setFilteredShops(filtered);
   }, [searchTerm, selectedCategory, shops]);
 
+  // Componente de skeleton
+  const ShopCardSkeleton = () => (
+    <Card className="h-full flex flex-col">
+      <Skeleton className="w-full h-64 shrink-0 rounded-t-lg" />
+      <CardHeader className="pb-1.5 px-4 pt-3">
+        <Skeleton className="h-6 w-3/4 mb-2" />
+        <div className="flex gap-1.5 mt-1">
+          <Skeleton className="h-5 w-16" />
+          <Skeleton className="h-5 w-12" />
+        </div>
+      </CardHeader>
+      <CardContent className="px-4 pt-0 pb-3 flex flex-col grow">
+        <Skeleton className="h-4 w-full mb-2" />
+        <Skeleton className="h-4 w-5/6 mb-4" />
+        <Skeleton className="h-9 w-full mt-auto" />
+      </CardContent>
+    </Card>
+  );
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      <div className="min-h-screen bg-background">
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+          <div className="mb-8 text-center">
+            <Skeleton className="h-10 w-64 mx-auto mb-2" />
+            <Skeleton className="h-5 w-96 mx-auto" />
+          </div>
+          <div className="lg:grid lg:grid-cols-3 lg:gap-x-8">
+            <aside className="lg:col-span-1 mb-6 lg:mb-0">
+              <Skeleton className="h-96 w-full" />
+            </aside>
+            <div className="lg:col-span-2">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <ShopCardSkeleton key={`shop-skeleton-${i}`} />
+                ))}
+              </div>
+            </div>
+          </div>
+        </main>
       </div>
     );
   }

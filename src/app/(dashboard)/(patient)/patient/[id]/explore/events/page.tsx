@@ -12,6 +12,7 @@ import { EventWorkshop } from "@/types/event";
 import { formatEventDate, formatEventTime } from "@/utils/date-utils";
 import { StableImage } from "@/components/ui/stable-image";
 import { FavoriteButton } from "@/components/ui/favorite-button";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const categories = [
   {
@@ -261,13 +262,24 @@ export default function EventsPage() {
           {/* Main content with horizontal scroll */}
           <div className="lg:col-span-2">
             {loading ? (
-              <div className="flex items-center justify-center py-12">
-                <div className="text-center">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-                  <p className="mt-2 text-sm text-muted-foreground">
-                    Cargando eventos...
-                  </p>
-                </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <Card key={`event-skeleton-${i}`} className="h-full flex flex-col">
+                    <Skeleton className="w-full h-64 shrink-0 rounded-t-lg" />
+                    <CardHeader className="pb-1.5 px-4 pt-3">
+                      <Skeleton className="h-6 w-3/4 mb-2" />
+                      <div className="flex gap-1.5 mt-1">
+                        <Skeleton className="h-5 w-16" />
+                        <Skeleton className="h-5 w-12" />
+                      </div>
+                    </CardHeader>
+                    <CardContent className="px-4 pt-0 pb-3 flex flex-col grow">
+                      <Skeleton className="h-4 w-full mb-2" />
+                      <Skeleton className="h-4 w-5/6 mb-4" />
+                      <Skeleton className="h-9 w-full mt-auto" />
+                    </CardContent>
+                  </Card>
+                ))}
               </div>
             ) : filteredEvents.length === 0 ? (
               <div className="text-center py-12">

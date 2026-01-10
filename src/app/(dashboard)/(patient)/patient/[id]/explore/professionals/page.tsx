@@ -8,6 +8,8 @@ import { ProfessionalCard } from "@/components/ui/professional-card";
 import { createClient } from "@/utils/supabase/client";
 import { determineProfessionalModality, transformServicesFromDB } from "@/utils/professional-utils";
 import { sortProfessionalsByRanking, type ProfessionalRankingData } from "@/utils/professional-ranking";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Card, CardContent } from "@/components/ui/card";
 
 interface Professional {
   id: string;
@@ -405,13 +407,23 @@ export default function ProfessionalsPage() {
           {/* Main content with horizontal scroll */}
           <div className="lg:col-span-2">
             {loading ? (
-              <div className="flex items-center justify-center py-12">
-                <div className="text-center">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-                  <p className="mt-2 text-sm text-muted-foreground">
-                    Cargando profesionales...
-                  </p>
-                </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <Card key={`professional-skeleton-${i}`} className="h-full flex flex-col">
+                    <Skeleton className="w-full h-64 shrink-0 rounded-t-lg" />
+                    <CardContent className="px-4 pt-3 pb-4 flex flex-col grow">
+                      <Skeleton className="h-5 w-3/4 mb-2" />
+                      <Skeleton className="h-4 w-1/2 mb-3" />
+                      <div className="flex gap-1 mb-2">
+                        <Skeleton className="h-5 w-20" />
+                        <Skeleton className="h-5 w-16" />
+                      </div>
+                      <Skeleton className="h-3 w-full mb-1" />
+                      <Skeleton className="h-3 w-5/6 mb-4" />
+                      <Skeleton className="h-3 w-2/3 mt-auto" />
+                    </CardContent>
+                  </Card>
+                ))}
               </div>
             ) : filteredProfessionals.length === 0 ? (
               <div className="text-center py-12">

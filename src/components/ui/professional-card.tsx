@@ -13,9 +13,10 @@ import { VerifiedBadge } from "@/components/ui/verified-badge";
 interface ProfessionalCardProps {
   professional: Professional;
   userId?: string;
+  showFavoriteButton?: boolean; // Controlar visibilidad del botón de favoritos
 }
 
-export const ProfessionalCard = ({ professional, userId }: ProfessionalCardProps) => {
+export const ProfessionalCard = ({ professional, userId, showFavoriteButton = true }: ProfessionalCardProps) => {
   const [isFavorite, setIsFavorite] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const supabase = createClient();
@@ -168,13 +169,15 @@ export const ProfessionalCard = ({ professional, userId }: ProfessionalCardProps
           unoptimized
         />
         {/* Favorite button */}
-        <button
-          onClick={handleToggleFavorite}
-          disabled={isLoading}
-          className="absolute top-3 right-3 p-2 bg-white/90 backdrop-blur-sm rounded-full hover:bg-white transition-colors shadow-sm group/favorite"
-        >
-          <Heart className={`h-4 w-4 transition-colors ${isFavorite ? 'text-red-500 fill-red-500' : 'text-muted-foreground hover:text-red-500 hover:fill-red-500'}`} />
-        </button>
+        {showFavoriteButton && (
+          <button
+            onClick={handleToggleFavorite}
+            disabled={isLoading}
+            className="absolute top-3 right-3 p-2 bg-white/90 backdrop-blur-sm rounded-full hover:bg-white transition-colors shadow-sm group/favorite"
+          >
+            <Heart className={`h-4 w-4 transition-colors ${isFavorite ? 'text-red-500 fill-red-500' : 'text-muted-foreground hover:text-red-500 hover:fill-red-500'}`} />
+          </button>
+        )}
       </div>
 
       <CardContent className="px-4 pt-3 pb-4 flex flex-col grow">

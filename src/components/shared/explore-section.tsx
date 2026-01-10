@@ -453,6 +453,7 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
                   <div key={prof.id} className="shrink-0 w-[280px] sm:w-[320px]">
                     <ProfessionalCard
                       userId={currentUserId}
+                      showFavoriteButton={showFavorites}
                       professional={{
                         id: prof.id,
                         slug: `${prof.first_name.toLowerCase()}-${prof.last_name.toLowerCase()}-${prof.id}`,

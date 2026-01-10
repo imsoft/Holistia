@@ -100,6 +100,7 @@ export function ExploreSection({ hideHeader = false, userId }: ExploreSectionPro
   const [challenges, setChallenges] = useState<any[]>([]);
   const [digitalProducts, setDigitalProducts] = useState<DigitalProduct[]>([]);
   const [loading, setLoading] = useState(true);
+  const [currentUserId, setCurrentUserId] = useState<string | undefined>(userId);
 
   const professionalsRef = useRef<HTMLDivElement>(null);
   const shopsRef = useRef<HTMLDivElement>(null);
@@ -107,6 +108,22 @@ export function ExploreSection({ hideHeader = false, userId }: ExploreSectionPro
   const eventsRef = useRef<HTMLDivElement>(null);
   const challengesRef = useRef<HTMLDivElement>(null);
   const digitalProductsRef = useRef<HTMLDivElement>(null);
+
+  // Obtener userId del usuario autenticado si no se pasó como prop
+  useEffect(() => {
+    async function getUserId() {
+      if (!userId) {
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          setCurrentUserId(user.id);
+        }
+      } else {
+        setCurrentUserId(userId);
+      }
+    }
+    getUserId();
+  }, [userId]);
 
   useEffect(() => {
     async function loadData() {
@@ -434,7 +451,7 @@ export function ExploreSection({ hideHeader = false, userId }: ExploreSectionPro
                 return (
                   <div key={prof.id} className="flex-shrink-0 w-[280px] sm:w-[320px]">
                     <ProfessionalCard
-                      userId={userId}
+                      userId={currentUserId}
                       professional={{
                         id: prof.id,
                         slug: `${prof.first_name.toLowerCase()}-${prof.last_name.toLowerCase()}-${prof.id}`,
@@ -537,13 +554,11 @@ export function ExploreSection({ hideHeader = false, userId }: ExploreSectionPro
                           <Store className="h-16 w-16 text-primary/40" />
                         </div>
                       )}
-                      {userId && (
-                        <FavoriteButton
-                          itemId={shop.id}
-                          favoriteType="shop"
-                          variant="floating"
-                        />
-                      )}
+                      <FavoriteButton
+                        itemId={shop.id}
+                        favoriteType="shop"
+                        variant="floating"
+                      />
                     </div>
                     <CardHeader className="pb-1.5 px-4 pt-3">
                       <CardTitle className="text-lg line-clamp-2">{shop.name}</CardTitle>
@@ -641,13 +656,11 @@ export function ExploreSection({ hideHeader = false, userId }: ExploreSectionPro
                         <UtensilsCrossed className="h-16 w-16 text-primary/40" />
                       </div>
                     )}
-                    {userId && (
-                      <FavoriteButton
-                        itemId={restaurant.id}
-                        favoriteType="restaurant"
-                        variant="floating"
-                      />
-                    )}
+                    <FavoriteButton
+                      itemId={restaurant.id}
+                      favoriteType="restaurant"
+                      variant="floating"
+                    />
                   </div>
                   <CardHeader className="pb-1.5 px-4 pt-3">
                     <CardTitle className="text-lg line-clamp-2">{restaurant.name}</CardTitle>
@@ -736,13 +749,11 @@ export function ExploreSection({ hideHeader = false, userId }: ExploreSectionPro
                           <Calendar className="h-16 w-16 text-primary/40" />
                         </div>
                       )}
-                      {userId && (
-                        <FavoriteButton
-                          itemId={event.id}
-                          favoriteType="event"
-                          variant="floating"
-                        />
-                      )}
+                      <FavoriteButton
+                        itemId={event.id}
+                        favoriteType="event"
+                        variant="floating"
+                      />
                     </div>
                     <CardHeader className="pb-1.5 px-4 pt-3">
                       <CardTitle className="text-lg line-clamp-2">{event.name}</CardTitle>
@@ -827,7 +838,7 @@ export function ExploreSection({ hideHeader = false, userId }: ExploreSectionPro
                 return (
                   <Link
                     key={product.id}
-                    href={userId ? `/patient/${userId}/explore/program/${product.id}` : `/public/program/${product.id}`}
+                    href={currentUserId ? `/patient/${currentUserId}/explore/program/${product.id}` : `/public/program/${product.id}`}
                     className="flex-shrink-0 w-[280px] sm:w-[320px]"
                   >
                     <Card className="h-[480px] flex flex-col hover:shadow-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer">
@@ -845,13 +856,11 @@ export function ExploreSection({ hideHeader = false, userId }: ExploreSectionPro
                             <Sparkles className="h-16 w-16 text-primary/40" />
                           </div>
                         )}
-                        {userId && (
-                          <FavoriteButton
-                            itemId={product.id}
-                            favoriteType="digital_product"
-                            variant="floating"
-                          />
-                        )}
+                        <FavoriteButton
+                          itemId={product.id}
+                          favoriteType="digital_product"
+                          variant="floating"
+                        />
                       </div>
                       <CardHeader className="pb-1.5 px-4 pt-3">
                         <CardTitle className="text-lg line-clamp-2">{product.title}</CardTitle>
@@ -931,7 +940,7 @@ export function ExploreSection({ hideHeader = false, userId }: ExploreSectionPro
             >
               {challenges.map((challenge) => (
                 <div key={challenge.id} className="flex-shrink-0 w-[280px] sm:w-[320px]">
-                  <ChallengeCard challenge={challenge} userId={userId} />
+                  <ChallengeCard challenge={challenge} userId={currentUserId} />
                 </div>
               ))}
             </div>

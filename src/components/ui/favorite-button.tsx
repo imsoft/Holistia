@@ -28,18 +28,22 @@ export function FavoriteButton({
   const [isFavorite, setIsFavorite] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
+  const [isChecking, setIsChecking] = useState(true); // Estado para saber si estamos verificando
   const supabase = createClient();
 
   useEffect(() => {
     checkIfFavorite();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [itemId, favoriteType]);
 
   const checkIfFavorite = async () => {
     try {
+      setIsChecking(true);
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         setUserId(null);
         setIsFavorite(false);
+        setIsChecking(false);
         return;
       }
 
@@ -56,12 +60,15 @@ export function FavoriteButton({
 
       if (error && error.code !== 'PGRST116') {
         console.error("Error checking favorite:", error);
+        setIsChecking(false);
         return;
       }
 
       setIsFavorite(!!data);
+      setIsChecking(false);
     } catch (error) {
       console.error("Error checking favorite:", error);
+      setIsChecking(false);
     }
   };
 
@@ -69,7 +76,13 @@ export function FavoriteButton({
     e.preventDefault();
     e.stopPropagation();
 
-    if (isLoading || !userId) return;
+    // Si no hay usuario, redirigir a login
+    if (!userId) {
+      window.location.href = '/login';
+      return;
+    }
+
+    if (isLoading) return;
 
     setIsLoading(true);
     try {
@@ -109,18 +122,20 @@ export function FavoriteButton({
     }
   };
 
-  // No mostrar el botón si no hay usuario
-  if (!userId) return null;
+  // Mostrar el botón siempre, pero deshabilitado mientras verifica
+  // El botón redirigirá a login si no hay usuario
 
   if (variant === "floating") {
     return (
       <button
         onClick={handleToggleFavorite}
-        disabled={isLoading}
+        disabled={isLoading || isChecking}
         className={cn(
-          "absolute top-3 right-3 p-2 bg-white/90 backdrop-blur-sm rounded-full hover:bg-white transition-colors shadow-sm group/favorite",
+          "absolute top-3 right-3 z-10 p-2 bg-white/90 backdrop-blur-sm rounded-full hover:bg-white transition-colors shadow-sm group/favorite",
+          (isLoading || isChecking) && "opacity-50 cursor-not-allowed",
           className
         )}
+        title={!userId ? "Inicia sesión para agregar a favoritos" : isFavorite ? "Quitar de favoritos" : "Agregar a favoritos"}
       >
         <Heart
           className={cn(

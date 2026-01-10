@@ -305,11 +305,6 @@ export default function GitHubCommitsPage() {
                             <div className="flex items-center gap-1">
                               <User className="h-3 w-3" />
                               <span className="font-medium">{commit.author.name}</span>
-                              {commit.author.login && (
-                                <span className="text-muted-foreground">
-                                  (@{commit.author.login})
-                                </span>
-                              )}
                             </div>
                             <div className="flex items-center gap-1">
                               <Calendar className="h-3 w-3" />

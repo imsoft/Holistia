@@ -951,8 +951,8 @@ const HomeUserPage = () => {
                 <Brain className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                 <p className="text-muted-foreground">
                   {professionals.length === 0
-                    ? "No hay profesionales disponibles"
-                    : "No se encontraron profesionales que coincidan con los filtros aplicados."}
+                    ? "No hay expertos disponibles"
+                    : "No se encontraron expertos que coincidan con los filtros aplicados."}
                 </p>
               </div>
             ) : (

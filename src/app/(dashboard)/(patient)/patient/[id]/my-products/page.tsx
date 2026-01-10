@@ -279,11 +279,11 @@ export default function MyProducts() {
               <ShoppingBag className="h-12 w-12 text-muted-foreground mb-4" />
               <h3 className="text-lg font-semibold mb-2">No has comprado programas aún</h3>
               <p className="text-muted-foreground text-center mb-4">
-                Explora los perfiles de profesionales verificados para descubrir meditaciones, ebooks y más
+                Explora los perfiles de expertos verificados para descubrir meditaciones, ebooks y más
               </p>
               <Button asChild>
                 <a href={`/patient/${id}/explore`}>
-                  Explorar Profesionales
+                  Explorar Expertos
                 </a>
               </Button>
             </CardContent>

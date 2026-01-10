@@ -94,7 +94,7 @@ export default function MessagesPage() {
           Mensajes
         </h1>
         <p className="text-muted-foreground">
-          Conversa con profesionales
+          Conversa con expertos
         </p>
       </div>
 
@@ -108,10 +108,10 @@ export default function MessagesPage() {
                   <MessageSquare className="h-12 w-12 text-muted-foreground mb-4" />
                   <h3 className="text-lg font-semibold mb-2">No tienes conversaciones</h3>
                   <p className="text-sm text-muted-foreground mb-4">
-                    Envía un mensaje a un profesional para comenzar
+                    Envía un mensaje a un experto para comenzar
                   </p>
-                  <Button onClick={() => router.push(`/patient/${userId}/explore`)}>
-                    Explorar Profesionales
+                  <Button onClick={() => router.push(`/patient/${userId}/explore/professionals`)}>
+                    Explorar Expertos
                   </Button>
                 </div>
               ) : (
@@ -122,7 +122,7 @@ export default function MessagesPage() {
                           id: conversation.professional_id,
                           name: conversation.professional
                             ? `${conversation.professional.first_name} ${conversation.professional.last_name}`
-                            : 'Profesional',
+                            : 'Experto',
                           avatar_url: conversation.professional?.profile_photo || null,
                           unreadCount: conversation.user_unread_count,
                         }

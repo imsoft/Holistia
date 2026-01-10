@@ -106,7 +106,7 @@ export const Footer = () => {
             </Link>
             . Para nosotros es muy importante acompañarte en cada paso y
             asegurarnos de que recibas la mejor atencion de nuestros
-            profesionales
+            expertos
           </p>
           <div className="mt-8 flex justify-center">
             <Link

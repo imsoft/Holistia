@@ -431,11 +431,11 @@ export default function ProfessionalsPage() {
                   <Brain className="h-8 w-8 text-muted-foreground" />
                 </div>
                 <h3 className="text-lg font-semibold text-foreground mb-2">
-                  No se encontraron profesionales
+                  No se encontraron expertos
                 </h3>
                 <p className="text-muted-foreground">
                   {professionals.length === 0
-                    ? "Aún no hay profesionales aprobados en la plataforma."
+                    ? "Aún no hay expertos aprobados en la plataforma."
                     : "Intenta ajustar los filtros para ver más resultados."}
                 </p>
               </div>

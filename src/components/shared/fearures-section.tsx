@@ -41,7 +41,7 @@ const features = [
   {
     name: "Blog",
     description:
-      "Explora artículos, consejos y detalles sobre técnicas y herramientas de sanación de nuestros profesionales.",
+      "Explora artículos, consejos y detalles sobre técnicas y herramientas de sanación de nuestros expertos.",
     icon: BookOpen,
   },
 ];

@@ -455,7 +455,7 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
               Explora Nuestros Servicios
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Descubre profesionales certificados, comercios holísticos, restaurantes saludables y eventos
+              Descubre expertos certificados, comercios holísticos, restaurantes saludables y eventos
             </p>
           </div>
         )}

@@ -699,15 +699,15 @@ export default function ProfessionalProfilePage() {
     if (years < 1) {
       return `${experienceWithYears} - Recién graduado, con formación académica sólida y pasión por ayudar a sus pacientes.`;
     } else if (years >= 1 && years < 3) {
-      return `${experienceWithYears} - Profesional en desarrollo con experiencia inicial y compromiso con el crecimiento continuo.`;
+      return `${experienceWithYears} - Experto en desarrollo con experiencia inicial y compromiso con el crecimiento continuo.`;
     } else if (years >= 3 && years < 5) {
       return `${experienceWithYears} - Experiencia consolidada en el campo, con habilidades desarrolladas y enfoque en resultados.`;
     } else if (years >= 5 && years < 10) {
       return `${experienceWithYears} - Experiencia sólida y amplia, reconocido por su profesionalismo y resultados consistentes.`;
     } else if (years >= 10 && years < 15) {
-      return `${experienceWithYears} - Experto con una década de experiencia, líder en su especialidad y mentor de otros profesionales.`;
+      return `${experienceWithYears} - Experto con una década de experiencia, líder en su especialidad y mentor de otros expertos.`;
     } else if (years >= 15 && years < 20) {
-      return `${experienceWithYears} - Profesional senior con amplia trayectoria, reconocido por su expertise y contribuciones al campo.`;
+      return `${experienceWithYears} - Experto senior con amplia trayectoria, reconocido por su expertise y contribuciones al campo.`;
     } else {
       return `${experienceWithYears} - Maestro en su especialidad con décadas de experiencia, referente y autoridad en el área.`;
     }
@@ -804,7 +804,7 @@ export default function ProfessionalProfilePage() {
         throw new Error(errorData.error || 'Error al enviar mensaje');
       }
 
-      toast.success('Solicitud de cotización enviada. El profesional te contactará pronto.');
+      toast.success('Solicitud de cotización enviada. El experto te contactará pronto.');
       setIsQuoteDialogOpen(false);
       setQuoteDetails("");
       setSelectedServiceForQuote(null);
@@ -822,7 +822,7 @@ export default function ProfessionalProfilePage() {
 
   const handleOpenMessageDialog = async () => {
     if (!professional) {
-      toast.error('Información del profesional no disponible');
+      toast.error('Información del experto no disponible');
       return;
     }
 

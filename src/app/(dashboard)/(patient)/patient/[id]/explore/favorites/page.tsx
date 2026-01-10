@@ -332,7 +332,7 @@ const FavoritesPage = () => {
               className="bg-primary text-primary-foreground px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base rounded-lg hover:bg-primary/90 transition-colors w-full sm:w-auto"
               onClick={() => window.location.href = `/patient/${userId}/explore`}
             >
-              Explorar Profesionales
+              Explorar Expertos
             </Button>
           </div>
         )}

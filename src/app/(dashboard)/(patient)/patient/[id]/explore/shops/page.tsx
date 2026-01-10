@@ -226,7 +226,7 @@ export default function ShopsPage() {
               Filtrar por categorías
             </h3>
             <p className="text-xs sm:text-sm text-muted-foreground">
-              Selecciona una categoría para filtrar profesionales, programas, eventos, restaurantes y comercios
+              Selecciona una categoría para filtrar expertos, programas, eventos, restaurantes y comercios
             </p>
           </div>
           <div className="flex gap-3 sm:gap-4 justify-center overflow-x-auto pb-2">

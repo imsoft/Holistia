@@ -162,7 +162,7 @@ export default function ChallengesPage() {
             </h1>
           </div>
           <p className="text-muted-foreground">
-            Descubre retos diseñados por profesionales para ayudarte a alcanzar tus metas
+            Descubre retos diseñados por expertos para ayudarte a alcanzar tus metas
           </p>
         </div>
 
@@ -172,7 +172,7 @@ export default function ChallengesPage() {
             {/* Búsqueda */}
             <div className="flex-1">
               <Input
-                placeholder="Buscar retos por nombre, descripción, categoría o profesional..."
+                placeholder="Buscar retos por nombre, descripción, categoría o experto..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full"
@@ -248,7 +248,7 @@ export default function ChallengesPage() {
             <p className="text-muted-foreground mb-6">
               {searchTerm || selectedDifficulty !== 'all'
                 ? 'Intenta con otros términos de búsqueda o ajusta los filtros'
-                : 'Los profesionales aún no han creado retos'}
+                : 'Los expertos aún no han creado retos'}
             </p>
             {(searchTerm || selectedDifficulty !== 'all') && (
               <Button

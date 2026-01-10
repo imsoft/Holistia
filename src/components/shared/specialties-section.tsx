@@ -153,7 +153,7 @@ export function SpecialtiesSection() {
 
                     {/* Contador */}
                     <p className="text-sm text-muted-foreground">
-                      {specialty.count} {specialty.count === 1 ? "profesional" : "profesionales"}
+                      {specialty.count} {specialty.count === 1 ? "experto" : "expertos"}
                     </p>
 
                     {/* Efecto de brillo al hover */}
@@ -177,7 +177,7 @@ export function SpecialtiesSection() {
             href="/explore"
             className="inline-flex items-center gap-2 px-8 py-3 rounded-full bg-primary text-primary-foreground font-semibold hover:bg-primary/90 transition-colors shadow-lg hover:shadow-xl"
           >
-            Ver todos los profesionales
+            Ver todos los expertos
             <Users className="h-4 w-4" />
           </Link>
         </motion.div>

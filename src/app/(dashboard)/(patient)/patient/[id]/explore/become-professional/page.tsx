@@ -468,7 +468,7 @@ export default function BecomeProfessionalPage() {
                     Foto de perfil actual
                   </h4>
                   <p className="text-xs text-blue-700">
-                    Esta será tu foto de perfil como profesional
+                    Esta será tu foto de perfil como experto
                   </p>
                 </div>
               </div>
@@ -759,7 +759,7 @@ export default function BecomeProfessionalPage() {
                       Áreas de Bienestar
                     </h4>
                     <p className="text-sm text-blue-700">
-                      Las áreas de bienestar (Salud mental, Espiritualidad, Actividad física, Social, Alimentación) serán asignadas por el equipo de administración después de revisar tu solicitud. Esto asegura la correcta categorización de los profesionales en la plataforma.
+                      Las áreas de bienestar (Salud mental, Espiritualidad, Actividad física, Social, Alimentación) serán asignadas por el equipo de administración después de revisar tu solicitud. Esto asegura la correcta categorización de los expertos en la plataforma.
                     </p>
                   </div>
                 </div>
@@ -1168,7 +1168,7 @@ export default function BecomeProfessionalPage() {
       <div className="min-h-screen bg-background">
         <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
           <div className="mb-6 sm:mb-8">
-            <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">Solicitud de Profesional</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">Solicitud de Experto</h1>
             <p className="text-sm sm:text-base text-muted-foreground">
               Estado de tu solicitud para convertirte en experto en salud mental.
             </p>
@@ -1178,7 +1178,7 @@ export default function BecomeProfessionalPage() {
             <div>
               <h2 className="text-sm sm:text-base font-semibold text-foreground">Estado de la Solicitud</h2>
               <p className="mt-1 text-xs sm:text-sm text-muted-foreground">
-                Información sobre el progreso de tu solicitud para ser profesional.
+                Información sobre el progreso de tu solicitud para ser experto.
               </p>
 
               <div className="mt-4 sm:mt-6">
@@ -1390,12 +1390,12 @@ export default function BecomeProfessionalPage() {
                             <div className="pt-4 border-t border-border space-y-2">
                               <Button asChild className="w-full">
                                 <Link href={`/professional/${userId}/dashboard`}>
-                                  Ir al Dashboard Profesional
+                                  Ir al Dashboard de Experto
                                 </Link>
                               </Button>
                               <Button
                                 onClick={async () => {
-                                  if (!confirm('¿Estás seguro de que quieres dar de baja tu perfil profesional? Esto eliminará tu solicitud y dejarás de aparecer en la plataforma. Podrás volver a aplicar cuando quieras.')) {
+                                  if (!confirm('¿Estás seguro de que quieres dar de baja tu perfil de experto? Esto eliminará tu solicitud y dejarás de aparecer en la plataforma. Podrás volver a aplicar cuando quieras.')) {
                                     return;
                                   }
 
@@ -1414,7 +1414,7 @@ export default function BecomeProfessionalPage() {
                                       throw error;
                                     }
 
-                                    toast.success('Perfil profesional dado de baja exitosamente.');
+                                    toast.success('Perfil de experto dado de baja exitosamente.');
                                     window.location.reload();
                                   } catch (error) {
                                     console.error('Error deleting application:', error);

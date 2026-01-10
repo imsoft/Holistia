@@ -84,7 +84,7 @@ const statusConfig = {
     icon: UserX,
   },
   professional_no_show: {
-    label: "Profesional no asistió",
+    label: "Experto no asistió",
     color: "bg-purple-100 text-purple-800 border-purple-200",
     icon: UserX,
   },
@@ -225,7 +225,7 @@ export default function AppointmentsPage() {
             ...apt,
             professional: {
               id: prof?.id || '',
-              full_name: prof ? `${prof.first_name} ${prof.last_name}` : 'Profesional',
+              full_name: prof ? `${prof.first_name} ${prof.last_name}` : 'Experto',
               avatar_url: profile?.avatar_url || prof?.profile_photo,
               especialidad: prof?.profession,
               tolerance_minutes: prof?.tolerance_minutes || 15
@@ -247,7 +247,7 @@ export default function AppointmentsPage() {
           const latestAppointment = recentAppointments[0];
           const toleranceMinutes = latestAppointment.professional.tolerance_minutes || 15;
           toast.success("¡Cita agendada exitosamente!");
-          toast.info(`Tiempo de tolerancia: ${toleranceMinutes} minutos. El profesional esperará este tiempo antes de considerar la cita como no asistida.`);
+          toast.info(`Tiempo de tolerancia: ${toleranceMinutes} minutos. El experto esperará este tiempo antes de considerar la cita como no asistida.`);
         }
         
       } catch (error) {
@@ -372,7 +372,7 @@ export default function AppointmentsPage() {
                     className="p-4 sm:p-6 bg-card rounded-xl border border-border shadow-sm hover:shadow-md transition-shadow"
                   >
                     <div className="flex flex-col lg:flex-row gap-4 sm:gap-6">
-                      {/* Información del profesional */}
+                      {/* Información del experto */}
                       <Link 
                         href={`/patient/${userId}/explore/professional/${appointment.professional.id}`}
                         className="flex items-center gap-3 sm:gap-4 hover:opacity-80 transition-opacity"

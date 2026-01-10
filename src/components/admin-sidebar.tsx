@@ -365,7 +365,7 @@ export function AdminSidebar() {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="min-w-64 max-w-80">
               <div className="flex items-start gap-3 p-3">
-                <div className="relative flex-shrink-0">
+                <div className="relative shrink-0">
                   <Image
                     src={admin.imageUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(admin.name)}&background=random`}
                     alt=""
@@ -375,7 +375,7 @@ export function AdminSidebar() {
                   />
                 </div>
                 <div className="flex flex-col space-y-1 leading-tight min-w-0 flex-1">
-                  <p className="font-medium text-foreground break-words leading-tight">
+                  <p className="font-medium text-foreground wrap-break-word leading-tight">
                     {admin.name}
                   </p>
                   <p className="text-sm text-muted-foreground break-all">
@@ -394,10 +394,10 @@ export function AdminSidebar() {
             </DropdownMenuContent>
           </DropdownMenu>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-foreground break-words leading-tight">
+            <p className="text-sm font-medium text-foreground wrap-break-word leading-tight">
               {admin.name}
             </p>
-            <p className="text-xs text-muted-foreground break-words leading-tight">
+            <p className="text-xs text-muted-foreground wrap-break-word leading-tight">
               {admin.role}
             </p>
           </div>

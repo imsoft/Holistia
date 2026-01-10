@@ -304,6 +304,13 @@ const FavoritesPage = () => {
                     itemId={professional.id}
                     favoriteType="professional"
                     variant="floating"
+                    onToggle={(isFavorite) => {
+                      if (!isFavorite) {
+                        // Si se eliminó el favorito, actualizar la lista
+                        setFavorites(prev => prev.filter(fav => fav.professional_id !== professional.id));
+                        setProfessionals(prev => prev.filter(prof => prof.id !== professional.id));
+                      }
+                    }}
                   />
                 </div>
               </div>

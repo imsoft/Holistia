@@ -446,10 +446,15 @@ export default function ProgramDetailPage() {
                       </Button>
                     </div>
                   ) : (
-                    <Button onClick={handlePurchase} disabled={isPurchasing} className="w-full" size="lg">
-                      <ShoppingBag className="h-5 w-5 mr-2" />
-                      {isPurchasing ? 'Procesando...' : 'Comprar Ahora'}
-                    </Button>
+                    <>
+                      <Button onClick={handlePurchase} disabled={isPurchasing} className="w-full" size="lg">
+                        <ShoppingBag className="h-5 w-5 mr-2" />
+                        {isPurchasing ? 'Procesando...' : 'Comprar Ahora'}
+                      </Button>
+                      <p className="text-xs text-destructive font-semibold text-center">
+                        ⚠️ No hay reembolsos
+                      </p>
+                    </>
                   )}
 
                   {/* Professional Info */}

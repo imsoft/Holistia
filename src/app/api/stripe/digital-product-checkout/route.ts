@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
 
     if (productError || !product) {
       return NextResponse.json(
-        { error: 'Producto no encontrado o no disponible' },
+        { error: 'Programa no encontrado o no disponible' },
         { status: 404 }
       );
     }
@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
     // Verify professional is verified
     if (!product.professional_applications.is_verified) {
       return NextResponse.json(
-        { error: 'Este producto solo está disponible de profesionales verificados' },
+        { error: 'Este programa solo está disponible de profesionales verificados' },
         { status: 403 }
       );
     }
@@ -93,7 +93,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Calculate platform fee (15% for Holistia, 85% for professional)
-    // Ejemplo: Si el producto cuesta $100 MXN:
+    // Ejemplo: Si el programa cuesta $100 MXN:
     // - Holistia recibe: $15 MXN (15%)
     // - Profesional recibe: $85 MXN (85%)
     const platformFee = calculateCommission(product.price, 15);

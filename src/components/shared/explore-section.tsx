@@ -288,7 +288,7 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
           setChallenges([]);
         }
 
-        // Cargar programas (productos digitales) - 6 para el carousel
+        // Cargar programas - 6 para el carousel
         const { data: digitalProductsData, error: digitalProductsError } = await supabase
           .from("digital_products")
           .select(`

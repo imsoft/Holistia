@@ -73,7 +73,7 @@ export const DEFAULT_SEO: Metadata = {
     'workshops bienestar',
     'meditación guiada',
     'mindfulness México',
-    'productos digitales bienestar',
+    'programas de bienestar',
     'programas de meditación',
     'ebooks salud mental',
     'cursos online bienestar',
@@ -821,7 +821,7 @@ export function generateUserProfileMetadata({
 }
 
 // =====================================================
-// FUNCIONES PARA PRODUCTOS DIGITALES
+// FUNCIONES PARA PROGRAMAS
 // =====================================================
 
 interface DigitalProductData {
@@ -876,7 +876,7 @@ export function generateDigitalProductMetadata(product: DigitalProductData): Met
       product.title,
       categoryLabel,
       professionalName,
-      'producto digital',
+      'programa',
       'programa de bienestar',
       'meditación guiada',
       'ebook salud mental',

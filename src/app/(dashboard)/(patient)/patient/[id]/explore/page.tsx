@@ -381,7 +381,7 @@ const HomeUserPage = () => {
           setFilteredShops(shopsData || []);
         }
 
-        // Obtener programas (productos digitales)
+        // Obtener programas
         const { data: productsData, error: productsError } = await supabase
           .from("digital_products")
           .select(`
@@ -517,7 +517,7 @@ const HomeUserPage = () => {
       eventsScrollRef.current.scrollTo({ left: 0, behavior: 'smooth' });
     }
 
-    // Filtrar programas (productos digitales) por wellness_areas del programa o del profesional
+    // Filtrar programas por wellness_areas del programa o del profesional
     let filteredProds = [...digitalProducts];
     if (categoryIds.length > 0) {
       filteredProds = filteredProds.filter((product) => {

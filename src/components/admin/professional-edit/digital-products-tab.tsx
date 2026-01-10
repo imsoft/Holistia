@@ -55,7 +55,7 @@ export function DigitalProductsTab({ professionalId }: DigitalProductsTabProps) 
       setProducts(data || []);
     } catch (error) {
       console.error('Error fetching products:', error);
-      toast.error('Error al cargar los productos digitales');
+      toast.error('Error al cargar los programas');
     } finally {
       setLoading(false);
     }
@@ -80,7 +80,7 @@ export function DigitalProductsTab({ professionalId }: DigitalProductsTabProps) 
         throw new Error(error.message || 'Error al eliminar el producto');
       }
 
-      toast.success('Producto eliminado exitosamente');
+      toast.success('Programa eliminado exitosamente');
       fetchProducts();
       setDeleteDialogOpen(false);
       setProductToDelete(null);
@@ -107,12 +107,12 @@ export function DigitalProductsTab({ professionalId }: DigitalProductsTabProps) 
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>Programas y Productos Digitales</CardTitle>
-              <CardDescription>Gestiona los productos digitales que vende este profesional</CardDescription>
+              <CardTitle>Programas</CardTitle>
+              <CardDescription>Gestiona los programas que vende este profesional</CardDescription>
             </div>
             <Button onClick={() => router.push(`/admin/${adminId}/digital-products/new?professional_id=${professionalId}`)}>
               <Plus className="mr-2 h-4 w-4" />
-              Nuevo Producto
+              Nuevo Programa
             </Button>
           </div>
         </CardHeader>
@@ -183,7 +183,7 @@ export function DigitalProductsTab({ professionalId }: DigitalProductsTabProps) 
         open={deleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}
         onConfirm={handleDeleteConfirm}
-        itemName={productToDelete?.title || 'este producto'}
+        itemName={productToDelete?.title || 'este programa'}
         loading={deleting}
       />
     </div>

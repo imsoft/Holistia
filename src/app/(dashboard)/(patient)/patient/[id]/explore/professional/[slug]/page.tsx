@@ -1216,7 +1216,7 @@ export default function ProfessionalProfilePage() {
               <div>
                 <h2 className="text-lg sm:text-xl font-bold text-foreground mb-4 sm:mb-6 flex items-center gap-2">
                   <ShoppingBag className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
-                  Productos Digitales
+                  Programas
                 </h2>
                 <p className="text-sm text-muted-foreground mb-6">
                   Meditaciones, ebooks y recursos creados por {professional.first_name}

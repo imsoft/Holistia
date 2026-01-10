@@ -470,7 +470,7 @@ export function DigitalProductForm({ professionalId, product, redirectPath, isAd
             <div className="flex flex-col items-center justify-center text-center">
               <ImageIcon className="h-12 w-12 text-muted-foreground mb-2" />
               <p className="text-sm text-muted-foreground mb-2">
-                Sube una imagen de portada para tu producto
+                Sube una imagen de portada para tu programa
               </p>
               <Button
                 type="button"

@@ -222,7 +222,7 @@ export default function MyProducts() {
         <div>
           <h1 className="text-3xl font-bold text-foreground mb-2">Mis Programas</h1>
           <p className="text-muted-foreground">
-            Programas digitales que has comprado
+            Programas que has comprado
           </p>
         </div>
       </div>

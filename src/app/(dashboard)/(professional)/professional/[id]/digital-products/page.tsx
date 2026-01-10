@@ -300,13 +300,13 @@ export default function ProfessionalDigitalProducts() {
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-12">
               <ShoppingBag className="h-12 w-12 text-muted-foreground mb-4" />
-              <h3 className="text-lg font-semibold mb-2">No tienes productos aún</h3>
+              <h3 className="text-lg font-semibold mb-2">No tienes programas aún</h3>
               <p className="text-muted-foreground text-center mb-4">
                 Comienza a vender meditaciones, ebooks y más
               </p>
               <Button onClick={() => router.push(`/professional/${params.id}/digital-products/new`)}>
                 <Plus className="h-4 w-4 mr-2" />
-                Crear Primer Producto
+                Crear Primer Programa
               </Button>
             </CardContent>
           </Card>

@@ -237,7 +237,8 @@ const FavoritesPage = () => {
             {professionals.map((professional) => (
               <div key={professional.id} className="relative">
                 <ProfessionalCard
-                  userId={params.id as string} 
+                  userId={params.id as string}
+                  showFavoriteButton={false}
                   professional={{
                     id: professional.id,
                     slug: `${professional.first_name.toLowerCase()}-${professional.last_name.toLowerCase()}`,

@@ -17,6 +17,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { FavoriteButton } from "@/components/ui/favorite-button";
 
 interface DigitalProductCardProps {
   product: {
@@ -76,21 +77,33 @@ export function DigitalProductCard({
   };
 
   return (
-    <Card className="hover:shadow-lg transition-all duration-300 overflow-hidden group cursor-pointer h-full flex flex-col" onClick={handleClick}>
+    <Card className="hover:shadow-lg hover:-translate-y-2 transition-all duration-300 overflow-hidden group cursor-pointer h-full flex flex-col" onClick={handleClick}>
         <div className="relative h-64 bg-gradient-to-br from-primary/10 to-primary/5 overflow-hidden">
-          {product.cover_image_url ? (
-            <Image
-              src={product.cover_image_url}
-              alt={product.title}
-              fill
-              className="object-cover group-hover:scale-105 transition-transform duration-300"
+          <div className="absolute inset-0 overflow-hidden">
+            {product.cover_image_url ? (
+              <Image
+                src={product.cover_image_url}
+                alt={product.title}
+                fill
+                className="object-cover group-hover:scale-105 transition-transform duration-300"
+              />
+            ) : (
+              <div className="flex items-center justify-center h-full">
+                <CategoryIcon className="h-20 w-20 text-primary/40" />
+              </div>
+            )}
+          </div>
+          <div 
+            className="absolute top-3 right-3 pointer-events-auto" 
+            style={{ zIndex: 9999, position: 'absolute', top: '12px', right: '12px' }}
+          >
+            <FavoriteButton
+              itemId={product.id}
+              favoriteType="digital_product"
+              variant="floating"
             />
-          ) : (
-            <div className="flex items-center justify-center h-full">
-              <CategoryIcon className="h-20 w-20 text-primary/40" />
-            </div>
-          )}
-          <div className="absolute top-3 left-3 right-3 flex justify-between items-start">
+          </div>
+          <div className="absolute top-3 left-3 flex justify-between items-start">
             <Badge variant="default" className="bg-primary/90 backdrop-blur-sm">
               <CategoryIcon className="h-3 w-3 mr-1" />
               {CATEGORY_LABELS[product.category] || product.category}

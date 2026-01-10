@@ -143,61 +143,63 @@ export default function ProgramsPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="border-b border-border bg-card">
-        <div className="flex h-16 items-center justify-between px-6">
-          <div>
-            <h1 className="text-2xl font-bold text-foreground">Programas Digitales</h1>
-            <p className="text-sm text-muted-foreground">
-              Descubre meditaciones, ebooks, guías y más recursos para tu bienestar
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Main Content */}
-      <div className="p-6 space-y-6">
-        {/* Filtros */}
-        <div className="space-y-4 sm:space-y-0 sm:flex sm:gap-4">
-          <div className="flex-1">
-            <Input
-              placeholder="Buscar por título, descripción o profesional..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full"
-            />
-          </div>
-          <div className="sm:w-48">
-            <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-              <SelectTrigger>
-                <SelectValue placeholder="Categoría" />
-              </SelectTrigger>
-              <SelectContent>
-                {CATEGORY_OPTIONS.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="sm:w-48">
-            <Select value={priceFilter} onValueChange={setPriceFilter}>
-              <SelectTrigger>
-                <SelectValue placeholder="Precio" />
-              </SelectTrigger>
-              <SelectContent>
-                {PRICE_OPTIONS.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+        <div className="mb-8 text-center">
+          <h1 className="text-3xl sm:text-4xl font-bold text-foreground mb-2">
+            Programas Digitales
+          </h1>
+          <p className="text-muted-foreground">
+            Descubre meditaciones, ebooks, guías y más recursos para tu bienestar
+          </p>
         </div>
 
-        {/* Lista de productos */}
+        <div className="lg:grid lg:grid-cols-3 lg:gap-x-8">
+          {/* Sidebar with filters */}
+          <aside className="lg:col-span-1 mb-6 lg:mb-0">
+            {/* Filtros */}
+            <div className="space-y-4">
+              <div>
+                <Input
+                  placeholder="Buscar por título, descripción o profesional..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full"
+                />
+              </div>
+              <div>
+                <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Categoría" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {CATEGORY_OPTIONS.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Select value={priceFilter} onValueChange={setPriceFilter}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Precio" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {PRICE_OPTIONS.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </aside>
+
+          {/* Main content */}
+          <div className="lg:col-span-2">
+            {/* Lista de productos */}
         {loading ? (
           <div className="flex items-center justify-center py-12">
             <div className="text-center">
@@ -248,7 +250,9 @@ export default function ProgramsPage() {
             ))}
           </div>
         )}
-      </div>
+          </div>
+        </div>
+      </main>
     </div>
   );
 }

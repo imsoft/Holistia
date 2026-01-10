@@ -90,9 +90,10 @@ interface DigitalProduct {
 interface ExploreSectionProps {
   hideHeader?: boolean;
   userId?: string; // Para páginas públicas, no se pasa userId
+  showFavorites?: boolean; // Mostrar botones de favoritos (default: false)
 }
 
-export function ExploreSection({ hideHeader = false, userId }: ExploreSectionProps) {
+export function ExploreSection({ hideHeader = false, userId, showFavorites = false }: ExploreSectionProps) {
   const [professionals, setProfessionals] = useState<Professional[]>([]);
   const [shops, setShops] = useState<Shop[]>([]);
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
@@ -556,16 +557,18 @@ export function ExploreSection({ hideHeader = false, userId }: ExploreSectionPro
                           </div>
                         )}
                       </div>
-                      <div 
-                        className="absolute top-3 right-3 pointer-events-auto" 
-                        style={{ zIndex: 9999, position: 'absolute', top: '12px', right: '12px' }}
-                      >
-                        <FavoriteButton
-                          itemId={shop.id}
-                          favoriteType="shop"
-                          variant="floating"
-                        />
-                      </div>
+                      {showFavorites && (
+                        <div 
+                          className="absolute top-3 right-3 pointer-events-auto" 
+                          style={{ zIndex: 9999, position: 'absolute', top: '12px', right: '12px' }}
+                        >
+                          <FavoriteButton
+                            itemId={shop.id}
+                            favoriteType="shop"
+                            variant="floating"
+                          />
+                        </div>
+                      )}
                     </div>
                     <CardHeader className="pb-1.5 px-4 pt-3">
                       <CardTitle className="text-lg line-clamp-2">{shop.name}</CardTitle>
@@ -665,16 +668,18 @@ export function ExploreSection({ hideHeader = false, userId }: ExploreSectionPro
                         </div>
                       )}
                     </div>
-                    <div 
-                      className="absolute top-3 right-3 pointer-events-auto" 
-                      style={{ zIndex: 9999, position: 'absolute', top: '12px', right: '12px' }}
-                    >
-                      <FavoriteButton
-                        itemId={restaurant.id}
-                        favoriteType="restaurant"
-                        variant="floating"
-                      />
-                    </div>
+                    {showFavorites && (
+                      <div 
+                        className="absolute top-3 right-3 pointer-events-auto" 
+                        style={{ zIndex: 9999, position: 'absolute', top: '12px', right: '12px' }}
+                      >
+                        <FavoriteButton
+                          itemId={restaurant.id}
+                          favoriteType="restaurant"
+                          variant="floating"
+                        />
+                      </div>
+                    )}
                   </div>
                   <CardHeader className="pb-1.5 px-4 pt-3">
                     <CardTitle className="text-lg line-clamp-2">{restaurant.name}</CardTitle>
@@ -765,16 +770,18 @@ export function ExploreSection({ hideHeader = false, userId }: ExploreSectionPro
                           </div>
                         )}
                       </div>
-                      <div 
-                        className="absolute top-3 right-3 pointer-events-auto" 
-                        style={{ zIndex: 9999, position: 'absolute', top: '12px', right: '12px' }}
-                      >
-                        <FavoriteButton
-                          itemId={event.id}
-                          favoriteType="event"
-                          variant="floating"
-                        />
-                      </div>
+                      {showFavorites && (
+                        <div 
+                          className="absolute top-3 right-3 pointer-events-auto" 
+                          style={{ zIndex: 9999, position: 'absolute', top: '12px', right: '12px' }}
+                        >
+                          <FavoriteButton
+                            itemId={event.id}
+                            favoriteType="event"
+                            variant="floating"
+                          />
+                        </div>
+                      )}
                     </div>
                     <CardHeader className="pb-1.5 px-4 pt-3">
                       <CardTitle className="text-lg line-clamp-2">{event.name}</CardTitle>
@@ -879,16 +886,18 @@ export function ExploreSection({ hideHeader = false, userId }: ExploreSectionPro
                             </div>
                           )}
                         </div>
-                        <div 
-                          className="absolute top-3 right-3 pointer-events-auto" 
-                          style={{ zIndex: 9999, position: 'absolute', top: '12px', right: '12px' }}
-                        >
-                          <FavoriteButton
-                            itemId={product.id}
-                            favoriteType="digital_product"
-                            variant="floating"
-                          />
-                        </div>
+                        {showFavorites && (
+                          <div 
+                            className="absolute top-3 right-3 pointer-events-auto" 
+                            style={{ zIndex: 9999, position: 'absolute', top: '12px', right: '12px' }}
+                          >
+                            <FavoriteButton
+                              itemId={product.id}
+                              favoriteType="digital_product"
+                              variant="floating"
+                            />
+                          </div>
+                        )}
                       </div>
                       <CardHeader className="pb-1.5 px-4 pt-3">
                         <CardTitle className="text-lg line-clamp-2">{product.title}</CardTitle>

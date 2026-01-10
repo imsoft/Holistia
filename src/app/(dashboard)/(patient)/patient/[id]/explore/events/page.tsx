@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { EventWorkshop } from "@/types/event";
 import { formatEventDate, formatEventTime } from "@/utils/date-utils";
 import { StableImage } from "@/components/ui/stable-image";
+import { FavoriteButton } from "@/components/ui/favorite-button";
 
 const categories = [
   {
@@ -292,15 +293,27 @@ export default function EventsPage() {
                   >
                       <Card className="hover:shadow-lg hover:-translate-y-2 transition-all duration-300 overflow-hidden cursor-pointer h-full flex flex-col">
                         <div className="relative w-full h-48">
-                          <StableImage
-                            src={(event.gallery_images && event.gallery_images.length > 0 && event.gallery_images[0]) || event.image_url || ""}
-                            alt={event.name}
-                            fill
-                            className="object-cover"
-                            objectFit="cover"
-                            objectPosition={event.image_position || "center center"}
-                            fallbackSrc="/logos/holistia-black.png"
-                          />
+                          <div className="absolute inset-0 overflow-hidden">
+                            <StableImage
+                              src={(event.gallery_images && event.gallery_images.length > 0 && event.gallery_images[0]) || event.image_url || ""}
+                              alt={event.name}
+                              fill
+                              className="object-cover"
+                              objectFit="cover"
+                              objectPosition={event.image_position || "center center"}
+                              fallbackSrc="/logos/holistia-black.png"
+                            />
+                          </div>
+                          <div 
+                            className="absolute top-3 right-3 pointer-events-auto" 
+                            style={{ zIndex: 9999, position: 'absolute', top: '12px', right: '12px' }}
+                          >
+                            <FavoriteButton
+                              itemId={event.id!}
+                              favoriteType="event"
+                              variant="floating"
+                            />
+                          </div>
                         </div>
                         <CardHeader className="pb-3">
                           <CardTitle className="text-lg mb-1.5">{event.name}</CardTitle>

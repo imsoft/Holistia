@@ -49,14 +49,43 @@ export default function InviteTeamMembersPage() {
   const [availableUsers, setAvailableUsers] = useState<AvailableUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [inviting, setInviting] = useState<string | null>(null);
+  const [challengeInfo, setChallengeInfo] = useState<{ created_by_type?: string; is_free?: boolean } | null>(null);
   const supabase = createClient();
 
   useEffect(() => {
     if (teamId) {
+      loadChallengeInfo();
       loadTeam();
       loadAvailableUsers();
     }
-  }, [teamId]);
+  }, [teamId, challengeId]);
+
+  const loadChallengeInfo = async () => {
+    if (!challengeId) return;
+
+    try {
+      const { data: challengeData, error: challengeError } = await supabase
+        .from("challenges")
+        .select("created_by_type")
+        .eq("id", challengeId)
+        .single();
+
+      if (challengeError) {
+        console.error("Error loading challenge info:", challengeError);
+        return;
+      }
+
+      // Si el reto fue creado por un paciente, es gratuito (no requiere compra)
+      const isFree = challengeData?.created_by_type === 'patient';
+      
+      setChallengeInfo({
+        created_by_type: challengeData?.created_by_type,
+        is_free: isFree,
+      });
+    } catch (error) {
+      console.error("Error loading challenge info:", error);
+    }
+  };
 
   const loadTeam = async () => {
     if (!teamId) return;
@@ -122,7 +151,7 @@ export default function InviteTeamMembersPage() {
   };
 
   const loadAvailableUsers = async () => {
-    if (!teamId) return;
+    if (!teamId || !challengeId) return;
 
     try {
       const response = await fetch(
@@ -210,7 +239,7 @@ export default function InviteTeamMembersPage() {
                   {team?.members.map((member) => (
                     <div
                       key={member.id}
-                      className="flex items-center gap-2 p-2 rounded-lg bg-muted"
+                      className="flex items-center gap-2 p-2 rounded-lg bg-primary/10"
                     >
                       <Avatar className="h-8 w-8">
                         <AvatarImage src={member.profile.avatar_url || undefined} />
@@ -240,7 +269,9 @@ export default function InviteTeamMembersPage() {
               <CardHeader>
                 <CardTitle>Usuarios disponibles para invitar</CardTitle>
                 <p className="text-sm text-muted-foreground">
-                  Solo puedes invitar a usuarios que sigues y que han comprado el reto
+                  {challengeInfo?.is_free
+                    ? "Solo puedes invitar a usuarios que sigues"
+                    : "Solo puedes invitar a usuarios que sigues y que han comprado el reto"}
                 </p>
               </CardHeader>
               <CardContent className="py-4">

@@ -22,6 +22,23 @@ export async function GET(request: Request) {
       );
     }
 
+    // Obtener información del reto para saber si es gratuito
+    const { data: challengeData, error: challengeError } = await supabase
+      .from("challenges")
+      .select("created_by_type")
+      .eq("id", challengeId)
+      .single();
+
+    if (challengeError || !challengeData) {
+      return NextResponse.json(
+        { error: "Reto no encontrado" },
+        { status: 404 }
+      );
+    }
+
+    // Si el reto fue creado por un paciente, es gratuito (no requiere compra)
+    const isFreeChallenge = challengeData.created_by_type === 'patient';
+
     // Obtener usuarios que sigues
     const { data: following } = await supabase
       .from("user_follows")
@@ -34,17 +51,26 @@ export async function GET(request: Request) {
       return NextResponse.json({ data: [] });
     }
 
-    // Obtener usuarios que han comprado el reto
-    const { data: purchases } = await supabase
-      .from("challenge_purchases")
-      .select("participant_id")
-      .eq("challenge_id", challengeId)
-      .in("participant_id", followingIds);
+    // Si es un reto gratuito, todos los usuarios que sigues son elegibles
+    // Si es un reto de pago, solo los que han comprado el reto son elegibles
+    let eligibleUserIds: string[] = [];
 
-    const purchasedUserIds = purchases?.map((p) => p.participant_id) || [];
+    if (isFreeChallenge) {
+      // Para retos gratuitos, todos los usuarios que sigues son elegibles
+      eligibleUserIds = followingIds;
+    } else {
+      // Para retos de pago, solo usuarios que han comprado el reto
+      const { data: purchases } = await supabase
+        .from("challenge_purchases")
+        .select("participant_id")
+        .eq("challenge_id", challengeId)
+        .in("participant_id", followingIds);
 
-    if (purchasedUserIds.length === 0) {
-      return NextResponse.json({ data: [] });
+      eligibleUserIds = purchases?.map((p) => p.participant_id) || [];
+
+      if (eligibleUserIds.length === 0) {
+        return NextResponse.json({ data: [] });
+      }
     }
 
     // Obtener usuarios que ya están en el equipo
@@ -65,7 +91,7 @@ export async function GET(request: Request) {
     const invitedUserIds = pendingInvitations?.map((i) => i.invitee_id) || [];
 
     // Filtrar usuarios disponibles (que no estén en el equipo ni hayan sido invitados)
-    const availableUserIds = purchasedUserIds.filter(
+    const availableUserIds = eligibleUserIds.filter(
       (id) => !teamMemberIds.includes(id) && !invitedUserIds.includes(id)
     );
 

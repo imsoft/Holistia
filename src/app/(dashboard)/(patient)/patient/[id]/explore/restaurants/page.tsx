@@ -3,11 +3,10 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { UtensilsCrossed, MapPin, Search } from "lucide-react";
+import { UtensilsCrossed, MapPin, Brain, Sparkles, Activity, Apple, Users } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { StableImage } from "@/components/ui/stable-image";
 import {
@@ -30,6 +29,7 @@ interface Restaurant {
   image_url?: string;
   cuisine_type?: string;
   price_range?: string;
+  wellness_areas?: string[];
   is_active: boolean;
   created_at: string;
 }
@@ -55,16 +55,66 @@ const CUISINE_TYPES = [
 
 const PRICE_RANGES = ["$", "$$", "$$$", "$$$$"];
 
+const categories = [
+  {
+    id: "professionals",
+    name: "Salud mental",
+    icon: Brain,
+    description: "Expertos en salud mental",
+  },
+  {
+    id: "spirituality",
+    name: "Espiritualidad",
+    icon: Sparkles,
+    description: "Guías espirituales y terapeutas holísticos",
+  },
+  {
+    id: "physical-activity",
+    name: "Actividad física",
+    icon: Activity,
+    description: "Entrenadores y terapeutas físicos",
+  },
+  {
+    id: "social",
+    name: "Social",
+    icon: Users,
+    description: "Especialistas en desarrollo social",
+  },
+  {
+    id: "nutrition",
+    name: "Alimentación",
+    icon: Apple,
+    description: "Nutriólogos y especialistas en alimentación",
+  },
+];
+
+// Mapeo de categorías de bienestar
+const categoryToWellnessAreas: Record<string, string[]> = {
+  professionals: ["Salud mental"],
+  spirituality: ["Espiritualidad"],
+  "physical-activity": ["Actividad física"],
+  social: ["Social"],
+  nutrition: ["Alimentación"],
+};
+
 export default function RestaurantsPage() {
   const params = useParams();
   const userId = params.id as string;
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [filteredRestaurants, setFilteredRestaurants] = useState<Restaurant[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState("");
   const [selectedCuisine, setSelectedCuisine] = useState<string>("all");
   const [selectedPriceRange, setSelectedPriceRange] = useState<string>("all");
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const supabase = createClient();
+
+  const handleCategoryToggle = (categoryId: string) => {
+    setSelectedCategories((prev) =>
+      prev.includes(categoryId)
+        ? prev.filter((id) => id !== categoryId)
+        : [...prev, categoryId]
+    );
+  };
 
   useEffect(() => {
     const getRestaurants = async () => {
@@ -73,7 +123,7 @@ export default function RestaurantsPage() {
 
         const { data, error } = await supabase
           .from("restaurants")
-          .select("*")
+          .select("*, wellness_areas")
           .eq("is_active", true)
           .order("created_at", { ascending: false });
 
@@ -96,14 +146,18 @@ export default function RestaurantsPage() {
   useEffect(() => {
     let filtered = restaurants;
 
-    // Filtrar por búsqueda
-    if (searchTerm) {
-      filtered = filtered.filter(
-        (restaurant) =>
-          restaurant.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          restaurant.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          restaurant.address?.toLowerCase().includes(searchTerm.toLowerCase())
-      );
+    // Filtrar por categorías de bienestar
+    if (selectedCategories.length > 0) {
+      filtered = filtered.filter((restaurant) => {
+        const restaurantWellnessAreas = restaurant.wellness_areas || [];
+        if (restaurantWellnessAreas.length === 0) {
+          return false;
+        }
+        return selectedCategories.some((categoryId) => {
+          const mappedAreas = categoryToWellnessAreas[categoryId] || [];
+          return mappedAreas.length > 0 && restaurantWellnessAreas.some((area) => mappedAreas.includes(area));
+        });
+      });
     }
 
     // Filtrar por tipo de cocina
@@ -121,7 +175,7 @@ export default function RestaurantsPage() {
     }
 
     setFilteredRestaurants(filtered);
-  }, [searchTerm, selectedCuisine, selectedPriceRange, restaurants]);
+  }, [selectedCategories, selectedCuisine, selectedPriceRange, restaurants]);
 
   // Componente de skeleton
   const RestaurantCardSkeleton = () => (
@@ -180,6 +234,44 @@ export default function RestaurantsPage() {
           </p>
         </div>
 
+        {/* Categories Filter */}
+        <div className="mb-6 sm:mb-8">
+          <div className="text-center mb-4 sm:mb-6">
+            <h3 className="text-base sm:text-lg font-semibold text-foreground mb-2">
+              Filtrar por categorías
+            </h3>
+            <p className="text-xs sm:text-sm text-muted-foreground">
+              Selecciona una categoría para filtrar programas
+            </p>
+          </div>
+          <div className="flex gap-3 sm:gap-4 justify-center overflow-x-auto pb-2">
+            {categories.map((category) => {
+              const CategoryIcon = category.icon;
+              return (
+                <div
+                  key={category.id}
+                  onClick={() => handleCategoryToggle(category.id)}
+                  className={`group flex flex-col items-center p-3 sm:p-4 rounded-xl border transition-all duration-200 min-w-[120px] sm:min-w-[140px] shrink-0 cursor-pointer ${
+                    selectedCategories.includes(category.id)
+                      ? "bg-white text-primary border-primary shadow-md"
+                      : "bg-primary text-white border-primary/20 hover:border-primary hover:shadow-md"
+                  }`}
+                >
+                  <div className="mb-1 sm:mb-2">
+                    <CategoryIcon className={`h-5 w-5 sm:h-6 sm:w-6 ${selectedCategories.includes(category.id) ? "text-primary" : "text-white"}`} />
+                  </div>
+                  <span className={`text-sm sm:text-base font-medium text-center ${selectedCategories.includes(category.id) ? "text-primary" : "text-white"}`}>
+                    {category.name}
+                  </span>
+                  <span className={`text-[10px] sm:text-xs mt-1 text-center leading-tight ${selectedCategories.includes(category.id) ? "text-primary/80" : "text-white/80"}`}>
+                    {category.description}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
         <div className="lg:grid lg:grid-cols-3 lg:gap-x-8">
           {/* Sidebar con filtros */}
           <aside className="lg:col-span-1 mb-6 lg:mb-0">
@@ -188,24 +280,6 @@ export default function RestaurantsPage() {
                 <h2 className="text-lg font-medium text-foreground">Filtros</h2>
               </div>
               <form className="divide-y divide-border">
-              {/* Búsqueda */}
-                <div className="py-8 first:pt-0 last:pb-0">
-                  <fieldset>
-                    <legend className="block text-sm font-medium text-foreground mb-6">
-                      Búsqueda
-                    </legend>
-                    <div className="relative">
-                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                      <Input
-                        type="text"
-                        placeholder="Buscar restaurantes..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="pl-10"
-                      />
-                    </div>
-                  </fieldset>
-                </div>
 
                 {/* Tipo de cocina */}
                 <div className="py-8 first:pt-0 last:pb-0">
@@ -302,16 +376,6 @@ export default function RestaurantsPage() {
             {/* Mobile filters - Botón para abrir filtros en móvil */}
             <div className="lg:hidden mb-6">
               <div className="space-y-4">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                  <Input
-                    type="text"
-                    placeholder="Buscar restaurantes..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10"
-                  />
-                </div>
                 <div className="grid grid-cols-2 gap-4">
                 <Select value={selectedCuisine} onValueChange={setSelectedCuisine}>
                     <SelectTrigger>

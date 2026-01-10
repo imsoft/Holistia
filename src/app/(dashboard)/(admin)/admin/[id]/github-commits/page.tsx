@@ -91,6 +91,7 @@ export default function GitHubCommitsPage() {
   const [branch, setBranch] = useState("main");
   const [perPage, setPerPage] = useState(30);
   const [page, setPage] = useState(1);
+  const [selectedPrefix, setSelectedPrefix] = useState<string>("all");
 
   const fetchCommits = async () => {
     try {
@@ -136,6 +137,29 @@ export default function GitHubCommitsPage() {
     fetchCommits();
   }, [owner, repo, branch, perPage, page]);
 
+  // Lista de prefijos disponibles
+  const availablePrefixes = [
+    'feat', 'fix', 'refactor', 'chore', 'docs', 'style', 'test', 
+    'perf', 'build', 'ci', 'revert', 'merge', 'hotfix', 'release',
+    'seo', 'ui', 'database', 'add'
+  ];
+
+  // Función para extraer el prefijo de un mensaje de commit
+  const extractPrefix = (message: string): string | null => {
+    if (!message) return null;
+    const firstLine = message.split('\n')[0];
+    const prefixPattern = new RegExp(`^(${availablePrefixes.join('|')})(\\([^)]+\\))?:`, 'i');
+    const match = firstLine.match(prefixPattern);
+    return match ? match[1].toLowerCase() : null;
+  };
+
+  // Filtrar commits por prefijo
+  const filteredCommits = commits.filter((commit) => {
+    if (selectedPrefix === "all") return true;
+    const prefix = extractPrefix(commit.message);
+    return prefix === selectedPrefix;
+  });
+
   // Función para escapar HTML de forma segura (funciona en cliente y servidor)
   const escapeHtml = (text: string): string => {
     if (!text) return '';
@@ -151,20 +175,13 @@ export default function GitHubCommitsPage() {
   const formatCommitMessage = (message: string): string => {
     if (!message) return '';
     
-    // Prefijos comunes de commits convencionales
-    const prefixes = [
-      'feat', 'fix', 'refactor', 'chore', 'docs', 'style', 'test', 
-      'perf', 'build', 'ci', 'revert', 'merge', 'hotfix', 'release',
-      'seo', 'ui', 'database'
-    ];
-    
     // Dividir el mensaje en líneas
     const lines = message.split('\n');
     const firstLine = lines[0];
     const restLines = lines.slice(1);
     
     // Crear regex para detectar prefijos al inicio del mensaje
-    const prefixPattern = new RegExp(`^(${prefixes.join('|')})(\\([^)]+\\))?:\\s*(.+)`, 'i');
+    const prefixPattern = new RegExp(`^(${availablePrefixes.join('|')})(\\([^)]+\\))?:\\s*(.+)`, 'i');
     const match = firstLine.match(prefixPattern);
     
     let formattedFirstLine: string;
@@ -261,13 +278,42 @@ export default function GitHubCommitsPage() {
         {!loading && !error && commits.length > 0 && (
           <>
             <div className="flex items-center justify-between flex-wrap gap-4">
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-4 flex-wrap">
                 <h2 className="text-xl font-semibold">
-                  {commits.length} {commits.length === 1 ? 'commit' : 'commits'}
+                  {filteredCommits.length} {filteredCommits.length === 1 ? 'commit' : 'commits'}
+                  {selectedPrefix !== "all" && (
+                    <span className="text-sm font-normal text-muted-foreground ml-2">
+                      (de {commits.length} total)
+                    </span>
+                  )}
                 </h2>
                 <div className="flex items-center gap-2">
+                  <Label htmlFor="prefixFilter" className="text-sm text-muted-foreground whitespace-nowrap">
+                    Filtrar por:
+                  </Label>
+                  <Select
+                    value={selectedPrefix}
+                    onValueChange={(value) => {
+                      setSelectedPrefix(value);
+                      setPage(1); // Reset a página 1
+                    }}
+                  >
+                    <SelectTrigger className="w-32">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos</SelectItem>
+                      {availablePrefixes.map((prefix) => (
+                        <SelectItem key={prefix} value={prefix}>
+                          {prefix}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex items-center gap-2">
                   <Label htmlFor="perPage" className="text-sm text-muted-foreground whitespace-nowrap">
-                    Commits por página:
+                    Por página:
                   </Label>
                   <Select
                     value={perPage.toString()}
@@ -305,7 +351,7 @@ export default function GitHubCommitsPage() {
                   variant="outline"
                   size="sm"
                   onClick={() => setPage(page + 1)}
-                  disabled={commits.length < perPage}
+                  disabled={filteredCommits.length < perPage}
                 >
                   Siguiente
                 </Button>
@@ -313,7 +359,7 @@ export default function GitHubCommitsPage() {
             </div>
 
             <div className="space-y-4">
-              {commits.map((commit) => {
+              {filteredCommits.map((commit) => {
                 const commitDate = new Date(commit.author.date);
                 
                 return (
@@ -409,7 +455,7 @@ export default function GitHubCommitsPage() {
               <Button
                 variant="outline"
                 onClick={() => setPage(page + 1)}
-                disabled={commits.length < perPage || loading}
+                disabled={filteredCommits.length < perPage || loading}
               >
                 Siguiente
               </Button>
@@ -418,6 +464,23 @@ export default function GitHubCommitsPage() {
         )}
 
         {/* Empty State */}
+        {!loading && !error && filteredCommits.length === 0 && commits.length > 0 && (
+          <Card>
+            <CardContent className="pt-6">
+              <div className="text-center py-8">
+                <GitCommit className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                <p className="text-lg font-medium text-foreground mb-2">
+                  No se encontraron commits con el prefijo "{selectedPrefix}"
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  Intenta seleccionar otro prefijo o "Todos" para ver todos los commits
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Empty State - No commits at all */}
         {!loading && !error && commits.length === 0 && (
           <Card>
             <CardContent className="pt-6">

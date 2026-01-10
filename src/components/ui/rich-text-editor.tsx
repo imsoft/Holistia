@@ -40,6 +40,7 @@ export function RichTextEditor({
   const [, forceUpdate] = useState({});
   const isUpdatingFromOutside = useRef(false); // Ref para rastrear actualizaciones externas
   const lastContentRef = useRef<string>(content || ''); // Ref para rastrear el último contenido externo
+  const isFocusedRef = useRef(false); // Ref para rastrear si el editor está enfocado
 
   const editor = useEditor({
     extensions: [
@@ -63,10 +64,26 @@ export function RichTextEditor({
         const newContent = editor.getHTML();
         // Actualizar el ref del último contenido del usuario
         lastContentRef.current = newContent;
-        onChange(newContent);
+        // Solo actualizar el estado del padre si el editor NO está enfocado
+        // Esto previene actualizaciones mientras el usuario escribe
+        if (!isFocusedRef.current) {
+          onChange(newContent);
+        }
       }
       // Forzar actualización para reflejar cambios en el estado activo de los botones
       forceUpdate({});
+    },
+    onFocus: () => {
+      isFocusedRef.current = true;
+    },
+    onBlur: () => {
+      isFocusedRef.current = false;
+      // Cuando el editor pierde el foco, sincronizar el contenido con el estado del padre
+      if (editor && !isUpdatingFromOutside.current) {
+        const currentContent = editor.getHTML();
+        lastContentRef.current = currentContent;
+        onChange(currentContent);
+      }
     },
     onSelectionUpdate: () => {
       // Actualizar estado cuando cambia la selección
@@ -141,6 +158,12 @@ export function RichTextEditor({
   // IMPORTANTE: Solo actualizar si el cambio viene de fuera (no del usuario escribiendo)
   useEffect(() => {
     if (editor && isMounted) {
+      // CRÍTICO: Si el editor está enfocado (usando ref para evitar timing issues), NUNCA actualizar desde fuera
+      // Esto previene que el usuario pierda el foco mientras escribe
+      if (isFocusedRef.current) {
+        return; // No interferir con la escritura del usuario
+      }
+
       const currentContent = editor.getHTML();
       const newContent = content || '<p></p>';
       
@@ -149,18 +172,6 @@ export function RichTextEditor({
         return;
       }
 
-      // Si el editor está enfocado Y el contenido actual coincide con el último contenido del usuario,
-      // NO actualizar - el usuario está escribiendo y el cambio viene de su escritura
-      if (editor.isFocused && currentContent === lastContentRef.current) {
-        return; // No interferir con la escritura del usuario
-      }
-
-      // Si el contenido nuevo es igual al último contenido que el usuario escribió,
-      // significa que el cambio viene del usuario, no actualizar
-      if (newContent === lastContentRef.current) {
-        return; // El cambio viene del usuario escribiendo
-      }
-      
       // Normalizar contenido para comparación - remover espacios en blanco y normalizar
       const normalizeHTML = (html: string) => {
         if (!html) return '';
@@ -174,12 +185,12 @@ export function RichTextEditor({
       const normalizedCurrent = normalizeHTML(currentContent);
       const normalizedNew = normalizeHTML(newContent);
       
-      // Solo actualizar si el contenido realmente cambió Y no viene del usuario
+      // Solo actualizar si el contenido realmente cambió
       if (normalizedCurrent !== normalizedNew) {
         console.log('🔄 [RichTextEditor] Actualizando contenido del editor (cambio externo):', {
           contenido_nuevo_length: newContent.length,
           contenido_actual_length: currentContent.length,
-          editor_enfocado: editor.isFocused,
+          editor_enfocado: isFocusedRef.current,
         });
         
         // Marcar que estamos actualizando desde fuera para evitar que onUpdate se dispare

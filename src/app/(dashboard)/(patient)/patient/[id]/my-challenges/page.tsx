@@ -873,9 +873,62 @@ export default function MyChallengesPage() {
                           variant="outline"
                           size="sm"
                           className="flex-1"
-                          onClick={(e) => {
+                          onClick={async (e) => {
                             e.stopPropagation();
-                            router.push(`/patient/${userId}/my-challenges/${challenge.id}/team/create`);
+                            try {
+                              // Buscar si ya existe un equipo para este reto
+                              const { data: { user } } = await supabase.auth.getUser();
+                              if (!user) {
+                                toast.error("Debes iniciar sesión");
+                                return;
+                              }
+
+                              // Primero buscar si el usuario es creador del reto y tiene un equipo creado
+                              const { data: createdTeam } = await supabase
+                                .from("challenge_teams")
+                                .select("id")
+                                .eq("challenge_id", challenge.id)
+                                .eq("creator_id", user.id)
+                                .maybeSingle();
+
+                              if (createdTeam) {
+                                // Si existe un equipo creado por el usuario, ir a invitación
+                                router.push(`/patient/${userId}/my-challenges/${challenge.id}/team/invite?teamId=${createdTeam.id}`);
+                                return;
+                              }
+
+                              // Si no es creador, buscar membresía del usuario en equipos
+                              const { data: memberships } = await supabase
+                                .from("challenge_team_members")
+                                .select("team_id")
+                                .eq("user_id", user.id);
+
+                              if (memberships && memberships.length > 0) {
+                                // Obtener los IDs de los equipos
+                                const teamIds = memberships.map((m: any) => m.team_id);
+                                
+                                // Buscar equipos que correspondan a este reto
+                                const { data: teams } = await supabase
+                                  .from("challenge_teams")
+                                  .select("id, challenge_id")
+                                  .in("id", teamIds)
+                                  .eq("challenge_id", challenge.id)
+                                  .maybeSingle();
+
+                                if (teams) {
+                                  // Si existe un equipo para este reto, ir directamente a la página de invitación
+                                  router.push(`/patient/${userId}/my-challenges/${challenge.id}/team/invite?teamId=${teams.id}`);
+                                  return;
+                                }
+                              }
+
+                              // Si no existe equipo, ir a crear uno primero
+                              router.push(`/patient/${userId}/my-challenges/${challenge.id}/team/create`);
+                            } catch (error) {
+                              console.error("Error checking team:", error);
+                              // En caso de error, redirigir a crear equipo
+                              router.push(`/patient/${userId}/my-challenges/${challenge.id}/team/create`);
+                            }
                           }}
                         >
                           <Users className="h-4 w-4 mr-2" />

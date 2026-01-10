@@ -311,7 +311,7 @@ export default function InviteTeamMembersPage() {
 
           {/* Miembros actuales */}
           <Card>
-            <CardHeader>
+            <CardHeader className="!py-4">
               <CardTitle>Miembros del equipo</CardTitle>
             </CardHeader>
             <CardContent className="!py-4">
@@ -346,7 +346,7 @@ export default function InviteTeamMembersPage() {
 
           {/* Búsqueda de usuarios */}
           <Card>
-            <CardHeader>
+            <CardHeader className="!py-4">
               <CardTitle>Buscar usuarios y expertos</CardTitle>
               <p className="text-sm text-muted-foreground">
                 Busca entre todos los usuarios y expertos de Holistia para seguir e invitar
@@ -422,7 +422,7 @@ export default function InviteTeamMembersPage() {
           {/* Usuarios disponibles para invitar */}
           {!team?.is_full ? (
             <Card>
-              <CardHeader>
+              <CardHeader className="!py-4">
                 <CardTitle>Usuarios disponibles para invitar</CardTitle>
                 <p className="text-sm text-muted-foreground">
                   {challengeInfo?.is_free

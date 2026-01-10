@@ -79,6 +79,8 @@ export default function InviteTeamMembersPage() {
 
   // Escuchar eventos de seguir/dejar de seguir para recargar usuarios disponibles
   useEffect(() => {
+    if (!teamId || !challengeId) return;
+
     const handleFollowChange = () => {
       // Recargar usuarios disponibles después de un pequeño delay
       setTimeout(() => {
@@ -86,7 +88,7 @@ export default function InviteTeamMembersPage() {
       }, 500);
     };
 
-    // Escuchar eventos personalizados o usar polling
+    // Escuchar eventos personalizados
     window.addEventListener('user-followed', handleFollowChange);
     window.addEventListener('user-unfollowed', handleFollowChange);
 

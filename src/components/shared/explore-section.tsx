@@ -540,7 +540,7 @@ export function ExploreSection({ hideHeader = false, userId }: ExploreSectionPro
                 
                 return (
                   <Card key={shop.id} className="relative flex-shrink-0 w-[280px] sm:w-[320px] h-[480px] flex flex-col hover:shadow-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer">
-                    <div className="relative w-full h-48 bg-gray-100 shrink-0 overflow-hidden">
+                    <div className="relative w-full h-48 bg-gray-100 shrink-0 overflow-visible">
                       {mainImage ? (
                         <Image
                           src={mainImage}
@@ -554,7 +554,7 @@ export function ExploreSection({ hideHeader = false, userId }: ExploreSectionPro
                           <Store className="h-16 w-16 text-primary/40" />
                         </div>
                       )}
-                      <div className="absolute top-3 right-3 z-30">
+                      <div className="absolute top-3 right-3 z-50 pointer-events-auto">
                         <FavoriteButton
                           itemId={shop.id}
                           favoriteType="shop"
@@ -644,7 +644,7 @@ export function ExploreSection({ hideHeader = false, userId }: ExploreSectionPro
             >
               {restaurants.map((restaurant) => (
                 <Card key={restaurant.id} className="relative flex-shrink-0 w-[280px] sm:w-[320px] h-[480px] flex flex-col hover:shadow-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer">
-                  <div className="relative w-full h-48 bg-gray-100 shrink-0 overflow-hidden">
+                  <div className="relative w-full h-48 bg-gray-100 shrink-0 overflow-visible">
                     {restaurant.image_url ? (
                       <Image
                         src={restaurant.image_url}
@@ -658,7 +658,7 @@ export function ExploreSection({ hideHeader = false, userId }: ExploreSectionPro
                         <UtensilsCrossed className="h-16 w-16 text-primary/40" />
                       </div>
                     )}
-                    <div className="absolute top-3 right-3 z-30">
+                    <div className="absolute top-3 right-3 z-50 pointer-events-auto">
                       <FavoriteButton
                         itemId={restaurant.id}
                         favoriteType="restaurant"
@@ -739,7 +739,7 @@ export function ExploreSection({ hideHeader = false, userId }: ExploreSectionPro
               {events.map((event) => {
                 return (
                   <Card key={event.id} className="relative flex-shrink-0 w-[280px] sm:w-[320px] h-[480px] flex flex-col hover:shadow-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer">
-                    <div className="relative w-full h-48 bg-gray-100 shrink-0 overflow-hidden">
+                    <div className="relative w-full h-48 bg-gray-100 shrink-0 overflow-visible">
                       {event.image_url ? (
                         <Image
                           src={event.image_url}
@@ -753,7 +753,7 @@ export function ExploreSection({ hideHeader = false, userId }: ExploreSectionPro
                           <Calendar className="h-16 w-16 text-primary/40" />
                         </div>
                       )}
-                      <div className="absolute top-3 right-3 z-30">
+                      <div className="absolute top-3 right-3 z-50 pointer-events-auto">
                         <FavoriteButton
                           itemId={event.id}
                           favoriteType="event"
@@ -848,7 +848,7 @@ export function ExploreSection({ hideHeader = false, userId }: ExploreSectionPro
                     className="flex-shrink-0 w-[280px] sm:w-[320px]"
                   >
                     <Card className="relative h-[480px] flex flex-col hover:shadow-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer">
-                      <div className="relative w-full h-48 bg-gray-100 shrink-0 overflow-hidden">
+                      <div className="relative w-full h-48 bg-gray-100 shrink-0 overflow-visible">
                         {product.cover_image_url ? (
                           <Image
                             src={product.cover_image_url}
@@ -862,7 +862,7 @@ export function ExploreSection({ hideHeader = false, userId }: ExploreSectionPro
                             <Sparkles className="h-16 w-16 text-primary/40" />
                           </div>
                         )}
-                        <div className="absolute top-3 right-3 z-30">
+                        <div className="absolute top-3 right-3 z-50 pointer-events-auto">
                           <FavoriteButton
                             itemId={product.id}
                             favoriteType="digital_product"

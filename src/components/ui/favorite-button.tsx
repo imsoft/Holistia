@@ -131,18 +131,21 @@ export function FavoriteButton({
         onClick={handleToggleFavorite}
         disabled={isLoading || isChecking}
         className={cn(
-          "p-2 bg-white/95 backdrop-blur-sm rounded-full hover:bg-white transition-colors shadow-lg border border-border/50 group/favorite",
-          (isLoading || isChecking) && "opacity-50 cursor-not-allowed",
+          "p-2 bg-white backdrop-blur-sm rounded-full hover:bg-white transition-colors shadow-lg border border-gray-200 group/favorite",
+          "min-w-[36px] min-h-[36px] flex items-center justify-center",
+          (isLoading || isChecking) && "opacity-70 cursor-not-allowed",
+          !(isLoading || isChecking) && "opacity-100",
           className
         )}
         title={!userId ? "Inicia sesión para agregar a favoritos" : isFavorite ? "Quitar de favoritos" : "Agregar a favoritos"}
+        style={{ zIndex: 50 }}
       >
         <Heart
           className={cn(
             "h-4 w-4 transition-colors",
             isFavorite
               ? "text-red-500 fill-red-500"
-              : "text-muted-foreground group-hover/favorite:text-red-500 group-hover/favorite:fill-red-500"
+              : "text-gray-600 group-hover/favorite:text-red-500 group-hover/favorite:fill-red-500"
           )}
         />
       </button>

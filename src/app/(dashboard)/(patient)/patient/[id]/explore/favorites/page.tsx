@@ -8,6 +8,7 @@ import { ProfessionalCard } from "@/components/ui/professional-card";
 import { createClient } from "@/utils/supabase/client";
 import { determineProfessionalModality, transformServicesFromDB } from "@/utils/professional-utils";
 import { Heart } from "lucide-react";
+import { FavoriteButton } from "@/components/ui/favorite-button";
 
 interface Favorite {
   id: string;
@@ -295,14 +296,16 @@ const FavoritesPage = () => {
                       imagePosition: professional.imagePosition || "center center"
                   }}
                 />
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleRemoveFavorite(professional.id)}
-                  className="absolute top-2 right-2 bg-background/80 backdrop-blur-sm hover:bg-background"
+                <div 
+                  className="absolute top-3 right-3 pointer-events-auto" 
+                  style={{ zIndex: 9999, position: 'absolute', top: '12px', right: '12px' }}
                 >
-                  <Heart className="h-4 w-4 fill-red-500 text-red-500" />
-                </Button>
+                  <FavoriteButton
+                    itemId={professional.id}
+                    favoriteType="professional"
+                    variant="floating"
+                  />
+                </div>
               </div>
             ))}
           </div>

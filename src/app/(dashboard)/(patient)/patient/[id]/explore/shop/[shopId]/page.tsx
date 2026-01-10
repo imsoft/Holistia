@@ -99,6 +99,22 @@ export default function ShopDetailPage() {
         if (shopError) {
           console.error("Error fetching shop:", shopError);
         } else {
+          // Parsear gallery si viene como string JSON
+          if (shopData.gallery && typeof shopData.gallery === 'string') {
+            try {
+              shopData.gallery = JSON.parse(shopData.gallery);
+            } catch (e) {
+              console.error('Error parsing gallery:', e);
+              shopData.gallery = [];
+            }
+          }
+          
+          // Asegurar que gallery sea un array
+          if (!Array.isArray(shopData.gallery)) {
+            shopData.gallery = [];
+          }
+          
+          
           setShop(shopData);
         }
 
@@ -184,13 +200,22 @@ export default function ShopDetailPage() {
         {/* Imagen principal y título */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
           {/* Imagen */}
-          <div className="relative w-full h-96 rounded-lg overflow-hidden">
+          <div className="relative w-full h-96 rounded-lg overflow-hidden bg-muted">
             {shop.image_url ? (
               <StableImage
                 src={shop.image_url}
                 alt={shop.name}
                 fill
                 className="object-cover"
+                fallbackSrc="/logos/holistia-black.png"
+              />
+            ) : shop.gallery && Array.isArray(shop.gallery) && shop.gallery.length > 0 ? (
+              <StableImage
+                src={shop.gallery[0]}
+                alt={shop.name}
+                fill
+                className="object-cover"
+                fallbackSrc="/logos/holistia-black.png"
               />
             ) : (
               <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center">
@@ -290,11 +315,11 @@ export default function ShopDetailPage() {
         </div>
 
         {/* Galería de imágenes */}
-        {shop.gallery && shop.gallery.length > 0 && (
+        {shop.gallery && Array.isArray(shop.gallery) && shop.gallery.length > 0 && (
           <div className="mb-8">
             <h2 className="text-2xl font-bold text-foreground mb-6">Galería</h2>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {shop.gallery.map((imageUrl, index) => (
+              {shop.gallery.filter(url => url && url.trim() !== '').map((imageUrl, index) => (
                 <div key={index} className="relative aspect-square rounded-lg overflow-hidden">
                   <StableImage
                     src={imageUrl}

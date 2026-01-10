@@ -23,10 +23,6 @@ import {
   ExternalLink,
   RefreshCw,
   Github,
-  Star,
-  GitFork,
-  Code,
-  Clock,
   AlertCircle,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -140,14 +136,6 @@ export default function GitHubCommitsPage() {
     fetchCommits();
   }, [owner, repo, branch, perPage, page]);
 
-  const formatCommitMessage = (message: string) => {
-    // Separar título y cuerpo del commit
-    const lines = message.split('\n');
-    const title = lines[0];
-    const body = lines.slice(1).filter(line => line.trim()).join('\n');
-    
-    return { title, body };
-  };
 
   const getShortSha = (sha: string) => sha.substring(0, 7);
 
@@ -186,132 +174,30 @@ export default function GitHubCommitsPage() {
 
       {/* Main Content */}
       <div className="p-4 sm:p-6 space-y-6">
-        {/* Configuración del Repositorio */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Configuración del Repositorio</CardTitle>
-            <CardDescription>
-              Configura el repositorio de GitHub que deseas visualizar
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="owner">Owner/Organización</Label>
-                <Input
-                  id="owner"
-                  value={owner}
-                  onChange={(e) => setOwner(e.target.value)}
-                  placeholder="imsoft"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="repo">Repositorio</Label>
-                <Input
-                  id="repo"
-                  value={repo}
-                  onChange={(e) => setRepo(e.target.value)}
-                  placeholder="Holistia"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="branch">Rama</Label>
-                <Input
-                  id="branch"
-                  value={branch}
-                  onChange={(e) => setBranch(e.target.value)}
-                  placeholder="main"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="perPage">Commits por página</Label>
-                <Select
-                  value={perPage.toString()}
-                  onValueChange={(value) => {
-                    setPerPage(parseInt(value));
-                    setPage(1); // Reset a página 1
-                  }}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="10">10</SelectItem>
-                    <SelectItem value="20">20</SelectItem>
-                    <SelectItem value="30">30</SelectItem>
-                    <SelectItem value="50">50</SelectItem>
-                    <SelectItem value="100">100</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Información del Repositorio */}
-        {repository && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Github className="h-5 w-5" />
-                {repository.full_name}
-              </CardTitle>
-              {repository.description && (
-                <CardDescription>{repository.description}</CardDescription>
-              )}
-            </CardHeader>
-            <CardContent>
-              <div className="flex flex-wrap items-center gap-4">
-                <div className="flex items-center gap-2">
-                  <Star className="h-4 w-4 text-yellow-500" />
-                  <span className="text-sm font-medium">{repository.stars}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <GitFork className="h-4 w-4 text-blue-500" />
-                  <span className="text-sm font-medium">{repository.forks}</span>
-                </div>
-                {repository.language && (
-                  <div className="flex items-center gap-2">
-                    <Code className="h-4 w-4 text-purple-500" />
-                    <span className="text-sm font-medium">{repository.language}</span>
-                  </div>
-                )}
-                <div className="flex items-center gap-2">
-                  <GitBranch className="h-4 w-4 text-green-500" />
-                  <span className="text-sm font-medium">{repository.default_branch}</span>
-                </div>
-                <Button variant="outline" size="sm" asChild>
-                  <Link href={repository.url} target="_blank" rel="noopener noreferrer">
-                    <ExternalLink className="h-4 w-4 mr-2" />
-                    Ver en GitHub
-                  </Link>
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Rate Limit Info */}
-        {rateLimit && (
-          <Card className="border-blue-200 bg-blue-50 dark:bg-blue-950/20">
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Clock className="h-4 w-4 text-blue-600" />
-                  <span className="text-sm font-medium">
-                    Rate Limit: {rateLimit.remaining} / {rateLimit.limit} requests restantes
-                  </span>
-                </div>
-                {rateLimit.remaining < 10 && (
-                  <Badge variant="destructive">
-                    <AlertCircle className="h-3 w-3 mr-1" />
-                    Límite bajo
-                  </Badge>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        )}
+        {/* Commits por página */}
+        <div className="flex items-center justify-end">
+          <div className="space-y-2 w-48">
+            <Label htmlFor="perPage">Commits por página</Label>
+            <Select
+              value={perPage.toString()}
+              onValueChange={(value) => {
+                setPerPage(parseInt(value));
+                setPage(1); // Reset a página 1
+              }}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="10">10</SelectItem>
+                <SelectItem value="20">20</SelectItem>
+                <SelectItem value="30">30</SelectItem>
+                <SelectItem value="50">50</SelectItem>
+                <SelectItem value="100">100</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
 
         {/* Error */}
         {error && (
@@ -372,12 +258,11 @@ export default function GitHubCommitsPage() {
 
             <div className="space-y-4">
               {commits.map((commit) => {
-                const { title, body } = formatCommitMessage(commit.message);
                 const commitDate = new Date(commit.author.date);
                 
                 return (
                   <Card key={commit.sha} className="hover:shadow-md transition-shadow">
-                    <CardContent className="pt-6">
+                    <CardContent className="py-4">
                       <div className="flex items-start gap-4">
                         {/* Avatar del autor */}
                         {commit.author.avatar ? (
@@ -396,20 +281,15 @@ export default function GitHubCommitsPage() {
                         <div className="flex-1 min-w-0">
                           <div className="flex items-start justify-between gap-4 mb-2">
                             <div className="flex-1 min-w-0">
-                              <h3 className="font-semibold text-foreground mb-1 break-words">
-                                {title}
-                              </h3>
-                              {body && (
-                                <p className="text-sm text-muted-foreground whitespace-pre-wrap break-words mb-2">
-                                  {body}
-                                </p>
-                              )}
+                              <p className="text-sm text-foreground whitespace-pre-wrap wrap-break-word">
+                                {commit.message}
+                              </p>
                             </div>
                             <Button
                               variant="ghost"
                               size="sm"
                               asChild
-                              className="flex-shrink-0"
+                              className="shrink-0"
                             >
                               <Link
                                 href={commit.url}

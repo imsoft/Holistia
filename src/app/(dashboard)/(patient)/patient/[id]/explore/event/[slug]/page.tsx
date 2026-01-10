@@ -477,9 +477,6 @@ const EventDetailPage = () => {
                           <p className="text-xs text-muted-foreground text-center px-2">
                             Al completar el pago, recibirás un email de confirmación.
                           </p>
-                          <p className="text-xs text-destructive font-semibold text-center px-2">
-                            ⚠️ No hay reembolsos
-                          </p>
                         </>
                       )}
                     </div>
@@ -523,11 +520,6 @@ const EventDetailPage = () => {
                         : "Al registrarte, serás redirigido a Stripe para completar el pago de forma segura. Recibirás un email de confirmación una vez completado el pago."
                       }
                     </p>
-                    {!event.is_free && (
-                      <p className="text-xs text-destructive font-semibold text-center px-2">
-                        ⚠️ No hay reembolsos
-                      </p>
-                    )}
                   </>
                 )}
               </CardContent>

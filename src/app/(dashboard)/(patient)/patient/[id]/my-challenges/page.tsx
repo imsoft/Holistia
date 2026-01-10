@@ -48,6 +48,7 @@ interface ChallengePurchase {
     created_by_type?: 'professional' | 'patient' | 'admin';
     linked_professional_id?: string;
     is_active?: boolean;
+    is_public?: boolean;
     type?: 'participating' | 'created';
     professional_applications?: {
       first_name: string;
@@ -197,6 +198,7 @@ export default function MyChallengesPage() {
             created_by_user_id,
             linked_professional_id,
             is_active,
+            is_public,
             professional_applications:challenges_linked_professional_id_fkey(
               first_name,
               last_name,
@@ -246,6 +248,7 @@ export default function MyChallengesPage() {
           created_by_type,
           linked_professional_id,
           is_active,
+          is_public,
           created_at,
           professional_applications!challenges_linked_professional_id_fkey(
             first_name,
@@ -416,7 +419,7 @@ export default function MyChallengesPage() {
   };
 
   // Verificar si el reto es público (creado por profesional)
-  const isChallengePublic = selectedChallenge?.challenge?.created_by_type === 'professional' 
+  const isChallengePublic = selectedChallenge?.challenge?.is_public === true 
     && selectedChallenge?.challenge?.is_active === true;
 
   const handleOpenChallenge = async (challenge: any): Promise<void> => {

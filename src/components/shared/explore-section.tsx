@@ -259,19 +259,10 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
         }
 
         // Cargar retos (6 para el carousel)
+        // Usar la vista challenges_with_professional que filtra por profesionales aprobados y activos
         const { data: challengesData, error: challengesError } = await supabase
-          .from("challenges")
-          .select(`
-            *,
-            professional_applications(
-              first_name,
-              last_name,
-              profile_photo,
-              profession,
-              is_verified
-            )
-          `)
-          .eq('is_active', true)
+          .from("challenges_with_professional")
+          .select("*")
           .order("created_at", { ascending: false })
           .limit(6);
 
@@ -281,14 +272,15 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
 
         if (challengesData && challengesData.length > 0) {
           console.log("✅ Challenges loaded:", challengesData.length, challengesData);
-          // Transformar datos para incluir información del profesional
+          // La vista challenges_with_professional ya incluye la información del profesional
+          // Transformar datos para asegurar formato correcto
           const transformedChallenges = challengesData.map((challenge: any) => ({
             ...challenge,
-            professional_first_name: challenge.professional_applications?.first_name,
-            professional_last_name: challenge.professional_applications?.last_name,
-            professional_photo: challenge.professional_applications?.profile_photo,
-            professional_profession: challenge.professional_applications?.profession,
-            professional_is_verified: challenge.professional_applications?.is_verified,
+            professional_first_name: challenge.professional_first_name || challenge.professional_applications?.first_name,
+            professional_last_name: challenge.professional_last_name || challenge.professional_applications?.last_name,
+            professional_photo: challenge.professional_photo || challenge.professional_applications?.profile_photo,
+            professional_profession: challenge.professional_profession || challenge.professional_applications?.profession,
+            professional_is_verified: challenge.professional_is_verified || challenge.professional_applications?.is_verified,
           }));
           setChallenges(transformedChallenges);
         } else {
@@ -1189,6 +1181,13 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
               Array.from({ length: 6 }).map((_, i) => (
                 <CardSkeleton key={`challenge-skeleton-${i}`} />
               ))
+            ) : challenges.length === 0 ? (
+              <div className="text-center py-12 w-full">
+                <Target className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <p className="text-muted-foreground">
+                  No hay retos disponibles en este momento
+                </p>
+              </div>
             ) : (
               challenges.map((challenge) => (
                 <div key={challenge.id} className="shrink-0 w-[280px] sm:w-[320px]">

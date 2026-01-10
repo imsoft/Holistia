@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nuevo Mensaje en Holistia</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #4CAF50;
+            margin-bottom: 10px;
+        }
+        .message-box {
+            background-color: #f9f9f9;
+            border-left: 4px solid #4CAF50;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .message-preview {
+            font-size: 16px;
+            color: #555;
+            margin: 10px 0;
+            line-height: 1.8;
+        }
+        .sender-info {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #f0f7ff;
+            border-radius: 8px;
+        }
+        .sender-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: #4CAF50;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 20px;
+            margin-right: 15px;
+        }
+        .sender-details {
+            flex: 1;
+        }
+        .sender-name {
+            font-weight: bold;
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        .sender-type {
+            font-size: 14px;
+            color: #666;
+        }
+        .cta-button {
+            display: inline-block;
+            background-color: #4CAF50;
+            color: white;
+            padding: 12px 30px;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: bold;
+            margin: 20px 0;
+            text-align: center;
+        }
+        .cta-button:hover {
+            background-color: #45a049;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+            font-size: 12px;
+            color: #999;
+        }
+        .timestamp {
+            font-size: 12px;
+            color: #999;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">🌿 Holistia</div>
+            <h1 style="color: #333; margin: 10px 0;">Nuevo Mensaje</h1>
+        </div>
+
+        <div class="sender-info">
+            <div class="sender-avatar">{{sender_initials}}</div>
+            <div class="sender-details">
+                <div class="sender-name">{{sender_name}}</div>
+                <div class="sender-type">{{sender_type_label}}</div>
+            </div>
+        </div>
+
+        <div class="message-box">
+            <p style="margin: 0; font-weight: bold; color: #333; margin-bottom: 10px;">Mensaje:</p>
+            <div class="message-preview">{{message_preview}}</div>
+            <div class="timestamp">{{message_time}}</div>
+        </div>
+
+        <div style="text-align: center; margin: 30px 0;">
+            <a href="{{messages_url}}" class="cta-button">Ver Conversación</a>
+        </div>
+
+        <div class="footer">
+            <p>Este es un email automático de Holistia. No respondas a este correo.</p>
+            <p>Si tienes preguntas, contacta a través de la plataforma.</p>
+            <p style="margin-top: 15px;">
+                <a href="https://www.holistia.io" style="color: #4CAF50; text-decoration: none;">www.holistia.io</a>
+            </p>
+        </div>
+    </div>
+</body>
+</html>

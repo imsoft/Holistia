@@ -617,6 +617,81 @@ export async function sendMeetingLinkNotification(data: MeetingLinkNotificationD
 }
 
 // ============================================================================
+// DIRECT MESSAGE NOTIFICATION EMAILS
+// ============================================================================
+
+interface NewMessageNotificationData {
+  recipient_name: string;
+  recipient_email: string;
+  sender_name: string;
+  sender_type: 'user' | 'professional';
+  message_preview: string;
+  message_time: string;
+  messages_url: string;
+}
+
+// Send notification when a new message is received
+export async function sendNewMessageNotification(data: NewMessageNotificationData) {
+  try {
+    const fs = await import('fs');
+    const path = await import('path');
+
+    // Read the email template
+    const templatePath = path.join(process.cwd(), 'database/email-templates/new-message-notification.html');
+    let emailTemplate: string;
+
+    try {
+      emailTemplate = fs.readFileSync(templatePath, 'utf8');
+    } catch (error) {
+      console.error('Error reading email template:', error);
+      return { success: false, error: 'Template not found' };
+    }
+
+    // Get sender initials
+    const senderInitials = data.sender_name
+      .split(' ')
+      .map(n => n[0])
+      .join('')
+      .toUpperCase()
+      .substring(0, 2);
+
+    // Get sender type label
+    const senderTypeLabel = data.sender_type === 'professional' 
+      ? 'Profesional' 
+      : 'Usuario';
+
+    // Replace placeholders in the template
+    const emailContent = emailTemplate
+      .replace(/\{\{sender_name\}\}/g, data.sender_name)
+      .replace(/\{\{sender_initials\}\}/g, senderInitials)
+      .replace(/\{\{sender_type_label\}\}/g, senderTypeLabel)
+      .replace(/\{\{message_preview\}\}/g, data.message_preview)
+      .replace(/\{\{message_time\}\}/g, data.message_time)
+      .replace(/\{\{messages_url\}\}/g, data.messages_url);
+
+    // Send email using Resend
+    const { data: emailData, error } = await resend.emails.send({
+      from: 'Holistia <noreply@holistia.io>',
+      to: [data.recipient_email],
+      subject: `💬 Nuevo mensaje de ${data.sender_name} | Holistia`,
+      html: emailContent,
+    });
+
+    if (error) {
+      console.error('Error sending new message notification:', error);
+      return { success: false, error: error.message };
+    }
+
+    console.log('New message notification sent successfully:', emailData?.id);
+    return { success: true, message: 'Email sent successfully', id: emailData?.id };
+
+  } catch (error) {
+    console.error('Error in sendNewMessageNotification:', error);
+    return { success: false, error: 'Failed to send email' };
+  }
+}
+
+// ============================================================================
 // APPOINTMENT CANCELLATION EMAILS
 // ============================================================================
 

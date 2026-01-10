@@ -19,7 +19,8 @@ import {
   Heading3
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
+import React from 'react';
 
 interface RichTextEditorProps {
   content: string;
@@ -38,6 +39,7 @@ export function RichTextEditor({
 }: RichTextEditorProps) {
   const [isMounted, setIsMounted] = useState(false);
   const [, forceUpdate] = useState({});
+  const isUpdatingFromOutside = React.useRef(false); // Ref para rastrear actualizaciones externas
 
   const editor = useEditor({
     extensions: [
@@ -56,7 +58,10 @@ export function RichTextEditor({
     ],
     content: content || '<p></p>', // Asegurar que siempre tenga contenido inicial
     onUpdate: ({ editor }) => {
-      onChange(editor.getHTML());
+      // Solo actualizar el estado si el cambio viene del usuario (no de una actualización externa)
+      if (!isUpdatingFromOutside.current) {
+        onChange(editor.getHTML());
+      }
       // Forzar actualización para reflejar cambios en el estado activo de los botones
       forceUpdate({});
     },
@@ -91,6 +96,7 @@ export function RichTextEditor({
           dispatch(tr);
           return true;
         }
+        // NO bloquear otros eventos de teclado - permitir escritura normal
         return false;
       },
       handlePaste: (view, event) => {
@@ -129,10 +135,21 @@ export function RichTextEditor({
   }, []);
 
   // Actualizar el contenido del editor cuando cambia la prop content
+  // IMPORTANTE: Solo actualizar si el cambio viene de fuera (no del usuario escribiendo)
   useEffect(() => {
     if (editor && isMounted) {
+      // Si el editor está enfocado, NO actualizar - el usuario está escribiendo
+      if (editor.isFocused) {
+        return; // No interferir con la escritura del usuario
+      }
+
       const currentContent = editor.getHTML();
       const newContent = content || '<p></p>';
+      
+      // Comparar contenido sin normalizar primero (más rápido)
+      if (currentContent === newContent) {
+        return; // No hay cambios, no hacer nada
+      }
       
       // Normalizar contenido para comparación - remover espacios en blanco y normalizar
       const normalizeHTML = (html: string) => {
@@ -154,13 +171,18 @@ export function RichTextEditor({
           contenido_actual_length: currentContent.length,
           contenido_nuevo_preview: newContent.substring(0, 100).replace(/\n/g, ' '),
           contenido_actual_preview: currentContent.substring(0, 100).replace(/\n/g, ' '),
-          son_diferentes: normalizedCurrent !== normalizedNew,
         });
+        
+        // Marcar que estamos actualizando desde fuera para evitar que onUpdate se dispare
+        isUpdatingFromOutside.current = true;
         
         // Usar setContent con emitUpdate: false para evitar loops
         editor.commands.setContent(newContent, { emitUpdate: false });
-      } else {
-        console.log('⏭️ [RichTextEditor] Contenido no cambió, omitiendo actualización');
+        
+        // Resetear el flag después de un pequeño delay
+        setTimeout(() => {
+          isUpdatingFromOutside.current = false;
+        }, 100);
       }
     }
   }, [content, editor, isMounted]);

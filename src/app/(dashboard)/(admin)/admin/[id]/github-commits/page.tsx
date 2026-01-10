@@ -174,30 +174,6 @@ export default function GitHubCommitsPage() {
 
       {/* Main Content */}
       <div className="p-4 sm:p-6 space-y-6">
-        {/* Commits por página */}
-        <div className="flex items-center justify-end">
-          <div className="space-y-2 w-48">
-            <Label htmlFor="perPage">Commits por página</Label>
-            <Select
-              value={perPage.toString()}
-              onValueChange={(value) => {
-                setPerPage(parseInt(value));
-                setPage(1); // Reset a página 1
-              }}
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="10">10</SelectItem>
-                <SelectItem value="20">20</SelectItem>
-                <SelectItem value="30">30</SelectItem>
-                <SelectItem value="50">50</SelectItem>
-                <SelectItem value="100">100</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
 
         {/* Error */}
         {error && (
@@ -229,10 +205,35 @@ export default function GitHubCommitsPage() {
         {/* Commits List */}
         {!loading && !error && commits.length > 0 && (
           <>
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold">
-                {commits.length} {commits.length === 1 ? 'commit' : 'commits'}
-              </h2>
+            <div className="flex items-center justify-between flex-wrap gap-4">
+              <div className="flex items-center gap-4">
+                <h2 className="text-xl font-semibold">
+                  {commits.length} {commits.length === 1 ? 'commit' : 'commits'}
+                </h2>
+                <div className="flex items-center gap-2">
+                  <Label htmlFor="perPage" className="text-sm text-muted-foreground whitespace-nowrap">
+                    Commits por página:
+                  </Label>
+                  <Select
+                    value={perPage.toString()}
+                    onValueChange={(value) => {
+                      setPerPage(parseInt(value));
+                      setPage(1); // Reset a página 1
+                    }}
+                  >
+                    <SelectTrigger className="w-20">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="10">10</SelectItem>
+                      <SelectItem value="20">20</SelectItem>
+                      <SelectItem value="30">30</SelectItem>
+                      <SelectItem value="50">50</SelectItem>
+                      <SelectItem value="100">100</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
               <div className="flex items-center gap-2">
                 <Button
                   variant="outline"

@@ -58,10 +58,31 @@ export async function GET(request: NextRequest) {
 
     const commits = await response.json();
 
+    // Función para limpiar mensajes de commit
+    const cleanCommitMessage = (message: string): string => {
+      if (!message) return '';
+      
+      // Remover "🤖 Generated with [Claude Code](https://claude.com/claude-code)"
+      let cleaned = message.replace(/🤖\s*Generated\s+with\s+\[Claude\s+Code\]\(https:\/\/claude\.com\/claude-code\)/gi, '');
+      
+      // Remover "Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
+      cleaned = cleaned.replace(/Co-Authored-By:\s*Claude\s+Sonnet\s+4\.5\s+<noreply@anthropic\.com>/gi, '');
+      
+      // Remover líneas vacías múltiples y espacios al inicio/final
+      cleaned = cleaned
+        .split('\n')
+        .map(line => line.trim())
+        .filter(line => line.length > 0)
+        .join('\n')
+        .trim();
+      
+      return cleaned || message; // Si quedó vacío, devolver el original
+    };
+
     // Formatear commits para el frontend
     const formattedCommits = commits.map((commit: any) => ({
       sha: commit.sha,
-      message: commit.commit.message,
+      message: cleanCommitMessage(commit.commit.message),
       author: {
         name: commit.commit.author.name,
         email: commit.commit.author.email,

@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/select";
 import { createClient } from "@/utils/supabase/client";
 import { toast } from "sonner";
-import { Calendar, Target, Loader2, CheckCircle2, Circle, Users, Plus, Edit, Trash2, Link as LinkIcon, Book, Headphones, Video, FileText, ExternalLink, Search, Filter } from "lucide-react";
+import { Calendar, Target, Loader2, CheckCircle2, Circle, Users, Plus, Edit, Trash2, Link as LinkIcon, Book, Headphones, Video, FileText, ExternalLink, Search, Filter, Share2 } from "lucide-react";
 import { CheckinForm } from "@/components/ui/checkin-form";
 import { ChallengeProgress } from "@/components/ui/challenge-progress";
 import { ChallengeBadges } from "@/components/ui/challenge-badges";
@@ -45,8 +45,9 @@ interface ChallengePurchase {
     duration_days?: number;
     difficulty_level?: string;
     category?: string;
-    created_by_type?: 'professional' | 'patient';
+    created_by_type?: 'professional' | 'patient' | 'admin';
     linked_professional_id?: string;
+    is_active?: boolean;
     type?: 'participating' | 'created';
     professional_applications?: {
       first_name: string;
@@ -69,6 +70,7 @@ interface Checkin {
   notes?: string;
   points_earned: number;
   verified_by_professional: boolean;
+  is_public?: boolean;
 }
 
 interface CreatedChallenge {
@@ -194,6 +196,7 @@ export default function MyChallengesPage() {
             created_by_type,
             created_by_user_id,
             linked_professional_id,
+            is_active,
             professional_applications:challenges_linked_professional_id_fkey(
               first_name,
               last_name,
@@ -209,16 +212,22 @@ export default function MyChallengesPage() {
       if (error) throw error;
 
       // Transformar datos de Supabase a formato esperado
-      const transformedPurchases = (purchases || []).map((purchase: any) => ({
-        id: purchase.id,
-        challenge_id: purchase.challenge_id,
-        access_granted: purchase.access_granted,
-        started_at: purchase.started_at,
-        completed_at: purchase.completed_at,
-        challenge: Array.isArray(purchase.challenges) && purchase.challenges.length > 0
+      const transformedPurchases = (purchases || []).map((purchase: any) => {
+        const challenge = Array.isArray(purchase.challenges) && purchase.challenges.length > 0
           ? purchase.challenges[0]
-          : purchase.challenges,
-      }));
+          : purchase.challenges;
+        return {
+          id: purchase.id,
+          challenge_id: purchase.challenge_id,
+          access_granted: purchase.access_granted,
+          started_at: purchase.started_at,
+          completed_at: purchase.completed_at,
+          challenge: {
+            ...challenge,
+            is_active: challenge?.is_active ?? true,
+          },
+        };
+      });
 
       setChallenges(transformedPurchases);
 
@@ -258,6 +267,7 @@ export default function MyChallengesPage() {
       // Transformar datos de retos creados
       const transformedCreated = (created || []).map((challenge: any) => ({
         ...challenge,
+        is_active: challenge.is_active ?? true,
         professional_applications: Array.isArray(challenge.professional_applications) && challenge.professional_applications.length > 0
           ? challenge.professional_applications[0]
           : undefined,
@@ -374,6 +384,41 @@ export default function MyChallengesPage() {
     }
   };
 
+  const handlePublishCheckin = async (checkinId: string, isPublic: boolean) => {
+    try {
+      const response = await fetch('/api/challenges/checkins/publish', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          checkin_id: checkinId,
+          is_public: !isPublic,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Error al publicar el check-in');
+      }
+
+      toast.success(isPublic ? 'Check-in ocultado del feed' : 'Check-in publicado en el feed');
+      
+      // Actualizar el estado local
+      setCheckins(prev => prev.map(c => 
+        c.id === checkinId ? { ...c, is_public: !isPublic } : c
+      ));
+    } catch (error) {
+      console.error('Error publishing checkin:', error);
+      toast.error(error instanceof Error ? error.message : 'Error al publicar el check-in');
+    }
+  };
+
+  // Verificar si el reto es público (creado por profesional)
+  const isChallengePublic = selectedChallenge?.challenge?.created_by_type === 'professional' 
+    && selectedChallenge?.challenge?.is_active === true;
+
   const handleOpenChallenge = async (challenge: any): Promise<void> => {
     // Si es un reto participado, usar purchaseId
     if (challenge.type === 'participating' && challenge.purchaseId) {
@@ -383,6 +428,8 @@ export default function MyChallengesPage() {
         challenge: {
           ...challenge,
           type: 'participating' as const,
+          is_active: challenge.is_active ?? true,
+          created_by_type: challenge.created_by_type,
         },
         access_granted: challenge.access_granted,
         started_at: challenge.started_at,
@@ -432,6 +479,8 @@ export default function MyChallengesPage() {
           challenge: {
             ...challenge,
             type: 'created' as const,
+            is_active: challenge.is_active ?? true,
+            created_by_type: challenge.created_by_type,
           },
           access_granted: true, // Los creadores siempre tienen acceso
           started_at: undefined,
@@ -450,6 +499,8 @@ export default function MyChallengesPage() {
           challenge: {
             ...challenge,
             type: 'created' as const,
+            is_active: challenge.is_active ?? true,
+            created_by_type: challenge.created_by_type,
           },
           access_granted: true,
           started_at: undefined,
@@ -948,9 +999,22 @@ export default function MyChallengesPage() {
                                             )}
                                           </div>
                                         )}
-                                        <p className="text-xs mt-1">
-                                          {new Date(checkin.checkin_date).toLocaleDateString('es-ES')}
-                                        </p>
+                                        <div className="flex items-center justify-between mt-2">
+                                          <p className="text-xs">
+                                            {new Date(checkin.checkin_date).toLocaleDateString('es-ES')}
+                                          </p>
+                                          {isChallengePublic && (
+                                            <Button
+                                              variant={checkin.is_public ? "default" : "outline"}
+                                              size="sm"
+                                              className="h-7 text-xs"
+                                              onClick={() => handlePublishCheckin(checkin.id, checkin.is_public || false)}
+                                            >
+                                              <Share2 className="h-3 w-3 mr-1" />
+                                              {checkin.is_public ? 'En el feed' : 'Publicar'}
+                                            </Button>
+                                          )}
+                                        </div>
                                       </div>
                                     )}
                                   </div>

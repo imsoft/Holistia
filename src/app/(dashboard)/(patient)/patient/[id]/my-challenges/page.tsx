@@ -192,6 +192,7 @@ export default function MyChallengesPage() {
             difficulty_level,
             category,
             created_by_type,
+            created_by_user_id,
             linked_professional_id,
             professional_applications:challenges_linked_professional_id_fkey(
               first_name,
@@ -274,6 +275,7 @@ export default function MyChallengesPage() {
         completed_at: p.completed_at,
       }));
 
+      // Marcar retos creados por el usuario
       const createdChallenges = transformedCreated.map((c: any) => ({
         ...c,
         type: 'created' as const,
@@ -281,12 +283,24 @@ export default function MyChallengesPage() {
       }));
 
       // Filtrar duplicados: si un reto aparece tanto en participating como en created,
-      // priorizar el que tiene purchaseId (participating)
-      const challengeIds = new Set(participatingChallenges.map((c: any) => c.id));
+      // verificar si el usuario es el creador y mantenerlo como 'created' si es así
+      const createdChallengeIds = new Set(transformedCreated.map((c: any) => c.id));
+      
+      // Para retos que están en participating, verificar si también fueron creados por el usuario
+      // Comparar por ID y también por created_by_user_id para mayor seguridad
+      const participatingWithCreatedFlag = participatingChallenges.map((c: any) => {
+        // Verificar si el reto fue creado por el usuario comparando IDs y created_by_user_id
+        if (createdChallengeIds.has(c.id) || c.created_by_user_id === user.id) {
+          return { ...c, type: 'created' as const };
+        }
+        return c;
+      });
+      
+      const challengeIds = new Set(participatingWithCreatedFlag.map((c: any) => c.id));
       const uniqueCreatedChallenges = createdChallenges.filter((c: any) => !challengeIds.has(c.id));
 
       const combinedChallenges = [
-        ...participatingChallenges,
+        ...participatingWithCreatedFlag,
         ...uniqueCreatedChallenges,
       ];
 
@@ -790,13 +804,16 @@ export default function MyChallengesPage() {
                         <Users className="h-4 w-4" />
                         Crear/Ver Equipo
                       </Button>
-                    ) : (
+                    ) : challenge.type === 'created' ? (
                       <div className="flex gap-2">
                         <Button
                           variant="outline"
                           size="sm"
                           className="flex-1"
-                          onClick={() => router.push(`/patient/${userId}/my-challenges/${challenge.id}/edit`)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            router.push(`/patient/${userId}/my-challenges/${challenge.id}/edit`);
+                          }}
                         >
                           <Edit className="h-4 w-4 mr-2" />
                           Editar
@@ -805,7 +822,8 @@ export default function MyChallengesPage() {
                           variant="outline"
                           size="sm"
                           className="flex-1"
-                          onClick={() => {
+                          onClick={(e) => {
+                            e.stopPropagation();
                             router.push(`/patient/${userId}/my-challenges/${challenge.id}/team/create`);
                           }}
                         >
@@ -823,7 +841,7 @@ export default function MyChallengesPage() {
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
-                    )}
+                    ) : null}
                   </div>
                 </Card>
               ))}

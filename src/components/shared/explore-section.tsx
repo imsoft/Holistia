@@ -540,20 +540,22 @@ export function ExploreSection({ hideHeader = false, userId }: ExploreSectionPro
                 
                 return (
                   <Card key={shop.id} className="relative flex-shrink-0 w-[280px] sm:w-[320px] h-[480px] flex flex-col hover:shadow-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer">
-                    <div className="relative w-full h-48 bg-gray-100 shrink-0 overflow-visible">
-                      {mainImage ? (
-                        <Image
-                          src={mainImage}
-                          alt={shop.name}
-                          fill
-                          className="object-cover"
-                          unoptimized
-                        />
-                      ) : (
-                        <div className="w-full h-full bg-linear-to-br from-primary/20 to-primary/10 flex items-center justify-center">
-                          <Store className="h-16 w-16 text-primary/40" />
-                        </div>
-                      )}
+                    <div className="relative w-full h-48 bg-gray-100 shrink-0">
+                      <div className="absolute inset-0 overflow-hidden">
+                        {mainImage ? (
+                          <Image
+                            src={mainImage}
+                            alt={shop.name}
+                            fill
+                            className="object-cover"
+                            unoptimized
+                          />
+                        ) : (
+                          <div className="w-full h-full bg-linear-to-br from-primary/20 to-primary/10 flex items-center justify-center">
+                            <Store className="h-16 w-16 text-primary/40" />
+                          </div>
+                        )}
+                      </div>
                       <div className="absolute top-3 right-3 z-50 pointer-events-auto">
                         <FavoriteButton
                           itemId={shop.id}
@@ -644,20 +646,22 @@ export function ExploreSection({ hideHeader = false, userId }: ExploreSectionPro
             >
               {restaurants.map((restaurant) => (
                 <Card key={restaurant.id} className="relative flex-shrink-0 w-[280px] sm:w-[320px] h-[480px] flex flex-col hover:shadow-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer">
-                  <div className="relative w-full h-48 bg-gray-100 shrink-0 overflow-visible">
-                    {restaurant.image_url ? (
-                      <Image
-                        src={restaurant.image_url}
-                        alt={restaurant.name}
-                        fill
-                        className="object-cover"
-                        unoptimized
-                      />
-                    ) : (
-                      <div className="w-full h-full bg-linear-to-br from-primary/20 to-primary/10 flex items-center justify-center">
-                        <UtensilsCrossed className="h-16 w-16 text-primary/40" />
-                      </div>
-                    )}
+                  <div className="relative w-full h-48 bg-gray-100 shrink-0">
+                    <div className="absolute inset-0 overflow-hidden">
+                      {restaurant.image_url ? (
+                        <Image
+                          src={restaurant.image_url}
+                          alt={restaurant.name}
+                          fill
+                          className="object-cover"
+                          unoptimized
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-linear-to-br from-primary/20 to-primary/10 flex items-center justify-center">
+                          <UtensilsCrossed className="h-16 w-16 text-primary/40" />
+                        </div>
+                      )}
+                    </div>
                     <div className="absolute top-3 right-3 z-50 pointer-events-auto">
                       <FavoriteButton
                         itemId={restaurant.id}
@@ -739,20 +743,22 @@ export function ExploreSection({ hideHeader = false, userId }: ExploreSectionPro
               {events.map((event) => {
                 return (
                   <Card key={event.id} className="relative flex-shrink-0 w-[280px] sm:w-[320px] h-[480px] flex flex-col hover:shadow-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer">
-                    <div className="relative w-full h-48 bg-gray-100 shrink-0 overflow-visible">
-                      {event.image_url ? (
-                        <Image
-                          src={event.image_url}
-                          alt={event.name}
-                          fill
-                          className="object-cover"
-                          unoptimized
-                        />
-                      ) : (
-                        <div className="w-full h-full bg-linear-to-br from-primary/20 to-primary/10 flex items-center justify-center">
-                          <Calendar className="h-16 w-16 text-primary/40" />
-                        </div>
-                      )}
+                    <div className="relative w-full h-48 bg-gray-100 shrink-0">
+                      <div className="absolute inset-0 overflow-hidden">
+                        {event.image_url ? (
+                          <Image
+                            src={event.image_url}
+                            alt={event.name}
+                            fill
+                            className="object-cover"
+                            unoptimized
+                          />
+                        ) : (
+                          <div className="w-full h-full bg-linear-to-br from-primary/20 to-primary/10 flex items-center justify-center">
+                            <Calendar className="h-16 w-16 text-primary/40" />
+                          </div>
+                        )}
+                      </div>
                       <div className="absolute top-3 right-3 z-50 pointer-events-auto">
                         <FavoriteButton
                           itemId={event.id}
@@ -848,20 +854,22 @@ export function ExploreSection({ hideHeader = false, userId }: ExploreSectionPro
                     className="flex-shrink-0 w-[280px] sm:w-[320px]"
                   >
                     <Card className="relative h-[480px] flex flex-col hover:shadow-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer">
-                      <div className="relative w-full h-48 bg-gray-100 shrink-0 overflow-visible">
-                        {product.cover_image_url ? (
-                          <Image
-                            src={product.cover_image_url}
-                            alt={product.title}
-                            fill
-                            className="object-cover"
-                            unoptimized
-                          />
-                        ) : (
-                          <div className="w-full h-full bg-linear-to-br from-primary/20 to-primary/10 flex items-center justify-center">
-                            <Sparkles className="h-16 w-16 text-primary/40" />
-                          </div>
-                        )}
+                      <div className="relative w-full h-48 bg-gray-100 shrink-0">
+                        <div className="absolute inset-0 overflow-hidden">
+                          {product.cover_image_url ? (
+                            <Image
+                              src={product.cover_image_url}
+                              alt={product.title}
+                              fill
+                              className="object-cover"
+                              unoptimized
+                            />
+                          ) : (
+                            <div className="w-full h-full bg-linear-to-br from-primary/20 to-primary/10 flex items-center justify-center">
+                              <Sparkles className="h-16 w-16 text-primary/40" />
+                            </div>
+                          )}
+                        </div>
                         <div className="absolute top-3 right-3 z-50 pointer-events-auto">
                           <FavoriteButton
                             itemId={product.id}

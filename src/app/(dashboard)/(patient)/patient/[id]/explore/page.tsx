@@ -677,7 +677,7 @@ const HomeUserPage = () => {
                               className="object-cover"
                             />
                           ) : (
-                            <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center">
+                            <div className="w-full h-full bg-linear-to-br from-primary/20 to-primary/10 flex items-center justify-center">
                               <Store className="h-12 w-12 text-primary/40" />
                             </div>
                           )}

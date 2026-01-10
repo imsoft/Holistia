@@ -724,7 +724,7 @@ export default function MyChallengesPage() {
                         sizes="100vw"
                       />
                     ) : (
-                      <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center rounded-t-lg">
+                      <div className="w-full h-full bg-linear-to-br from-primary/20 to-primary/10 flex items-center justify-center rounded-t-lg">
                         <Target className="h-12 w-12 text-primary/40" />
                       </div>
                     )}
@@ -889,7 +889,7 @@ export default function MyChallengesPage() {
                                     checkin ? 'bg-green-50 border-green-200' : 'bg-muted/30'
                                   }`}
                                 >
-                                  <div className="flex-shrink-0">
+                                  <div className="shrink-0">
                                     {checkin ? (
                                       <CheckCircle2 className="h-6 w-6 text-green-600" />
                                     ) : (
@@ -976,7 +976,7 @@ export default function MyChallengesPage() {
                               key={resource.id}
                               className="flex items-start gap-3 p-4 border rounded-lg hover:bg-muted/50 transition-colors"
                             >
-                              <div className="flex-shrink-0 mt-1">
+                              <div className="shrink-0 mt-1">
                                 {getResourceIcon(resource.resource_type)}
                               </div>
                               <div className="flex-1 min-w-0">

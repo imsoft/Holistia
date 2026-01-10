@@ -539,8 +539,8 @@ export function ExploreSection({ hideHeader = false, userId }: ExploreSectionPro
                 const cleanDescription = shop.description ? stripHtml(shop.description) : null;
                 
                 return (
-                  <Card key={shop.id} className="flex-shrink-0 w-[280px] sm:w-[320px] h-[480px] flex flex-col hover:shadow-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer">
-                    <div className="relative w-full h-48 bg-gray-100 shrink-0">
+                  <Card key={shop.id} className="relative flex-shrink-0 w-[280px] sm:w-[320px] h-[480px] flex flex-col hover:shadow-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer">
+                    <div className="relative w-full h-48 bg-gray-100 shrink-0 overflow-hidden">
                       {mainImage ? (
                         <Image
                           src={mainImage}
@@ -554,11 +554,13 @@ export function ExploreSection({ hideHeader = false, userId }: ExploreSectionPro
                           <Store className="h-16 w-16 text-primary/40" />
                         </div>
                       )}
-                      <FavoriteButton
-                        itemId={shop.id}
-                        favoriteType="shop"
-                        variant="floating"
-                      />
+                      <div className="absolute top-3 right-3 z-30">
+                        <FavoriteButton
+                          itemId={shop.id}
+                          favoriteType="shop"
+                          variant="floating"
+                        />
+                      </div>
                     </div>
                     <CardHeader className="pb-1.5 px-4 pt-3">
                       <CardTitle className="text-lg line-clamp-2">{shop.name}</CardTitle>
@@ -641,8 +643,8 @@ export function ExploreSection({ hideHeader = false, userId }: ExploreSectionPro
               }}
             >
               {restaurants.map((restaurant) => (
-                <Card key={restaurant.id} className="flex-shrink-0 w-[280px] sm:w-[320px] h-[480px] flex flex-col hover:shadow-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer">
-                  <div className="relative w-full h-48 bg-gray-100 shrink-0">
+                <Card key={restaurant.id} className="relative flex-shrink-0 w-[280px] sm:w-[320px] h-[480px] flex flex-col hover:shadow-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer">
+                  <div className="relative w-full h-48 bg-gray-100 shrink-0 overflow-hidden">
                     {restaurant.image_url ? (
                       <Image
                         src={restaurant.image_url}
@@ -656,11 +658,13 @@ export function ExploreSection({ hideHeader = false, userId }: ExploreSectionPro
                         <UtensilsCrossed className="h-16 w-16 text-primary/40" />
                       </div>
                     )}
-                    <FavoriteButton
-                      itemId={restaurant.id}
-                      favoriteType="restaurant"
-                      variant="floating"
-                    />
+                    <div className="absolute top-3 right-3 z-30">
+                      <FavoriteButton
+                        itemId={restaurant.id}
+                        favoriteType="restaurant"
+                        variant="floating"
+                      />
+                    </div>
                   </div>
                   <CardHeader className="pb-1.5 px-4 pt-3">
                     <CardTitle className="text-lg line-clamp-2">{restaurant.name}</CardTitle>
@@ -734,8 +738,8 @@ export function ExploreSection({ hideHeader = false, userId }: ExploreSectionPro
             >
               {events.map((event) => {
                 return (
-                  <Card key={event.id} className="flex-shrink-0 w-[280px] sm:w-[320px] h-[480px] flex flex-col hover:shadow-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer">
-                    <div className="relative w-full h-48 bg-gray-100 shrink-0">
+                  <Card key={event.id} className="relative flex-shrink-0 w-[280px] sm:w-[320px] h-[480px] flex flex-col hover:shadow-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer">
+                    <div className="relative w-full h-48 bg-gray-100 shrink-0 overflow-hidden">
                       {event.image_url ? (
                         <Image
                           src={event.image_url}
@@ -749,11 +753,13 @@ export function ExploreSection({ hideHeader = false, userId }: ExploreSectionPro
                           <Calendar className="h-16 w-16 text-primary/40" />
                         </div>
                       )}
-                      <FavoriteButton
-                        itemId={event.id}
-                        favoriteType="event"
-                        variant="floating"
-                      />
+                      <div className="absolute top-3 right-3 z-30">
+                        <FavoriteButton
+                          itemId={event.id}
+                          favoriteType="event"
+                          variant="floating"
+                        />
+                      </div>
                     </div>
                     <CardHeader className="pb-1.5 px-4 pt-3">
                       <CardTitle className="text-lg line-clamp-2">{event.name}</CardTitle>
@@ -841,8 +847,8 @@ export function ExploreSection({ hideHeader = false, userId }: ExploreSectionPro
                     href={currentUserId ? `/patient/${currentUserId}/explore/program/${product.id}` : `/public/program/${product.id}`}
                     className="flex-shrink-0 w-[280px] sm:w-[320px]"
                   >
-                    <Card className="h-[480px] flex flex-col hover:shadow-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer">
-                      <div className="relative w-full h-48 bg-gray-100 shrink-0">
+                    <Card className="relative h-[480px] flex flex-col hover:shadow-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer">
+                      <div className="relative w-full h-48 bg-gray-100 shrink-0 overflow-hidden">
                         {product.cover_image_url ? (
                           <Image
                             src={product.cover_image_url}
@@ -856,11 +862,13 @@ export function ExploreSection({ hideHeader = false, userId }: ExploreSectionPro
                             <Sparkles className="h-16 w-16 text-primary/40" />
                           </div>
                         )}
-                        <FavoriteButton
-                          itemId={product.id}
-                          favoriteType="digital_product"
-                          variant="floating"
-                        />
+                        <div className="absolute top-3 right-3 z-30">
+                          <FavoriteButton
+                            itemId={product.id}
+                            favoriteType="digital_product"
+                            variant="floating"
+                          />
+                        </div>
                       </div>
                       <CardHeader className="pb-1.5 px-4 pt-3">
                         <CardTitle className="text-lg line-clamp-2">{product.title}</CardTitle>

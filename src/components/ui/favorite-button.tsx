@@ -131,7 +131,7 @@ export function FavoriteButton({
         onClick={handleToggleFavorite}
         disabled={isLoading || isChecking}
         className={cn(
-          "absolute top-3 right-3 z-10 p-2 bg-white/90 backdrop-blur-sm rounded-full hover:bg-white transition-colors shadow-sm group/favorite",
+          "p-2 bg-white/95 backdrop-blur-sm rounded-full hover:bg-white transition-colors shadow-lg border border-border/50 group/favorite",
           (isLoading || isChecking) && "opacity-50 cursor-not-allowed",
           className
         )}

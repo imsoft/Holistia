@@ -321,16 +321,12 @@ export default function PublicProgramPage({
                   </div>
                 </div>
               )}
-              {/* Favorite button - solo para usuarios autenticados */}
-              {isAuthenticated && (
-                <div className="absolute top-3 right-3">
-                  <FavoriteButton
-                    itemId={product.id}
-                    favoriteType="digital_product"
-                    variant="floating"
-                  />
-                </div>
-              )}
+              {/* Favorite button */}
+              <FavoriteButton
+                itemId={product.id}
+                favoriteType="digital_product"
+                variant="floating"
+              />
             </div>
           </div>
 

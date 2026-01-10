@@ -310,11 +310,11 @@ export default function InviteTeamMembersPage() {
           </div>
 
           {/* Miembros actuales */}
-          <Card>
-            <CardHeader className="!py-4">
+          <Card className="!py-4">
+            <CardHeader>
               <CardTitle>Miembros del equipo</CardTitle>
             </CardHeader>
-            <CardContent className="!py-4">
+            <CardContent>
               <ScrollArea className="h-[200px]">
                 <div className="space-y-2">
                   {team?.members.map((member) => (
@@ -345,14 +345,14 @@ export default function InviteTeamMembersPage() {
           </Card>
 
           {/* Búsqueda de usuarios */}
-          <Card>
-            <CardHeader className="!py-4">
+          <Card className="!py-4">
+            <CardHeader>
               <CardTitle>Buscar usuarios y expertos</CardTitle>
               <p className="text-sm text-muted-foreground">
                 Busca entre todos los usuarios y expertos de Holistia para seguir e invitar
               </p>
             </CardHeader>
-            <CardContent className="!py-4">
+            <CardContent>
               <div className="relative mb-4">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -421,8 +421,8 @@ export default function InviteTeamMembersPage() {
 
           {/* Usuarios disponibles para invitar */}
           {!team?.is_full ? (
-            <Card>
-              <CardHeader className="!py-4">
+            <Card className="!py-4">
+              <CardHeader>
                 <CardTitle>Usuarios disponibles para invitar</CardTitle>
                 <p className="text-sm text-muted-foreground">
                   {challengeInfo?.is_free
@@ -430,7 +430,7 @@ export default function InviteTeamMembersPage() {
                     : "Solo puedes invitar a usuarios que sigues y que han comprado el reto"}
                 </p>
               </CardHeader>
-              <CardContent className="!py-4">
+              <CardContent>
                 <ScrollArea className="h-[300px]">
                   {availableUsers.length === 0 ? (
                     <div className="flex items-center justify-center h-full text-sm text-muted-foreground py-8">
@@ -477,8 +477,8 @@ export default function InviteTeamMembersPage() {
               </CardContent>
             </Card>
           ) : (
-            <Card>
-              <CardContent className="!py-4">
+            <Card className="!py-4">
+              <CardContent>
                 <Badge variant="secondary" className="w-full justify-center py-2">
                   <Users className="h-4 w-4 mr-2" />
                   Equipo completo

@@ -108,6 +108,9 @@ export default function PaymentButton({
           <p className="text-xs text-muted-foreground text-center">
             Paga de forma segura con tarjeta de crédito o débito
           </p>
+          <p className="text-xs text-destructive font-semibold text-center mt-2">
+            ⚠️ No hay reembolsos
+          </p>
         </div>
       </div>
 

@@ -219,6 +219,10 @@ export default function ChallengeCheckoutPage() {
                   )}
                 </Button>
 
+                <p className="text-xs text-destructive font-semibold text-center">
+                  ⚠️ No hay reembolsos
+                </p>
+
                 {!professional?.stripe_account_id && (
                   <p className="text-xs text-muted-foreground text-center">
                     El profesional no tiene configurado el método de pago

@@ -65,14 +65,19 @@ export default function EventPaymentButton({
 
 
   return (
-    <Button
-      className={`w-full touch-manipulation ${className || ''}`}
-      size="lg"
-      onClick={handlePayment}
-      disabled={loading || disabled}
-      type="button"
-    >
-      {loading ? "Procesando..." : "Registrarse al evento"}
-    </Button>
+    <div className="space-y-2">
+      <Button
+        className={`w-full touch-manipulation ${className || ''}`}
+        size="lg"
+        onClick={handlePayment}
+        disabled={loading || disabled}
+        type="button"
+      >
+        {loading ? "Procesando..." : "Registrarse al evento"}
+      </Button>
+      <p className="text-xs text-destructive font-semibold text-center">
+        ⚠️ No hay reembolsos
+      </p>
+    </div>
   );
 }

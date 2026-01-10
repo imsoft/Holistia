@@ -376,15 +376,20 @@ export default function PublicProgramPage({
                       </Button>
                     </div>
                   ) : (
-                    <Button 
-                      onClick={handlePurchase} 
-                      disabled={isPurchasing} 
-                      className="w-full" 
-                      size="lg"
-                    >
-                      <ShoppingBag className="h-5 w-5 mr-2" />
-                      {isPurchasing ? 'Procesando...' : isAuthenticated ? 'Comprar Ahora' : 'Iniciar sesión para comprar'}
-                    </Button>
+                    <>
+                      <Button 
+                        onClick={handlePurchase} 
+                        disabled={isPurchasing} 
+                        className="w-full" 
+                        size="lg"
+                      >
+                        <ShoppingBag className="h-5 w-5 mr-2" />
+                        {isPurchasing ? 'Procesando...' : isAuthenticated ? 'Comprar Ahora' : 'Iniciar sesión para comprar'}
+                      </Button>
+                      <p className="text-xs text-destructive font-semibold text-center">
+                        ⚠️ No hay reembolsos
+                      </p>
+                    </>
                   )}
 
                   {/* Share Button */}

@@ -18,6 +18,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Target,
+  Sparkles,
 } from "lucide-react";
 import { stripHtml } from "@/lib/text-utils";
 import { VerifiedBadge } from "@/components/ui/verified-badge";
@@ -72,6 +73,20 @@ interface Event {
   location: string | null;
 }
 
+interface DigitalProduct {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  price: number;
+  currency: string;
+  cover_image_url: string | null;
+  professional_applications?: {
+    first_name: string;
+    last_name: string;
+  };
+}
+
 interface ExploreSectionProps {
   hideHeader?: boolean;
   userId?: string; // Para páginas públicas, no se pasa userId
@@ -83,6 +98,7 @@ export function ExploreSection({ hideHeader = false, userId }: ExploreSectionPro
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [events, setEvents] = useState<Event[]>([]);
   const [challenges, setChallenges] = useState<any[]>([]);
+  const [digitalProducts, setDigitalProducts] = useState<DigitalProduct[]>([]);
   const [loading, setLoading] = useState(true);
 
   const professionalsRef = useRef<HTMLDivElement>(null);
@@ -90,6 +106,7 @@ export function ExploreSection({ hideHeader = false, userId }: ExploreSectionPro
   const restaurantsRef = useRef<HTMLDivElement>(null);
   const eventsRef = useRef<HTMLDivElement>(null);
   const challengesRef = useRef<HTMLDivElement>(null);
+  const digitalProductsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     async function loadData() {
@@ -246,6 +263,52 @@ export function ExploreSection({ hideHeader = false, userId }: ExploreSectionPro
         } else {
           console.log("⚠️ No challenges found or challenges array is empty");
           setChallenges([]);
+        }
+
+        // Cargar programas (productos digitales) - 6 para el carousel
+        const { data: digitalProductsData, error: digitalProductsError } = await supabase
+          .from("digital_products")
+          .select(`
+            id,
+            title,
+            description,
+            category,
+            price,
+            currency,
+            cover_image_url,
+            professional_applications(
+              first_name,
+              last_name
+            )
+          `)
+          .eq('is_active', true)
+          .order("created_at", { ascending: false })
+          .limit(6);
+
+        if (digitalProductsError) {
+          console.error("❌ Error loading digital products:", digitalProductsError);
+        }
+
+        if (digitalProductsData && digitalProductsData.length > 0) {
+          console.log("✅ Digital products loaded:", digitalProductsData.length);
+          // Transformar datos para asegurar el formato correcto
+          const transformedProducts = digitalProductsData.map((product: any) => ({
+            id: product.id,
+            title: product.title,
+            description: product.description,
+            category: product.category,
+            price: product.price,
+            currency: product.currency,
+            cover_image_url: product.cover_image_url,
+            professional_applications: product.professional_applications ? {
+              first_name: product.professional_applications.first_name,
+              last_name: product.professional_applications.last_name,
+            } : undefined,
+          }));
+          setDigitalProducts(transformedProducts);
+        } else {
+          console.log("⚠️ No digital products found or array is empty");
+          setDigitalProducts([]);
         }
       } catch (error) {
         console.error("Error loading explore data:", error);
@@ -459,7 +522,7 @@ export function ExploreSection({ hideHeader = false, userId }: ExploreSectionPro
                 const cleanDescription = shop.description ? stripHtml(shop.description) : null;
                 
                 return (
-                  <Card key={shop.id} className="flex-shrink-0 w-[280px] sm:w-[320px] h-[480px] flex flex-col hover:shadow-lg transition-shadow">
+                  <Card key={shop.id} className="flex-shrink-0 w-[280px] sm:w-[320px] h-[480px] flex flex-col hover:shadow-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer">
                     <div className="relative w-full h-48 bg-gray-100 shrink-0">
                       {mainImage ? (
                         <Image
@@ -561,7 +624,7 @@ export function ExploreSection({ hideHeader = false, userId }: ExploreSectionPro
               }}
             >
               {restaurants.map((restaurant) => (
-                <Card key={restaurant.id} className="flex-shrink-0 w-[280px] sm:w-[320px] h-[480px] flex flex-col hover:shadow-lg transition-shadow">
+                <Card key={restaurant.id} className="flex-shrink-0 w-[280px] sm:w-[320px] h-[480px] flex flex-col hover:shadow-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer">
                   <div className="relative w-full h-48 bg-gray-100 shrink-0">
                     {restaurant.image_url ? (
                       <Image
@@ -654,7 +717,7 @@ export function ExploreSection({ hideHeader = false, userId }: ExploreSectionPro
             >
               {events.map((event) => {
                 return (
-                  <Card key={event.id} className="flex-shrink-0 w-[280px] sm:w-[320px] h-[480px] flex flex-col hover:shadow-lg transition-shadow">
+                  <Card key={event.id} className="flex-shrink-0 w-[280px] sm:w-[320px] h-[480px] flex flex-col hover:shadow-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer">
                     <div className="relative w-full h-48 bg-gray-100 shrink-0">
                       {event.image_url ? (
                         <Image
@@ -708,6 +771,105 @@ export function ExploreSection({ hideHeader = false, userId }: ExploreSectionPro
                       </Button>
                     </CardContent>
                   </Card>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Programas */}
+        {digitalProducts.length > 0 && (
+          <div className="mb-16">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-2xl font-bold flex items-center gap-2">
+                <Sparkles className="w-6 h-6 text-primary" />
+                Programas
+              </h3>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => scroll(digitalProductsRef, 'left')}
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => scroll(digitalProductsRef, 'right')}
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </Button>
+                <Button variant="outline" size="sm" asChild className="ml-2">
+                  <Link href="/signup">
+                    Ver más <ArrowRight className="w-4 h-4 ml-2" />
+                  </Link>
+                </Button>
+              </div>
+            </div>
+            <div
+              ref={digitalProductsRef}
+              className="flex gap-6 overflow-x-auto pb-4"
+              style={{
+                scrollbarWidth: 'none',
+                msOverflowStyle: 'none',
+                WebkitOverflowScrolling: 'touch'
+              }}
+            >
+              {digitalProducts.map((product) => {
+                const cleanDescription = product.description ? stripHtml(product.description) : null;
+                return (
+                  <Link
+                    key={product.id}
+                    href={userId ? `/patient/${userId}/explore/program/${product.id}` : `/signup`}
+                    className="flex-shrink-0 w-[280px] sm:w-[320px]"
+                  >
+                    <Card className="h-[480px] flex flex-col hover:shadow-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer">
+                      <div className="relative w-full h-48 bg-gray-100 shrink-0">
+                        {product.cover_image_url ? (
+                          <Image
+                            src={product.cover_image_url}
+                            alt={product.title}
+                            fill
+                            className="object-cover"
+                            unoptimized
+                          />
+                        ) : (
+                          <div className="w-full h-full bg-linear-to-br from-primary/20 to-primary/10 flex items-center justify-center">
+                            <Sparkles className="h-16 w-16 text-primary/40" />
+                          </div>
+                        )}
+                      </div>
+                      <CardHeader className="pb-1.5 px-4 pt-3">
+                        <CardTitle className="text-lg line-clamp-2">{product.title}</CardTitle>
+                        <div className="flex flex-wrap gap-1.5 mt-1">
+                          <Badge variant="secondary" className="text-xs">{product.category}</Badge>
+                          {product.professional_applications && (
+                            <div className="text-xs text-muted-foreground">
+                              Por {product.professional_applications.first_name} {product.professional_applications.last_name}
+                            </div>
+                          )}
+                        </div>
+                      </CardHeader>
+                      <CardContent className="px-4 pt-0 pb-3 flex flex-col grow">
+                        <div className="grow">
+                          {cleanDescription && (
+                            <p className="text-sm text-muted-foreground line-clamp-2 mb-2">
+                              {cleanDescription}
+                            </p>
+                          )}
+                        </div>
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-lg font-bold text-primary">
+                            ${product.price.toFixed(2)} {product.currency}
+                          </span>
+                        </div>
+                        <Button variant="default" size="sm" className="w-full">
+                          Ver programa
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  </Link>
                 );
               })}
             </div>

@@ -53,15 +53,7 @@ export async function GET(
     // Obtener mensajes
     const { data: messages, error: messagesError } = await supabase
       .from('direct_messages')
-      .select(`
-        *,
-        sender:profiles!direct_messages_sender_id_fkey(
-          id,
-          first_name,
-          last_name,
-          avatar_url
-        )
-      `)
+      .select('*')
       .eq('conversation_id', conversationId)
       .order('created_at', { ascending: true });
 
@@ -74,12 +66,12 @@ export async function GET(
     }
 
     // Marcar mensajes como leídos si el usuario es el receptor
-    const unreadMessages = messages?.filter(msg => 
+    const unreadMessages = (messages || []).filter((msg: any) => 
       !msg.is_read && msg.sender_id !== user.id
-    ) || [];
+    );
 
     if (unreadMessages.length > 0) {
-      const messageIds = unreadMessages.map(msg => msg.id);
+      const messageIds = unreadMessages.map((msg: any) => msg.id);
       await supabase
         .from('direct_messages')
         .update({ 
@@ -102,7 +94,30 @@ export async function GET(
       }
     }
 
-    return NextResponse.json({ messages: messages || [] });
+    // Obtener perfiles de los remitentes por separado
+    const senderIds = [...new Set((messages || []).map((msg: any) => msg.sender_id))];
+    let profilesMap: Record<string, any> = {};
+    
+    if (senderIds.length > 0) {
+      const { data: profilesData } = await supabase
+        .from('profiles')
+        .select('id, first_name, last_name, avatar_url')
+        .in('id', senderIds);
+      
+      if (profilesData) {
+        profilesData.forEach((profile) => {
+          profilesMap[profile.id] = profile;
+        });
+      }
+    }
+    
+    // Combinar datos
+    const messagesWithProfiles = (messages || []).map((msg: any) => ({
+      ...msg,
+      sender: profilesMap[msg.sender_id] || null,
+    }));
+
+    return NextResponse.json({ messages: messagesWithProfiles || [] });
   } catch (error) {
     console.error('Error in GET /api/messages/conversations/[conversationId]/messages:', error);
     return NextResponse.json(
@@ -182,15 +197,7 @@ export async function POST(
         sender_type: senderType,
         content: content.trim(),
       })
-      .select(`
-        *,
-        sender:profiles!direct_messages_sender_id_fkey(
-          id,
-          first_name,
-          last_name,
-          avatar_url
-        )
-      `)
+      .select('*')
       .single();
 
     if (messageError) {
@@ -200,6 +207,24 @@ export async function POST(
         { status: 500 }
       );
     }
+
+    // Obtener perfil del remitente por separado
+    let senderProfile: any = null;
+    const { data: senderProfileData } = await supabase
+      .from('profiles')
+      .select('id, first_name, last_name, avatar_url')
+      .eq('id', user.id)
+      .maybeSingle();
+    
+    if (senderProfileData) {
+      senderProfile = senderProfileData;
+    }
+
+    // Combinar datos del mensaje con el perfil
+    const messageWithSender = {
+      ...message,
+      sender: senderProfile,
+    };
 
     // Enviar notificación por email al receptor (no bloqueante)
     try {
@@ -249,17 +274,17 @@ export async function POST(
       }
 
       // Obtener nombre del remitente
-      const senderName = message.sender
-        ? `${message.sender.first_name} ${message.sender.last_name}`
+      const senderName = senderProfile
+        ? `${senderProfile.first_name} ${senderProfile.last_name}`
         : 'Usuario';
 
       // Preparar preview del mensaje (primeros 150 caracteres)
-      const messagePreview = message.content.length > 150
-        ? message.content.substring(0, 150) + '...'
-        : message.content;
+      const messagePreview = messageWithSender.content.length > 150
+        ? messageWithSender.content.substring(0, 150) + '...'
+        : messageWithSender.content;
 
       // Formatear fecha del mensaje
-      const messageTime = new Date(message.created_at).toLocaleString('es-ES', {
+      const messageTime = new Date(messageWithSender.created_at).toLocaleString('es-ES', {
         year: 'numeric',
         month: 'long',
         day: 'numeric',
@@ -284,7 +309,7 @@ export async function POST(
       console.error('Error sending message notification email:', emailError);
     }
 
-    return NextResponse.json({ message }, { status: 201 });
+    return NextResponse.json({ message: messageWithSender }, { status: 201 });
   } catch (error) {
     console.error('Error in POST /api/messages/conversations/[conversationId]/messages:', error);
     return NextResponse.json(

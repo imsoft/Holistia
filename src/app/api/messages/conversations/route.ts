@@ -37,13 +37,7 @@ export async function GET(request: NextRequest) {
           user_unread_count,
           professional_unread_count,
           created_at,
-          user:profiles!direct_conversations_user_id_fkey(
-            id,
-            first_name,
-            last_name,
-            avatar_url
-          ),
-          professional:professional_applications!direct_conversations_professional_id_fkey(
+          professional_applications!direct_conversations_professional_id_fkey(
             id,
             first_name,
             last_name,
@@ -54,7 +48,30 @@ export async function GET(request: NextRequest) {
         .order('last_message_at', { ascending: false });
 
       if (error) throw error;
-      conversations = data;
+      
+      // Obtener perfiles de usuarios por separado
+      const userIds = (data || []).map((conv: any) => conv.user_id);
+      let profilesMap: Record<string, any> = {};
+      
+      if (userIds.length > 0) {
+        const { data: profilesData } = await supabase
+          .from('profiles')
+          .select('id, first_name, last_name, avatar_url')
+          .in('id', userIds);
+        
+        if (profilesData) {
+          profilesData.forEach((profile) => {
+            profilesMap[profile.id] = profile;
+          });
+        }
+      }
+      
+      // Combinar datos
+      conversations = (data || []).map((conv: any) => ({
+        ...conv,
+        user: profilesMap[conv.user_id] || null,
+        professional: conv.professional_applications || null,
+      }));
     } else {
       // Si es usuario (paciente), obtener conversaciones donde es el usuario
       const { data, error } = await supabase
@@ -68,13 +85,7 @@ export async function GET(request: NextRequest) {
           user_unread_count,
           professional_unread_count,
           created_at,
-          user:profiles!direct_conversations_user_id_fkey(
-            id,
-            first_name,
-            last_name,
-            avatar_url
-          ),
-          professional:professional_applications!direct_conversations_professional_id_fkey(
+          professional_applications!direct_conversations_professional_id_fkey(
             id,
             first_name,
             last_name,
@@ -85,7 +96,25 @@ export async function GET(request: NextRequest) {
         .order('last_message_at', { ascending: false });
 
       if (error) throw error;
-      conversations = data;
+      
+      // Obtener perfil del usuario actual por separado
+      let userProfile: any = null;
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('id, first_name, last_name, avatar_url')
+        .eq('id', user.id)
+        .maybeSingle();
+      
+      if (profileData) {
+        userProfile = profileData;
+      }
+      
+      // Combinar datos
+      conversations = (data || []).map((conv: any) => ({
+        ...conv,
+        user: userProfile,
+        professional: conv.professional_applications || null,
+      }));
     }
 
     return NextResponse.json({ conversations: conversations || [] });
@@ -172,13 +201,7 @@ export async function POST(request: NextRequest) {
       })
       .select(`
         *,
-        user:profiles!direct_conversations_user_id_fkey(
-          id,
-          first_name,
-          last_name,
-          avatar_url
-        ),
-        professional:professional_applications!direct_conversations_professional_id_fkey(
+        professional_applications!direct_conversations_professional_id_fkey(
           id,
           first_name,
           last_name,
@@ -195,7 +218,26 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    return NextResponse.json({ conversation }, { status: 201 });
+    // Obtener perfil del usuario por separado
+    let userProfile: any = null;
+    const { data: profileData } = await supabase
+      .from('profiles')
+      .select('id, first_name, last_name, avatar_url')
+      .eq('id', user.id)
+      .maybeSingle();
+    
+    if (profileData) {
+      userProfile = profileData;
+    }
+
+    // Combinar datos
+    const conversationWithProfiles = {
+      ...conversation,
+      user: userProfile,
+      professional: conversation.professional_applications || null,
+    };
+
+    return NextResponse.json({ conversation: conversationWithProfiles }, { status: 201 });
   } catch (error) {
     console.error('Error in POST /api/messages/conversations:', error);
     return NextResponse.json(

@@ -902,7 +902,7 @@ export default function MyChallengesPage() {
           {/* Detalles del reto seleccionado */}
           {selectedChallenge && (
             <div className="lg:col-span-2 space-y-6">
-              <Tabs defaultValue={searchParams.get('team') ? "chat" : "resources"} className="w-full">
+              <Tabs defaultValue={searchParams.get('team') ? "chat" : "progress"} className="w-full">
                 <TabsList className={`grid w-full ${teamId ? 'grid-cols-5' : 'grid-cols-4'}`}>
                   <TabsTrigger value="progress">Progreso</TabsTrigger>
                   <TabsTrigger value="checkins">Check-ins</TabsTrigger>

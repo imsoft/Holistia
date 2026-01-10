@@ -20,7 +20,6 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useEffect, useState, useRef } from 'react';
-import React from 'react';
 
 interface RichTextEditorProps {
   content: string;
@@ -39,7 +38,8 @@ export function RichTextEditor({
 }: RichTextEditorProps) {
   const [isMounted, setIsMounted] = useState(false);
   const [, forceUpdate] = useState({});
-  const isUpdatingFromOutside = React.useRef(false); // Ref para rastrear actualizaciones externas
+  const isUpdatingFromOutside = useRef(false); // Ref para rastrear actualizaciones externas
+  const lastContentRef = useRef<string>(content || ''); // Ref para rastrear el último contenido externo
 
   const editor = useEditor({
     extensions: [
@@ -60,7 +60,10 @@ export function RichTextEditor({
     onUpdate: ({ editor }) => {
       // Solo actualizar el estado si el cambio viene del usuario (no de una actualización externa)
       if (!isUpdatingFromOutside.current) {
-        onChange(editor.getHTML());
+        const newContent = editor.getHTML();
+        // Actualizar el ref del último contenido del usuario
+        lastContentRef.current = newContent;
+        onChange(newContent);
       }
       // Forzar actualización para reflejar cambios en el estado activo de los botones
       forceUpdate({});
@@ -138,17 +141,24 @@ export function RichTextEditor({
   // IMPORTANTE: Solo actualizar si el cambio viene de fuera (no del usuario escribiendo)
   useEffect(() => {
     if (editor && isMounted) {
-      // Si el editor está enfocado, NO actualizar - el usuario está escribiendo
-      if (editor.isFocused) {
-        return; // No interferir con la escritura del usuario
-      }
-
       const currentContent = editor.getHTML();
       const newContent = content || '<p></p>';
       
-      // Comparar contenido sin normalizar primero (más rápido)
+      // Si el contenido es exactamente igual, no hacer nada
       if (currentContent === newContent) {
-        return; // No hay cambios, no hacer nada
+        return;
+      }
+
+      // Si el editor está enfocado Y el contenido actual coincide con el último contenido del usuario,
+      // NO actualizar - el usuario está escribiendo y el cambio viene de su escritura
+      if (editor.isFocused && currentContent === lastContentRef.current) {
+        return; // No interferir con la escritura del usuario
+      }
+
+      // Si el contenido nuevo es igual al último contenido que el usuario escribió,
+      // significa que el cambio viene del usuario, no actualizar
+      if (newContent === lastContentRef.current) {
+        return; // El cambio viene del usuario escribiendo
       }
       
       // Normalizar contenido para comparación - remover espacios en blanco y normalizar
@@ -164,17 +174,19 @@ export function RichTextEditor({
       const normalizedCurrent = normalizeHTML(currentContent);
       const normalizedNew = normalizeHTML(newContent);
       
-      // Solo actualizar si el contenido realmente cambió
+      // Solo actualizar si el contenido realmente cambió Y no viene del usuario
       if (normalizedCurrent !== normalizedNew) {
-        console.log('🔄 [RichTextEditor] Actualizando contenido del editor:', {
+        console.log('🔄 [RichTextEditor] Actualizando contenido del editor (cambio externo):', {
           contenido_nuevo_length: newContent.length,
           contenido_actual_length: currentContent.length,
-          contenido_nuevo_preview: newContent.substring(0, 100).replace(/\n/g, ' '),
-          contenido_actual_preview: currentContent.substring(0, 100).replace(/\n/g, ' '),
+          editor_enfocado: editor.isFocused,
         });
         
         // Marcar que estamos actualizando desde fuera para evitar que onUpdate se dispare
         isUpdatingFromOutside.current = true;
+        
+        // Actualizar el ref del último contenido externo
+        lastContentRef.current = newContent;
         
         // Usar setContent con emitUpdate: false para evitar loops
         editor.commands.setContent(newContent, { emitUpdate: false });
@@ -182,7 +194,7 @@ export function RichTextEditor({
         // Resetear el flag después de un pequeño delay
         setTimeout(() => {
           isUpdatingFromOutside.current = false;
-        }, 100);
+        }, 50);
       }
     }
   }, [content, editor, isMounted]);

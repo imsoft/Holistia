@@ -81,7 +81,7 @@ export const Navbar = () => {
           </Link>
         </div>
         <div className="flex lg:hidden">
-          <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+          <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen} modal={false}>
             <SheetTrigger asChild>
               <Button
                 variant="ghost"
@@ -92,9 +92,9 @@ export const Navbar = () => {
                 <Menu className="h-6 w-6" />
               </Button>
             </SheetTrigger>
-            <SheetContent side="right" className="w-full sm:max-w-sm p-0">
+            <SheetContent side="right" className="w-full sm:max-w-sm p-0 flex flex-col h-full max-h-screen overflow-hidden">
               <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
-              <div className="flex items-center justify-between p-6 pb-4">
+              <div className="flex items-center justify-between p-6 pb-4 shrink-0">
                 <Link href="/" className="-m-1.5 p-1.5">
                   <span className="sr-only">Holistia</span>
                   <Image
@@ -106,7 +106,7 @@ export const Navbar = () => {
                   />
                 </Link>
               </div>
-              <div className="px-6 pb-6">
+              <div className="px-6 pb-6 overflow-y-auto flex-1">
                 <div className="space-y-1">
                   {navigation.map((item) => (
                     <Link

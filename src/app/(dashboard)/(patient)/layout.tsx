@@ -284,7 +284,7 @@ export default function UserLayout({
             </div>
 
             <div className="flex items-center sm:hidden">
-              <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+              <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen} modal={false}>
                 <SheetTrigger asChild>
                   <Button
                     variant="ghost"
@@ -295,11 +295,11 @@ export default function UserLayout({
                     <Menu className="h-6 w-6" />
                   </Button>
                 </SheetTrigger>
-                <SheetContent side="right" className="w-full sm:max-w-sm p-6">
+                <SheetContent side="right" className="w-full sm:max-w-sm p-6 flex flex-col h-full max-h-screen overflow-hidden">
                   <SheetTitle className="sr-only">
                     Menú de navegación
                   </SheetTitle>
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between shrink-0">
                     <Link
                       href={`/patient/${userId}/explore`}
                       className="flex items-center space-x-2"
@@ -317,7 +317,7 @@ export default function UserLayout({
                     </Link>
                   </div>
 
-                  <div className="mt-8 space-y-2">
+                  <div className="mt-8 space-y-2 overflow-y-auto flex-1">
                     {navigation.map((item) => (
                       <Link
                         key={item.name}

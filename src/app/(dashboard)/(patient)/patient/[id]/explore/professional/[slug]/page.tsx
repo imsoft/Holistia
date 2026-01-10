@@ -1602,6 +1602,76 @@ export default function ProfessionalProfilePage() {
         </div>
       </div>
 
+      {/* Dialog de Solicitud de Cotización */}
+      <Dialog open={isQuoteDialogOpen} onOpenChange={(open) => {
+        setIsQuoteDialogOpen(open);
+        if (!open) {
+          setQuoteDetails("");
+          setSelectedServiceForQuote(null);
+        }
+      }}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="text-xl">
+              Solicitar Cotización
+            </DialogTitle>
+          </DialogHeader>
+          
+          {selectedServiceForQuote && (
+            <div className="space-y-4 py-4">
+              <div className="bg-muted/50 rounded-lg p-4">
+                <p className="text-sm font-semibold text-foreground mb-1">Servicio:</p>
+                <p className="text-base text-muted-foreground">{selectedServiceForQuote.name}</p>
+                {selectedServiceForQuote.description && (
+                  <div 
+                    className="text-sm text-muted-foreground mt-2 prose prose-sm max-w-none"
+                    dangerouslySetInnerHTML={{ __html: selectedServiceForQuote.description }}
+                  />
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="quoteDetails" className="text-base font-semibold">
+                  Describe qué necesitas a detalle *
+                </Label>
+                <Textarea
+                  id="quoteDetails"
+                  value={quoteDetails}
+                  onChange={(e) => setQuoteDetails(e.target.value)}
+                  placeholder="Por favor, describe qué necesitas del servicio, tus objetivos, preferencias, y cualquier detalle relevante..."
+                  rows={6}
+                  className="text-base"
+                  maxLength={2000}
+                />
+                <p className="text-xs text-muted-foreground text-right">
+                  {quoteDetails.length} / 2000 caracteres
+                </p>
+              </div>
+
+              <div className="flex justify-end gap-3 pt-4">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setIsQuoteDialogOpen(false);
+                    setQuoteDetails("");
+                    setSelectedServiceForQuote(null);
+                  }}
+                  disabled={quoteLoading}
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  onClick={handleRequestQuote}
+                  disabled={quoteLoading || !quoteDetails.trim()}
+                >
+                  {quoteLoading ? "Enviando..." : "Enviar Solicitud"}
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
       {/* Dialog de Mensajes */}
       <Dialog open={isMessageDialogOpen} onOpenChange={setIsMessageDialogOpen}>
         <DialogContent className="max-w-2xl h-[600px] flex flex-col p-0">

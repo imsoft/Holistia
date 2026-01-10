@@ -13,6 +13,7 @@ import { EventWorkshop } from "@/types/event";
 import { formatEventDate, formatEventTime } from "@/utils/date-utils";
 import { determineProfessionalModality, transformServicesFromDB } from "@/utils/professional-utils";
 import { sortProfessionalsByRanking } from "@/utils/professional-ranking";
+import { FavoriteButton } from "@/components/ui/favorite-button";
 
 const categories = [
   {
@@ -669,18 +670,30 @@ const HomeUserPage = () => {
                     >
                       <Card className="overflow-hidden hover:shadow-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer h-full flex flex-col">
                         <div className="relative h-64 w-full">
-                          {product.cover_image_url ? (
-                            <Image
-                              src={product.cover_image_url}
-                              alt={product.title}
-                              fill
-                              className="object-cover"
+                          <div className="absolute inset-0 overflow-hidden">
+                            {product.cover_image_url ? (
+                              <Image
+                                src={product.cover_image_url}
+                                alt={product.title}
+                                fill
+                                className="object-cover"
+                              />
+                            ) : (
+                              <div className="w-full h-full bg-linear-to-br from-primary/20 to-primary/10 flex items-center justify-center">
+                                <Store className="h-12 w-12 text-primary/40" />
+                              </div>
+                            )}
+                          </div>
+                          <div 
+                            className="absolute top-3 right-3 pointer-events-auto" 
+                            style={{ zIndex: 9999, position: 'absolute', top: '12px', right: '12px' }}
+                          >
+                            <FavoriteButton
+                              itemId={product.id}
+                              favoriteType="digital_product"
+                              variant="floating"
                             />
-                          ) : (
-                            <div className="w-full h-full bg-linear-to-br from-primary/20 to-primary/10 flex items-center justify-center">
-                              <Store className="h-12 w-12 text-primary/40" />
-                            </div>
-                          )}
+                          </div>
                         </div>
                         <CardHeader className="pb-3">
                           <CardTitle className="line-clamp-2">{product.title}</CardTitle>
@@ -767,14 +780,26 @@ const HomeUserPage = () => {
                     >
                       <Card className="hover:shadow-lg hover:-translate-y-2 transition-all duration-300 overflow-hidden cursor-pointer h-full flex flex-col">
                         <div className="relative w-full h-64 bg-gray-100">
-                          <Image
-                            src={(event.gallery_images && event.gallery_images.length > 0 && event.gallery_images[0]) || event.image_url || "/logos/holistia-black.png"}
-                            alt={event.name}
-                            fill
-                            className="object-cover"
-                            style={{ objectPosition: event.image_position || "center center" }}
-                            unoptimized
-                          />
+                          <div className="absolute inset-0 overflow-hidden">
+                            <Image
+                              src={(event.gallery_images && event.gallery_images.length > 0 && event.gallery_images[0]) || event.image_url || "/logos/holistia-black.png"}
+                              alt={event.name}
+                              fill
+                              className="object-cover"
+                              style={{ objectPosition: event.image_position || "center center" }}
+                              unoptimized
+                            />
+                          </div>
+                          <div 
+                            className="absolute top-3 right-3 pointer-events-auto" 
+                            style={{ zIndex: 9999, position: 'absolute', top: '12px', right: '12px' }}
+                          >
+                            <FavoriteButton
+                              itemId={event.id!}
+                              favoriteType="event"
+                              variant="floating"
+                            />
+                          </div>
                         </div>
                         <CardHeader className="pb-3">
                           <CardTitle className="text-lg mb-1.5">{event.name}</CardTitle>
@@ -1005,19 +1030,31 @@ const HomeUserPage = () => {
                     >
                       <Card className="hover:shadow-lg hover:-translate-y-2 transition-all duration-300 overflow-hidden cursor-pointer h-full flex flex-col">
                         <div className="relative w-full h-64 bg-gray-100">
-                          {restaurant.image_url ? (
-                            <Image
-                              src={restaurant.image_url}
-                              alt={restaurant.name}
-                              fill
-                              className="object-cover"
-                              unoptimized
+                          <div className="absolute inset-0 overflow-hidden">
+                            {restaurant.image_url ? (
+                              <Image
+                                src={restaurant.image_url}
+                                alt={restaurant.name}
+                                fill
+                                className="object-cover"
+                                unoptimized
+                              />
+                            ) : (
+                              <div className="w-full h-full bg-linear-to-br from-primary/20 to-primary/10 flex items-center justify-center">
+                                <UtensilsCrossed className="h-16 w-16 text-primary/40" />
+                              </div>
+                            )}
+                          </div>
+                          <div 
+                            className="absolute top-3 right-3 pointer-events-auto" 
+                            style={{ zIndex: 9999, position: 'absolute', top: '12px', right: '12px' }}
+                          >
+                            <FavoriteButton
+                              itemId={restaurant.id}
+                              favoriteType="restaurant"
+                              variant="floating"
                             />
-                          ) : (
-                            <div className="w-full h-full bg-linear-to-br from-primary/20 to-primary/10 flex items-center justify-center">
-                              <UtensilsCrossed className="h-16 w-16 text-primary/40" />
-                            </div>
-                          )}
+                          </div>
                         </div>
                         <CardHeader className="pb-3">
                           <CardTitle className="line-clamp-2">{restaurant.name}</CardTitle>
@@ -1110,19 +1147,31 @@ const HomeUserPage = () => {
                     >
                       <Card className="hover:shadow-lg hover:-translate-y-2 transition-all duration-300 overflow-hidden cursor-pointer h-full flex flex-col">
                         <div className="relative w-full h-64 bg-gray-100">
-                          {shop.image_url ? (
-                            <Image
-                              src={shop.image_url}
-                              alt={shop.name}
-                              fill
-                              className="object-cover"
-                              unoptimized
+                          <div className="absolute inset-0 overflow-hidden">
+                            {shop.image_url ? (
+                              <Image
+                                src={shop.image_url}
+                                alt={shop.name}
+                                fill
+                                className="object-cover"
+                                unoptimized
+                              />
+                            ) : (
+                              <div className="w-full h-full bg-linear-to-br from-primary/20 to-primary/10 flex items-center justify-center">
+                                <Store className="h-16 w-16 text-primary/40" />
+                              </div>
+                            )}
+                          </div>
+                          <div 
+                            className="absolute top-3 right-3 pointer-events-auto" 
+                            style={{ zIndex: 9999, position: 'absolute', top: '12px', right: '12px' }}
+                          >
+                            <FavoriteButton
+                              itemId={shop.id}
+                              favoriteType="shop"
+                              variant="floating"
                             />
-                          ) : (
-                            <div className="w-full h-full bg-linear-to-br from-primary/20 to-primary/10 flex items-center justify-center">
-                              <Store className="h-16 w-16 text-primary/40" />
-                            </div>
-                          )}
+                          </div>
                         </div>
                         <CardHeader className="pb-3">
                           <CardTitle className="line-clamp-2">{shop.name}</CardTitle>

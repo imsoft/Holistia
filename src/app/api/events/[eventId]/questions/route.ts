@@ -10,31 +10,10 @@ export async function GET(
     const supabase = await createClient();
     const { eventId } = await params;
 
-    // Obtener preguntas con respuestas y datos de usuarios
+    // Obtener preguntas sin relaciones anidadas
     const { data: questions, error: questionsError } = await supabase
       .from("event_questions")
-      .select(`
-        *,
-        user:profiles!event_questions_user_id_fkey(
-          id,
-          first_name,
-          last_name,
-          avatar_url
-        ),
-        answer:event_question_answers(
-          id,
-          answer,
-          is_admin_answer,
-          is_professional_answer,
-          created_at,
-          answered_by:profiles!event_question_answers_answered_by_user_id_fkey(
-            id,
-            first_name,
-            last_name,
-            avatar_url
-          )
-        )
-      `)
+      .select("*")
       .eq("event_id", eventId)
       .order("created_at", { ascending: false });
 
@@ -46,7 +25,78 @@ export async function GET(
       );
     }
 
-    return NextResponse.json({ questions: questions || [] }, { status: 200 });
+    if (!questions || questions.length === 0) {
+      return NextResponse.json({ questions: [] }, { status: 200 });
+    }
+
+    // Obtener respuestas para todas las preguntas
+    const questionIds = questions.map((q: any) => q.id);
+    const { data: answers, error: answersError } = await supabase
+      .from("event_question_answers")
+      .select("*")
+      .in("question_id", questionIds)
+      .order("created_at", { ascending: true });
+
+    if (answersError) {
+      console.error("Error fetching answers:", answersError);
+      // Continuar sin respuestas si hay error
+    }
+
+    // Obtener IDs de usuarios (quienes preguntan y quienes responden)
+    const userIds = new Set<string>();
+    questions.forEach((q: any) => {
+      userIds.add(q.user_id);
+    });
+    if (answers) {
+      answers.forEach((a: any) => {
+        if (a.answered_by_user_id) {
+          userIds.add(a.answered_by_user_id);
+        }
+      });
+    }
+
+    // Obtener perfiles de usuarios por separado
+    let profilesMap: Record<string, any> = {};
+    if (userIds.size > 0) {
+      const { data: profiles, error: profilesError } = await supabase
+        .from("profiles")
+        .select("id, first_name, last_name, avatar_url")
+        .in("id", Array.from(userIds));
+
+      if (!profilesError && profiles) {
+        profiles.forEach((profile) => {
+          profilesMap[profile.id] = profile;
+        });
+      }
+    }
+
+    // Combinar datos: agregar usuario a cada pregunta y respuesta a cada pregunta
+    const questionsWithData = questions.map((question: any) => {
+      const questionAnswer = answers?.find((a: any) => a.question_id === question.id);
+
+      return {
+        ...question,
+        user: profilesMap[question.user_id] || {
+          id: question.user_id,
+          first_name: "Usuario",
+          last_name: "",
+          avatar_url: null,
+        },
+        answer: questionAnswer
+          ? {
+              ...questionAnswer,
+              answered_by: profilesMap[questionAnswer.answered_by_user_id] || {
+                id: questionAnswer.answered_by_user_id,
+                first_name: "Usuario",
+                last_name: "",
+                avatar_url: null,
+              },
+            }
+          : undefined,
+      };
+    });
+
+    return NextResponse.json({ questions: questionsWithData || [] }, { status: 200 });
   } catch (error) {
     console.error("Error in GET /api/events/[eventId]/questions:", error);
     return NextResponse.json(
@@ -108,15 +158,7 @@ export async function POST(
         user_id: user.id,
         question: question.trim(),
       })
-      .select(`
-        *,
-        user:profiles!event_questions_user_id_fkey(
-          id,
-          first_name,
-          last_name,
-          avatar_url
-        )
-      `)
+      .select("*")
       .single();
 
     if (createError) {
@@ -127,7 +169,25 @@ export async function POST(
       );
     }
 
-    return NextResponse.json({ question: newQuestion }, { status: 201 });
+    // Obtener perfil del usuario por separado
+    const { data: userProfile } = await supabase
+      .from("profiles")
+      .select("id, first_name, last_name, avatar_url")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    // Combinar datos
+    const questionWithUser = {
+      ...newQuestion,
+      user: userProfile || {
+        id: user.id,
+        first_name: "Usuario",
+        last_name: "",
+        avatar_url: null,
+      },
+    };
+
+    return NextResponse.json({ question: questionWithUser }, { status: 201 });
   } catch (error) {
     console.error("Error in POST /api/events/[eventId]/questions:", error);
     return NextResponse.json(

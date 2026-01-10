@@ -191,7 +191,7 @@ export function EventQuestionsSection({
           Preguntas y Respuestas
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-6 py-4">
         {/* Formulario para hacer pregunta */}
         {isAuthenticated && (
           <form onSubmit={handleSubmitQuestion} className="space-y-3">

@@ -98,15 +98,7 @@ export async function POST(
           updated_at: new Date().toISOString(),
         })
         .eq("id", existingAnswer.id)
-        .select(`
-          *,
-          answered_by:profiles!event_question_answers_answered_by_user_id_fkey(
-            id,
-            first_name,
-            last_name,
-            avatar_url
-          )
-        `)
+        .select("*")
         .single();
 
       if (updateError) {
@@ -117,7 +109,25 @@ export async function POST(
         );
       }
 
-      return NextResponse.json({ answer: updatedAnswer }, { status: 200 });
+      // Obtener perfil del usuario que respondió por separado
+      const { data: answeredByProfile } = await supabase
+        .from("profiles")
+        .select("id, first_name, last_name, avatar_url")
+        .eq("id", updatedAnswer.answered_by_user_id)
+        .maybeSingle();
+
+      // Combinar datos
+      const answerWithProfile = {
+        ...updatedAnswer,
+        answered_by: answeredByProfile || {
+          id: updatedAnswer.answered_by_user_id,
+          first_name: "Usuario",
+          last_name: "",
+          avatar_url: null,
+        },
+      };
+
+      return NextResponse.json({ answer: answerWithProfile }, { status: 200 });
     } else {
       // Crear nueva respuesta
       const { data: newAnswer, error: createError } = await supabase
@@ -127,15 +137,7 @@ export async function POST(
           answered_by_user_id: user.id,
           answer: answer.trim(),
         })
-        .select(`
-          *,
-          answered_by:profiles!event_question_answers_answered_by_user_id_fkey(
-            id,
-            first_name,
-            last_name,
-            avatar_url
-          )
-        `)
+        .select("*")
         .single();
 
       if (createError) {
@@ -146,7 +148,25 @@ export async function POST(
         );
       }
 
-      return NextResponse.json({ answer: newAnswer }, { status: 201 });
+      // Obtener perfil del usuario que respondió por separado
+      const { data: answeredByProfile } = await supabase
+        .from("profiles")
+        .select("id, first_name, last_name, avatar_url")
+        .eq("id", user.id)
+        .maybeSingle();
+
+      // Combinar datos
+      const answerWithProfile = {
+        ...newAnswer,
+        answered_by: answeredByProfile || {
+          id: user.id,
+          first_name: "Usuario",
+          last_name: "",
+          avatar_url: null,
+        },
+      };
+
+      return NextResponse.json({ answer: answerWithProfile }, { status: 201 });
     }
   } catch (error) {
     console.error("Error in POST /api/events/[eventId]/questions/[questionId]/answer:", error);

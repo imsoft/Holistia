@@ -339,7 +339,6 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
           .from("holistic_centers")
           .select("id, name, image_url, city, description, address")
           .eq("is_active", true)
-          .not("image_url", "is", null)
           .order("created_at", { ascending: false })
           .limit(6);
 
@@ -1018,124 +1017,136 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
           </div>
         </div>
 
-        {/* Centros Holísticos */}
-        <div className="mb-16">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-2">
-            <div>
-              <h3 className="text-2xl font-bold flex items-center gap-2">
-                <Building2 className="w-6 h-6 text-primary" />
-                Centros
-              </h3>
-            </div>
-            {!loading && holisticCenters.length > 0 && (
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => scroll(holisticCentersRef, 'left')}
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                </Button>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => scroll(holisticCentersRef, 'right')}
-                >
-                  <ChevronRight className="w-4 h-4" />
-                </Button>
-                <Button variant="outline" size="sm" asChild className="ml-2">
-                  <Link href="/signup">
-                    Ver más <ArrowRight className="w-4 h-4 ml-2" />
-                  </Link>
-                </Button>
+        {/* Centros Holísticos - Solo mostrar si hay datos */}
+        {(!loading && holisticCenters.length > 0) || loading ? (
+          <div className="mb-16">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-2">
+              <div>
+                <h3 className="text-2xl font-bold flex items-center gap-2">
+                  <Building2 className="w-6 h-6 text-primary" />
+                  Centros
+                </h3>
               </div>
-            )}
-          </div>
-          <div
-            ref={holisticCentersRef}
-            className="flex gap-6 overflow-x-auto pb-4"
-            style={{
-              scrollbarWidth: 'none',
-              msOverflowStyle: 'none',
-              WebkitOverflowScrolling: 'touch'
-            }}
-          >
+              {!loading && holisticCenters.length > 0 && (
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => scroll(holisticCentersRef, 'left')}
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => scroll(holisticCentersRef, 'right')}
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </Button>
+                  <Button variant="outline" size="sm" asChild className="ml-2">
+                    <Link href="/signup">
+                      Ver más <ArrowRight className="w-4 h-4 ml-2" />
+                    </Link>
+                  </Button>
+                </div>
+              )}
+            </div>
             {loading ? (
-              Array.from({ length: 6 }).map((_, i) => (
-                <CardSkeleton key={`holistic-center-skeleton-${i}`} />
-              ))
-            ) : (
-              holisticCenters.map((center) => {
-                const cleanDescription = center.description ? stripHtml(center.description) : null;
-                
-                return (
-                  <Card key={center.id} className="group relative shrink-0 w-[280px] sm:w-[320px] h-[480px] flex flex-col hover:shadow-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer">
-                    <div className="relative w-full h-48 bg-gray-100 shrink-0">
-                      <div className="absolute inset-0 overflow-hidden">
-                        {center.image_url ? (
-                          <Image
-                            src={center.image_url}
-                            alt={center.name}
-                            fill
-                            className="object-cover"
-                            unoptimized
-                          />
-                        ) : (
-                          <div className="w-full h-full bg-linear-to-br from-primary/20 to-primary/10 flex items-center justify-center">
-                            <Building2 className="h-16 w-16 text-primary/40" />
-                          </div>
-                        )}
-                      </div>
-                      {showFavorites && (
-                        <div 
-                          className="absolute top-3 right-3 pointer-events-auto" 
-                          style={{ zIndex: 9999, position: 'absolute', top: '12px', right: '12px' }}
-                        >
-                          <FavoriteButton
-                            itemId={center.id}
-                            favoriteType="holistic_center"
-                            variant="floating"
-                          />
+              <div
+                ref={holisticCentersRef}
+                className="flex gap-6 overflow-x-auto pb-4"
+                style={{
+                  scrollbarWidth: 'none',
+                  msOverflowStyle: 'none',
+                  WebkitOverflowScrolling: 'touch'
+                }}
+              >
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <CardSkeleton key={`holistic-center-skeleton-${i}`} />
+                ))}
+              </div>
+            ) : holisticCenters.length > 0 ? (
+              <div
+                ref={holisticCentersRef}
+                className="flex gap-6 overflow-x-auto pb-4"
+                style={{
+                  scrollbarWidth: 'none',
+                  msOverflowStyle: 'none',
+                  WebkitOverflowScrolling: 'touch'
+                }}
+              >
+                {holisticCenters.map((center) => {
+                  const cleanDescription = center.description ? stripHtml(center.description) : null;
+                  
+                  return (
+                    <Card key={center.id} className="group relative shrink-0 w-[280px] sm:w-[320px] h-[480px] flex flex-col hover:shadow-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer">
+                      <div className="relative w-full h-48 bg-gray-100 shrink-0">
+                        <div className="absolute inset-0 overflow-hidden">
+                          {center.image_url ? (
+                            <Image
+                              src={center.image_url}
+                              alt={center.name}
+                              fill
+                              className="object-cover"
+                              unoptimized
+                            />
+                          ) : (
+                            <div className="w-full h-full bg-linear-to-br from-primary/20 to-primary/10 flex items-center justify-center">
+                              <Building2 className="h-16 w-16 text-primary/40" />
+                            </div>
+                          )}
                         </div>
-                      )}
-                    </div>
-                    <CardHeader className="pb-1.5 px-4 pt-3">
-                      <CardTitle className="text-lg line-clamp-2 group-hover:text-primary transition-colors">{center.name}</CardTitle>
-                      <div className="flex flex-wrap gap-1.5 mt-1">
-                        {center.city && (
-                          <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                            <MapPin className="w-3 h-3 shrink-0" />
-                            <span>{center.city}</span>
+                        {showFavorites && (
+                          <div 
+                            className="absolute top-3 right-3 pointer-events-auto" 
+                            style={{ zIndex: 9999, position: 'absolute', top: '12px', right: '12px' }}
+                          >
+                            <FavoriteButton
+                              itemId={center.id}
+                              favoriteType="holistic_center"
+                              variant="floating"
+                            />
                           </div>
                         )}
                       </div>
-                    </CardHeader>
-                    <CardContent className="px-4 pt-0 pb-3 flex flex-col grow">
-                      <div className="grow">
-                        {cleanDescription && (
-                          <p className="text-sm text-muted-foreground line-clamp-2 mb-2">
-                            {cleanDescription}
-                          </p>
-                        )}
-                        {center.address && (
-                          <div className="flex items-start gap-1 text-xs text-muted-foreground mb-2">
-                            <MapPin className="w-3 h-3 shrink-0 mt-0.5" />
-                            <span className="line-clamp-1">{center.address}</span>
-                          </div>
-                        )}
-                      </div>
-                      <Button variant="default" size="sm" className="w-full" asChild>
-                        <Link href={`/public/holistic-center/${center.id}`}>
-                          Ver centro
-                        </Link>
-                      </Button>
-                    </CardContent>
-                  </Card>
-                );
-              })
-            )}
+                      <CardHeader className="pb-1.5 px-4 pt-3">
+                        <CardTitle className="text-lg line-clamp-2 group-hover:text-primary transition-colors">{center.name}</CardTitle>
+                        <div className="flex flex-wrap gap-1.5 mt-1">
+                          {center.city && (
+                            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                              <MapPin className="w-3 h-3 shrink-0" />
+                              <span>{center.city}</span>
+                            </div>
+                          )}
+                        </div>
+                      </CardHeader>
+                      <CardContent className="px-4 pt-0 pb-3 flex flex-col grow">
+                        <div className="grow">
+                          {cleanDescription && (
+                            <p className="text-sm text-muted-foreground line-clamp-2 mb-2">
+                              {cleanDescription}
+                            </p>
+                          )}
+                          {center.address && (
+                            <div className="flex items-start gap-1 text-xs text-muted-foreground mb-2">
+                              <MapPin className="w-3 h-3 shrink-0 mt-0.5" />
+                              <span className="line-clamp-1">{center.address}</span>
+                            </div>
+                          )}
+                        </div>
+                        <Button variant="default" size="sm" className="w-full" asChild>
+                          <Link href={`/public/holistic-center/${center.id}`}>
+                            Ver centro
+                          </Link>
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            ) : null}
           </div>
-        </div>
+        ) : null}
 
         {/* Retos */}
         <div className="mb-16">

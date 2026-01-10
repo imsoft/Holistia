@@ -28,6 +28,7 @@ const getNavigation = (userId: string, hasEvents: boolean = false) => {
     { name: "Explorar", href: `/patient/${userId}/explore` },
     { name: "Feed", href: `/patient/${userId}/feed` },
     { name: "Favoritos", href: `/patient/${userId}/explore/favorites` },
+    { name: "Mensajes", href: `/patient/${userId}/messages` },
     { name: "Citas", href: `/patient/${userId}/explore/appointments` },
     { name: "Mis Programas", href: `/patient/${userId}/my-products` },
     { name: "Mis Retos", href: `/patient/${userId}/my-challenges` },

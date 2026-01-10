@@ -18,6 +18,7 @@ import {
   CreditCard,
   Languages,
   ShoppingBag,
+  MessageSquare,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import MapboxMap from "@/components/ui/mapbox-map";
@@ -33,6 +34,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { DirectMessageChat } from "@/components/ui/direct-message-chat";
 import { BookingDialog } from "@/components/ui/booking-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -157,6 +159,8 @@ export default function ProfessionalProfilePage() {
   const [refreshReviews, setRefreshReviews] = useState(0);
   const [digitalProducts, setDigitalProducts] = useState<any[]>([]);
   const [challenges, setChallenges] = useState<any[]>([]);
+  const [isMessageDialogOpen, setIsMessageDialogOpen] = useState(false);
+  const [conversationId, setConversationId] = useState<string | null>(null);
 
   const params = useParams();
   const supabase = createClient();
@@ -699,6 +703,36 @@ export default function ProfessionalProfilePage() {
 
 
 
+  const handleOpenMessageDialog = async () => {
+    if (!professional) {
+      toast.error('Información del profesional no disponible');
+      return;
+    }
+
+    try {
+      // Crear o obtener conversación
+      const response = await fetch('/api/messages/conversations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          professional_id: professional.id,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Error al crear conversación');
+      }
+
+      setConversationId(data.conversation.id);
+      setIsMessageDialogOpen(true);
+    } catch (error) {
+      console.error('Error opening message dialog:', error);
+      toast.error(error instanceof Error ? error.message : 'Error al abrir mensajes');
+    }
+  };
+
   const handleBookingSubmit = async () => {
     // Validación de campos requeridos
     if (!selectedDate || !selectedTime || !selectedService || !currentUser || !professional) {
@@ -1038,41 +1072,56 @@ export default function ProfessionalProfilePage() {
                 </div>
               </div>
 
-              {/* Botón de reservar */}
-              <Button
-                type="button"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  console.log('🔵 Click en botón Reservar cita');
-                  setIsBookingModalOpen(true);
-                  console.log('🔵 Estado isBookingModalOpen actualizado a:', true);
-                }}
-                onTouchStart={(e) => {
-                  e.stopPropagation();
-                }}
-                onTouchEnd={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  console.log('🔵 TouchEnd en botón Reservar cita');
-                  setIsBookingModalOpen(true);
-                  console.log('🔵 Estado isBookingModalOpen actualizado a:', true);
-                }}
-                className="w-full h-11 sm:h-12 text-sm sm:text-base font-semibold rounded-xl bg-linear-to-r from-green-300 to-green-400 hover:from-green-400 hover:to-green-500 shadow-lg text-white touch-manipulation"
-                style={{ 
-                  touchAction: 'manipulation', 
-                  WebkitTapHighlightColor: 'transparent',
-                  userSelect: 'none',
-                  WebkitUserSelect: 'none',
-                  WebkitTouchCallout: 'none',
-                  position: 'relative',
-                  zIndex: 10,
-                  pointerEvents: 'auto'
-                }}
-              >
-                <Calendar className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
-                Reservar cita
-              </Button>
+              {/* Botones de acción */}
+              <div className="space-y-2 sm:space-y-3">
+                <Button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('🔵 Click en botón Reservar cita');
+                    setIsBookingModalOpen(true);
+                    console.log('🔵 Estado isBookingModalOpen actualizado a:', true);
+                  }}
+                  onTouchStart={(e) => {
+                    e.stopPropagation();
+                  }}
+                  onTouchEnd={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('🔵 TouchEnd en botón Reservar cita');
+                    setIsBookingModalOpen(true);
+                    console.log('🔵 Estado isBookingModalOpen actualizado a:', true);
+                  }}
+                  className="w-full h-11 sm:h-12 text-sm sm:text-base font-semibold rounded-xl bg-linear-to-r from-green-300 to-green-400 hover:from-green-400 hover:to-green-500 shadow-lg text-white touch-manipulation"
+                  style={{
+                    touchAction: 'manipulation',
+                    WebkitTapHighlightColor: 'transparent',
+                    userSelect: 'none',
+                    WebkitUserSelect: 'none',
+                    WebkitTouchCallout: 'none',
+                    position: 'relative',
+                    zIndex: 10,
+                    pointerEvents: 'auto'
+                  }}
+                >
+                  <Calendar className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+                  Reservar cita
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={async (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    await handleOpenMessageDialog();
+                  }}
+                  className="w-full h-11 sm:h-12 text-sm sm:text-base font-semibold rounded-xl"
+                >
+                  <MessageSquare className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+                  Enviar Mensaje
+                </Button>
+              </div>
             </div>
 
             {/* Servicios */}
@@ -1399,12 +1448,49 @@ export default function ProfessionalProfilePage() {
                     <Calendar className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                     Reservar cita
                   </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={async (e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      await handleOpenMessageDialog();
+                    }}
+                    className="w-full h-11 sm:h-12 text-sm sm:text-base font-semibold rounded-xl"
+                  >
+                    <MessageSquare className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+                    Enviar Mensaje
+                  </Button>
                           </div>
                         </div>
                                         </div>
                                     </div>
         </div>
       </div>
+
+      {/* Dialog de Mensajes */}
+      <Dialog open={isMessageDialogOpen} onOpenChange={setIsMessageDialogOpen}>
+        <DialogContent className="max-w-2xl h-[600px] flex flex-col p-0">
+          <DialogHeader className="shrink-0 p-4 border-b">
+            <DialogTitle>
+              Mensaje a {professional?.first_name} {professional?.last_name}
+            </DialogTitle>
+          </DialogHeader>
+          {conversationId && professional && (
+            <div className="flex-1 min-h-0">
+              <DirectMessageChat
+                conversationId={conversationId}
+                currentUserId={patientId}
+                otherUser={{
+                  id: professional.id,
+                  name: `${professional.first_name} ${professional.last_name}`,
+                  avatar_url: professional.profile_photo,
+                }}
+              />
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Modal de Pago */}
       <Dialog open={isPaymentModalOpen} onOpenChange={setIsPaymentModalOpen}>

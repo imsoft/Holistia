@@ -17,6 +17,7 @@ import {
   FileText,
   ShoppingBag,
   Target,
+  MessageSquare,
 } from "lucide-react";
 import {
   Sidebar,
@@ -76,6 +77,11 @@ const getNavItems = (id: string): { mainNavItems: ProfessionalNavItem[] } => {
       title: "Pacientes",
       url: `/professional/${id}/patients`,
       icon: Users,
+    },
+    {
+      title: "Mensajes",
+      url: `/professional/${id}/messages`,
+      icon: MessageSquare,
     },
     {
       title: "Galería",

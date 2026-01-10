@@ -215,7 +215,7 @@ export default function InviteTeamMembersPage() {
             <CardHeader>
               <CardTitle>Miembros del equipo</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="py-4">
               <ScrollArea className="h-[200px]">
                 <div className="space-y-2">
                   {team?.members.map((member) => (
@@ -254,7 +254,7 @@ export default function InviteTeamMembersPage() {
                   Solo puedes invitar a usuarios que sigues y que han comprado el reto
                 </p>
               </CardHeader>
-              <CardContent>
+              <CardContent className="py-4">
                 <ScrollArea className="h-[300px]">
                   {availableUsers.length === 0 ? (
                     <div className="flex items-center justify-center h-full text-sm text-muted-foreground py-8">
@@ -302,7 +302,7 @@ export default function InviteTeamMembersPage() {
             </Card>
           ) : (
             <Card>
-              <CardContent className="py-8">
+              <CardContent className="py-4">
                 <Badge variant="secondary" className="w-full justify-center py-2">
                   <Users className="h-4 w-4 mr-2" />
                   Equipo completo

@@ -126,27 +126,45 @@ export function FavoriteButton({
   // El botón redirigirá a login si no hay usuario
 
   if (variant === "floating") {
+    // SIEMPRE renderizar el botón, incluso durante la carga
+    // El botón debe ser visible siempre, sin condiciones
     return (
       <button
+        type="button"
         onClick={handleToggleFavorite}
         disabled={isLoading || isChecking}
         className={cn(
-          "p-2 bg-white backdrop-blur-sm rounded-full hover:bg-white transition-colors shadow-lg border border-gray-200 group/favorite",
-          "min-w-[36px] min-h-[36px] flex items-center justify-center",
-          (isLoading || isChecking) && "opacity-70 cursor-not-allowed",
-          !(isLoading || isChecking) && "opacity-100",
+          "p-2.5 bg-white rounded-full hover:bg-gray-50 active:bg-gray-100 transition-all shadow-xl border-2 border-gray-400 group/favorite",
+          "w-[40px] h-[40px] flex items-center justify-center",
+          "relative",
+          (isLoading || isChecking) && "opacity-90 cursor-wait",
+          !(isLoading || isChecking) && "opacity-100 cursor-pointer hover:scale-110",
           className
         )}
         title={!userId ? "Inicia sesión para agregar a favoritos" : isFavorite ? "Quitar de favoritos" : "Agregar a favoritos"}
-        style={{ zIndex: 50 }}
+        style={{ 
+          zIndex: 9999,
+          position: 'relative',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: 'white',
+          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
+        }}
+        aria-label={isFavorite ? "Quitar de favoritos" : "Agregar a favoritos"}
       >
         <Heart
           className={cn(
-            "h-4 w-4 transition-colors",
+            "h-5 w-5 transition-all",
             isFavorite
-              ? "text-red-500 fill-red-500"
-              : "text-gray-600 group-hover/favorite:text-red-500 group-hover/favorite:fill-red-500"
+              ? "text-red-600 fill-red-600"
+              : "text-gray-700 group-hover/favorite:text-red-600 group-hover/favorite:fill-red-600"
           )}
+          style={{ 
+            width: '20px', 
+            height: '20px',
+            display: 'block'
+          }}
         />
       </button>
     );

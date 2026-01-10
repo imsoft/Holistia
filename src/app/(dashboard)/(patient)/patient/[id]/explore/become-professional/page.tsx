@@ -1367,7 +1367,7 @@ export default function BecomeProfessionalPage() {
                                         <CreditCard className="h-4 w-4 mr-2" />
                                         {processingPayment ? 'Procesando...' : 'Pagar Inscripción'}
                                       </Button>
-                                      <p className="text-xs text-destructive font-semibold text-center mt-2">
+                                      <p className="text-xs text-muted-foreground font-semibold text-center mt-2">
                                         ⚠️ No hay reembolsos
                                       </p>
                                     </div>

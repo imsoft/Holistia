@@ -361,7 +361,7 @@ export default function PublicEventPage({
                 )}
 
                 {!event.is_free && (
-                  <p className="text-xs text-destructive font-semibold text-center px-2">
+                  <p className="text-xs text-muted-foreground font-semibold text-center px-2">
                     ⚠️ No hay reembolsos
                   </p>
                 )}

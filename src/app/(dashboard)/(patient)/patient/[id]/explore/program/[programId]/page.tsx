@@ -451,7 +451,7 @@ export default function ProgramDetailPage() {
                         <ShoppingBag className="h-5 w-5 mr-2" />
                         {isPurchasing ? 'Procesando...' : 'Comprar Ahora'}
                       </Button>
-                      <p className="text-xs text-destructive font-semibold text-center">
+                      <p className="text-xs text-muted-foreground font-semibold text-center">
                         ⚠️ No hay reembolsos
                       </p>
                     </>

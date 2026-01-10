@@ -75,7 +75,7 @@ export default function EventPaymentButton({
       >
         {loading ? "Procesando..." : "Registrarse al evento"}
       </Button>
-      <p className="text-xs text-destructive font-semibold text-center">
+      <p className="text-xs text-muted-foreground font-semibold text-center">
         ⚠️ No hay reembolsos
       </p>
     </div>

@@ -160,7 +160,7 @@ export function ChallengeCard({ challenge, onJoin, userId }: ChallengeCardProps)
   };
 
   return (
-    <Card className="overflow-hidden hover:shadow-lg transition-shadow py-4">
+    <Card className="overflow-hidden hover:shadow-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer py-4">
       <div className="relative h-48 w-full">
         <Image
           src={

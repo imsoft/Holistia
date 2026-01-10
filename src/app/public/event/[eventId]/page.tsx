@@ -19,6 +19,7 @@ import Image from "next/image";
 import { toast } from "sonner";
 import { EventWorkshop } from "@/types/event";
 import { formatEventDate, formatEventTime } from "@/utils/date-utils";
+import { EventQuestionsSection } from "@/components/events/event-questions-section";
 
 function classNames(...classes: string[]) {
   return classes.filter(Boolean).join(" ");
@@ -41,6 +42,9 @@ export default function PublicEventPage({
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [activeTab, setActiveTab] = useState<'about' | 'details' | 'instructor'>('about');
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [isProfessional, setIsProfessional] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState<string | undefined>();
 
   useEffect(() => {
     async function loadEvent() {
@@ -50,6 +54,18 @@ export default function PublicEventPage({
         data: { user },
       } = await supabase.auth.getUser();
       setIsAuthenticated(!!user);
+      setCurrentUserId(user?.id);
+
+      // Verificar si el usuario es admin
+      if (user) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("type")
+          .eq("id", user.id)
+          .single();
+
+        setIsAdmin(profile?.type === "admin");
+      }
 
       const { data: eventData, error: eventError } = await supabase
         .from("events_workshops")
@@ -70,13 +86,18 @@ export default function PublicEventPage({
       if (eventData?.professional_id) {
         const { data: professionalData, error: professionalError } = await supabase
           .from("professional_applications")
-          .select("id, first_name, last_name, profession, profile_photo")
+          .select("id, first_name, last_name, profession, profile_photo, user_id")
           .eq("id", eventData.professional_id)
           .eq("status", "approved")
           .single();
 
         if (!professionalError && professionalData) {
           setProfessional(professionalData);
+          
+          // Verificar si el usuario es el profesional del evento
+          if (user && professionalData.user_id === user.id) {
+            setIsProfessional(true);
+          }
         }
       }
 
@@ -469,6 +490,16 @@ export default function PublicEventPage({
             </div>
           </div>
         )}
+
+        {/* Sección de Preguntas y Respuestas */}
+        <div className="mx-auto mt-16 w-full max-w-2xl lg:col-span-4 lg:mt-0 lg:max-w-none">
+          <EventQuestionsSection
+            eventId={eventId}
+            currentUserId={currentUserId}
+            isAdmin={isAdmin}
+            isProfessional={isProfessional}
+          />
+        </div>
       </main>
     </div>
   );

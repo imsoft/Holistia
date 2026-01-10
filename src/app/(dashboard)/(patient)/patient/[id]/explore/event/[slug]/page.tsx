@@ -24,6 +24,7 @@ import Image from "next/image";
 import { toast } from "sonner";
 import EventPaymentButton from "@/components/ui/event-payment-button";
 import { formatEventDate, formatEventTime } from "@/utils/date-utils";
+import { EventQuestionsSection } from "@/components/events/event-questions-section";
 
 const EventDetailPage = () => {
   const params = useParams();
@@ -43,6 +44,9 @@ const EventDetailPage = () => {
   const [registering, setRegistering] = useState(false);
   const [isRegistered, setIsRegistered] = useState(false);
   const [hasPayment, setHasPayment] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [isProfessional, setIsProfessional] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState<string | undefined>();
   
   const supabase = createClient();
 
@@ -105,6 +109,32 @@ const EventDetailPage = () => {
           setHasPayment(true);
         }
       }
+
+      // Verificar si el usuario es admin
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("type")
+        .eq("id", userId)
+        .single();
+
+      setIsAdmin(profile?.type === "admin");
+
+      // Verificar si el usuario es el profesional del evento
+      if (eventData?.professional_id) {
+        const { data: professionalApp } = await supabase
+          .from("professional_applications")
+          .select("user_id")
+          .eq("id", eventData.professional_id)
+          .eq("user_id", userId)
+          .eq("status", "approved")
+          .single();
+
+        setIsProfessional(!!professionalApp);
+      }
+
+      // Obtener ID del usuario actual
+      const { data: { user } } = await supabase.auth.getUser();
+      setCurrentUserId(user?.id);
     } catch (error) {
       console.error("Error fetching event details:", error);
       toast.error("Error al cargar los detalles del evento");
@@ -504,6 +534,14 @@ const EventDetailPage = () => {
             </Card>
           </div>
         </div>
+
+        {/* Sección de Preguntas y Respuestas */}
+        <EventQuestionsSection
+          eventId={eventId}
+          currentUserId={currentUserId}
+          isAdmin={isAdmin}
+          isProfessional={isProfessional}
+        />
       </div>
     </div>
   );

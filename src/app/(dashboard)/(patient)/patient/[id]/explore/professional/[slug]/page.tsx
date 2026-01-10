@@ -716,9 +716,11 @@ export default function ProfessionalProfilePage() {
 
   // Función para compartir el perfil del profesional (solo copiar enlace)
   const handleShare = async () => {
-    if (!professional || !patientId) return;
+    if (!professional) return;
 
-    const shareUrl = `${window.location.origin}/patient/${patientId}/explore/professional/${professional.id}`;
+    // Crear slug: nombre-apellido-id
+    const slug = `${professional.first_name.toLowerCase()}-${professional.last_name.toLowerCase()}-${professional.id}`;
+    const shareUrl = `${window.location.origin}/public/professional/${slug}`;
 
     try {
       await navigator.clipboard.writeText(shareUrl);

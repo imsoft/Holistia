@@ -189,7 +189,7 @@ const EventDetailPage = () => {
   };
 
   const handleShare = async () => {
-    const shareUrl = `${window.location.origin}/patient/${userId}/explore/event/${slug}`;
+    const shareUrl = `${window.location.origin}/public/event/${eventId}`;
 
     try {
       await navigator.clipboard.writeText(shareUrl);

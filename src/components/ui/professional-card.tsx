@@ -107,11 +107,13 @@ export const ProfessionalCard = ({ professional, userId, showFavoriteButton = tr
     return 'Presencial';
   };
 
-  // Construir la ruta correcta - siempre usar ruta del dashboard del paciente
-  // Si no hay userId, el middleware redirigirá a login
+  // Construir la ruta correcta
+  // Si hay userId, usar ruta del dashboard del paciente
+  // Si no hay userId, usar ruta pública
+  const slug = professional.slug || `${professional.first_name?.toLowerCase() || ''}-${professional.last_name?.toLowerCase() || ''}-${professional.id}`;
   const professionalRoute = userId
     ? `/patient/${userId}/explore/professional/${professional.id}`
-    : `/login?redirect=/explore/professional/${professional.id}`;
+    : `/public/professional/${slug}`;
 
   return (
     <Link href={professionalRoute}>

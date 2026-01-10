@@ -51,7 +51,7 @@ export default function HolisticCenterDetailPage() {
   const supabase = createClient();
 
   const handleShare = async () => {
-    const shareUrl = `${window.location.origin}/patient/${userId}/explore/holistic-center/${centerId}`;
+    const shareUrl = `${window.location.origin}/public/holistic-center/${centerId}`;
 
     try {
       await navigator.clipboard.writeText(shareUrl);

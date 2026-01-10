@@ -31,27 +31,10 @@ export async function POST(request: Request) {
       );
     }
 
-    // Obtener la cita actual con datos del profesional y paciente
+    // Obtener la cita actual
     const { data: appointment, error: appointmentError } = await supabase
       .from("appointments")
-      .select(
-        `
-        *,
-        professional:professional_applications!professional_id (
-          id,
-          first_name,
-          last_name,
-          email,
-          user_id
-        ),
-        patient:profiles!patient_id (
-          id,
-          first_name,
-          last_name,
-          email
-        )
-      `
-      )
+      .select("*")
       .eq("id", appointmentId)
       .single();
 
@@ -62,8 +45,36 @@ export async function POST(request: Request) {
       );
     }
 
+    // Obtener información del profesional por separado
+    const { data: professionalData, error: professionalError } = await supabase
+      .from("professional_applications")
+      .select("id, first_name, last_name, email, user_id")
+      .eq("id", appointment.professional_id)
+      .single();
+
+    if (professionalError || !professionalData) {
+      return NextResponse.json(
+        { error: "Profesional no encontrado" },
+        { status: 404 }
+      );
+    }
+
+    // Obtener información del paciente por separado
+    const { data: patientData, error: patientError } = await supabase
+      .from("profiles")
+      .select("id, first_name, last_name, email")
+      .eq("id", appointment.patient_id)
+      .single();
+
+    if (patientError || !patientData) {
+      return NextResponse.json(
+        { error: "Paciente no encontrado" },
+        { status: 404 }
+      );
+    }
+
     // Verificar que el usuario sea el paciente o el profesional
-    const isProfessional = appointment.professional.user_id === user.id;
+    const isProfessional = professionalData.user_id === user.id;
     const isPatient = appointment.patient_id === user.id;
 
     if (!isProfessional && !isPatient) {
@@ -111,8 +122,8 @@ export async function POST(request: Request) {
     }
 
     // Preparar datos para los emails
-    const professionalName = `${appointment.professional.first_name} ${appointment.professional.last_name}`;
-    const patientName = `${appointment.patient.first_name} ${appointment.patient.last_name}`;
+    const professionalName = `${professionalData.first_name} ${professionalData.last_name}`;
+    const patientName = `${patientData.first_name} ${patientData.last_name}`;
 
     // Formatear fechas
     const formatDate = (dateStr: string) => {
@@ -194,13 +205,13 @@ export async function POST(request: Request) {
       await Promise.all([
         resend.emails.send({
           from: "Holistia <noreply@holistia.io>",
-          to: appointment.patient.email,
+          to: patientData.email,
           subject: "Cita Reprogramada - Holistia",
           html: patientEmail,
         }),
         resend.emails.send({
           from: "Holistia <noreply@holistia.io>",
-          to: appointment.professional.email,
+          to: professionalData.email,
           subject: "Cita Reprogramada - Holistia",
           html: professionalEmail,
         }),
@@ -214,7 +225,7 @@ export async function POST(request: Request) {
 
     // Try to update event in Google Calendar (non-blocking)
     try {
-      const professionalUserId = appointment.professional.user_id;
+      const professionalUserId = professionalData.user_id;
       if (professionalUserId) {
         await updateAppointmentInGoogleCalendar(appointmentId, professionalUserId);
       }

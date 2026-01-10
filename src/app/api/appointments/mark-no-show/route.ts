@@ -33,7 +33,7 @@ export async function POST(request: Request) {
     // Obtener la cita
     const { data: appointment, error: appointmentError } = await supabase
       .from('appointments')
-      .select('*, professional_applications!inner(user_id, first_name, last_name, email)')
+      .select('*')
       .eq('id', appointmentId)
       .single();
 
@@ -45,10 +45,20 @@ export async function POST(request: Request) {
       );
     }
 
-    // Verificar que el usuario tenga permiso
-    const professionalData = Array.isArray(appointment.professional_applications)
-      ? appointment.professional_applications[0]
-      : appointment.professional_applications;
+    // Obtener información del profesional por separado
+    const { data: professionalData, error: professionalError } = await supabase
+      .from('professional_applications')
+      .select('id, user_id, first_name, last_name, email')
+      .eq('id', appointment.professional_id)
+      .single();
+
+    if (professionalError || !professionalData) {
+      console.error('Error fetching professional:', professionalError);
+      return NextResponse.json(
+        { error: 'Profesional no encontrado' },
+        { status: 404 }
+      );
+    }
 
     if (markedBy === 'patient' && appointment.patient_id !== user.id) {
       return NextResponse.json(

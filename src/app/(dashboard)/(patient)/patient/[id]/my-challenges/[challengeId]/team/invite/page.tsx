@@ -8,15 +8,29 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { UserPlus, Check, Loader2, Users } from "lucide-react";
+import { UserPlus, Check, Loader2, Users, Search } from "lucide-react";
 import { toast } from "sonner";
 import { createClient } from "@/utils/supabase/client";
+import { Input } from "@/components/ui/input";
+import { FollowButton } from "@/components/ui/follow-button";
 
 interface AvailableUser {
   id: string;
   first_name: string;
   last_name: string;
   avatar_url: string | null;
+}
+
+interface SearchResult {
+  id: string;
+  first_name: string;
+  last_name: string;
+  avatar_url: string | null;
+  type: string;
+  professional_id?: string;
+  profession?: string;
+  slug?: string;
+  is_verified?: boolean;
 }
 
 interface TeamMember {
@@ -50,6 +64,9 @@ export default function InviteTeamMembersPage() {
   const [loading, setLoading] = useState(true);
   const [inviting, setInviting] = useState<string | null>(null);
   const [challengeInfo, setChallengeInfo] = useState<{ created_by_type?: string; is_free?: boolean } | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
+  const [searching, setSearching] = useState(false);
   const supabase = createClient();
 
   useEffect(() => {
@@ -58,6 +75,25 @@ export default function InviteTeamMembersPage() {
       loadTeam();
       loadAvailableUsers();
     }
+  }, [teamId, challengeId]);
+
+  // Escuchar eventos de seguir/dejar de seguir para recargar usuarios disponibles
+  useEffect(() => {
+    const handleFollowChange = () => {
+      // Recargar usuarios disponibles después de un pequeño delay
+      setTimeout(() => {
+        loadAvailableUsers();
+      }, 500);
+    };
+
+    // Escuchar eventos personalizados o usar polling
+    window.addEventListener('user-followed', handleFollowChange);
+    window.addEventListener('user-unfollowed', handleFollowChange);
+
+    return () => {
+      window.removeEventListener('user-followed', handleFollowChange);
+      window.removeEventListener('user-unfollowed', handleFollowChange);
+    };
   }, [teamId, challengeId]);
 
   const loadChallengeInfo = async () => {
@@ -204,6 +240,49 @@ export default function InviteTeamMembersPage() {
     return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
   };
 
+  const handleSearch = async (query: string) => {
+    setSearchQuery(query);
+
+    if (!query || query.length < 2) {
+      setSearchResults([]);
+      return;
+    }
+
+    try {
+      setSearching(true);
+      const response = await fetch(`/api/users/search?q=${encodeURIComponent(query)}`);
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Error al buscar usuarios");
+      }
+
+      setSearchResults(data.data || []);
+    } catch (error) {
+      console.error("Error searching users:", error);
+      toast.error("Error al buscar usuarios");
+    } finally {
+      setSearching(false);
+    }
+  };
+
+  const handleUserClick = (user: SearchResult) => {
+    // Si es profesional, redirigir a su página profesional usando professional_id o slug
+    if (user.type === "professional") {
+      if (user.professional_id) {
+        router.push(`/patient/${patientId}/explore/professional/${user.professional_id}`);
+      } else if (user.slug) {
+        router.push(`/patient/${patientId}/explore/professional/${user.slug}`);
+      } else {
+        // Fallback: usar el user_id si no hay professional_id ni slug
+        router.push(`/patient/${patientId}/explore/professional/${user.id}`);
+      }
+    } else {
+      // Si es paciente o usuario normal, redirigir a su perfil
+      router.push(`/patient/${patientId}/profile/${user.id}`);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -260,6 +339,81 @@ export default function InviteTeamMembersPage() {
                   ))}
                 </div>
               </ScrollArea>
+            </CardContent>
+          </Card>
+
+          {/* Búsqueda de usuarios */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Buscar usuarios y expertos</CardTitle>
+              <p className="text-sm text-muted-foreground">
+                Busca entre todos los usuarios y expertos de Holistia para seguir e invitar
+              </p>
+            </CardHeader>
+            <CardContent className="py-4">
+              <div className="relative mb-4">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Buscar por nombre..."
+                  value={searchQuery}
+                  onChange={(e) => handleSearch(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+              {searching && (
+                <div className="flex items-center justify-center py-4">
+                  <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                </div>
+              )}
+              {searchResults.length > 0 && (
+                <ScrollArea className="h-[300px]">
+                  <div className="space-y-2">
+                    {searchResults.map((user) => (
+                      <div
+                        key={user.id}
+                        className="flex items-center gap-2 p-2 rounded-lg hover:bg-muted transition-colors cursor-pointer"
+                        onClick={() => handleUserClick(user)}
+                      >
+                        <Avatar className="h-8 w-8">
+                          <AvatarImage src={user.avatar_url || undefined} />
+                          <AvatarFallback>
+                            {getUserInitials(user.first_name, user.last_name)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <p className="text-sm font-medium truncate">
+                              {user.first_name} {user.last_name}
+                            </p>
+                            {user.type === "professional" && user.is_verified && (
+                              <Badge variant="default" className="text-xs">
+                                Verificado
+                              </Badge>
+                            )}
+                          </div>
+                          {user.type === "professional" && user.profession && (
+                            <p className="text-xs text-muted-foreground truncate">
+                              {user.profession}
+                            </p>
+                          )}
+                        </div>
+                        <div onClick={(e) => e.stopPropagation()}>
+                          <FollowButton
+                            userId={user.id}
+                            size="sm"
+                            variant="outline"
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </ScrollArea>
+              )}
+              {searchQuery.length >= 2 && !searching && searchResults.length === 0 && (
+                <div className="flex items-center justify-center py-8 text-sm text-muted-foreground">
+                  No se encontraron usuarios
+                </div>
+              )}
             </CardContent>
           </Card>
 

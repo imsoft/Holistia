@@ -92,6 +92,11 @@ export function FollowButton({
 
       setIsFollowing(!isFollowing);
       toast.success(isFollowing ? "Dejaste de seguir a este usuario" : "Ahora sigues a este usuario");
+      
+      // Disparar evento personalizado para notificar cambios
+      window.dispatchEvent(new CustomEvent(isFollowing ? 'user-unfollowed' : 'user-followed', {
+        detail: { userId }
+      }));
     } catch (error) {
       console.error("Error toggling follow:", error);
       toast.error(error instanceof Error ? error.message : "Error al actualizar el seguimiento");

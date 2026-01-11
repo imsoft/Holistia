@@ -19,7 +19,7 @@ import { createClient } from "@/utils/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { StableImage } from "@/components/ui/stable-image";
+import Image from "next/image";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -176,11 +176,16 @@ export default function RestaurantDetailPage() {
           {/* Imagen */}
           <div className="relative w-full h-96 rounded-lg overflow-hidden">
             {restaurant.image_url ? (
-              <StableImage
+              <Image
                 src={restaurant.image_url}
                 alt={restaurant.name}
                 fill
                 className="object-cover"
+                unoptimized={restaurant.image_url.includes('supabase.co') || restaurant.image_url.includes('supabase.in')}
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.src = "/logos/holistia-black.png";
+                }}
               />
             ) : (
               <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center">
@@ -287,12 +292,16 @@ export default function RestaurantDetailPage() {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {restaurant.gallery.map((imageUrl, index) => (
                 <div key={index} className="relative aspect-square rounded-lg overflow-hidden">
-                  <StableImage
+                  <Image
                     src={imageUrl}
                     alt={`Imagen ${index + 1} de ${restaurant.name}`}
                     fill
                     className="object-cover hover:scale-105 transition-transform duration-300 cursor-pointer"
-                    fallbackSrc="/logos/holistia-black.png"
+                    unoptimized={imageUrl.includes('supabase.co') || imageUrl.includes('supabase.in')}
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.src = "/logos/holistia-black.png";
+                    }}
                   />
                 </div>
               ))}
@@ -338,11 +347,16 @@ export default function RestaurantDetailPage() {
                 <Card key={menu.id} className="overflow-hidden">
                   {menu.images && menu.images.length > 0 && (
                     <div className="relative w-full h-48">
-                      <StableImage
+                      <Image
                         src={menu.images[0]}
                         alt={menu.title}
                         fill
                         className="object-cover"
+                        unoptimized={menu.images[0].includes('supabase.co') || menu.images[0].includes('supabase.in')}
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.src = "/logos/holistia-black.png";
+                        }}
                       />
                     </div>
                   )}

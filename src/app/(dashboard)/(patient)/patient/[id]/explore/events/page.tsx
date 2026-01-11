@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { EventWorkshop } from "@/types/event";
 import { formatEventDate, formatEventTime } from "@/utils/date-utils";
-import { StableImage } from "@/components/ui/stable-image";
+import Image from "next/image";
 import { FavoriteButton } from "@/components/ui/favorite-button";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -306,14 +306,19 @@ export default function EventsPage() {
                       <Card className="group hover:shadow-lg hover:-translate-y-2 transition-all duration-300 overflow-hidden cursor-pointer h-full flex flex-col">
                         <div className="relative w-full h-48">
                           <div className="absolute inset-0 overflow-hidden">
-                            <StableImage
+                            <Image
                               src={(event.gallery_images && event.gallery_images.length > 0 && event.gallery_images[0]) || event.image_url || ""}
                               alt={event.name}
                               fill
                               className="object-cover"
-                              objectFit="cover"
-                              objectPosition={event.image_position || "center center"}
-                              fallbackSrc="/logos/holistia-black.png"
+                              unoptimized={((event.gallery_images && event.gallery_images.length > 0 && event.gallery_images[0]) || event.image_url || "").includes('supabase.co') || ((event.gallery_images && event.gallery_images.length > 0 && event.gallery_images[0]) || event.image_url || "").includes('supabase.in')}
+                              onError={(e) => {
+                                const target = e.target as HTMLImageElement;
+                                target.src = "/logos/holistia-black.png";
+                              }}
+                              style={{
+                                objectPosition: event.image_position || "center center"
+                              }}
                             />
                           </div>
                           <div 

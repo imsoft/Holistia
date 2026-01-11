@@ -39,7 +39,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { SidebarTrigger } from "@/components/ui/sidebar";
-import { StableImage } from "@/components/ui/stable-image";
+import Image from "next/image";
 import { Patient } from "@/types";
 import { createClient } from "@/utils/supabase/client";
 
@@ -416,13 +416,17 @@ export default function ProfessionalPatients() {
               <CardContent className="px-4 sm:px-6 py-4 sm:py-6">
                 <div className="flex items-start gap-3 sm:gap-4 mb-3 sm:mb-4">
                   <div className="relative flex-shrink-0">
-                    <StableImage
+                    <Image
                       src={patient.avatar}
                       alt={patient.name}
                       width={60}
                       height={60}
                       className="h-12 w-12 sm:h-15 sm:w-15 aspect-square rounded-full object-cover border-2 border-border"
-                      fallbackSrc="/logos/holistia-black.png"
+                      unoptimized={patient.avatar?.includes('supabase.co') || patient.avatar?.includes('supabase.in')}
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.src = "/logos/holistia-black.png";
+                      }}
                     />
                   </div>
                   <div className="flex-1 min-w-0">

@@ -20,7 +20,7 @@ import { createClient } from "@/utils/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { StableImage } from "@/components/ui/stable-image";
+import Image from "next/image";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -251,20 +251,28 @@ export default function ShopDetailPage() {
           {/* Imagen */}
           <div className="relative w-full h-96 rounded-lg overflow-hidden bg-muted">
             {shop.image_url ? (
-              <StableImage
+              <Image
                 src={shop.image_url}
                 alt={shop.name}
                 fill
                 className="object-cover"
-                fallbackSrc="/logos/holistia-black.png"
+                unoptimized={shop.image_url.includes('supabase.co') || shop.image_url.includes('supabase.in')}
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.src = "/logos/holistia-black.png";
+                }}
               />
             ) : shop.gallery && Array.isArray(shop.gallery) && shop.gallery.length > 0 ? (
-              <StableImage
+              <Image
                 src={shop.gallery[0]}
                 alt={shop.name}
                 fill
                 className="object-cover"
-                fallbackSrc="/logos/holistia-black.png"
+                unoptimized={shop.gallery[0].includes('supabase.co') || shop.gallery[0].includes('supabase.in')}
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.src = "/logos/holistia-black.png";
+                }}
               />
             ) : (
               <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center">
@@ -370,12 +378,16 @@ export default function ShopDetailPage() {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {shop.gallery.filter(url => url && url.trim() !== '').map((imageUrl, index) => (
                 <div key={index} className="relative aspect-square rounded-lg overflow-hidden">
-                  <StableImage
+                  <Image
                     src={imageUrl}
                     alt={`Imagen ${index + 1} de ${shop.name}`}
                     fill
                     className="object-cover hover:scale-105 transition-transform duration-300 cursor-pointer"
-                    fallbackSrc="/logos/holistia-black.png"
+                    unoptimized={imageUrl.includes('supabase.co') || imageUrl.includes('supabase.in')}
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.src = "/logos/holistia-black.png";
+                    }}
                   />
                 </div>
               ))}
@@ -421,11 +433,16 @@ export default function ShopDetailPage() {
                 <Card key={product.id} className="overflow-hidden">
                   {product.images && product.images.length > 0 && (
                     <div className="relative w-full h-48">
-                      <StableImage
+                      <Image
                         src={product.images[0].image_url}
                         alt={product.name}
                         fill
                         className="object-cover"
+                        unoptimized={product.images[0].image_url.includes('supabase.co') || product.images[0].image_url.includes('supabase.in')}
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.src = "/logos/holistia-black.png";
+                        }}
                       />
                       {product.is_featured && (
                         <Badge className="absolute top-2 right-2 bg-yellow-500 text-white">

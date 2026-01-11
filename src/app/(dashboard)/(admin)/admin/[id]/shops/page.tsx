@@ -15,7 +15,7 @@ import {
   Clock,
   Package,
 } from "lucide-react";
-import { StableImage } from "@/components/ui/stable-image";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -447,12 +447,17 @@ export default function AdminShops() {
               <Card key={shop.id} className="hover:shadow-lg transition-shadow overflow-hidden">
                 {shop.image_url && (
                   <div className="relative w-full h-48 bg-muted">
-                    <StableImage
+                    <Image
                       src={shop.image_url}
                       alt={shop.name}
                       fill
                       className="object-cover"
-                      objectFit="cover"
+                      unoptimized={shop.image_url.includes('supabase.co') || shop.image_url.includes('supabase.in')}
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.src = "/logos/holistia-black.png";
+                      }}
+                      style={{ objectFit: 'cover' }}
                     />
                   </div>
                 )}

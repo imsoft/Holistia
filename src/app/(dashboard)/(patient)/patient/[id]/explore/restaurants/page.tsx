@@ -8,7 +8,7 @@ import { createClient } from "@/utils/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { StableImage } from "@/components/ui/stable-image";
+import Image from "next/image";
 import {
   Select,
   SelectContent,
@@ -430,11 +430,16 @@ export default function RestaurantsPage() {
                 <Card className="group hover:shadow-lg hover:-translate-y-2 transition-all duration-300 overflow-hidden cursor-pointer h-full flex flex-col">
                   <div className="relative w-full h-48">
                     {restaurant.image_url ? (
-                      <StableImage
+                      <Image
                         src={restaurant.image_url}
                         alt={restaurant.name}
                         fill
                         className="object-cover"
+                        unoptimized={restaurant.image_url.includes('supabase.co') || restaurant.image_url.includes('supabase.in')}
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.src = "/logos/holistia-black.png";
+                        }}
                       />
                     ) : (
                       <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center">

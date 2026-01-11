@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import { createClient } from "@/utils/supabase/client";
 import { Image as ImageIcon, Trash2, Plus } from "lucide-react";
-import { StableImage } from "@/components/ui/stable-image";
+import Image from "next/image";
 import { toast } from "sonner";
 
 interface ShopGalleryManagerProps {
@@ -230,12 +230,16 @@ export function ShopGalleryManager({
           <Card key={index} className="relative group">
             <CardContent className="p-2">
               <div className="relative aspect-square rounded-lg overflow-hidden">
-                <StableImage
+                <Image
                   src={imageUrl}
                   alt={`Imagen ${index + 1} de la galería`}
                   fill
                   className="object-cover"
-                  fallbackSrc="/logos/holistia-black.png"
+                  unoptimized={imageUrl.includes('supabase.co') || imageUrl.includes('supabase.in')}
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.src = "/logos/holistia-black.png";
+                  }}
                 />
                 
                 {/* Botón de eliminar */}

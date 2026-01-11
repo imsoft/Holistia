@@ -11,7 +11,7 @@ import { EventWorkshop, Professional } from "@/types/event";
 import { createClient } from "@/utils/supabase/client";
 import { toast } from "sonner";
 import { formatEventDate, formatEventTime } from "@/utils/date-utils";
-import { StableImage } from "@/components/ui/stable-image";
+import Image from "next/image";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { 
   Plus, 
@@ -308,14 +308,20 @@ const EventsAdminPage = () => {
                 {/* Event Image */}
                 {event.gallery_images && event.gallery_images.length > 0 && (
                   <div className="relative w-full h-48">
-                    <StableImage
+                    <Image
                       src={event.gallery_images[0]}
                       alt={event.name}
                       fill
                       className="object-cover"
-                      objectFit="cover"
-                      objectPosition={event.image_position || "center center"}
-                      fallbackSrc="/logos/holistia-black.png"
+                      style={{
+                        objectFit: 'cover',
+                        objectPosition: event.image_position || "center center"
+                      }}
+                      unoptimized={event.gallery_images[0].includes('supabase.co') || event.gallery_images[0].includes('supabase.in')}
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.src = "/logos/holistia-black.png";
+                      }}
                     />
                   </div>
                 )}

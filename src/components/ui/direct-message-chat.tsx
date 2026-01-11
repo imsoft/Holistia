@@ -113,12 +113,48 @@ export function DirectMessageChat({
 
     try {
       setServicesLoading(true);
-      const { data, error } = await supabase
+      
+      // El professionalId puede ser user_id o professional_id
+      // Primero intentamos obtener el professional_id desde professional_applications
+      let actualProfessionalId = professionalId;
+      
+      // Verificar si professionalId es un user_id buscando en professional_applications
+      const { data: professionalApp } = await supabase
+        .from("professional_applications")
+        .select("id")
+        .eq("user_id", professionalId)
+        .eq("status", "approved")
+        .maybeSingle();
+
+      // Si encontramos una aplicación profesional, usar su id como professional_id
+      if (professionalApp) {
+        actualProfessionalId = professionalApp.id;
+      }
+
+      // Intentar primero con professional_id
+      let { data, error } = await supabase
         .from("professional_services")
         .select("*")
-        .eq("professional_id", professionalId)
+        .eq("professional_id", actualProfessionalId)
         .eq("isactive", true)
         .order("created_at", { ascending: false });
+
+      // Si no hay resultados y professionalId podría ser user_id, intentar con user_id
+      if ((!data || data.length === 0) && !professionalApp) {
+        const { data: userData, error: userError } = await supabase
+          .from("professional_services")
+          .select("*")
+          .eq("user_id", professionalId)
+          .eq("isactive", true)
+          .order("created_at", { ascending: false });
+
+        if (!userError && userData) {
+          data = userData;
+          error = null;
+        } else {
+          error = userError;
+        }
+      }
 
       if (error) throw error;
 

@@ -22,6 +22,7 @@ import {
   FileText,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import MapboxMap from "@/components/ui/mapbox-map";
 import ProfessionalGallery from "@/components/ui/professional-gallery";
 import { createClient } from "@/utils/supabase/client";
@@ -56,6 +57,7 @@ import { FollowButton } from "@/components/ui/follow-button";
 import { FollowStats } from "@/components/ui/follow-stats";
 import { ChallengeCard } from "@/components/ui/challenge-card";
 import { Target } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface Professional {
   id: string;
@@ -925,10 +927,39 @@ export default function ProfessionalProfilePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-4 text-sm text-muted-foreground">Cargando profesional...</p>
+      <div className="min-h-screen bg-background">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+          <div className="mb-8 sm:mb-12">
+            <div className="flex flex-col sm:flex-row gap-6">
+              <Skeleton className="h-48 w-48 rounded-full shrink-0" />
+              <div className="flex-1 space-y-4">
+                <Skeleton className="h-8 w-3/4" />
+                <Skeleton className="h-5 w-1/2" />
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-5/6" />
+              </div>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2 space-y-6">
+              <Card>
+                <CardContent className="p-6 space-y-4">
+                  <Skeleton className="h-6 w-1/4" />
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-5/6" />
+                </CardContent>
+              </Card>
+            </div>
+            <div className="space-y-6">
+              <Card>
+                <CardContent className="p-6 space-y-4">
+                  <Skeleton className="h-6 w-1/2" />
+                  <Skeleton className="h-10 w-full" />
+                  <Skeleton className="h-10 w-full" />
+                </CardContent>
+              </Card>
+            </div>
+          </div>
         </div>
       </div>
     );

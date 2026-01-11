@@ -15,7 +15,7 @@ import Image from "next/image";
 import { createClient } from "@/utils/supabase/client";
 import { Service } from "@/types/service";
 import { ServiceMessageCard } from "@/components/ui/service-message-card";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
 interface DirectMessage {

@@ -145,7 +145,7 @@ export async function POST(
     }
 
     const body = await request.json();
-    const { content } = body;
+    const { content, metadata } = body;
 
     if (!content || !content.trim()) {
       return NextResponse.json(
@@ -196,6 +196,7 @@ export async function POST(
         sender_id: user.id,
         sender_type: senderType,
         content: content.trim(),
+        metadata: metadata || {},
       })
       .select('*')
       .single();

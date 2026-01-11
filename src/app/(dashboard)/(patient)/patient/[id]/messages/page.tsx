@@ -267,6 +267,8 @@ export default function MessagesPage() {
                       conversationId={selectedConversation.id}
                       currentUserId={userId}
                       otherUser={otherUser}
+                      professionalId={selectedConversation.professional_id}
+                      isProfessional={false}
                     />
                   );
                 })()}

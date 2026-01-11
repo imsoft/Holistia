@@ -214,6 +214,8 @@ export default function ProfessionalMessagesPage() {
                       : 'Usuario',
                     avatar_url: selectedConversation.user?.avatar_url || null,
                   }}
+                  professionalId={professionalId}
+                  isProfessional={true}
                 />
               </CardContent>
             </Card>

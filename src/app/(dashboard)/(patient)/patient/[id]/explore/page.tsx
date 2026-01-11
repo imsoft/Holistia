@@ -16,6 +16,7 @@ import { sortProfessionalsByRanking } from "@/utils/professional-ranking";
 import { FavoriteButton } from "@/components/ui/favorite-button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { trackInteraction, sortByUserPreferences, type ContentType, type WellnessArea } from "@/lib/user-preferences";
+import { toast } from "sonner";
 
 const categories = [
   {
@@ -313,7 +314,9 @@ const HomeUserPage = () => {
         ]);
 
         // Procesar profesionales
+        console.log("🔍 [Explore] Processing professionals result:", professionalsResult.status);
         if (professionalsResult.status === 'fulfilled' && professionalsResult.value.data) {
+          console.log("✅ [Explore] Professionals data:", professionalsResult.value.data.length, "professionals");
           const professionalsWithServices = await Promise.all(
             professionalsResult.value.data.map(async (prof) => {
               const [servicesResult, reviewStatsResult, adminRatingResult, appointmentsResult] = await Promise.allSettled([
@@ -375,12 +378,15 @@ const HomeUserPage = () => {
 
           setProfessionals(personalizedProfessionals);
           setFilteredProfessionals(personalizedProfessionals);
+          console.log("✅ [Explore] Set professionals:", personalizedProfessionals.length);
         } else if (professionalsResult.status === 'rejected') {
           console.error("Error fetching professionals:", professionalsResult.reason);
         }
 
         // Procesar eventos
+        console.log("🔍 [Explore] Processing events result:", eventsResult.status);
         if (eventsResult.status === 'fulfilled' && eventsResult.value.data) {
+          console.log("✅ [Explore] Events data:", eventsResult.value.data.length, "events");
           // Aplicar ordenamiento personalizado
           const eventsWithMetadata = eventsResult.value.data.map((event) => ({
             ...event,
@@ -402,7 +408,9 @@ const HomeUserPage = () => {
         }
 
         // Procesar restaurantes
+        console.log("🔍 [Explore] Processing restaurants result:", restaurantsResult.status);
         if (restaurantsResult.status === 'fulfilled' && restaurantsResult.value.data) {
+          console.log("✅ [Explore] Restaurants data:", restaurantsResult.value.data.length, "restaurants");
           // Aplicar ordenamiento personalizado
           const restaurantsWithMetadata = restaurantsResult.value.data.map((restaurant) => ({
             ...restaurant,
@@ -419,7 +427,9 @@ const HomeUserPage = () => {
         }
 
         // Procesar comercios
+        console.log("🔍 [Explore] Processing shops result:", shopsResult.status);
         if (shopsResult.status === 'fulfilled' && shopsResult.value.data) {
+          console.log("✅ [Explore] Shops data:", shopsResult.value.data.length, "shops");
           // Aplicar ordenamiento personalizado
           const shopsWithMetadata = shopsResult.value.data.map((shop) => ({
             ...shop,
@@ -436,7 +446,9 @@ const HomeUserPage = () => {
         }
 
         // Procesar programas
+        console.log("🔍 [Explore] Processing products result:", productsResult.status);
         if (productsResult.status === 'fulfilled' && productsResult.value.data) {
+          console.log("✅ [Explore] Products data:", productsResult.value.data.length, "products");
           const transformedProducts = productsResult.value.data.map((product: any) => ({
             ...product,
             professional_applications: Array.isArray(product.professional_applications) && product.professional_applications.length > 0
@@ -470,7 +482,9 @@ const HomeUserPage = () => {
         }
 
         // Procesar centros holísticos
+        console.log("🔍 [Explore] Processing holistic centers result:", holisticCentersResult.status);
         if (holisticCentersResult.status === 'fulfilled' && holisticCentersResult.value.data) {
+          console.log("✅ [Explore] Holistic centers data:", holisticCentersResult.value.data.length, "centers");
           // Aplicar ordenamiento personalizado
           const centersWithMetadata = holisticCentersResult.value.data.map((center) => ({
             ...center,
@@ -486,9 +500,18 @@ const HomeUserPage = () => {
           console.error("Error fetching holistic centers:", holisticCentersResult.reason);
         }
       } catch (error) {
-        console.error("Error fetching data:", error);
+        console.error("❌ [Explore] Error fetching data:", error);
+        toast.error("Error al cargar el contenido. Por favor, intenta recargar la página.");
       } finally {
         setLoading(false);
+        console.log("✅ [Explore] Data loading completed", {
+          professionals: professionals.length,
+          events: events.length,
+          restaurants: restaurants.length,
+          shops: shops.length,
+          digitalProducts: digitalProducts.length,
+          holisticCenters: holisticCenters.length,
+        });
       }
     };
 
@@ -760,8 +783,94 @@ const HomeUserPage = () => {
         </div>
 
         <div className="space-y-12 relative">
+          {/* Mostrar skeletons mientras carga */}
+          {loading && (
+            <>
+              <div className="relative z-10">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-3xl sm:text-4xl font-bold text-foreground">Programas</h2>
+                </div>
+                <div className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar px-12">
+                  {Array.from({ length: 3 }).map((_, i) => (
+                    <CardSkeleton key={`program-skeleton-${i}`} />
+                  ))}
+                </div>
+              </div>
+              <div className="relative z-0">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-3xl sm:text-4xl font-bold text-foreground">Eventos</h2>
+                </div>
+                <div className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar px-12">
+                  {Array.from({ length: 3 }).map((_, i) => (
+                    <CardSkeleton key={`event-skeleton-${i}`} />
+                  ))}
+                </div>
+              </div>
+              <div className="relative z-10">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-3xl sm:text-4xl font-bold text-foreground">Expertos</h2>
+                </div>
+                <div className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar px-12">
+                  {Array.from({ length: 3 }).map((_, i) => (
+                    <ProfessionalCardSkeleton key={`professional-skeleton-${i}`} />
+                  ))}
+                </div>
+              </div>
+              <div>
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-3xl sm:text-4xl font-bold text-foreground">Restaurantes</h2>
+                </div>
+                <div className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar px-12">
+                  {Array.from({ length: 3 }).map((_, i) => (
+                    <CardSkeleton key={`restaurant-skeleton-${i}`} />
+                  ))}
+                </div>
+              </div>
+              <div>
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-3xl sm:text-4xl font-bold text-foreground">Comercios</h2>
+                </div>
+                <div className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar px-12">
+                  {Array.from({ length: 3 }).map((_, i) => (
+                    <CardSkeleton key={`shop-skeleton-${i}`} />
+                  ))}
+                </div>
+              </div>
+              <div>
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-3xl sm:text-4xl font-bold text-foreground">Centros Holísticos</h2>
+                </div>
+                <div className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar px-12">
+                  {Array.from({ length: 3 }).map((_, i) => (
+                    <CardSkeleton key={`holistic-center-skeleton-${i}`} />
+                  ))}
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* Mostrar mensaje cuando no hay datos y no está cargando */}
+          {!loading && 
+           filteredDigitalProducts.length === 0 && 
+           filteredEvents.length === 0 && 
+           filteredProfessionals.length === 0 && 
+           filteredRestaurants.length === 0 && 
+           filteredShops.length === 0 && 
+           filteredHolisticCenters.length === 0 && (
+            <div className="text-center py-16">
+              <Brain className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-foreground mb-2">
+                No hay contenido disponible
+              </h3>
+              <p className="text-muted-foreground max-w-md mx-auto">
+                Por el momento no hay profesionales, eventos, programas, restaurantes, comercios o centros holísticos disponibles. 
+                Vuelve más tarde para descubrir nuevo contenido.
+              </p>
+            </div>
+          )}
+
           {/* Sección de Programas - Solo mostrar si hay datos */}
-          {filteredDigitalProducts.length > 0 && (
+          {!loading && filteredDigitalProducts.length > 0 && (
             <div className="relative z-10">
               <div className="flex items-center justify-between mb-6">
                 <Link
@@ -875,7 +984,7 @@ const HomeUserPage = () => {
           )}
 
           {/* Sección de Eventos y Talleres - Solo mostrar si hay datos */}
-          {filteredEvents.length > 0 && (
+          {!loading && filteredEvents.length > 0 && (
           <div className="relative z-0">
             <div className="flex items-center justify-between mb-6">
               <Link
@@ -889,13 +998,7 @@ const HomeUserPage = () => {
               </Link>
             </div>
 
-            {loading ? (
-              <div className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar px-12">
-                {Array.from({ length: 3 }).map((_, i) => (
-                  <CardSkeleton key={`event-skeleton-${i}`} />
-                ))}
-              </div>
-            ) : filteredEvents.length === 0 ? (
+            {filteredEvents.length === 0 ? (
               <div className="text-center py-12">
                 <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                 <p className="text-muted-foreground">
@@ -1016,7 +1119,7 @@ const HomeUserPage = () => {
           )}
 
           {/* Sección de Expertos - Solo mostrar si hay datos */}
-          {filteredProfessionals.length > 0 && (
+          {!loading && filteredProfessionals.length > 0 && (
           <div className="relative z-10">
             <div className="flex items-center justify-between mb-6">
               <Link
@@ -1030,13 +1133,7 @@ const HomeUserPage = () => {
               </Link>
             </div>
 
-            {loading ? (
-              <div className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar px-12">
-                {Array.from({ length: 3 }).map((_, i) => (
-                  <ProfessionalCardSkeleton key={`professional-skeleton-${i}`} />
-                ))}
-              </div>
-            ) : filteredProfessionals.length === 0 ? (
+            {filteredProfessionals.length === 0 ? (
               <div className="text-center py-12">
                 <Brain className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                 <p className="text-muted-foreground">
@@ -1154,7 +1251,7 @@ const HomeUserPage = () => {
           )}
 
           {/* Sección de Restaurantes - Solo mostrar si hay datos */}
-          {filteredRestaurants.length > 0 && (
+          {!loading && filteredRestaurants.length > 0 && (
           <div>
             <div className="flex items-center justify-between mb-6">
               <Link
@@ -1168,13 +1265,7 @@ const HomeUserPage = () => {
               </Link>
             </div>
 
-            {loading ? (
-              <div className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar px-12">
-                {Array.from({ length: 3 }).map((_, i) => (
-                  <CardSkeleton key={`restaurant-skeleton-${i}`} />
-                ))}
-              </div>
-            ) : filteredRestaurants.length === 0 ? (
+            {filteredRestaurants.length === 0 ? (
               <div className="text-center py-12">
                 <UtensilsCrossed className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                 <p className="text-muted-foreground">
@@ -1276,7 +1367,7 @@ const HomeUserPage = () => {
           )}
 
           {/* Sección de Comercios - Solo mostrar si hay datos */}
-          {filteredShops.length > 0 && (
+          {!loading && filteredShops.length > 0 && (
           <div>
             <div className="flex items-center justify-between mb-6">
               <Link
@@ -1290,13 +1381,7 @@ const HomeUserPage = () => {
               </Link>
             </div>
 
-            {loading ? (
-              <div className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar px-12">
-                {Array.from({ length: 3 }).map((_, i) => (
-                  <CardSkeleton key={`shop-skeleton-${i}`} />
-                ))}
-              </div>
-            ) : filteredShops.length === 0 ? (
+            {filteredShops.length === 0 ? (
               <div className="text-center py-12">
                 <Store className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                 <p className="text-muted-foreground">
@@ -1399,7 +1484,7 @@ const HomeUserPage = () => {
           )}
 
           {/* Sección de Centros Holísticos - Solo mostrar si hay datos */}
-          {filteredHolisticCenters.length > 0 && (
+          {!loading && filteredHolisticCenters.length > 0 && (
           <div>
             <div className="flex items-center justify-between mb-6">
               <Link
@@ -1413,13 +1498,7 @@ const HomeUserPage = () => {
               </Link>
             </div>
 
-            {loading ? (
-              <div className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar px-12">
-                {Array.from({ length: 3 }).map((_, i) => (
-                  <CardSkeleton key={`holistic-center-skeleton-${i}`} />
-                ))}
-              </div>
-            ) : filteredHolisticCenters.length === 0 ? (
+            {filteredHolisticCenters.length === 0 ? (
               <div className="text-center py-12">
                 <Building2 className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                 <p className="text-muted-foreground">

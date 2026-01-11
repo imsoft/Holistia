@@ -803,7 +803,8 @@ export default function ProfessionalProfilePage() {
 
       if (!messageResponse.ok) {
         const errorData = await messageResponse.json();
-        throw new Error(errorData.error || 'Error al enviar mensaje');
+        console.error('Error sending message:', errorData);
+        throw new Error(errorData.details || errorData.error || 'Error al enviar mensaje');
       }
 
       toast.success('Solicitud de cotización enviada. El experto te contactará pronto.');

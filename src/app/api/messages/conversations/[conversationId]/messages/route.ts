@@ -203,8 +203,19 @@ export async function POST(
 
     if (messageError) {
       console.error('Error creating message:', messageError);
+      console.error('Message details:', {
+        conversationId,
+        senderId: user.id,
+        senderType,
+        content: content.trim(),
+        metadata: metadata || {},
+      });
       return NextResponse.json(
-        { error: 'Error al enviar mensaje' },
+        { 
+          error: 'Error al enviar mensaje',
+          details: messageError.message || 'Error desconocido',
+          code: messageError.code || 'UNKNOWN'
+        },
         { status: 500 }
       );
     }
@@ -315,8 +326,15 @@ export async function POST(
     return NextResponse.json({ message: messageWithSender }, { status: 201 });
   } catch (error) {
     console.error('Error in POST /api/messages/conversations/[conversationId]/messages:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
+    const errorStack = error instanceof Error ? error.stack : undefined;
+    console.error('Error details:', { errorMessage, errorStack });
     return NextResponse.json(
-      { error: 'Error interno del servidor' },
+      { 
+        error: 'Error interno del servidor',
+        details: errorMessage,
+        ...(process.env.NODE_ENV === 'development' && { stack: errorStack })
+      },
       { status: 500 }
     );
   }

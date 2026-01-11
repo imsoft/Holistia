@@ -12,6 +12,7 @@ import { AccountDeactivation } from "@/components/ui/account-deactivation";
 import { UsernameSettings } from "@/components/username-settings";
 import { FollowButton } from "@/components/ui/follow-button";
 import { FollowStats } from "@/components/ui/follow-stats";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const ProfilePage = () => {
   const { profile, loading, updateProfile } = useProfile();
@@ -149,11 +150,99 @@ const ProfilePage = () => {
   // Mostrar loading mientras se cargan los datos
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-2 text-sm text-muted-foreground">Cargando perfil...</p>
-        </div>
+      <div className="min-h-screen bg-background">
+        <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+          <div className="mb-6 sm:mb-8">
+            <Skeleton className="h-9 w-48 mb-2" />
+            <Skeleton className="h-5 w-96 max-w-full" />
+          </div>
+
+          <div className="mx-auto max-w-2xl space-y-16 sm:space-y-20 lg:mx-0 lg:max-w-none">
+            {/* Profile Photo Section Skeleton */}
+            <div>
+              <Skeleton className="h-6 w-32 mb-1" />
+              <Skeleton className="h-4 w-64 mb-4 sm:mb-6" />
+              <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
+                <Skeleton className="h-20 w-20 rounded-full shrink-0" />
+                <div className="flex-1 space-y-2">
+                  <Skeleton className="h-10 w-full sm:w-32" />
+                  <Skeleton className="h-4 w-full sm:w-80" />
+                </div>
+              </div>
+            </div>
+
+            {/* Profile Section Skeleton */}
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex-1">
+                  <Skeleton className="h-6 w-24 mb-1" />
+                  <Skeleton className="h-4 w-80 max-w-full" />
+                </div>
+                <div className="flex items-center gap-3">
+                  <Skeleton className="h-8 w-16" />
+                  <Skeleton className="h-8 w-24" />
+                </div>
+              </div>
+
+              <div className="mt-4 sm:mt-6 divide-y divide-border border-t border-border space-y-4 sm:space-y-6">
+                <div className="py-4 sm:py-6 sm:flex sm:items-center">
+                  <Skeleton className="h-4 w-32 mb-2 sm:mb-0 sm:w-64 sm:shrink-0 sm:mr-6" />
+                  <Skeleton className="h-4 w-48 sm:flex-auto" />
+                </div>
+                <div className="py-4 sm:py-6 sm:flex sm:items-center">
+                  <Skeleton className="h-4 w-32 mb-2 sm:mb-0 sm:w-64 sm:shrink-0 sm:mr-6" />
+                  <Skeleton className="h-4 w-64 sm:flex-auto" />
+                </div>
+                <div className="py-4 sm:py-6 sm:flex sm:items-center">
+                  <Skeleton className="h-4 w-32 mb-2 sm:mb-0 sm:w-64 sm:shrink-0 sm:mr-6" />
+                  <div className="flex items-center justify-between flex-1">
+                    <Skeleton className="h-4 w-32" />
+                    <Skeleton className="h-8 w-8 rounded" />
+                  </div>
+                </div>
+                <div className="py-4 sm:py-6 sm:flex sm:items-center">
+                  <Skeleton className="h-4 w-32 mb-2 sm:mb-0 sm:w-64 sm:shrink-0 sm:mr-6" />
+                  <Skeleton className="h-4 w-24 sm:flex-auto" />
+                </div>
+              </div>
+            </div>
+
+            {/* Username Settings Skeleton */}
+            <div>
+              <Skeleton className="h-6 w-40 mb-1" />
+              <Skeleton className="h-4 w-64 mb-4 sm:mb-6" />
+              <div className="border-t border-border pt-4 sm:pt-6 space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                  <Skeleton className="h-10 flex-1 sm:max-w-md" />
+                  <Skeleton className="h-10 w-full sm:w-32" />
+                </div>
+              </div>
+            </div>
+
+            {/* Additional Information Skeleton */}
+            <div>
+              <Skeleton className="h-6 w-48 mb-1" />
+              <Skeleton className="h-4 w-72 mb-4 sm:mb-6" />
+              <div className="mt-4 sm:mt-6 divide-y divide-border border-t border-border space-y-4 sm:space-y-6">
+                <div className="py-4 sm:py-6 sm:flex">
+                  <Skeleton className="h-4 w-32 mb-2 sm:mb-0 sm:w-64 sm:shrink-0 sm:mr-6" />
+                  <Skeleton className="h-4 w-48 sm:flex-auto" />
+                </div>
+                <div className="py-4 sm:py-6 sm:flex">
+                  <Skeleton className="h-4 w-32 mb-2 sm:mb-0 sm:w-64 sm:shrink-0 sm:mr-6" />
+                  <Skeleton className="h-4 w-24 sm:flex-auto" />
+                </div>
+              </div>
+            </div>
+
+            {/* Account Deactivation Skeleton */}
+            <div className="mt-12">
+              <Skeleton className="h-6 w-48 mb-1" />
+              <Skeleton className="h-4 w-96 max-w-full mb-4" />
+              <Skeleton className="h-10 w-full sm:w-48" />
+            </div>
+          </div>
+        </main>
       </div>
     );
   }

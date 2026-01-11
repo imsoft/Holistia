@@ -15,8 +15,6 @@ import { determineProfessionalModality, transformServicesFromDB } from "@/utils/
 import { sortProfessionalsByRanking } from "@/utils/professional-ranking";
 import { FavoriteButton } from "@/components/ui/favorite-button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { trackInteraction, sortByUserPreferences, type ContentType, type WellnessArea } from "@/lib/user-preferences";
-import { toast } from "sonner";
 
 const categories = [
   {
@@ -366,19 +364,9 @@ const HomeUserPage = () => {
           const sortedWithoutMembership = sortProfessionalsByRanking(professionalsWithoutMembership);
           const sortedProfessionals = [...sortedWithMembership, ...sortedWithoutMembership];
 
-          // Aplicar ordenamiento personalizado basado en preferencias del usuario
-          const professionalsWithMetadata = sortedProfessionals.map((prof) => ({
-            ...prof,
-            contentType: 'professional' as ContentType,
-            category: prof.wellness_areas?.[0] || undefined,
-            wellnessAreas: prof.wellness_areas as WellnessArea[] | undefined,
-          }));
-
-          const personalizedProfessionals = sortByUserPreferences(professionalsWithMetadata);
-
-          setProfessionals(personalizedProfessionals);
-          setFilteredProfessionals(personalizedProfessionals);
-          console.log("✅ [Explore] Set professionals:", personalizedProfessionals.length);
+          setProfessionals(sortedProfessionals);
+          setFilteredProfessionals(sortedProfessionals);
+          console.log("✅ [Explore] Set professionals:", sortedProfessionals.length);
         } else if (professionalsResult.status === 'rejected') {
           console.error("Error fetching professionals:", professionalsResult.reason);
         }
@@ -387,22 +375,8 @@ const HomeUserPage = () => {
         console.log("🔍 [Explore] Processing events result:", eventsResult.status);
         if (eventsResult.status === 'fulfilled' && eventsResult.value.data) {
           console.log("✅ [Explore] Events data:", eventsResult.value.data.length, "events");
-          // Aplicar ordenamiento personalizado
-          const eventsWithMetadata = eventsResult.value.data.map((event) => ({
-            ...event,
-            contentType: 'event' as ContentType,
-            category: event.category,
-            wellnessAreas: event.category === 'salud_mental' ? ['Salud mental'] as WellnessArea[] :
-                          event.category === 'espiritualidad' ? ['Espiritualidad'] as WellnessArea[] :
-                          event.category === 'salud_fisica' ? ['Actividad física'] as WellnessArea[] :
-                          event.category === 'social' ? ['Social'] as WellnessArea[] :
-                          event.category === 'alimentacion' ? ['Alimentación'] as WellnessArea[] :
-                          undefined,
-          }));
-
-          const personalizedEvents = sortByUserPreferences(eventsWithMetadata);
-          setEvents(personalizedEvents);
-          setFilteredEvents(personalizedEvents);
+          setEvents(eventsResult.value.data);
+          setFilteredEvents(eventsResult.value.data);
         } else if (eventsResult.status === 'rejected') {
           console.error("Error fetching events:", eventsResult.reason);
         }
@@ -411,17 +385,8 @@ const HomeUserPage = () => {
         console.log("🔍 [Explore] Processing restaurants result:", restaurantsResult.status);
         if (restaurantsResult.status === 'fulfilled' && restaurantsResult.value.data) {
           console.log("✅ [Explore] Restaurants data:", restaurantsResult.value.data.length, "restaurants");
-          // Aplicar ordenamiento personalizado
-          const restaurantsWithMetadata = restaurantsResult.value.data.map((restaurant) => ({
-            ...restaurant,
-            contentType: 'restaurant' as ContentType,
-            category: 'Alimentación',
-            wellnessAreas: ['Alimentación'] as WellnessArea[],
-          }));
-
-          const personalizedRestaurants = sortByUserPreferences(restaurantsWithMetadata);
-          setRestaurants(personalizedRestaurants);
-          setFilteredRestaurants(personalizedRestaurants);
+          setRestaurants(restaurantsResult.value.data);
+          setFilteredRestaurants(restaurantsResult.value.data);
         } else if (restaurantsResult.status === 'rejected') {
           console.error("Error fetching restaurants:", restaurantsResult.reason);
         }
@@ -430,17 +395,8 @@ const HomeUserPage = () => {
         console.log("🔍 [Explore] Processing shops result:", shopsResult.status);
         if (shopsResult.status === 'fulfilled' && shopsResult.value.data) {
           console.log("✅ [Explore] Shops data:", shopsResult.value.data.length, "shops");
-          // Aplicar ordenamiento personalizado
-          const shopsWithMetadata = shopsResult.value.data.map((shop) => ({
-            ...shop,
-            contentType: 'shop' as ContentType,
-            category: shop.category,
-            wellnessAreas: undefined, // Los comercios no tienen wellness_areas específicas
-          }));
-
-          const personalizedShops = sortByUserPreferences(shopsWithMetadata);
-          setShops(personalizedShops);
-          setFilteredShops(personalizedShops);
+          setShops(shopsResult.value.data);
+          setFilteredShops(shopsResult.value.data);
         } else if (shopsResult.status === 'rejected') {
           console.error("Error fetching shops:", shopsResult.reason);
         }
@@ -456,27 +412,8 @@ const HomeUserPage = () => {
               : undefined,
           }));
 
-          // Aplicar ordenamiento personalizado
-          const productsWithMetadata = transformedProducts.map((product: any) => {
-            // Determinar wellness_areas del programa o del profesional
-            let wellnessAreas: WellnessArea[] | undefined;
-            if (product.wellness_areas && Array.isArray(product.wellness_areas) && product.wellness_areas.length > 0) {
-              wellnessAreas = product.wellness_areas as WellnessArea[];
-            } else if (product.professional_applications?.wellness_areas) {
-              wellnessAreas = product.professional_applications.wellness_areas as WellnessArea[];
-            }
-
-            return {
-              ...product,
-              contentType: 'program' as ContentType,
-              category: product.category,
-              wellnessAreas,
-            };
-          });
-
-          const personalizedProducts = sortByUserPreferences(productsWithMetadata);
-          setDigitalProducts(personalizedProducts);
-          setFilteredDigitalProducts(personalizedProducts);
+          setDigitalProducts(transformedProducts);
+          setFilteredDigitalProducts(transformedProducts);
         } else if (productsResult.status === 'rejected') {
           console.error("Error fetching digital products:", productsResult.reason);
         }
@@ -485,23 +422,17 @@ const HomeUserPage = () => {
         console.log("🔍 [Explore] Processing holistic centers result:", holisticCentersResult.status);
         if (holisticCentersResult.status === 'fulfilled' && holisticCentersResult.value.data) {
           console.log("✅ [Explore] Holistic centers data:", holisticCentersResult.value.data.length, "centers");
-          // Aplicar ordenamiento personalizado
-          const centersWithMetadata = holisticCentersResult.value.data.map((center) => ({
-            ...center,
-            contentType: 'holistic_center' as ContentType,
-            category: undefined,
-            wellnessAreas: undefined, // Los centros holísticos pueden tener múltiples áreas
-          }));
-
-          const personalizedCenters = sortByUserPreferences(centersWithMetadata);
-          setHolisticCenters(personalizedCenters);
-          setFilteredHolisticCenters(personalizedCenters);
+          setHolisticCenters(holisticCentersResult.value.data);
+          setFilteredHolisticCenters(holisticCentersResult.value.data);
         } else if (holisticCentersResult.status === 'rejected') {
           console.error("Error fetching holistic centers:", holisticCentersResult.reason);
         }
       } catch (error) {
         console.error("❌ [Explore] Error fetching data:", error);
-        toast.error("Error al cargar el contenido. Por favor, intenta recargar la página.");
+        // Solo mostrar error si es un error crítico, no errores menores de datos individuales
+        if (error instanceof Error && !error.message.includes('PGRST')) {
+          console.error("Error crítico:", error);
+        }
       } finally {
         setLoading(false);
         console.log("✅ [Explore] Data loading completed", {
@@ -906,22 +837,11 @@ const HomeUserPage = () => {
                   style={{ scrollPaddingLeft: '1rem', scrollPaddingRight: '1rem' }}
                 >
                   {filteredDigitalProducts.map((product) => {
-                    // Determinar wellness_areas del programa o del profesional
-                    let wellnessAreas: WellnessArea[] | undefined;
-                    if (product.wellness_areas && Array.isArray(product.wellness_areas) && product.wellness_areas.length > 0) {
-                      wellnessAreas = product.wellness_areas as WellnessArea[];
-                    } else if (product.professional_applications?.wellness_areas) {
-                      wellnessAreas = product.professional_applications.wellness_areas as WellnessArea[];
-                    }
-
                     return (
                       <Link
                         key={product.id}
                         href={`/patient/${userId}/explore/program/${product.id}`}
                         className="shrink-0 w-96"
-                        onClick={() => {
-                          trackInteraction('program', product.id, product.category, wellnessAreas);
-                        }}
                       >
                         <Card className="group overflow-hidden hover:shadow-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer h-[480px] flex flex-col">
                           <div className="relative h-64 w-full shrink-0">
@@ -1030,22 +950,11 @@ const HomeUserPage = () => {
                   style={{ scrollPaddingLeft: '1rem', scrollPaddingRight: '1rem' }}
                 >
                   {filteredEvents.map((event) => {
-                    const wellnessAreas: WellnessArea[] | undefined = 
-                      event.category === 'salud_mental' ? ['Salud mental'] :
-                      event.category === 'espiritualidad' ? ['Espiritualidad'] :
-                      event.category === 'salud_fisica' ? ['Actividad física'] :
-                      event.category === 'social' ? ['Social'] :
-                      event.category === 'alimentacion' ? ['Alimentación'] :
-                      undefined;
-
                     return (
                       <Link
                         key={event.id}
                         href={`/patient/${userId}/explore/event/${generateEventSlug(event.name, event.id!)}`}
                         className="shrink-0 w-96"
-                        onClick={() => {
-                          trackInteraction('event', event.id!, event.category, wellnessAreas);
-                        }}
                       >
                         <Card className="group hover:shadow-lg hover:-translate-y-2 transition-all duration-300 overflow-hidden cursor-pointer h-[480px] flex flex-col">
                           <div className="relative w-full h-64 bg-gray-100 shrink-0">
@@ -1169,12 +1078,6 @@ const HomeUserPage = () => {
                       key={professional.id} 
                       className="shrink-0 w-96"
                       onClick={() => {
-                        trackInteraction(
-                          'professional',
-                          professional.id,
-                          professional.wellness_areas?.[0],
-                          professional.wellness_areas as WellnessArea[] | undefined
-                        );
                       }}
                     >
                       <ProfessionalCard
@@ -1301,7 +1204,6 @@ const HomeUserPage = () => {
                       href={`/patient/${userId}/explore/restaurant/${restaurant.id}`}
                       className="shrink-0 w-96"
                       onClick={() => {
-                        trackInteraction('restaurant', restaurant.id, 'Alimentación', ['Alimentación']);
                       }}
                     >
                       <Card className="group hover:shadow-lg hover:-translate-y-2 transition-all duration-300 overflow-hidden cursor-pointer h-[480px] flex flex-col">
@@ -1417,7 +1319,6 @@ const HomeUserPage = () => {
                       href={`/patient/${userId}/explore/shop/${shop.id}`}
                       className="shrink-0 w-96"
                       onClick={() => {
-                        trackInteraction('shop', shop.id, shop.category);
                       }}
                     >
                       <Card className="group hover:shadow-lg hover:-translate-y-2 transition-all duration-300 overflow-hidden cursor-pointer h-[480px] flex flex-col">
@@ -1543,7 +1444,6 @@ const HomeUserPage = () => {
                       href={`/patient/${userId}/explore/holistic-center/${center.id}`}
                       className="shrink-0 w-96"
                       onClick={() => {
-                        trackInteraction('holistic_center', center.id);
                       }}
                     >
                       <Card className="group hover:shadow-lg hover:-translate-y-2 transition-all duration-300 overflow-hidden cursor-pointer h-[480px] flex flex-col">

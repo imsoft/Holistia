@@ -334,6 +334,8 @@ export function DirectMessageChat({
                         service={serviceDetails[msg.metadata.service_id]}
                         userId={isOwnMessage ? currentUserId : otherUser.id}
                         professionalId={professionalId || ''}
+                        conversationId={conversationId}
+                        isProfessional={isProfessional}
                         className={cn(
                           isOwnMessage ? "ml-auto" : "mr-auto"
                         )}

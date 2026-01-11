@@ -1,19 +1,23 @@
 "use client";
 
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Calendar, Package, MapPin, Monitor, ExternalLink } from "lucide-react";
+import { Calendar, Package, MapPin, Monitor, ExternalLink, CreditCard } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { Service } from "@/types/service";
 import { cn } from "@/lib/utils";
+import { QuotePaymentDialog } from "@/components/ui/quote-payment-dialog";
 
 interface ServiceMessageCardProps {
   service: Service;
   userId: string;
   professionalId: string;
   className?: string;
+  conversationId?: string;
+  isProfessional?: boolean;
 }
 
 export function ServiceMessageCard({
@@ -21,7 +25,10 @@ export function ServiceMessageCard({
   userId,
   professionalId,
   className,
+  conversationId,
+  isProfessional = false,
 }: ServiceMessageCardProps) {
+  const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
   const getModalityIcon = (modality: string) => {
     switch (modality) {
       case "presencial":
@@ -144,13 +151,40 @@ export function ServiceMessageCard({
             {formatCost(service.cost, service.pricing_type)}
           </div>
         )}
-        <Link href={serviceUrl} className="block">
-          <Button className="w-full" variant="default">
-            Ver servicio
-            <ExternalLink className="w-4 h-4 ml-2" />
-          </Button>
-        </Link>
+        <div className="flex flex-col gap-2">
+          {isProfessional && service.pricing_type === 'quote' && conversationId && (
+            <Button
+              onClick={() => setIsPaymentDialogOpen(true)}
+              className="w-full"
+              variant="outline"
+            >
+              <CreditCard className="w-4 h-4 mr-2" />
+              Generar Enlace de Pago
+            </Button>
+          )}
+          <Link href={serviceUrl} className="block">
+            <Button className="w-full" variant="default">
+              Ver servicio
+              <ExternalLink className="w-4 h-4 ml-2" />
+            </Button>
+          </Link>
+        </div>
       </CardContent>
+
+      {isProfessional && service.pricing_type === 'quote' && conversationId && (
+        <QuotePaymentDialog
+          open={isPaymentDialogOpen}
+          onOpenChange={setIsPaymentDialogOpen}
+          service={service}
+          conversationId={conversationId}
+          patientId={userId}
+          professionalId={professionalId}
+          onPaymentLinkCreated={(url) => {
+            // Opcional: enviar el enlace como mensaje automáticamente
+            console.log("Payment link created:", url);
+          }}
+        />
+      )}
     </Card>
   );
 }

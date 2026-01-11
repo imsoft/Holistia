@@ -541,6 +541,28 @@ export async function POST(request: NextRequest) {
           break; // Exit early for challenges
         }
 
+        // Handle quote service payments
+        if (payment_type === 'quote_service' && payment_id) {
+          // Update payment record
+          const { error: paymentUpdateError } = await supabase
+            .from('payments')
+            .update({
+              stripe_payment_intent_id: session.payment_intent as string,
+              status: 'succeeded',
+              paid_at: new Date().toISOString(),
+              payment_method: session.payment_method_types?.[0] || null,
+            })
+            .eq('id', payment_id);
+
+          if (paymentUpdateError) {
+            console.error('Error updating quote service payment:', paymentUpdateError);
+          } else {
+            console.log('✅ Quote service payment confirmed:', payment_id);
+            // Aquí podrías enviar notificaciones por email si es necesario
+          }
+          break; // Exit early for quote services
+        }
+
         // For other payment types, require payment_id
         if (!payment_id) {
           console.error('Missing payment_id in session metadata');

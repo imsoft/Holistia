@@ -181,7 +181,7 @@ export default function UserLayout({
   return (
     <div className="min-h-screen bg-background">
       {/* Navigation */}
-      <nav className="border-b border-sidebar-border bg-sidebar">
+      <nav className="sticky top-0 z-50 border-b border-sidebar-border bg-sidebar">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 justify-between">
             <div className="flex">

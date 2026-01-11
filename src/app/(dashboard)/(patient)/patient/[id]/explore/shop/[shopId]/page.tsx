@@ -101,6 +101,14 @@ export default function ShopDetailPage() {
         if (shopError) {
           console.error("Error fetching shop:", shopError);
         } else {
+          // Convertir image_url a URL pública si es una ruta de storage
+          if (shopData.image_url && !shopData.image_url.startsWith('http') && !shopData.image_url.startsWith('/')) {
+            const { data: urlData } = supabase.storage
+              .from('shops')
+              .getPublicUrl(shopData.image_url);
+            shopData.image_url = urlData.publicUrl;
+          }
+
           // Parsear gallery si viene como string JSON
           if (shopData.gallery && typeof shopData.gallery === 'string') {
             try {
@@ -115,7 +123,19 @@ export default function ShopDetailPage() {
           if (!Array.isArray(shopData.gallery)) {
             shopData.gallery = [];
           }
-          
+
+          // Convertir URLs de gallery a URLs públicas si son rutas de storage
+          if (Array.isArray(shopData.gallery)) {
+            shopData.gallery = shopData.gallery.map((imgUrl: string) => {
+              if (imgUrl && !imgUrl.startsWith('http') && !imgUrl.startsWith('/')) {
+                const { data: urlData } = supabase.storage
+                  .from('shops')
+                  .getPublicUrl(imgUrl);
+                return urlData.publicUrl;
+              }
+              return imgUrl;
+            });
+          }
           
           setShop(shopData);
         }
@@ -140,9 +160,23 @@ export default function ShopDetailPage() {
                 .eq("product_id", product.id)
                 .order("image_order", { ascending: true });
 
+              // Convertir URLs de imágenes a URLs públicas si son rutas de storage
+              const processedImages = (images || []).map((img: any) => {
+                if (img.image_url && !img.image_url.startsWith('http') && !img.image_url.startsWith('/')) {
+                  const { data: urlData } = supabase.storage
+                    .from('shops')
+                    .getPublicUrl(img.image_url);
+                  return {
+                    ...img,
+                    image_url: urlData.publicUrl,
+                  };
+                }
+                return img;
+              });
+
               return {
                 ...product,
-                images: images || [],
+                images: processedImages,
               };
             })
           );

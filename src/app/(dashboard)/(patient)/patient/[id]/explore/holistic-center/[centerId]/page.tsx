@@ -112,6 +112,14 @@ export default function HolisticCenterDetailPage() {
             setCenter(null);
           }
         } else {
+          // Convertir image_url a URL pública si es una ruta de storage
+          if (centerData.image_url && !centerData.image_url.startsWith('http') && !centerData.image_url.startsWith('/')) {
+            const { data: urlData } = supabase.storage
+              .from('holistic-centers')
+              .getPublicUrl(centerData.image_url);
+            centerData.image_url = urlData.publicUrl;
+          }
+          
           setCenter(centerData);
         }
       } catch (error) {

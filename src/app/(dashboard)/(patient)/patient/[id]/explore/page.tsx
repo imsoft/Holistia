@@ -250,13 +250,14 @@ const HomeUserPage = () => {
           productsResult,
           holisticCentersResult
         ] = await Promise.allSettled([
-          // Profesionales
+          // Profesionales - Remover filtro de registration_fee para mostrar todos los aprobados
           supabase
             .from("professional_applications")
             .select("*")
             .eq("status", "approved")
             .eq("is_active", true)
-            .order("created_at", { ascending: false }),
+            .order("created_at", { ascending: false })
+            .limit(50), // Limitar para mejor rendimiento
           // Eventos
           supabase
             .from("events_workshops")
@@ -323,8 +324,8 @@ const HomeUserPage = () => {
           
           if (professionalsData && professionalsData.length > 0) {
             console.log("✅ [Explore] Processing", professionalsData.length, "professionals");
-          const professionalsWithServices = await Promise.all(
-            professionalsResult.value.data.map(async (prof) => {
+            const professionalsWithServices = await Promise.all(
+              professionalsData.map(async (prof) => {
               const [servicesResult, reviewStatsResult, adminRatingResult, appointmentsResult] = await Promise.allSettled([
                 supabase.from("professional_services").select("*").eq("professional_id", prof.id).eq("isactive", true),
                 supabase.from("professional_review_stats").select("average_rating, total_reviews").eq("professional_id", prof.user_id),
@@ -356,21 +357,9 @@ const HomeUserPage = () => {
             })
           );
 
-          const currentDate = new Date();
-          const professionalsWithMembership = professionalsWithServices.filter(prof =>
-            prof.registration_fee_paid === true &&
-            prof.registration_fee_expires_at &&
-            new Date(prof.registration_fee_expires_at) > currentDate
-          );
-          const professionalsWithoutMembership = professionalsWithServices.filter(prof =>
-            !prof.registration_fee_paid ||
-            !prof.registration_fee_expires_at ||
-            new Date(prof.registration_fee_expires_at) <= currentDate
-          );
-
-          const sortedWithMembership = sortProfessionalsByRanking(professionalsWithMembership);
-          const sortedWithoutMembership = sortProfessionalsByRanking(professionalsWithoutMembership);
-          const sortedProfessionals = [...sortedWithMembership, ...sortedWithoutMembership];
+            // Mostrar todos los profesionales sin filtrar por membresía
+            // Solo ordenar por ranking
+            const sortedProfessionals = sortProfessionalsByRanking(professionalsWithServices);
 
             setProfessionals(sortedProfessionals);
             setFilteredProfessionals(sortedProfessionals);
@@ -853,14 +842,14 @@ const HomeUserPage = () => {
             </>
           )}
 
-          {/* Mostrar mensaje cuando no hay datos y no está cargando */}
+          {/* Mostrar mensaje cuando no hay datos y no está cargando - Solo si realmente no hay datos */}
           {!loading && 
-           digitalProducts.length === 0 && 
-           events.length === 0 && 
-           professionals.length === 0 && 
-           restaurants.length === 0 && 
-           shops.length === 0 && 
-           holisticCenters.length === 0 && (
+           filteredDigitalProducts.length === 0 && 
+           filteredEvents.length === 0 && 
+           filteredProfessionals.length === 0 && 
+           filteredRestaurants.length === 0 && 
+           filteredShops.length === 0 && 
+           filteredHolisticCenters.length === 0 && (
             <div className="text-center py-16">
               <Brain className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-xl font-semibold text-foreground mb-2">
@@ -870,6 +859,9 @@ const HomeUserPage = () => {
                 Por el momento no hay profesionales, eventos, programas, restaurantes, comercios o centros holísticos disponibles. 
                 Vuelve más tarde para descubrir nuevo contenido.
               </p>
+              <div className="mt-4 text-xs text-muted-foreground">
+                Debug: professionals={professionals.length}, events={events.length}, products={digitalProducts.length}, restaurants={restaurants.length}, shops={shops.length}, centers={holisticCenters.length}
+              </div>
             </div>
           )}
 

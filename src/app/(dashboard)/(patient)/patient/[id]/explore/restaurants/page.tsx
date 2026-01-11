@@ -427,8 +427,8 @@ export default function RestaurantsPage() {
                 key={restaurant.id}
                 href={`/patient/${userId}/explore/restaurant/${restaurant.id}`}
               >
-                <Card className="group hover:shadow-lg hover:-translate-y-2 transition-all duration-300 overflow-hidden cursor-pointer h-full flex flex-col">
-                  <div className="relative w-full h-48">
+                <Card className="group hover:shadow-lg hover:-translate-y-2 transition-all duration-300 overflow-hidden cursor-pointer h-[480px] flex flex-col">
+                  <div className="relative w-full h-48 shrink-0">
                     {restaurant.image_url ? (
                       <Image
                         src={restaurant.image_url}

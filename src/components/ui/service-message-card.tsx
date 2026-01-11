@@ -121,9 +121,10 @@ export function ServiceMessageCard({
       </CardHeader>
       <CardContent className="space-y-3 py-4">
         {service.description && (
-          <p className="text-sm text-muted-foreground line-clamp-2">
-            {service.description}
-          </p>
+          <div 
+            className="text-sm text-muted-foreground line-clamp-2 prose prose-sm max-w-none"
+            dangerouslySetInnerHTML={{ __html: service.description }}
+          />
         )}
         <div className="flex flex-wrap gap-2 text-xs">
           <Badge variant="secondary" className="flex items-center gap-1">

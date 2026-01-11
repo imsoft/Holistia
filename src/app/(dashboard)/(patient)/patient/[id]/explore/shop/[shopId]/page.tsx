@@ -107,6 +107,9 @@ export default function ShopDetailPage() {
               .from('shops')
               .getPublicUrl(shopData.image_url);
             shopData.image_url = urlData.publicUrl;
+            console.log('🖼️ [Shop] Converted image_url:', shopData.image_url);
+          } else if (shopData.image_url) {
+            console.log('🖼️ [Shop] Using existing image_url:', shopData.image_url);
           }
 
           // Parsear gallery si viene como string JSON

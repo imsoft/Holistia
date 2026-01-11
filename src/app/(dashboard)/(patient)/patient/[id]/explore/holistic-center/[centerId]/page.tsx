@@ -118,6 +118,9 @@ export default function HolisticCenterDetailPage() {
               .from('holistic-centers')
               .getPublicUrl(centerData.image_url);
             centerData.image_url = urlData.publicUrl;
+            console.log('🖼️ [HolisticCenter] Converted image_url:', centerData.image_url);
+          } else if (centerData.image_url) {
+            console.log('🖼️ [HolisticCenter] Using existing image_url:', centerData.image_url);
           }
           
           setCenter(centerData);

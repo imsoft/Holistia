@@ -38,6 +38,13 @@ export function StableImage({
     setImageSrc(src);
     setIsLoading(true);
     setHasError(false);
+    
+    // Timeout de seguridad: si la imagen no carga en 5 segundos, mostrarla de todos modos
+    const timeout = setTimeout(() => {
+      setIsLoading(false);
+    }, 5000);
+    
+    return () => clearTimeout(timeout);
   }, [src]);
 
   const handleImageError = () => {
@@ -108,8 +115,8 @@ export function StableImage({
 
   return (
     <div className={containerClass}>
-      {isLoading && (
-        <div className="absolute inset-0 bg-linear-to-br from-gray-50 to-gray-100 animate-pulse flex items-center justify-center z-10">
+      {isLoading && !hasError && (
+        <div className="absolute inset-0 bg-linear-to-br from-gray-50 to-gray-100 animate-pulse flex items-center justify-center z-10 pointer-events-none">
           <div className="w-8 h-8 border-2 border-gray-300 border-t-primary rounded-full animate-spin"></div>
         </div>
       )}
@@ -118,16 +125,16 @@ export function StableImage({
         src={imageSrc}
         alt={alt}
         {...imageProps}
-        className={fill ? "object-cover" : className}
+        className={fill ? `${className} object-cover` : className}
         style={fill ? {
           objectFit,
           objectPosition,
-          opacity: isLoading ? 0 : 1,
+          opacity: isLoading && !hasError ? 0 : 1,
           transition: 'opacity 200ms'
         } : {
           objectFit,
           objectPosition,
-          opacity: isLoading ? 0 : 1,
+          opacity: isLoading && !hasError ? 0 : 1,
           transition: 'opacity 200ms'
         }}
         onError={handleImageError}

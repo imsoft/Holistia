@@ -188,16 +188,22 @@ export async function POST(
     // Determinar el tipo de remitente
     const senderType = conversation.user_id === user.id ? 'user' : 'professional';
 
-    // Crear el mensaje
+    // Crear el mensaje (metadata puede no existir en la base de datos si la migración no se ha ejecutado)
+    const messageData: any = {
+      conversation_id: conversationId,
+      sender_id: user.id,
+      sender_type: senderType,
+      content: content.trim(),
+    };
+    
+    // Solo agregar metadata si existe y tiene contenido
+    if (metadata && Object.keys(metadata).length > 0) {
+      messageData.metadata = metadata;
+    }
+
     const { data: message, error: messageError } = await supabase
       .from('direct_messages')
-      .insert({
-        conversation_id: conversationId,
-        sender_id: user.id,
-        sender_type: senderType,
-        content: content.trim(),
-        metadata: metadata || {},
-      })
+      .insert(messageData)
       .select('*')
       .single();
 

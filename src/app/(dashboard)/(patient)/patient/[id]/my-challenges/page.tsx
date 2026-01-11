@@ -32,6 +32,7 @@ import {
 } from "@/components/ui/dialog";
 import { VerifiedBadge } from "@/components/ui/verified-badge";
 import { DeleteConfirmation } from "@/components/ui/confirmation-dialog";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface ChallengePurchase {
   id: string;
@@ -668,8 +669,51 @@ export default function MyChallengesPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="container mx-auto px-4 py-8 max-w-7xl">
+        <div className="mb-8 flex items-center justify-between">
+          <div>
+            <Skeleton className="h-10 w-48 mb-2" />
+            <Skeleton className="h-4 w-64" />
+          </div>
+          <Skeleton className="h-10 w-40" />
+        </div>
+
+        <div className="mb-6">
+          <Skeleton className="h-10 w-full" />
+        </div>
+
+        <div className="mb-6 grid grid-cols-1 md:grid-cols-4 gap-4">
+          <Skeleton className="h-10 w-full" />
+          <Skeleton className="h-10 w-full" />
+          <Skeleton className="h-10 w-full" />
+          <Skeleton className="h-10 w-full" />
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <Card key={i} className="overflow-hidden gap-0 min-h-[400px] flex flex-col">
+              <Skeleton className="h-40 w-full" />
+              <CardHeader className="pb-3">
+                <Skeleton className="h-6 w-3/4 mb-2" />
+                <Skeleton className="h-4 w-1/2" />
+              </CardHeader>
+              <CardContent className="flex-1 pb-4">
+                <div className="flex items-center gap-2 mb-4">
+                  <Skeleton className="h-5 w-20" />
+                  <Skeleton className="h-5 w-24" />
+                </div>
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-5/6" />
+                  <Skeleton className="h-4 w-4/6" />
+                </div>
+              </CardContent>
+              <div className="px-6 pb-6">
+                <Skeleton className="h-10 w-full" />
+              </div>
+            </Card>
+          ))}
+        </div>
       </div>
     );
   }
@@ -740,11 +784,7 @@ export default function MyChallengesPage() {
       </div>
 
       {/* Lista de retos */}
-      {loading ? (
-        <div className="flex items-center justify-center py-12">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        </div>
-      ) : filteredChallenges.length === 0 ? (
+      {filteredChallenges.length === 0 ? (
         <Card className="py-4">
           <CardContent className="flex flex-col items-center justify-center py-12">
             <Target className="h-16 w-16 text-muted-foreground mb-4" />

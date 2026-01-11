@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import { createClient } from "@/utils/supabase/client";
 
 interface Professional {
@@ -330,10 +331,44 @@ export default function AppointmentsPage() {
         </div>
 
         {loading ? (
-          <div className="flex items-center justify-center py-12">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-              <p className="mt-2 text-sm text-muted-foreground">Cargando citas...</p>
+          <div className="space-y-8">
+            <div>
+              <Skeleton className="h-8 w-48 mb-4" />
+              <div className="grid gap-4 sm:gap-6">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="p-4 sm:p-6 bg-card rounded-xl border border-border">
+                    <div className="flex flex-col lg:flex-row gap-4 sm:gap-6">
+                      <div className="flex items-center gap-3 sm:gap-4">
+                        <Skeleton className="h-16 w-16 sm:h-20 sm:w-20 rounded-full" />
+                        <div className="space-y-2">
+                          <Skeleton className="h-5 w-32" />
+                          <Skeleton className="h-4 w-24" />
+                        </div>
+                      </div>
+                      <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                        <div className="space-y-2">
+                          <Skeleton className="h-4 w-24" />
+                          <Skeleton className="h-3 w-32" />
+                        </div>
+                        <div className="space-y-2">
+                          <Skeleton className="h-4 w-20" />
+                          <Skeleton className="h-3 w-16" />
+                        </div>
+                        <div className="space-y-2">
+                          <Skeleton className="h-4 w-28" />
+                        </div>
+                        <div className="space-y-2">
+                          <Skeleton className="h-6 w-24" />
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <Skeleton className="h-9 w-24" />
+                        <Skeleton className="h-9 w-24" />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         ) : error ? (

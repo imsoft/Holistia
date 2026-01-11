@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { DirectMessageChat } from "@/components/ui/direct-message-chat";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface Conversation {
   id: string;
@@ -99,8 +100,45 @@ export default function MessagesPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="container mx-auto px-4 py-8 max-w-7xl">
+        <div className="mb-8">
+          <Skeleton className="h-10 w-48 mb-2" />
+          <Skeleton className="h-4 w-64" />
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[calc(100vh-200px)]">
+          {/* Lista de conversaciones skeleton */}
+          <div className="lg:col-span-1">
+            <Card className="h-full flex flex-col">
+              <CardContent className="p-0 flex flex-col h-full">
+                <div className="overflow-y-auto flex-1">
+                  {[1, 2, 3, 4, 5].map((i) => (
+                    <div key={i} className="p-4 border-b">
+                      <div className="flex items-center gap-3">
+                        <Skeleton className="h-12 w-12 rounded-full shrink-0" />
+                        <div className="flex-1 min-w-0 space-y-2">
+                          <Skeleton className="h-4 w-32" />
+                          <Skeleton className="h-3 w-24" />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Chat skeleton */}
+          <div className="lg:col-span-2">
+            <Card className="h-full flex items-center justify-center">
+              <CardContent className="text-center p-8">
+                <Skeleton className="h-16 w-16 rounded-full mx-auto mb-4" />
+                <Skeleton className="h-6 w-48 mx-auto mb-2" />
+                <Skeleton className="h-4 w-64 mx-auto" />
+              </CardContent>
+            </Card>
+          </div>
+        </div>
       </div>
     );
   }

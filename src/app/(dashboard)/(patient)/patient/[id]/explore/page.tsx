@@ -313,8 +313,16 @@ const HomeUserPage = () => {
 
         // Procesar profesionales
         console.log("🔍 [Explore] Processing professionals result:", professionalsResult.status);
-        if (professionalsResult.status === 'fulfilled' && professionalsResult.value.data) {
-          console.log("✅ [Explore] Professionals data:", professionalsResult.value.data.length, "professionals");
+        if (professionalsResult.status === 'fulfilled') {
+          const professionalsData = professionalsResult.value.data;
+          console.log("✅ [Explore] Professionals result:", {
+            hasData: !!professionalsData,
+            dataLength: professionalsData?.length || 0,
+            error: professionalsResult.value.error
+          });
+          
+          if (professionalsData && professionalsData.length > 0) {
+            console.log("✅ [Explore] Processing", professionalsData.length, "professionals");
           const professionalsWithServices = await Promise.all(
             professionalsResult.value.data.map(async (prof) => {
               const [servicesResult, reviewStatsResult, adminRatingResult, appointmentsResult] = await Promise.allSettled([
@@ -364,68 +372,139 @@ const HomeUserPage = () => {
           const sortedWithoutMembership = sortProfessionalsByRanking(professionalsWithoutMembership);
           const sortedProfessionals = [...sortedWithMembership, ...sortedWithoutMembership];
 
-          setProfessionals(sortedProfessionals);
-          setFilteredProfessionals(sortedProfessionals);
-          console.log("✅ [Explore] Set professionals:", sortedProfessionals.length);
+            setProfessionals(sortedProfessionals);
+            setFilteredProfessionals(sortedProfessionals);
+            console.log("✅ [Explore] Set professionals:", sortedProfessionals.length);
+          } else {
+            console.log("⚠️ [Explore] No professionals data or empty array");
+            setProfessionals([]);
+            setFilteredProfessionals([]);
+          }
         } else if (professionalsResult.status === 'rejected') {
-          console.error("Error fetching professionals:", professionalsResult.reason);
+          console.error("❌ [Explore] Error fetching professionals:", professionalsResult.reason);
+          setProfessionals([]);
+          setFilteredProfessionals([]);
+        } else {
+          console.log("⚠️ [Explore] Professionals result not fulfilled");
+          setProfessionals([]);
+          setFilteredProfessionals([]);
         }
 
         // Procesar eventos
         console.log("🔍 [Explore] Processing events result:", eventsResult.status);
-        if (eventsResult.status === 'fulfilled' && eventsResult.value.data) {
-          console.log("✅ [Explore] Events data:", eventsResult.value.data.length, "events");
-          setEvents(eventsResult.value.data);
-          setFilteredEvents(eventsResult.value.data);
+        if (eventsResult.status === 'fulfilled') {
+          const eventsData = eventsResult.value.data;
+          if (eventsData && eventsData.length > 0) {
+            console.log("✅ [Explore] Events data:", eventsData.length, "events");
+            setEvents(eventsData);
+            setFilteredEvents(eventsData);
+          } else {
+            console.log("⚠️ [Explore] No events data or empty array");
+            setEvents([]);
+            setFilteredEvents([]);
+          }
         } else if (eventsResult.status === 'rejected') {
-          console.error("Error fetching events:", eventsResult.reason);
+          console.error("❌ [Explore] Error fetching events:", eventsResult.reason);
+          setEvents([]);
+          setFilteredEvents([]);
+        } else {
+          setEvents([]);
+          setFilteredEvents([]);
         }
 
         // Procesar restaurantes
         console.log("🔍 [Explore] Processing restaurants result:", restaurantsResult.status);
-        if (restaurantsResult.status === 'fulfilled' && restaurantsResult.value.data) {
-          console.log("✅ [Explore] Restaurants data:", restaurantsResult.value.data.length, "restaurants");
-          setRestaurants(restaurantsResult.value.data);
-          setFilteredRestaurants(restaurantsResult.value.data);
+        if (restaurantsResult.status === 'fulfilled') {
+          const restaurantsData = restaurantsResult.value.data;
+          if (restaurantsData && restaurantsData.length > 0) {
+            console.log("✅ [Explore] Restaurants data:", restaurantsData.length, "restaurants");
+            setRestaurants(restaurantsData);
+            setFilteredRestaurants(restaurantsData);
+          } else {
+            console.log("⚠️ [Explore] No restaurants data or empty array");
+            setRestaurants([]);
+            setFilteredRestaurants([]);
+          }
         } else if (restaurantsResult.status === 'rejected') {
-          console.error("Error fetching restaurants:", restaurantsResult.reason);
+          console.error("❌ [Explore] Error fetching restaurants:", restaurantsResult.reason);
+          setRestaurants([]);
+          setFilteredRestaurants([]);
+        } else {
+          setRestaurants([]);
+          setFilteredRestaurants([]);
         }
 
         // Procesar comercios
         console.log("🔍 [Explore] Processing shops result:", shopsResult.status);
-        if (shopsResult.status === 'fulfilled' && shopsResult.value.data) {
-          console.log("✅ [Explore] Shops data:", shopsResult.value.data.length, "shops");
-          setShops(shopsResult.value.data);
-          setFilteredShops(shopsResult.value.data);
+        if (shopsResult.status === 'fulfilled') {
+          const shopsData = shopsResult.value.data;
+          if (shopsData && shopsData.length > 0) {
+            console.log("✅ [Explore] Shops data:", shopsData.length, "shops");
+            setShops(shopsData);
+            setFilteredShops(shopsData);
+          } else {
+            console.log("⚠️ [Explore] No shops data or empty array");
+            setShops([]);
+            setFilteredShops([]);
+          }
         } else if (shopsResult.status === 'rejected') {
-          console.error("Error fetching shops:", shopsResult.reason);
+          console.error("❌ [Explore] Error fetching shops:", shopsResult.reason);
+          setShops([]);
+          setFilteredShops([]);
+        } else {
+          setShops([]);
+          setFilteredShops([]);
         }
 
         // Procesar programas
         console.log("🔍 [Explore] Processing products result:", productsResult.status);
-        if (productsResult.status === 'fulfilled' && productsResult.value.data) {
-          console.log("✅ [Explore] Products data:", productsResult.value.data.length, "products");
-          const transformedProducts = productsResult.value.data.map((product: any) => ({
-            ...product,
-            professional_applications: Array.isArray(product.professional_applications) && product.professional_applications.length > 0
-              ? product.professional_applications[0]
-              : undefined,
-          }));
+        if (productsResult.status === 'fulfilled') {
+          const productsData = productsResult.value.data;
+          if (productsData && productsData.length > 0) {
+            console.log("✅ [Explore] Products data:", productsData.length, "products");
+            const transformedProducts = productsData.map((product: any) => ({
+              ...product,
+              professional_applications: Array.isArray(product.professional_applications) && product.professional_applications.length > 0
+                ? product.professional_applications[0]
+                : undefined,
+            }));
 
-          setDigitalProducts(transformedProducts);
-          setFilteredDigitalProducts(transformedProducts);
+            setDigitalProducts(transformedProducts);
+            setFilteredDigitalProducts(transformedProducts);
+          } else {
+            console.log("⚠️ [Explore] No products data or empty array");
+            setDigitalProducts([]);
+            setFilteredDigitalProducts([]);
+          }
         } else if (productsResult.status === 'rejected') {
-          console.error("Error fetching digital products:", productsResult.reason);
+          console.error("❌ [Explore] Error fetching digital products:", productsResult.reason);
+          setDigitalProducts([]);
+          setFilteredDigitalProducts([]);
+        } else {
+          setDigitalProducts([]);
+          setFilteredDigitalProducts([]);
         }
 
         // Procesar centros holísticos
         console.log("🔍 [Explore] Processing holistic centers result:", holisticCentersResult.status);
-        if (holisticCentersResult.status === 'fulfilled' && holisticCentersResult.value.data) {
-          console.log("✅ [Explore] Holistic centers data:", holisticCentersResult.value.data.length, "centers");
-          setHolisticCenters(holisticCentersResult.value.data);
-          setFilteredHolisticCenters(holisticCentersResult.value.data);
+        if (holisticCentersResult.status === 'fulfilled') {
+          const centersData = holisticCentersResult.value.data;
+          if (centersData && centersData.length > 0) {
+            console.log("✅ [Explore] Holistic centers data:", centersData.length, "centers");
+            setHolisticCenters(centersData);
+            setFilteredHolisticCenters(centersData);
+          } else {
+            console.log("⚠️ [Explore] No holistic centers data or empty array");
+            setHolisticCenters([]);
+            setFilteredHolisticCenters([]);
+          }
         } else if (holisticCentersResult.status === 'rejected') {
-          console.error("Error fetching holistic centers:", holisticCentersResult.reason);
+          console.error("❌ [Explore] Error fetching holistic centers:", holisticCentersResult.reason);
+          setHolisticCenters([]);
+          setFilteredHolisticCenters([]);
+        } else {
+          setHolisticCenters([]);
+          setFilteredHolisticCenters([]);
         }
       } catch (error) {
         console.error("❌ [Explore] Error fetching data:", error);
@@ -435,14 +514,8 @@ const HomeUserPage = () => {
         }
       } finally {
         setLoading(false);
-        console.log("✅ [Explore] Data loading completed", {
-          professionals: professionals.length,
-          events: events.length,
-          restaurants: restaurants.length,
-          shops: shops.length,
-          digitalProducts: digitalProducts.length,
-          holisticCenters: holisticCenters.length,
-        });
+        // Los estados aún no se han actualizado aquí porque setState es asíncrono
+        // Los logs reales están en cada sección donde se setean los datos
       }
     };
 
@@ -782,12 +855,12 @@ const HomeUserPage = () => {
 
           {/* Mostrar mensaje cuando no hay datos y no está cargando */}
           {!loading && 
-           filteredDigitalProducts.length === 0 && 
-           filteredEvents.length === 0 && 
-           filteredProfessionals.length === 0 && 
-           filteredRestaurants.length === 0 && 
-           filteredShops.length === 0 && 
-           filteredHolisticCenters.length === 0 && (
+           digitalProducts.length === 0 && 
+           events.length === 0 && 
+           professionals.length === 0 && 
+           restaurants.length === 0 && 
+           shops.length === 0 && 
+           holisticCenters.length === 0 && (
             <div className="text-center py-16">
               <Brain className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-xl font-semibold text-foreground mb-2">

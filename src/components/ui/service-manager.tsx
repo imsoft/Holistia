@@ -90,6 +90,25 @@ export function ServiceManager({ professionalId, userId, adminId, isAdminContext
     fetchServices();
   }, [fetchServices]);
 
+  // Recargar servicios cuando se crea/edita un servicio o cuando se vuelve a la página
+  useEffect(() => {
+    const handleServiceCreated = () => {
+      fetchServices();
+    };
+
+    const handleFocus = () => {
+      fetchServices();
+    };
+
+    window.addEventListener('service-created', handleServiceCreated);
+    window.addEventListener('focus', handleFocus);
+    
+    return () => {
+      window.removeEventListener('service-created', handleServiceCreated);
+      window.removeEventListener('focus', handleFocus);
+    };
+  }, [fetchServices]);
+
   const handleEdit = (service: Service) => {
     router.push(getServicePath('edit', service.id));
   };

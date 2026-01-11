@@ -405,13 +405,24 @@ export function ServiceForm({
         toast.success("Servicio actualizado exitosamente");
       } else {
         // Crear nuevo servicio
+        console.log("🔍 [ServiceForm] Creando servicio con datos:", {
+          professional_id: professionalId,
+          user_id: userId,
+          serviceData
+        });
+
         const { data: newService, error: insertError } = await supabase
           .from("professional_services")
           .insert(serviceData)
           .select()
           .single();
 
-        if (insertError) throw insertError;
+        if (insertError) {
+          console.error("❌ [ServiceForm] Error al crear servicio:", insertError);
+          throw insertError;
+        }
+
+        console.log("✅ [ServiceForm] Servicio creado exitosamente:", newService);
 
         if (imageFile && newService) {
           const imageUrl = await uploadServiceImage(newService.id);
@@ -426,7 +437,11 @@ export function ServiceForm({
         toast.success("Servicio creado exitosamente");
       }
 
+      // Disparar evento para que ServiceManager recargue los servicios
+      window.dispatchEvent(new CustomEvent('service-created'));
+      
       router.push(redirectPath);
+      router.refresh();
     } catch (error) {
       console.error("Error saving service:", error);
       toast.error("Error al guardar el servicio");

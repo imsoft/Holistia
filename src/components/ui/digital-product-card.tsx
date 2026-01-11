@@ -77,8 +77,8 @@ export function DigitalProductCard({
   };
 
   return (
-    <Card className="hover:shadow-lg hover:-translate-y-2 transition-all duration-300 overflow-hidden group cursor-pointer h-full flex flex-col" onClick={handleClick}>
-        <div className="relative h-64 bg-gradient-to-br from-primary/10 to-primary/5 overflow-hidden">
+    <Card className="hover:shadow-lg hover:-translate-y-2 transition-all duration-300 overflow-hidden group cursor-pointer h-[480px] flex flex-col" onClick={handleClick}>
+        <div className="relative h-64 bg-gradient-to-br from-primary/10 to-primary/5 overflow-hidden shrink-0">
           <div className="absolute inset-0 overflow-hidden">
             {product.cover_image_url ? (
               <Image
@@ -86,6 +86,11 @@ export function DigitalProductCard({
                 alt={product.title}
                 fill
                 className="object-cover group-hover:scale-105 transition-transform duration-300"
+                unoptimized={product.cover_image_url.includes('supabase.co') || product.cover_image_url.includes('supabase.in')}
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.src = "/logos/holistia-black.png";
+                }}
               />
             ) : (
               <div className="flex items-center justify-center h-full">
@@ -123,7 +128,7 @@ export function DigitalProductCard({
           </CardTitle>
         </CardHeader>
 
-        <CardContent className="px-6 pb-6 space-y-4 flex-1 flex flex-col">
+        <CardContent className="px-6 pb-6 space-y-4 flex-1 flex flex-col min-h-0">
           <p className="text-sm text-muted-foreground line-clamp-2">
             {product.description}
           </p>

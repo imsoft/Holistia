@@ -117,8 +117,8 @@ export const ProfessionalCard = ({ professional, userId, showFavoriteButton = tr
 
   return (
     <Link href={professionalRoute}>
-      <Card className="group overflow-hidden hover:shadow-xl hover:-translate-y-2 transition-all duration-300 border-border cursor-pointer h-full flex flex-col">
-      <div className="relative w-full h-64 overflow-hidden bg-gray-100">
+      <Card className="group overflow-hidden hover:shadow-xl hover:-translate-y-2 transition-all duration-300 border-border cursor-pointer h-[480px] flex flex-col">
+      <div className="relative w-full h-64 overflow-hidden bg-gray-100 shrink-0">
         <div className="absolute inset-0 overflow-hidden">
           <Image
             src={professional.profile_photo || professional.profilePhoto || professional.avatar || "/logos/holistia-black.png"}
@@ -127,6 +127,10 @@ export const ProfessionalCard = ({ professional, userId, showFavoriteButton = tr
             className="object-cover"
             style={{ objectPosition: professional.imagePosition || "center 20%" }}
             unoptimized
+            onError={(e) => {
+              const target = e.target as HTMLImageElement;
+              target.src = "/logos/holistia-black.png";
+            }}
           />
         </div>
         {/* Favorite button */}
@@ -144,7 +148,7 @@ export const ProfessionalCard = ({ professional, userId, showFavoriteButton = tr
         )}
       </div>
 
-      <CardContent className="px-4 pt-3 pb-4 flex flex-col grow">
+      <CardContent className="px-4 pt-3 pb-4 flex flex-col grow min-h-0">
         <div className="space-y-2 flex flex-col grow">
           {/* Header - Especialidad arriba, Nombre y Rating en la misma línea */}
           <div>

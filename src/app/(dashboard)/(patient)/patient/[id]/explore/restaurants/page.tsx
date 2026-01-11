@@ -179,16 +179,16 @@ export default function RestaurantsPage() {
 
   // Componente de skeleton
   const RestaurantCardSkeleton = () => (
-    <Card className="h-full flex flex-col">
+    <Card className="h-[480px] flex flex-col">
       <Skeleton className="w-full h-64 shrink-0 rounded-t-lg" />
-      <CardHeader className="pb-1.5 px-4 pt-3">
+      <CardHeader className="pb-1.5 px-4 pt-3 shrink-0">
         <Skeleton className="h-6 w-3/4 mb-2" />
         <div className="flex gap-1.5 mt-1">
           <Skeleton className="h-5 w-16" />
           <Skeleton className="h-5 w-12" />
         </div>
       </CardHeader>
-      <CardContent className="px-4 pt-0 pb-3 flex flex-col grow">
+      <CardContent className="px-4 pt-0 pb-3 flex flex-col grow min-h-0">
         <Skeleton className="h-4 w-full mb-2" />
         <Skeleton className="h-4 w-5/6 mb-4" />
         <Skeleton className="h-9 w-full mt-auto" />
@@ -447,7 +447,7 @@ export default function RestaurantsPage() {
                       </div>
                     )}
                   </div>
-                  <CardHeader>
+                  <CardHeader className="shrink-0">
                     <CardTitle className="line-clamp-2 group-hover:text-primary transition-colors">{restaurant.name}</CardTitle>
                     <div className="flex gap-2 mt-2">
                       {restaurant.cuisine_type && (
@@ -458,7 +458,7 @@ export default function RestaurantsPage() {
                       )}
                     </div>
                   </CardHeader>
-                  <CardContent className="flex-1 pb-6">
+                  <CardContent className="flex-1 pb-6 min-h-0">
                     {restaurant.description && (
                       <div 
                         className="text-sm text-muted-foreground line-clamp-3 prose prose-sm max-w-none"

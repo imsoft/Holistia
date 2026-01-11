@@ -264,16 +264,16 @@ export default function EventsPage() {
             {loading ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {Array.from({ length: 6 }).map((_, i) => (
-                  <Card key={`event-skeleton-${i}`} className="h-full flex flex-col">
+                  <Card key={`event-skeleton-${i}`} className="h-[480px] flex flex-col">
                     <Skeleton className="w-full h-64 shrink-0 rounded-t-lg" />
-                    <CardHeader className="pb-1.5 px-4 pt-3">
+                    <CardHeader className="pb-1.5 px-4 pt-3 shrink-0">
                       <Skeleton className="h-6 w-3/4 mb-2" />
                       <div className="flex gap-1.5 mt-1">
                         <Skeleton className="h-5 w-16" />
                         <Skeleton className="h-5 w-12" />
                       </div>
                     </CardHeader>
-                    <CardContent className="px-4 pt-0 pb-3 flex flex-col grow">
+                    <CardContent className="px-4 pt-0 pb-3 flex flex-col grow min-h-0">
                       <Skeleton className="h-4 w-full mb-2" />
                       <Skeleton className="h-4 w-5/6 mb-4" />
                       <Skeleton className="h-9 w-full mt-auto" />
@@ -303,8 +303,8 @@ export default function EventsPage() {
                     key={event.id}
                     href={`/patient/${userId}/explore/event/${generateEventSlug(event.name, event.id!)}`}
                   >
-                      <Card className="group hover:shadow-lg hover:-translate-y-2 transition-all duration-300 overflow-hidden cursor-pointer h-full flex flex-col">
-                        <div className="relative w-full h-48">
+                      <Card className="group hover:shadow-lg hover:-translate-y-2 transition-all duration-300 overflow-hidden cursor-pointer h-[480px] flex flex-col">
+                        <div className="relative w-full h-48 shrink-0">
                           <div className="absolute inset-0 overflow-hidden">
                             <Image
                               src={(event.gallery_images && event.gallery_images.length > 0 && event.gallery_images[0]) || event.image_url || ""}
@@ -332,7 +332,7 @@ export default function EventsPage() {
                             />
                           </div>
                         </div>
-                        <CardHeader className="pb-3">
+                        <CardHeader className="pb-3 shrink-0">
                           <CardTitle className="text-lg mb-1.5 group-hover:text-primary transition-colors">{event.name}</CardTitle>
                           <div className="flex flex-wrap gap-2 mb-2">
                             <Badge variant="secondary">
@@ -343,7 +343,7 @@ export default function EventsPage() {
                             </Badge>
                           </div>
                         </CardHeader>
-                        <CardContent className="space-y-2 flex-1 pb-4">
+                        <CardContent className="space-y-2 flex-1 pb-4 min-h-0">
                           <div className="flex items-start gap-2 text-sm text-muted-foreground">
                             <Calendar className="w-4 h-4 mt-0.5 flex-shrink-0" />
                             <div className="flex-1">

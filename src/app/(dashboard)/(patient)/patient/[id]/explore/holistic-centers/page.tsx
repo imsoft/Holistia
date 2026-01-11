@@ -137,16 +137,16 @@ export default function HolisticCentersPage() {
 
   // Componente de skeleton
   const CenterCardSkeleton = () => (
-    <Card className="h-full flex flex-col">
+    <Card className="h-[480px] flex flex-col">
       <Skeleton className="w-full h-64 shrink-0 rounded-t-lg" />
-      <CardHeader className="pb-1.5 px-4 pt-3">
+      <CardHeader className="pb-1.5 px-4 pt-3 shrink-0">
         <Skeleton className="h-6 w-3/4 mb-2" />
         <div className="flex gap-1.5 mt-1">
           <Skeleton className="h-5 w-16" />
           <Skeleton className="h-5 w-12" />
         </div>
       </CardHeader>
-      <CardContent className="px-4 pt-0 pb-3 flex flex-col grow">
+      <CardContent className="px-4 pt-0 pb-3 flex flex-col grow min-h-0">
         <Skeleton className="h-4 w-full mb-2" />
         <Skeleton className="h-4 w-5/6 mb-4" />
         <Skeleton className="h-9 w-full mt-auto" />
@@ -269,15 +269,19 @@ export default function HolisticCentersPage() {
                     key={center.id}
                     href={`/patient/${userId}/explore/holistic-center/${center.id}`}
                   >
-                    <Card className="group hover:shadow-lg hover:-translate-y-2 transition-all duration-300 overflow-hidden cursor-pointer h-full flex flex-col">
-                      <div className="relative w-full h-48 bg-linear-to-br from-primary/20 to-primary/10">
+                    <Card className="group hover:shadow-lg hover:-translate-y-2 transition-all duration-300 overflow-hidden cursor-pointer h-[480px] flex flex-col">
+                      <div className="relative w-full h-48 bg-linear-to-br from-primary/20 to-primary/10 shrink-0">
                         {center.image_url && center.image_url.trim() !== "" ? (
                           <Image
                             src={center.image_url}
                             alt={center.name}
                             fill
                             className="object-cover"
-                            unoptimized
+                            unoptimized={center.image_url.includes('supabase.co') || center.image_url.includes('supabase.in')}
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement;
+                              target.src = "/logos/holistia-black.png";
+                            }}
                           />
                         ) : (
                           <div className="absolute inset-0 flex items-center justify-center">
@@ -295,7 +299,7 @@ export default function HolisticCentersPage() {
                           />
                         </div>
                       </div>
-                      <CardHeader>
+                      <CardHeader className="shrink-0">
                         <CardTitle className="line-clamp-2 group-hover:text-primary transition-colors">{center.name}</CardTitle>
                         {center.city && (
                           <div className="flex items-center gap-1 text-xs text-muted-foreground mt-2">
@@ -304,7 +308,7 @@ export default function HolisticCentersPage() {
                           </div>
                         )}
                       </CardHeader>
-                      <CardContent className="flex-1 pb-6">
+                      <CardContent className="flex-1 pb-6 min-h-0">
                         {center.description && (
                           <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
                             {center.description.replace(/<[^>]*>/g, '')}

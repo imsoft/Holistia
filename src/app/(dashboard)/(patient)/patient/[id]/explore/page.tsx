@@ -187,7 +187,7 @@ const HomeUserPage = () => {
   // Componentes de skeleton
   const ProfessionalCardSkeleton = () => (
     <div className="shrink-0 w-96">
-      <Card className="h-full flex flex-col">
+      <Card className="h-[480px] flex flex-col">
         <Skeleton className="w-full h-64 shrink-0 rounded-t-lg" />
         <CardContent className="px-4 pt-3 pb-4 flex flex-col grow">
           <Skeleton className="h-5 w-3/4 mb-2" />
@@ -206,9 +206,9 @@ const HomeUserPage = () => {
 
   const CardSkeleton = () => (
     <div className="shrink-0 w-96">
-      <Card className="h-full flex flex-col">
+      <Card className="h-[480px] flex flex-col">
         <Skeleton className="w-full h-64 shrink-0 rounded-t-lg" />
-        <CardHeader className="pb-1.5 px-4 pt-3">
+        <CardHeader className="pb-1.5 px-4 pt-3 shrink-0">
           <Skeleton className="h-6 w-3/4 mb-2" />
           <div className="flex gap-1.5 mt-1">
             <Skeleton className="h-5 w-16" />
@@ -241,48 +241,92 @@ const HomeUserPage = () => {
       try {
         setLoading(true);
 
-        // Obtener profesionales - Todos los aprobados y activos
-        const { data: professionalsData, error: professionalsError } = await supabase
-          .from("professional_applications")
-          .select("*")
-          .eq("status", "approved")
-          .eq("is_active", true)
-          .order("created_at", { ascending: false });
+        // Cargar todos los datos en paralelo para mejorar el rendimiento
+        const [
+          professionalsResult,
+          eventsResult,
+          restaurantsResult,
+          shopsResult,
+          productsResult,
+          holisticCentersResult
+        ] = await Promise.allSettled([
+          // Profesionales
+          supabase
+            .from("professional_applications")
+            .select("*")
+            .eq("status", "approved")
+            .eq("is_active", true)
+            .order("created_at", { ascending: false }),
+          // Eventos
+          supabase
+            .from("events_workshops")
+            .select(`
+              *,
+              professional_applications(
+                first_name,
+                last_name,
+                profession
+              )
+            `)
+            .eq("is_active", true)
+            .gte("event_date", new Date().toISOString().split('T')[0])
+            .order("event_date", { ascending: true })
+            .limit(20),
+          // Restaurantes
+          supabase
+            .from("restaurants")
+            .select("*")
+            .eq("is_active", true)
+            .order("created_at", { ascending: false })
+            .limit(10),
+          // Comercios
+          supabase
+            .from("shops")
+            .select("*")
+            .eq("is_active", true)
+            .order("created_at", { ascending: false })
+            .limit(10),
+          // Programas
+          supabase
+            .from("digital_products")
+            .select(`
+              *,
+              professional_applications!digital_products_professional_id_fkey(
+                first_name,
+                last_name,
+                profile_photo,
+                is_verified,
+                wellness_areas
+              )
+            `)
+            .eq("is_active", true)
+            .order("created_at", { ascending: false })
+            .limit(10),
+          // Centros holísticos
+          supabase
+            .from("holistic_centers")
+            .select("*")
+            .eq("is_active", true)
+            .order("created_at", { ascending: false })
+            .limit(10)
+        ]);
 
-        if (professionalsError) {
-          console.error("Error fetching professionals:", professionalsError);
-        } else {
+        // Procesar profesionales
+        if (professionalsResult.status === 'fulfilled' && professionalsResult.value.data) {
           const professionalsWithServices = await Promise.all(
-            (professionalsData || []).map(async (prof) => {
-              const { data: services } = await supabase
-                .from("professional_services")
-                .select("*")
-                .eq("professional_id", prof.id)
-                .eq("isactive", true);
+            professionalsResult.value.data.map(async (prof) => {
+              const [servicesResult, reviewStatsResult, adminRatingResult, appointmentsResult] = await Promise.allSettled([
+                supabase.from("professional_services").select("*").eq("professional_id", prof.id).eq("isactive", true),
+                supabase.from("professional_review_stats").select("average_rating, total_reviews").eq("professional_id", prof.user_id),
+                supabase.from("professional_admin_rating_stats").select("average_admin_rating").eq("professional_id", prof.id).maybeSingle(),
+                supabase.from("appointments").select("*", { count: "exact", head: true }).eq("professional_id", prof.id).eq("status", "completed")
+              ]);
 
-              const { data: reviewStatsData } = await supabase
-                .from("professional_review_stats")
-                .select("average_rating, total_reviews")
-                .eq("professional_id", prof.user_id);
+              const services = servicesResult.status === 'fulfilled' ? servicesResult.value.data : [];
+              const reviewStats = reviewStatsResult.status === 'fulfilled' && reviewStatsResult.value.data && reviewStatsResult.value.data.length > 0 ? reviewStatsResult.value.data[0] : null;
+              const adminRatingData = adminRatingResult.status === 'fulfilled' ? adminRatingResult.value.data : null;
+              const completedAppointmentsCount = appointmentsResult.status === 'fulfilled' ? appointmentsResult.value.count : 0;
 
-              const { data: adminRatingData, error: adminRatingError } = await supabase
-                .from("professional_admin_rating_stats")
-                .select("average_admin_rating")
-                .eq("professional_id", prof.id)
-                .maybeSingle();
-
-              // Obtener número de citas completadas para el ranking
-              const { count: completedAppointmentsCount } = await supabase
-                .from("appointments")
-                .select("*", { count: "exact", head: true })
-                .eq("professional_id", prof.id)
-                .eq("status", "completed");
-
-              if (adminRatingError && adminRatingError.code !== 'PGRST116' && adminRatingError.message !== 'Not Acceptable') {
-                console.error("Error loading admin rating:", adminRatingError);
-              }
-
-              const reviewStats = reviewStatsData && reviewStatsData.length > 0 ? reviewStatsData[0] : null;
               const transformedServices = transformServicesFromDB(services || []);
               const professionalModality = determineProfessionalModality(transformedServices);
 
@@ -302,7 +346,6 @@ const HomeUserPage = () => {
             })
           );
 
-          // Separar profesionales con membresía activa y sin membresía
           const currentDate = new Date();
           const professionalsWithMembership = professionalsWithServices.filter(prof =>
             prof.registration_fee_paid === true &&
@@ -315,93 +358,43 @@ const HomeUserPage = () => {
             new Date(prof.registration_fee_expires_at) <= currentDate
           );
 
-          // Ordenar cada grupo por ranking
           const sortedWithMembership = sortProfessionalsByRanking(professionalsWithMembership);
           const sortedWithoutMembership = sortProfessionalsByRanking(professionalsWithoutMembership);
-
-          // Combinar: primero con membresía, luego sin membresía
           const sortedProfessionals = [...sortedWithMembership, ...sortedWithoutMembership];
 
           setProfessionals(sortedProfessionals);
           setFilteredProfessionals(sortedProfessionals);
+        } else if (professionalsResult.status === 'rejected') {
+          console.error("Error fetching professionals:", professionalsResult.reason);
         }
 
-        // Obtener eventos
-        const { data: eventsData, error: eventsError } = await supabase
-          .from("events_workshops")
-          .select(`
-            *,
-            professional_applications(
-              first_name,
-              last_name,
-              profession
-            )
-          `)
-          .eq("is_active", true)
-          .gte("event_date", new Date().toISOString().split('T')[0])
-          .order("event_date", { ascending: true })
-          .limit(20);
-
-        if (eventsError) {
-          console.error("Error fetching events:", eventsError);
-        } else {
-          setEvents(eventsData || []);
-          setFilteredEvents(eventsData || []);
+        // Procesar eventos
+        if (eventsResult.status === 'fulfilled' && eventsResult.value.data) {
+          setEvents(eventsResult.value.data);
+          setFilteredEvents(eventsResult.value.data);
+        } else if (eventsResult.status === 'rejected') {
+          console.error("Error fetching events:", eventsResult.reason);
         }
 
-        // Obtener restaurantes
-        const { data: restaurantsData, error: restaurantsError } = await supabase
-          .from("restaurants")
-          .select("*")
-          .eq("is_active", true)
-          .order("created_at", { ascending: false })
-          .limit(10);
-
-        if (restaurantsError) {
-          console.error("Error fetching restaurants:", restaurantsError);
-        } else {
-          console.log("🍽️ Restaurants data:", restaurantsData?.map(r => ({ id: r.id, name: r.name, image_url: r.image_url })));
-          setRestaurants(restaurantsData || []);
-          setFilteredRestaurants(restaurantsData || []);
+        // Procesar restaurantes
+        if (restaurantsResult.status === 'fulfilled' && restaurantsResult.value.data) {
+          setRestaurants(restaurantsResult.value.data);
+          setFilteredRestaurants(restaurantsResult.value.data);
+        } else if (restaurantsResult.status === 'rejected') {
+          console.error("Error fetching restaurants:", restaurantsResult.reason);
         }
 
-        // Obtener comercios
-        const { data: shopsData, error: shopsError } = await supabase
-          .from("shops")
-          .select("*")
-          .eq("is_active", true)
-          .order("created_at", { ascending: false })
-          .limit(10);
-
-        if (shopsError) {
-          console.error("Error fetching shops:", shopsError);
-        } else {
-          console.log("🛍️ Shops data:", shopsData?.map(s => ({ id: s.id, name: s.name, image_url: s.image_url })));
-          setShops(shopsData || []);
-          setFilteredShops(shopsData || []);
+        // Procesar comercios
+        if (shopsResult.status === 'fulfilled' && shopsResult.value.data) {
+          setShops(shopsResult.value.data);
+          setFilteredShops(shopsResult.value.data);
+        } else if (shopsResult.status === 'rejected') {
+          console.error("Error fetching shops:", shopsResult.reason);
         }
 
-        // Obtener programas
-        const { data: productsData, error: productsError } = await supabase
-          .from("digital_products")
-          .select(`
-            *,
-            professional_applications!digital_products_professional_id_fkey(
-              first_name,
-              last_name,
-              profile_photo,
-              is_verified,
-              wellness_areas
-            )
-          `)
-          .eq("is_active", true)
-          .order("created_at", { ascending: false })
-          .limit(10);
-
-        if (productsError) {
-          console.error("Error fetching digital products:", productsError);
-        } else {
-          const transformedProducts = (productsData || []).map((product: any) => ({
+        // Procesar programas
+        if (productsResult.status === 'fulfilled' && productsResult.value.data) {
+          const transformedProducts = productsResult.value.data.map((product: any) => ({
             ...product,
             professional_applications: Array.isArray(product.professional_applications) && product.professional_applications.length > 0
               ? product.professional_applications[0]
@@ -409,22 +402,16 @@ const HomeUserPage = () => {
           }));
           setDigitalProducts(transformedProducts);
           setFilteredDigitalProducts(transformedProducts);
+        } else if (productsResult.status === 'rejected') {
+          console.error("Error fetching digital products:", productsResult.reason);
         }
 
-        // Obtener centros holísticos
-        const { data: holisticCentersData, error: holisticCentersError } = await supabase
-          .from("holistic_centers")
-          .select("*")
-          .eq("is_active", true)
-          .order("created_at", { ascending: false })
-          .limit(10);
-
-        if (holisticCentersError) {
-          console.error("Error fetching holistic centers:", holisticCentersError);
-        } else {
-          console.log("🏢 Holistic centers data:", holisticCentersData?.map(c => ({ id: c.id, name: c.name, image_url: c.image_url })));
-          setHolisticCenters(holisticCentersData || []);
-          setFilteredHolisticCenters(holisticCentersData || []);
+        // Procesar centros holísticos
+        if (holisticCentersResult.status === 'fulfilled' && holisticCentersResult.value.data) {
+          setHolisticCenters(holisticCentersResult.value.data);
+          setFilteredHolisticCenters(holisticCentersResult.value.data);
+        } else if (holisticCentersResult.status === 'rejected') {
+          console.error("Error fetching holistic centers:", holisticCentersResult.reason);
         }
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -743,8 +730,8 @@ const HomeUserPage = () => {
                       href={`/patient/${userId}/explore/program/${product.id}`}
                       className="shrink-0 w-96"
                     >
-                      <Card className="group overflow-hidden hover:shadow-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer h-full flex flex-col">
-                        <div className="relative h-64 w-full">
+                      <Card className="group overflow-hidden hover:shadow-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer h-[480px] flex flex-col">
+                        <div className="relative h-64 w-full shrink-0">
                           <div className="absolute inset-0 overflow-hidden">
                             {product.cover_image_url ? (
                               <Image
@@ -752,6 +739,11 @@ const HomeUserPage = () => {
                                 alt={product.title}
                                 fill
                                 className="object-cover"
+                                unoptimized={product.cover_image_url.includes('supabase.co') || product.cover_image_url.includes('supabase.in')}
+                                onError={(e) => {
+                                  const target = e.target as HTMLImageElement;
+                                  target.src = "/logos/holistia-black.png";
+                                }}
                               />
                             ) : (
                               <div className="w-full h-full bg-linear-to-br from-primary/20 to-primary/10 flex items-center justify-center">
@@ -770,7 +762,7 @@ const HomeUserPage = () => {
                             />
                           </div>
                         </div>
-                        <CardHeader className="pb-3">
+                        <CardHeader className="pb-3 shrink-0">
                           <CardTitle className="line-clamp-2 group-hover:text-primary transition-colors">{product.title}</CardTitle>
                           {product.professional_applications && (
                             <div className="flex items-center gap-2 mt-2 text-sm text-muted-foreground">
@@ -778,7 +770,7 @@ const HomeUserPage = () => {
                             </div>
                           )}
                         </CardHeader>
-                        <CardContent className="flex-1 pb-4">
+                        <CardContent className="flex-1 pb-4 min-h-0">
                           <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
                             {product.description}
                           </p>
@@ -855,8 +847,8 @@ const HomeUserPage = () => {
                       href={`/patient/${userId}/explore/event/${generateEventSlug(event.name, event.id!)}`}
                       className="shrink-0 w-96"
                     >
-                      <Card className="group hover:shadow-lg hover:-translate-y-2 transition-all duration-300 overflow-hidden cursor-pointer h-full flex flex-col">
-                        <div className="relative w-full h-64 bg-gray-100">
+                      <Card className="group hover:shadow-lg hover:-translate-y-2 transition-all duration-300 overflow-hidden cursor-pointer h-[480px] flex flex-col">
+                        <div className="relative w-full h-64 bg-gray-100 shrink-0">
                           <div className="absolute inset-0 overflow-hidden">
                             <Image
                               src={(event.gallery_images && event.gallery_images.length > 0 && event.gallery_images[0]) || event.image_url || "/logos/holistia-black.png"}
@@ -878,7 +870,7 @@ const HomeUserPage = () => {
                             />
                           </div>
                         </div>
-                        <CardHeader className="pb-3">
+                        <CardHeader className="pb-3 shrink-0">
                           <CardTitle className="text-lg mb-1.5 group-hover:text-primary transition-colors">{event.name}</CardTitle>
                           <div className="flex flex-wrap gap-2 mb-2">
                             <Badge variant="secondary">
@@ -889,7 +881,7 @@ const HomeUserPage = () => {
                             </Badge>
                           </div>
                         </CardHeader>
-                        <CardContent className="space-y-2 flex-1 pb-4">
+                        <CardContent className="space-y-2 flex-1 pb-4 min-h-0">
                           <div className="flex items-start gap-2 text-sm text-muted-foreground">
                             <Calendar className="w-4 h-4 mt-0.5 shrink-0" />
                             <div className="flex-1">
@@ -1109,8 +1101,8 @@ const HomeUserPage = () => {
                       href={`/patient/${userId}/explore/restaurant/${restaurant.id}`}
                       className="shrink-0 w-96"
                     >
-                      <Card className="group hover:shadow-lg hover:-translate-y-2 transition-all duration-300 overflow-hidden cursor-pointer h-full flex flex-col">
-                        <div className="relative w-full h-64 bg-gray-100">
+                      <Card className="group hover:shadow-lg hover:-translate-y-2 transition-all duration-300 overflow-hidden cursor-pointer h-[480px] flex flex-col">
+                        <div className="relative w-full h-64 bg-gray-100 shrink-0">
                           <div className="absolute inset-0 overflow-hidden">
                             {restaurant.image_url ? (
                               <Image
@@ -1137,7 +1129,7 @@ const HomeUserPage = () => {
                             />
                           </div>
                         </div>
-                        <CardHeader className="pb-3">
+                        <CardHeader className="pb-3 shrink-0">
                           <CardTitle className="line-clamp-2 group-hover:text-primary transition-colors">{restaurant.name}</CardTitle>
                           <div className="flex gap-2 mt-1.5">
                             {restaurant.cuisine_type && (
@@ -1148,7 +1140,7 @@ const HomeUserPage = () => {
                             )}
                           </div>
                         </CardHeader>
-                        <CardContent className="flex-1 pb-4">
+                        <CardContent className="flex-1 pb-4 min-h-0">
                           {restaurant.description && (
                             <div
                               className="text-sm text-muted-foreground line-clamp-3 prose prose-sm max-w-none"
@@ -1228,8 +1220,8 @@ const HomeUserPage = () => {
                       href={`/patient/${userId}/explore/shop/${shop.id}`}
                       className="shrink-0 w-96"
                     >
-                      <Card className="group hover:shadow-lg hover:-translate-y-2 transition-all duration-300 overflow-hidden cursor-pointer h-full flex flex-col">
-                        <div className="relative w-full h-64 bg-gray-100">
+                      <Card className="group hover:shadow-lg hover:-translate-y-2 transition-all duration-300 overflow-hidden cursor-pointer h-[480px] flex flex-col">
+                        <div className="relative w-full h-64 bg-gray-100 shrink-0">
                           <div className="absolute inset-0 overflow-hidden">
                             {shop.image_url ? (
                               <Image
@@ -1237,7 +1229,11 @@ const HomeUserPage = () => {
                                 alt={shop.name}
                                 fill
                                 className="object-cover"
-                                unoptimized
+                                unoptimized={shop.image_url.includes('supabase.co') || shop.image_url.includes('supabase.in')}
+                                onError={(e) => {
+                                  const target = e.target as HTMLImageElement;
+                                  target.src = "/logos/holistia-black.png";
+                                }}
                               />
                             ) : (
                               <div className="w-full h-full bg-linear-to-br from-primary/20 to-primary/10 flex items-center justify-center">
@@ -1256,13 +1252,13 @@ const HomeUserPage = () => {
                             />
                           </div>
                         </div>
-                        <CardHeader className="pb-3">
+                        <CardHeader className="pb-3 shrink-0">
                           <CardTitle className="line-clamp-2 group-hover:text-primary transition-colors">{shop.name}</CardTitle>
                           {shop.category && (
                             <Badge variant="secondary" className="w-fit mt-1.5">{shop.category}</Badge>
                           )}
                         </CardHeader>
-                        <CardContent className="flex-1 pb-4">
+                        <CardContent className="flex-1 pb-4 min-h-0">
                           {shop.description && (
                             <div
                               className="text-sm text-muted-foreground line-clamp-3 prose prose-sm max-w-none"
@@ -1353,8 +1349,8 @@ const HomeUserPage = () => {
                       href={`/patient/${userId}/explore/holistic-center/${center.id}`}
                       className="shrink-0 w-96"
                     >
-                      <Card className="group hover:shadow-lg hover:-translate-y-2 transition-all duration-300 overflow-hidden cursor-pointer h-full flex flex-col">
-                        <div className="relative w-full h-64 bg-gray-100">
+                      <Card className="group hover:shadow-lg hover:-translate-y-2 transition-all duration-300 overflow-hidden cursor-pointer h-[480px] flex flex-col">
+                        <div className="relative w-full h-64 bg-gray-100 shrink-0">
                           <div className="absolute inset-0 overflow-hidden">
                             {center.image_url ? (
                               <Image
@@ -1362,7 +1358,11 @@ const HomeUserPage = () => {
                                 alt={center.name}
                                 fill
                                 className="object-cover"
-                                unoptimized
+                                unoptimized={center.image_url.includes('supabase.co') || center.image_url.includes('supabase.in')}
+                                onError={(e) => {
+                                  const target = e.target as HTMLImageElement;
+                                  target.src = "/logos/holistia-black.png";
+                                }}
                               />
                             ) : (
                               <div className="w-full h-full bg-linear-to-br from-primary/20 to-primary/10 flex items-center justify-center">
@@ -1381,7 +1381,7 @@ const HomeUserPage = () => {
                             />
                           </div>
                         </div>
-                        <CardHeader className="pb-3">
+                        <CardHeader className="pb-3 shrink-0">
                           <CardTitle className="line-clamp-2 group-hover:text-primary transition-colors">{center.name}</CardTitle>
                           <div className="flex gap-2 mt-1.5">
                             {center.city && (
@@ -1392,7 +1392,7 @@ const HomeUserPage = () => {
                             )}
                           </div>
                         </CardHeader>
-                        <CardContent className="space-y-2 flex-1 pb-4">
+                        <CardContent className="space-y-2 flex-1 pb-4 min-h-0">
                           {center.description && (
                             <p className="text-sm text-muted-foreground line-clamp-2">
                               {center.description.replace(/<[^>]*>/g, '')}

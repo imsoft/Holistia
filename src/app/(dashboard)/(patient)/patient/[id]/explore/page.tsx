@@ -15,6 +15,7 @@ import { determineProfessionalModality, transformServicesFromDB } from "@/utils/
 import { sortProfessionalsByRanking } from "@/utils/professional-ranking";
 import { FavoriteButton } from "@/components/ui/favorite-button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { trackInteraction, sortByUserPreferences, type ContentType, type WellnessArea } from "@/lib/user-preferences";
 
 const categories = [
   {
@@ -362,32 +363,74 @@ const HomeUserPage = () => {
           const sortedWithoutMembership = sortProfessionalsByRanking(professionalsWithoutMembership);
           const sortedProfessionals = [...sortedWithMembership, ...sortedWithoutMembership];
 
-          setProfessionals(sortedProfessionals);
-          setFilteredProfessionals(sortedProfessionals);
+          // Aplicar ordenamiento personalizado basado en preferencias del usuario
+          const professionalsWithMetadata = sortedProfessionals.map((prof) => ({
+            ...prof,
+            contentType: 'professional' as ContentType,
+            category: prof.wellness_areas?.[0] || undefined,
+            wellnessAreas: prof.wellness_areas as WellnessArea[] | undefined,
+          }));
+
+          const personalizedProfessionals = sortByUserPreferences(professionalsWithMetadata);
+
+          setProfessionals(personalizedProfessionals);
+          setFilteredProfessionals(personalizedProfessionals);
         } else if (professionalsResult.status === 'rejected') {
           console.error("Error fetching professionals:", professionalsResult.reason);
         }
 
         // Procesar eventos
         if (eventsResult.status === 'fulfilled' && eventsResult.value.data) {
-          setEvents(eventsResult.value.data);
-          setFilteredEvents(eventsResult.value.data);
+          // Aplicar ordenamiento personalizado
+          const eventsWithMetadata = eventsResult.value.data.map((event) => ({
+            ...event,
+            contentType: 'event' as ContentType,
+            category: event.category,
+            wellnessAreas: event.category === 'salud_mental' ? ['Salud mental'] as WellnessArea[] :
+                          event.category === 'espiritualidad' ? ['Espiritualidad'] as WellnessArea[] :
+                          event.category === 'salud_fisica' ? ['Actividad física'] as WellnessArea[] :
+                          event.category === 'social' ? ['Social'] as WellnessArea[] :
+                          event.category === 'alimentacion' ? ['Alimentación'] as WellnessArea[] :
+                          undefined,
+          }));
+
+          const personalizedEvents = sortByUserPreferences(eventsWithMetadata);
+          setEvents(personalizedEvents);
+          setFilteredEvents(personalizedEvents);
         } else if (eventsResult.status === 'rejected') {
           console.error("Error fetching events:", eventsResult.reason);
         }
 
         // Procesar restaurantes
         if (restaurantsResult.status === 'fulfilled' && restaurantsResult.value.data) {
-          setRestaurants(restaurantsResult.value.data);
-          setFilteredRestaurants(restaurantsResult.value.data);
+          // Aplicar ordenamiento personalizado
+          const restaurantsWithMetadata = restaurantsResult.value.data.map((restaurant) => ({
+            ...restaurant,
+            contentType: 'restaurant' as ContentType,
+            category: 'Alimentación',
+            wellnessAreas: ['Alimentación'] as WellnessArea[],
+          }));
+
+          const personalizedRestaurants = sortByUserPreferences(restaurantsWithMetadata);
+          setRestaurants(personalizedRestaurants);
+          setFilteredRestaurants(personalizedRestaurants);
         } else if (restaurantsResult.status === 'rejected') {
           console.error("Error fetching restaurants:", restaurantsResult.reason);
         }
 
         // Procesar comercios
         if (shopsResult.status === 'fulfilled' && shopsResult.value.data) {
-          setShops(shopsResult.value.data);
-          setFilteredShops(shopsResult.value.data);
+          // Aplicar ordenamiento personalizado
+          const shopsWithMetadata = shopsResult.value.data.map((shop) => ({
+            ...shop,
+            contentType: 'shop' as ContentType,
+            category: shop.category,
+            wellnessAreas: undefined, // Los comercios no tienen wellness_areas específicas
+          }));
+
+          const personalizedShops = sortByUserPreferences(shopsWithMetadata);
+          setShops(personalizedShops);
+          setFilteredShops(personalizedShops);
         } else if (shopsResult.status === 'rejected') {
           console.error("Error fetching shops:", shopsResult.reason);
         }
@@ -400,16 +443,45 @@ const HomeUserPage = () => {
               ? product.professional_applications[0]
               : undefined,
           }));
-          setDigitalProducts(transformedProducts);
-          setFilteredDigitalProducts(transformedProducts);
+
+          // Aplicar ordenamiento personalizado
+          const productsWithMetadata = transformedProducts.map((product: any) => {
+            // Determinar wellness_areas del programa o del profesional
+            let wellnessAreas: WellnessArea[] | undefined;
+            if (product.wellness_areas && Array.isArray(product.wellness_areas) && product.wellness_areas.length > 0) {
+              wellnessAreas = product.wellness_areas as WellnessArea[];
+            } else if (product.professional_applications?.wellness_areas) {
+              wellnessAreas = product.professional_applications.wellness_areas as WellnessArea[];
+            }
+
+            return {
+              ...product,
+              contentType: 'program' as ContentType,
+              category: product.category,
+              wellnessAreas,
+            };
+          });
+
+          const personalizedProducts = sortByUserPreferences(productsWithMetadata);
+          setDigitalProducts(personalizedProducts);
+          setFilteredDigitalProducts(personalizedProducts);
         } else if (productsResult.status === 'rejected') {
           console.error("Error fetching digital products:", productsResult.reason);
         }
 
         // Procesar centros holísticos
         if (holisticCentersResult.status === 'fulfilled' && holisticCentersResult.value.data) {
-          setHolisticCenters(holisticCentersResult.value.data);
-          setFilteredHolisticCenters(holisticCentersResult.value.data);
+          // Aplicar ordenamiento personalizado
+          const centersWithMetadata = holisticCentersResult.value.data.map((center) => ({
+            ...center,
+            contentType: 'holistic_center' as ContentType,
+            category: undefined,
+            wellnessAreas: undefined, // Los centros holísticos pueden tener múltiples áreas
+          }));
+
+          const personalizedCenters = sortByUserPreferences(centersWithMetadata);
+          setHolisticCenters(personalizedCenters);
+          setFilteredHolisticCenters(personalizedCenters);
         } else if (holisticCentersResult.status === 'rejected') {
           console.error("Error fetching holistic centers:", holisticCentersResult.reason);
         }
@@ -724,66 +796,79 @@ const HomeUserPage = () => {
                   className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar px-12"
                   style={{ scrollPaddingLeft: '1rem', scrollPaddingRight: '1rem' }}
                 >
-                  {filteredDigitalProducts.map((product) => (
-                    <Link
-                      key={product.id}
-                      href={`/patient/${userId}/explore/program/${product.id}`}
-                      className="shrink-0 w-96"
-                    >
-                      <Card className="group overflow-hidden hover:shadow-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer h-[480px] flex flex-col">
-                        <div className="relative h-64 w-full shrink-0">
-                          <div className="absolute inset-0 overflow-hidden">
-                            {product.cover_image_url ? (
-                              <Image
-                                src={product.cover_image_url}
-                                alt={product.title}
-                                fill
-                                className="object-cover"
-                                unoptimized={product.cover_image_url.includes('supabase.co') || product.cover_image_url.includes('supabase.in')}
-                                onError={(e) => {
-                                  const target = e.target as HTMLImageElement;
-                                  target.src = "/logos/holistia-black.png";
-                                }}
+                  {filteredDigitalProducts.map((product) => {
+                    // Determinar wellness_areas del programa o del profesional
+                    let wellnessAreas: WellnessArea[] | undefined;
+                    if (product.wellness_areas && Array.isArray(product.wellness_areas) && product.wellness_areas.length > 0) {
+                      wellnessAreas = product.wellness_areas as WellnessArea[];
+                    } else if (product.professional_applications?.wellness_areas) {
+                      wellnessAreas = product.professional_applications.wellness_areas as WellnessArea[];
+                    }
+
+                    return (
+                      <Link
+                        key={product.id}
+                        href={`/patient/${userId}/explore/program/${product.id}`}
+                        className="shrink-0 w-96"
+                        onClick={() => {
+                          trackInteraction('program', product.id, product.category, wellnessAreas);
+                        }}
+                      >
+                        <Card className="group overflow-hidden hover:shadow-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer h-[480px] flex flex-col">
+                          <div className="relative h-64 w-full shrink-0">
+                            <div className="absolute inset-0 overflow-hidden">
+                              {product.cover_image_url ? (
+                                <Image
+                                  src={product.cover_image_url}
+                                  alt={product.title}
+                                  fill
+                                  className="object-cover"
+                                  unoptimized={product.cover_image_url.includes('supabase.co') || product.cover_image_url.includes('supabase.in')}
+                                  onError={(e) => {
+                                    const target = e.target as HTMLImageElement;
+                                    target.src = "/logos/holistia-black.png";
+                                  }}
+                                />
+                              ) : (
+                                <div className="w-full h-full bg-linear-to-br from-primary/20 to-primary/10 flex items-center justify-center">
+                                  <Store className="h-12 w-12 text-primary/40" />
+                                </div>
+                              )}
+                            </div>
+                            <div 
+                              className="absolute top-3 right-3 pointer-events-auto" 
+                              style={{ zIndex: 9999, position: 'absolute', top: '12px', right: '12px' }}
+                            >
+                              <FavoriteButton
+                                itemId={product.id}
+                                favoriteType="digital_product"
+                                variant="floating"
                               />
-                            ) : (
-                              <div className="w-full h-full bg-linear-to-br from-primary/20 to-primary/10 flex items-center justify-center">
-                                <Store className="h-12 w-12 text-primary/40" />
+                            </div>
+                          </div>
+                          <CardHeader className="pb-3 shrink-0">
+                            <CardTitle className="line-clamp-2 group-hover:text-primary transition-colors">{product.title}</CardTitle>
+                            {product.professional_applications && (
+                              <div className="flex items-center gap-2 mt-2 text-sm text-muted-foreground">
+                                <span>Por {product.professional_applications.first_name} {product.professional_applications.last_name}</span>
                               </div>
                             )}
-                          </div>
-                          <div 
-                            className="absolute top-3 right-3 pointer-events-auto" 
-                            style={{ zIndex: 9999, position: 'absolute', top: '12px', right: '12px' }}
-                          >
-                            <FavoriteButton
-                              itemId={product.id}
-                              favoriteType="digital_product"
-                              variant="floating"
-                            />
-                          </div>
-                        </div>
-                        <CardHeader className="pb-3 shrink-0">
-                          <CardTitle className="line-clamp-2 group-hover:text-primary transition-colors">{product.title}</CardTitle>
-                          {product.professional_applications && (
-                            <div className="flex items-center gap-2 mt-2 text-sm text-muted-foreground">
-                              <span>Por {product.professional_applications.first_name} {product.professional_applications.last_name}</span>
+                          </CardHeader>
+                          <CardContent className="flex-1 pb-4 min-h-0">
+                            <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
+                              {product.description}
+                            </p>
+                            <div className="flex items-center justify-between">
+                              <Badge variant="secondary">{product.category}</Badge>
+                              <span className="text-lg font-bold text-primary">
+                                ${product.price.toFixed(2)} {product.currency}
+                              </span>
                             </div>
-                          )}
-                        </CardHeader>
-                        <CardContent className="flex-1 pb-4 min-h-0">
-                          <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
-                            {product.description}
-                          </p>
-                          <div className="flex items-center justify-between">
-                            <Badge variant="secondary">{product.category}</Badge>
-                            <span className="text-lg font-bold text-primary">
-                              ${product.price.toFixed(2)} {product.currency}
-                            </span>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </Link>
-                  ))}
+                          </CardContent>
+                        </Card>
+                      </Link>
+                    );
+                  })}
                 </div>
               </div>
             </div>
@@ -841,76 +926,89 @@ const HomeUserPage = () => {
                   className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar px-12"
                   style={{ scrollPaddingLeft: '1rem', scrollPaddingRight: '1rem' }}
                 >
-                  {filteredEvents.map((event) => (
-                    <Link
-                      key={event.id}
-                      href={`/patient/${userId}/explore/event/${generateEventSlug(event.name, event.id!)}`}
-                      className="shrink-0 w-96"
-                    >
-                      <Card className="group hover:shadow-lg hover:-translate-y-2 transition-all duration-300 overflow-hidden cursor-pointer h-[480px] flex flex-col">
-                        <div className="relative w-full h-64 bg-gray-100 shrink-0">
-                          <div className="absolute inset-0 overflow-hidden">
-                            <Image
-                              src={(event.gallery_images && event.gallery_images.length > 0 && event.gallery_images[0]) || event.image_url || "/logos/holistia-black.png"}
-                              alt={event.name}
-                              fill
-                              className="object-cover"
-                              style={{ objectPosition: event.image_position || "center center" }}
-                              unoptimized
-                            />
-                          </div>
-                          <div 
-                            className="absolute top-3 right-3 pointer-events-auto" 
-                            style={{ zIndex: 9999, position: 'absolute', top: '12px', right: '12px' }}
-                          >
-                            <FavoriteButton
-                              itemId={event.id!}
-                              favoriteType="event"
-                              variant="floating"
-                            />
-                          </div>
-                        </div>
-                        <CardHeader className="pb-3 shrink-0">
-                          <CardTitle className="text-lg mb-1.5 group-hover:text-primary transition-colors">{event.name}</CardTitle>
-                          <div className="flex flex-wrap gap-2 mb-2">
-                            <Badge variant="secondary">
-                              {getCategoryLabel(event.category)}
-                            </Badge>
-                            <Badge variant={event.is_free ? "default" : "outline"}>
-                              {event.is_free ? "Gratuito" : `$${event.price}`}
-                            </Badge>
-                          </div>
-                        </CardHeader>
-                        <CardContent className="space-y-2 flex-1 pb-4 min-h-0">
-                          <div className="flex items-start gap-2 text-sm text-muted-foreground">
-                            <Calendar className="w-4 h-4 mt-0.5 shrink-0" />
-                            <div className="flex-1">
-                              <div className="font-medium text-foreground">
-                                {event.end_date && event.event_date !== event.end_date
-                                  ? `${formatEventDate(event.event_date)} - ${formatEventDate(event.end_date)}`
-                                  : formatEventDate(event.event_date)
-                                }
-                              </div>
-                              <div className="text-xs">
-                                {formatEventTime(event.event_time)}
-                                {event.end_time && ` - ${formatEventTime(event.end_time)}`}
-                              </div>
+                  {filteredEvents.map((event) => {
+                    const wellnessAreas: WellnessArea[] | undefined = 
+                      event.category === 'salud_mental' ? ['Salud mental'] :
+                      event.category === 'espiritualidad' ? ['Espiritualidad'] :
+                      event.category === 'salud_fisica' ? ['Actividad física'] :
+                      event.category === 'social' ? ['Social'] :
+                      event.category === 'alimentacion' ? ['Alimentación'] :
+                      undefined;
+
+                    return (
+                      <Link
+                        key={event.id}
+                        href={`/patient/${userId}/explore/event/${generateEventSlug(event.name, event.id!)}`}
+                        className="shrink-0 w-96"
+                        onClick={() => {
+                          trackInteraction('event', event.id!, event.category, wellnessAreas);
+                        }}
+                      >
+                        <Card className="group hover:shadow-lg hover:-translate-y-2 transition-all duration-300 overflow-hidden cursor-pointer h-[480px] flex flex-col">
+                          <div className="relative w-full h-64 bg-gray-100 shrink-0">
+                            <div className="absolute inset-0 overflow-hidden">
+                              <Image
+                                src={(event.gallery_images && event.gallery_images.length > 0 && event.gallery_images[0]) || event.image_url || "/logos/holistia-black.png"}
+                                alt={event.name}
+                                fill
+                                className="object-cover"
+                                style={{ objectPosition: event.image_position || "center center" }}
+                                unoptimized
+                              />
+                            </div>
+                            <div 
+                              className="absolute top-3 right-3 pointer-events-auto" 
+                              style={{ zIndex: 9999, position: 'absolute', top: '12px', right: '12px' }}
+                            >
+                              <FavoriteButton
+                                itemId={event.id!}
+                                favoriteType="event"
+                                variant="floating"
+                              />
                             </div>
                           </div>
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                            <MapPin className="w-4 h-4 shrink-0" />
-                            <span className="truncate">{event.location}</span>
-                          </div>
-                          {event.description && (
-                            <div
-                              className="text-sm text-muted-foreground line-clamp-2 prose prose-sm max-w-none"
-                              dangerouslySetInnerHTML={{ __html: event.description }}
-                            />
-                          )}
-                        </CardContent>
-                      </Card>
-                    </Link>
-                  ))}
+                          <CardHeader className="pb-3 shrink-0">
+                            <CardTitle className="text-lg mb-1.5 group-hover:text-primary transition-colors">{event.name}</CardTitle>
+                            <div className="flex flex-wrap gap-2 mb-2">
+                              <Badge variant="secondary">
+                                {getCategoryLabel(event.category)}
+                              </Badge>
+                              <Badge variant={event.is_free ? "default" : "outline"}>
+                                {event.is_free ? "Gratuito" : `$${event.price}`}
+                              </Badge>
+                            </div>
+                          </CardHeader>
+                          <CardContent className="space-y-2 flex-1 pb-4 min-h-0">
+                            <div className="flex items-start gap-2 text-sm text-muted-foreground">
+                              <Calendar className="w-4 h-4 mt-0.5 shrink-0" />
+                              <div className="flex-1">
+                                <div className="font-medium text-foreground">
+                                  {event.end_date && event.event_date !== event.end_date
+                                    ? `${formatEventDate(event.event_date)} - ${formatEventDate(event.end_date)}`
+                                    : formatEventDate(event.event_date)
+                                  }
+                                </div>
+                                <div className="text-xs">
+                                  {formatEventTime(event.event_time)}
+                                  {event.end_time && ` - ${formatEventTime(event.end_time)}`}
+                                </div>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <MapPin className="w-4 h-4 shrink-0" />
+                              <span className="truncate">{event.location}</span>
+                            </div>
+                            {event.description && (
+                              <div
+                                className="text-sm text-muted-foreground line-clamp-2 prose prose-sm max-w-none"
+                                dangerouslySetInnerHTML={{ __html: event.description }}
+                              />
+                            )}
+                          </CardContent>
+                        </Card>
+                      </Link>
+                    );
+                  })}
                 </div>
               </div>
             )}
@@ -970,7 +1068,18 @@ const HomeUserPage = () => {
                   style={{ scrollPaddingLeft: '1rem', scrollPaddingRight: '1rem' }}
                 >
                   {filteredProfessionals.map((professional) => (
-                    <div key={professional.id} className="shrink-0 w-96">
+                    <div 
+                      key={professional.id} 
+                      className="shrink-0 w-96"
+                      onClick={() => {
+                        trackInteraction(
+                          'professional',
+                          professional.id,
+                          professional.wellness_areas?.[0],
+                          professional.wellness_areas as WellnessArea[] | undefined
+                        );
+                      }}
+                    >
                       <ProfessionalCard
                         userId={userId}
                         professional={{
@@ -1100,6 +1209,9 @@ const HomeUserPage = () => {
                       key={restaurant.id}
                       href={`/patient/${userId}/explore/restaurant/${restaurant.id}`}
                       className="shrink-0 w-96"
+                      onClick={() => {
+                        trackInteraction('restaurant', restaurant.id, 'Alimentación', ['Alimentación']);
+                      }}
                     >
                       <Card className="group hover:shadow-lg hover:-translate-y-2 transition-all duration-300 overflow-hidden cursor-pointer h-[480px] flex flex-col">
                         <div className="relative w-full h-64 bg-gray-100 shrink-0">
@@ -1219,6 +1331,9 @@ const HomeUserPage = () => {
                       key={shop.id}
                       href={`/patient/${userId}/explore/shop/${shop.id}`}
                       className="shrink-0 w-96"
+                      onClick={() => {
+                        trackInteraction('shop', shop.id, shop.category);
+                      }}
                     >
                       <Card className="group hover:shadow-lg hover:-translate-y-2 transition-all duration-300 overflow-hidden cursor-pointer h-[480px] flex flex-col">
                         <div className="relative w-full h-64 bg-gray-100 shrink-0">
@@ -1348,6 +1463,9 @@ const HomeUserPage = () => {
                       key={center.id}
                       href={`/patient/${userId}/explore/holistic-center/${center.id}`}
                       className="shrink-0 w-96"
+                      onClick={() => {
+                        trackInteraction('holistic_center', center.id);
+                      }}
                     >
                       <Card className="group hover:shadow-lg hover:-translate-y-2 transition-all duration-300 overflow-hidden cursor-pointer h-[480px] flex flex-col">
                         <div className="relative w-full h-64 bg-gray-100 shrink-0">

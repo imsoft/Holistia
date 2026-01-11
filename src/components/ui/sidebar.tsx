@@ -100,8 +100,9 @@ function SidebarProvider({
       // This sets the cookie to keep the sidebar state.
       // Usar la utilidad de cookies para consistencia
       if (typeof window !== 'undefined') {
-        const { setTemporaryCookie } = await import('@/lib/cookies');
-        setTemporaryCookie(SIDEBAR_COOKIE_NAME, String(openState), 7);
+        import('@/lib/cookies').then(({ setTemporaryCookie }) => {
+          setTemporaryCookie(SIDEBAR_COOKIE_NAME, String(openState), 7);
+        });
       }
     },
     [setOpenProp, open]

@@ -119,7 +119,7 @@ export function ServiceMessageCard({
           </Badge>
         </div>
       </CardHeader>
-      <CardContent className="space-y-3">
+      <CardContent className="space-y-3 py-4">
         {service.description && (
           <p className="text-sm text-muted-foreground line-clamp-2">
             {service.description}

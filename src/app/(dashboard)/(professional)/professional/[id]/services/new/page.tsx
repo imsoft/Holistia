@@ -13,34 +13,54 @@ export default function NewServicePage() {
   const router = useRouter();
   const professionalId = params.id as string;
   const [userId, setUserId] = useState<string | null>(null);
+  const [actualProfessionalId, setActualProfessionalId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const supabase = createClient();
 
   useEffect(() => {
-    const fetchUserId = async () => {
+    const fetchProfessionalData = async () => {
       try {
-        // Obtener el user_id del profesional desde professional_applications
+        // El professionalId en la URL es el user_id, no el id de professional_applications
+        // Primero intentamos obtener el professional_id desde professional_applications usando user_id
         const { data: professionalData, error } = await supabase
           .from('professional_applications')
-          .select('user_id')
-          .eq('id', professionalId)
-          .single();
+          .select('id, user_id')
+          .eq('user_id', professionalId)
+          .eq('status', 'approved')
+          .maybeSingle();
 
         if (error) {
-          console.error('Error fetching user_id:', error);
+          console.error('Error fetching professional data:', error);
           toast.error('Error al cargar información del profesional');
           router.push(`/professional/${professionalId}/services`);
           return;
         }
 
-        if (professionalData?.user_id) {
+        if (professionalData) {
+          // El professionalId en la URL es el user_id
           setUserId(professionalData.user_id);
+          // El actualProfessionalId es el id de professional_applications (necesario para crear servicios)
+          setActualProfessionalId(professionalData.id);
         } else {
-          toast.error('No se encontró información del profesional');
-          router.push(`/professional/${professionalId}/services`);
+          // Si no se encuentra, el professionalId podría ser el id de professional_applications
+          // Intentar buscar por id como fallback
+          const { data: fallbackData, error: fallbackError } = await supabase
+            .from('professional_applications')
+            .select('id, user_id')
+            .eq('id', professionalId)
+            .maybeSingle();
+
+          if (fallbackError || !fallbackData) {
+            toast.error('No se encontró información del profesional');
+            router.push(`/professional/${professionalId}/services`);
+            return;
+          }
+
+          setUserId(fallbackData.user_id);
+          setActualProfessionalId(fallbackData.id);
         }
       } catch (error) {
-        console.error('Error fetching user_id:', error);
+        console.error('Error fetching professional data:', error);
         toast.error('Error al cargar información del profesional');
         router.push(`/professional/${professionalId}/services`);
       } finally {
@@ -48,7 +68,7 @@ export default function NewServicePage() {
       }
     };
 
-    fetchUserId();
+    fetchProfessionalData();
   }, [professionalId, router, supabase]);
 
   if (loading) {
@@ -59,7 +79,7 @@ export default function NewServicePage() {
     );
   }
 
-  if (!userId) {
+  if (!userId || !actualProfessionalId) {
     return null; // El useEffect ya redirige
   }
 
@@ -83,7 +103,7 @@ export default function NewServicePage() {
       <div className="py-4 px-6">
         <div className="max-w-3xl mx-auto">
           <ServiceForm
-            professionalId={professionalId}
+            professionalId={actualProfessionalId}
             userId={userId}
             service={null}
             redirectPath={`/professional/${professionalId}/services`}

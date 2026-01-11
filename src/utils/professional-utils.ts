@@ -105,8 +105,9 @@ interface DatabaseService {
   name: string;
   description?: string;
   modality: 'presencial' | 'online' | 'both';
-  cost: number;
+  cost: number | null | undefined; // Puede ser null para servicios de tipo "quote"
   address?: string;
+  pricing_type?: 'fixed' | 'quote'; // Tipo de pricing
 }
 
 /**
@@ -123,17 +124,23 @@ export function transformServicesFromDB(services: DatabaseService[]): Service[] 
   const servicesMap = new Map<string, Service>();
   
   services.forEach(service => {
+    // Saltar servicios sin nombre o sin costo válido
+    if (!service.name || service.cost === null || service.cost === undefined) {
+      return;
+    }
+
     const existing = servicesMap.get(service.name);
+    const costStr = service.cost.toString();
     
     if (existing) {
       // Si ya existe, actualizar costos según la modalidad
       if (service.modality === 'presencial') {
-        existing.presencialCost = service.cost.toString();
+        existing.presencialCost = costStr;
       } else if (service.modality === 'online') {
-        existing.onlineCost = service.cost.toString();
+        existing.onlineCost = costStr;
       } else if (service.modality === 'both') {
-        existing.presencialCost = service.cost.toString();
-        existing.onlineCost = service.cost.toString();
+        existing.presencialCost = costStr;
+        existing.onlineCost = costStr;
       }
     } else {
       // Crear nuevo servicio
@@ -144,12 +151,12 @@ export function transformServicesFromDB(services: DatabaseService[]): Service[] 
       };
       
       if (service.modality === 'presencial') {
-        newService.presencialCost = service.cost.toString();
+        newService.presencialCost = costStr;
       } else if (service.modality === 'online') {
-        newService.onlineCost = service.cost.toString();
+        newService.onlineCost = costStr;
       } else if (service.modality === 'both') {
-        newService.presencialCost = service.cost.toString();
-        newService.onlineCost = service.cost.toString();
+        newService.presencialCost = costStr;
+        newService.onlineCost = costStr;
       }
       
       servicesMap.set(service.name, newService);

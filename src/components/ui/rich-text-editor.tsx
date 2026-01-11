@@ -57,6 +57,7 @@ export function RichTextEditor({
         limit: maxLength,
       }),
     ],
+    enablePasteRules: true, // Habilitar reglas de pegado
     content: content || '<p></p>', // Asegurar que siempre tenga contenido inicial
     onUpdate: ({ editor }) => {
       // Solo actualizar el estado si el cambio viene del usuario (no de una actualización externa)
@@ -119,18 +120,43 @@ export function RichTextEditor({
         // NO bloquear otros eventos de teclado - permitir escritura normal
         return false;
       },
-      handlePaste: (view, event) => {
-        // Prevenir pegar imágenes
+      handlePaste: (view, event, slice) => {
+        // Prevenir pegar imágenes, pero permitir texto
         const clipboardData = event.clipboardData;
         if (clipboardData) {
           const items = Array.from(clipboardData.items);
           const hasImage = items.some(item => item.type.startsWith('image/'));
           if (hasImage) {
             event.preventDefault();
-            return true;
+            return true; // Bloquear pegado de imágenes
           }
+          // Si hay texto, permitir que Tiptap lo procese normalmente
+          // No retornar true aquí para que Tiptap maneje el pegado de texto
         }
+        // Retornar false para permitir el comportamiento por defecto de Tiptap
+        // Esto permite que Tiptap procese el HTML/texto pegado correctamente
         return false;
+      },
+      transformPastedHTML: (html) => {
+        // Limpiar y normalizar HTML pegado de otras plataformas
+        if (!html) return html;
+        
+        // Crear un elemento temporal para procesar el HTML
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = html;
+        
+        // Remover estilos inline que pueden causar problemas
+        const allElements = tempDiv.querySelectorAll('*');
+        allElements.forEach(el => {
+          // Mantener solo atributos básicos necesarios
+          Array.from(el.attributes).forEach(attr => {
+            if (attr.name === 'style' || attr.name.startsWith('data-')) {
+              el.removeAttribute(attr.name);
+            }
+          });
+        });
+        
+        return tempDiv.innerHTML;
       },
       handleDrop: (view, event) => {
         // Prevenir arrastrar y soltar imágenes

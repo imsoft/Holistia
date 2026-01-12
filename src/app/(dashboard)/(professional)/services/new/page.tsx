@@ -64,12 +64,17 @@ export default function NewServicePage() {
       } catch (error) {
         console.error('Error fetching professional data:', error);
         toast.error('Error al cargar información del profesional');
-        router.push(`/professional/${professionalId}/services`);
+        router.push(`/services`);
       } finally {
         setLoading(false);
       }
     };
 
+    if (!professionalId) {
+      setLoading(false);
+      return;
+    }
+    
     fetchProfessionalData();
   }, [professionalId, router, supabase]);
 

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { WorkingHoursConfig } from '@/components/ui/working-hours-config';
 import AvailabilityBlockManager from '@/components/ui/availability-block-manager';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,11 +8,56 @@ import { Button } from '@/components/ui/button';
 import { Clock, Calendar, AlertCircle } from 'lucide-react';
 import { useUserId } from '@/stores/user-store';
 import { useUserStoreInit } from '@/hooks/use-user-store-init';
+import { createClient } from '@/utils/supabase/client';
 
 export default function SchedulePage() {
   useUserStoreInit();
-  const professionalId = useUserId();
+  const userId = useUserId();
+  const supabase = createClient();
+  const [professionalAppId, setProfessionalAppId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'working-hours' | 'availability-blocks'>('working-hours');
+
+  useEffect(() => {
+    if (!userId) {
+      setLoading(false);
+      return;
+    }
+
+    const fetchProfessionalId = async () => {
+      try {
+        const { data: professionalApp, error } = await supabase
+          .from('professional_applications')
+          .select('id')
+          .eq('user_id', userId)
+          .eq('status', 'approved')
+          .single();
+
+        if (error || !professionalApp) {
+          console.error('Error obteniendo profesional:', error);
+          return;
+        }
+
+        setProfessionalAppId(professionalApp.id);
+      } catch (error) {
+        console.error('Error:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProfessionalId();
+  }, [userId, supabase]);
+
+  if (loading || !professionalAppId) {
+    return (
+      <div className="container mx-auto py-6">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-muted-foreground">Cargando...</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto py-6 space-y-6">
@@ -48,7 +93,7 @@ export default function SchedulePage() {
       <div className="space-y-6">
         {activeTab === 'working-hours' && (
           <WorkingHoursConfig 
-            professionalId={professionalId}
+            professionalId={professionalAppId}
             onSave={() => {
               // Aquí podrías agregar lógica adicional después de guardar
               console.log('Horarios guardados');
@@ -57,7 +102,7 @@ export default function SchedulePage() {
         )}
 
         {activeTab === 'availability-blocks' && (
-          <AvailabilityBlockManager professionalId={professionalId} />
+          <AvailabilityBlockManager professionalId={professionalAppId} />
         )}
       </div>
 

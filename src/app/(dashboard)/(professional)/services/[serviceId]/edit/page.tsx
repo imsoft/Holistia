@@ -101,7 +101,7 @@ export default function EditServicePage() {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => router.push(`/professional/${professionalId}/services`)}
+            onClick={() => router.push(`/services`)}
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>
@@ -113,8 +113,8 @@ export default function EditServicePage() {
       <div className="py-4 px-6">
         <div className="max-w-3xl mx-auto">
           <ServiceForm
-            professionalId={professionalId}
-            userId={professionalId}
+            professionalId={professionalId || ''}
+            userId={professionalId || ''}
             service={service}
             redirectPath={`/services`}
           />

@@ -233,7 +233,7 @@ function MessagesPageContent() {
           Mensajes
         </h1>
         <p className="text-muted-foreground">
-          Conversa con expertos
+          {isProfessional ? 'Conversa con pacientes' : 'Conversa con expertos'}
         </p>
       </div>
 
@@ -264,6 +264,7 @@ function MessagesPageContent() {
                             : 'Experto',
                           avatar_url: conversation.professional?.profile_photo || null,
                           unreadCount: conversation.user_unread_count,
+                          isProfessional: true, // El otro usuario es profesional
                         }
                       : {
                           id: conversation.user_id,
@@ -272,6 +273,7 @@ function MessagesPageContent() {
                             : 'Usuario',
                           avatar_url: conversation.user?.avatar_url || null,
                           unreadCount: conversation.professional_unread_count,
+                          isProfessional: false, // El otro usuario es paciente
                         };
 
                     return (
@@ -291,9 +293,17 @@ function MessagesPageContent() {
                           </Avatar>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center justify-between mb-1">
-                              <h3 className="font-semibold text-sm truncate">
-                                {otherUser.name}
-                              </h3>
+                              <div className="flex items-center gap-2 min-w-0">
+                                <h3 className="font-semibold text-sm truncate">
+                                  {otherUser.name}
+                                </h3>
+                                <Badge 
+                                  variant={otherUser.isProfessional ? "default" : "secondary"}
+                                  className="shrink-0 text-xs"
+                                >
+                                  {otherUser.isProfessional ? "Experto" : "Paciente"}
+                                </Badge>
+                              </div>
                               {otherUser.unreadCount > 0 && (
                                 <Badge variant="default" className="ml-2 shrink-0">
                                   {otherUser.unreadCount}
@@ -335,6 +345,7 @@ function MessagesPageContent() {
                           ? `${selectedConversation.professional.first_name} ${selectedConversation.professional.last_name}`
                           : 'Profesional',
                         avatar_url: selectedConversation.professional?.profile_photo || null,
+                        isProfessional: true, // El otro usuario es profesional
                       }
                     : {
                         id: selectedConversation.user_id,
@@ -342,6 +353,7 @@ function MessagesPageContent() {
                           ? `${selectedConversation.user.first_name} ${selectedConversation.user.last_name}`
                           : 'Usuario',
                         avatar_url: selectedConversation.user?.avatar_url || null,
+                        isProfessional: false, // El otro usuario es paciente
                       };
 
                   // Determinar professionalId: si el usuario actual es profesional, usar su professionalId

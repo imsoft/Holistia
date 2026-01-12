@@ -66,6 +66,7 @@ interface DirectMessageChatProps {
     id: string;
     name: string;
     avatar_url?: string | null;
+    isProfessional?: boolean; // Si el otro usuario es profesional
   };
   professionalId?: string; // ID del profesional para obtener servicios
   isProfessional?: boolean; // Si el usuario actual es profesional
@@ -708,8 +709,14 @@ export function DirectMessageChat({
               {otherUser.name.split(' ').map(n => n[0]).join('').toUpperCase()}
             </AvatarFallback>
           </Avatar>
-          <div>
+          <div className="flex items-center gap-2">
             <h3 className="font-semibold">{otherUser.name}</h3>
+            <Badge 
+              variant={otherUser.isProfessional ? "default" : "secondary"}
+              className="text-xs"
+            >
+              {otherUser.isProfessional ? "Experto" : "Paciente"}
+            </Badge>
           </div>
         </div>
       </div>
@@ -727,6 +734,8 @@ export function DirectMessageChat({
               const senderName = msg.sender 
                 ? `${msg.sender.first_name} ${msg.sender.last_name}`
                 : 'Usuario';
+              // Determinar si el remitente es profesional basado en sender_type
+              const senderIsProfessional = msg.sender_type === 'professional';
 
               return (
                 <div
@@ -737,14 +746,22 @@ export function DirectMessageChat({
                   )}
                 >
                   {!isOwnMessage && (
-                    <Avatar className="h-8 w-8 shrink-0">
-                      <AvatarImage src={msg.sender?.avatar_url || undefined} />
-                      <AvatarFallback>
-                        {msg.sender 
-                          ? getUserInitials(msg.sender.first_name, msg.sender.last_name)
-                          : 'U'}
-                      </AvatarFallback>
-                    </Avatar>
+                    <div className="flex flex-col items-center gap-1">
+                      <Avatar className="h-8 w-8 shrink-0">
+                        <AvatarImage src={msg.sender?.avatar_url || undefined} />
+                        <AvatarFallback>
+                          {msg.sender 
+                            ? getUserInitials(msg.sender.first_name, msg.sender.last_name)
+                            : 'U'}
+                        </AvatarFallback>
+                      </Avatar>
+                      <Badge 
+                        variant={senderIsProfessional ? "default" : "secondary"}
+                        className="text-xs px-1.5 py-0"
+                      >
+                        {senderIsProfessional ? "Experto" : "Paciente"}
+                      </Badge>
+                    </div>
                   )}
                   <div className={cn(
                     "flex flex-col max-w-[70%]",
@@ -940,14 +957,22 @@ export function DirectMessageChat({
                     </span>
                   </div>
                   {isOwnMessage && (
-                    <Avatar className="h-8 w-8 shrink-0">
-                      <AvatarImage src={msg.sender?.avatar_url || undefined} />
-                      <AvatarFallback>
-                        {msg.sender 
-                          ? getUserInitials(msg.sender.first_name, msg.sender.last_name)
-                          : 'U'}
-                      </AvatarFallback>
-                    </Avatar>
+                    <div className="flex flex-col items-center gap-1">
+                      <Avatar className="h-8 w-8 shrink-0">
+                        <AvatarImage src={msg.sender?.avatar_url || undefined} />
+                        <AvatarFallback>
+                          {msg.sender 
+                            ? getUserInitials(msg.sender.first_name, msg.sender.last_name)
+                            : 'U'}
+                        </AvatarFallback>
+                      </Avatar>
+                      <Badge 
+                        variant={isProfessional ? "default" : "secondary"}
+                        className="text-xs px-1.5 py-0"
+                      >
+                        {isProfessional ? "Experto" : "Paciente"}
+                      </Badge>
+                    </div>
                   )}
                 </div>
               );

@@ -93,6 +93,8 @@ export default function ProfessionalAppointments() {
   const [professionalAppId, setProfessionalAppId] = useState<string>("");
 
   useEffect(() => {
+    if (!userId) return;
+    
     const fetchAppointments = async () => {
       try {
         const { data: professionalApp, error: profError } = await supabase
@@ -324,6 +326,10 @@ export default function ProfessionalAppointments() {
       }
 
       // Si está conectado, proceder con la sincronización
+      if (!userId) {
+        toast.error("No se pudo obtener el ID del usuario");
+        return;
+      }
       const result = await syncAllAppointmentsToGoogleCalendar(userId);
       if (result.success) {
         toast.success(result.message || 'Calendario sincronizado correctamente');

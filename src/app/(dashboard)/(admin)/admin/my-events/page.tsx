@@ -121,7 +121,7 @@ export default function MyEventsPage() {
               Para recibir pagos de tus eventos, necesitas conectar tu cuenta de Stripe.
             </p>
             <StripeConnectSetup
-              userId={userId}
+              userId={userId || ''}
               userType="admin"
               onConnected={handleStripeConnected}
             />

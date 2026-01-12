@@ -161,7 +161,7 @@ const EventsAdminPage = () => {
   };
 
   const handleEditEvent = (event: EventWorkshop) => {
-    router.push(`/admin/${adminId}/events/${event.id}/edit`);
+    router.push(`/admin/events/${event.id}/edit`);
   };
 
   const filteredEvents = events.filter((event) => {
@@ -233,7 +233,7 @@ const EventsAdminPage = () => {
             </div>
           </div>
           <Button
-            onClick={() => router.push(`/admin/${adminId}/events/new`)}
+            onClick={() => router.push(`/admin/events/new`)}
             className="w-full sm:w-auto"
           >
             <Plus className="w-4 h-4 mr-2" />

@@ -559,7 +559,7 @@ export default function ProfessionalAppointments() {
   };
 
   const openNoShowDialog = (appointment: Appointment) => {
-    router.push(`/professional/${userId}/appointments/${appointment.id}/no-show`);
+    router.push(`/appointments/${appointment.id}/no-show`);
   };
 
   const openRescheduleDialog = (appointment: Appointment) => {

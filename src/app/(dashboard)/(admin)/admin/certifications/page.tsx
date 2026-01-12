@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
+import { useUserId } from "@/stores/user-store";
+import { useUserStoreInit } from "@/hooks/use-user-store-init";
 import {
   Mail,
   Search,
@@ -66,8 +67,8 @@ interface EmailLog {
 }
 
 export default function CertificationsPage() {
-  const params = useParams();
-  const adminId = params.id as string;
+  useUserStoreInit();
+  const adminId = useUserId();
   const { profile } = useProfile();
   const supabase = createClient();
   

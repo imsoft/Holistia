@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
+import { useUserId } from "@/stores/user-store";
+import { useUserStoreInit } from "@/hooks/use-user-store-init";
 import { createClient } from "@/utils/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -80,8 +81,8 @@ interface Professional {
 }
 
 export default function AnalyticsPage() {
-  const params = useParams();
-  const adminId = params.id as string;
+  useUserStoreInit();
+  const adminId = useUserId();
   const supabase = createClient();
 
   const [loading, setLoading] = useState(true);

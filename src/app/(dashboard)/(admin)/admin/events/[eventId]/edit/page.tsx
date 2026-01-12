@@ -1,6 +1,8 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
+import { useUserId } from "@/stores/user-store";
+import { useUserStoreInit } from "@/hooks/use-user-store-init";
 import { useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
@@ -52,7 +54,7 @@ export default function EditEventPage() {
     } catch (error) {
       console.error("Error fetching data:", error);
       toast.error("Error al cargar el evento");
-      router.push(`/admin/${adminId}/events`);
+      router.push(`/admin/events`);
     } finally {
       setLoading(false);
     }

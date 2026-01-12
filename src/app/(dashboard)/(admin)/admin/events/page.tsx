@@ -1,7 +1,9 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
+import { useUserId } from "@/stores/user-store";
+import { useUserStoreInit } from "@/hooks/use-user-store-init";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -32,9 +34,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 const EventsAdminPage = () => {
-  const params = useParams();
+  useUserStoreInit();
   const router = useRouter();
-  const adminId = params.id as string;
+  const adminId = useUserId();
   const [events, setEvents] = useState<EventWorkshop[]>([]);
   const [professionals, setProfessionals] = useState<Professional[]>([]);
   const [loading, setLoading] = useState(true);

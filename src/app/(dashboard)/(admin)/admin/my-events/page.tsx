@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
+import { useUserId } from "@/stores/user-store";
+import { useUserStoreInit } from "@/hooks/use-user-store-init";
 import { createClient } from "@/utils/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -14,9 +16,9 @@ import { StripeConnectSetup } from "@/components/ui/stripe-connect-setup";
 import { EventRegistrationsList } from "@/components/ui/event-registrations-list";
 
 export default function MyEventsPage() {
-  const params = useParams();
+  useUserStoreInit();
   const router = useRouter();
-  const userId = params.id as string;
+  const userId = useUserId();
   const supabase = createClient();
 
   const [loading, setLoading] = useState(true);

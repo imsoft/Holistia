@@ -1,6 +1,8 @@
 "use client";
 
-import { useParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
+import { useUserId } from "@/stores/user-store";
+import { useUserStoreInit } from "@/hooks/use-user-store-init";
 import { useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
@@ -10,9 +12,9 @@ import { createClient } from "@/utils/supabase/client";
 import { toast } from "sonner";
 
 export default function NewEventPage() {
-  const params = useParams();
+  useUserStoreInit();
   const router = useRouter();
-  const adminId = params.id as string;
+  const adminId = useUserId();
   const [professionals, setProfessionals] = useState<Professional[]>([]);
   const [loading, setLoading] = useState(true);
   const supabase = createClient();
@@ -47,11 +49,11 @@ export default function NewEventPage() {
   }, [fetchProfessionals]);
 
   const handleSuccess = () => {
-    router.push(`/admin/${adminId}/events`);
+          router.push(`/admin/events`);
   };
 
   const handleCancel = () => {
-    router.push(`/admin/${adminId}/events`);
+          router.push(`/admin/events`);
   };
 
   if (loading) {

@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
+import { useUserId } from "@/stores/user-store";
+import { useUserStoreInit } from "@/hooks/use-user-store-init";
 import {
   Users,
   Search,
@@ -45,8 +46,8 @@ import { createClient } from "@/utils/supabase/client";
 
 
 export default function ProfessionalPatients() {
-  const params = useParams();
-  const userId = params.id as string;
+  useUserStoreInit();
+  const userId = useUserId();
   const supabase = createClient();
   
   const [searchTerm, setSearchTerm] = useState("");

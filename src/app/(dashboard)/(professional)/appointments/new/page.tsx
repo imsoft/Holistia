@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
+import { useUserId } from "@/stores/user-store";
+import { useUserStoreInit } from "@/hooks/use-user-store-init";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -37,9 +39,9 @@ interface Service {
 }
 
 export default function NewAppointmentPage() {
-  const params = useParams();
+  useUserStoreInit();
   const router = useRouter();
-  const professionalId = params.id as string;
+  const professionalId = useUserId();
 
   const [patients, setPatients] = useState<(Patient & { isExisting?: boolean })[]>([]);
   const [services, setServices] = useState<Service[]>([]);

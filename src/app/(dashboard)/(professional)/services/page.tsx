@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
+import { useUserId } from "@/stores/user-store";
+import { useUserStoreInit } from "@/hooks/use-user-store-init";
 import { ServiceManager } from "@/components/ui/service-manager";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -23,11 +24,11 @@ interface Professional {
 }
 
 export default function ProfessionalServicesPage() {
+  useUserStoreInit();
   const [professional, setProfessional] = useState<Professional | null>(null);
   const [currentUser, setCurrentUser] = useState<{ id: string } | null>(null);
   const [loading, setLoading] = useState(true);
-  const params = useParams();
-  const professionalId = params.id as string;
+  const userId = useUserId();
   const router = useRouter();
   const supabase = createClient();
 
@@ -58,7 +59,6 @@ export default function ProfessionalServicesPage() {
         if (professionalError) {
           console.error("Error fetching professional:", professionalError);
           console.error("User ID:", user.id);
-          console.error("Professional ID from URL:", professionalId);
           
           // Si no existe la aplicación profesional, mostrar mensaje apropiado
           if (professionalError.code === 'PGRST116') {
@@ -88,7 +88,7 @@ export default function ProfessionalServicesPage() {
     };
 
     fetchData();
-  }, [professionalId, router, supabase]);
+  }, [userId, router, supabase]);
 
   if (loading) {
     return (

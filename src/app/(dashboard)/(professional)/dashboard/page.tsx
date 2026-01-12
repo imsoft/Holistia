@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
+import { useUserId } from "@/stores/user-store";
+import { useUserStoreInit } from "@/hooks/use-user-store-init";
 import {
   Calendar,
   Users,
@@ -31,9 +33,9 @@ import { VerifiedBadge } from "@/components/ui/verified-badge";
 
 
 export default function ProfessionalDashboard() {
-  const params = useParams();
+  useUserStoreInit();
   const router = useRouter();
-  const userIdParam = params.id as string; // Este es el user_id, no el professional_id
+  const userIdParam = useUserId(); // Este es el user_id, no el professional_id
   const supabase = createClient();
   
   const [loading, setLoading] = useState(true);
@@ -70,7 +72,7 @@ export default function ProfessionalDashboard() {
         const { data: professionalApp, error: profError } = await supabase
           .from('professional_applications')
           .select('id, user_id, first_name, last_name, profile_photo, working_start_time, working_end_time, registration_fee_paid, registration_fee_amount, registration_fee_currency, registration_fee_paid_at, registration_fee_expires_at, is_verified')
-          .eq('user_id', userIdParam)
+          .eq('user_id', userIdParam || '')
           .eq('status', 'approved')
           .single();
 

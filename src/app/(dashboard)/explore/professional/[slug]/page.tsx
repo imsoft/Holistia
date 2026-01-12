@@ -1721,7 +1721,7 @@ export default function ProfessionalProfilePage() {
             <div className="flex-1 min-h-0">
               <DirectMessageChat
                 conversationId={conversationId}
-                currentUserId={patientId}
+                 currentUserId={patientId || undefined}
                 otherUser={{
                   id: professional.id,
                   name: `${professional.first_name} ${professional.last_name}`,

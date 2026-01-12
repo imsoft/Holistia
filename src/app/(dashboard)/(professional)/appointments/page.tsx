@@ -199,59 +199,62 @@ export default function ProfessionalAppointments() {
           try {
             const googleEventsResult = await listUserGoogleCalendarEvents(userId);
 
-          if (googleEventsResult.success && 'events' in googleEventsResult && googleEventsResult.events) {
-            // Convertir eventos de Google Calendar a formato Appointment
-            const googleAppointments: Appointment[] = googleEventsResult.events
-              .filter((event: any) => event.start?.dateTime) // Solo eventos con hora específica
-              .map((event: any) => {
-                const startDate = new Date(event.start.dateTime);
-                const endDate = new Date(event.end.dateTime);
-                const durationMinutes = Math.round((endDate.getTime() - startDate.getTime()) / 60000);
+            if (googleEventsResult.success && 'events' in googleEventsResult && googleEventsResult.events) {
+              // Convertir eventos de Google Calendar a formato Appointment
+              const googleAppointments: Appointment[] = googleEventsResult.events
+                .filter((event: any) => event.start?.dateTime) // Solo eventos con hora específica
+                .map((event: any) => {
+                  const startDate = new Date(event.start.dateTime);
+                  const endDate = new Date(event.end.dateTime);
+                  const durationMinutes = Math.round((endDate.getTime() - startDate.getTime()) / 60000);
 
-                // Usar fecha local para evitar problemas de zona horaria
-                const localDate = new Date(startDate.getTime() - startDate.getTimezoneOffset() * 60000);
-                const dateString = localDate.toISOString().split('T')[0];
-                
-                // Formatear hora en zona horaria local
-                const hours = startDate.getHours().toString().padStart(2, '0');
-                const minutes = startDate.getMinutes().toString().padStart(2, '0');
-                const timeString = `${hours}:${minutes}`;
+                  // Usar fecha local para evitar problemas de zona horaria
+                  const localDate = new Date(startDate.getTime() - startDate.getTimezoneOffset() * 60000);
+                  const dateString = localDate.toISOString().split('T')[0];
+                  
+                  // Formatear hora en zona horaria local
+                  const hours = startDate.getHours().toString().padStart(2, '0');
+                  const minutes = startDate.getMinutes().toString().padStart(2, '0');
+                  const timeString = `${hours}:${minutes}`;
 
-                return {
-                  id: `google-${event.id}`,
-                  patient: {
-                    name: event.summary || "Evento de Google Calendar",
-                    email: event.attendees?.[0]?.email || "",
-                    phone: "",
-                  },
-                  date: dateString,
-                  time: timeString,
-                  duration: durationMinutes,
-                  type: event.location?.includes("Online") ? "Online" : "Presencial",
-                  status: "confirmed" as const,
-                  location: event.location || "Google Calendar",
-                  notes: event.description,
-                  isPaid: false,
-                };
+                  return {
+                    id: `google-${event.id}`,
+                    patient: {
+                      name: event.summary || "Evento de Google Calendar",
+                      email: event.attendees?.[0]?.email || "",
+                      phone: "",
+                    },
+                    date: dateString,
+                    time: timeString,
+                    duration: durationMinutes,
+                    type: event.location?.includes("Online") ? "Online" : "Presencial",
+                    status: "confirmed" as const,
+                    location: event.location || "Google Calendar",
+                    notes: event.description,
+                    isPaid: false,
+                  };
+                });
+
+              // Combinar citas de Holistia con eventos de Google Calendar
+              const allAppointments = [...formattedAppointments, ...googleAppointments];
+
+              // Ordenar por fecha y hora
+              allAppointments.sort((a, b) => {
+                const dateCompare = a.date.localeCompare(b.date);
+                if (dateCompare !== 0) return dateCompare;
+                return a.time.localeCompare(b.time);
               });
 
-            // Combinar citas de Holistia con eventos de Google Calendar
-            const allAppointments = [...formattedAppointments, ...googleAppointments];
-
-            // Ordenar por fecha y hora
-            allAppointments.sort((a, b) => {
-              const dateCompare = a.date.localeCompare(b.date);
-              if (dateCompare !== 0) return dateCompare;
-              return a.time.localeCompare(b.time);
-            });
-
-            setAppointments(allAppointments);
-          } else {
+              setAppointments(allAppointments);
+            } else {
+              setAppointments(formattedAppointments);
+            }
+          } catch (googleError) {
+            console.log("No se pudieron cargar eventos de Google Calendar:", googleError);
+            // Si falla Google Calendar, solo mostrar las citas de Holistia
             setAppointments(formattedAppointments);
           }
-        } catch (googleError) {
-          console.log("No se pudieron cargar eventos de Google Calendar:", googleError);
-          // Si falla Google Calendar, solo mostrar las citas de Holistia
+        } else {
           setAppointments(formattedAppointments);
         }
       } catch (error) {
@@ -318,7 +321,7 @@ export default function ProfessionalAppointments() {
         });
 
         setTimeout(() => {
-          window.location.href = `/professional/${userId}/settings`;
+          window.location.href = `/settings`;
         }, 2000);
 
         setSyncing(false);
@@ -344,7 +347,7 @@ export default function ProfessionalAppointments() {
           });
 
           setTimeout(() => {
-            window.location.href = `/professional/${userId}/settings`;
+            window.location.href = `/settings`;
           }, 2000);
         } else {
           toast.error(result.error || 'Error al sincronizar el calendario');

@@ -312,7 +312,7 @@ export default function NewAppointmentPage() {
       }
 
       // Redirigir de vuelta a la página de citas
-      router.push(`/professional/${professionalId}/appointments`);
+      router.push(`/appointments`);
     } catch (err) {
       console.error("Error al crear cita:", err);
       setError(

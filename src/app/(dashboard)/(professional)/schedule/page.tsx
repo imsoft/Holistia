@@ -6,15 +6,12 @@ import AvailabilityBlockManager from '@/components/ui/availability-block-manager
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Clock, Calendar, AlertCircle } from 'lucide-react';
+import { useUserId } from '@/stores/user-store';
+import { useUserStoreInit } from '@/hooks/use-user-store-init';
 
-interface SchedulePageProps {
-  params: {
-    id: string;
-  };
-}
-
-export default function SchedulePage({ params }: SchedulePageProps) {
-  const professionalId = params.id;
+export default function SchedulePage() {
+  useUserStoreInit();
+  const professionalId = useUserId();
   const [activeTab, setActiveTab] = useState<'working-hours' | 'availability-blocks'>('working-hours');
 
   return (

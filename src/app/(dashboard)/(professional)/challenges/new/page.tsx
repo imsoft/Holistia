@@ -6,9 +6,9 @@ import { ArrowLeft } from "lucide-react";
 import { ChallengeForm } from "@/components/challenges/challenge-form";
 
 export default function NewProfessionalChallengePage() {
-  const params = useParams();
+  useUserStoreInit();
   const router = useRouter();
-  const professionalId = params.id as string;
+  const professionalId = useUserId();
 
   return (
     <div className="min-h-screen bg-background">

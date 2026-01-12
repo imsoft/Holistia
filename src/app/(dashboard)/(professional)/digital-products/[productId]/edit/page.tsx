@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { useUserId } from "@/stores/user-store";
+import { useUserStoreInit } from "@/hooks/use-user-store-init";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { DigitalProductForm } from "@/components/digital-products/digital-product-form";
@@ -25,9 +27,10 @@ interface DigitalProduct {
 }
 
 export default function EditDigitalProductPage() {
+  useUserStoreInit();
   const params = useParams();
   const router = useRouter();
-  const professionalId = params.id as string;
+  const professionalId = useUserId();
   const productId = params.productId as string;
 
   const [product, setProduct] = useState<DigitalProduct | null>(null);

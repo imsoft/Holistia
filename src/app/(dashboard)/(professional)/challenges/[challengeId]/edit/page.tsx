@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { useUserId } from "@/stores/user-store";
+import { useUserStoreInit } from "@/hooks/use-user-store-init";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { ChallengeForm } from "@/components/challenges/challenge-form";
@@ -29,9 +31,10 @@ interface Challenge {
 }
 
 export default function EditProfessionalChallengePage() {
+  useUserStoreInit();
   const params = useParams();
   const router = useRouter();
-  const professionalId = params.id as string;
+  const professionalId = useUserId();
   const challengeId = params.challengeId as string;
 
   const [challenge, setChallenge] = useState<Challenge | null>(null);

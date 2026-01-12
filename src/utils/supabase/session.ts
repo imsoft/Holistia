@@ -67,6 +67,39 @@ export async function updateSession(request: NextRequest) {
       request.nextUrl.pathname.startsWith(path)
     );
 
+    // Redirigir URLs antiguas con IDs a nuevas URLs limpias (ANTES de verificaciones de autenticación)
+    const pathname = request.nextUrl.pathname;
+    
+    // Redirigir /patient/[id]/* a rutas limpias
+    if (pathname.match(/^\/patient\/[^/]+(.*)$/)) {
+      const match = pathname.match(/^\/patient\/[^/]+(.*)$/);
+      const newPath = match ? match[1] || '/explore' : '/explore';
+      const url = request.nextUrl.clone();
+      url.pathname = newPath;
+      console.log('🔄 Redirecting /patient/[id]/* to:', url.pathname);
+      return NextResponse.redirect(url);
+    }
+    
+    // Redirigir /professional/[id]/* a rutas limpias
+    if (pathname.match(/^\/professional\/[^/]+(.*)$/)) {
+      const match = pathname.match(/^\/professional\/[^/]+(.*)$/);
+      const newPath = match ? match[1] || '/dashboard' : '/dashboard';
+      const url = request.nextUrl.clone();
+      url.pathname = newPath;
+      console.log('🔄 Redirecting /professional/[id]/* to:', url.pathname);
+      return NextResponse.redirect(url);
+    }
+    
+    // Redirigir /admin/[id]/* a rutas limpias
+    if (pathname.match(/^\/admin\/[^/]+(.*)$/)) {
+      const match = pathname.match(/^\/admin\/[^/]+(.*)$/);
+      const newPath = match ? `/admin${match[1] || '/dashboard'}` : '/admin/dashboard';
+      const url = request.nextUrl.clone();
+      url.pathname = newPath;
+      console.log('🔄 Redirecting /admin/[id]/* to:', url.pathname);
+      return NextResponse.redirect(url);
+    }
+
     // Manejar la ruta raíz '/' de forma especial para usuarios autenticados
     if (request.nextUrl.pathname === '/') {
       try {
@@ -162,36 +195,6 @@ export async function updateSession(request: NextRequest) {
           url.pathname = "/account-deactivated";
           return NextResponse.redirect(url);
         }
-      }
-
-      // Redirigir URLs antiguas con IDs a nuevas URLs limpias
-      const pathname = request.nextUrl.pathname;
-      
-      // Redirigir /patient/[id]/* a rutas limpias
-      if (pathname.match(/^\/patient\/[^/]+(.*)$/)) {
-        const match = pathname.match(/^\/patient\/[^/]+(.*)$/);
-        const newPath = match ? match[1] || '/explore' : '/explore';
-        const url = request.nextUrl.clone();
-        url.pathname = newPath;
-        return NextResponse.redirect(url);
-      }
-      
-      // Redirigir /professional/[id]/* a rutas limpias
-      if (pathname.match(/^\/professional\/[^/]+(.*)$/)) {
-        const match = pathname.match(/^\/professional\/[^/]+(.*)$/);
-        const newPath = match ? match[1] || '/dashboard' : '/dashboard';
-        const url = request.nextUrl.clone();
-        url.pathname = newPath;
-        return NextResponse.redirect(url);
-      }
-      
-      // Redirigir /admin/[id]/* a rutas limpias
-      if (pathname.match(/^\/admin\/[^/]+(.*)$/)) {
-        const match = pathname.match(/^\/admin\/[^/]+(.*)$/);
-        const newPath = match ? `/admin${match[1] || '/dashboard'}` : '/admin/dashboard';
-        const url = request.nextUrl.clone();
-        url.pathname = newPath;
-        return NextResponse.redirect(url);
       }
       
       // Verificar permisos según tipo de usuario para rutas protegidas

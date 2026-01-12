@@ -93,7 +93,7 @@ export default function EditDigitalProductPage() {
       <div className="py-4 px-6">
         <div className="max-w-3xl mx-auto">
           <DigitalProductForm
-            professionalId={professionalId}
+            professionalId={professionalId || ''}
             product={product}
             redirectPath={`/digital-products`}
           />

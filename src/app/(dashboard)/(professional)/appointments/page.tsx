@@ -555,7 +555,7 @@ export default function ProfessionalAppointments() {
   };
 
   const openCancelDialog = (appointment: Appointment) => {
-    router.push(`/professional/${userId}/appointments/${appointment.id}/cancel`);
+    router.push(`/appointments/${appointment.id}/cancel`);
   };
 
   const openNoShowDialog = (appointment: Appointment) => {
@@ -563,7 +563,7 @@ export default function ProfessionalAppointments() {
   };
 
   const openRescheduleDialog = (appointment: Appointment) => {
-    router.push(`/professional/${userId}/appointments/${appointment.id}/reschedule`);
+    router.push(`/appointments/${appointment.id}/reschedule`);
   };
 
   const getStatusColor = (status: string) => {
@@ -1076,7 +1076,7 @@ export default function ProfessionalAppointments() {
           <div className="flex items-center gap-2">
             <Button
               size="sm"
-              onClick={() => router.push(`/professional/${userId}/appointments/new`)}
+              onClick={() => router.push(`/appointments/new`)}
               className="w-full sm:w-auto"
             >
               + Nueva Cita

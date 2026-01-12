@@ -85,9 +85,9 @@ export async function updateSession(request: NextRequest) {
           if (profile) {
             const url = request.nextUrl.clone();
 
-            // Redirigir según el tipo de usuario
+            // Redirigir según el tipo de usuario (URLs limpias sin IDs)
             if (profile.type === 'admin') {
-              url.pathname = `/admin/${user.id}/dashboard`;
+              url.pathname = `/admin/dashboard`;
             } else if (profile.type === 'professional') {
               // Verificar si el profesional tiene una aplicación aprobada
               const { data: professionalApp } = await supabase
@@ -97,14 +97,14 @@ export async function updateSession(request: NextRequest) {
                 .maybeSingle();
 
               if (professionalApp) {
-                url.pathname = `/professional/${professionalApp.id}/dashboard`;
+                url.pathname = `/dashboard`;
               } else {
                 // Si no tiene aplicación, redirigir como paciente
-                url.pathname = `/patient/${user.id}/explore`;
+                url.pathname = `/explore`;
               }
             } else {
               // Por defecto redirigir como paciente
-              url.pathname = `/patient/${user.id}/explore`;
+              url.pathname = `/explore`;
             }
 
             console.log('🔄 Redirecting authenticated user from / to:', url.pathname);
@@ -164,23 +164,63 @@ export async function updateSession(request: NextRequest) {
         }
       }
 
-      // Redirigir administradores a la URL correcta si están usando un ID incorrecto
-      if (user && request.nextUrl.pathname.startsWith("/admin/")) {
-        // Obtener tipo de usuario desde profiles
+      // Redirigir URLs antiguas con IDs a nuevas URLs limpias
+      const pathname = request.nextUrl.pathname;
+      
+      // Redirigir /patient/[id]/* a rutas limpias
+      if (pathname.match(/^\/patient\/[^/]+(.*)$/)) {
+        const match = pathname.match(/^\/patient\/[^/]+(.*)$/);
+        const newPath = match ? match[1] || '/explore' : '/explore';
+        const url = request.nextUrl.clone();
+        url.pathname = newPath;
+        return NextResponse.redirect(url);
+      }
+      
+      // Redirigir /professional/[id]/* a rutas limpias
+      if (pathname.match(/^\/professional\/[^/]+(.*)$/)) {
+        const match = pathname.match(/^\/professional\/[^/]+(.*)$/);
+        const newPath = match ? match[1] || '/dashboard' : '/dashboard';
+        const url = request.nextUrl.clone();
+        url.pathname = newPath;
+        return NextResponse.redirect(url);
+      }
+      
+      // Redirigir /admin/[id]/* a rutas limpias
+      if (pathname.match(/^\/admin\/[^/]+(.*)$/)) {
+        const match = pathname.match(/^\/admin\/[^/]+(.*)$/);
+        const newPath = match ? `/admin${match[1] || '/dashboard'}` : '/admin/dashboard';
+        const url = request.nextUrl.clone();
+        url.pathname = newPath;
+        return NextResponse.redirect(url);
+      }
+      
+      // Verificar permisos según tipo de usuario para rutas protegidas
+      if (user) {
         const { data: profile } = await supabase
           .from('profiles')
           .select('type')
           .eq('id', user.id)
           .maybeSingle();
         
-        if (profile?.type === 'admin') {
-          const pathSegments = request.nextUrl.pathname.split('/');
-          const currentAdminId = pathSegments[2]; // /admin/[id]/...
+        // Proteger rutas de admin
+        if (pathname.startsWith('/admin/') && profile?.type !== 'admin') {
+          const url = request.nextUrl.clone();
+          url.pathname = '/explore';
+          return NextResponse.redirect(url);
+        }
+        
+        // Proteger rutas de dashboard profesional
+        if (pathname.startsWith('/dashboard') && profile?.type !== 'professional') {
+          const { data: professionalApp } = await supabase
+            .from('professional_applications')
+            .select('id, status')
+            .eq('user_id', user.id)
+            .eq('status', 'approved')
+            .maybeSingle();
           
-          if (currentAdminId !== user.id) {
-            // Redirigir a la URL correcta con el ID del usuario autenticado
+          if (!professionalApp) {
             const url = request.nextUrl.clone();
-            url.pathname = `/admin/${user.id}${pathSegments.slice(3).join('/')}`;
+            url.pathname = '/explore';
             return NextResponse.redirect(url);
           }
         }
@@ -194,7 +234,7 @@ export async function updateSession(request: NextRequest) {
     return supabaseResponse;
 
   } catch (error) {
-    console.error('Middleware error:', error);
+    console.error('Proxy error:', error);
     // En caso de error crítico, devolver una respuesta básica
     return NextResponse.next({ request });
   }

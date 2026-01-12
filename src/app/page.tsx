@@ -32,9 +32,9 @@ const Home = () => {
           userType: profile?.type
         });
 
-        // Redirigir según el tipo de usuario
+        // Redirigir según el tipo de usuario (URLs limpias sin IDs)
         if (profile?.type === 'admin') {
-          router.push(`/admin/${user.id}/dashboard`);
+          router.push(`/admin/dashboard`);
         } else if (profile?.type === 'professional') {
           // Verificar si el profesional tiene una aplicación aprobada
           const { data: professionalApp } = await supabase
@@ -44,14 +44,14 @@ const Home = () => {
             .maybeSingle();
 
           if (professionalApp) {
-            router.push(`/professional/${professionalApp.id}/dashboard`);
+            router.push(`/dashboard`);
           } else {
             // Si no tiene aplicación, redirigir como paciente
-            router.push(`/patient/${user.id}/explore`);
+            router.push(`/explore`);
           }
         } else {
           // Por defecto redirigir como paciente
-          router.push(`/patient/${user.id}/explore`);
+          router.push(`/explore`);
         }
       }
     };

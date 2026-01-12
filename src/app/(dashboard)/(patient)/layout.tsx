@@ -22,44 +22,44 @@ import { createClient } from "@/utils/supabase/client";
 import { useProfile } from "@/hooks/use-profile";
 import { NotificationsDropdown } from "@/components/ui/notifications-dropdown";
 
-// Función para generar navegación basada en el ID del usuario
-const getNavigation = (userId: string, hasEvents: boolean = false) => {
+// Función para generar navegación (URLs limpias sin IDs)
+const getNavigation = (hasEvents: boolean = false) => {
   const nav = [
-    { name: "Explorar", href: `/patient/${userId}/explore` },
-    { name: "Feed", href: `/patient/${userId}/feed` },
-    { name: "Favoritos", href: `/patient/${userId}/explore/favorites` },
-    { name: "Mensajes", href: `/patient/${userId}/messages` },
-    { name: "Citas", href: `/patient/${userId}/explore/appointments` },
-    { name: "Mis Programas", href: `/patient/${userId}/my-products` },
-    { name: "Mis Retos", href: `/patient/${userId}/my-challenges` },
-    { name: "Mis Equipos", href: `/patient/${userId}/my-teams` },
+    { name: "Explorar", href: `/explore` },
+    { name: "Feed", href: `/feed` },
+    { name: "Favoritos", href: `/explore/favorites` },
+    { name: "Mensajes", href: `/messages` },
+    { name: "Citas", href: `/explore/appointments` },
+    { name: "Mis Programas", href: `/my-products` },
+    { name: "Mis Retos", href: `/my-challenges` },
+    { name: "Mis Equipos", href: `/my-teams` },
   ];
 
   // Agregar "Mis eventos" solo si el usuario tiene eventos asignados
   if (hasEvents) {
-    nav.push({ name: "Mis eventos", href: `/patient/${userId}/my-events` });
+    nav.push({ name: "Mis eventos", href: `/my-events` });
   }
 
   return nav;
 };
 
-// Función para generar navegación dinámica basada en el estado del usuario
-const getUserNavigation = (userId: string, isProfessional: boolean = false) => {
+// Función para generar navegación dinámica basada en el estado del usuario (URLs limpias)
+const getUserNavigation = (isProfessional: boolean = false) => {
   const baseNavigation = [
-    { name: "Mi perfil", href: `/patient/${userId}/explore/profile`, icon: User },
+    { name: "Mi perfil", href: `/explore/profile`, icon: User },
   ];
 
   // Agregar enlace profesional basado en el estado
   if (isProfessional) {
     baseNavigation.push({
       name: "Dashboard Profesional",
-      href: `/professional/${userId}/dashboard`,
+      href: `/dashboard`,
       icon: Briefcase,
     });
   } else {
     baseNavigation.push({
       name: "Volverme profesional",
-      href: `/patient/${userId}/explore/become-professional`,
+      href: `/explore/become-professional`,
       icon: Briefcase,
     });
   }
@@ -80,12 +80,8 @@ export default function UserLayout({
   const [isProfessional, setIsProfessional] = useState(false);
   const { profile, loading } = useProfile();
   const pathname = usePathname();
-  const params = useParams();
   const router = useRouter();
   const supabase = createClient();
-
-  // Obtener el ID del usuario de los parámetros de la URL
-  const userId = params.id as string;
 
   useEffect(() => {
     setCurrentPathname(pathname);
@@ -138,15 +134,15 @@ export default function UserLayout({
     }
   };
 
-  // Generar navegación dinámica basada en el estado del usuario
-  const navigation = getNavigation(userId, hasEvents);
-  const userNavigation = profile ? getUserNavigation(userId, isProfessional) : [];
+  // Generar navegación dinámica basada en el estado del usuario (URLs limpias)
+  const navigation = getNavigation(hasEvents);
+  const userNavigation = profile ? getUserNavigation(isProfessional) : [];
 
   // Función para determinar si un item está activo
   const isActive = (href: string) => {
     if (!currentPathname) return false;
-    if (href === `/patient/${userId}/explore`) {
-      return currentPathname === `/patient/${userId}/explore`;
+    if (href === `/explore`) {
+      return currentPathname === `/explore`;
     }
     return currentPathname.startsWith(href);
   };
@@ -187,7 +183,7 @@ export default function UserLayout({
             <div className="flex">
               <div className="flex shrink-0 items-center">
                 <Link
-                  href={`/patient/${userId}/explore`}
+                  href="/explore"
                   className="flex items-center space-x-2"
                 >
                   <Image
@@ -302,7 +298,7 @@ export default function UserLayout({
                   </SheetTitle>
                   <div className="flex items-center justify-between shrink-0">
                     <Link
-                      href={`/patient/${userId}/explore`}
+                      href="/explore"
                       className="flex items-center space-x-2"
                     >
                       <Image

@@ -1,7 +1,8 @@
 import { type NextRequest } from "next/server";
-import { updateSession } from "@/utils/supabase/middleware";
+import { updateSession } from "@/utils/supabase/session";
 
 export async function proxy(request: NextRequest) {
+  // La lógica de redirección y autenticación está en updateSession
   return await updateSession(request);
 }
 

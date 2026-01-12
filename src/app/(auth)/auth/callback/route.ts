@@ -47,10 +47,10 @@ export async function GET(request: Request) {
       // Determinar la URL de redirección según el tipo de usuario
       let redirectUrl;
       if (userType === 'admin') {
-        redirectUrl = `/admin/${data.user.id}/dashboard`;
+        redirectUrl = `/admin/dashboard`;
         console.log('👑 Admin user detected, redirecting to:', redirectUrl);
       } else if (userType === 'professional') {
-        redirectUrl = `/professional/${data.user.id}/dashboard`;
+        redirectUrl = `/dashboard`;
         console.log('👨‍⚕️ Professional user detected, redirecting to:', redirectUrl);
       } else {
         console.log('🔍 Checking professional application for user:', data.user.id);
@@ -66,11 +66,11 @@ export async function GET(request: Request) {
 
         if (application) {
           // Si tiene una aplicación aprobada, redirigir al dashboard de profesionales
-          redirectUrl = `/professional/${data.user.id}/dashboard`;
+          redirectUrl = `/dashboard`;
           console.log('✅ Approved professional application found, redirecting to:', redirectUrl);
         } else {
           // Por defecto, redirigir al dashboard del paciente
-          redirectUrl = `/patient/${data.user.id}/explore`;
+          redirectUrl = `/explore`;
           console.log('👤 Default patient redirect to:', redirectUrl);
         }
       }

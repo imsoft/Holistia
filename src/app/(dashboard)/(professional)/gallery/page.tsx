@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
+import { useUserId } from "@/stores/user-store";
+import { useUserStoreInit } from "@/hooks/use-user-store-init";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { SidebarTrigger } from "@/components/ui/sidebar";
@@ -39,8 +40,8 @@ interface Professional {
 }
 
 export default function ProfessionalGalleryPage() {
-  const params = useParams();
-  const professionalId = params.id as string;
+  useUserStoreInit();
+  const professionalId = useUserId();
   const [professional, setProfessional] = useState<Professional | null>(null);
   const [galleryImages, setGalleryImages] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);

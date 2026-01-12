@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
+import { useUserId } from "@/stores/user-store";
+import { useUserStoreInit } from "@/hooks/use-user-store-init";
 import {
   ChevronLeft,
   ChevronRight,
@@ -75,9 +77,9 @@ const viewLabels = {
 };
 
 export default function ProfessionalAppointments() {
-  const params = useParams();
+  useUserStoreInit();
   const router = useRouter();
-  const userId = params.id as string;
+  const userId = useUserId();
   const supabase = createClient();
 
   const [view, setView] = useState<CalendarView>("month");

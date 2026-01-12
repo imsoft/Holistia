@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
+import { useUserId } from "@/stores/user-store";
+import { useUserStoreInit } from "@/hooks/use-user-store-init";
 import {
   DollarSign,
   TrendingUp,
@@ -62,8 +63,8 @@ interface FinancialSummary {
 }
 
 export default function ProfessionalFinancesPage() {
-  const params = useParams();
-  const professionalId = params.id as string;
+  useUserStoreInit();
+  const professionalId = useUserId();
   const [summary, setSummary] = useState<FinancialSummary | null>(null);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [metrics, setMetrics] = useState<FinancialMetric[]>([]);

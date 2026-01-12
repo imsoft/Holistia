@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
+import { useUserId } from "@/stores/user-store";
+import { useUserStoreInit } from "@/hooks/use-user-store-init";
 import Image from "next/image";
 import { toast } from "sonner";
 import { getDescriptiveErrorMessage, getFullErrorMessage, isSystemError } from "@/lib/error-messages";
@@ -40,9 +42,9 @@ interface Challenge {
 }
 
 export default function ProfessionalChallenges() {
-  const params = useParams();
+  useUserStoreInit();
   const router = useRouter();
-  const professionalId = params.id as string;
+  const professionalId = useUserId();
   const supabase = createClient();
 
   const [challenges, setChallenges] = useState<Challenge[]>([]);

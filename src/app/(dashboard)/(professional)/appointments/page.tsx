@@ -194,6 +194,10 @@ export default function ProfessionalAppointments() {
 
         // Intentar obtener eventos de Google Calendar
         try {
+          if (!userId) {
+            console.log('No userId available, skipping Google Calendar sync');
+            return;
+          }
           const googleEventsResult = await listUserGoogleCalendarEvents(userId);
 
           if (googleEventsResult.success && 'events' in googleEventsResult && googleEventsResult.events) {

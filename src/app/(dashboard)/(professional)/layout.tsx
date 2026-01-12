@@ -126,7 +126,7 @@ export default function ProfessionalLayout({
   return (
     <SidebarProvider>
       <div className="min-h-screen bg-background">
-        {/* Navigation Header - Mismo estilo que paciente */}
+        {/* Navigation Header Profesional */}
         <nav className="sticky top-0 z-50 border-b border-sidebar-border bg-sidebar">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="flex h-16 justify-between">
@@ -143,6 +143,9 @@ export default function ProfessionalLayout({
                       height={32}
                       className="h-auto w-auto"
                     />
+                    <span className="hidden sm:inline-block ml-2 text-xs font-semibold text-muted-foreground bg-primary/10 px-2 py-1 rounded">
+                      Profesional
+                    </span>
                   </Link>
                 </div>
                 <div className="hidden sm:ml-6 sm:flex sm:space-x-8">

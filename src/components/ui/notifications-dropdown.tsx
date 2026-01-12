@@ -54,6 +54,7 @@ const notificationIcons: Record<string, any> = {
   post_comment: MessageCircle,
   team_member_joined: Users,
   badge_earned: Trophy,
+  direct_message: MessageCircle,
 };
 
 const notificationColors: Record<string, string> = {
@@ -66,6 +67,7 @@ const notificationColors: Record<string, string> = {
   post_comment: "text-blue-500 bg-blue-50",
   team_member_joined: "text-green-500 bg-green-50",
   badge_earned: "text-yellow-500 bg-yellow-50",
+  direct_message: "text-indigo-500 bg-indigo-50",
 };
 
 export function NotificationsDropdown() {

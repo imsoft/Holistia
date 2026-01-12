@@ -1241,9 +1241,11 @@ export default function ProfessionalAppointments() {
       </Dialog>
 
       {/* Google Calendar Integration */}
-      <div className="p-6">
-        <GoogleCalendarIntegration userId={userId} />
-      </div>
+      {userId && (
+        <div className="p-6">
+          <GoogleCalendarIntegration userId={userId} />
+        </div>
+      )}
     </div>
   );
 }

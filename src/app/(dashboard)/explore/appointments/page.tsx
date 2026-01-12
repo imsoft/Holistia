@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { useUserId } from "@/stores/user-store";
+import { useUserStoreInit } from "@/hooks/use-user-store-init";
 import Image from "next/image";
 import Link from "next/link";
 import { toast } from "sonner";
@@ -108,11 +110,12 @@ export default function AppointmentsPage() {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  useUserStoreInit();
   const params = useParams();
   const router = useRouter();
   const supabase = createClient();
 
-  const userId = params.id as string;
+  const userId = useUserId();
 
   // Obtener citas del usuario
   useEffect(() => {
@@ -139,7 +142,7 @@ export default function AppointmentsPage() {
           console.log('User ID mismatch. Authenticated:', user.id, 'URL param:', userId);
           console.log('Redirecting to correct user URL...');
           // Redirigir a la URL correcta del usuario autenticado
-          router.replace(`/patient/${user.id}/explore/appointments`);
+          router.replace(`/explore/appointments`);
           return;
         }
 
@@ -268,15 +271,15 @@ export default function AppointmentsPage() {
   }, [userId, supabase, router]);
 
   const openCancelDialog = (appointment: Appointment) => {
-    router.push(`/patient/${userId}/appointments/${appointment.id}/cancel`);
+    router.push(`/appointments/${appointment.id}/cancel`);
   };
 
   const openNoShowDialog = (appointment: Appointment) => {
-    router.push(`/patient/${userId}/appointments/${appointment.id}/no-show`);
+    router.push(`/appointments/${appointment.id}/no-show`);
   };
 
   const openRescheduleDialog = (appointment: Appointment) => {
-    router.push(`/patient/${userId}/appointments/${appointment.id}/reschedule`);
+    router.push(`/appointments/${appointment.id}/reschedule`);
   };
 
   // Función para navegar a la página de explorar profesionales
@@ -409,7 +412,7 @@ export default function AppointmentsPage() {
                     <div className="flex flex-col lg:flex-row gap-4 sm:gap-6">
                       {/* Información del experto */}
                       <Link 
-                        href={`/patient/${userId}/explore/professional/${appointment.professional.id}`}
+                        href={`/explore/professional/${appointment.professional.id}`}
                         className="flex items-center gap-3 sm:gap-4 hover:opacity-80 transition-opacity"
                       >
                         <Image
@@ -543,7 +546,7 @@ export default function AppointmentsPage() {
                       >
                         <div className="flex flex-col sm:flex-row items-start gap-3 sm:gap-4">
                           <Link 
-                            href={`/patient/${userId}/explore/professional/${appointment.professional.id}`}
+                            href={`/explore/professional/${appointment.professional.id}`}
                             className="flex items-center gap-3 sm:gap-4 hover:opacity-80 transition-opacity flex-1 w-full sm:w-auto"
                           >
                             <Image

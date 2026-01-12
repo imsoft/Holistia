@@ -2,6 +2,8 @@
 
 import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { useUserId } from "@/stores/user-store";
+import { useUserStoreInit } from "@/hooks/use-user-store-init";
 import { createClient } from "@/utils/supabase/client";
 import { EventWorkshop } from "@/types/event";
 import { Button } from "@/components/ui/button";
@@ -28,9 +30,10 @@ import { formatEventDate, formatEventTime } from "@/utils/date-utils";
 import { EventQuestionsSection } from "@/components/events/event-questions-section";
 
 const EventDetailPage = () => {
+  useUserStoreInit();
   const params = useParams();
   const router = useRouter();
-  const userId = params.id as string;
+  const userId = useUserId();
   const slug = params.slug as string;
   
   const [event, setEvent] = useState<EventWorkshop | null>(null);

@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
+import { useUserId } from "@/stores/user-store";
+import { useUserStoreInit } from "@/hooks/use-user-store-init";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { ProfessionalCard } from "@/components/ui/professional-card";
@@ -55,10 +57,11 @@ const FavoritesPage = () => {
   const [professionals, setProfessionals] = useState<Professional[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  useUserStoreInit();
   const params = useParams();
   const supabase = createClient();
   
-  const userId = params.id as string;
+  const userId = useUserId();
 
   // Obtener favoritos del usuario
   useEffect(() => {

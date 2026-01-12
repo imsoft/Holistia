@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useLayoutEffect } from "react";
 import { useParams } from "next/navigation";
+import { useUserId } from "@/stores/user-store";
+import { useUserStoreInit } from "@/hooks/use-user-store-init";
 import Image from "next/image";
 import { toast } from "sonner";
 import {
@@ -176,10 +178,11 @@ export default function ProfessionalProfilePage() {
   const [quoteDetails, setQuoteDetails] = useState("");
   const [quoteLoading, setQuoteLoading] = useState(false);
 
+  useUserStoreInit();
   const params = useParams();
   const supabase = createClient();
   
-  const patientId = params.id as string;
+  const patientId = useUserId();
   const slugParam = params.slug as string;
   
   // Extraer UUID del slug si está presente (formato: "nombre-apellido-{uuid}" o solo UUID)

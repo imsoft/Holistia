@@ -8,11 +8,14 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2, ArrowLeft, CreditCard } from "lucide-react";
 import Image from "next/image";
+import { useUserId } from "@/stores/user-store";
+import { useUserStoreInit } from "@/hooks/use-user-store-init";
 
 export default function ChallengeCheckoutPage() {
+  useUserStoreInit();
   const params = useParams();
   const router = useRouter();
-  const userId = params.id as string;
+  const userId = useUserId();
   const challengeId = params.challengeId as string;
   const supabase = createClient();
 
@@ -47,7 +50,7 @@ export default function ChallengeCheckoutPage() {
 
       if (!data.price || data.price <= 0) {
         toast.error("Este reto es gratuito");
-        router.push(`/patient/${userId}/explore/challenge/${challengeId}`);
+        router.push(`/explore/challenge/${challengeId}`);
         return;
       }
 
@@ -55,7 +58,7 @@ export default function ChallengeCheckoutPage() {
     } catch (error) {
       console.error("Error fetching challenge:", error);
       toast.error("Error al cargar el reto");
-      router.push(`/patient/${userId}/explore`);
+      router.push(`/explore`);
     } finally {
       setLoading(false);
     }
@@ -81,7 +84,7 @@ export default function ChallengeCheckoutPage() {
 
       if (existingParticipation) {
         toast.info("Ya estás participando en este reto");
-        router.push(`/patient/${userId}/my-challenges`);
+        router.push(`/my-challenges`);
         return;
       }
 
@@ -133,7 +136,7 @@ export default function ChallengeCheckoutPage() {
       <div className="container max-w-4xl mx-auto px-4 py-8">
         <Button
           variant="ghost"
-          onClick={() => router.push(`/patient/${userId}/explore/challenge/${challengeId}`)}
+          onClick={() => router.push(`/explore/challenge/${challengeId}`)}
           className="mb-6"
         >
           <ArrowLeft className="h-4 w-4 mr-2" />

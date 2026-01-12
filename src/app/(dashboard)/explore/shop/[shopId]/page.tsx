@@ -2,6 +2,8 @@
 
 import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { useUserId } from "@/stores/user-store";
+import { useUserStoreInit } from "@/hooks/use-user-store-init";
 import {
   Store,
   MapPin,
@@ -64,9 +66,10 @@ interface ProductImage {
 }
 
 export default function ShopDetailPage() {
+  useUserStoreInit();
   const params = useParams();
   const router = useRouter();
-  const userId = params.id as string;
+  const userId = useUserId();
   const shopId = params.shopId as string;
   const [shop, setShop] = useState<Shop | null>(null);
   const [products, setProducts] = useState<ShopProduct[]>([]);

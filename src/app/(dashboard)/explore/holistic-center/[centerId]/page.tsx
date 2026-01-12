@@ -17,6 +17,8 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { createClient } from "@/utils/supabase/client";
+import { useUserId } from "@/stores/user-store";
+import { useUserStoreInit } from "@/hooks/use-user-store-init";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -42,9 +44,10 @@ interface HolisticCenter {
 }
 
 export default function HolisticCenterDetailPage() {
+  useUserStoreInit();
   const params = useParams();
   const router = useRouter();
-  const userId = params.id as string;
+  const userId = useUserId();
   const centerId = params.centerId as string;
   const [center, setCenter] = useState<HolisticCenter | null>(null);
   const [loading, setLoading] = useState(true);

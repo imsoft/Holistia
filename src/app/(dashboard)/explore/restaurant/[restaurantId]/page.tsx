@@ -2,6 +2,8 @@
 
 import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { useUserId } from "@/stores/user-store";
+import { useUserStoreInit } from "@/hooks/use-user-store-init";
 import {
   UtensilsCrossed,
   MapPin,
@@ -53,9 +55,10 @@ interface RestaurantMenu {
 }
 
 export default function RestaurantDetailPage() {
+  useUserStoreInit();
   const params = useParams();
   const router = useRouter();
-  const userId = params.id as string;
+  const userId = useUserId();
   const restaurantId = params.restaurantId as string;
   const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
   const [menus, setMenus] = useState<RestaurantMenu[]>([]);

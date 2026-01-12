@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
+import { useUserId } from "@/stores/user-store";
+import { useUserStoreInit } from "@/hooks/use-user-store-init";
 import { Brain, Sparkles, Activity, Users, Apple } from "lucide-react";
 import { Filters } from "@/components/ui/filters";
 import { ProfessionalCard } from "@/components/ui/professional-card";
@@ -80,8 +81,8 @@ const categories = [
 ];
 
 export default function ProfessionalsPage() {
-  const params = useParams();
-  const userId = params.id as string;
+  useUserStoreInit();
+  const userId = useUserId();
   const [professionals, setProfessionals] = useState<Professional[]>([]);
   const [filteredProfessionals, setFilteredProfessionals] = useState<Professional[]>([]);
   const [loading, setLoading] = useState(true);

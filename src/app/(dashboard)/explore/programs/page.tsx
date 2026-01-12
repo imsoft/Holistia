@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
+import { useUserId } from "@/stores/user-store";
+import { useUserStoreInit } from "@/hooks/use-user-store-init";
 import { ShoppingBag, Brain, Sparkles, Activity, Apple, Users } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -92,8 +93,8 @@ const categoryToWellnessAreas: Record<string, string[]> = {
 };
 
 export default function ProgramsPage() {
-  const params = useParams();
-  const userId = params.id as string;
+  useUserStoreInit();
+  const userId = useUserId();
   const [products, setProducts] = useState<DigitalProduct[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<DigitalProduct[]>([]);
   const [loading, setLoading] = useState(true);

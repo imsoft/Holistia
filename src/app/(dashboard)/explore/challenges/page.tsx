@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
+import { useUserId } from "@/stores/user-store";
+import { useUserStoreInit } from "@/hooks/use-user-store-init";
 import { Target, Loader2, Filter } from "lucide-react";
 import { ChallengeCard } from "@/components/ui/challenge-card";
 import { createClient } from "@/utils/supabase/client";
@@ -50,8 +51,8 @@ const sortOptions = [
 ];
 
 export default function ChallengesPage() {
-  const params = useParams();
-  const userId = params.id as string;
+  useUserStoreInit();
+  const userId = useUserId();
   const [challenges, setChallenges] = useState<Challenge[]>([]);
   const [filteredChallenges, setFilteredChallenges] = useState<Challenge[]>([]);
   const [loading, setLoading] = useState(true);

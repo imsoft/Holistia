@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
+import { useUserId } from "@/stores/user-store";
+import { useUserStoreInit } from "@/hooks/use-user-store-init";
 import Link from "next/link";
 import { UtensilsCrossed, MapPin, Brain, Sparkles, Activity, Apple, Users } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
@@ -98,8 +99,8 @@ const categoryToWellnessAreas: Record<string, string[]> = {
 };
 
 export default function RestaurantsPage() {
-  const params = useParams();
-  const userId = params.id as string;
+  useUserStoreInit();
+  const userId = useUserId();
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [filteredRestaurants, setFilteredRestaurants] = useState<Restaurant[]>([]);
   const [loading, setLoading] = useState(true);

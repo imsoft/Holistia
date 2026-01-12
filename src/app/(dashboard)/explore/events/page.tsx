@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
+import { useUserId } from "@/stores/user-store";
+import { useUserStoreInit } from "@/hooks/use-user-store-init";
 import { Calendar, MapPin, Users, Brain, Sparkles, Activity, Apple } from "lucide-react";
 import Link from "next/link";
 import { Filters } from "@/components/ui/filters";
@@ -68,8 +69,8 @@ const generateEventSlug = (eventName: string, eventId: string) => {
 };
 
 export default function EventsPage() {
-  const params = useParams();
-  const userId = params.id as string;
+  useUserStoreInit();
+  const userId = useUserId();
   const [events, setEvents] = useState<EventWorkshop[]>([]);
   const [filteredEvents, setFilteredEvents] = useState<EventWorkshop[]>([]);
   const [loading, setLoading] = useState(true);

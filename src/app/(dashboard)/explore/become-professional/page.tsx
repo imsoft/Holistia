@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import { toast } from "sonner";
+import { useUserId } from "@/stores/user-store";
+import { useUserStoreInit } from "@/hooks/use-user-store-init";
 import {
   User,
   MapPin,
@@ -122,8 +124,8 @@ export default function BecomeProfessionalPage() {
   const [lastLanguageEnterTime, setLastLanguageEnterTime] = useState<number | null>(null);
   const [userProfilePhoto, setUserProfilePhoto] = useState<string | null>(null);
   const [openCountryCombo, setOpenCountryCombo] = useState(false);
-  const params = useParams();
-  const userId = params.id as string;
+  useUserStoreInit();
+  const userId = useUserId();
 
   const supabase = createClient();
 

@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
+import { useUserId } from "@/stores/user-store";
+import { useUserStoreInit } from "@/hooks/use-user-store-init";
 import Link from "next/link";
 import Image from "next/image";
 import { Store, MapPin, Brain, Sparkles, Activity, Apple, Users } from "lucide-react";
@@ -91,8 +92,8 @@ const categoryToWellnessAreas: Record<string, string[]> = {
 } as const;
 
 export default function ShopsPage() {
-  const params = useParams();
-  const userId = params.id as string;
+  useUserStoreInit();
+  const userId = useUserId();
   const [shops, setShops] = useState<Shop[]>([]);
   const [filteredShops, setFilteredShops] = useState<Shop[]>([]);
   const [loading, setLoading] = useState(true);

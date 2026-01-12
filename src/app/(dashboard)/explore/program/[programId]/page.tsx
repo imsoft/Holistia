@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { useUserId } from "@/stores/user-store";
+import { useUserStoreInit } from "@/hooks/use-user-store-init";
 import Image from "next/image";
 import Link from "next/link";
 import { toast } from "sonner";
@@ -74,9 +76,10 @@ const CATEGORY_LABELS: Record<string, string> = {
 };
 
 export default function ProgramDetailPage() {
+  useUserStoreInit();
   const params = useParams();
   const router = useRouter();
-  const userId = params.id as string;
+  const userId = useUserId();
   const programId = params.programId as string;
   const [product, setProduct] = useState<DigitalProduct | null>(null);
   const [loading, setLoading] = useState(true);
@@ -166,7 +169,7 @@ export default function ProgramDetailPage() {
     } catch (error) {
       console.error("Error fetching product:", error);
       toast.error("Error al cargar el programa");
-      router.push(`/patient/${userId}/explore/programs`);
+      router.push(`/explore/programs`);
     } finally {
       setLoading(false);
     }
@@ -318,7 +321,7 @@ export default function ProgramDetailPage() {
                     <div className="space-y-4">
                       <div className="flex items-start gap-4">
                         <Link
-                          href={`/patient/${userId}/explore/professional/${product.professional_id}`}
+                          href={`/explore/professional/${product.professional_id}`}
                           className="flex-shrink-0"
                         >
                           {product.professional_applications.profile_photo ? (
@@ -340,7 +343,7 @@ export default function ProgramDetailPage() {
                         <div className="flex-1 min-w-0">
                           <p className="text-sm text-muted-foreground mb-2">Creado por</p>
                           <Link
-                            href={`/patient/${userId}/explore/professional/${product.professional_id}`}
+                            href={`/explore/professional/${product.professional_id}`}
                             className="group"
                           >
                             <h3 className="font-semibold text-lg text-foreground hover:text-primary transition-colors flex items-center gap-2 mb-1">
@@ -372,7 +375,7 @@ export default function ProgramDetailPage() {
                             </div>
                           )}
                           <Link
-                            href={`/patient/${userId}/explore/professional/${product.professional_id}`}
+                            href={`/explore/professional/${product.professional_id}`}
                             className="inline-flex items-center gap-1 text-sm text-primary hover:text-primary/80 font-medium mt-3 group"
                           >
                             Ver perfil completo

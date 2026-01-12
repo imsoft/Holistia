@@ -4,11 +4,14 @@ import { useParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { ServiceForm } from "@/components/holistic-centers/service-form";
+import { useUserId } from "@/stores/user-store";
+import { useUserStoreInit } from "@/hooks/use-user-store-init";
 
 export default function NewHolisticCenterServicePage() {
+  useUserStoreInit();
   const params = useParams();
   const router = useRouter();
-  const adminId = params.id as string;
+  const adminId = useUserId();
   const centerId = params.centerId as string;
 
   return (
@@ -18,7 +21,7 @@ export default function NewHolisticCenterServicePage() {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => router.push(`/admin/${adminId}/holistic-centers`)}
+            onClick={() => router.push(`/admin/holistic-centers`)}
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>
@@ -31,7 +34,7 @@ export default function NewHolisticCenterServicePage() {
           <ServiceForm
             centerId={centerId}
             service={null}
-            redirectPath={`/admin/${adminId}/holistic-centers`}
+            redirectPath={`/admin/holistic-centers`}
           />
         </div>
       </div>

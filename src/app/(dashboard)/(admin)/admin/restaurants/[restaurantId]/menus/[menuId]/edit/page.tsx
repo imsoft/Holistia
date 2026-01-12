@@ -7,6 +7,8 @@ import { ArrowLeft, Loader2 } from "lucide-react";
 import { MenuForm } from "@/components/restaurants/menu-form";
 import { createClient } from "@/utils/supabase/client";
 import { toast } from "sonner";
+import { useUserId } from "@/stores/user-store";
+import { useUserStoreInit } from "@/hooks/use-user-store-init";
 
 interface RestaurantMenu {
   id: string;
@@ -20,9 +22,10 @@ interface RestaurantMenu {
 }
 
 export default function EditRestaurantMenuPage() {
+  useUserStoreInit();
   const params = useParams();
   const router = useRouter();
-  const adminId = params.id as string;
+  const adminId = useUserId();
   const restaurantId = params.restaurantId as string;
   const menuId = params.menuId as string;
 
@@ -53,7 +56,7 @@ export default function EditRestaurantMenuPage() {
       } catch (error) {
         console.error("Error fetching menu:", error);
         toast.error("Error al cargar el menú");
-        router.push(`/admin/${adminId}/restaurants`);
+        router.push(`/admin/restaurants`);
       } finally {
         setLoading(false);
       }
@@ -81,7 +84,7 @@ export default function EditRestaurantMenuPage() {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => router.push(`/admin/${adminId}/restaurants`)}
+            onClick={() => router.push(`/admin/restaurants`)}
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>
@@ -94,7 +97,7 @@ export default function EditRestaurantMenuPage() {
           <MenuForm
             restaurantId={restaurantId}
             menu={menu}
-            redirectPath={`/admin/${adminId}/restaurants`}
+            redirectPath={`/admin/restaurants`}
           />
         </div>
       </div>

@@ -93,8 +93,8 @@ export default function EditAdminChallengePage() {
             size="icon"
             onClick={() => {
               const redirectPath = professionalId 
-                ? `/admin/${adminId}/professionals/${professionalId}`
-                : `/admin/${adminId}/challenges`;
+                ? `/admin/professionals/${professionalId}`
+                : `/admin/challenges`;
               router.push(redirectPath);
             }}
           >

@@ -6,11 +6,14 @@ import { Loader2 } from "lucide-react";
 import { ChallengeForm } from "@/components/challenges/challenge-form";
 import { createClient } from "@/utils/supabase/client";
 import { toast } from "sonner";
+import { useUserId } from "@/stores/user-store";
+import { useUserStoreInit } from "@/hooks/use-user-store-init";
 
 export default function EditChallengePage() {
+  useUserStoreInit();
   const params = useParams();
   const router = useRouter();
-  const patientId = params.id as string;
+  const patientId = useUserId();
   const challengeId = params.challengeId as string;
 
   const [challenge, setChallenge] = useState<any | null>(null);
@@ -52,7 +55,7 @@ export default function EditChallengePage() {
     } catch (error) {
       console.error("Error fetching challenge:", error);
       toast.error("Error al cargar el reto");
-      router.push(`/patient/${patientId}/my-challenges`);
+      router.push(`/my-challenges`);
     } finally {
       setLoading(false);
     }
@@ -70,9 +73,9 @@ export default function EditChallengePage() {
     <div className="py-4 px-6">
       <div className="max-w-3xl mx-auto py-4">
         <ChallengeForm
-          userId={patientId}
+          userId={patientId || ''}
           challenge={challenge}
-          redirectPath={`/patient/${patientId}/my-challenges`}
+          redirectPath={`/my-challenges`}
         />
       </div>
     </div>

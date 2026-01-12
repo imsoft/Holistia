@@ -13,6 +13,8 @@ import { toast } from "sonner";
 import { createClient } from "@/utils/supabase/client";
 import { Input } from "@/components/ui/input";
 import { FollowButton } from "@/components/ui/follow-button";
+import { useUserId } from "@/stores/user-store";
+import { useUserStoreInit } from "@/hooks/use-user-store-init";
 
 interface AvailableUser {
   id: string;
@@ -52,10 +54,11 @@ interface Team {
 }
 
 export default function InviteTeamMembersPage() {
+  useUserStoreInit();
   const params = useParams();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const patientId = params.id as string;
+  const patientId = useUserId();
   const challengeId = params.challengeId as string;
   const teamId = searchParams.get("teamId");
 
@@ -182,7 +185,7 @@ export default function InviteTeamMembersPage() {
     } catch (error) {
       console.error("Error loading team:", error);
       toast.error("Error al cargar equipo");
-      router.push(`/patient/${patientId}/my-challenges`);
+      router.push(`/my-challenges`);
     } finally {
       setLoading(false);
     }
@@ -272,16 +275,16 @@ export default function InviteTeamMembersPage() {
     // Si es profesional, redirigir a su página profesional usando professional_id o slug
     if (user.type === "professional") {
       if (user.professional_id) {
-        router.push(`/patient/${patientId}/explore/professional/${user.professional_id}`);
+        router.push(`/explore/professional/${user.professional_id}`);
       } else if (user.slug) {
-        router.push(`/patient/${patientId}/explore/professional/${user.slug}`);
+        router.push(`/explore/professional/${user.slug}`);
       } else {
         // Fallback: usar el user_id si no hay professional_id ni slug
-        router.push(`/patient/${patientId}/explore/professional/${user.id}`);
+        router.push(`/explore/professional/${user.id}`);
       }
     } else {
       // Si es paciente o usuario normal, redirigir a su perfil
-      router.push(`/patient/${patientId}/profile/${user.id}`);
+      router.push(`/profile/${user.id}`);
     }
   };
 
@@ -488,7 +491,7 @@ export default function InviteTeamMembersPage() {
           )}
 
           <div className="flex justify-end">
-            <Button onClick={() => router.push(`/patient/${patientId}/my-challenges`)}>
+            <Button onClick={() => router.push(`/my-challenges`)}>
               Finalizar
             </Button>
           </div>

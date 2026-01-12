@@ -7,6 +7,8 @@ import { ArrowLeft, Loader2 } from "lucide-react";
 import { ServiceForm } from "@/components/holistic-centers/service-form";
 import { createClient } from "@/utils/supabase/client";
 import { toast } from "sonner";
+import { useUserId } from "@/stores/user-store";
+import { useUserStoreInit } from "@/hooks/use-user-store-init";
 
 interface Service {
   id: string;
@@ -19,9 +21,10 @@ interface Service {
 }
 
 export default function EditHolisticCenterServicePage() {
+  useUserStoreInit();
   const params = useParams();
   const router = useRouter();
-  const adminId = params.id as string;
+  const adminId = useUserId();
   const centerId = params.centerId as string;
   const serviceId = params.serviceId as string;
 
@@ -46,7 +49,7 @@ export default function EditHolisticCenterServicePage() {
       } catch (error) {
         console.error("Error fetching service:", error);
         toast.error("Error al cargar el servicio");
-        router.push(`/admin/${adminId}/holistic-centers`);
+        router.push(`/admin/holistic-centers`);
       } finally {
         setLoading(false);
       }
@@ -87,7 +90,7 @@ export default function EditHolisticCenterServicePage() {
           <ServiceForm
             centerId={centerId}
             service={service}
-            redirectPath={`/admin/${adminId}/holistic-centers`}
+            redirectPath={`/admin/holistic-centers`}
           />
         </div>
       </div>

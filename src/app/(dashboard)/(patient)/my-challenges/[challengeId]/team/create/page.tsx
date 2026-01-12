@@ -8,11 +8,14 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { useUserId } from "@/stores/user-store";
+import { useUserStoreInit } from "@/hooks/use-user-store-init";
 
 export default function CreateTeamPage() {
+  useUserStoreInit();
   const params = useParams();
   const router = useRouter();
-  const patientId = params.id as string;
+  const patientId = useUserId();
   const challengeId = params.challengeId as string;
 
   const [teamName, setTeamName] = useState("");
@@ -100,7 +103,7 @@ export default function CreateTeamPage() {
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => router.push(`/patient/${patientId}/my-challenges`)}
+                  onClick={() => router.push(`/my-challenges`)}
                   disabled={loading}
                 >
                   Cancelar

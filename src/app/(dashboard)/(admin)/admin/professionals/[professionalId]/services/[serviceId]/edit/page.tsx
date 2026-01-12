@@ -8,11 +8,14 @@ import { ServiceForm } from "@/components/services/service-form";
 import { Service } from "@/types/service";
 import { createClient } from "@/utils/supabase/client";
 import { toast } from "sonner";
+import { useUserId } from "@/stores/user-store";
+import { useUserStoreInit } from "@/hooks/use-user-store-init";
 
 export default function EditAdminServicePage() {
+  useUserStoreInit();
   const params = useParams();
   const router = useRouter();
-  const adminId = params.id as string;
+  const adminId = useUserId();
   const professionalId = params.professionalId as string;
   const serviceId = params.serviceId as string;
   const [service, setService] = useState<Service | null>(null);
@@ -47,7 +50,7 @@ export default function EditAdminServicePage() {
       } catch (error) {
         console.error("Error fetching data:", error);
         toast.error("Error al cargar el servicio");
-        router.push(`/admin/${adminId}/professionals/${professionalId}`);
+        router.push(`/admin/professionals/${professionalId}`);
       } finally {
         setLoading(false);
       }
@@ -72,7 +75,7 @@ export default function EditAdminServicePage() {
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <p className="text-sm text-muted-foreground mb-4">Servicio no encontrado</p>
-          <Button onClick={() => router.push(`/admin/${adminId}/professionals/${professionalId}`)}>
+          <Button onClick={() => router.push(`/admin/professionals/${professionalId}`)}>
             Volver
           </Button>
         </div>
@@ -88,7 +91,7 @@ export default function EditAdminServicePage() {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => router.push(`/admin/${adminId}/professionals/${professionalId}`)}
+            onClick={() => router.push(`/admin/professionals/${professionalId}`)}
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>
@@ -103,7 +106,7 @@ export default function EditAdminServicePage() {
             professionalId={professionalId}
             userId={userId}
             service={service}
-            redirectPath={`/admin/${adminId}/professionals/${professionalId}`}
+            redirectPath={`/admin/professionals/${professionalId}`}
           />
         </div>
       </div>

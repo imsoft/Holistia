@@ -4,11 +4,14 @@ import { useParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { MenuForm } from "@/components/restaurants/menu-form";
+import { useUserId } from "@/stores/user-store";
+import { useUserStoreInit } from "@/hooks/use-user-store-init";
 
 export default function NewRestaurantMenuPage() {
+  useUserStoreInit();
   const params = useParams();
   const router = useRouter();
-  const adminId = params.id as string;
+  const adminId = useUserId();
   const restaurantId = params.restaurantId as string;
 
   return (
@@ -31,7 +34,7 @@ export default function NewRestaurantMenuPage() {
           <MenuForm
             restaurantId={restaurantId}
             menu={null}
-            redirectPath={`/admin/${adminId}/restaurants`}
+            redirectPath={`/admin/restaurants`}
           />
         </div>
       </div>

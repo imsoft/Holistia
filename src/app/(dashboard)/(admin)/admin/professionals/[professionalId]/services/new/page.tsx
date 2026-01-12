@@ -7,11 +7,14 @@ import { ServiceForm } from "@/components/services/service-form";
 import { createClient } from "@/utils/supabase/client";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
+import { useUserId } from "@/stores/user-store";
+import { useUserStoreInit } from "@/hooks/use-user-store-init";
 
 export default function NewAdminServicePage() {
+  useUserStoreInit();
   const params = useParams();
   const router = useRouter();
-  const adminId = params.id as string;
+  const adminId = useUserId();
   const professionalId = params.professionalId as string;
   const [userId, setUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -71,7 +74,7 @@ export default function NewAdminServicePage() {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => router.push(`/admin/${adminId}/professionals/${professionalId}`)}
+            onClick={() => router.push(`/admin/professionals/${professionalId}`)}
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>
@@ -86,7 +89,7 @@ export default function NewAdminServicePage() {
             professionalId={professionalId}
             userId={userId}
             service={null}
-            redirectPath={`/admin/${adminId}/professionals/${professionalId}`}
+            redirectPath={`/admin/professionals/${professionalId}`}
           />
         </div>
       </div>

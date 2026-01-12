@@ -566,7 +566,7 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
                     <EyeOff className="h-4 w-4" />
                   )}
                   <Label htmlFor="is_public" className="cursor-pointer">
-                    Reto Público
+                    {formData.is_public ? "Reto Público" : "Reto Privado"}
                   </Label>
                 </div>
                 <p className="text-sm text-muted-foreground">

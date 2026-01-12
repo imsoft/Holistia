@@ -13,7 +13,7 @@ import { DirectMessageChat } from "@/components/ui/direct-message-chat";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useUserId } from "@/stores/user-store";
+import { useUserId, useUserType, useProfessionalData } from "@/stores/user-store";
 import { useUserStoreInit } from "@/hooks/use-user-store-init";
 
 interface Conversation {
@@ -44,11 +44,48 @@ function MessagesPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const userId = useUserId(); // Obtener userId del store
+  const userType = useUserType(); // Obtener tipo de usuario del store
+  const professionalData = useProfessionalData(); // Obtener datos del profesional
   const supabase = createClient();
 
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
+  const [isProfessional, setIsProfessional] = useState(false);
+  const [professionalId, setProfessionalId] = useState<string | null>(null);
+
+  // Verificar si el usuario es profesional
+  useEffect(() => {
+    const checkIfProfessional = async () => {
+      if (!userId) return;
+
+      // Verificar si es profesional por tipo de usuario
+      if (userType === 'professional' && professionalData?.professional_id) {
+        setIsProfessional(true);
+        setProfessionalId(professionalData.professional_id);
+        return;
+      }
+
+      // Si no está en el store, verificar directamente en la base de datos
+      try {
+        const { data: professionalApp } = await supabase
+          .from('professional_applications')
+          .select('id')
+          .eq('user_id', userId)
+          .eq('status', 'approved')
+          .maybeSingle();
+
+        if (professionalApp) {
+          setIsProfessional(true);
+          setProfessionalId(professionalApp.id);
+        }
+      } catch (error) {
+        console.error('Error checking professional status:', error);
+      }
+    };
+
+    checkIfProfessional();
+  }, [userId, userType, professionalData, supabase]);
 
   useEffect(() => {
     if (!userId) return; // Esperar a que userId esté disponible
@@ -212,7 +249,7 @@ function MessagesPageContent() {
                   <p className="text-sm text-muted-foreground mb-4">
                     Envía un mensaje a un experto para comenzar
                   </p>
-                  <Button onClick={() => router.push(`/patient/${userId}/explore/professionals`)}>
+                  <Button onClick={() => router.push(`/explore/professionals`)}>
                     Explorar Expertos
                   </Button>
                 </div>
@@ -307,13 +344,21 @@ function MessagesPageContent() {
                         avatar_url: selectedConversation.user?.avatar_url || null,
                       };
 
+                  // Determinar professionalId: si el usuario actual es profesional, usar su professionalId
+                  // Si el otro usuario es profesional, usar el professionalId de la conversación
+                  const currentUserProfessionalId = isProfessional && professionalId 
+                    ? professionalId 
+                    : selectedConversation.user_id === userId 
+                      ? selectedConversation.professional_id 
+                      : null;
+
                   return (
                     <DirectMessageChat
                       conversationId={selectedConversation.id}
                       currentUserId={userId || ''}
                       otherUser={otherUser}
-                      professionalId={selectedConversation.professional_id}
-                      isProfessional={false}
+                      professionalId={currentUserProfessionalId || undefined}
+                      isProfessional={isProfessional}
                     />
                   );
                 })()}

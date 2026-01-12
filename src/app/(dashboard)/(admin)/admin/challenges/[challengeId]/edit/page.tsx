@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useUserId } from "@/stores/user-store";
+import { useUserStoreInit } from "@/hooks/use-user-store-init";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { ChallengeForm } from "@/components/challenges/challenge-form";
@@ -58,8 +60,8 @@ export default function EditAdminChallengePage() {
         console.error("Error fetching challenge:", error);
         toast.error("Error al cargar el reto");
         const redirectPath = professionalId 
-          ? `/admin/${adminId}/professionals/${professionalId}`
-          : `/admin/${adminId}/challenges`;
+          ? `/admin/professionals/${professionalId}`
+          : `/admin/challenges`;
         router.push(redirectPath);
       } finally {
         setLoading(false);
@@ -104,11 +106,11 @@ export default function EditAdminChallengePage() {
       <div className="py-4 px-6">
         <div className="max-w-3xl mx-auto py-4 space-y-6">
           <ChallengeForm
-            userId={adminId}
+            userId={adminId || ''}
             challenge={challenge}
             redirectPath={professionalId 
-              ? `/admin/${adminId}/professionals/${professionalId}`
-              : `/admin/${adminId}/challenges`}
+              ? `/admin/professionals/${professionalId}`
+              : `/admin/challenges`}
             userType="admin"
           />
 

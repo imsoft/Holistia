@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useUserId } from "@/stores/user-store";
+import { useUserStoreInit } from "@/hooks/use-user-store-init";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { DigitalProductForm } from "@/components/digital-products/digital-product-form";
@@ -54,8 +56,8 @@ export default function EditAdminDigitalProductPage() {
         console.error("Error fetching product:", error);
         toast.error("Error al cargar el programa");
         const redirectPath = professionalId 
-          ? `/admin/${adminId}/professionals/${professionalId}`
-          : `/admin/${adminId}/professionals`;
+          ? `/admin/professionals/${professionalId}`
+          : `/admin/professionals`;
         router.push(redirectPath);
       } finally {
         setLoading(false);

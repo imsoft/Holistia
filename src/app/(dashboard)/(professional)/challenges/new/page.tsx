@@ -30,7 +30,7 @@ export default function NewProfessionalChallengePage() {
       <div className="py-4 px-6">
         <div className="max-w-3xl mx-auto py-4">
           <ChallengeForm
-            userId={professionalId}
+            userId={professionalId || ''}
             challenge={null}
             redirectPath={`/challenges`}
             userType="professional"

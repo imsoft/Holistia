@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
+import { useUserId } from "@/stores/user-store";
+import { useUserStoreInit } from "@/hooks/use-user-store-init";
 import Image from "next/image";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -42,8 +43,8 @@ interface Participant {
 }
 
 export default function ChallengeParticipantsPage() {
-  const params = useParams();
-  const professionalId = params.id as string;
+  useUserStoreInit();
+  const professionalId = useUserId();
   const supabase = createClient();
 
   const [participants, setParticipants] = useState<Participant[]>([]);

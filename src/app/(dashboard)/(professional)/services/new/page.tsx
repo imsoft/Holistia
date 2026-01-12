@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
+import { useUserId } from "@/stores/user-store";
+import { useUserStoreInit } from "@/hooks/use-user-store-init";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { ServiceForm } from "@/components/services/service-form";
@@ -32,7 +34,7 @@ export default function NewServicePage() {
         if (error) {
           console.error('Error fetching professional data:', error);
           toast.error('Error al cargar información del profesional');
-          router.push(`/professional/${professionalId}/services`);
+          router.push(`/services`);
           return;
         }
 
@@ -52,7 +54,7 @@ export default function NewServicePage() {
 
           if (fallbackError || !fallbackData) {
             toast.error('No se encontró información del profesional');
-            router.push(`/professional/${professionalId}/services`);
+            router.push(`/services`);
             return;
           }
 
@@ -91,7 +93,7 @@ export default function NewServicePage() {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => router.push(`/professional/${professionalId}/services`)}
+            onClick={() => router.push(`/services`)}
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>
@@ -106,7 +108,7 @@ export default function NewServicePage() {
             professionalId={actualProfessionalId}
             userId={userId}
             service={null}
-            redirectPath={`/professional/${professionalId}/services`}
+            redirectPath={`/services`}
           />
         </div>
       </div>

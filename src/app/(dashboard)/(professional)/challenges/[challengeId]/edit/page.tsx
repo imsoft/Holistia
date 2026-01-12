@@ -58,7 +58,7 @@ export default function EditProfessionalChallengePage() {
       } catch (error) {
         console.error("Error fetching challenge:", error);
         toast.error("Error al cargar el reto");
-        router.push(`/professional/${professionalId}/challenges`);
+        router.push(`/challenges`);
       } finally {
         setLoading(false);
       }
@@ -86,7 +86,7 @@ export default function EditProfessionalChallengePage() {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => router.push(`/professional/${professionalId}/challenges`)}
+            onClick={() => router.push(`/challenges`)}
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>
@@ -99,7 +99,7 @@ export default function EditProfessionalChallengePage() {
           <ChallengeForm
             userId={professionalId}
             challenge={challenge}
-            redirectPath={`/professional/${professionalId}/challenges`}
+            redirectPath={`/challenges`}
             userType="professional"
           />
 

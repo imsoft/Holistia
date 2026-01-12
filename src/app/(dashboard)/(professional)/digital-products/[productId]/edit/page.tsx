@@ -54,7 +54,7 @@ export default function EditDigitalProductPage() {
       } catch (error) {
         console.error("Error fetching product:", error);
         toast.error("Error al cargar el programa");
-        router.push(`/professional/${professionalId}/digital-products`);
+        router.push(`/digital-products`);
       } finally {
         setLoading(false);
       }
@@ -82,7 +82,7 @@ export default function EditDigitalProductPage() {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => router.push(`/professional/${professionalId}/digital-products`)}
+            onClick={() => router.push(`/digital-products`)}
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>
@@ -95,7 +95,7 @@ export default function EditDigitalProductPage() {
           <DigitalProductForm
             professionalId={professionalId}
             product={product}
-            redirectPath={`/professional/${professionalId}/digital-products`}
+            redirectPath={`/digital-products`}
           />
         </div>
       </div>

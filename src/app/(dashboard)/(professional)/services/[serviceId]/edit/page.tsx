@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { useUserId } from "@/stores/user-store";
+import { useUserStoreInit } from "@/hooks/use-user-store-init";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { ServiceForm } from "@/components/services/service-form";
@@ -10,9 +12,10 @@ import { createClient } from "@/utils/supabase/client";
 import { toast } from "sonner";
 
 export default function EditServicePage() {
+  useUserStoreInit();
   const params = useParams();
   const router = useRouter();
-  const professionalId = params.id as string;
+  const professionalId = useUserId();
   const serviceId = params.serviceId as string;
   const [service, setService] = useState<Service | null>(null);
   const [loading, setLoading] = useState(true);
@@ -60,7 +63,7 @@ export default function EditServicePage() {
       } catch (error) {
         console.error("Error fetching service:", error);
         toast.error("Error al cargar el servicio");
-        router.push(`/professional/${professionalId}/services`);
+          router.push(`/services`);
       } finally {
         setLoading(false);
       }

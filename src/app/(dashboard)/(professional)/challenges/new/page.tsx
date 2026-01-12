@@ -1,6 +1,8 @@
 "use client";
 
-import { useParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
+import { useUserId } from "@/stores/user-store";
+import { useUserStoreInit } from "@/hooks/use-user-store-init";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { ChallengeForm } from "@/components/challenges/challenge-form";
@@ -17,7 +19,7 @@ export default function NewProfessionalChallengePage() {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => router.push(`/professional/${professionalId}/challenges`)}
+            onClick={() => router.push(`/challenges`)}
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>
@@ -30,7 +32,7 @@ export default function NewProfessionalChallengePage() {
           <ChallengeForm
             userId={professionalId}
             challenge={null}
-            redirectPath={`/professional/${professionalId}/challenges`}
+            redirectPath={`/challenges`}
             userType="professional"
           />
         </div>

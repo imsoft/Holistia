@@ -1,6 +1,8 @@
 "use client";
 
-import { useParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
+import { useUserId } from "@/stores/user-store";
+import { useUserStoreInit } from "@/hooks/use-user-store-init";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { DigitalProductForm } from "@/components/digital-products/digital-product-form";
@@ -17,7 +19,7 @@ export default function NewDigitalProductPage() {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => router.push(`/professional/${professionalId}/digital-products`)}
+            onClick={() => router.push(`/digital-products`)}
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>
@@ -30,7 +32,7 @@ export default function NewDigitalProductPage() {
           <DigitalProductForm
             professionalId={professionalId}
             product={null}
-            redirectPath={`/professional/${professionalId}/digital-products`}
+            redirectPath={`/digital-products`}
           />
         </div>
       </div>

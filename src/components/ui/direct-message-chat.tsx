@@ -66,6 +66,7 @@ export function DirectMessageChat({
   const [servicesLoading, setServicesLoading] = useState(false);
   const [isServicesDialogOpen, setIsServicesDialogOpen] = useState(false);
   const [serviceDetails, setServiceDetails] = useState<Record<string, Service>>({});
+  const [professionalSlug, setProfessionalSlug] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const supabase = createClient();
 
@@ -182,6 +183,48 @@ export function DirectMessageChat({
       loadServices();
     }
   }, [isProfessional, professionalId, loadServices]);
+
+  // Cargar datos del profesional para construir el slug
+  useEffect(() => {
+    const loadProfessionalData = async () => {
+      if (!professionalId) return;
+
+      try {
+        // El professionalId puede ser user_id o professional_applications.id
+        // Intentar primero como professional_applications.id
+        let { data: professionalData } = await supabase
+          .from('professional_applications')
+          .select('id, first_name, last_name, user_id')
+          .eq('id', professionalId)
+          .eq('status', 'approved')
+          .maybeSingle();
+
+        // Si no se encuentra, intentar como user_id
+        if (!professionalData) {
+          const { data: userData } = await supabase
+            .from('professional_applications')
+            .select('id, first_name, last_name, user_id')
+            .eq('user_id', professionalId)
+            .eq('status', 'approved')
+            .maybeSingle();
+          
+          if (userData) {
+            professionalData = userData;
+          }
+        }
+
+        if (professionalData) {
+          // Construir slug: first_name-last_name-id
+          const slug = `${professionalData.first_name?.toLowerCase() || ''}-${professionalData.last_name?.toLowerCase() || ''}-${professionalData.id}`;
+          setProfessionalSlug(slug);
+        }
+      } catch (error) {
+        console.error('Error loading professional data for slug:', error);
+      }
+    };
+
+    loadProfessionalData();
+  }, [professionalId, supabase]);
 
   // Cargar detalles de servicios cuando hay mensajes con metadata (para usuarios que reciben servicios)
   useEffect(() => {
@@ -334,6 +377,7 @@ export function DirectMessageChat({
                         service={serviceDetails[msg.metadata.service_id]}
                         userId={isOwnMessage ? currentUserId : otherUser.id}
                         professionalId={professionalId || ''}
+                        professionalSlug={professionalSlug || undefined}
                         conversationId={conversationId}
                         isProfessional={isProfessional}
                         className={cn(

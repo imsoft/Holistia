@@ -18,6 +18,7 @@ interface ServiceMessageCardProps {
   className?: string;
   conversationId?: string;
   isProfessional?: boolean;
+  professionalSlug?: string; // Slug completo del profesional (first_name-last_name-id)
 }
 
 export function ServiceMessageCard({
@@ -27,6 +28,7 @@ export function ServiceMessageCard({
   className,
   conversationId,
   isProfessional = false,
+  professionalSlug,
 }: ServiceMessageCardProps) {
   const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
   const getModalityIcon = (modality: string) => {
@@ -91,8 +93,10 @@ export function ServiceMessageCard({
   };
 
   // Construir la URL del servicio
-  // Usar el professionalId directamente (ya es el ID del profesional)
-  const serviceUrl = `/patient/${userId}/explore/professional/${professionalId}`;
+  // Usar el slug si está disponible, sino usar el ID directamente (la página puede manejarlo)
+  const serviceUrl = professionalSlug 
+    ? `/patient/${userId}/explore/professional/${professionalSlug}`
+    : `/patient/${userId}/explore/professional/${professionalId}`;
 
   return (
     <Card className={cn("w-full max-w-sm border-2 border-primary/20 hover:border-primary/40 transition-colors", className)}>

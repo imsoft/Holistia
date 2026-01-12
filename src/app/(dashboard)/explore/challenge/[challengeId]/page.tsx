@@ -62,6 +62,7 @@ export async function generateMetadata({
 
 export default async function ChallengePage({ params }: ChallengePageProps) {
   const { challengeId } = await params;
+  const userId = "";
   const supabase = await createClient();
 
   // Obtener información del reto

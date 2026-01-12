@@ -140,7 +140,7 @@ export default function ProfessionalChallenges() {
         </div>
         <div className="flex gap-2">
           <Button variant="outline" asChild>
-            <a href={`/professional/${professionalId}/challenges/participants`}>
+            <a href={`/challenges/participants`}>
               Ver Participantes
             </a>
           </Button>
@@ -243,7 +243,7 @@ export default function ProfessionalChallenges() {
                       variant="outline"
                       size="sm"
                       className="flex-1"
-                      onClick={() => router.push(`/professional/${professionalId}/challenges/${challenge.id}/edit`)}
+                      onClick={() => router.push(`/challenges/${challenge.id}/edit`)}
                     >
                       <Edit className="h-4 w-4 mr-2" />
                       Editar

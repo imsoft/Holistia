@@ -42,17 +42,6 @@ export const LogoClouds = () => {
               />
             </div>
 
-            {/* AM */}
-            <div className="col-span-1 flex justify-center">
-              <Image
-                alt="AM"
-                src="/sponsors/am.png"
-                width={500}
-                height={200}
-                className="max-h-40 w-auto object-contain filter grayscale hover:grayscale-0 transition-all duration-300"
-              />
-            </div>
-
             {/* Munar */}
             <div className="col-span-1 flex justify-center">
               <Image

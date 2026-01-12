@@ -1111,7 +1111,7 @@ export default function MyChallengesPage() {
                                               {checkin.is_public ? (
                                                 <>
                                                   <EyeOff className="h-3 w-3 mr-1" />
-                                                  Ocultar del feed
+                                                  Publicar
                                                 </>
                                               ) : (
                                                 <>

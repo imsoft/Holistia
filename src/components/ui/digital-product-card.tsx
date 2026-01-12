@@ -68,17 +68,22 @@ export function DigitalProductCard({
 }: DigitalProductCardProps) {
   const params = useParams();
   const router = useRouter();
-  const userId = params.id as string;
+  const userId = params.id as string | undefined;
 
   const CategoryIcon = CATEGORY_ICONS[product.category] || Tag;
 
   const handleClick = () => {
-    router.push(`/patient/${userId}/explore/program/${product.id}`);
+    // Usar ruta limpia si no hay userId en los parámetros
+    if (userId) {
+      router.push(`/patient/${userId}/explore/program/${product.id}`);
+    } else {
+      router.push(`/explore/program/${product.id}`);
+    }
   };
 
   return (
-    <Card className="hover:shadow-lg hover:-translate-y-2 transition-all duration-300 overflow-hidden group cursor-pointer h-[480px] flex flex-col" onClick={handleClick}>
-        <div className="relative h-64 bg-gradient-to-br from-primary/10 to-primary/5 overflow-hidden shrink-0">
+    <Card className="hover:shadow-lg hover:-translate-y-2 transition-all duration-300 overflow-hidden group cursor-pointer h-full flex flex-col" onClick={handleClick}>
+        <div className="relative h-48 sm:h-56 bg-gradient-to-br from-primary/10 to-primary/5 overflow-hidden shrink-0">
           <div className="absolute inset-0 overflow-hidden">
             {product.cover_image_url ? (
               <Image
@@ -122,15 +127,15 @@ export function DigitalProductCard({
           </div>
         </div>
 
-        <CardHeader className="px-6 pt-6 pb-3">
-          <CardTitle className="text-xl line-clamp-2 group-hover:text-primary transition-colors">
+        <CardHeader className="px-4 sm:px-6 pt-4 sm:pt-6 pb-2 sm:pb-3 shrink-0">
+          <CardTitle className="text-lg sm:text-xl line-clamp-2 group-hover:text-primary transition-colors">
             {product.title}
           </CardTitle>
         </CardHeader>
 
-        <CardContent className="px-6 pb-6 space-y-4 flex-1 flex flex-col min-h-0">
-          <p className="text-sm text-muted-foreground line-clamp-2">
-            {product.description}
+        <CardContent className="px-4 sm:px-6 pb-4 sm:pb-6 space-y-3 sm:space-y-4 flex-1 flex flex-col min-h-0">
+          <p className="text-sm text-muted-foreground line-clamp-3 flex-1">
+            {product.description ? product.description.replace(/<[^>]*>/g, '').substring(0, 150) : 'Sin descripción'}
           </p>
 
           {/* Metadata */}
@@ -178,16 +183,17 @@ export function DigitalProductCard({
           )}
 
           {/* Price and CTA */}
-          <div className="flex items-center justify-between pt-3 border-t mt-auto">
+          <div className="flex items-center justify-between pt-3 border-t mt-auto shrink-0">
             <div>
-              <p className="text-2xl font-bold text-primary">
+              <p className="text-xl sm:text-2xl font-bold text-primary">
                 ${product.price.toLocaleString('es-MX')}
               </p>
               <p className="text-xs text-muted-foreground">{product.currency}</p>
             </div>
-            <Button size="sm" className="gap-2">
+            <Button size="sm" className="gap-2 shrink-0">
               <ShoppingBag className="h-4 w-4" />
-              Ver Detalles
+              <span className="hidden sm:inline">Ver Detalles</span>
+              <span className="sm:hidden">Ver</span>
             </Button>
           </div>
         </CardContent>

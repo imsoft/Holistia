@@ -93,7 +93,7 @@ export async function PATCH(request: Request) {
       .from('challenge_checkins')
       .update({ is_public: is_public })
       .eq('id', checkin_id)
-      .select()
+      .select('id, challenge_purchase_id, day_number, checkin_date, checkin_time, evidence_type, evidence_url, notes, points_earned, is_public, allow_comments, likes_count, comments_count, verified_by_professional, verified_at, created_at')
       .single();
 
     if (updateError) {

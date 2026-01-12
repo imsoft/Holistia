@@ -31,7 +31,7 @@ const getProfessionalNavigation = () => {
     { name: "Servicios", href: `/services` },
     { name: "Citas", href: `/appointments` },
     { name: "Pacientes", href: `/patients` },
-    { name: "Mensajes", href: `/messages` },
+    { name: "Consultas", href: `/consultations` },
     { name: "Retos", href: `/challenges` },
     { name: "Finanzas", href: `/finances` },
   ];

@@ -79,8 +79,8 @@ const getNavItems = (id: string): { mainNavItems: ProfessionalNavItem[] } => {
       icon: Users,
     },
     {
-      title: "Mensajes",
-      url: `/professional/${id}/messages`,
+      title: "Consultas",
+      url: `/consultations`,
       icon: MessageSquare,
     },
     {

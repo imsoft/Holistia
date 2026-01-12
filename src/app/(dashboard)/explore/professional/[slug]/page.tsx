@@ -1426,7 +1426,7 @@ export default function ProfessionalProfilePage() {
                         professional_profession: professional.profession,
                         professional_is_verified: professional.is_verified || false,
                       }}
-                      userId={patientId}
+                      userId={patientId || undefined}
                     />
                   ))}
                 </div>

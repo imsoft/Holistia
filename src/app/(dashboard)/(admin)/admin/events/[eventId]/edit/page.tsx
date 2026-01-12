@@ -12,9 +12,10 @@ import { createClient } from "@/utils/supabase/client";
 import { toast } from "sonner";
 
 export default function EditEventPage() {
+  useUserStoreInit();
   const params = useParams();
   const router = useRouter();
-  const adminId = params.id as string;
+  const adminId = useUserId();
   const eventId = params.eventId as string;
   const [professionals, setProfessionals] = useState<Professional[]>([]);
   const [event, setEvent] = useState<EventWorkshop | null>(null);

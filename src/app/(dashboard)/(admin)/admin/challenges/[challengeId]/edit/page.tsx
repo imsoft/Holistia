@@ -31,10 +31,11 @@ interface Challenge {
 }
 
 export default function EditAdminChallengePage() {
+  useUserStoreInit();
   const params = useParams();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const adminId = params.id as string;
+  const adminId = useUserId();
   const challengeId = params.challengeId as string;
   const professionalId = searchParams.get('professional_id');
 

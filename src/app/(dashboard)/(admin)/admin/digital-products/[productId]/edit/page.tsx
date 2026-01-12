@@ -27,10 +27,11 @@ interface DigitalProduct {
 }
 
 export default function EditAdminDigitalProductPage() {
+  useUserStoreInit();
   const params = useParams();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const adminId = params.id as string;
+  const adminId = useUserId();
   const productId = params.productId as string;
   const professionalId = searchParams.get('professional_id');
 

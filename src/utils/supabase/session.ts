@@ -90,14 +90,29 @@ export async function updateSession(request: NextRequest) {
       return NextResponse.redirect(url);
     }
     
-    // Redirigir /admin/[id]/* a rutas limpias
-    if (pathname.match(/^\/admin\/[^/]+(.*)$/)) {
-      const match = pathname.match(/^\/admin\/[^/]+(.*)$/);
-      const newPath = match ? `/admin${match[1] || '/dashboard'}` : '/admin/dashboard';
-      const url = request.nextUrl.clone();
-      url.pathname = newPath;
-      console.log('🔄 Redirecting /admin/[id]/* to:', url.pathname);
-      return NextResponse.redirect(url);
+    // Redirigir /admin/[id]/* a rutas limpias (solo si no es una ruta válida sin ID)
+    const adminIdMatch = pathname.match(/^\/admin\/([^/]+)(.*)$/);
+    if (adminIdMatch) {
+      const firstSegment = adminIdMatch[1];
+      const restPath = adminIdMatch[2] || '';
+      
+      // Lista de rutas válidas que NO son IDs de usuario
+      const validAdminRoutes = [
+        'dashboard', 'professionals', 'events', 'challenges', 'blog', 'users',
+        'applications', 'analytics', 'finances', 'tickets', 'companies', 'shops',
+        'restaurants', 'holistic-centers', 'digital-products', 'event-registrations',
+        'certifications', 'services-costs', 'holistic-services', 'my-events',
+        'sync-tools', 'ui-playground', 'github-commits', 'ai-agent'
+      ];
+      
+      // Solo redirigir si el primer segmento NO es una ruta válida (es decir, es un ID)
+      if (!validAdminRoutes.includes(firstSegment)) {
+        const newPath = `/admin${restPath || '/dashboard'}`;
+        const url = request.nextUrl.clone();
+        url.pathname = newPath;
+        console.log('🔄 Redirecting /admin/[id]/* to:', url.pathname);
+        return NextResponse.redirect(url);
+      }
     }
 
     // Manejar la ruta raíz '/' de forma especial para usuarios autenticados

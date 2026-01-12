@@ -42,9 +42,9 @@ export async function login(formData: FormData) {
       
       revalidatePath("/", "layout");
       
-      // Redirigir según el tipo de usuario
+      // Redirigir seg?n el tipo de usuario
       if (userType === 'admin') {
-        redirect(`/admin/${result.user.id}/dashboard`);
+        redirect(`/admin/dashboard`);
       } else if (userType === 'professional') {
         redirect(`/professional/${result.user.id}/dashboard`);
       } else {
@@ -136,7 +136,7 @@ export async function signup(formData: FormData) {
       revalidatePath("/", "layout");
       
       if (userType === 'admin') {
-        redirect(`/admin/${result.user.id}/dashboard`);
+        redirect(`/admin/dashboard`);
       } else if (userType === 'professional') {
         redirect(`/professional/${result.user.id}/dashboard`);
       } else {

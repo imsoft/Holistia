@@ -30,13 +30,15 @@ export async function PATCH(request: Request) {
       .select(`
         id,
         challenge_purchase_id,
+        is_public,
         challenge_purchases!inner(
           participant_id,
           challenge_id,
           challenges!inner(
             id,
             created_by_type,
-            is_active
+            is_active,
+            is_public
           )
         )
       `)
@@ -66,26 +68,44 @@ export async function PATCH(request: Request) {
       ? purchase.challenges[0]
       : purchase.challenges;
 
-    // Verificar que el reto es público (creado por profesional y activo)
-    if (is_public && (challenge.created_by_type !== 'professional' || !challenge.is_active)) {
-      return NextResponse.json(
-        { error: 'Solo puedes publicar check-ins de retos públicos creados por profesionales' },
-        { status: 400 }
-      );
+    // Verificar que el reto es público (creado por profesional y activo) solo cuando se intenta publicar
+    if (is_public) {
+      // Verificar que el reto es público y activo
+      if (challenge.created_by_type !== 'professional' || !challenge.is_active) {
+        return NextResponse.json(
+          { error: 'Solo puedes publicar check-ins de retos públicos creados por profesionales' },
+          { status: 400 }
+        );
+      }
+      
+      // Verificar que el reto tiene is_public = true
+      if (!challenge.is_public) {
+        return NextResponse.json(
+          { error: 'Este reto no es público, no se pueden publicar check-ins' },
+          { status: 400 }
+        );
+      }
     }
 
+    // Si se está ocultando (is_public = false), no necesitamos validar el tipo de reto
     // Actualizar el estado is_public del check-in
     const { data: updatedCheckin, error: updateError } = await supabase
       .from('challenge_checkins')
-      .update({ is_public })
+      .update({ is_public: is_public })
       .eq('id', checkin_id)
       .select()
       .single();
 
     if (updateError) {
       console.error('Error updating checkin:', updateError);
+      console.error('Update error details:', {
+        message: updateError.message,
+        details: updateError.details,
+        hint: updateError.hint,
+        code: updateError.code
+      });
       return NextResponse.json(
-        { error: 'Error al actualizar el check-in' },
+        { error: `Error al actualizar el check-in: ${updateError.message || 'Error desconocido'}` },
         { status: 500 }
       );
     }

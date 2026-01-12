@@ -116,7 +116,7 @@ export default function EditServicePage() {
             professionalId={professionalId}
             userId={professionalId}
             service={service}
-            redirectPath={`/professional/${professionalId}/services`}
+            redirectPath={`/services`}
           />
         </div>
       </div>

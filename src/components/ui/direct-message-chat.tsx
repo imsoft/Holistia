@@ -100,6 +100,11 @@ export function DirectMessageChat({
   const [programs, setPrograms] = useState<any[]>([]);
   const [challenges, setChallenges] = useState<any[]>([]);
   const [professionalLocation, setProfessionalLocation] = useState<any>(null);
+  const [professionalWorkingHours, setProfessionalWorkingHours] = useState<{
+    working_start_time: string;
+    working_end_time: string;
+    working_days: number[];
+  } | null>(null);
   const [loadingAvailability, setLoadingAvailability] = useState(false);
   const [loadingPrograms, setLoadingPrograms] = useState(false);
   const [loadingChallenges, setLoadingChallenges] = useState(false);
@@ -507,6 +512,15 @@ export function DirectMessageChat({
         .select('working_start_time, working_end_time, working_days')
         .eq('id', actualProfessionalId)
         .single();
+
+      // Guardar horarios de trabajo para mostrarlos si no hay slots disponibles
+      if (professionalData) {
+        setProfessionalWorkingHours({
+          working_start_time: professionalData.working_start_time || '09:00',
+          working_end_time: professionalData.working_end_time || '18:00',
+          working_days: professionalData.working_days || [1, 2, 3, 4, 5]
+        });
+      }
 
       // Generar slots disponibles para los próximos 14 días
       const slots: any[] = [];
@@ -1188,8 +1202,59 @@ export function DirectMessageChat({
                   <Loader2 className="h-6 w-6 animate-spin text-primary" />
                 </div>
               ) : availabilitySlots.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  <p>No hay citas disponibles en los próximos días</p>
+                <div className="py-8">
+                  {professionalWorkingHours ? (
+                    <div className="space-y-4">
+                      <div className="text-center mb-6">
+                        <p className="text-sm font-semibold text-foreground mb-2">
+                          Horarios de Trabajo Disponibles
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          Estos son los horarios generales de trabajo. Puedes solicitar una cita en estos horarios.
+                        </p>
+                      </div>
+                      <div className="space-y-3">
+                        <Card>
+                          <CardContent className="p-4">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-3">
+                                <Calendar className="h-5 w-5 text-primary" />
+                                <div>
+                                  <p className="font-semibold">Horario de Trabajo</p>
+                                  <p className="text-sm text-muted-foreground">
+                                    {professionalWorkingHours.working_start_time} - {professionalWorkingHours.working_end_time}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                        <Card>
+                          <CardContent className="p-4">
+                            <div className="flex items-center gap-3">
+                              <Calendar className="h-5 w-5 text-primary" />
+                              <div>
+                                <p className="font-semibold">Días de Trabajo</p>
+                                <p className="text-sm text-muted-foreground">
+                                  {professionalWorkingHours.working_days
+                                    .map(day => {
+                                      const dayNames = ['', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+                                      return dayNames[day];
+                                    })
+                                    .filter(Boolean)
+                                    .join(', ')}
+                                </p>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 text-muted-foreground">
+                      <p>No hay citas disponibles en los próximos días</p>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div className="grid gap-2">

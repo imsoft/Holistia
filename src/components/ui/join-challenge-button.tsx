@@ -123,7 +123,7 @@ export function JoinChallengeButton({ challengeId, userId, challengePrice }: Joi
   if (isParticipating) {
     return (
       <Button
-        onClick={() => router.push(`/patient/${userId}/my-challenges`)}
+        onClick={() => router.push(`/my-challenges`)}
         className="w-full"
         size="lg"
         variant="outline"

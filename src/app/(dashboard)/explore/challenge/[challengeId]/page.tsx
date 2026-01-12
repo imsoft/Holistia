@@ -19,7 +19,7 @@ import { FavoriteButton } from "@/components/ui/favorite-button";
 import { JoinChallengeButton } from "@/components/ui/join-challenge-button";
 
 interface ChallengePageProps {
-  params: Promise<{ id: string; challengeId: string }>;
+  params: Promise<{ challengeId: string }>;
 }
 
 const difficultyLabels = {
@@ -61,7 +61,7 @@ export async function generateMetadata({
 }
 
 export default async function ChallengePage({ params }: ChallengePageProps) {
-  const { id: userId, challengeId } = await params;
+  const { challengeId } = await params;
   const supabase = await createClient();
 
   // Obtener información del reto
@@ -242,7 +242,7 @@ export default async function ChallengePage({ params }: ChallengePageProps) {
                 {/* Botón de unirse */}
                 <JoinChallengeButton 
                   challengeId={challenge.id} 
-                  userId={userId || ''}
+                  userId=""
                   challengePrice={challenge.price}
                 />
 

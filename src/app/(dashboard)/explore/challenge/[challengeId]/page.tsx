@@ -242,7 +242,7 @@ export default async function ChallengePage({ params }: ChallengePageProps) {
                 {/* Botón de unirse */}
                 <JoinChallengeButton 
                   challengeId={challenge.id} 
-                  userId={userId || undefined}
+                  userId={userId || ''}
                   challengePrice={challenge.price}
                 />
 

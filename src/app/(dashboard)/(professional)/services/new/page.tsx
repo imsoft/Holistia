@@ -11,9 +11,9 @@ import { createClient } from "@/utils/supabase/client";
 import { toast } from "sonner";
 
 export default function NewServicePage() {
-  const params = useParams();
+  useUserStoreInit();
   const router = useRouter();
-  const professionalId = params.id as string;
+  const professionalId = useUserId();
   const [userId, setUserId] = useState<string | null>(null);
   const [actualProfessionalId, setActualProfessionalId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);

@@ -1108,17 +1108,7 @@ export default function MyChallengesPage() {
                                               className="h-7 text-xs"
                                               onClick={() => handlePublishCheckin(checkin.id, checkin.is_public || false)}
                                             >
-                                              {checkin.is_public ? (
-                                                <>
-                                                  <EyeOff className="h-3 w-3 mr-1" />
-                                                  Publicar
-                                                </>
-                                              ) : (
-                                                <>
-                                                  <Eye className="h-3 w-3 mr-1" />
-                                                  Publicar
-                                                </>
-                                              )}
+                                              {checkin.is_public ? "Ocultar" : "Publicar"}
                                             </Button>
                                           )}
                                         </div>

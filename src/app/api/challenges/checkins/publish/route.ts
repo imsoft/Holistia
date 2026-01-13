@@ -89,12 +89,10 @@ export async function PATCH(request: Request) {
 
     // Si se está ocultando (is_public = false), no necesitamos validar el tipo de reto
     // Actualizar el estado is_public del check-in
-    const { data: updatedCheckin, error: updateError } = await supabase
+    const { error: updateError } = await supabase
       .from('challenge_checkins')
       .update({ is_public: is_public })
-      .eq('id', checkin_id)
-      .select('id, challenge_purchase_id, day_number, checkin_date, checkin_time, evidence_type, evidence_url, notes, points_earned, is_public, allow_comments, likes_count, comments_count, verified_by_professional, verified_at, created_at')
-      .single();
+      .eq('id', checkin_id);
 
     if (updateError) {
       console.error('Error updating checkin:', updateError);
@@ -108,6 +106,22 @@ export async function PATCH(request: Request) {
         { error: `Error al actualizar el check-in: ${updateError.message || 'Error desconocido'}` },
         { status: 500 }
       );
+    }
+
+    // Obtener el check-in actualizado por separado para evitar problemas con relaciones
+    const { data: updatedCheckin, error: fetchError } = await supabase
+      .from('challenge_checkins')
+      .select('id, challenge_purchase_id, day_number, checkin_date, checkin_time, evidence_type, evidence_url, notes, points_earned, is_public, allow_comments, likes_count, comments_count, verified_by_professional, verified_at, created_at')
+      .eq('id', checkin_id)
+      .single();
+
+    if (fetchError) {
+      console.error('Error fetching updated checkin:', fetchError);
+      // Aún así retornar éxito si el update funcionó
+      return NextResponse.json({
+        success: true,
+        checkin: { id: checkin_id, is_public: is_public },
+      });
     }
 
     return NextResponse.json({

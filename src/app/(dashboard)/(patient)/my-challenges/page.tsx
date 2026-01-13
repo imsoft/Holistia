@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/select";
 import { createClient } from "@/utils/supabase/client";
 import { toast } from "sonner";
-import { Calendar, Target, Loader2, CheckCircle2, Circle, Users, Plus, Edit, Trash2, Link as LinkIcon, Book, Headphones, Video, FileText, ExternalLink, Search, Filter, Share2, Eye, EyeOff } from "lucide-react";
+import { Calendar, Target, Loader2, CheckCircle2, Circle, Users, Plus, Edit, Trash2, Link as LinkIcon, Book, Headphones, Video, FileText, ExternalLink, Search, Filter, Share2 } from "lucide-react";
 import { CheckinForm } from "@/components/ui/checkin-form";
 import { ChallengeProgress } from "@/components/ui/challenge-progress";
 import { ChallengeBadges } from "@/components/ui/challenge-badges";

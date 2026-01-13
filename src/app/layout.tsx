@@ -6,6 +6,7 @@ import { Analytics } from '@vercel/analytics/next';
 import { GoogleAnalytics, GoogleSearchConsole } from '@/components/seo/google-analytics';
 import { Toaster } from 'sonner';
 import { FaviconManager } from '@/components/layout/FaviconManager';
+import { SpeedInsights } from "@vercel/speed-insights/next"
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -141,6 +142,7 @@ export default function RootLayout({
       >
         <FaviconManager />
         {children}
+        <SpeedInsights />
         <Analytics />
         <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS_ID} />
         <Toaster

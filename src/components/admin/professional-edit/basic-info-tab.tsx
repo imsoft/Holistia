@@ -151,13 +151,13 @@ export function BasicInfoTab({ professional, onUpdate }: BasicInfoTabProps) {
       const filePath = `${professional.id}/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
-        .from('profile-photos')
+        .from('avatars')
         .upload(filePath, file, { upsert: true });
 
       if (uploadError) throw uploadError;
 
       const { data: { publicUrl } } = supabase.storage
-        .from('profile-photos')
+        .from('avatars')
         .getPublicUrl(filePath);
 
       handleChange('profile_photo', publicUrl);

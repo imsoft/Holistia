@@ -89,7 +89,7 @@ export default function ProfessionalDashboard() {
           setIsVerified(professionalApp.is_verified || false);
           setRegistrationFeeStatus({
             paid: professionalApp.registration_fee_paid || false,
-            amount: professionalApp.registration_fee_amount || 600,
+            amount: professionalApp.registration_fee_amount || 888,
             currency: professionalApp.registration_fee_currency || 'mxn',
             expires_at: professionalApp.registration_fee_expires_at,
             paid_at: professionalApp.registration_fee_paid_at,

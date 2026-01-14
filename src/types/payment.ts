@@ -52,7 +52,7 @@ export interface CreateEventPaymentData {
 export interface CreateRegistrationPaymentData {
   professional_application_id: string;
   user_id: string;
-  amount?: number; // Default 299 MXN
+  amount?: number; // Default 888 MXN
   description?: string;
 }
 

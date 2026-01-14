@@ -4,27 +4,26 @@
 -- Fecha: 2026-01-13
 -- Propósito: Verificar que los administradores tengan acceso completo a TODAS
 --            las tablas y storage buckets relacionados con profesionales
+--
+-- NOTA: Este script es compatible con Supabase SQL Editor
 -- ============================================================================
 
 -- ============================================================================
 -- PARTE 1: VERIFICAR POLÍTICAS RLS EN TABLAS
 -- ============================================================================
 
-\echo '🔍 VERIFICANDO POLÍTICAS RLS EN TABLAS...'
-\echo ''
-
 -- 1. professional_applications
-\echo '📋 Tabla: professional_applications'
 SELECT
+  '📋 TABLA: professional_applications' as seccion,
   policyname,
   cmd as operacion,
   CASE
-    WHEN qual IS NOT NULL THEN '✅'
-    ELSE '❌'
+    WHEN qual IS NOT NULL THEN '✅ Sí'
+    ELSE '❌ No'
   END as tiene_using,
   CASE
-    WHEN with_check IS NOT NULL THEN '✅'
-    ELSE '❌'
+    WHEN with_check IS NOT NULL THEN '✅ Sí'
+    ELSE '❌ No'
   END as tiene_with_check
 FROM pg_policies
 WHERE tablename = 'professional_applications'
@@ -32,20 +31,18 @@ WHERE tablename = 'professional_applications'
   AND policyname ILIKE '%admin%'
 ORDER BY cmd;
 
-\echo ''
-
 -- 2. professional_services
-\echo '📋 Tabla: professional_services'
 SELECT
+  '📋 TABLA: professional_services' as seccion,
   policyname,
   cmd as operacion,
   CASE
-    WHEN qual IS NOT NULL THEN '✅'
-    ELSE '❌'
+    WHEN qual IS NOT NULL THEN '✅ Sí'
+    ELSE '❌ No'
   END as tiene_using,
   CASE
-    WHEN with_check IS NOT NULL THEN '✅'
-    ELSE '❌'
+    WHEN with_check IS NOT NULL THEN '✅ Sí'
+    ELSE '❌ No'
   END as tiene_with_check
 FROM pg_policies
 WHERE tablename = 'professional_services'
@@ -53,20 +50,18 @@ WHERE tablename = 'professional_services'
   AND policyname ILIKE '%admin%'
 ORDER BY cmd;
 
-\echo ''
-
 -- 3. digital_products
-\echo '📋 Tabla: digital_products'
 SELECT
+  '📋 TABLA: digital_products' as seccion,
   policyname,
   cmd as operacion,
   CASE
-    WHEN qual IS NOT NULL THEN '✅'
-    ELSE '❌'
+    WHEN qual IS NOT NULL THEN '✅ Sí'
+    ELSE '❌ No'
   END as tiene_using,
   CASE
-    WHEN with_check IS NOT NULL THEN '✅'
-    ELSE '❌'
+    WHEN with_check IS NOT NULL THEN '✅ Sí'
+    ELSE '❌ No'
   END as tiene_with_check
 FROM pg_policies
 WHERE tablename = 'digital_products'
@@ -74,20 +69,18 @@ WHERE tablename = 'digital_products'
   AND policyname ILIKE '%admin%'
 ORDER BY cmd;
 
-\echo ''
-
 -- 4. challenges
-\echo '📋 Tabla: challenges'
 SELECT
+  '📋 TABLA: challenges' as seccion,
   policyname,
   cmd as operacion,
   CASE
-    WHEN qual IS NOT NULL THEN '✅'
-    ELSE '❌'
+    WHEN qual IS NOT NULL THEN '✅ Sí'
+    ELSE '❌ No'
   END as tiene_using,
   CASE
-    WHEN with_check IS NOT NULL THEN '✅'
-    ELSE '❌'
+    WHEN with_check IS NOT NULL THEN '✅ Sí'
+    ELSE '❌ No'
   END as tiene_with_check
 FROM pg_policies
 WHERE tablename = 'challenges'
@@ -95,20 +88,18 @@ WHERE tablename = 'challenges'
   AND policyname ILIKE '%admin%'
 ORDER BY cmd;
 
-\echo ''
-
 -- 5. events_workshops
-\echo '📋 Tabla: events_workshops'
 SELECT
+  '📋 TABLA: events_workshops' as seccion,
   policyname,
   cmd as operacion,
   CASE
-    WHEN qual IS NOT NULL THEN '✅'
-    ELSE '❌'
+    WHEN qual IS NOT NULL THEN '✅ Sí'
+    ELSE '❌ No'
   END as tiene_using,
   CASE
-    WHEN with_check IS NOT NULL THEN '✅'
-    ELSE '❌'
+    WHEN with_check IS NOT NULL THEN '✅ Sí'
+    ELSE '❌ No'
   END as tiene_with_check
 FROM pg_policies
 WHERE tablename = 'events_workshops'
@@ -116,20 +107,18 @@ WHERE tablename = 'events_workshops'
   AND policyname ILIKE '%admin%'
 ORDER BY cmd;
 
-\echo ''
-
 -- 6. appointments
-\echo '📋 Tabla: appointments'
 SELECT
+  '📋 TABLA: appointments' as seccion,
   policyname,
   cmd as operacion,
   CASE
-    WHEN qual IS NOT NULL THEN '✅'
-    ELSE '❌'
+    WHEN qual IS NOT NULL THEN '✅ Sí'
+    ELSE '❌ No'
   END as tiene_using,
   CASE
-    WHEN with_check IS NOT NULL THEN '✅'
-    ELSE '❌'
+    WHEN with_check IS NOT NULL THEN '✅ Sí'
+    ELSE '❌ No'
   END as tiene_with_check
 FROM pg_policies
 WHERE tablename = 'appointments'
@@ -137,59 +126,84 @@ WHERE tablename = 'appointments'
   AND policyname ILIKE '%admin%'
 ORDER BY cmd;
 
-\echo ''
-
 -- ============================================================================
 -- PARTE 2: VERIFICAR POLÍTICAS DE STORAGE
 -- ============================================================================
 
-\echo '🗄️  VERIFICANDO POLÍTICAS DE STORAGE...'
-\echo ''
-
 -- Buckets relacionados con profesionales
 SELECT
+  '🗄️ STORAGE BUCKETS' as seccion,
   CASE
-    WHEN bucket_id = 'avatars' THEN '📸 avatars'
-    WHEN bucket_id = 'professional-gallery' THEN '🖼️  professional-gallery'
-    WHEN bucket_id = 'professional-services' THEN '💼 professional-services'
-    WHEN bucket_id = 'digital-products' THEN '📦 digital-products'
-    WHEN bucket_id = 'challenges' THEN '🏆 challenges'
-    ELSE bucket_id
+    WHEN (SELECT string_agg(DISTINCT (regexp_match(policyname, 'avatars?'))[1], ',') FROM pg_policies WHERE schemaname = 'storage' AND policyname ILIKE '%avatar%') IS NOT NULL
+    THEN 'avatars'
+    ELSE NULL
   END as bucket,
   policyname,
   cmd as operacion,
   CASE
-    WHEN qual IS NOT NULL THEN '✅'
-    ELSE '❌'
+    WHEN qual IS NOT NULL THEN '✅ Sí'
+    ELSE '❌ No'
   END as tiene_using,
   CASE
-    WHEN with_check IS NOT NULL THEN '✅'
-    ELSE '❌'
+    WHEN with_check IS NOT NULL THEN '✅ Sí'
+    ELSE '❌ No'
   END as tiene_with_check
 FROM pg_policies
 WHERE schemaname = 'storage'
   AND tablename = 'objects'
   AND policyname ILIKE '%admin%'
-  AND (
-    policyname ILIKE '%avatar%'
-    OR policyname ILIKE '%professional%'
-    OR policyname ILIKE '%digital%'
-    OR policyname ILIKE '%challenge%'
-  )
-ORDER BY bucket_id, cmd;
+  AND policyname ILIKE '%avatar%'
+ORDER BY cmd;
 
-\echo ''
+SELECT
+  '🗄️ STORAGE BUCKETS' as seccion,
+  'professional-services' as bucket,
+  policyname,
+  cmd as operacion,
+  CASE
+    WHEN qual IS NOT NULL THEN '✅ Sí'
+    ELSE '❌ No'
+  END as tiene_using,
+  CASE
+    WHEN with_check IS NOT NULL THEN '✅ Sí'
+    ELSE '❌ No'
+  END as tiene_with_check
+FROM pg_policies
+WHERE schemaname = 'storage'
+  AND tablename = 'objects'
+  AND policyname ILIKE '%admin%'
+  AND policyname ILIKE '%service%'
+ORDER BY cmd;
+
+SELECT
+  '🗄️ STORAGE BUCKETS' as seccion,
+  'professional-gallery' as bucket,
+  policyname,
+  cmd as operacion,
+  CASE
+    WHEN qual IS NOT NULL THEN '✅ Sí'
+    ELSE '❌ No'
+  END as tiene_using,
+  CASE
+    WHEN with_check IS NOT NULL THEN '✅ Sí'
+    ELSE '❌ No'
+  END as tiene_with_check
+FROM pg_policies
+WHERE schemaname = 'storage'
+  AND tablename = 'objects'
+  AND policyname ILIKE '%admin%'
+  AND policyname ILIKE '%gallery%'
+ORDER BY cmd;
 
 -- ============================================================================
 -- PARTE 3: RESUMEN GENERAL
 -- ============================================================================
 
-\echo '📊 RESUMEN GENERAL'
-\echo ''
-
 -- Contar políticas de admin en tablas
-\echo '🔢 Total de políticas de admin en tablas:'
-SELECT COUNT(*) as total_politicas_tablas
+SELECT
+  '📊 RESUMEN' as tipo,
+  'Políticas admin en TABLAS' as categoria,
+  COUNT(*) as total
 FROM pg_policies
 WHERE schemaname = 'public'
   AND policyname ILIKE '%admin%'
@@ -202,91 +216,82 @@ WHERE schemaname = 'public'
     'appointments'
   );
 
-\echo ''
-
 -- Contar políticas de admin en storage
-\echo '🔢 Total de políticas de admin en storage:'
-SELECT COUNT(*) as total_politicas_storage
+SELECT
+  '📊 RESUMEN' as tipo,
+  'Políticas admin en STORAGE' as categoria,
+  COUNT(*) as total
 FROM pg_policies
 WHERE schemaname = 'storage'
   AND tablename = 'objects'
   AND policyname ILIKE '%admin%';
 
-\echo ''
-
 -- ============================================================================
 -- PARTE 4: VERIFICAR SI FALTAN POLÍTICAS CRÍTICAS
 -- ============================================================================
 
-\echo '⚠️  VERIFICACIÓN DE POLÍTICAS CRÍTICAS'
-\echo ''
-
 -- Verificar avatars
-\echo '🔍 Bucket avatars:'
 SELECT
+  '⚠️ VERIFICACIÓN CRÍTICA' as tipo,
+  'Bucket: avatars' as recurso,
   CASE
-    WHEN COUNT(*) >= 3 THEN '✅ Políticas configuradas correctamente'
+    WHEN COUNT(*) >= 3 THEN '✅ Configurado correctamente'
     ELSE '❌ FALTAN POLÍTICAS - Revisa la guía'
-  END as estado
+  END as estado,
+  COUNT(*) as total_politicas
 FROM pg_policies
 WHERE schemaname = 'storage'
   AND tablename = 'objects'
   AND policyname ILIKE '%avatar%'
   AND policyname ILIKE '%admin%';
 
-\echo ''
-
 -- Verificar professional-gallery
-\echo '🔍 Bucket professional-gallery:'
 SELECT
+  '⚠️ VERIFICACIÓN CRÍTICA' as tipo,
+  'Bucket: professional-gallery' as recurso,
   CASE
-    WHEN COUNT(*) >= 3 THEN '✅ Políticas configuradas correctamente'
+    WHEN COUNT(*) >= 3 THEN '✅ Configurado correctamente'
     ELSE '❌ FALTAN POLÍTICAS - Revisa la guía'
-  END as estado
+  END as estado,
+  COUNT(*) as total_politicas
 FROM pg_policies
 WHERE schemaname = 'storage'
   AND tablename = 'objects'
   AND policyname ILIKE '%gallery%'
   AND policyname ILIKE '%admin%';
 
-\echo ''
-
 -- Verificar professional-services
-\echo '🔍 Bucket professional-services:'
 SELECT
+  '⚠️ VERIFICACIÓN CRÍTICA' as tipo,
+  'Bucket: professional-services' as recurso,
   CASE
-    WHEN COUNT(*) >= 3 THEN '✅ Políticas configuradas correctamente'
+    WHEN COUNT(*) >= 3 THEN '✅ Configurado correctamente'
     ELSE '❌ FALTAN POLÍTICAS - Revisa la guía'
-  END as estado
+  END as estado,
+  COUNT(*) as total_politicas
 FROM pg_policies
 WHERE schemaname = 'storage'
   AND tablename = 'objects'
   AND policyname ILIKE '%service%'
   AND policyname ILIKE '%admin%';
 
-\echo ''
-
 -- Verificar professional_applications
-\echo '🔍 Tabla professional_applications:'
 SELECT
+  '⚠️ VERIFICACIÓN CRÍTICA' as tipo,
+  'Tabla: professional_applications' as recurso,
   CASE
-    WHEN COUNT(*) >= 1 THEN '✅ Políticas configuradas correctamente'
+    WHEN COUNT(*) >= 1 THEN '✅ Configurado correctamente'
     ELSE '❌ FALTAN POLÍTICAS - Ejecuta migración 81'
-  END as estado
+  END as estado,
+  COUNT(*) as total_politicas
 FROM pg_policies
 WHERE schemaname = 'public'
   AND tablename = 'professional_applications'
   AND policyname ILIKE '%admin%';
 
-\echo ''
-
 -- ============================================================================
 -- FIN DEL SCRIPT
 -- ============================================================================
 
-\echo '✅ Verificación completada'
-\echo ''
-\echo '📝 SIGUIENTE PASO:'
-\echo '   Si ves ❌ en alguna sección, sigue la guía en:'
-\echo '   database/scripts/GUIA_COMPLETA_ADMIN_ACCESO_TOTAL.md'
-\echo ''
+SELECT '✅ VERIFICACIÓN COMPLETADA' as mensaje,
+       'Si ves ❌, sigue la guía en: database/scripts/GUIA_COMPLETA_ADMIN_ACCESO_TOTAL.md' as siguiente_paso;

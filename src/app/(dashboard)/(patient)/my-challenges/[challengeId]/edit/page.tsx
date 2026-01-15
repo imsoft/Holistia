@@ -75,15 +75,15 @@ export default function EditChallengePage() {
   return (
     <div className="py-4 px-6">
       <div className="max-w-3xl mx-auto py-4 space-y-6">
+        <ChallengeResourcesManager challengeId={challengeId} />
+
+        <ChallengeMeetingsManager challengeId={challengeId} />
+
         <ChallengeForm
           userId={patientId || ''}
           challenge={challenge}
           redirectPath={`/my-challenges`}
         />
-
-        <ChallengeResourcesManager challengeId={challengeId} />
-
-        <ChallengeMeetingsManager challengeId={challengeId} />
       </div>
     </div>
   );

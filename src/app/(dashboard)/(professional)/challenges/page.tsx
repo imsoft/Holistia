@@ -14,6 +14,7 @@ import {
   Calendar,
   Loader2,
   User,
+  TrendingUp,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -238,28 +239,39 @@ export default function ProfessionalChallenges() {
                   )}
                 </CardContent>
                 <CardContent className="pt-0">
-                  <div className="flex gap-2">
+                  <div className="flex flex-col gap-2">
                     <Button
-                      variant="outline"
+                      variant="default"
                       size="sm"
-                      className="flex-1"
-                      onClick={() => router.push(`/challenges/${challenge.id}/edit`)}
+                      className="w-full"
+                      onClick={() => router.push(`/challenges/${challenge.id}/progress`)}
                     >
-                      <Edit className="h-4 w-4 mr-2" />
-                      Editar
+                      <TrendingUp className="h-4 w-4 mr-2" />
+                      Avances
                     </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="flex-1"
-                      onClick={() => {
-                        setDeletingChallenge(challenge);
-                        setIsDeleteOpen(true);
-                      }}
-                    >
-                      <Trash2 className="h-4 w-4 mr-2" />
-                      Eliminar
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex-1"
+                        onClick={() => router.push(`/challenges/${challenge.id}/edit`)}
+                      >
+                        <Edit className="h-4 w-4 mr-2" />
+                        Editar
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex-1"
+                        onClick={() => {
+                          setDeletingChallenge(challenge);
+                          setIsDeleteOpen(true);
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Eliminar
+                      </Button>
+                    </div>
                   </div>
                 </CardContent>
               </Card>

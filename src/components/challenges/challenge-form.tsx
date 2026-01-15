@@ -111,30 +111,7 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
     }
   }, [isProfessional, userId]);
 
-  // Si es profesional, vincular automáticamente al profesional actual
-  useEffect(() => {
-    if (isProfessional && userId && formData.linked_professional_id === "none") {
-      // Buscar el professional_id basado en el user_id
-      const findProfessionalId = async () => {
-        try {
-          const { data: professionalData } = await supabase
-            .from('professional_applications')
-            .select('id')
-            .eq('user_id', userId)
-            .eq('status', 'approved')
-            .single();
-
-          if (professionalData) {
-            setFormData({ ...formData, linked_professional_id: professionalData.id });
-          }
-        } catch (error) {
-          console.error('Error finding professional ID:', error);
-        }
-      };
-      findProfessionalId();
-    }
-  }, [isProfessional, userId]);
-
+  // Cargar datos del challenge cuando esté disponible (prioridad)
   useEffect(() => {
     if (challenge) {
       setFormData({
@@ -153,6 +130,36 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
       });
     }
   }, [challenge]);
+
+  // Si es profesional y NO hay challenge cargado, vincular automáticamente al profesional actual
+  useEffect(() => {
+    if (isProfessional && userId && !challenge) {
+      // Buscar el professional_id basado en el user_id
+      const findProfessionalId = async () => {
+        try {
+          const { data: professionalData } = await supabase
+            .from('professional_applications')
+            .select('id')
+            .eq('user_id', userId)
+            .eq('status', 'approved')
+            .single();
+
+          if (professionalData) {
+            setFormData((prev) => {
+              // Solo actualizar si linked_professional_id está en "none"
+              if (prev.linked_professional_id === "none") {
+                return { ...prev, linked_professional_id: professionalData.id };
+              }
+              return prev;
+            });
+          }
+        } catch (error) {
+          console.error('Error finding professional ID:', error);
+        }
+      };
+      findProfessionalId();
+    }
+  }, [isProfessional, userId, challenge, supabase]);
 
   const fetchProfessionals = async () => {
     try {

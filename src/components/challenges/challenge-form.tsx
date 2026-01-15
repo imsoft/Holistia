@@ -124,7 +124,7 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
         difficulty_level: challenge.difficulty_level || "",
         category: challenge.category || "",
         wellness_areas: challenge.wellness_areas || [],
-        linked_professional_id: challenge.linked_professional_id ? challenge.linked_professional_id : "none",
+        linked_professional_id: challenge.linked_professional_id || "none",
         price: challenge.price !== null && challenge.price !== undefined ? challenge.price.toString() : "",
         currency: challenge.currency || "MXN",
         is_active: challenge.is_active !== undefined ? challenge.is_active : true,
@@ -546,7 +546,7 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
               {isProfessional ? "Profesional Vinculado" : "Vincular a Profesional (Opcional)"}
             </Label>
             <Select
-              value={formData.linked_professional_id}
+              value={formData.linked_professional_id || "none"}
               onValueChange={(value) => setFormData({ ...formData, linked_professional_id: value })}
               disabled={loadingProfessionals || isProfessional}
             >
@@ -562,6 +562,11 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
                 ))}
               </SelectContent>
             </Select>
+            {formData.linked_professional_id && formData.linked_professional_id !== "none" && (
+              <p className="text-xs text-muted-foreground">
+                Profesional: {professionals.find(p => p.id === formData.linked_professional_id)?.first_name} {professionals.find(p => p.id === formData.linked_professional_id)?.last_name}
+              </p>
+            )}
             {isProfessional && (
               <p className="text-xs text-muted-foreground">
                 Este reto se vinculará automáticamente a tu perfil profesional
@@ -612,7 +617,7 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
             <div className="space-y-2">
               <Label htmlFor="difficulty_level">Nivel de Dificultad</Label>
               <Select
-                value={formData.difficulty_level}
+                value={formData.difficulty_level || undefined}
                 onValueChange={(value) => setFormData({ ...formData, difficulty_level: value })}
               >
                 <SelectTrigger className="w-full">
@@ -626,6 +631,11 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
                   ))}
                 </SelectContent>
               </Select>
+              {formData.difficulty_level && (
+                <p className="text-xs text-muted-foreground">
+                  Seleccionado: {DIFFICULTY_OPTIONS.find(opt => opt.value === formData.difficulty_level)?.label}
+                </p>
+              )}
             </div>
           </div>
 

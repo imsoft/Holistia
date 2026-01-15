@@ -33,7 +33,6 @@ export default function EditChallengePage() {
           id,
           title,
           description,
-          short_description,
           cover_image_url,
           duration_days,
           difficulty_level,
@@ -42,6 +41,8 @@ export default function EditChallengePage() {
           created_by_type,
           created_by_user_id,
           linked_professional_id,
+          price,
+          currency,
           is_active,
           is_public,
           created_at

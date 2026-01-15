@@ -137,6 +137,7 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
 
   useEffect(() => {
     if (challenge) {
+      console.log('🔍 ChallengeForm: Loading challenge data', challenge);
       setFormData({
         title: challenge.title || "",
         description: challenge.description || "",

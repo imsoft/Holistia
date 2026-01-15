@@ -7,6 +7,7 @@ import { useUserStoreInit } from "@/hooks/use-user-store-init";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { ChallengeForm } from "@/components/challenges/challenge-form";
+import { ChallengeResourcesManager } from "@/components/challenges/challenge-resources-manager";
 import { ChallengeMeetingsManager } from "@/components/challenges/challenge-meetings-manager";
 import { createClient } from "@/utils/supabase/client";
 import { toast } from "sonner";
@@ -104,6 +105,8 @@ export default function EditProfessionalChallengePage() {
             redirectPath={`/challenges`}
             userType="professional"
           />
+
+          <ChallengeResourcesManager challengeId={challengeId} />
 
           <ChallengeMeetingsManager challengeId={challengeId} />
         </div>

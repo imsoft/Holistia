@@ -258,7 +258,7 @@ export function ChallengeResourcesManager({
       <CardContent className="space-y-4">
         {/* Resource Form */}
         {(isAdding || editingId) && (
-          <Card className="border-2 border-primary/20 bg-muted/30">
+          <Card className="border-2 border-primary/20 bg-muted/30 py-4">
             <CardContent className="pt-6 space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="resource-title">
@@ -282,7 +282,7 @@ export function ChallengeResourcesManager({
                     setFormData({ ...formData, resource_type: value })
                   }
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="w-full">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>

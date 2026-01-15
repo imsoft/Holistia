@@ -314,7 +314,7 @@ export function ChallengeMeetingsManager({
       <CardContent className="space-y-4">
         {/* Meeting Form */}
         {(isAdding || editingId) && (
-          <Card className="border-2 border-primary/20 bg-muted/30">
+          <Card className="border-2 border-primary/20 bg-muted/30 py-4">
             <CardContent className="pt-6 space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="meeting-title">
@@ -338,7 +338,7 @@ export function ChallengeMeetingsManager({
                     setFormData({ ...formData, platform: value })
                   }
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="w-full">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -448,7 +448,7 @@ export function ChallengeMeetingsManager({
                       setFormData({ ...formData, timezone: value })
                     }
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="w-full">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -502,7 +502,7 @@ export function ChallengeMeetingsManager({
                           setFormData({ ...formData, recurrence_pattern: value })
                         }
                       >
-                        <SelectTrigger>
+                        <SelectTrigger className="w-full">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>

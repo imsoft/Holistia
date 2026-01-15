@@ -178,11 +178,18 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
       };
       console.log('🔍 ChallengeForm: Loading challenge data', {
         challenge,
+        challengeId: challenge.id,
+        challengeKeys: Object.keys(challenge),
         formData: newFormData,
+        formDataKeys: Object.keys(newFormData),
         difficulty_level: challenge.difficulty_level,
         price: challenge.price,
         linked_professional_id: challenge.linked_professional_id,
-        cover_image_url: challenge.cover_image_url
+        cover_image_url: challenge.cover_image_url,
+        category: challenge.category,
+        wellness_areas: challenge.wellness_areas,
+        duration_days: challenge.duration_days,
+        is_public: challenge.is_public
       });
       setFormData(newFormData);
     }

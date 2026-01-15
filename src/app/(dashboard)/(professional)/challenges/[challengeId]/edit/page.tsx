@@ -44,12 +44,33 @@ export default function EditProfessionalChallengePage() {
   const supabase = createClient();
 
   useEffect(() => {
-    const fetchChallenge = async () => {
+      const fetchChallenge = async () => {
       try {
         setLoading(true);
         const { data, error } = await supabase
           .from("challenges")
-          .select("*")
+          .select(`
+            id,
+            professional_id,
+            created_by_user_id,
+            created_by_type,
+            linked_patient_id,
+            linked_professional_id,
+            title,
+            description,
+            short_description,
+            cover_image_url,
+            duration_days,
+            difficulty_level,
+            category,
+            wellness_areas,
+            price,
+            currency,
+            is_active,
+            is_public,
+            created_at,
+            updated_at
+          `)
           .eq("id", challengeId)
           .single();
 

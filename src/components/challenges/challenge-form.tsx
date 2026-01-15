@@ -124,7 +124,7 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
         difficulty_level: challenge.difficulty_level || "",
         category: challenge.category || "",
         wellness_areas: challenge.wellness_areas || [],
-        linked_professional_id: challenge.linked_professional_id || "none",
+        linked_professional_id: challenge.linked_professional_id ? challenge.linked_professional_id : "none",
         price: challenge.price !== null && challenge.price !== undefined ? challenge.price.toString() : "",
         currency: challenge.currency || "MXN",
         is_active: challenge.is_active !== undefined ? challenge.is_active : true,
@@ -135,7 +135,8 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
         formData: newFormData,
         difficulty_level: challenge.difficulty_level,
         price: challenge.price,
-        linked_professional_id: challenge.linked_professional_id
+        linked_professional_id: challenge.linked_professional_id,
+        cover_image_url: challenge.cover_image_url
       });
       setFormData(newFormData);
     }
@@ -562,9 +563,9 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
                 ))}
               </SelectContent>
             </Select>
-            {formData.linked_professional_id && formData.linked_professional_id !== "none" && (
+            {formData.linked_professional_id && formData.linked_professional_id !== "none" && professionals.length > 0 && (
               <p className="text-xs text-muted-foreground">
-                Profesional: {professionals.find(p => p.id === formData.linked_professional_id)?.first_name} {professionals.find(p => p.id === formData.linked_professional_id)?.last_name}
+                Profesional vinculado: {professionals.find(p => p.id === formData.linked_professional_id)?.first_name} {professionals.find(p => p.id === formData.linked_professional_id)?.last_name}
               </p>
             )}
             {isProfessional && (
@@ -617,7 +618,7 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
             <div className="space-y-2">
               <Label htmlFor="difficulty_level">Nivel de Dificultad</Label>
               <Select
-                value={formData.difficulty_level || undefined}
+                value={formData.difficulty_level || ""}
                 onValueChange={(value) => setFormData({ ...formData, difficulty_level: value })}
               >
                 <SelectTrigger className="w-full">
@@ -633,7 +634,7 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
               </Select>
               {formData.difficulty_level && (
                 <p className="text-xs text-muted-foreground">
-                  Seleccionado: {DIFFICULTY_OPTIONS.find(opt => opt.value === formData.difficulty_level)?.label}
+                  Actual: {DIFFICULTY_OPTIONS.find(opt => opt.value === formData.difficulty_level)?.label}
                 </p>
               )}
             </div>
@@ -754,13 +755,14 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
           <div className="space-y-2">
             <Label>Imagen de Portada</Label>
             <div className="space-y-3">
-              {formData.cover_image_url ? (
+              {formData.cover_image_url && formData.cover_image_url.trim() !== "" ? (
                 <div className="relative h-48 w-full rounded-lg overflow-hidden border-2 border-dashed border-muted">
                   <Image
                     src={formData.cover_image_url}
                     alt="Portada"
                     fill
                     className="object-cover"
+                    unoptimized
                   />
                   <Button
                     type="button"

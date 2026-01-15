@@ -806,7 +806,8 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
         </CardContent>
       </Card>
 
-      {/* Sección de Recursos */}
+      {/* Sección de Recursos - Solo mostrar si showButtons es true (creación) */}
+      {showButtons && (
       <Card className="py-4">
         <CardHeader className="py-4">
           <div className="flex items-center justify-between">
@@ -994,6 +995,7 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
           )}
         </CardContent>
       </Card>
+      )}
 
       {showButtons && (
         <div className="flex gap-3 justify-end">

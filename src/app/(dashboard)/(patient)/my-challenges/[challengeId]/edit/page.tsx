@@ -100,7 +100,8 @@ export default function EditChallengePage() {
 
   return (
     <div className="py-4 px-6 min-h-screen">
-      <div className="max-w-3xl mx-auto py-4 space-y-6">
+      <div className="max-w-3xl mx-auto space-y-6">
+        {/* Formulario principal */}
         <ChallengeForm
           userId={patientId || ''}
           challenge={challenge}
@@ -109,13 +110,12 @@ export default function EditChallengePage() {
           onFormSubmit={handleFormSubmit}
         />
 
+        {/* Cards de Recursos y Reuniones - DEBEN estar antes de los botones */}
         <ChallengeResourcesManager challengeId={challengeId} />
 
         <ChallengeMeetingsManager challengeId={challengeId} />
-      </div>
 
-      {/* Botones al final absoluto de la página */}
-      <div className="max-w-3xl mx-auto pb-8">
+        {/* Botones al final absoluto - DESPUÉS de todas las cards */}
         <div className="flex gap-3 justify-end pt-6 border-t">
           <Button
             type="button"

@@ -73,6 +73,8 @@ const RESOURCE_TYPE_OPTIONS = [
 ] as const;
 
 export function ChallengeForm({ userId, challenge, redirectPath, userType = 'patient', professionalId, onFormSubmit, showButtons = true }: ChallengeFormProps) {
+  // Debug: Verificar valor de showButtons
+  console.log('🔍 ChallengeForm showButtons:', showButtons, typeof showButtons);
   const router = useRouter();
   const supabase = createClient();
   const isProfessional = userType === 'professional';
@@ -809,7 +811,8 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
       </Card>
 
       {/* Sección de Recursos - Solo mostrar si showButtons es true (creación) */}
-      {showButtons && (
+      {/* NOTA: Esta sección está oculta cuando showButtons=false para evitar duplicación con ChallengeResourcesManager */}
+      {showButtons === true && (
       <Card className="py-4">
         <CardHeader className="py-4">
           <div className="flex items-center justify-between">

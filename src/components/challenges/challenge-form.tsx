@@ -646,23 +646,22 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
             description="Selecciona las áreas de bienestar relacionadas con este reto"
           />
 
-          {/* Precio - Mostrar para profesionales o si el challenge tiene precio */}
-          {(isProfessional || challenge?.price) && (
-            <>
-              <div className="space-y-2">
-                <Label htmlFor="price">Precio (MXN)</Label>
-                <Input
-                  id="price"
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={formData.price}
-                  onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                  placeholder="0.00"
-                />
-              </div>
-            </>
-          )}
+          {/* Precio - Mostrar siempre para que se pueda editar */}
+          <div className="space-y-2">
+            <Label htmlFor="price">Precio (MXN)</Label>
+            <Input
+              id="price"
+              type="number"
+              min="0"
+              step="0.01"
+              value={formData.price}
+              onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+              placeholder="0.00"
+            />
+            <p className="text-xs text-muted-foreground">
+              {isProfessional ? "Establece el precio del reto para los participantes" : "Precio del reto (si aplica)"}
+            </p>
+          </div>
 
           {isProfessional && (
             <>

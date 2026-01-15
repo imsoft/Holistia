@@ -116,7 +116,7 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
   // Cargar datos del challenge cuando esté disponible (prioridad)
   useEffect(() => {
     if (challenge) {
-      setFormData({
+      const newFormData = {
         title: challenge.title || "",
         description: challenge.description || "",
         cover_image_url: challenge.cover_image_url || "",
@@ -129,7 +129,15 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
         currency: challenge.currency || "MXN",
         is_active: challenge.is_active !== undefined ? challenge.is_active : true,
         is_public: challenge.is_public !== undefined ? challenge.is_public : false,
+      };
+      console.log('🔍 ChallengeForm: Loading challenge data', {
+        challenge,
+        formData: newFormData,
+        difficulty_level: challenge.difficulty_level,
+        price: challenge.price,
+        linked_professional_id: challenge.linked_professional_id
       });
+      setFormData(newFormData);
     }
   }, [challenge]);
 
@@ -384,13 +392,12 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
         if (!response.ok) throw new Error(data.error || "Error al actualizar reto");
 
         createdChallengeId = challenge.id;
+        toast.success("Reto actualizado exitosamente");
         
         if (onFormSubmit) {
           onFormSubmit();
         } else if (showButtons) {
-          toast.success("Reto actualizado exitosamente");
-        } else {
-          toast.success("Reto actualizado exitosamente");
+          router.push(redirectPath);
         }
       } else {
         // Crear nuevo reto
@@ -404,13 +411,12 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
         if (!response.ok) throw new Error(data.error || "Error al crear reto");
 
         createdChallengeId = data.challenge.id;
+        toast.success("Reto creado exitosamente");
         
         if (onFormSubmit) {
           onFormSubmit();
         } else if (showButtons) {
-          toast.success("Reto creado exitosamente");
-        } else {
-          toast.success("Reto creado exitosamente");
+          router.push(redirectPath);
         }
       }
 
@@ -487,7 +493,10 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
         }
       }
 
-      router.push(redirectPath);
+      // Solo redirigir si showButtons es true
+      if (showButtons && !onFormSubmit) {
+        router.push(redirectPath);
+      }
     } catch (error) {
       console.error("Error saving challenge:", error);
       toast.error(error instanceof Error ? error.message : "Error al guardar reto");
@@ -496,8 +505,9 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
     }
   };
 
+  // Agregar un id al formulario para poder encontrarlo desde fuera
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form id="challenge-form" onSubmit={handleSubmit} className="space-y-6">
       <Card>
         <CardHeader className="py-4">
           <CardTitle>{challenge ? "Editar Reto Personal" : "Crear Reto Personal"}</CardTitle>

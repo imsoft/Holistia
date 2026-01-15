@@ -89,15 +89,17 @@ export default function EditChallengePage() {
   const handleUpdate = () => {
     setSaving(true);
     // El formulario se enviará automáticamente cuando se haga submit
-    const form = document.querySelector('form');
+    const form = document.getElementById('challenge-form') as HTMLFormElement;
     if (form) {
-      const formElement = form as HTMLFormElement;
-      formElement.requestSubmit();
+      form.requestSubmit();
+    } else {
+      setSaving(false);
+      toast.error("No se pudo encontrar el formulario");
     }
   };
 
   return (
-    <div className="py-4 px-6">
+    <div className="py-4 px-6 min-h-screen">
       <div className="max-w-3xl mx-auto py-4 space-y-6">
         <ChallengeForm
           userId={patientId || ''}
@@ -110,8 +112,11 @@ export default function EditChallengePage() {
         <ChallengeResourcesManager challengeId={challengeId} />
 
         <ChallengeMeetingsManager challengeId={challengeId} />
+      </div>
 
-        <div className="flex gap-3 justify-end pt-4">
+      {/* Botones al final absoluto de la página */}
+      <div className="max-w-3xl mx-auto pb-8">
+        <div className="flex gap-3 justify-end pt-6 border-t">
           <Button
             type="button"
             variant="outline"

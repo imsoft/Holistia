@@ -17,9 +17,27 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { WellnessAreasSelector } from "@/components/ui/wellness-areas-selector";
-import { Upload, X, Loader2, Plus, Trash2, BookOpen, Headphones, Video, FileText, ExternalLink, File, UserPlus, Users, Eye, EyeOff } from "lucide-react";
+import { Upload, X, Loader2, Plus, Trash2, BookOpen, Headphones, Video, FileText, ExternalLink, File, UserPlus, Users, Eye, EyeOff, Calendar, Clock, Copy, CheckCircle2, Edit } from "lucide-react";
 import { toast } from "sonner";
 import { createClient } from "@/utils/supabase/client";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Badge } from "@/components/ui/badge";
+import {
+  ChallengeMeeting,
+  MeetingFormData,
+  MEETING_PLATFORM_OPTIONS,
+  RECURRENCE_OPTIONS,
+  TIMEZONE_OPTIONS,
+} from "@/types/challenge";
 
 interface ChallengeFormProps {
   userId: string;
@@ -104,6 +122,32 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
   const [patients, setPatients] = useState<any[]>([]);
   const [loadingPatients, setLoadingPatients] = useState(false);
   const [selectedPatientIds, setSelectedPatientIds] = useState<string[]>([]);
+  
+  // Estados para reuniones
+  const [meetings, setMeetings] = useState<ChallengeMeeting[]>([]);
+  const [loadingMeetings, setLoadingMeetings] = useState(false);
+  const [isAddingMeeting, setIsAddingMeeting] = useState(false);
+  const [editingMeetingId, setEditingMeetingId] = useState<string | null>(null);
+  const [meetingFormData, setMeetingFormData] = useState<MeetingFormData>({
+    title: "",
+    description: "",
+    platform: "meet",
+    meeting_url: "",
+    meeting_id: "",
+    passcode: "",
+    scheduled_date: "",
+    scheduled_time: "",
+    duration_minutes: "60",
+    timezone: "America/Mexico_City",
+    is_recurring: false,
+    recurrence_pattern: "",
+    recurrence_end_date: "",
+    max_participants: "",
+  });
+  const [submittingMeeting, setSubmittingMeeting] = useState(false);
+  const [deleteMeetingDialogOpen, setDeleteMeetingDialogOpen] = useState(false);
+  const [deletingMeetingId, setDeletingMeetingId] = useState<string | null>(null);
+  const [copiedMeetingUrl, setCopiedMeetingUrl] = useState<string | null>(null);
 
   useEffect(() => {
     fetchProfessionals();
@@ -143,6 +187,13 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
       setFormData(newFormData);
     }
   }, [challenge]);
+
+  // Cargar reuniones cuando hay un challenge
+  useEffect(() => {
+    if (challenge?.id) {
+      fetchMeetings();
+    }
+  }, [challenge?.id]);
 
   // Si es profesional y NO hay challenge cargado, vincular automáticamente al profesional actual
   useEffect(() => {
@@ -242,6 +293,221 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
       console.error("Error fetching patients:", error);
     } finally {
       setLoadingPatients(false);
+    }
+  };
+
+  // Funciones para manejar reuniones
+  const fetchMeetings = async () => {
+    if (!challenge?.id) return;
+    try {
+      setLoadingMeetings(true);
+      const { data, error } = await supabase
+        .from("challenge_meetings")
+        .select("*")
+        .eq("challenge_id", challenge.id)
+        .eq("is_active", true)
+        .order("scheduled_date", { ascending: true })
+        .order("scheduled_time", { ascending: true });
+
+      if (error) throw error;
+      setMeetings(data || []);
+    } catch (error) {
+      console.error("Error fetching meetings:", error);
+      toast.error("Error al cargar las reuniones");
+    } finally {
+      setLoadingMeetings(false);
+    }
+  };
+
+  const handleAddMeeting = () => {
+    setIsAddingMeeting(true);
+    setEditingMeetingId(null);
+    const today = new Date().toISOString().split('T')[0];
+    setMeetingFormData({
+      title: "",
+      description: "",
+      platform: "meet",
+      meeting_url: "",
+      meeting_id: "",
+      passcode: "",
+      scheduled_date: today,
+      scheduled_time: "10:00",
+      duration_minutes: "60",
+      timezone: "America/Mexico_City",
+      is_recurring: false,
+      recurrence_pattern: "",
+      recurrence_end_date: "",
+      max_participants: "",
+    });
+  };
+
+  const handleEditMeeting = (meeting: ChallengeMeeting) => {
+    setEditingMeetingId(meeting.id);
+    setIsAddingMeeting(false);
+    setMeetingFormData({
+      title: meeting.title,
+      description: meeting.description || "",
+      platform: meeting.platform,
+      meeting_url: meeting.meeting_url,
+      meeting_id: meeting.meeting_id || "",
+      passcode: meeting.passcode || "",
+      scheduled_date: meeting.scheduled_date,
+      scheduled_time: meeting.scheduled_time.substring(0, 5),
+      duration_minutes: meeting.duration_minutes.toString(),
+      timezone: meeting.timezone,
+      is_recurring: meeting.is_recurring,
+      recurrence_pattern: meeting.recurrence_pattern || "",
+      recurrence_end_date: meeting.recurrence_end_date || "",
+      max_participants: meeting.max_participants?.toString() || "",
+    });
+  };
+
+  const handleCancelMeeting = () => {
+    setIsAddingMeeting(false);
+    setEditingMeetingId(null);
+    setMeetingFormData({
+      title: "",
+      description: "",
+      platform: "meet",
+      meeting_url: "",
+      meeting_id: "",
+      passcode: "",
+      scheduled_date: "",
+      scheduled_time: "",
+      duration_minutes: "60",
+      timezone: "America/Mexico_City",
+      is_recurring: false,
+      recurrence_pattern: "",
+      recurrence_end_date: "",
+      max_participants: "",
+    });
+  };
+
+  const handleSubmitMeeting = async () => {
+    if (!challenge?.id) return;
+    if (!meetingFormData.title.trim() || !meetingFormData.meeting_url.trim() || !meetingFormData.scheduled_date || !meetingFormData.scheduled_time) {
+      toast.error("Título, URL, fecha y hora son obligatorios");
+      return;
+    }
+
+    try {
+      new URL(meetingFormData.meeting_url);
+    } catch {
+      toast.error("La URL de la reunión no es válida");
+      return;
+    }
+
+    try {
+      setSubmittingMeeting(true);
+      const meetingData = {
+        challenge_id: challenge.id,
+        title: meetingFormData.title.trim(),
+        description: meetingFormData.description?.trim() || null,
+        platform: meetingFormData.platform,
+        meeting_url: meetingFormData.meeting_url.trim(),
+        meeting_id: meetingFormData.meeting_id?.trim() || null,
+        passcode: meetingFormData.passcode?.trim() || null,
+        scheduled_date: meetingFormData.scheduled_date,
+        scheduled_time: meetingFormData.scheduled_time,
+        duration_minutes: parseInt(meetingFormData.duration_minutes) || 60,
+        timezone: meetingFormData.timezone,
+        is_recurring: meetingFormData.is_recurring,
+        recurrence_pattern: meetingFormData.is_recurring ? meetingFormData.recurrence_pattern : null,
+        recurrence_end_date: meetingFormData.is_recurring && meetingFormData.recurrence_end_date ? meetingFormData.recurrence_end_date : null,
+        max_participants: meetingFormData.max_participants ? parseInt(meetingFormData.max_participants) : null,
+        status: "scheduled",
+        is_active: true,
+      };
+
+      if (editingMeetingId) {
+        const { error } = await supabase
+          .from("challenge_meetings")
+          .update(meetingData)
+          .eq("id", editingMeetingId);
+        if (error) throw error;
+        toast.success("Reunión actualizada correctamente");
+      } else {
+        const { error } = await supabase
+          .from("challenge_meetings")
+          .insert([meetingData]);
+        if (error) throw error;
+        toast.success("Reunión agregada correctamente");
+      }
+
+      handleCancelMeeting();
+      await fetchMeetings();
+    } catch (error) {
+      console.error("Error saving meeting:", error);
+      toast.error("Error al guardar la reunión");
+    } finally {
+      setSubmittingMeeting(false);
+    }
+  };
+
+  const handleDeleteMeetingClick = (id: string) => {
+    setDeletingMeetingId(id);
+    setDeleteMeetingDialogOpen(true);
+  };
+
+  const handleDeleteMeetingConfirm = async () => {
+    if (!deletingMeetingId) return;
+    try {
+      const { error } = await supabase
+        .from("challenge_meetings")
+        .update({ is_active: false, status: "cancelled", updated_at: new Date().toISOString() })
+        .eq("id", deletingMeetingId);
+      if (error) throw error;
+      toast.success("Reunión cancelada correctamente");
+      setDeleteMeetingDialogOpen(false);
+      setDeletingMeetingId(null);
+      await fetchMeetings();
+    } catch (error) {
+      console.error("Error deleting meeting:", error);
+      toast.error("Error al cancelar la reunión");
+    }
+  };
+
+  const handleCopyMeetingUrl = async (url: string, meetingId: string) => {
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopiedMeetingUrl(meetingId);
+      toast.success("URL copiada al portapapeles");
+      setTimeout(() => setCopiedMeetingUrl(null), 2000);
+    } catch (error) {
+      toast.error("Error al copiar URL");
+    }
+  };
+
+  const formatMeetingDate = (dateStr: string) => {
+    const date = new Date(dateStr + 'T00:00:00');
+    return date.toLocaleDateString('es-MX', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
+
+  const formatMeetingTime = (timeStr: string) => {
+    return timeStr.substring(0, 5);
+  };
+
+  const getPlatformBadgeColor = (platform: string) => {
+    switch (platform) {
+      case 'meet': return 'bg-blue-100 text-blue-800';
+      case 'zoom': return 'bg-purple-100 text-purple-800';
+      case 'teams': return 'bg-indigo-100 text-indigo-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getStatusBadgeColor = (status: string) => {
+    switch (status) {
+      case 'scheduled': return 'bg-green-100 text-green-800';
+      case 'in_progress': return 'bg-yellow-100 text-yellow-800';
+      case 'completed': return 'bg-gray-100 text-gray-800';
+      case 'cancelled': return 'bg-red-100 text-red-800';
+      default: return 'bg-gray-100 text-gray-800';
     }
   };
 
@@ -1000,6 +1266,466 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
           )}
         </CardContent>
       </Card>
+      )}
+
+      {/* Sección de Reuniones - Solo mostrar cuando hay un challenge (edición) */}
+      {challenge?.id && (
+        <Card className="py-4">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>Reuniones Programadas</CardTitle>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Agenda videollamadas por Meet, Zoom u otras plataformas
+                </p>
+              </div>
+              {!isAddingMeeting && !editingMeetingId && (
+                <Button onClick={handleAddMeeting} size="sm">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Agendar Reunión
+                </Button>
+              )}
+            </div>
+          </CardHeader>
+
+          <CardContent className="space-y-4">
+            {/* Meeting Form */}
+            {(isAddingMeeting || editingMeetingId) && (
+              <Card className="border-2 border-primary/20 bg-muted/30 py-4">
+                <CardContent className="pt-6 space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="meeting-title">
+                      Título <span className="text-destructive">*</span>
+                    </Label>
+                    <Input
+                      id="meeting-title"
+                      value={meetingFormData.title}
+                      onChange={(e) =>
+                        setMeetingFormData({ ...meetingFormData, title: e.target.value })
+                      }
+                      placeholder="Sesión grupal de meditación"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="platform">Plataforma</Label>
+                    <Select
+                      value={meetingFormData.platform}
+                      onValueChange={(value) =>
+                        setMeetingFormData({ ...meetingFormData, platform: value })
+                      }
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {MEETING_PLATFORM_OPTIONS.map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="meeting-url">
+                      URL de la Reunión <span className="text-destructive">*</span>
+                    </Label>
+                    <Input
+                      id="meeting-url"
+                      type="url"
+                      value={meetingFormData.meeting_url}
+                      onChange={(e) =>
+                        setMeetingFormData({ ...meetingFormData, meeting_url: e.target.value })
+                      }
+                      placeholder="https://meet.google.com/abc-defg-hij"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="meeting-id">ID de Reunión (Opcional)</Label>
+                      <Input
+                        id="meeting-id"
+                        value={meetingFormData.meeting_id}
+                        onChange={(e) =>
+                          setMeetingFormData({ ...meetingFormData, meeting_id: e.target.value })
+                        }
+                        placeholder="123-456-789"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="passcode">Contraseña (Opcional)</Label>
+                      <Input
+                        id="passcode"
+                        value={meetingFormData.passcode}
+                        onChange={(e) =>
+                          setMeetingFormData({ ...meetingFormData, passcode: e.target.value })
+                        }
+                        placeholder="••••••"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="scheduled-date">
+                        Fecha <span className="text-destructive">*</span>
+                      </Label>
+                      <Input
+                        id="scheduled-date"
+                        type="date"
+                        value={meetingFormData.scheduled_date}
+                        onChange={(e) =>
+                          setMeetingFormData({ ...meetingFormData, scheduled_date: e.target.value })
+                        }
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="scheduled-time">
+                        Hora <span className="text-destructive">*</span>
+                      </Label>
+                      <Input
+                        id="scheduled-time"
+                        type="time"
+                        value={meetingFormData.scheduled_time}
+                        onChange={(e) =>
+                          setMeetingFormData({ ...meetingFormData, scheduled_time: e.target.value })
+                        }
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="duration">Duración (minutos)</Label>
+                      <Input
+                        id="duration"
+                        type="number"
+                        min="15"
+                        max="480"
+                        value={meetingFormData.duration_minutes}
+                        onChange={(e) =>
+                          setMeetingFormData({
+                            ...meetingFormData,
+                            duration_minutes: e.target.value,
+                          })
+                        }
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="timezone">Zona Horaria</Label>
+                      <Select
+                        value={meetingFormData.timezone}
+                        onValueChange={(value) =>
+                          setMeetingFormData({ ...meetingFormData, timezone: value })
+                        }
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {TIMEZONE_OPTIONS.map((option) => (
+                            <SelectItem key={option.value} value={option.value}>
+                              {option.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="description">Descripción (Opcional)</Label>
+                    <Textarea
+                      id="description"
+                      value={meetingFormData.description}
+                      onChange={(e) =>
+                        setMeetingFormData({ ...meetingFormData, description: e.target.value })
+                      }
+                      placeholder="Tema: Técnicas de respiración consciente"
+                      rows={3}
+                    />
+                  </div>
+
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label htmlFor="recurring">Reunión Recurrente</Label>
+                        <p className="text-xs text-muted-foreground">
+                          Programa esta reunión de forma repetitiva
+                        </p>
+                      </div>
+                      <Switch
+                        id="recurring"
+                        checked={meetingFormData.is_recurring}
+                        onCheckedChange={(checked) =>
+                          setMeetingFormData({ ...meetingFormData, is_recurring: checked })
+                        }
+                      />
+                    </div>
+
+                    {meetingFormData.is_recurring && (
+                      <div className="grid grid-cols-2 gap-4 pl-4 border-l-2 border-muted">
+                        <div className="space-y-2">
+                          <Label htmlFor="recurrence-pattern">Frecuencia</Label>
+                          <Select
+                            value={meetingFormData.recurrence_pattern}
+                            onValueChange={(value) =>
+                              setMeetingFormData({ ...meetingFormData, recurrence_pattern: value })
+                            }
+                          >
+                            <SelectTrigger className="w-full">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {RECURRENCE_OPTIONS.map((option) => (
+                                <SelectItem key={option.value} value={option.value}>
+                                  {option.label}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="recurrence-end">Fecha Final</Label>
+                          <Input
+                            id="recurrence-end"
+                            type="date"
+                            value={meetingFormData.recurrence_end_date}
+                            onChange={(e) =>
+                              setMeetingFormData({
+                                ...meetingFormData,
+                                recurrence_end_date: e.target.value,
+                              })
+                            }
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="max-participants">
+                      Límite de Participantes (Opcional)
+                    </Label>
+                    <Input
+                      id="max-participants"
+                      type="number"
+                      min="1"
+                      value={meetingFormData.max_participants}
+                      onChange={(e) =>
+                        setMeetingFormData({
+                          ...meetingFormData,
+                          max_participants: e.target.value,
+                        })
+                      }
+                      placeholder="Sin límite"
+                    />
+                  </div>
+
+                  <div className="flex gap-2 justify-end">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={handleCancelMeeting}
+                      disabled={submittingMeeting}
+                    >
+                      Cancelar
+                    </Button>
+                    <Button onClick={handleSubmitMeeting} disabled={submittingMeeting}>
+                      {submittingMeeting ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Guardando...
+                        </>
+                      ) : editingMeetingId ? (
+                        "Actualizar"
+                      ) : (
+                        "Agendar"
+                      )}
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Meetings List */}
+            {loadingMeetings ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+              </div>
+            ) : meetings.length === 0 ? (
+              <div className="text-center py-12 text-muted-foreground">
+                <Video className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p>No hay reuniones programadas</p>
+                <p className="text-sm mt-2">
+                  Haz clic en &quot;Agendar Reunión&quot; para comenzar
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {meetings.map((meeting) => {
+                  const platformOption = MEETING_PLATFORM_OPTIONS.find(
+                    (opt) => opt.value === meeting.platform
+                  );
+
+                  return (
+                    <Card key={meeting.id}>
+                      <CardContent className="py-4">
+                        <div className="flex items-start gap-4">
+                          <div className="mt-1">
+                            <Video className="h-5 w-5 text-primary" />
+                          </div>
+
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-start justify-between gap-2 mb-2">
+                              <div>
+                                <h4 className="font-medium">{meeting.title}</h4>
+                                {meeting.description && (
+                                  <p className="text-sm text-muted-foreground mt-1">
+                                    {meeting.description}
+                                  </p>
+                                )}
+                              </div>
+                              <div className="flex gap-2">
+                                <Badge className={getPlatformBadgeColor(meeting.platform)}>
+                                  {platformOption?.label}
+                                </Badge>
+                                <Badge className={getStatusBadgeColor(meeting.status)}>
+                                  {meeting.status === 'scheduled' && 'Programada'}
+                                  {meeting.status === 'in_progress' && 'En curso'}
+                                  {meeting.status === 'completed' && 'Completada'}
+                                  {meeting.status === 'cancelled' && 'Cancelada'}
+                                </Badge>
+                              </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm text-muted-foreground mb-3">
+                              <div className="flex items-center gap-2">
+                                <Calendar className="h-4 w-4" />
+                                <span className="capitalize">{formatMeetingDate(meeting.scheduled_date)}</span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <Clock className="h-4 w-4" />
+                                <span>
+                                  {formatMeetingTime(meeting.scheduled_time)} ({meeting.duration_minutes} min)
+                                </span>
+                              </div>
+                              {meeting.max_participants && (
+                                <div className="flex items-center gap-2">
+                                  <Users className="h-4 w-4" />
+                                  <span>Máx. {meeting.max_participants} participantes</span>
+                                </div>
+                              )}
+                              {meeting.is_recurring && (
+                                <div className="flex items-center gap-2">
+                                  <Calendar className="h-4 w-4" />
+                                  <span className="capitalize">
+                                    {meeting.recurrence_pattern === 'weekly' && 'Semanal'}
+                                    {meeting.recurrence_pattern === 'biweekly' && 'Quincenal'}
+                                    {meeting.recurrence_pattern === 'monthly' && 'Mensual'}
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+
+                            <div className="flex flex-wrap gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                asChild
+                              >
+                                <a
+                                  href={meeting.meeting_url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                >
+                                  <ExternalLink className="h-3 w-3 mr-2" />
+                                  Unirse
+                                </a>
+                              </Button>
+
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleCopyMeetingUrl(meeting.meeting_url, meeting.id)}
+                              >
+                                {copiedMeetingUrl === meeting.id ? (
+                                  <>
+                                    <CheckCircle2 className="h-3 w-3 mr-2" />
+                                    Copiado
+                                  </>
+                                ) : (
+                                  <>
+                                    <Copy className="h-3 w-3 mr-2" />
+                                    Copiar URL
+                                  </>
+                                )}
+                              </Button>
+
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleEditMeeting(meeting)}
+                              >
+                                <Edit className="h-3 w-3 mr-2" />
+                                Editar
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleDeleteMeetingClick(meeting.id)}
+                              >
+                                <Trash2 className="h-3 w-3 mr-2" />
+                                Cancelar
+                              </Button>
+                            </div>
+
+                            {(meeting.meeting_id || meeting.passcode) && (
+                              <div className="mt-3 pt-3 border-t text-xs text-muted-foreground space-y-1">
+                                {meeting.meeting_id && (
+                                  <div>ID: {meeting.meeting_id}</div>
+                                )}
+                                {meeting.passcode && (
+                                  <div>Contraseña: {meeting.passcode}</div>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            )}
+          </CardContent>
+
+          {/* Delete Confirmation Dialog */}
+          <AlertDialog open={deleteMeetingDialogOpen} onOpenChange={setDeleteMeetingDialogOpen}>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>¿Cancelar reunión?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Esta acción cancelará la reunión. Los participantes ya no podrán
+                  acceder a ella.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Volver</AlertDialogCancel>
+                <AlertDialogAction onClick={handleDeleteMeetingConfirm}>
+                  Cancelar Reunión
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </Card>
       )}
 
       {showButtons && (

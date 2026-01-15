@@ -85,6 +85,9 @@ export default function CompaniesLandingPage() {
     contact_email: "",
     contact_phone: "",
     city: "",
+    service_date: "",
+    service_time: "",
+    service_address: "",
     additional_info: "",
   });
 
@@ -142,7 +145,7 @@ export default function CompaniesLandingPage() {
     try {
       setLoading(true);
 
-      const { error } = await supabase.from("company_leads").insert({
+      const { data: newLead, error } = await supabase.from("company_leads").insert({
         company_name: formData.company_name,
         industry: formData.industry || null,
         company_size: formData.company_size || null,
@@ -150,12 +153,39 @@ export default function CompaniesLandingPage() {
         contact_email: formData.contact_email,
         contact_phone: formData.contact_phone || null,
         city: formData.city || null,
+        service_date: formData.service_date || null,
+        service_time: formData.service_time || null,
+        service_address: formData.service_address || null,
         additional_info: formData.additional_info || null,
         requested_services: selectedServices,
         status: "pending",
-      });
+      }).select().single();
 
       if (error) throw error;
+
+      // Enviar notificación al equipo de Holistia
+      try {
+        await fetch('/api/companies/notify-new-lead', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            lead_id: newLead.id,
+            company_name: formData.company_name,
+            contact_name: formData.contact_name,
+            contact_email: formData.contact_email,
+            contact_phone: formData.contact_phone,
+            service_date: formData.service_date,
+            service_time: formData.service_time,
+            service_address: formData.service_address,
+            requested_services: selectedServices,
+          }),
+        });
+      } catch (notifyError) {
+        console.error('Error sending notification:', notifyError);
+        // No fallar el flujo si la notificación falla
+      }
 
       toast.success("¡Solicitud enviada exitosamente! Nos pondremos en contacto contigo pronto.");
 
@@ -168,6 +198,9 @@ export default function CompaniesLandingPage() {
         contact_email: "",
         contact_phone: "",
         city: "",
+        service_date: "",
+        service_time: "",
+        service_address: "",
         additional_info: "",
       });
       setSelectedServices([]);
@@ -659,16 +692,59 @@ export default function CompaniesLandingPage() {
                     </div>
                   </div>
 
+                  {/* Service Details */}
+                  <div className="border-t pt-6">
+                    <h3 className="text-lg font-semibold mb-4">Detalles del Servicio</h3>
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="service_date">Fecha Requerida</Label>
+                          <Input
+                            id="service_date"
+                            type="date"
+                            value={formData.service_date}
+                            onChange={(e) => setFormData({ ...formData, service_date: e.target.value })}
+                            min={new Date().toISOString().split('T')[0]}
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="service_time">Hora Requerida</Label>
+                          <Input
+                            id="service_time"
+                            type="time"
+                            value={formData.service_time}
+                            onChange={(e) => setFormData({ ...formData, service_time: e.target.value })}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="service_address">Dirección o Ubicación del Servicio</Label>
+                        <Textarea
+                          id="service_address"
+                          value={formData.service_address}
+                          onChange={(e) => setFormData({ ...formData, service_address: e.target.value })}
+                          placeholder="Dirección completa donde se realizará el servicio, o datos de contacto para coordinar la ubicación"
+                          rows={3}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
                   {/* Additional Info */}
-                  <div className="space-y-2">
-                    <Label htmlFor="additional_info">Información Adicional</Label>
-                    <Textarea
-                      id="additional_info"
-                      value={formData.additional_info}
-                      onChange={(e) => setFormData({ ...formData, additional_info: e.target.value })}
-                      placeholder="Cuéntanos más sobre las necesidades específicas de tu equipo..."
-                      rows={4}
-                    />
+                  <div className="border-t pt-6">
+                    <h3 className="text-lg font-semibold mb-4">Información Adicional</h3>
+                    <div className="space-y-2">
+                      <Label htmlFor="additional_info">Comentarios Adicionales (Opcional)</Label>
+                      <Textarea
+                        id="additional_info"
+                        value={formData.additional_info}
+                        onChange={(e) => setFormData({ ...formData, additional_info: e.target.value })}
+                        placeholder="Cuéntanos más sobre las necesidades específicas de tu equipo..."
+                        rows={4}
+                      />
+                    </div>
                   </div>
 
                   <Button type="submit" size="lg" className="w-full" disabled={loading}>

@@ -19,6 +19,11 @@ interface QuoteEmailData {
   company_name: string;
   contact_name: string;
   contact_email: string;
+  contact_phone?: string;
+  company_size?: string;
+  service_date?: string;
+  service_time?: string;
+  service_address?: string;
   services: QuoteService[];
   subtotal: number;
   discount_percentage: number;
@@ -340,13 +345,62 @@ export async function POST(request: NextRequest) {
 </html>
     `;
 
+    // Generar PDF de la cotización
+    let pdfAttachment = null;
+    try {
+      const pdfResponse = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/companies/generate-quote-pdf`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Cookie': request.headers.get('Cookie') || '',
+        },
+        body: JSON.stringify({
+          lead_id,
+          company_name,
+          contact_name,
+          contact_email,
+          contact_phone: data.contact_phone,
+          company_size: data.company_size,
+          service_date: data.service_date,
+          service_time: data.service_time,
+          service_address: data.service_address,
+          services,
+          subtotal,
+          discount_percentage,
+          discount_amount,
+          total,
+          additional_notes
+        }),
+      });
+
+      if (pdfResponse.ok) {
+        const pdfData = await pdfResponse.json();
+        if (pdfData.success && pdfData.pdf) {
+          pdfAttachment = {
+            filename: pdfData.fileName || `Cotizacion_${company_name.replace(/\s/g, '_')}.pdf`,
+            content: pdfData.pdf, // Resend acepta base64 string directamente
+          };
+        }
+      }
+    } catch (pdfError) {
+      console.error('Error generating PDF for email:', pdfError);
+      // Continuar sin PDF si falla
+    }
+
     // Enviar email usando Resend
-    const { data: emailData, error } = await resend.emails.send({
+    const emailPayload: any = {
       from: 'Holistia Empresas <empresas@holistia.io>',
       to: [contact_email],
       subject: `Cotización de Servicios Holísticos - ${company_name} | Holistia`,
       html: emailContent,
-    });
+    };
+
+    // Agregar PDF como adjunto si se generó correctamente
+    if (pdfAttachment) {
+      emailPayload.attachments = [pdfAttachment];
+    }
+
+    const { data: emailData, error } = await resend.emails.send(emailPayload);
 
     if (error) {
       console.error('Error sending quote email:', error);

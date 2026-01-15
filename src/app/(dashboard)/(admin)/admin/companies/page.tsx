@@ -22,6 +22,8 @@ import {
   DollarSign,
   Download,
   Send,
+  Calendar,
+  Clock,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -99,6 +101,9 @@ interface CompanyLead {
   contact_email: string;
   contact_phone?: string;
   city?: string;
+  service_date?: string;
+  service_time?: string;
+  service_address?: string;
   additional_info?: string;
   requested_services: string[];
   status: 'pending' | 'contacted' | 'quoted' | 'converted';
@@ -470,6 +475,11 @@ export default function AdminCompanies() {
         company_name: quotingLead.company_name,
         contact_name: quotingLead.contact_name,
         contact_email: quotingLead.contact_email,
+        contact_phone: quotingLead.contact_phone,
+        company_size: quotingLead.company_size,
+        service_date: quotingLead.service_date,
+        service_time: quotingLead.service_time,
+        service_address: quotingLead.service_address,
         services: servicesData,
         subtotal: calculateSubtotal(),
         discount_percentage: quoteDiscount,
@@ -1833,6 +1843,44 @@ export default function AdminCompanies() {
                   )}
                 </div>
               </div>
+
+              {/* Service Details */}
+              {(viewingLead.service_date || viewingLead.service_time || viewingLead.service_address) && (
+                <div className="border-t pt-4">
+                  <h3 className="font-semibold mb-2">Detalles del Servicio</h3>
+                  <div className="space-y-2">
+                    {viewingLead.service_date && (
+                      <div className="flex items-center gap-2">
+                        <Calendar className="h-4 w-4 text-muted-foreground" />
+                        <p className="text-sm">
+                          <strong>Fecha:</strong> {new Date(viewingLead.service_date).toLocaleDateString('es-MX', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric',
+                          })}
+                        </p>
+                      </div>
+                    )}
+                    {viewingLead.service_time && (
+                      <div className="flex items-center gap-2">
+                        <Clock className="h-4 w-4 text-muted-foreground" />
+                        <p className="text-sm">
+                          <strong>Hora:</strong> {new Date(`2000-01-01T${viewingLead.service_time}`).toLocaleTimeString('es-MX', {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })}
+                        </p>
+                      </div>
+                    )}
+                    {viewingLead.service_address && (
+                      <div className="flex items-start gap-2">
+                        <MapPin className="h-4 w-4 text-muted-foreground mt-0.5" />
+                        <p className="text-sm whitespace-pre-line">{viewingLead.service_address}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
 
               <div className="border-t pt-4">
                 <h3 className="font-semibold mb-2">Servicios Solicitados</h3>

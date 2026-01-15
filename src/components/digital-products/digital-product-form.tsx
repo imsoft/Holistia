@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { createClient } from "@/utils/supabase/client";
@@ -85,6 +85,25 @@ export function DigitalProductForm({ professionalId, product, redirectPath, isAd
     is_active: product?.is_active ?? true,
     wellness_areas: product?.wellness_areas || [],
   });
+
+  // Actualizar el estado cuando product cambie (para modo edición)
+  useEffect(() => {
+    if (product) {
+      setFormData({
+        title: product.title || "",
+        description: product.description || "",
+        category: product.category || "meditation",
+        price: product.price?.toString() || "",
+        currency: product.currency || "MXN",
+        cover_image_url: product.cover_image_url || "",
+        file_url: product.file_url || "",
+        duration_minutes: product.duration_minutes?.toString() || "",
+        pages_count: product.pages_count?.toString() || "",
+        is_active: product.is_active ?? true,
+        wellness_areas: product.wellness_areas || [],
+      });
+    }
+  }, [product]);
 
   // Determinar qué campos mostrar según la categoría
   const shouldShowDuration = ['meditation', 'audio', 'video'].includes(formData.category);

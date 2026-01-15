@@ -27,7 +27,10 @@ interface Challenge {
   wellness_areas?: string[];
   linked_patient_id?: string | null;
   linked_professional_id?: string | null;
+  price?: number | null;
+  currency?: string;
   is_active: boolean;
+  is_public?: boolean;
 }
 
 export default function EditProfessionalChallengePage() {

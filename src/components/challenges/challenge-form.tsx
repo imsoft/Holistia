@@ -767,13 +767,13 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
       </Card>
 
       {/* Sección de Recursos */}
-      <Card>
+      <Card className="py-4">
         <CardHeader className="py-4">
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>Recursos y Enlaces</CardTitle>
+              <CardTitle>Recursos del Reto</CardTitle>
               <p className="text-sm text-muted-foreground">
-                Agrega ebooks, audios, videos y otros recursos para los participantes
+                Agrega enlaces, archivos y materiales de apoyo para los participantes
               </p>
             </div>
             <Button
@@ -797,9 +797,14 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
         </CardHeader>
         <CardContent className="py-4 space-y-4">
           {resources.length === 0 ? (
-            <p className="text-center text-muted-foreground py-4">
-              No hay recursos agregados. Haz clic en "Agregar Recurso" para comenzar.
-            </p>
+            <div className="py-4">
+              <p className="text-center text-muted-foreground">
+                No hay recursos agregados aún
+              </p>
+              <p className="text-center text-muted-foreground text-sm mt-2">
+                Haz clic en "Agregar Recurso" para comenzar
+              </p>
+            </div>
           ) : (
             resources.map((resource, index) => {
               const ResourceIcon = RESOURCE_TYPE_OPTIONS.find(opt => opt.value === resource.resource_type)?.icon || File;

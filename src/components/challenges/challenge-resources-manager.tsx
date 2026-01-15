@@ -236,7 +236,7 @@ export function ChallengeResourcesManager({
   }
 
   return (
-    <Card>
+    <Card className="py-4">
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>

@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { ChallengeForm } from "@/components/challenges/challenge-form";
+import { ChallengeResourcesManager } from "@/components/challenges/challenge-resources-manager";
+import { ChallengeMeetingsManager } from "@/components/challenges/challenge-meetings-manager";
 import { createClient } from "@/utils/supabase/client";
 import { toast } from "sonner";
 import { useUserId } from "@/stores/user-store";
@@ -72,12 +74,16 @@ export default function EditChallengePage() {
 
   return (
     <div className="py-4 px-6">
-      <div className="max-w-3xl mx-auto py-4">
+      <div className="max-w-3xl mx-auto py-4 space-y-6">
         <ChallengeForm
           userId={patientId || ''}
           challenge={challenge}
           redirectPath={`/my-challenges`}
         />
+
+        <ChallengeResourcesManager challengeId={challengeId} />
+
+        <ChallengeMeetingsManager challengeId={challengeId} />
       </div>
     </div>
   );

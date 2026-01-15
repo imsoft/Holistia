@@ -27,6 +27,8 @@ interface ChallengeFormProps {
   redirectPath: string;
   userType?: 'professional' | 'patient' | 'admin'; // Tipo de usuario creando el reto
   professionalId?: string | null; // ID del profesional para asignar el reto (solo para creación)
+  onFormSubmit?: () => void; // Callback cuando se envía el formulario
+  showButtons?: boolean; // Si se muestran los botones dentro del formulario
 }
 
 interface ChallengeFormData {
@@ -70,7 +72,7 @@ const RESOURCE_TYPE_OPTIONS = [
   { value: 'other', label: 'Otro', icon: File },
 ] as const;
 
-export function ChallengeForm({ userId, challenge, redirectPath, userType = 'patient', professionalId }: ChallengeFormProps) {
+export function ChallengeForm({ userId, challenge, redirectPath, userType = 'patient', professionalId, onFormSubmit, showButtons = true }: ChallengeFormProps) {
   const router = useRouter();
   const supabase = createClient();
   const isProfessional = userType === 'professional';
@@ -358,8 +360,8 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
         category: formData.category || null,
         wellness_areas: formData.wellness_areas || [],
         linked_professional_id: formData.linked_professional_id && formData.linked_professional_id !== 'none' ? formData.linked_professional_id : null,
-        price: isProfessional && formData.price ? parseFloat(formData.price) : null,
-        currency: isProfessional && formData.price ? formData.currency : null,
+        price: formData.price ? parseFloat(formData.price) : null,
+        currency: formData.price ? formData.currency : null,
         is_active: formData.is_active,
       };
 
@@ -382,7 +384,14 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
         if (!response.ok) throw new Error(data.error || "Error al actualizar reto");
 
         createdChallengeId = challenge.id;
-        toast.success("Reto actualizado exitosamente");
+        
+        if (onFormSubmit) {
+          onFormSubmit();
+        } else if (showButtons) {
+          toast.success("Reto actualizado exitosamente");
+        } else {
+          toast.success("Reto actualizado exitosamente");
+        }
       } else {
         // Crear nuevo reto
         const response = await fetch('/api/challenges', {
@@ -395,7 +404,14 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
         if (!response.ok) throw new Error(data.error || "Error al crear reto");
 
         createdChallengeId = data.challenge.id;
-        toast.success("Reto creado exitosamente");
+        
+        if (onFormSubmit) {
+          onFormSubmit();
+        } else if (showButtons) {
+          toast.success("Reto creado exitosamente");
+        } else {
+          toast.success("Reto creado exitosamente");
+        }
       }
 
       // Agregar pacientes seleccionados al reto (solo para profesionales)
@@ -620,7 +636,8 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
             description="Selecciona las áreas de bienestar relacionadas con este reto"
           />
 
-          {isProfessional && (
+          {/* Precio - Mostrar para profesionales o si el challenge tiene precio */}
+          {(isProfessional || challenge?.price) && (
             <>
               <div className="space-y-2">
                 <Label htmlFor="price">Precio (MXN)</Label>
@@ -634,7 +651,11 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
                   placeholder="0.00"
                 />
               </div>
+            </>
+          )}
 
+          {isProfessional && (
+            <>
               <div className="space-y-2">
                 <Label>Agregar Pacientes al Reto (Opcional)</Label>
                 <p className="text-xs text-muted-foreground mb-2">
@@ -955,26 +976,28 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
         </CardContent>
       </Card>
 
-      <div className="flex gap-3 justify-end">
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() => router.push(redirectPath)}
-          disabled={saving}
-        >
-          Cancelar
-        </Button>
-        <Button type="submit" disabled={saving}>
-          {saving ? (
-            <>
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              Guardando...
-            </>
-          ) : (
-            challenge ? "Actualizar Reto" : "Crear Reto"
-          )}
-        </Button>
-      </div>
+      {showButtons && (
+        <div className="flex gap-3 justify-end">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => router.push(redirectPath)}
+            disabled={saving}
+          >
+            Cancelar
+          </Button>
+          <Button type="submit" disabled={saving}>
+            {saving ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Guardando...
+              </>
+            ) : (
+              challenge ? "Actualizar Reto" : "Crear Reto"
+            )}
+          </Button>
+        </div>
+      )}
     </form>
   );
 }

@@ -10,6 +10,7 @@ import { createClient } from "@/utils/supabase/client";
 import { toast } from "sonner";
 import { useUserId } from "@/stores/user-store";
 import { useUserStoreInit } from "@/hooks/use-user-store-init";
+import { Button } from "@/components/ui/button";
 
 export default function EditChallengePage() {
   useUserStoreInit();
@@ -20,6 +21,8 @@ export default function EditChallengePage() {
 
   const [challenge, setChallenge] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [formSubmitted, setFormSubmitted] = useState(false);
   const supabase = createClient();
 
   useEffect(() => {
@@ -72,18 +75,66 @@ export default function EditChallengePage() {
     );
   }
 
+  const handleFormSubmit = () => {
+    setSaving(false);
+    setFormSubmitted(true);
+    // Recargar los datos del challenge después de actualizar
+    fetchChallenge();
+  };
+
+  const handleCancel = () => {
+    router.push(`/my-challenges`);
+  };
+
+  const handleUpdate = () => {
+    setSaving(true);
+    // El formulario se enviará automáticamente cuando se haga submit
+    const form = document.querySelector('form');
+    if (form) {
+      const formElement = form as HTMLFormElement;
+      formElement.requestSubmit();
+    }
+  };
+
   return (
     <div className="py-4 px-6">
       <div className="max-w-3xl mx-auto py-4 space-y-6">
-        <ChallengeResourcesManager challengeId={challengeId} />
-
-        <ChallengeMeetingsManager challengeId={challengeId} />
-
         <ChallengeForm
           userId={patientId || ''}
           challenge={challenge}
           redirectPath={`/my-challenges`}
+          showButtons={false}
+          onFormSubmit={handleFormSubmit}
         />
+
+        <ChallengeResourcesManager challengeId={challengeId} />
+
+        <ChallengeMeetingsManager challengeId={challengeId} />
+
+        <div className="flex gap-3 justify-end pt-4">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={handleCancel}
+            disabled={saving}
+          >
+            Cancelar
+          </Button>
+          <Button
+            type="button"
+            onClick={handleUpdate}
+            disabled={saving}
+          >
+            {saving ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Guardando...
+              </>
+            ) : (
+              "Actualizar Reto"
+            )}
+          </Button>
+        </div>
       </div>
     </div>
   );

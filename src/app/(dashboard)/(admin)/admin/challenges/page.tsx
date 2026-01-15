@@ -106,7 +106,6 @@ export default function AdminChallengesPage() {
   const [formData, setFormData] = useState({
     title: "",
     description: "",
-    short_description: "",
     cover_image_url: "",
     duration_days: "",
     difficulty_level: "",
@@ -465,7 +464,6 @@ export default function AdminChallengesPage() {
         created_by_type: 'admin',
         title: formData.title.trim(),
         description: formData.description.trim(),
-        short_description: formData.short_description?.trim() || null,
         cover_image_url: formData.cover_image_url || null,
         duration_days: formData.duration_days ? parseInt(formData.duration_days) : null,
         difficulty_level: formData.difficulty_level || null,

@@ -48,7 +48,6 @@ export interface ChallengeResource {
 export interface ChallengeFormData {
   title: string;
   description: string;
-  short_description: string;
   cover_image_url: string;
   duration_days: string;
   difficulty_level: string;

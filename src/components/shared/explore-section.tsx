@@ -320,8 +320,17 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
           setHolisticCenters([]);
         }
       } catch (error) {
-        console.error("Error loading explore data:", error);
+        console.error("❌ [ExploreSection] Error loading explore data:", error);
       } finally {
+        console.log("🔍 [ExploreSection] Finished loading. Final state:", {
+          professionals: professionals.length,
+          shops: shops.length,
+          restaurants: restaurants.length,
+          events: events.length,
+          digitalProducts: digitalProducts.length,
+          holisticCenters: holisticCenters.length,
+          loading
+        });
         setLoading(false);
       }
     }
@@ -925,10 +934,7 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
         ) : null}
 
         {/* 5. Centros Holísticos */}
-        {(() => {
-          console.log("🔍 [ExploreSection] Rendering holistic centers section:", { loading, centersCount: holisticCenters.length, centers: holisticCenters });
-          return (!loading && holisticCenters.length > 0) || loading;
-        })() ? (
+        {(!loading && holisticCenters.length > 0) || loading ? (
           <div className="mb-16">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-2">
               <div>

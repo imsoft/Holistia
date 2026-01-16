@@ -52,6 +52,7 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { VerifiedBadge } from "@/components/ui/verified-badge";
+import { formatPhone } from "@/utils/phone-utils";
 
 interface Company {
   id: string;

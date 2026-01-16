@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, Users, DollarSign, Calendar, CheckCircle, XCircle, Clock } from "lucide-react";
 import { toast } from "sonner";
+import { formatPhone } from "@/utils/phone-utils";
 
 interface EventRegistration {
   id: string;

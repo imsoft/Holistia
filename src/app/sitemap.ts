@@ -2,7 +2,7 @@ import { MetadataRoute } from 'next';
 import { createClient } from '@/utils/supabase/server';
 import { BASE_URL } from '@/lib/seo';
 
-interface ProfessionalSitemap {
+interface SlugSitemap {
   slug: string;
   updated_at: string;
 }
@@ -18,12 +18,7 @@ interface BlogPostSitemap {
   updated_at: string;
 }
 
-interface ChallengeSitemap {
-  id: string;
-  updated_at: string;
-}
-
-interface DigitalProductSitemap {
+interface IdSitemap {
   id: string;
   updated_at: string;
 }
@@ -87,11 +82,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // Obtener retos activos
     const { data: challenges } = await supabase
       .from('challenges')
-      .select('id, updated_at')
-      .eq('is_active', true);
+      .select('slug, updated_at')
+      .eq('is_active', true)
+      .not('slug', 'is', null);
 
-    const challengePages: MetadataRoute.Sitemap = (challenges || []).map((challenge: ChallengeSitemap) => ({
-      url: `${BASE_URL}/challenges/${challenge.id}`,
+    const challengePages: MetadataRoute.Sitemap = (challenges || []).map((challenge: SlugSitemap) => ({
+      url: `${BASE_URL}/explore/challenge/${challenge.slug}`,
       lastModified: new Date(challenge.updated_at),
       changeFrequency: 'weekly' as const,
       priority: 0.9,
@@ -102,13 +98,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       .from('professional_applications')
       .select('slug, updated_at')
       .eq('status', 'approved')
+      .eq('is_active', true)
       .not('slug', 'is', null);
 
-    const professionalPages: MetadataRoute.Sitemap = (professionals || []).map((professional: ProfessionalSitemap) => ({
-      url: `${BASE_URL}/profesionales/${professional.slug}`,
+    const professionalPages: MetadataRoute.Sitemap = (professionals || []).map((professional: SlugSitemap) => ({
+      url: `${BASE_URL}/explore/professional/${professional.slug}`,
       lastModified: new Date(professional.updated_at),
       changeFrequency: 'weekly' as const,
-      priority: 0.8,
+      priority: 0.9,
     }));
 
     // Obtener eventos activos
@@ -120,8 +117,50 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       .gte('event_date', new Date().toISOString());
 
     const eventPages: MetadataRoute.Sitemap = (events || []).map((event: EventSitemap) => ({
-      url: `${BASE_URL}/eventos/${event.slug}`,
+      url: `${BASE_URL}/explore/event/${event.slug}`,
       lastModified: new Date(event.updated_at),
+      changeFrequency: 'weekly' as const,
+      priority: 0.8,
+    }));
+
+    // Obtener comercios activos
+    const { data: shops } = await supabase
+      .from('shops')
+      .select('slug, updated_at')
+      .eq('is_active', true)
+      .not('slug', 'is', null);
+
+    const shopPages: MetadataRoute.Sitemap = (shops || []).map((shop: SlugSitemap) => ({
+      url: `${BASE_URL}/explore/shop/${shop.slug}`,
+      lastModified: new Date(shop.updated_at),
+      changeFrequency: 'weekly' as const,
+      priority: 0.7,
+    }));
+
+    // Obtener restaurantes activos
+    const { data: restaurants } = await supabase
+      .from('restaurants')
+      .select('slug, updated_at')
+      .eq('is_active', true)
+      .not('slug', 'is', null);
+
+    const restaurantPages: MetadataRoute.Sitemap = (restaurants || []).map((restaurant: SlugSitemap) => ({
+      url: `${BASE_URL}/explore/restaurant/${restaurant.slug}`,
+      lastModified: new Date(restaurant.updated_at),
+      changeFrequency: 'weekly' as const,
+      priority: 0.7,
+    }));
+
+    // Obtener centros holísticos activos
+    const { data: holisticCenters } = await supabase
+      .from('holistic_centers')
+      .select('slug, updated_at')
+      .eq('is_active', true)
+      .not('slug', 'is', null);
+
+    const holisticCenterPages: MetadataRoute.Sitemap = (holisticCenters || []).map((center: SlugSitemap) => ({
+      url: `${BASE_URL}/explore/holistic-center/${center.slug}`,
+      lastModified: new Date(center.updated_at),
       changeFrequency: 'weekly' as const,
       priority: 0.7,
     }));
@@ -155,14 +194,24 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       .eq('professional_applications.is_verified', true)
       .eq('professional_applications.status', 'approved');
 
-    const digitalProductPages: MetadataRoute.Sitemap = (digitalProducts || []).map((product: DigitalProductSitemap) => ({
-      url: `${BASE_URL}/productos/${product.id}`,
+    const digitalProductPages: MetadataRoute.Sitemap = (digitalProducts || []).map((product: IdSitemap) => ({
+      url: `${BASE_URL}/explore/program/${product.id}`,
       lastModified: new Date(product.updated_at),
       changeFrequency: 'weekly' as const,
       priority: 0.7,
     }));
 
-    return [...staticPages, ...challengePages, ...professionalPages, ...eventPages, ...blogPages, ...digitalProductPages];
+    return [
+      ...staticPages, 
+      ...professionalPages,
+      ...challengePages, 
+      ...eventPages, 
+      ...shopPages,
+      ...restaurantPages,
+      ...holisticCenterPages,
+      ...blogPages, 
+      ...digitalProductPages
+    ];
   } catch (error) {
     console.error('Error generating sitemap:', error);
     return staticPages;

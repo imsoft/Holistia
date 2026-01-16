@@ -193,8 +193,7 @@ export function generateProfessionalMetadata(professional: ProfessionalData): Me
   const title = `${fullName} - ${professional.profession} | Holistia`;
   const description = `Consulta con ${fullName}, ${professional.profession} certificado en Holistia. ${professional.bio || `Especialista en ${professional.profession.toLowerCase()} con amplia experiencia.`} Reserva tu cita ahora.`;
   
-  const path = `/patient/[id]/explore/professional/${professional.slug}`;
-  const url = `${BASE_URL}${path}`;
+  const url = `${BASE_URL}/explore/professional/${professional.slug}`;
   const imageUrl = professional.profile_photo 
     ? `${BASE_URL}/api/image?url=${encodeURIComponent(professional.profile_photo)}`
     : `${BASE_URL}/logos/holistia-og.png`;
@@ -245,8 +244,7 @@ export function generateEventMetadata(event: EventData): Metadata {
   const title = `${event.title} - Evento de Bienestar | Holistia`;
   const description = `${event.description || `Únete a nuestro evento de bienestar: ${event.title}`}. Fecha: ${new Date(event.event_date).toLocaleDateString('es-MX')}. Reserva tu lugar ahora en Holistia.`;
   
-  const path = `/patient/[id]/explore/event/${event.slug}`;
-  const url = `${BASE_URL}${path}`;
+  const url = `${BASE_URL}/explore/event/${event.slug}`;
   const imageUrl = event.featured_image 
     ? `${BASE_URL}/api/image?url=${encodeURIComponent(event.featured_image)}`
     : `${BASE_URL}/logos/holistia-og.png`;
@@ -402,7 +400,7 @@ export function generateStructuredData(type: 'website' | 'professional' | 'event
         jobTitle: professionalData.profession,
         description: professionalData.bio,
         image: professionalData.profile_photo,
-        url: `${BASE_URL}/patient/[id]/explore/professional/${professionalData.slug}`,
+        url: `${BASE_URL}/explore/professional/${professionalData.slug}`,
         worksFor: {
           '@type': 'Organization',
           name: 'Holistia',
@@ -423,7 +421,7 @@ export function generateStructuredData(type: 'website' | 'professional' | 'event
         description: eventData.description,
         startDate: eventData.event_date,
         image: eventData.featured_image,
-        url: `${BASE_URL}/patient/[id]/explore/event/${eventData.slug}`,
+        url: `${BASE_URL}/explore/event/${eventData.slug}`,
         location: {
           '@type': 'Place',
           name: 'Evento Online',
@@ -554,7 +552,7 @@ export function generateChallengeMetadata({
   difficulty,
   durationDays,
   coverImage,
-  challengeId,
+  slug,
   creatorName,
 }: {
   title: string;
@@ -563,13 +561,13 @@ export function generateChallengeMetadata({
   difficulty: string;
   durationDays: number;
   coverImage?: string;
-  challengeId: string;
+  slug: string;
   creatorName?: string;
 }): Metadata {
   const pageTitle = `${title} - Reto de ${category} | Holistia`;
   const pageDescription = `${description} Dificultad: ${difficulty}. Duración: ${durationDays} días. ${creatorName ? `Creado por ${creatorName}.` : ''} Únete y transforma tu vida.`;
 
-  const url = `${BASE_URL}/challenges/${challengeId}`;
+  const url = `${BASE_URL}/explore/challenge/${slug}`;
   const imageUrl = coverImage
     ? `${BASE_URL}/api/image?url=${encodeURIComponent(coverImage)}`
     : `${BASE_URL}/logos/holistia-og.png`;
@@ -622,7 +620,7 @@ export function generateChallengeSchema({
   difficulty,
   durationDays,
   coverImage,
-  challengeId,
+  slug,
   creatorName,
   price,
 }: {
@@ -632,7 +630,7 @@ export function generateChallengeSchema({
   difficulty: string;
   durationDays: number;
   coverImage?: string;
-  challengeId: string;
+  slug: string;
   creatorName?: string;
   price?: number;
 }): string {
@@ -646,9 +644,9 @@ export function generateChallengeSchema({
       name: 'Holistia',
       url: BASE_URL,
     },
-    url: `${BASE_URL}/challenges/${challengeId}`,
+    url: `${BASE_URL}/explore/challenge/${slug}`,
     image: coverImage,
-    courseCode: challengeId,
+    courseCode: slug,
     teaches: category,
     educationalLevel: difficulty,
     timeRequired: `P${durationDays}D`,
@@ -666,6 +664,224 @@ export function generateChallengeSchema({
         name: creatorName,
       },
     }),
+  });
+}
+
+// =====================================================
+// FUNCIONES PARA COMERCIOS (SHOPS)
+// =====================================================
+
+interface ShopData {
+  name: string;
+  slug: string;
+  description?: string;
+  category?: string;
+  city?: string;
+  image_url?: string;
+}
+
+export function generateShopMetadata(shop: ShopData): Metadata {
+  const title = `${shop.name} - Comercio de Bienestar | Holistia`;
+  const description = shop.description 
+    ? `${shop.description.substring(0, 150)}${shop.description.length > 150 ? '...' : ''}`
+    : `Descubre ${shop.name}, comercio de ${shop.category || 'bienestar'} en ${shop.city || 'México'}. Productos naturales y de bienestar en Holistia.`;
+
+  const url = `${BASE_URL}/explore/shop/${shop.slug}`;
+  const imageUrl = shop.image_url
+    ? `${BASE_URL}/api/image?url=${encodeURIComponent(shop.image_url)}`
+    : `${BASE_URL}/logos/holistia-og.png`;
+
+  return {
+    title,
+    description,
+    keywords: [
+      shop.name,
+      shop.category || 'bienestar',
+      shop.city || 'México',
+      'comercio bienestar',
+      'productos naturales',
+      'tienda holística',
+      'productos saludables',
+    ],
+    openGraph: {
+      ...DEFAULT_SEO.openGraph,
+      type: 'website',
+      url,
+      title,
+      description,
+      images: [{ url: imageUrl, width: 1200, height: 630, alt: shop.name }],
+    },
+    twitter: {
+      ...DEFAULT_SEO.twitter,
+      title,
+      description,
+      images: [imageUrl],
+    },
+    alternates: { canonical: url },
+  };
+}
+
+export function generateShopSchema(shop: ShopData): string {
+  return JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'Store',
+    name: shop.name,
+    description: shop.description,
+    image: shop.image_url,
+    url: `${BASE_URL}/explore/shop/${shop.slug}`,
+    address: shop.city ? {
+      '@type': 'PostalAddress',
+      addressLocality: shop.city,
+      addressCountry: 'MX',
+    } : undefined,
+  });
+}
+
+// =====================================================
+// FUNCIONES PARA RESTAURANTES (RESTAURANTS)
+// =====================================================
+
+interface RestaurantData {
+  name: string;
+  slug: string;
+  description?: string;
+  cuisine_type?: string;
+  price_range?: string;
+  address?: string;
+  image_url?: string;
+}
+
+export function generateRestaurantMetadata(restaurant: RestaurantData): Metadata {
+  const title = `${restaurant.name} - Restaurante Saludable | Holistia`;
+  const cuisineLabel = restaurant.cuisine_type || 'saludable';
+  const description = restaurant.description 
+    ? `${restaurant.description.substring(0, 150)}${restaurant.description.length > 150 ? '...' : ''}`
+    : `Descubre ${restaurant.name}, restaurante de cocina ${cuisineLabel}. ${restaurant.price_range ? `Rango de precios: ${restaurant.price_range}.` : ''} Encuentra opciones saludables en Holistia.`;
+
+  const url = `${BASE_URL}/explore/restaurant/${restaurant.slug}`;
+  const imageUrl = restaurant.image_url
+    ? `${BASE_URL}/api/image?url=${encodeURIComponent(restaurant.image_url)}`
+    : `${BASE_URL}/logos/holistia-og.png`;
+
+  return {
+    title,
+    description,
+    keywords: [
+      restaurant.name,
+      cuisineLabel,
+      'restaurante saludable',
+      'comida saludable',
+      'alimentación consciente',
+      'restaurante vegano',
+      'restaurante vegetariano',
+      'comida orgánica',
+    ],
+    openGraph: {
+      ...DEFAULT_SEO.openGraph,
+      type: 'website',
+      url,
+      title,
+      description,
+      images: [{ url: imageUrl, width: 1200, height: 630, alt: restaurant.name }],
+    },
+    twitter: {
+      ...DEFAULT_SEO.twitter,
+      title,
+      description,
+      images: [imageUrl],
+    },
+    alternates: { canonical: url },
+  };
+}
+
+export function generateRestaurantSchema(restaurant: RestaurantData): string {
+  return JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'Restaurant',
+    name: restaurant.name,
+    description: restaurant.description,
+    image: restaurant.image_url,
+    url: `${BASE_URL}/explore/restaurant/${restaurant.slug}`,
+    servesCuisine: restaurant.cuisine_type,
+    priceRange: restaurant.price_range,
+    address: restaurant.address ? {
+      '@type': 'PostalAddress',
+      streetAddress: restaurant.address,
+      addressCountry: 'MX',
+    } : undefined,
+  });
+}
+
+// =====================================================
+// FUNCIONES PARA CENTROS HOLÍSTICOS (HOLISTIC CENTERS)
+// =====================================================
+
+interface HolisticCenterData {
+  name: string;
+  slug: string;
+  description?: string;
+  city?: string;
+  address?: string;
+  image_url?: string;
+}
+
+export function generateHolisticCenterMetadata(center: HolisticCenterData): Metadata {
+  const title = `${center.name} - Centro Holístico | Holistia`;
+  const description = center.description 
+    ? `${center.description.substring(0, 150)}${center.description.length > 150 ? '...' : ''}`
+    : `Descubre ${center.name}, centro holístico en ${center.city || 'México'}. Servicios de bienestar integral, terapias alternativas y más en Holistia.`;
+
+  const url = `${BASE_URL}/explore/holistic-center/${center.slug}`;
+  const imageUrl = center.image_url
+    ? `${BASE_URL}/api/image?url=${encodeURIComponent(center.image_url)}`
+    : `${BASE_URL}/logos/holistia-og.png`;
+
+  return {
+    title,
+    description,
+    keywords: [
+      center.name,
+      center.city || 'México',
+      'centro holístico',
+      'bienestar integral',
+      'terapias alternativas',
+      'spa holístico',
+      'meditación',
+      'yoga',
+      'sanación',
+    ],
+    openGraph: {
+      ...DEFAULT_SEO.openGraph,
+      type: 'website',
+      url,
+      title,
+      description,
+      images: [{ url: imageUrl, width: 1200, height: 630, alt: center.name }],
+    },
+    twitter: {
+      ...DEFAULT_SEO.twitter,
+      title,
+      description,
+      images: [imageUrl],
+    },
+    alternates: { canonical: url },
+  };
+}
+
+export function generateHolisticCenterSchema(center: HolisticCenterData): string {
+  return JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'HealthAndBeautyBusiness',
+    name: center.name,
+    description: center.description,
+    image: center.image_url,
+    url: `${BASE_URL}/explore/holistic-center/${center.slug}`,
+    address: {
+      '@type': 'PostalAddress',
+      streetAddress: center.address,
+      addressLocality: center.city,
+      addressCountry: 'MX',
+    },
   });
 }
 

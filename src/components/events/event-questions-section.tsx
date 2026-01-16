@@ -184,7 +184,7 @@ export function EventQuestionsSection({
   const canAnswer = isAdmin || isProfessional;
 
   return (
-    <Card className="mt-8">
+    <Card className="mt-8 py-4">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <MessageSquare className="h-5 w-5" />
@@ -229,8 +229,8 @@ export function EventQuestionsSection({
         )}
 
         {!isAuthenticated && (
-          <Alert>
-            <AlertCircle className="h-4 w-4" />
+          <Alert className="flex items-center gap-2">
+            <AlertCircle className="h-4 w-4 shrink-0" />
             <AlertDescription>
               <a href="/login" className="text-primary hover:underline">
                 Inicia sesión

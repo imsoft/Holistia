@@ -16,6 +16,7 @@ import { FavoriteButton } from "@/components/ui/favorite-button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useUserId } from "@/stores/user-store";
 import { useUserStoreInit } from "@/hooks/use-user-store-init";
+import { useParams } from "next/navigation";
 
 const categories = [
   {
@@ -174,15 +175,10 @@ const generateEventSlug = (eventName: string, eventId: string) => {
 
 const HomeUserPage = () => {
   useUserStoreInit(); // Inicializar store de Zustand
-  const userId = useUserId(); // Obtener userId del store
-  
-  // Redirigir si no hay userId
-  useEffect(() => {
-    if (userId === null) {
-      // El store aún está cargando, esperar
-      return;
-    }
-  }, [userId]);
+  const params = useParams();
+  const storeUserId = useUserId(); // Obtener userId del store
+  // Usar userId de los parámetros de la URL, con fallback al store
+  const userId = (params?.userId as string) || storeUserId || null;
   
   const [professionals, setProfessionals] = useState<Professional[]>([]);
   const [filteredProfessionals, setFilteredProfessionals] = useState<Professional[]>([]);

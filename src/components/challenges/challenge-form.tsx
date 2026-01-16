@@ -988,7 +988,6 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
           <div className="space-y-2">
             <Label htmlFor="price">Precio (MXN)</Label>
             <Input
-              key={`price-${formData.price || 'empty'}`}
               id="price"
               type="number"
               min="0"

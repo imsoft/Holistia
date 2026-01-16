@@ -1160,7 +1160,7 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
 
       {/* Sección de Recursos - Solo mostrar si showButtons es true (creación) */}
       {/* NOTA: Esta sección está oculta cuando showButtons=false para evitar duplicación con ChallengeResourcesManager */}
-      {showButtons === true && (
+      {showButtons !== false && (
       <Card className="py-4">
         <CardHeader className="py-4">
           <div className="flex items-center justify-between">
@@ -1350,8 +1350,8 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
       </Card>
       )}
 
-      {/* Sección de Reuniones - Solo mostrar cuando hay un challenge (edición) */}
-      {challenge?.id && (
+      {/* Sección de Reuniones - Solo mostrar cuando hay un challenge (edición) y showButtons es true */}
+      {challenge?.id && showButtons !== false && (
         <Card className="py-4">
           <CardHeader>
             <div className="flex items-center justify-between">

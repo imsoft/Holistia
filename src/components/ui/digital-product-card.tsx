@@ -22,6 +22,7 @@ import { FavoriteButton } from "@/components/ui/favorite-button";
 interface DigitalProductCardProps {
   product: {
     id: string;
+    slug?: string;
     title: string;
     description: string;
     category: string;
@@ -73,8 +74,7 @@ export function DigitalProductCard({
   const CategoryIcon = CATEGORY_ICONS[product.category] || Tag;
 
   const handleClick = () => {
-    // Usar ruta con el ID del producto (digital_products aún no tiene slug)
-    router.push(`/explore/program/${product.id}`);
+    router.push(`/explore/program/${product.slug || product.id}`);
   };
 
   return (

@@ -1042,6 +1042,7 @@ export function generateUserProfileMetadata({
 
 interface DigitalProductData {
   id: string;
+  slug?: string;
   title: string;
   description: string;
   category: string;
@@ -1080,7 +1081,7 @@ export function generateDigitalProductMetadata(product: DigitalProductData): Met
   const title = `${product.title} - ${categoryLabel} por ${professionalName} | Holistia`;
   const description = `${product.description.substring(0, 150)}${product.description.length > 150 ? '...' : ''} ${categoryLabel} creado por ${professionalName}. Precio: $${product.price} ${product.currency}. Descarga inmediata después del pago.`;
 
-  const url = `${BASE_URL}/productos/${product.id}`;
+  const url = `${BASE_URL}/explore/program/${product.slug || product.id}`;
   const imageUrl = product.cover_image_url
     ? `${BASE_URL}/api/image?url=${encodeURIComponent(product.cover_image_url)}`
     : `${BASE_URL}/logos/holistia-og.png`;
@@ -1161,7 +1162,7 @@ export function generateDigitalProductSchema(product: DigitalProductData): strin
       price: product.price,
       priceCurrency: product.currency,
       availability: 'https://schema.org/InStock',
-      url: `${BASE_URL}/productos/${product.id}`,
+      url: `${BASE_URL}/explore/program/${product.slug || product.id}`,
       seller: {
         '@type': 'Person',
         name: professionalName,

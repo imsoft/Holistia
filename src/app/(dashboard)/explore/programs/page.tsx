@@ -16,6 +16,7 @@ import { Footer } from "@/components/shared/footer";
 
 interface DigitalProduct {
   id: string;
+  slug?: string;
   professional_id: string;
   title: string;
   description: string;

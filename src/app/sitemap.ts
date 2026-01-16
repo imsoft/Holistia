@@ -184,6 +184,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       .from('digital_products')
       .select(`
         id,
+        slug,
         updated_at,
         professional_applications!inner(
           is_verified,
@@ -194,8 +195,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       .eq('professional_applications.is_verified', true)
       .eq('professional_applications.status', 'approved');
 
-    const digitalProductPages: MetadataRoute.Sitemap = (digitalProducts || []).map((product: IdSitemap) => ({
-      url: `${BASE_URL}/explore/program/${product.id}`,
+    interface DigitalProductSitemap {
+      id: string;
+      slug?: string;
+      updated_at: string;
+    }
+
+    const digitalProductPages: MetadataRoute.Sitemap = (digitalProducts || []).map((product: DigitalProductSitemap) => ({
+      url: `${BASE_URL}/explore/program/${product.slug || product.id}`,
       lastModified: new Date(product.updated_at),
       changeFrequency: 'weekly' as const,
       priority: 0.7,

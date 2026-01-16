@@ -33,6 +33,7 @@ import { Footer } from "@/components/shared/footer";
 
 interface DigitalProduct {
   id: string;
+  slug?: string;
   professional_id: string;
   title: string;
   description: string;
@@ -49,6 +50,7 @@ interface DigitalProduct {
   professional_applications?: {
     first_name: string;
     last_name: string;
+    slug?: string;
     profile_photo?: string;
     is_verified?: boolean;
     profession?: string;
@@ -84,8 +86,6 @@ export default function ProgramDetailPage() {
   const router = useRouter();
   const userId = useUserId();
   const slugParam = params.slug as string;
-  // digital_products usa ID por ahora (no tiene slug)
-  const programId = slugParam;
   const [product, setProduct] = useState<DigitalProduct | null>(null);
   const [loading, setLoading] = useState(true);
   const [hasPurchased, setHasPurchased] = useState(false);
@@ -110,22 +110,48 @@ export default function ProgramDetailPage() {
     try {
       setLoading(true);
 
-      const { data: productData, error: productError } = await supabase
+      // Primero intentar buscar por slug
+      let { data: productData, error: productError } = await supabase
         .from("digital_products")
         .select(`
           *,
           professional_applications!digital_products_professional_id_fkey(
             first_name,
             last_name,
+            slug,
             profile_photo,
             is_verified,
             profession,
             specializations
           )
         `)
-        .eq("id", programId)
+        .eq("slug", slugParam)
         .eq("is_active", true)
-        .single();
+        .maybeSingle();
+
+      // Si no se encuentra por slug, intentar por ID (backward compatibility)
+      if (!productData) {
+        const { data: productById, error: errorById } = await supabase
+          .from("digital_products")
+          .select(`
+            *,
+            professional_applications!digital_products_professional_id_fkey(
+              first_name,
+              last_name,
+              slug,
+              profile_photo,
+              is_verified,
+              profession,
+              specializations
+            )
+          `)
+          .eq("id", slugParam)
+          .eq("is_active", true)
+          .maybeSingle();
+        
+        productData = productById;
+        productError = errorById;
+      }
 
       if (productError) throw productError;
 
@@ -169,11 +195,11 @@ export default function ProgramDetailPage() {
 
       // Check if user has purchased this product
       const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
+      if (user && transformedProduct) {
         const { data: purchaseData } = await supabase
           .from("digital_product_purchases")
           .select("id")
-          .eq("product_id", programId)
+          .eq("product_id", transformedProduct.id)
           .eq("buyer_id", user.id)
           .eq("payment_status", "succeeded")
           .maybeSingle();
@@ -197,6 +223,8 @@ export default function ProgramDetailPage() {
       return;
     }
 
+    if (!product) return;
+
     try {
       setIsPurchasing(true);
       toast.loading("Procesando compra...");
@@ -207,7 +235,7 @@ export default function ProgramDetailPage() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          product_id: programId,
+          product_id: product.id,
         }),
       });
 
@@ -244,7 +272,7 @@ export default function ProgramDetailPage() {
 
     // Incrementar contador de descargas
     await supabase.rpc("increment_download_count", {
-      p_product_id: programId,
+      p_product_id: product.id,
       p_user_id: user.id,
     });
 
@@ -333,7 +361,7 @@ export default function ProgramDetailPage() {
               <div className="space-y-4">
                 <div className="flex items-start gap-4">
                   <Link
-                    href={`/explore/professional/${product.professional_id}`}
+                    href={`/explore/professional/${product.professional_applications.slug || product.professional_id}`}
                     className="flex-shrink-0"
                   >
                     {product.professional_applications.profile_photo ? (
@@ -355,7 +383,7 @@ export default function ProgramDetailPage() {
                   <div className="flex-1 min-w-0">
                     <p className="text-sm text-muted-foreground mb-2">Creado por</p>
                     <Link
-                      href={`/explore/professional/${product.professional_id}`}
+                      href={`/explore/professional/${product.professional_applications.slug || product.professional_id}`}
                       className="group"
                     >
                       <h3 className="font-semibold text-lg text-foreground hover:text-primary transition-colors flex items-center gap-2 mb-1">
@@ -387,7 +415,7 @@ export default function ProgramDetailPage() {
                       </div>
                     )}
                     <Link
-                      href={`/explore/professional/${product.professional_id}`}
+                      href={`/explore/professional/${product.professional_applications.slug || product.professional_id}`}
                       className="inline-flex items-center gap-1 text-sm text-primary hover:text-primary/80 font-medium mt-3 group"
                     >
                       Ver perfil completo
@@ -504,7 +532,7 @@ export default function ProgramDetailPage() {
               <>
                 <div className="space-y-3">
                   <Button
-                    onClick={() => router.push(`/signup?redirect=${encodeURIComponent(`/explore/program/${slugParam}`)}`)}
+                    onClick={() => router.push(`/signup?redirect=${encodeURIComponent(`/explore/program/${product?.slug || slugParam}`)}`)}
                     className="w-full"
                     size="lg"
                   >
@@ -512,7 +540,7 @@ export default function ProgramDetailPage() {
                   </Button>
                   <Button
                     variant="outline"
-                    onClick={() => router.push(`/login?redirect=${encodeURIComponent(`/explore/program/${slugParam}`)}`)}
+                    onClick={() => router.push(`/login?redirect=${encodeURIComponent(`/explore/program/${product?.slug || slugParam}`)}`)}
                     className="w-full"
                     size="lg"
                   >

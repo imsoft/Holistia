@@ -98,7 +98,9 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
     let authorInfo = undefined;
     if (post.author_id) {
       // Try to get from professional_applications first (including non-approved ones for link purposes)
-      const { data: professionalAuthor, error: professionalAuthorError } = await supabase
+      // Try by user_id first (most common case)
+      let professionalAuthor = null;
+      const { data: professionalByUserId, error: professionalAuthorError } = await supabase
         .from('professional_applications')
         .select('id, first_name, last_name, profession, profile_photo, slug, status')
         .eq('user_id', post.author_id)
@@ -107,6 +109,19 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
       // Manejar error PGRST116 (no rows found) - es normal si el autor no es un profesional
       if (professionalAuthorError && professionalAuthorError.code !== 'PGRST116') {
         console.error('Error fetching professional author:', professionalAuthorError);
+      }
+
+      professionalAuthor = professionalByUserId;
+
+      // If not found by user_id, try by id directly (in case author_id points to professional_applications.id)
+      if (!professionalAuthor) {
+        const { data: professionalById } = await supabase
+          .from('professional_applications')
+          .select('id, first_name, last_name, profession, profile_photo, slug, status')
+          .eq('id', post.author_id)
+          .maybeSingle();
+        
+        professionalAuthor = professionalById;
       }
 
       if (professionalAuthor) {
@@ -139,17 +154,47 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
           // Try one more time to find professional by matching name from profile
           const fullName = `${profileData.first_name || ''} ${profileData.last_name || ''}`.trim();
           if (fullName) {
-            const { data: professionalByName } = await supabase
+            // Try exact match first
+            let professionalByName = null;
+            const { data: exactMatch } = await supabase
               .from('professional_applications')
-              .select('id, slug')
+              .select('id, slug, first_name, last_name')
               .eq('first_name', profileData.first_name || '')
               .eq('last_name', profileData.last_name || '')
-              .eq('status', 'approved')
               .maybeSingle();
+            
+            professionalByName = exactMatch;
+
+            // If no exact match, try case-insensitive search
+            if (!professionalByName) {
+              const { data: caseInsensitiveMatch } = await supabase
+                .from('professional_applications')
+                .select('id, slug, first_name, last_name')
+                .ilike('first_name', profileData.first_name || '')
+                .ilike('last_name', profileData.last_name || '')
+                .maybeSingle();
+              
+              professionalByName = caseInsensitiveMatch;
+            }
+
+            // If still no match, try searching by full name concatenated
+            if (!professionalByName) {
+              const { data: allProfessionals } = await supabase
+                .from('professional_applications')
+                .select('id, slug, first_name, last_name')
+                .or(`first_name.ilike.%${profileData.first_name || ''}%,last_name.ilike.%${profileData.last_name || ''}%`);
+              
+              // Find the best match
+              if (allProfessionals && allProfessionals.length > 0) {
+                professionalByName = allProfessionals.find(p => 
+                  `${p.first_name} ${p.last_name}`.toLowerCase() === fullName.toLowerCase()
+                ) || allProfessionals[0];
+              }
+            }
             
             if (professionalByName) {
               const generatedSlug = professionalByName.slug || 
-                `${profileData.first_name?.toLowerCase() || ''}-${profileData.last_name?.toLowerCase() || ''}-${professionalByName.id}`.replace(/\s+/g, '-');
+                `${professionalByName.first_name?.toLowerCase() || profileData.first_name?.toLowerCase() || ''}-${professionalByName.last_name?.toLowerCase() || profileData.last_name?.toLowerCase() || ''}-${professionalByName.id}`.replace(/\s+/g, '-');
               
               authorInfo = {
                 name: fullName || 'Holistia',

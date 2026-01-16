@@ -161,7 +161,7 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
 
   // Cargar datos del challenge cuando esté disponible (prioridad)
   useEffect(() => {
-    if (challenge) {
+    if (challenge && challenge.id) {
       console.log('🔍 ChallengeForm useEffect: challenge recibido', {
         challenge,
         challengeId: challenge.id,
@@ -200,15 +200,8 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
       
       // Forzar actualización del estado con los valores exactos del challenge
       setFormData(newFormData);
-      
-      // Verificar después de un pequeño delay que el estado se actualizó
-      setTimeout(() => {
-        console.log('⏱️ ChallengeForm: Estado después de setFormData', {
-          formDataState: formData
-        });
-      }, 100);
     }
-  }, [challenge]);
+  }, [challenge?.id, challenge?.difficulty_level, challenge?.price, challenge?.linked_professional_id, challenge?.cover_image_url, challenge?.category, challenge?.duration_days, challenge?.wellness_areas]);
 
   // Cargar reuniones cuando hay un challenge
   useEffect(() => {
@@ -865,8 +858,12 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
               {isProfessional ? "Profesional Vinculado" : "Vincular a Profesional (Opcional)"}
             </Label>
             <Select
+              key={`linked-prof-${formData.linked_professional_id || 'none'}`}
               value={formData.linked_professional_id || "none"}
-              onValueChange={(value) => setFormData({ ...formData, linked_professional_id: value })}
+              onValueChange={(value) => {
+                console.log('👤 Profesional vinculado cambiado:', value);
+                setFormData({ ...formData, linked_professional_id: value });
+              }}
               disabled={loadingProfessionals || isProfessional}
             >
               <SelectTrigger className="w-full">
@@ -939,6 +936,7 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
             <div className="space-y-2">
               <Label htmlFor="difficulty_level">Nivel de Dificultad</Label>
               <Select
+                key={`difficulty-${formData.difficulty_level || 'empty'}`}
                 value={formData.difficulty_level || ""}
                 onValueChange={(value) => {
                   console.log('📊 Nivel de dificultad cambiado:', value);
@@ -988,6 +986,7 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
           <div className="space-y-2">
             <Label htmlFor="price">Precio (MXN)</Label>
             <Input
+              key={`price-${formData.price || 'empty'}`}
               id="price"
               type="number"
               min="0"
@@ -1099,7 +1098,7 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
             </p>
             <div className="space-y-3">
               {formData.cover_image_url && formData.cover_image_url.trim() !== "" ? (
-                <div className="relative h-48 w-full rounded-lg overflow-hidden border-2 border-dashed border-muted">
+                <div key={`cover-${formData.cover_image_url}`} className="relative h-48 w-full rounded-lg overflow-hidden border-2 border-dashed border-muted">
                   <Image
                     src={formData.cover_image_url}
                     alt="Portada"

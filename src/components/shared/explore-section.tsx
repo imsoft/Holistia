@@ -310,13 +310,12 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
 
         if (holisticCentersError) {
           console.error("❌ Error loading holistic centers:", holisticCentersError);
-        }
-
-        if (holisticCentersData && holisticCentersData.length > 0) {
-          console.log("✅ Holistic centers loaded:", holisticCentersData.length);
+          setHolisticCenters([]);
+        } else if (holisticCentersData && holisticCentersData.length > 0) {
+          console.log("✅ Holistic centers loaded:", holisticCentersData.length, holisticCentersData);
           setHolisticCenters(holisticCentersData);
         } else {
-          console.log("⚠️ No holistic centers found or array is empty");
+          console.log("⚠️ No holistic centers found or array is empty. Data:", holisticCentersData);
           setHolisticCenters([]);
         }
       } catch (error) {

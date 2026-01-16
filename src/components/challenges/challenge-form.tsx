@@ -200,8 +200,10 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
       
       // Forzar actualización del estado con los valores exactos del challenge
       setFormData(newFormData);
+      
+      console.log('✅ ChallengeForm: Estado actualizado con valores del challenge');
     }
-  }, [challenge?.id, challenge?.difficulty_level, challenge?.price, challenge?.linked_professional_id, challenge?.cover_image_url, challenge?.category, challenge?.duration_days, challenge?.wellness_areas]);
+  }, [challenge]);
 
   // Cargar reuniones cuando hay un challenge
   useEffect(() => {

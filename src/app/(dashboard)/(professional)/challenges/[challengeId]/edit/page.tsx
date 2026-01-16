@@ -154,6 +154,7 @@ export default function EditProfessionalChallengePage() {
       <div className="py-4 px-6">
         <div className="max-w-3xl mx-auto py-4 space-y-6">
           <ChallengeForm
+            key={challenge.id}
             userId={professionalId || ''}
             challenge={challenge}
             redirectPath={`/challenges`}

@@ -91,8 +91,6 @@ const RESOURCE_TYPE_OPTIONS = [
 ] as const;
 
 export function ChallengeForm({ userId, challenge, redirectPath, userType = 'patient', professionalId, onFormSubmit, showButtons = true }: ChallengeFormProps) {
-  // Debug: Verificar valor de showButtons
-  console.log('🔍 ChallengeForm showButtons:', showButtons, typeof showButtons);
   const router = useRouter();
   const supabase = createClient();
   const isProfessional = userType === 'professional';
@@ -162,18 +160,6 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
   // Cargar datos del challenge cuando esté disponible (prioridad)
   useEffect(() => {
     if (challenge && challenge.id) {
-      console.log('🔍 ChallengeForm useEffect: challenge recibido', {
-        challenge,
-        challengeId: challenge.id,
-        allKeys: Object.keys(challenge),
-        difficulty_level: challenge.difficulty_level,
-        price: challenge.price,
-        priceType: typeof challenge.price,
-        linked_professional_id: challenge.linked_professional_id,
-        cover_image_url: challenge.cover_image_url,
-        currency: challenge.currency
-      });
-
       const newFormData: ChallengeFormData = {
         title: challenge.title || "",
         description: challenge.description || "",
@@ -190,18 +176,8 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
         is_public: challenge.is_public !== undefined ? challenge.is_public : false,
       };
       
-      console.log('✅ ChallengeForm: formData creado', {
-        newFormData,
-        difficulty_level: newFormData.difficulty_level,
-        price: newFormData.price,
-        linked_professional_id: newFormData.linked_professional_id,
-        cover_image_url: newFormData.cover_image_url
-      });
-      
       // Forzar actualización del estado con los valores exactos del challenge
       setFormData(newFormData);
-      
-      console.log('✅ ChallengeForm: Estado actualizado con valores del challenge');
     }
   }, [challenge]);
 
@@ -699,11 +675,6 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
             is_public: data.challenge.is_public !== undefined ? data.challenge.is_public : false,
           };
           setFormData(updatedFormData);
-          
-          console.log('✅ ChallengeForm: Datos actualizados después de guardar', {
-            updatedChallenge: data.challenge,
-            updatedFormData
-          });
         }
         
         setSaving(false);
@@ -863,7 +834,6 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
               key={`linked-prof-${formData.linked_professional_id || 'none'}`}
               value={formData.linked_professional_id || "none"}
               onValueChange={(value) => {
-                console.log('👤 Profesional vinculado cambiado:', value);
                 setFormData({ ...formData, linked_professional_id: value });
               }}
               disabled={loadingProfessionals || isProfessional}
@@ -885,9 +855,6 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
                 ✓ Profesional vinculado: {professionals.find(p => p.id === formData.linked_professional_id)?.first_name} {professionals.find(p => p.id === formData.linked_professional_id)?.last_name}
               </p>
             )}
-            <p className="text-xs text-muted-foreground">
-              Debug - linked_professional_id: <strong>{formData.linked_professional_id || "(vacío/none)"}</strong>
-            </p>
             {isProfessional && (
               <p className="text-xs text-muted-foreground">
                 Este reto se vinculará automáticamente a tu perfil profesional
@@ -941,7 +908,6 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
                 key={`difficulty-${formData.difficulty_level || 'empty'}`}
                 value={formData.difficulty_level || ""}
                 onValueChange={(value) => {
-                  console.log('📊 Nivel de dificultad cambiado:', value);
                   setFormData({ ...formData, difficulty_level: value });
                 }}
               >
@@ -961,9 +927,6 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
                   ✓ Actual: {DIFFICULTY_OPTIONS.find(opt => opt.value === formData.difficulty_level)?.label}
                 </p>
               )}
-              <p className="text-xs text-muted-foreground">
-                Debug - Valor en formData.difficulty_level: <strong>{formData.difficulty_level || "(vacío)"}</strong>
-              </p>
             </div>
           </div>
 
@@ -994,7 +957,6 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
               step="0.01"
               value={formData.price || ""}
               onChange={(e) => {
-                console.log('💰 Precio cambiado:', e.target.value);
                 setFormData({ ...formData, price: e.target.value });
               }}
               placeholder="0.00"
@@ -1094,9 +1056,6 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
                 ✓ Imagen de portada cargada
               </p>
             )}
-            <p className="text-xs text-muted-foreground mb-2">
-              Debug - cover_image_url: <strong>{formData.cover_image_url || "(vacío)"}</strong>
-            </p>
             <div className="space-y-3">
               {formData.cover_image_url && formData.cover_image_url.trim() !== "" ? (
                 <div key={`cover-${formData.cover_image_url}`} className="relative h-48 w-full rounded-lg overflow-hidden border-2 border-dashed border-muted">
@@ -1107,11 +1066,7 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
                     className="object-cover"
                     unoptimized
                     onError={(e) => {
-                      console.error("❌ Error cargando imagen:", formData.cover_image_url);
-                      console.error("Error event:", e);
-                    }}
-                    onLoad={() => {
-                      console.log("✅ Imagen cargada exitosamente:", formData.cover_image_url);
+                      // Error silencioso - la imagen no se cargará
                     }}
                   />
                   <Button

@@ -175,8 +175,9 @@ export default function RestaurantDetailPage() {
   }
 
   // Función para renderizar el contenido del restaurante
-  const renderRestaurantContent = () => (
-    <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+  const renderRestaurantContent = () => {
+    return (
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         {/* Botón de regresar */}
         <Button
           variant="ghost"

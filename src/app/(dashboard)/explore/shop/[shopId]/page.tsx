@@ -250,8 +250,9 @@ export default function ShopDetailPage() {
   }
 
   // Función para renderizar el contenido del comercio
-  const renderShopContent = () => (
-    <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+  const renderShopContent = () => {
+    return (
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         {/* Botón de regresar */}
         <Button
           variant="ghost"

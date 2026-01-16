@@ -196,7 +196,6 @@ export default function ProfessionalProfilePage() {
 
   useUserStoreInit();
   const params = useParams();
-  const supabase = createClient();
   
   const patientId = useUserId();
   const slugParam = params.slug as string;

@@ -272,30 +272,6 @@ const EventDetailPage = () => {
     );
   }
 
-  // Si no está autenticado, mostrar con navbar público
-  if (!isAuthenticated) {
-    return (
-      <>
-        <Navbar />
-        <div className="min-h-screen bg-background">
-          <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-8">
-            <Button
-              variant="ghost"
-              onClick={() => router.push('/')}
-              className="mb-6"
-            >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Volver
-            </Button>
-            {renderEventContent()}
-          </div>
-        </div>
-        <Footer />
-      </>
-    );
-  }
-
-  // Si está autenticado, mostrar con layout normal (navbar del dashboard)
   // Función para renderizar el contenido del evento
   const renderEventContent = () => (
     <div className="grid gap-6 sm:gap-8 lg:grid-cols-3">

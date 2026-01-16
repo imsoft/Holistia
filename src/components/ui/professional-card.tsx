@@ -113,7 +113,7 @@ export const ProfessionalCard = ({ professional, userId, showFavoriteButton = tr
   const slug = professional.slug || `${professional.first_name?.toLowerCase() || ''}-${professional.last_name?.toLowerCase() || ''}-${professional.id}`;
   const professionalRoute = userId
     ? `/patient/${userId}/explore/professional/${professional.id}`
-    : `/public/professional/${slug}`;
+    : `/explore/professional/${slug}`;
 
   return (
     <Link href={professionalRoute}>

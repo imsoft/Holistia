@@ -67,7 +67,7 @@ export default function RestaurantDetailPage() {
   const supabase = createClient();
 
   const handleShare = async () => {
-    const shareUrl = `${window.location.origin}/public/restaurant/${restaurantId}`;
+    const shareUrl = `${window.location.origin}/explore/restaurant/${restaurantId}`;
 
     try {
       await navigator.clipboard.writeText(shareUrl);

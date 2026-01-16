@@ -193,7 +193,7 @@ const EventDetailPage = () => {
   };
 
   const handleShare = async () => {
-    const shareUrl = `${window.location.origin}/public/event/${eventId}`;
+    const shareUrl = `${window.location.origin}/explore/event/${slug}`;
 
     try {
       await navigator.clipboard.writeText(shareUrl);

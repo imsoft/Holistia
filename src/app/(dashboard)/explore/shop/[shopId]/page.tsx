@@ -78,7 +78,7 @@ export default function ShopDetailPage() {
   const supabase = createClient();
 
   const handleShare = async () => {
-    const shareUrl = `${window.location.origin}/public/shop/${shopId}`;
+    const shareUrl = `${window.location.origin}/explore/shop/${shopId}`;
 
     try {
       await navigator.clipboard.writeText(shareUrl);

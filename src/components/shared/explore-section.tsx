@@ -487,7 +487,7 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
                   return (
                     <Link
                       key={product.id}
-                      href={`/public/program/${product.id}`}
+                      href={`/explore/program/${product.id}`}
                       className="shrink-0 w-[280px] sm:w-[320px]"
                     >
                       <Card className="group relative h-[480px] flex flex-col hover:shadow-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer">
@@ -672,7 +672,7 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
                           )}
                         </div>
                         <Button variant="default" size="sm" className="w-full" asChild>
-                          <Link href={`/public/event/${event.id}`}>
+                          <Link href={`/explore/event/${generateEventSlug(event.name, event.id)}`}>
                             Ver evento
                           </Link>
                         </Button>
@@ -911,7 +911,7 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
                           )}
                         </div>
                         <Button variant="default" size="sm" className="w-full" asChild>
-                          <Link href={`/public/shop/${shop.id}`}>
+                          <Link href={`/explore/shop/${shop.id}`}>
                             Ver comercio
                           </Link>
                         </Button>
@@ -1042,7 +1042,7 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
                           )}
                         </div>
                         <Button variant="default" size="sm" className="w-full" asChild>
-                          <Link href={`/public/holistic-center/${center.id}`}>
+                          <Link href={`/explore/holistic-center/${center.id}`}>
                             Ver centro
                           </Link>
                         </Button>
@@ -1162,7 +1162,7 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
                         )}
                       </div>
                       <Button variant="default" size="sm" className="w-full" asChild>
-                        <Link href={`/public/restaurant/${restaurant.id}`}>
+                        <Link href={`/explore/restaurant/${restaurant.id}`}>
                           Ver restaurante
                         </Link>
                       </Button>

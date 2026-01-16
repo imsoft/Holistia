@@ -725,7 +725,7 @@ export default function ProfessionalProfilePage() {
 
     // Crear slug: nombre-apellido-id
     const slug = `${professional.first_name.toLowerCase()}-${professional.last_name.toLowerCase()}-${professional.id}`;
-    const shareUrl = `${window.location.origin}/public/professional/${slug}`;
+    const shareUrl = `${window.location.origin}/explore/professional/${slug}`;
 
     try {
       await navigator.clipboard.writeText(shareUrl);

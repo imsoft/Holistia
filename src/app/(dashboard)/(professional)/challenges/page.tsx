@@ -155,7 +155,7 @@ export default function ProfessionalChallenges() {
       <div className="flex-1 overflow-y-auto p-6">
         {/* Estadísticas */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-          <Card>
+          <Card className="py-4">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 Total Retos
@@ -165,7 +165,7 @@ export default function ProfessionalChallenges() {
               <div className="text-2xl font-bold">{stats.totalChallenges}</div>
             </CardContent>
           </Card>
-          <Card>
+          <Card className="py-4">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 Retos Activos

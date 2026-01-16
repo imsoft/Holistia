@@ -131,15 +131,15 @@ export function BlogPostClient({ post, relatedPosts }: BlogPostClientProps) {
                     <User className="w-4 h-4" />
                     {post.author.isProfessional && post.author.professionalId ? (
                       <Link
-                        href={`/explore/professional/${post.author.professionalId}`}
-                        className="hover:underline hover:text-foreground transition-colors"
+                        href={`/explore/professional/${post.author.professionalSlug || post.author.professionalId}`}
+                        className="hover:underline hover:text-foreground transition-colors font-medium"
                       >
-                        <span className="font-medium">{post.author.name}</span>
+                        <span>{post.author.name}</span>
                         <span className="opacity-75 ml-1">({post.author.profession})</span>
                       </Link>
                     ) : (
                       <>
-                        <span>{post.author.name}</span>
+                        <span className="font-medium">{post.author.name}</span>
                         <span className="opacity-75">({post.author.profession})</span>
                       </>
                     )}
@@ -189,9 +189,9 @@ export function BlogPostClient({ post, relatedPosts }: BlogPostClientProps) {
             <div className="mt-12 pt-8 border-t border-border">
               <div className="flex items-start gap-4">
                 {post.author.isProfessional && post.author.professionalId ? (
-                  <Link href={`/explore/professional/${post.author.professionalId}`}>
+                  <Link href={`/explore/professional/${post.author.professionalSlug || post.author.professionalId}`} className="group">
                     {post.author.avatar ? (
-                      <div className="relative w-16 h-16 rounded-full overflow-hidden flex-shrink-0 hover:opacity-80 transition-opacity cursor-pointer">
+                      <div className="relative w-16 h-16 rounded-full overflow-hidden flex-shrink-0 group-hover:opacity-80 transition-opacity cursor-pointer ring-2 ring-transparent group-hover:ring-primary/20">
                         <Image
                           src={post.author.avatar}
                           alt={post.author.name}
@@ -200,8 +200,8 @@ export function BlogPostClient({ post, relatedPosts }: BlogPostClientProps) {
                         />
                       </div>
                     ) : (
-                      <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center flex-shrink-0 hover:opacity-80 transition-opacity cursor-pointer">
-                        <User className="w-8 h-8 text-muted-foreground" />
+                      <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center flex-shrink-0 group-hover:opacity-80 group-hover:bg-primary/10 transition-all cursor-pointer ring-2 ring-transparent group-hover:ring-primary/20">
+                        <User className="w-8 h-8 text-muted-foreground group-hover:text-primary transition-colors" />
                       </div>
                     )}
                   </Link>
@@ -226,10 +226,10 @@ export function BlogPostClient({ post, relatedPosts }: BlogPostClientProps) {
                 <div className="flex-1">
                   {post.author.isProfessional && post.author.professionalId ? (
                     <Link
-                      href={`/explore/professional/${post.author.professionalId}`}
-                      className="block mb-2"
+                      href={`/explore/professional/${post.author.professionalSlug || post.author.professionalId}`}
+                      className="block mb-2 group"
                     >
-                      <h3 className="text-lg font-semibold text-foreground hover:text-primary transition-colors">
+                      <h3 className="text-lg font-semibold text-foreground group-hover:text-primary transition-colors inline-block">
                         {post.author.name}
                       </h3>
                     </Link>

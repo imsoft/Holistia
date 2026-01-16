@@ -498,6 +498,29 @@ export default function ProgramDetailPage() {
                   Descargar
                 </Button>
               </div>
+            ) : !isAuthenticated ? (
+              <>
+                <div className="space-y-3">
+                  <Button
+                    onClick={() => router.push(`/signup?redirect=${encodeURIComponent(`/explore/program/${programId}`)}`)}
+                    className="w-full"
+                    size="lg"
+                  >
+                    Registrarse para participar
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => router.push(`/login?redirect=${encodeURIComponent(`/explore/program/${programId}`)}`)}
+                    className="w-full"
+                    size="lg"
+                  >
+                    Ya tengo cuenta
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground text-center">
+                  Regístrate para comprar este programa y acceder a todos nuestros recursos.
+                </p>
+              </>
             ) : (
               <>
                 <Button onClick={handlePurchase} disabled={isPurchasing} className="w-full" size="lg">

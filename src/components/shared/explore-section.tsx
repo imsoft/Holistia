@@ -499,7 +499,7 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
                       href={`/explore/program/${product.id}`}
                       className="shrink-0 w-[280px] sm:w-[320px]"
                     >
-                      <Card className="group relative h-[480px] flex flex-col hover:shadow-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer">
+                      <Card className="group relative flex flex-col hover:shadow-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer">
                         <div className="relative w-full h-48 bg-gray-100 shrink-0">
                           <div className="absolute inset-0 overflow-hidden">
                             {product.cover_image_url ? (
@@ -995,7 +995,7 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
                       href={`/explore/holistic-center/${center.id}`}
                       className="shrink-0 w-[280px] sm:w-[320px]"
                     >
-                      <Card className="group relative h-[480px] flex flex-col hover:shadow-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer">
+                      <Card className="group relative flex flex-col hover:shadow-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer">
                         <div className="relative w-full h-48 bg-gray-100 shrink-0">
                           <div className="absolute inset-0 overflow-hidden">
                             {center.image_url ? (
@@ -1036,14 +1036,14 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
                             )}
                           </div>
                         </CardHeader>
-                        <CardContent className="px-4 pt-0 pb-4 flex flex-col">
+                        <CardContent className="px-4 pt-0 pb-3">
                           {cleanDescription && (
                             <p className="text-sm text-muted-foreground line-clamp-2 mb-2">
                               {cleanDescription}
                             </p>
                           )}
                           {center.address && (
-                            <div className="flex items-start gap-1 text-xs text-muted-foreground">
+                            <div className="flex items-start gap-1 text-xs text-muted-foreground mb-0">
                               <MapPin className="w-3 h-3 shrink-0 mt-0.5" />
                               <span className="line-clamp-1">{center.address}</span>
                             </div>
@@ -1120,7 +1120,7 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
                     href={`/explore/restaurant/${restaurant.id}`}
                     className="shrink-0 w-[280px] sm:w-[320px]"
                   >
-                    <Card className="relative h-[480px] flex flex-col hover:shadow-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer">
+                    <Card className="relative flex flex-col hover:shadow-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer">
                       <div className="relative w-full h-48 bg-gray-100 shrink-0">
                         <div className="absolute inset-0 overflow-hidden">
                           {restaurant.image_url ? (

@@ -626,7 +626,7 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
                       href={`/explore/event/${generateEventSlug(event.name, event.id)}`}
                       className="shrink-0 w-[280px] sm:w-[320px]"
                     >
-                      <Card className="relative h-[480px] flex flex-col hover:shadow-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer">
+                      <Card className="relative min-h-[400px] flex flex-col hover:shadow-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer">
                         <div className="relative w-full h-48 bg-gray-100 shrink-0">
                           <div className="absolute inset-0 overflow-hidden">
                             {event.image_url ? (
@@ -669,19 +669,17 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
                             )}
                           </div>
                         </CardHeader>
-                        <CardContent className="px-4 pt-0 pb-3 flex flex-col grow">
-                          <div className="grow">
-                            <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1.5">
-                              <Calendar className="w-4 h-4 shrink-0" />
-                              <span className="line-clamp-1">{formatDate(event.event_date)}</span>
-                            </div>
-                            {event.location && (
-                              <div className="flex items-start gap-2 text-sm text-muted-foreground mb-2">
-                                <MapPin className="w-4 h-4 shrink-0 mt-0.5" />
-                                <span className="line-clamp-2">{event.location}</span>
-                              </div>
-                            )}
+                        <CardContent className="px-4 pt-0 pb-4 flex flex-col">
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1.5">
+                            <Calendar className="w-4 h-4 shrink-0" />
+                            <span className="line-clamp-1">{formatDate(event.event_date)}</span>
                           </div>
+                          {event.location && (
+                            <div className="flex items-start gap-2 text-sm text-muted-foreground">
+                              <MapPin className="w-4 h-4 shrink-0 mt-0.5" />
+                              <span className="line-clamp-2">{event.location}</span>
+                            </div>
+                          )}
                         </CardContent>
                       </Card>
                     </Link>
@@ -864,7 +862,7 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
                       href={`/explore/shop/${shop.id}`}
                       className="shrink-0 w-[280px] sm:w-[320px]"
                     >
-                      <Card className="relative h-[480px] flex flex-col hover:shadow-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer">
+                      <Card className="relative min-h-[400px] flex flex-col hover:shadow-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer">
                         <div className="relative w-full h-48 bg-gray-100 shrink-0">
                           <div className="absolute inset-0 overflow-hidden">
                             {mainImage ? (
@@ -908,20 +906,18 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
                             )}
                           </div>
                         </CardHeader>
-                        <CardContent className="px-4 pt-0 pb-3 flex flex-col grow">
-                          <div className="grow">
-                            {cleanDescription && (
-                              <p className="text-sm text-muted-foreground line-clamp-2 mb-2">
-                                {cleanDescription}
-                              </p>
-                            )}
-                            {shop.address && (
-                              <div className="flex items-start gap-1 text-xs text-muted-foreground mb-2">
-                                <MapPin className="w-3 h-3 shrink-0 mt-0.5" />
-                                <span className="line-clamp-1">{shop.address}</span>
-                              </div>
-                            )}
-                          </div>
+                        <CardContent className="px-4 pt-0 pb-4 flex flex-col">
+                          {cleanDescription && (
+                            <p className="text-sm text-muted-foreground line-clamp-2 mb-2">
+                              {cleanDescription}
+                            </p>
+                          )}
+                          {shop.address && (
+                            <div className="flex items-start gap-1 text-xs text-muted-foreground">
+                              <MapPin className="w-3 h-3 shrink-0 mt-0.5" />
+                              <span className="line-clamp-1">{shop.address}</span>
+                            </div>
+                          )}
                         </CardContent>
                       </Card>
                     </Link>
@@ -1040,20 +1036,18 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
                             )}
                           </div>
                         </CardHeader>
-                        <CardContent className="px-4 pt-0 pb-3 flex flex-col grow">
-                          <div className="grow">
-                            {cleanDescription && (
-                              <p className="text-sm text-muted-foreground line-clamp-2 mb-2">
-                                {cleanDescription}
-                              </p>
-                            )}
-                            {center.address && (
-                              <div className="flex items-start gap-1 text-xs text-muted-foreground mb-2">
-                                <MapPin className="w-3 h-3 shrink-0 mt-0.5" />
-                                <span className="line-clamp-1">{center.address}</span>
-                              </div>
-                            )}
-                          </div>
+                        <CardContent className="px-4 pt-0 pb-4 flex flex-col">
+                          {cleanDescription && (
+                            <p className="text-sm text-muted-foreground line-clamp-2 mb-2">
+                              {cleanDescription}
+                            </p>
+                          )}
+                          {center.address && (
+                            <div className="flex items-start gap-1 text-xs text-muted-foreground">
+                              <MapPin className="w-3 h-3 shrink-0 mt-0.5" />
+                              <span className="line-clamp-1">{center.address}</span>
+                            </div>
+                          )}
                         </CardContent>
                       </Card>
                     </Link>
@@ -1167,14 +1161,12 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
                           )}
                         </div>
                       </CardHeader>
-                      <CardContent className="px-4 pt-0 pb-3 flex flex-col grow">
-                        <div className="grow">
-                          {restaurant.address && (
-                            <p className="text-sm text-muted-foreground line-clamp-2 mb-2">
-                              {restaurant.address}
-                            </p>
-                          )}
-                        </div>
+                      <CardContent className="px-4 pt-0 pb-4 flex flex-col">
+                        {restaurant.address && (
+                          <p className="text-sm text-muted-foreground line-clamp-2">
+                            {restaurant.address}
+                          </p>
+                        )}
                       </CardContent>
                     </Card>
                   </Link>

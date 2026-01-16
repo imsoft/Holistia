@@ -25,7 +25,10 @@ export function AccountDeactivation({ userId, userEmail, accountType }: AccountD
   const supabase = createClient();
 
   const handleDeactivateClick = () => {
-    if (confirmEmail !== userEmail) {
+    const normalizedConfirmEmail = confirmEmail.trim().toLowerCase();
+    const normalizedUserEmail = userEmail.trim().toLowerCase();
+    
+    if (normalizedConfirmEmail !== normalizedUserEmail) {
       toast.error("El correo electrónico no coincide");
       return;
     }
@@ -138,7 +141,7 @@ export function AccountDeactivation({ userId, userEmail, accountType }: AccountD
           <Button
             variant="destructive"
             onClick={handleDeactivateClick}
-            disabled={isDeactivating || confirmEmail !== userEmail}
+            disabled={isDeactivating || confirmEmail.trim().toLowerCase() !== userEmail.trim().toLowerCase()}
             className="w-full"
           >
             <UserX className="h-4 w-4 mr-2" />

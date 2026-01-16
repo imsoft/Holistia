@@ -15,8 +15,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Navbar } from "@/components/shared/navbar";
-import { Footer } from "@/components/shared/footer";
 
 interface Challenge {
   id: string;
@@ -274,9 +272,7 @@ export default function ChallengesPage() {
             ))}
           </div>
         )}
-        </main>
-      </div>
-      <Footer />
-    </>
+      </main>
+    </div>
   );
 }

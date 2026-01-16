@@ -1,15 +1,19 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { useUserId } from "@/stores/user-store";
 import { useUserStoreInit } from "@/hooks/use-user-store-init";
 import Link from "next/link";
 import Image from "next/image";
-import { Store, MapPin, Brain, Sparkles, Activity, Apple, Users } from "lucide-react";
+import { Store, MapPin, Brain, Sparkles, Activity, Apple, Users, ArrowLeft } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Navbar } from "@/components/shared/navbar";
+import { Footer } from "@/components/shared/footer";
 import {
   Select,
   SelectContent,
@@ -93,13 +97,24 @@ const categoryToWellnessAreas: Record<string, string[]> = {
 
 export default function ShopsPage() {
   useUserStoreInit();
+  const router = useRouter();
   const userId = useUserId();
   const [shops, setShops] = useState<Shop[]>([]);
   const [filteredShops, setFilteredShops] = useState<Shop[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const supabase = createClient();
+
+  // Verificar autenticación
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setIsAuthenticated(!!user);
+    };
+    checkAuth();
+  }, [supabase]);
 
   const handleCategoryToggle = (categoryId: string) => {
     setSelectedCategories((prev) =>
@@ -207,7 +222,7 @@ export default function ShopsPage() {
     );
   }
 
-  return (
+  const renderShopsContent = () => (
     <div className="min-h-screen bg-background">
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         {/* Header */}
@@ -407,4 +422,42 @@ export default function ShopsPage() {
       </main>
     </div>
   );
+
+  // Si aún estamos verificando autenticación, mostrar loading
+  if (isAuthenticated === null) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-2 text-sm text-muted-foreground">Cargando...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Si no está autenticado, mostrar con navbar público
+  if (!isAuthenticated) {
+    return (
+      <>
+        <Navbar />
+        <div className="min-h-screen bg-background">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+            <Button
+              variant="ghost"
+              onClick={() => router.push('/')}
+              className="mb-6"
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Volver
+            </Button>
+            {renderShopsContent()}
+          </div>
+        </div>
+        <Footer />
+      </>
+    );
+  }
+
+  // Si está autenticado, mostrar con layout normal (navbar del dashboard)
+  return renderShopsContent();
 }

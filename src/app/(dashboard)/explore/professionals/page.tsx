@@ -1,9 +1,10 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { useUserId } from "@/stores/user-store";
 import { useUserStoreInit } from "@/hooks/use-user-store-init";
-import { Brain, Sparkles, Activity, Users, Apple } from "lucide-react";
+import { Brain, Sparkles, Activity, Users, Apple, ArrowLeft } from "lucide-react";
 import { Filters } from "@/components/ui/filters";
 import { ProfessionalCard } from "@/components/ui/professional-card";
 import { createClient } from "@/utils/supabase/client";
@@ -11,6 +12,9 @@ import { determineProfessionalModality, transformServicesFromDB } from "@/utils/
 import { sortProfessionalsByRanking, type ProfessionalRankingData } from "@/utils/professional-ranking";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Navbar } from "@/components/shared/navbar";
+import { Footer } from "@/components/shared/footer";
 
 interface Professional {
   id: string;
@@ -82,12 +86,23 @@ const categories = [
 
 export default function ProfessionalsPage() {
   useUserStoreInit();
+  const router = useRouter();
   const userId = useUserId();
   const [professionals, setProfessionals] = useState<Professional[]>([]);
   const [filteredProfessionals, setFilteredProfessionals] = useState<Professional[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const supabase = createClient();
+
+  // Verificar autenticación
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setIsAuthenticated(!!user);
+    };
+    checkAuth();
+  }, [supabase]);
 
   useEffect(() => {
     const getProfessionals = async () => {
@@ -344,7 +359,7 @@ export default function ProfessionalsPage() {
   };
 
 
-  return (
+  const renderProfessionalsContent = () => (
     <div className="min-h-screen bg-background">
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         <div className="mb-8 text-center">
@@ -517,5 +532,43 @@ export default function ProfessionalsPage() {
       </main>
     </div>
   );
+
+  // Si aún estamos verificando autenticación, mostrar loading
+  if (isAuthenticated === null) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-2 text-sm text-muted-foreground">Cargando...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Si no está autenticado, mostrar con navbar público
+  if (!isAuthenticated) {
+    return (
+      <>
+        <Navbar />
+        <div className="min-h-screen bg-background">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+            <Button
+              variant="ghost"
+              onClick={() => router.push('/')}
+              className="mb-6"
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Volver
+            </Button>
+            {renderProfessionalsContent()}
+          </div>
+        </div>
+        <Footer />
+      </>
+    );
+  }
+
+  // Si está autenticado, mostrar con layout normal (navbar del dashboard)
+  return renderProfessionalsContent();
 }
 

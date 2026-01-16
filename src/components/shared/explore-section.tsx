@@ -17,13 +17,11 @@ import {
   Calendar,
   ChevronLeft,
   ChevronRight,
-  Target,
   Sparkles,
   Building2,
 } from "lucide-react";
 import { stripHtml } from "@/lib/text-utils";
 import { VerifiedBadge } from "@/components/ui/verified-badge";
-import { ChallengeCard } from "@/components/ui/challenge-card";
 import { FavoriteButton } from "@/components/ui/favorite-button";
 import { ProfessionalCard } from "@/components/ui/professional-card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -109,7 +107,6 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
   const [shops, setShops] = useState<Shop[]>([]);
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [events, setEvents] = useState<Event[]>([]);
-  const [challenges, setChallenges] = useState<any[]>([]);
   const [digitalProducts, setDigitalProducts] = useState<DigitalProduct[]>([]);
   const [holisticCenters, setHolisticCenters] = useState<HolisticCenter[]>([]);
   const [loading, setLoading] = useState(true);
@@ -119,7 +116,6 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
   const shopsRef = useRef<HTMLDivElement>(null);
   const restaurantsRef = useRef<HTMLDivElement>(null);
   const eventsRef = useRef<HTMLDivElement>(null);
-  const challengesRef = useRef<HTMLDivElement>(null);
   const digitalProductsRef = useRef<HTMLDivElement>(null);
   const holisticCentersRef = useRef<HTMLDivElement>(null);
 
@@ -256,36 +252,6 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
             location: event.location,
           }));
           setEvents(mappedEvents);
-        }
-
-        // Cargar retos (6 para el carousel)
-        // Usar la vista challenges_with_professional que filtra por profesionales aprobados y activos
-        const { data: challengesData, error: challengesError } = await supabase
-          .from("challenges_with_professional")
-          .select("*")
-          .order("created_at", { ascending: false })
-          .limit(6);
-
-        if (challengesError) {
-          console.error("❌ Error loading challenges:", challengesError);
-        }
-
-        if (challengesData && challengesData.length > 0) {
-          console.log("✅ Challenges loaded:", challengesData.length, challengesData);
-          // La vista challenges_with_professional ya incluye la información del profesional
-          // Transformar datos para asegurar formato correcto
-          const transformedChallenges = challengesData.map((challenge: any) => ({
-            ...challenge,
-            professional_first_name: challenge.professional_first_name || challenge.professional_applications?.first_name,
-            professional_last_name: challenge.professional_last_name || challenge.professional_applications?.last_name,
-            professional_photo: challenge.professional_photo || challenge.professional_applications?.profile_photo,
-            professional_profession: challenge.professional_profession || challenge.professional_applications?.profession,
-            professional_is_verified: challenge.professional_is_verified || challenge.professional_applications?.is_verified,
-          }));
-          setChallenges(transformedChallenges);
-        } else {
-          console.log("⚠️ No challenges found or challenges array is empty");
-          setChallenges([]);
         }
 
         // Cargar programas - 6 para el carousel
@@ -460,511 +426,209 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
           </div>
         )}
 
-        {/* Expertos */}
-        <div className="mb-16">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-2xl font-bold flex items-center gap-2">
-              <User className="w-6 h-6 text-primary" />
-              Expertos
-            </h3>
-            {!loading && professionals.length > 0 && (
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => scroll(professionalsRef, 'left')}
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                </Button>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => scroll(professionalsRef, 'right')}
-                >
-                  <ChevronRight className="w-4 h-4" />
-                </Button>
-                <Button variant="outline" size="sm" asChild className="ml-2">
-                  <Link href="/signup">
-                    Ver más <ArrowRight className="w-4 h-4 ml-2" />
-                  </Link>
-                </Button>
-              </div>
-            )}
-          </div>
-          <div
-            ref={professionalsRef}
-            className="flex gap-6 overflow-x-auto pb-4"
-            style={{
-              scrollbarWidth: 'none',
-              msOverflowStyle: 'none',
-              WebkitOverflowScrolling: 'touch'
-            }}
-          >
-            {loading ? (
-              Array.from({ length: 6 }).map((_, i) => (
-                <ProfessionalCardSkeleton key={`professional-skeleton-${i}`} />
-              ))
-            ) : (
-              professionals.map((prof) => {
-                return (
-                  <div key={prof.id} className="shrink-0 w-[280px] sm:w-[320px]">
-                    <ProfessionalCard
-                      userId={currentUserId}
-                      showFavoriteButton={showFavorites}
-                      professional={{
-                        id: prof.id,
-                        slug: `${prof.first_name.toLowerCase()}-${prof.last_name.toLowerCase()}-${prof.id}`,
-                        name: `${prof.first_name} ${prof.last_name}`,
-                        first_name: prof.first_name,
-                        last_name: prof.last_name,
-                        email: "",
-                        profession: prof.profession,
-                        profile_photo: prof.avatar_url || undefined,
-                        avatar: prof.avatar_url || undefined,
-                        therapyTypes: prof.specializations,
-                        city: prof.city || undefined,
-                        average_rating: prof.average_rating,
-                        total_reviews: prof.total_reviews,
-                        is_verified: prof.is_verified,
-                        verified: prof.is_verified,
-                      }}
-                    />
-                  </div>
-                );
-              })
-            )}
-          </div>
-        </div>
-
-        {/* Comercios */}
-        <div className="mb-16">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-2">
-            <div>
+        {/* 1. Programas */}
+        {(!loading && digitalProducts.length > 0) || loading ? (
+          <div className="mb-16">
+            <div className="flex items-center justify-between mb-6">
               <h3 className="text-2xl font-bold flex items-center gap-2">
-                <Store className="w-6 h-6 text-primary" />
-                Comercios Holísticos
+                <Sparkles className="w-6 h-6 text-primary" />
+                Programas
               </h3>
-            </div>
-            {!loading && shops.length > 0 && (
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => scroll(shopsRef, 'left')}
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                </Button>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => scroll(shopsRef, 'right')}
-                >
-                  <ChevronRight className="w-4 h-4" />
-                </Button>
-                <Button variant="outline" size="sm" asChild className="ml-2">
-                  <Link href="/signup">
-                    Ver más <ArrowRight className="w-4 h-4 ml-2" />
-                  </Link>
-                </Button>
-              </div>
-            )}
-          </div>
-          <div
-            ref={shopsRef}
-            className="flex gap-6 overflow-x-auto pb-4"
-            style={{
-              scrollbarWidth: 'none',
-              msOverflowStyle: 'none',
-              WebkitOverflowScrolling: 'touch'
-            }}
-          >
-            {loading ? (
-              Array.from({ length: 6 }).map((_, i) => (
-                <CardSkeleton key={`shop-skeleton-${i}`} />
-              ))
-            ) : (
-              shops.map((shop) => {
-                // Obtener la imagen principal: primero image_url, luego gallery[0], luego null
-                // Verificar si gallery es un array o string
-                let galleryArray: string[] = [];
-                if (Array.isArray(shop.gallery)) {
-                  galleryArray = shop.gallery;
-                } else if (typeof shop.gallery === 'string') {
-                  try {
-                    galleryArray = JSON.parse(shop.gallery);
-                  } catch (e) {
-                    // Si no es JSON válido, tratar como string único
-                    galleryArray = shop.gallery ? [shop.gallery] : [];
-                  }
-                }
-                
-                const mainImage = shop.image_url || (galleryArray && galleryArray.length > 0 ? galleryArray[0] : null);
-                
-                // Limpiar HTML de la descripción
-                const cleanDescription = shop.description ? stripHtml(shop.description) : null;
-                
-                return (
-                  <Card key={shop.id} className="relative shrink-0 w-[280px] sm:w-[320px] h-[480px] flex flex-col hover:shadow-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer">
-                    <div className="relative w-full h-48 bg-gray-100 shrink-0">
-                      <div className="absolute inset-0 overflow-hidden">
-                        {mainImage ? (
-                          <Image
-                            src={mainImage}
-                            alt={shop.name}
-                            fill
-                            className="object-cover"
-                            unoptimized
-                          />
-                        ) : (
-                          <div className="w-full h-full bg-linear-to-br from-primary/20 to-primary/10 flex items-center justify-center">
-                            <Store className="h-16 w-16 text-primary/40" />
-                          </div>
-                        )}
-                      </div>
-                      {showFavorites && (
-                        <div 
-                          className="absolute top-3 right-3 pointer-events-auto" 
-                          style={{ zIndex: 9999, position: 'absolute', top: '12px', right: '12px' }}
-                        >
-                          <FavoriteButton
-                            itemId={shop.id}
-                            favoriteType="shop"
-                            variant="floating"
-                          />
-                        </div>
-                      )}
-                    </div>
-                    <CardHeader className="pb-1.5 px-4 pt-3">
-                      <CardTitle className="text-lg line-clamp-2">{shop.name}</CardTitle>
-                      <div className="flex flex-wrap gap-1.5 mt-1">
-                        {shop.category && (
-                          <Badge variant="secondary" className="text-xs">{shop.category}</Badge>
-                        )}
-                        {shop.city && (
-                          <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                            <MapPin className="w-3 h-3 shrink-0" />
-                            <span>{shop.city}</span>
-                          </div>
-                        )}
-                      </div>
-                    </CardHeader>
-                    <CardContent className="px-4 pt-0 pb-3 flex flex-col grow">
-                      <div className="grow">
-                        {cleanDescription && (
-                          <p className="text-sm text-muted-foreground line-clamp-2 mb-2">
-                            {cleanDescription}
-                          </p>
-                        )}
-                        {shop.address && (
-                          <div className="flex items-start gap-1 text-xs text-muted-foreground mb-2">
-                            <MapPin className="w-3 h-3 shrink-0 mt-0.5" />
-                            <span className="line-clamp-1">{shop.address}</span>
-                          </div>
-                        )}
-                      </div>
-                      <Button variant="default" size="sm" className="w-full" asChild>
-                        <Link href={`/public/shop/${shop.id}`}>
-                          Ver comercio
-                        </Link>
-                      </Button>
-                    </CardContent>
-                  </Card>
-                );
-              })
-            )}
-          </div>
-        </div>
-
-        {/* Restaurantes */}
-        <div className="mb-16">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-2xl font-bold flex items-center gap-2">
-              <UtensilsCrossed className="w-6 h-6 text-primary" />
-              Restaurantes Saludables
-            </h3>
-            {!loading && restaurants.length > 0 && (
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => scroll(restaurantsRef, 'left')}
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                </Button>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => scroll(restaurantsRef, 'right')}
-                >
-                  <ChevronRight className="w-4 h-4" />
-                </Button>
-                <Button variant="outline" size="sm" asChild className="ml-2">
-                  <Link href="/signup">
-                    Ver más <ArrowRight className="w-4 h-4 ml-2" />
-                  </Link>
-                </Button>
-              </div>
-            )}
-          </div>
-          <div
-            ref={restaurantsRef}
-            className="flex gap-6 overflow-x-auto pb-4"
-            style={{
-              scrollbarWidth: 'none',
-              msOverflowStyle: 'none',
-              WebkitOverflowScrolling: 'touch'
-            }}
-          >
-            {loading ? (
-              Array.from({ length: 6 }).map((_, i) => (
-                <CardSkeleton key={`restaurant-skeleton-${i}`} />
-              ))
-            ) : (
-              restaurants.map((restaurant) => (
-                <Card key={restaurant.id} className="relative shrink-0 w-[280px] sm:w-[320px] h-[480px] flex flex-col hover:shadow-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer">
-                  <div className="relative w-full h-48 bg-gray-100 shrink-0">
-                    <div className="absolute inset-0 overflow-hidden">
-                      {restaurant.image_url ? (
-                        <Image
-                          src={restaurant.image_url}
-                          alt={restaurant.name}
-                          fill
-                          className="object-cover"
-                          unoptimized
-                        />
-                      ) : (
-                        <div className="w-full h-full bg-linear-to-br from-primary/20 to-primary/10 flex items-center justify-center">
-                          <UtensilsCrossed className="h-16 w-16 text-primary/40" />
-                        </div>
-                      )}
-                    </div>
-                    {showFavorites && (
-                      <div 
-                        className="absolute top-3 right-3 pointer-events-auto" 
-                        style={{ zIndex: 9999, position: 'absolute', top: '12px', right: '12px' }}
-                      >
-                        <FavoriteButton
-                          itemId={restaurant.id}
-                          favoriteType="restaurant"
-                          variant="floating"
-                        />
-                      </div>
-                    )}
-                  </div>
-                  <CardHeader className="pb-1.5 px-4 pt-3">
-                    <CardTitle className="text-lg line-clamp-2">{restaurant.name}</CardTitle>
-                    <div className="flex flex-wrap gap-1.5 mt-1">
-                      {restaurant.cuisine_type && (
-                        <Badge variant="secondary" className="text-xs">{restaurant.cuisine_type}</Badge>
-                      )}
-                      {restaurant.price_range && (
-                        <Badge variant="outline" className="text-xs">{restaurant.price_range}</Badge>
-                      )}
-                    </div>
-                  </CardHeader>
-                  <CardContent className="px-4 pt-0 pb-3 flex flex-col grow">
-                    <div className="grow">
-                      {restaurant.address && (
-                        <p className="text-sm text-muted-foreground line-clamp-2 mb-2">
-                          {restaurant.address}
-                        </p>
-                      )}
-                    </div>
-                    <Button variant="default" size="sm" className="w-full" asChild>
-                      <Link href={`/public/restaurant/${restaurant.id}`}>
-                        Ver restaurante
-                      </Link>
-                    </Button>
-                  </CardContent>
-                </Card>
-              ))
-            )}
-          </div>
-        </div>
-
-        {/* Eventos */}
-        <div className="mb-16">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-2xl font-bold flex items-center gap-2">
-              <Calendar className="w-6 h-6 text-primary" />
-              Eventos y Talleres
-            </h3>
-            {!loading && events.length > 0 && (
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => scroll(eventsRef, 'left')}
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                </Button>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => scroll(eventsRef, 'right')}
-                >
-                  <ChevronRight className="w-4 h-4" />
-                </Button>
-                <Button variant="outline" size="sm" asChild className="ml-2">
-                  <Link href="/signup">
-                    Ver más <ArrowRight className="w-4 h-4 ml-2" />
-                  </Link>
-                </Button>
-              </div>
-            )}
-          </div>
-          <div
-            ref={eventsRef}
-            className="flex gap-6 overflow-x-auto pb-4"
-            style={{
-              scrollbarWidth: 'none',
-              msOverflowStyle: 'none',
-              WebkitOverflowScrolling: 'touch'
-            }}
-          >
-            {loading ? (
-              Array.from({ length: 6 }).map((_, i) => (
-                <CardSkeleton key={`event-skeleton-${i}`} />
-              ))
-            ) : (
-              events.map((event) => {
-                return (
-                  <Card key={event.id} className="relative shrink-0 w-[280px] sm:w-[320px] h-[480px] flex flex-col hover:shadow-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer">
-                    <div className="relative w-full h-48 bg-gray-100 shrink-0">
-                      <div className="absolute inset-0 overflow-hidden">
-                        {event.image_url ? (
-                          <Image
-                            src={event.image_url}
-                            alt={event.name}
-                            fill
-                            className="object-cover"
-                            unoptimized
-                          />
-                        ) : (
-                          <div className="w-full h-full bg-linear-to-br from-primary/20 to-primary/10 flex items-center justify-center">
-                            <Calendar className="h-16 w-16 text-primary/40" />
-                          </div>
-                        )}
-                      </div>
-                      {showFavorites && (
-                        <div 
-                          className="absolute top-3 right-3 pointer-events-auto" 
-                          style={{ zIndex: 9999, position: 'absolute', top: '12px', right: '12px' }}
-                        >
-                          <FavoriteButton
-                            itemId={event.id}
-                            favoriteType="event"
-                            variant="floating"
-                          />
-                        </div>
-                      )}
-                    </div>
-                    <CardHeader className="pb-1.5 px-4 pt-3">
-                      <CardTitle className="text-lg line-clamp-2">{event.name}</CardTitle>
-                      <div className="flex flex-wrap gap-1.5 mt-1">
-                        {event.category && (
-                          <Badge variant="secondary" className="text-xs">{getCategoryLabel(event.category)}</Badge>
-                        )}
-                        {event.price !== null && (
-                          <Badge variant="outline" className="text-xs">
-                            {event.price === 0 ? 'Gratis' : `$${event.price}`}
-                          </Badge>
-                        )}
-                      </div>
-                    </CardHeader>
-                    <CardContent className="px-4 pt-0 pb-3 flex flex-col grow">
-                      <div className="grow">
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1.5">
-                          <Calendar className="w-4 h-4 shrink-0" />
-                          <span className="line-clamp-1">{formatDate(event.event_date)}</span>
-                        </div>
-                        {event.location && (
-                          <div className="flex items-start gap-2 text-sm text-muted-foreground mb-2">
-                            <MapPin className="w-4 h-4 shrink-0 mt-0.5" />
-                            <span className="line-clamp-2">{event.location}</span>
-                          </div>
-                        )}
-                      </div>
-                      <Button variant="default" size="sm" className="w-full" asChild>
-                        <Link href={currentUserId ? `/patient/${currentUserId}/explore/event/${event.id}` : `/login?redirect=/explore/event/${event.id}`}>
-                          Ver evento
-                        </Link>
-                      </Button>
-                    </CardContent>
-                  </Card>
-                );
-              })
-            )}
-          </div>
-        </div>
-
-        {/* Programas */}
-        <div className="mb-16">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-2xl font-bold flex items-center gap-2">
-              <Sparkles className="w-6 h-6 text-primary" />
-              Programas
-            </h3>
-            {!loading && digitalProducts.length > 0 && (
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => scroll(digitalProductsRef, 'left')}
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                </Button>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => scroll(digitalProductsRef, 'right')}
-                >
-                  <ChevronRight className="w-4 h-4" />
-                </Button>
-                <Button variant="outline" size="sm" asChild className="ml-2">
-                  <Link href="/signup">
-                    Ver más <ArrowRight className="w-4 h-4 ml-2" />
-                  </Link>
-                </Button>
-              </div>
-            )}
-          </div>
-          <div
-            ref={digitalProductsRef}
-            className="flex gap-6 overflow-x-auto pb-4"
-            style={{
-              scrollbarWidth: 'none',
-              msOverflowStyle: 'none',
-              WebkitOverflowScrolling: 'touch'
-            }}
-          >
-            {loading ? (
-              Array.from({ length: 6 }).map((_, i) => (
-                <CardSkeleton key={`program-skeleton-${i}`} />
-              ))
-            ) : (
-              digitalProducts.map((product) => {
-                const cleanDescription = product.description ? stripHtml(product.description) : null;
-                return (
-                  <Link
-                    key={product.id}
-                    href={`/public/program/${product.id}`}
-                    className="shrink-0 w-[280px] sm:w-[320px]"
+              {!loading && digitalProducts.length > 0 && (
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => scroll(digitalProductsRef, 'left')}
                   >
-                    <Card className="group relative h-[480px] flex flex-col hover:shadow-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer">
+                    <ChevronLeft className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => scroll(digitalProductsRef, 'right')}
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </Button>
+                  <Button variant="outline" size="sm" asChild className="ml-2">
+                    <Link href="/explore/programs">
+                      Ver más <ArrowRight className="w-4 h-4 ml-2" />
+                    </Link>
+                  </Button>
+                </div>
+              )}
+            </div>
+            {loading ? (
+              <div
+                ref={digitalProductsRef}
+                className="flex gap-6 overflow-x-auto pb-4"
+                style={{
+                  scrollbarWidth: 'none',
+                  msOverflowStyle: 'none',
+                  WebkitOverflowScrolling: 'touch'
+                }}
+              >
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <CardSkeleton key={`program-skeleton-${i}`} />
+                ))}
+              </div>
+            ) : digitalProducts.length > 0 ? (
+              <div
+                ref={digitalProductsRef}
+                className="flex gap-6 overflow-x-auto pb-4"
+                style={{
+                  scrollbarWidth: 'none',
+                  msOverflowStyle: 'none',
+                  WebkitOverflowScrolling: 'touch'
+                }}
+              >
+                {digitalProducts.map((product) => {
+                  const cleanDescription = product.description ? stripHtml(product.description) : null;
+                  return (
+                    <Link
+                      key={product.id}
+                      href={`/public/program/${product.id}`}
+                      className="shrink-0 w-[280px] sm:w-[320px]"
+                    >
+                      <Card className="group relative h-[480px] flex flex-col hover:shadow-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer">
+                        <div className="relative w-full h-48 bg-gray-100 shrink-0">
+                          <div className="absolute inset-0 overflow-hidden">
+                            {product.cover_image_url ? (
+                              <Image
+                                src={product.cover_image_url}
+                                alt={product.title}
+                                fill
+                                className="object-cover"
+                                unoptimized
+                              />
+                            ) : (
+                              <div className="w-full h-full bg-linear-to-br from-primary/20 to-primary/10 flex items-center justify-center">
+                                <Sparkles className="h-16 w-16 text-primary/40" />
+                              </div>
+                            )}
+                          </div>
+                          {showFavorites && (
+                            <div 
+                              className="absolute top-3 right-3 pointer-events-auto" 
+                              style={{ zIndex: 9999, position: 'absolute', top: '12px', right: '12px' }}
+                            >
+                              <FavoriteButton
+                                itemId={product.id}
+                                favoriteType="digital_product"
+                                variant="floating"
+                              />
+                            </div>
+                          )}
+                        </div>
+                        <CardHeader className="pb-1.5 px-4 pt-3">
+                          <CardTitle className="text-lg line-clamp-2 group-hover:text-primary transition-colors">{product.title}</CardTitle>
+                          <div className="flex flex-wrap gap-1.5 mt-1">
+                            <Badge variant="secondary" className="text-xs">{product.category}</Badge>
+                            {product.professional_applications && (
+                              <div className="text-xs text-muted-foreground">
+                                Por {product.professional_applications.first_name} {product.professional_applications.last_name}
+                              </div>
+                            )}
+                          </div>
+                        </CardHeader>
+                        <CardContent className="px-4 pt-0 pb-3 flex flex-col grow">
+                          <div className="grow">
+                            {cleanDescription && (
+                              <p className="text-sm text-muted-foreground line-clamp-2 mb-2">
+                                {cleanDescription}
+                              </p>
+                            )}
+                          </div>
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-lg font-bold text-primary">
+                              ${product.price.toFixed(2)} {product.currency}
+                            </span>
+                          </div>
+                          <Button variant="default" size="sm" className="w-full">
+                            Ver programa
+                          </Button>
+                        </CardContent>
+                      </Card>
+                    </Link>
+                  );
+                })}
+              </div>
+            ) : null}
+          </div>
+        ) : null}
+
+        {/* 2. Eventos y Talleres */}
+        {(!loading && events.length > 0) || loading ? (
+          <div className="mb-16">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-2xl font-bold flex items-center gap-2">
+                <Calendar className="w-6 h-6 text-primary" />
+                Eventos y Talleres
+              </h3>
+              {!loading && events.length > 0 && (
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => scroll(eventsRef, 'left')}
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => scroll(eventsRef, 'right')}
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </Button>
+                  <Button variant="outline" size="sm" asChild className="ml-2">
+                    <Link href="/explore/events">
+                      Ver más <ArrowRight className="w-4 h-4 ml-2" />
+                    </Link>
+                  </Button>
+                </div>
+              )}
+            </div>
+            {loading ? (
+              <div
+                ref={eventsRef}
+                className="flex gap-6 overflow-x-auto pb-4"
+                style={{
+                  scrollbarWidth: 'none',
+                  msOverflowStyle: 'none',
+                  WebkitOverflowScrolling: 'touch'
+                }}
+              >
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <CardSkeleton key={`event-skeleton-${i}`} />
+                ))}
+              </div>
+            ) : events.length > 0 ? (
+              <div
+                ref={eventsRef}
+                className="flex gap-6 overflow-x-auto pb-4"
+                style={{
+                  scrollbarWidth: 'none',
+                  msOverflowStyle: 'none',
+                  WebkitOverflowScrolling: 'touch'
+                }}
+              >
+                {events.map((event) => {
+                  return (
+                    <Card key={event.id} className="relative shrink-0 w-[280px] sm:w-[320px] h-[480px] flex flex-col hover:shadow-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer">
                       <div className="relative w-full h-48 bg-gray-100 shrink-0">
                         <div className="absolute inset-0 overflow-hidden">
-                          {product.cover_image_url ? (
+                          {event.image_url ? (
                             <Image
-                              src={product.cover_image_url}
-                              alt={product.title}
+                              src={event.image_url}
+                              alt={event.name}
                               fill
                               className="object-cover"
                               unoptimized
                             />
                           ) : (
                             <div className="w-full h-full bg-linear-to-br from-primary/20 to-primary/10 flex items-center justify-center">
-                              <Sparkles className="h-16 w-16 text-primary/40" />
+                              <Calendar className="h-16 w-16 text-primary/40" />
                             </div>
                           )}
                         </div>
@@ -974,20 +638,260 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
                             style={{ zIndex: 9999, position: 'absolute', top: '12px', right: '12px' }}
                           >
                             <FavoriteButton
-                              itemId={product.id}
-                              favoriteType="digital_product"
+                              itemId={event.id}
+                              favoriteType="event"
                               variant="floating"
                             />
                           </div>
                         )}
                       </div>
                       <CardHeader className="pb-1.5 px-4 pt-3">
-                        <CardTitle className="text-lg line-clamp-2 group-hover:text-primary transition-colors">{product.title}</CardTitle>
+                        <CardTitle className="text-lg line-clamp-2">{event.name}</CardTitle>
                         <div className="flex flex-wrap gap-1.5 mt-1">
-                          <Badge variant="secondary" className="text-xs">{product.category}</Badge>
-                          {product.professional_applications && (
-                            <div className="text-xs text-muted-foreground">
-                              Por {product.professional_applications.first_name} {product.professional_applications.last_name}
+                          {event.category && (
+                            <Badge variant="secondary" className="text-xs">{getCategoryLabel(event.category)}</Badge>
+                          )}
+                          {event.price !== null && (
+                            <Badge variant="outline" className="text-xs">
+                              {event.price === 0 ? 'Gratis' : `$${event.price}`}
+                            </Badge>
+                          )}
+                        </div>
+                      </CardHeader>
+                      <CardContent className="px-4 pt-0 pb-3 flex flex-col grow">
+                        <div className="grow">
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1.5">
+                            <Calendar className="w-4 h-4 shrink-0" />
+                            <span className="line-clamp-1">{formatDate(event.event_date)}</span>
+                          </div>
+                          {event.location && (
+                            <div className="flex items-start gap-2 text-sm text-muted-foreground mb-2">
+                              <MapPin className="w-4 h-4 shrink-0 mt-0.5" />
+                              <span className="line-clamp-2">{event.location}</span>
+                            </div>
+                          )}
+                        </div>
+                        <Button variant="default" size="sm" className="w-full" asChild>
+                          <Link href={`/public/event/${event.id}`}>
+                            Ver evento
+                          </Link>
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            ) : null}
+          </div>
+        ) : null}
+
+        {/* 3. Expertos */}
+        {(!loading && professionals.length > 0) || loading ? (
+          <div className="mb-16">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-2xl font-bold flex items-center gap-2">
+                <User className="w-6 h-6 text-primary" />
+                Expertos
+              </h3>
+              {!loading && professionals.length > 0 && (
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => scroll(professionalsRef, 'left')}
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => scroll(professionalsRef, 'right')}
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </Button>
+                  <Button variant="outline" size="sm" asChild className="ml-2">
+                    <Link href="/explore/professionals">
+                      Ver más <ArrowRight className="w-4 h-4 ml-2" />
+                    </Link>
+                  </Button>
+                </div>
+              )}
+            </div>
+            {loading ? (
+              <div
+                ref={professionalsRef}
+                className="flex gap-6 overflow-x-auto pb-4"
+                style={{
+                  scrollbarWidth: 'none',
+                  msOverflowStyle: 'none',
+                  WebkitOverflowScrolling: 'touch'
+                }}
+              >
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <ProfessionalCardSkeleton key={`professional-skeleton-${i}`} />
+                ))}
+              </div>
+            ) : professionals.length > 0 ? (
+              <div
+                ref={professionalsRef}
+                className="flex gap-6 overflow-x-auto pb-4"
+                style={{
+                  scrollbarWidth: 'none',
+                  msOverflowStyle: 'none',
+                  WebkitOverflowScrolling: 'touch'
+                }}
+              >
+                {professionals.map((prof) => {
+                  return (
+                    <div key={prof.id} className="shrink-0 w-[280px] sm:w-[320px]">
+                      <ProfessionalCard
+                        userId={currentUserId}
+                        showFavoriteButton={showFavorites}
+                        professional={{
+                          id: prof.id,
+                          slug: `${prof.first_name.toLowerCase()}-${prof.last_name.toLowerCase()}-${prof.id}`,
+                          name: `${prof.first_name} ${prof.last_name}`,
+                          first_name: prof.first_name,
+                          last_name: prof.last_name,
+                          email: "",
+                          profession: prof.profession,
+                          profile_photo: prof.avatar_url || undefined,
+                          avatar: prof.avatar_url || undefined,
+                          therapyTypes: prof.specializations,
+                          city: prof.city || undefined,
+                          average_rating: prof.average_rating,
+                          total_reviews: prof.total_reviews,
+                          is_verified: prof.is_verified,
+                          verified: prof.is_verified,
+                        }}
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+            ) : null}
+          </div>
+        ) : null}
+
+        {/* 4. Comercios */}
+        {(!loading && shops.length > 0) || loading ? (
+          <div className="mb-16">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-2">
+              <div>
+                <h3 className="text-2xl font-bold flex items-center gap-2">
+                  <Store className="w-6 h-6 text-primary" />
+                  Comercios
+                </h3>
+              </div>
+              {!loading && shops.length > 0 && (
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => scroll(shopsRef, 'left')}
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => scroll(shopsRef, 'right')}
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </Button>
+                  <Button variant="outline" size="sm" asChild className="ml-2">
+                    <Link href="/explore/shops">
+                      Ver más <ArrowRight className="w-4 h-4 ml-2" />
+                    </Link>
+                  </Button>
+                </div>
+              )}
+            </div>
+            {loading ? (
+              <div
+                ref={shopsRef}
+                className="flex gap-6 overflow-x-auto pb-4"
+                style={{
+                  scrollbarWidth: 'none',
+                  msOverflowStyle: 'none',
+                  WebkitOverflowScrolling: 'touch'
+                }}
+              >
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <CardSkeleton key={`shop-skeleton-${i}`} />
+                ))}
+              </div>
+            ) : shops.length > 0 ? (
+              <div
+                ref={shopsRef}
+                className="flex gap-6 overflow-x-auto pb-4"
+                style={{
+                  scrollbarWidth: 'none',
+                  msOverflowStyle: 'none',
+                  WebkitOverflowScrolling: 'touch'
+                }}
+              >
+                {shops.map((shop) => {
+                  // Obtener la imagen principal: primero image_url, luego gallery[0], luego null
+                  // Verificar si gallery es un array o string
+                  let galleryArray: string[] = [];
+                  if (Array.isArray(shop.gallery)) {
+                    galleryArray = shop.gallery;
+                  } else if (typeof shop.gallery === 'string') {
+                    try {
+                      galleryArray = JSON.parse(shop.gallery);
+                    } catch (e) {
+                      // Si no es JSON válido, tratar como string único
+                      galleryArray = shop.gallery ? [shop.gallery] : [];
+                    }
+                  }
+                  
+                  const mainImage = shop.image_url || (galleryArray && galleryArray.length > 0 ? galleryArray[0] : null);
+                  
+                  // Limpiar HTML de la descripción
+                  const cleanDescription = shop.description ? stripHtml(shop.description) : null;
+                  
+                  return (
+                    <Card key={shop.id} className="relative shrink-0 w-[280px] sm:w-[320px] h-[480px] flex flex-col hover:shadow-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer">
+                      <div className="relative w-full h-48 bg-gray-100 shrink-0">
+                        <div className="absolute inset-0 overflow-hidden">
+                          {mainImage ? (
+                            <Image
+                              src={mainImage}
+                              alt={shop.name}
+                              fill
+                              className="object-cover"
+                              unoptimized
+                            />
+                          ) : (
+                            <div className="w-full h-full bg-linear-to-br from-primary/20 to-primary/10 flex items-center justify-center">
+                              <Store className="h-16 w-16 text-primary/40" />
+                            </div>
+                          )}
+                        </div>
+                        {showFavorites && (
+                          <div 
+                            className="absolute top-3 right-3 pointer-events-auto" 
+                            style={{ zIndex: 9999, position: 'absolute', top: '12px', right: '12px' }}
+                          >
+                            <FavoriteButton
+                              itemId={shop.id}
+                              favoriteType="shop"
+                              variant="floating"
+                            />
+                          </div>
+                        )}
+                      </div>
+                      <CardHeader className="pb-1.5 px-4 pt-3">
+                        <CardTitle className="text-lg line-clamp-2">{shop.name}</CardTitle>
+                        <div className="flex flex-wrap gap-1.5 mt-1">
+                          {shop.category && (
+                            <Badge variant="secondary" className="text-xs">{shop.category}</Badge>
+                          )}
+                          {shop.city && (
+                            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                              <MapPin className="w-3 h-3 shrink-0" />
+                              <span>{shop.city}</span>
                             </div>
                           )}
                         </div>
@@ -999,32 +903,35 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
                               {cleanDescription}
                             </p>
                           )}
+                          {shop.address && (
+                            <div className="flex items-start gap-1 text-xs text-muted-foreground mb-2">
+                              <MapPin className="w-3 h-3 shrink-0 mt-0.5" />
+                              <span className="line-clamp-1">{shop.address}</span>
+                            </div>
+                          )}
                         </div>
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="text-lg font-bold text-primary">
-                            ${product.price.toFixed(2)} {product.currency}
-                          </span>
-                        </div>
-                        <Button variant="default" size="sm" className="w-full">
-                          Ver programa
+                        <Button variant="default" size="sm" className="w-full" asChild>
+                          <Link href={`/public/shop/${shop.id}`}>
+                            Ver comercio
+                          </Link>
                         </Button>
                       </CardContent>
                     </Card>
-                  </Link>
-                );
-              })
-            )}
+                  );
+                })}
+              </div>
+            ) : null}
           </div>
-        </div>
+        ) : null}
 
-        {/* Centros Holísticos - Solo mostrar si hay datos */}
+        {/* 5. Centros Holísticos */}
         {(!loading && holisticCenters.length > 0) || loading ? (
           <div className="mb-16">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-2">
               <div>
                 <h3 className="text-2xl font-bold flex items-center gap-2">
                   <Building2 className="w-6 h-6 text-primary" />
-                  Centros
+                  Centros Holísticos
                 </h3>
               </div>
               {!loading && holisticCenters.length > 0 && (
@@ -1044,7 +951,7 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
                     <ChevronRight className="w-4 h-4" />
                   </Button>
                   <Button variant="outline" size="sm" asChild className="ml-2">
-                    <Link href="/signup">
+                    <Link href="/explore/holistic-centers">
                       Ver más <ArrowRight className="w-4 h-4 ml-2" />
                     </Link>
                   </Button>
@@ -1148,66 +1055,124 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
           </div>
         ) : null}
 
-        {/* Retos */}
-        <div className="mb-16">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-2xl font-bold flex items-center gap-2">
-              <Target className="w-6 h-6 text-primary" />
-              Retos
-            </h3>
-            {!loading && challenges.length > 0 && (
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => scroll(challengesRef, 'left')}
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                </Button>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => scroll(challengesRef, 'right')}
-                >
-                  <ChevronRight className="w-4 h-4" />
-                </Button>
-                <Button variant="outline" size="sm" asChild className="ml-2">
-                  <Link href="/signup">
-                    Ver más <ArrowRight className="w-4 h-4 ml-2" />
-                  </Link>
-                </Button>
-              </div>
-            )}
-          </div>
-          <div
-            ref={challengesRef}
-            className="flex gap-6 overflow-x-auto pb-4"
-            style={{
-              scrollbarWidth: 'none',
-              msOverflowStyle: 'none',
-              WebkitOverflowScrolling: 'touch'
-            }}
-          >
-            {loading ? (
-              Array.from({ length: 6 }).map((_, i) => (
-                <CardSkeleton key={`challenge-skeleton-${i}`} />
-              ))
-            ) : challenges.length === 0 ? (
-              <div className="text-center py-12 w-full">
-                <Target className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <p className="text-muted-foreground">
-                  No hay retos disponibles en este momento
-                </p>
-              </div>
-            ) : (
-              challenges.map((challenge) => (
-                <div key={challenge.id} className="shrink-0 w-[280px] sm:w-[320px]">
-                  <ChallengeCard challenge={challenge} userId={currentUserId} />
+        {/* 6. Restaurantes */}
+        {(!loading && restaurants.length > 0) || loading ? (
+          <div className="mb-16">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-2xl font-bold flex items-center gap-2">
+                <UtensilsCrossed className="w-6 h-6 text-primary" />
+                Restaurantes
+              </h3>
+              {!loading && restaurants.length > 0 && (
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => scroll(restaurantsRef, 'left')}
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => scroll(restaurantsRef, 'right')}
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </Button>
+                  <Button variant="outline" size="sm" asChild className="ml-2">
+                    <Link href="/explore/restaurants">
+                      Ver más <ArrowRight className="w-4 h-4 ml-2" />
+                    </Link>
+                  </Button>
                 </div>
-              ))
-            )}
+              )}
+            </div>
+            {loading ? (
+              <div
+                ref={restaurantsRef}
+                className="flex gap-6 overflow-x-auto pb-4"
+                style={{
+                  scrollbarWidth: 'none',
+                  msOverflowStyle: 'none',
+                  WebkitOverflowScrolling: 'touch'
+                }}
+              >
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <CardSkeleton key={`restaurant-skeleton-${i}`} />
+                ))}
+              </div>
+            ) : restaurants.length > 0 ? (
+              <div
+                ref={restaurantsRef}
+                className="flex gap-6 overflow-x-auto pb-4"
+                style={{
+                  scrollbarWidth: 'none',
+                  msOverflowStyle: 'none',
+                  WebkitOverflowScrolling: 'touch'
+                }}
+              >
+                {restaurants.map((restaurant) => (
+                  <Card key={restaurant.id} className="relative shrink-0 w-[280px] sm:w-[320px] h-[480px] flex flex-col hover:shadow-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer">
+                    <div className="relative w-full h-48 bg-gray-100 shrink-0">
+                      <div className="absolute inset-0 overflow-hidden">
+                        {restaurant.image_url ? (
+                          <Image
+                            src={restaurant.image_url}
+                            alt={restaurant.name}
+                            fill
+                            className="object-cover"
+                            unoptimized
+                          />
+                        ) : (
+                          <div className="w-full h-full bg-linear-to-br from-primary/20 to-primary/10 flex items-center justify-center">
+                            <UtensilsCrossed className="h-16 w-16 text-primary/40" />
+                          </div>
+                        )}
+                      </div>
+                      {showFavorites && (
+                        <div 
+                          className="absolute top-3 right-3 pointer-events-auto" 
+                          style={{ zIndex: 9999, position: 'absolute', top: '12px', right: '12px' }}
+                        >
+                          <FavoriteButton
+                            itemId={restaurant.id}
+                            favoriteType="restaurant"
+                            variant="floating"
+                          />
+                        </div>
+                      )}
+                    </div>
+                    <CardHeader className="pb-1.5 px-4 pt-3">
+                      <CardTitle className="text-lg line-clamp-2">{restaurant.name}</CardTitle>
+                      <div className="flex flex-wrap gap-1.5 mt-1">
+                        {restaurant.cuisine_type && (
+                          <Badge variant="secondary" className="text-xs">{restaurant.cuisine_type}</Badge>
+                        )}
+                        {restaurant.price_range && (
+                          <Badge variant="outline" className="text-xs">{restaurant.price_range}</Badge>
+                        )}
+                      </div>
+                    </CardHeader>
+                    <CardContent className="px-4 pt-0 pb-3 flex flex-col grow">
+                      <div className="grow">
+                        {restaurant.address && (
+                          <p className="text-sm text-muted-foreground line-clamp-2 mb-2">
+                            {restaurant.address}
+                          </p>
+                        )}
+                      </div>
+                      <Button variant="default" size="sm" className="w-full" asChild>
+                        <Link href={`/public/restaurant/${restaurant.id}`}>
+                          Ver restaurante
+                        </Link>
+                      </Button>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : null}
           </div>
-        </div>
+        ) : null}
 
         {/* Call to action */}
         <div className="mt-12 text-center">

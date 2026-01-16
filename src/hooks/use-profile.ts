@@ -22,6 +22,83 @@ export function useProfile() {
   const supabase = createClient();
 
   /**
+   * Cargar perfil desde la base de datos para un usuario dado
+   */
+  const loadProfileForUser = async (userId: string) => {
+    // Obtener perfil desde public.profiles
+    const { data, error: profileError } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', userId)
+      .single();
+
+    if (profileError) {
+      // Si el perfil no existe (error PGRST116), intentar crearlo automáticamente
+      if (profileError.code === 'PGRST116') {
+        console.log('📝 Profile not found, creating automatically...');
+        
+        // Obtener datos del usuario para crear el perfil
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user || user.id !== userId) {
+          throw new Error('User mismatch');
+        }
+
+        // Llamar a la función que crea el perfil
+        const { data: createResult, error: createError } = await supabase.rpc('ensure_profile_exists');
+
+        if (createError) {
+          console.error('❌ Error calling ensure_profile_exists:', createError);
+          
+          // Si falla, intentar crear manualmente con los datos disponibles
+          console.log('🔄 Attempting manual profile creation...');
+          const manualProfile = {
+            id: user.id,
+            email: user.email || '',
+            first_name: user.user_metadata?.first_name || '',
+            last_name: user.user_metadata?.last_name || '',
+            phone: user.user_metadata?.phone || null,
+            avatar_url: user.user_metadata?.avatar_url || null,
+            type: user.user_metadata?.type || 'patient',
+            account_active: true,
+          };
+          
+          const { error: insertError } = await supabase
+            .from('profiles')
+            .insert(manualProfile);
+          
+          if (insertError) {
+            console.error('❌ Error creating profile manually:', insertError);
+            throw new Error('Failed to create profile automatically');
+          }
+          
+          console.log('✅ Profile created manually');
+        } else {
+          console.log('✅ Profile created via RPC:', createResult);
+        }
+
+        // Intentar cargar el perfil de nuevo
+        const { data: newProfile, error: retryError } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', userId)
+          .single();
+
+        if (retryError) {
+          console.error('❌ Error loading profile after creation:', retryError);
+          throw retryError;
+        }
+
+        console.log('✅ Profile loaded successfully:', newProfile);
+        return newProfile;
+      } else {
+        throw profileError;
+      }
+    }
+
+    return data;
+  };
+
+  /**
    * Cargar perfil del usuario autenticado
    */
   const loadProfile = async () => {
@@ -30,7 +107,7 @@ export function useProfile() {
       setError(null);
 
       // Obtener usuario autenticado
-      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      let { data: { user }, error: authError } = await supabase.auth.getUser();
       
       // Si hay error de autenticación, intentar refrescar la sesión
       if (authError) {
@@ -47,77 +124,14 @@ export function useProfile() {
         }
         
         // Intentar obtener el usuario de nuevo después del refresh
-        const { data: { user: refreshedUser }, error: retryError } = await supabase.auth.getUser();
+        const retryResult = await supabase.auth.getUser();
+        authError = retryResult.error;
+        user = retryResult.data.user;
         
-        if (retryError || !refreshedUser) {
-          console.error('❌ Failed to get user after refresh:', retryError);
+        if (authError || !user) {
+          console.error('❌ Failed to get user after refresh:', authError);
           setProfile(null);
-          setError(retryError || authError);
-          return;
-        }
-        
-        // Continuar con el usuario refrescado
-        const finalUser = refreshedUser;
-        
-        // Obtener perfil desde public.profiles
-        const { data, error: profileError } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', finalUser.id)
-          .single();
-
-        if (profileError) {
-          // Si el perfil no existe (error PGRST116), intentar crearlo automáticamente
-          if (profileError.code === 'PGRST116') {
-            console.log('📝 Profile not found, creating automatically...');
-            
-            // Llamar a la función que crea el perfil
-            const { data: createResult, error: createError } = await supabase.rpc('ensure_profile_exists');
-
-            if (createError) {
-              console.error('❌ Error calling ensure_profile_exists:', createError);
-              
-              // Si falla, intentar crear manualmente con los datos disponibles
-              const manualProfile = {
-                id: finalUser.id,
-                email: finalUser.email || '',
-                first_name: finalUser.user_metadata?.first_name || '',
-                last_name: finalUser.user_metadata?.last_name || '',
-                phone: finalUser.user_metadata?.phone || null,
-                avatar_url: finalUser.user_metadata?.avatar_url || null,
-                type: finalUser.user_metadata?.type || 'patient',
-                account_active: true,
-              };
-              
-              const { error: insertError } = await supabase
-                .from('profiles')
-                .insert(manualProfile);
-              
-              if (insertError) {
-                console.error('❌ Error creating profile manually:', insertError);
-                throw new Error('Failed to create profile automatically');
-              }
-            }
-
-            // Intentar cargar el perfil de nuevo
-            const { data: newProfile, error: retryError } = await supabase
-              .from('profiles')
-              .select('*')
-              .eq('id', finalUser.id)
-              .single();
-
-            if (retryError) {
-              console.error('❌ Error loading profile after creation:', retryError);
-              throw retryError;
-            }
-
-            setProfile(newProfile);
-            return;
-          } else {
-            throw profileError;
-          }
-        } else {
-          setProfile(data);
+          setError(authError || new Error('User not found after refresh'));
           return;
         }
       }
@@ -127,74 +141,9 @@ export function useProfile() {
         return;
       }
 
-      // Obtener perfil desde public.profiles
-      const { data, error: profileError } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .single();
-
-      if (profileError) {
-        // Si el perfil no existe (error PGRST116), intentar crearlo automáticamente
-        if (profileError.code === 'PGRST116') {
-          console.log('📝 Profile not found, creating automatically...');
-          console.log('👤 User ID:', user.id);
-          console.log('📧 User email:', user.email);
-          console.log('📋 User metadata:', user.user_metadata);
-          
-          // Llamar a la función que crea el perfil
-          const { data: createResult, error: createError } = await supabase.rpc('ensure_profile_exists');
-
-          if (createError) {
-            console.error('❌ Error calling ensure_profile_exists:', createError);
-            
-            // Si falla, intentar crear manualmente con los datos disponibles
-            console.log('🔄 Attempting manual profile creation...');
-            const manualProfile = {
-              id: user.id,
-              email: user.email || '',
-              first_name: user.user_metadata?.first_name || '',
-              last_name: user.user_metadata?.last_name || '',
-              phone: user.user_metadata?.phone || null,
-              avatar_url: user.user_metadata?.avatar_url || null,
-              type: user.user_metadata?.type || 'patient',
-              account_active: true,
-            };
-            
-            const { error: insertError } = await supabase
-              .from('profiles')
-              .insert(manualProfile);
-            
-            if (insertError) {
-              console.error('❌ Error creating profile manually:', insertError);
-              throw new Error('Failed to create profile automatically');
-            }
-            
-            console.log('✅ Profile created manually');
-          } else {
-            console.log('✅ Profile created via RPC:', createResult);
-          }
-
-          // Intentar cargar el perfil de nuevo
-          const { data: newProfile, error: retryError } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', user.id)
-            .single();
-
-          if (retryError) {
-            console.error('❌ Error loading profile after creation:', retryError);
-            throw retryError;
-          }
-
-          console.log('✅ Profile loaded successfully:', newProfile);
-          setProfile(newProfile);
-        } else {
-          throw profileError;
-        }
-      } else {
-        setProfile(data);
-      }
+      // Cargar el perfil usando la función helper
+      const profileData = await loadProfileForUser(user.id);
+      setProfile(profileData);
     } catch (err) {
       console.error('Error loading profile:', err);
       setError(err instanceof Error ? err : new Error('Failed to load profile'));

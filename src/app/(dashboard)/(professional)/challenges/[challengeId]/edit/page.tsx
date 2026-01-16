@@ -73,7 +73,19 @@ export default function EditProfessionalChallengePage() {
         .eq("id", challengeId)
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error("❌ Error en fetchChallenge:", error);
+        throw error;
+      }
+
+      console.log("✅ Challenge cargado desde BD:", {
+        data,
+        difficulty_level: data?.difficulty_level,
+        price: data?.price,
+        linked_professional_id: data?.linked_professional_id,
+        cover_image_url: data?.cover_image_url,
+        currency: data?.currency
+      });
 
       setChallenge(data);
     } catch (error) {

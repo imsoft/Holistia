@@ -118,6 +118,7 @@ interface Shop {
 
 interface DigitalProduct {
   id: string;
+  slug?: string;
   professional_id: string;
   title: string;
   description: string;
@@ -167,14 +168,7 @@ const getCategoryLabel = (category: string) => {
   return categories[category] || category;
 };
 
-const generateEventSlug = (eventName: string, eventId: string) => {
-  const slug = eventName
-    .toLowerCase()
-    .replace(/[^a-z0-9\s-]/g, '')
-    .replace(/\s+/g, '-')
-    .trim();
-  return `${slug}--${eventId}`;
-};
+// Los slugs de eventos ahora vienen de la base de datos
 
 const HomeUserPage = () => {
   useUserStoreInit(); // Inicializar store de Zustand
@@ -925,7 +919,7 @@ const HomeUserPage = () => {
                     return (
                       <Link
                         key={product.id}
-                        href={`/explore/program/${product.id}`}
+                        href={`/explore/program/${product.slug || product.id}`}
                         className="shrink-0 w-96"
                       >
                         <Card className="group overflow-hidden hover:shadow-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer h-[480px] flex flex-col">
@@ -1038,7 +1032,7 @@ const HomeUserPage = () => {
                     return (
                       <Link
                         key={event.id}
-                        href={`/patient/${userId}/explore/event/${generateEventSlug(event.name, event.id!)}`}
+                        href={`/explore/event/${event.slug || event.id}`}
                         className="shrink-0 w-96"
                       >
                         <Card className="group hover:shadow-lg hover:-translate-y-2 transition-all duration-300 overflow-hidden cursor-pointer h-[480px] flex flex-col">

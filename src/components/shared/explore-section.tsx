@@ -28,6 +28,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 interface Professional {
   id: string;
+  slug?: string;
   first_name: string;
   last_name: string;
   avatar_url: string | null;
@@ -66,7 +67,7 @@ interface Restaurant {
 
 interface Event {
   id: string;
-  slug?: string;
+  slug: string;
   name: string;
   image_url: string | null;
   category: string | null;
@@ -78,6 +79,7 @@ interface Event {
 
 interface DigitalProduct {
   id: string;
+  slug?: string;
   title: string;
   description: string;
   category: string;
@@ -148,7 +150,7 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
         // Solo profesionales con foto de perfil, aprobados, activos y con calificación de admin > 4.5
         const { data: professionalsData } = await supabase
           .from("professional_applications")
-          .select("id, first_name, last_name, profile_photo, specializations, experience, user_id, profession, city, is_verified")
+          .select("id, slug, first_name, last_name, profile_photo, specializations, experience, user_id, profession, city, is_verified")
           .eq("status", "approved")
           .eq("is_active", true)
           .not("profile_photo", "is", null)
@@ -174,6 +176,7 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
 
               return {
                 id: prof.id,
+                slug: prof.slug,
                 first_name: prof.first_name,
                 last_name: prof.last_name,
                 avatar_url: prof.profile_photo,
@@ -237,7 +240,7 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
         // Cargar eventos (6 para el carousel)
         const { data: eventsData } = await supabase
           .from("events_workshops")
-          .select("id, name, gallery_images, category, event_date, event_time, price, location")
+          .select("id, slug, name, gallery_images, category, event_date, event_time, price, location")
           .eq("is_active", true)
           .gte("event_date", new Date().toISOString().split('T')[0])
           .order("event_date", { ascending: true })
@@ -247,6 +250,7 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
           // Mapear gallery_images[0] a image_url
           const mappedEvents = eventsData.map(event => ({
             id: event.id,
+            slug: event.slug,
             name: event.name,
             image_url: event.gallery_images?.[0] || null,
             category: event.category,
@@ -263,6 +267,7 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
           .from("digital_products")
           .select(`
             id,
+            slug,
             title,
             description,
             category,
@@ -287,6 +292,7 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
           // Transformar datos para asegurar el formato correcto
           const transformedProducts = digitalProductsData.map((product: any) => ({
             id: product.id,
+            slug: product.slug,
             title: product.title,
             description: product.description,
             category: product.category,
@@ -367,14 +373,7 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
     return categories[category] || category;
   };
 
-  const generateEventSlug = (eventName: string, eventId: string) => {
-    const slug = eventName
-      .toLowerCase()
-      .replace(/[^a-z0-9\s-]/g, '')
-      .replace(/\s+/g, '-')
-      .trim();
-    return `${slug}--${eventId}`;
-  };
+  // Los slugs de eventos ahora vienen de la base de datos
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -500,7 +499,7 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
                   return (
                     <Link
                       key={product.id}
-                      href={`/explore/program/${product.id}`}
+                      href={`/explore/program/${product.slug || product.id}`}
                       className="shrink-0 w-[280px] sm:w-[320px]"
                     >
                       <Card className="group relative h-[480px] flex flex-col hover:shadow-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer">
@@ -627,7 +626,7 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
                   return (
                     <Link
                       key={event.id}
-                      href={`/explore/event/${generateEventSlug(event.name, event.id)}`}
+                      href={`/explore/event/${event.slug || event.id}`}
                       className="shrink-0 w-[280px] sm:w-[320px]"
                     >
                       <Card className="relative min-h-[400px] flex flex-col hover:shadow-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer">
@@ -758,7 +757,7 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
                         showFavoriteButton={showFavorites}
                         professional={{
                           id: prof.id,
-                          slug: `${prof.first_name.toLowerCase()}-${prof.last_name.toLowerCase()}-${prof.id}`,
+                          slug: prof.slug || prof.id,
                           name: `${prof.first_name} ${prof.last_name}`,
                           first_name: prof.first_name,
                           last_name: prof.last_name,

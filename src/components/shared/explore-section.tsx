@@ -499,7 +499,7 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
                       href={`/explore/program/${product.id}`}
                       className="shrink-0 w-[280px] sm:w-[320px]"
                     >
-                      <Card className="group relative flex flex-col hover:shadow-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer">
+                      <Card className="group relative h-[480px] flex flex-col hover:shadow-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer">
                         <div className="relative w-full h-48 bg-gray-100 shrink-0">
                           <div className="absolute inset-0 overflow-hidden">
                             {product.cover_image_url ? (

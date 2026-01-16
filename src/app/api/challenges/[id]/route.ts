@@ -106,6 +106,8 @@ export async function PUT(
       linked_patient_id,
       linked_professional_id,
       professional_id,
+      price,
+      currency,
       is_active,
       is_public,
     } = body;
@@ -147,13 +149,15 @@ export async function PUT(
     if (title !== undefined) updateData.title = title;
     if (description !== undefined) updateData.description = description;
     if (short_description !== undefined) updateData.short_description = short_description;
-    if (cover_image_url !== undefined) updateData.cover_image_url = cover_image_url;
-    if (duration_days !== undefined) updateData.duration_days = duration_days ? parseInt(duration_days) : null;
-    if (difficulty_level !== undefined) updateData.difficulty_level = difficulty_level;
-    if (category !== undefined) updateData.category = category;
+    if (cover_image_url !== undefined) updateData.cover_image_url = cover_image_url || null;
+    if (duration_days !== undefined) updateData.duration_days = duration_days ? parseInt(duration_days.toString()) : null;
+    if (difficulty_level !== undefined) updateData.difficulty_level = difficulty_level || null;
+    if (category !== undefined) updateData.category = category || null;
     if (wellness_areas !== undefined) updateData.wellness_areas = wellness_areas || [];
     if (linked_patient_id !== undefined) updateData.linked_patient_id = linked_patient_id || null;
     if (linked_professional_id !== undefined) updateData.linked_professional_id = linked_professional_id || null;
+    if (price !== undefined) updateData.price = price ? parseFloat(price.toString()) : null;
+    if (currency !== undefined) updateData.currency = currency || 'MXN';
     // Solo admins pueden cambiar professional_id
     if (isAdmin && professional_id !== undefined) {
       updateData.professional_id = professional_id || null;

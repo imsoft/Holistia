@@ -191,7 +191,12 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
         duration_days: challenge.duration_days,
         is_public: challenge.is_public
       });
-      setFormData(newFormData);
+      
+      // Forzar actualización del estado con los valores exactos del challenge
+      setFormData(prev => ({
+        ...prev,
+        ...newFormData
+      }));
     }
   }, [challenge]);
 
@@ -644,8 +649,8 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
         category: formData.category || null,
         wellness_areas: formData.wellness_areas || [],
         linked_professional_id: formData.linked_professional_id && formData.linked_professional_id !== 'none' ? formData.linked_professional_id : null,
-        price: formData.price ? parseFloat(formData.price) : null,
-        currency: formData.price ? formData.currency : null,
+        price: formData.price && formData.price.trim() !== '' ? parseFloat(formData.price) : null,
+        currency: formData.price && formData.price.trim() !== '' ? (formData.currency || 'MXN') : null,
         is_active: formData.is_active,
       };
 
@@ -669,6 +674,30 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
 
         createdChallengeId = challenge.id;
         toast.success("Reto actualizado exitosamente");
+        
+        // Actualizar el estado local con los datos actualizados del servidor
+        if (data.challenge) {
+          const updatedFormData = {
+            title: data.challenge.title || "",
+            description: data.challenge.description || "",
+            cover_image_url: data.challenge.cover_image_url || "",
+            duration_days: data.challenge.duration_days?.toString() || "",
+            difficulty_level: data.challenge.difficulty_level || "",
+            category: data.challenge.category || "",
+            wellness_areas: data.challenge.wellness_areas || [],
+            linked_professional_id: data.challenge.linked_professional_id ? data.challenge.linked_professional_id : "none",
+            price: data.challenge.price !== null && data.challenge.price !== undefined ? data.challenge.price.toString() : "",
+            currency: data.challenge.currency || "MXN",
+            is_active: data.challenge.is_active !== undefined ? data.challenge.is_active : true,
+            is_public: data.challenge.is_public !== undefined ? data.challenge.is_public : false,
+          };
+          setFormData(updatedFormData);
+          
+          console.log('✅ ChallengeForm: Datos actualizados después de guardar', {
+            updatedChallenge: data.challenge,
+            updatedFormData
+          });
+        }
         
         if (onFormSubmit) {
           onFormSubmit();

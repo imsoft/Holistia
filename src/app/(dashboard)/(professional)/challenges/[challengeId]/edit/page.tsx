@@ -43,49 +43,49 @@ export default function EditProfessionalChallengePage() {
 
   const supabase = createClient();
 
+  const fetchChallenge = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from("challenges")
+        .select(`
+          id,
+          professional_id,
+          created_by_user_id,
+          created_by_type,
+          linked_patient_id,
+          linked_professional_id,
+          title,
+          description,
+          short_description,
+          cover_image_url,
+          duration_days,
+          difficulty_level,
+          category,
+          wellness_areas,
+          price,
+          currency,
+          is_active,
+          is_public,
+          created_at,
+          updated_at
+        `)
+        .eq("id", challengeId)
+        .single();
+
+      if (error) throw error;
+
+      setChallenge(data);
+    } catch (error) {
+      console.error("Error fetching challenge:", error);
+      toast.error("Error al cargar el reto");
+      router.push(`/challenges`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-      const fetchChallenge = async () => {
-      try {
-        setLoading(true);
-        const { data, error } = await supabase
-          .from("challenges")
-          .select(`
-            id,
-            professional_id,
-            created_by_user_id,
-            created_by_type,
-            linked_patient_id,
-            linked_professional_id,
-            title,
-            description,
-            short_description,
-            cover_image_url,
-            duration_days,
-            difficulty_level,
-            category,
-            wellness_areas,
-            price,
-            currency,
-            is_active,
-            is_public,
-            created_at,
-            updated_at
-          `)
-          .eq("id", challengeId)
-          .single();
-
-        if (error) throw error;
-
-        setChallenge(data);
-      } catch (error) {
-        console.error("Error fetching challenge:", error);
-        toast.error("Error al cargar el reto");
-        router.push(`/challenges`);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchChallenge();
   }, [challengeId, professionalId, router, supabase]);
 
@@ -123,6 +123,11 @@ export default function EditProfessionalChallengePage() {
             challenge={challenge}
             redirectPath={`/challenges`}
             userType="professional"
+            onFormSubmit={() => {
+              // Recargar los datos del challenge después de actualizar
+              fetchChallenge();
+            }}
+            showButtons={false}
           />
         </div>
       </div>

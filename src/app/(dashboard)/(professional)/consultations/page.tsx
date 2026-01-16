@@ -299,6 +299,7 @@ function ConsultationsPageContent() {
           )}
         </div>
       </div>
+      </div>
     </div>
   );
 }

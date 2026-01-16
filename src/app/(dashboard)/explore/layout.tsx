@@ -78,10 +78,20 @@ export default function ExploreLayout({
   const [currentPathname, setCurrentPathname] = useState("");
   const [hasEvents, setHasEvents] = useState(false);
   const [isProfessional, setIsProfessional] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const { profile, loading } = useProfile();
   const pathname = usePathname();
   const router = useRouter();
   const supabase = createClient();
+
+  // Verificar si el usuario está autenticado
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setIsAuthenticated(!!user);
+    };
+    checkAuth();
+  }, [supabase]);
 
   useEffect(() => {
     setCurrentPathname(pathname);
@@ -147,7 +157,13 @@ export default function ExploreLayout({
     return currentPathname.startsWith(href);
   };
 
-  if (loading) {
+  // Si no está autenticado y es una página de programa, no mostrar el layout del dashboard
+  // (la página de programa manejará su propio navbar)
+  if (isAuthenticated === false && pathname?.startsWith('/explore/program/')) {
+    return <>{children}</>;
+  }
+
+  if (loading || isAuthenticated === null) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
@@ -156,6 +172,13 @@ export default function ExploreLayout({
         </div>
       </div>
     );
+  }
+
+  // Si no está autenticado, redirigir al login o mostrar contenido sin navbar del dashboard
+  if (isAuthenticated === false) {
+    // Para otras páginas de explore, también podemos no mostrar el navbar del dashboard
+    // pero por ahora solo lo hacemos para programas
+    return <>{children}</>;
   }
 
   const userName = profile?.first_name && profile?.last_name 

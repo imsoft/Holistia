@@ -129,7 +129,7 @@ export function BlogPostClient({ post, relatedPosts }: BlogPostClientProps) {
                 {post.author && (
                   <div className="flex items-center gap-2">
                     <User className="w-4 h-4" />
-                    {post.author.isProfessional && post.author.professionalId ? (
+                    {post.author.professionalId ? (
                       <Link
                         href={`/explore/professional/${post.author.professionalSlug || post.author.professionalId}`}
                         className="hover:underline hover:text-foreground transition-colors font-medium"
@@ -188,10 +188,10 @@ export function BlogPostClient({ post, relatedPosts }: BlogPostClientProps) {
           {post.author && (
             <div className="mt-12 pt-8 border-t border-border">
               <div className="flex items-start gap-4">
-                {post.author.isProfessional && post.author.professionalId ? (
+                {post.author.professionalId ? (
                   <Link href={`/explore/professional/${post.author.professionalSlug || post.author.professionalId}`} className="group">
                     {post.author.avatar ? (
-                      <div className="relative w-16 h-16 rounded-full overflow-hidden flex-shrink-0 group-hover:opacity-80 transition-opacity cursor-pointer ring-2 ring-transparent group-hover:ring-primary/20">
+                      <div className="relative w-16 h-16 rounded-full overflow-hidden shrink-0 group-hover:opacity-80 transition-opacity cursor-pointer ring-2 ring-transparent group-hover:ring-primary/20">
                         <Image
                           src={post.author.avatar}
                           alt={post.author.name}
@@ -200,7 +200,7 @@ export function BlogPostClient({ post, relatedPosts }: BlogPostClientProps) {
                         />
                       </div>
                     ) : (
-                      <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center flex-shrink-0 group-hover:opacity-80 group-hover:bg-primary/10 transition-all cursor-pointer ring-2 ring-transparent group-hover:ring-primary/20">
+                      <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center shrink-0 group-hover:opacity-80 group-hover:bg-primary/10 transition-all cursor-pointer ring-2 ring-transparent group-hover:ring-primary/20">
                         <User className="w-8 h-8 text-muted-foreground group-hover:text-primary transition-colors" />
                       </div>
                     )}
@@ -208,7 +208,7 @@ export function BlogPostClient({ post, relatedPosts }: BlogPostClientProps) {
                 ) : (
                   <>
                     {post.author.avatar ? (
-                      <div className="relative w-16 h-16 rounded-full overflow-hidden flex-shrink-0">
+                      <div className="relative w-16 h-16 rounded-full overflow-hidden shrink-0">
                         <Image
                           src={post.author.avatar}
                           alt={post.author.name}
@@ -217,14 +217,14 @@ export function BlogPostClient({ post, relatedPosts }: BlogPostClientProps) {
                         />
                       </div>
                     ) : (
-                      <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
+                      <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center shrink-0">
                         <User className="w-8 h-8 text-muted-foreground" />
                       </div>
                     )}
                   </>
                 )}
                 <div className="flex-1">
-                  {post.author.isProfessional && post.author.professionalId ? (
+                  {post.author.professionalId ? (
                     <Link
                       href={`/explore/professional/${post.author.professionalSlug || post.author.professionalId}`}
                       className="block mb-2 group"

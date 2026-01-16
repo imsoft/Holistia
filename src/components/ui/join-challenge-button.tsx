@@ -9,11 +9,12 @@ import { Loader2, Check } from "lucide-react";
 
 interface JoinChallengeButtonProps {
   challengeId: string;
+  challengeSlug?: string;
   userId: string;
   challengePrice?: number | null;
 }
 
-export function JoinChallengeButton({ challengeId, userId, challengePrice }: JoinChallengeButtonProps) {
+export function JoinChallengeButton({ challengeId, challengeSlug, userId, challengePrice }: JoinChallengeButtonProps) {
   const [isJoining, setIsJoining] = useState(false);
   const [isParticipating, setIsParticipating] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -78,7 +79,7 @@ export function JoinChallengeButton({ challengeId, userId, challengePrice }: Joi
       // Si el reto tiene precio, redirigir al checkout
       if (challengePrice && challengePrice > 0) {
         toast.dismiss(toastId);
-        router.push(`/patient/${userId}/explore/challenge/${challengeId}/checkout`);
+        router.push(`/explore/challenge/${challengeSlug || challengeId}/checkout`);
         return;
       }
 

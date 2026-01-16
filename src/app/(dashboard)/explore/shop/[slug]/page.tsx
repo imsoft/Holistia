@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useUserId } from "@/stores/user-store";
 import { useUserStoreInit } from "@/hooks/use-user-store-init";
 import {
-  UtensilsCrossed,
+  Store,
   MapPin,
   Phone,
   Mail,
@@ -14,6 +14,7 @@ import {
   ArrowLeft,
   ExternalLink,
   FileText,
+  Tag,
   Share2
 } from "lucide-react";
 import { toast } from "sonner";
@@ -28,44 +29,54 @@ import { formatPhone, formatPhoneForTel } from "@/utils/phone-utils";
 import { Navbar } from "@/components/shared/navbar";
 import { Footer } from "@/components/shared/footer";
 
-interface Restaurant {
+interface Shop {
   id: string;
   slug?: string;
   name: string;
   description?: string;
   address?: string;
+  city?: string;
   phone?: string;
   email?: string;
   website?: string;
   instagram?: string;
   image_url?: string;
-  cuisine_type?: string;
-  price_range?: string;
-  menu_pdf_url?: string;
+  category?: string;
+  catalog_pdf_url?: string;
   gallery?: string[];
   is_active: boolean;
   created_at: string;
 }
 
-interface RestaurantMenu {
+interface ShopProduct {
   id: string;
-  restaurant_id: string;
-  title: string;
+  shop_id: string;
+  name: string;
   description?: string | null;
   price?: number | null;
-  images: string[];
-  display_order: number;
+  discount_price?: number | null;
+  stock: number;
+  sku?: string | null;
+  category?: string | null;
+  is_featured: boolean;
   is_active: boolean;
+  images?: ProductImage[];
 }
 
-export default function RestaurantDetailPage() {
+interface ProductImage {
+  id: string;
+  image_url: string;
+  image_order: number;
+}
+
+export default function ShopDetailPage() {
   useUserStoreInit();
   const params = useParams();
   const router = useRouter();
   const userId = useUserId();
-  const restaurantId = params.restaurantId as string;
-  const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
-  const [menus, setMenus] = useState<RestaurantMenu[]>([]);
+  const slugParam = params.slug as string;
+  const [shop, setShop] = useState<Shop | null>(null);
+  const [products, setProducts] = useState<ShopProduct[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const supabase = createClient();
@@ -80,7 +91,7 @@ export default function RestaurantDetailPage() {
   }, [supabase]);
 
   const handleShare = async () => {
-    const shareUrl = `${window.location.origin}/explore/restaurant/${restaurantId}`;
+    const shareUrl = `${window.location.origin}/explore/shop/${shop?.slug || slugParam}`;
 
     try {
       await navigator.clipboard.writeText(shareUrl);
@@ -92,50 +103,131 @@ export default function RestaurantDetailPage() {
   };
 
   useEffect(() => {
-    const getRestaurantData = async () => {
+    const getShopData = async () => {
       try {
         setLoading(true);
 
-        // Obtener datos del restaurante
-        const { data: restaurantData, error: restaurantError } = await supabase
-          .from("restaurants")
+        // Primero intentar buscar por slug
+        let { data: shopData, error: shopError } = await supabase
+          .from("shops")
           .select("*")
-          .eq("id", restaurantId)
+          .eq("slug", slugParam)
           .eq("is_active", true)
           .single();
 
-        if (restaurantError) {
-          console.error("Error fetching restaurant:", restaurantError);
-        } else {
-          setRestaurant(restaurantData);
+        // Si no encuentra por slug, intentar por ID (compatibilidad hacia atrás)
+        if (shopError || !shopData) {
+          const { data: shopById, error: errorById } = await supabase
+            .from("shops")
+            .select("*")
+            .eq("id", slugParam)
+            .eq("is_active", true)
+            .single();
+          
+          if (!errorById && shopById) {
+            shopData = shopById;
+            shopError = null;
+          }
         }
 
-        // Obtener menús del restaurante
-        const { data: menusData, error: menusError } = await supabase
-          .from("restaurant_menus")
-          .select("*")
-          .eq("restaurant_id", restaurantId)
-          .eq("is_active", true)
-          .order("display_order", { ascending: true });
-
-        if (menusError) {
-          console.error("Error fetching menus:", menusError);
+        if (shopError) {
+          console.error("Error fetching shop:", shopError);
         } else {
-          const menusWithImages = (menusData || []).map((menu) => ({
-            ...menu,
-            images: Array.isArray(menu.images) ? menu.images : [],
-          }));
-          setMenus(menusWithImages);
+          // Convertir image_url a URL pública si es una ruta de storage
+          if (shopData.image_url && !shopData.image_url.startsWith('http') && !shopData.image_url.startsWith('/')) {
+            const { data: urlData } = supabase.storage
+              .from('shops')
+              .getPublicUrl(shopData.image_url);
+            shopData.image_url = urlData.publicUrl;
+            console.log('🖼️ [Shop] Converted image_url:', shopData.image_url);
+          } else if (shopData.image_url) {
+            console.log('🖼️ [Shop] Using existing image_url:', shopData.image_url);
+          }
+
+          // Parsear gallery si viene como string JSON
+          if (shopData.gallery && typeof shopData.gallery === 'string') {
+            try {
+              shopData.gallery = JSON.parse(shopData.gallery);
+            } catch (e) {
+              console.error('Error parsing gallery:', e);
+              shopData.gallery = [];
+            }
+          }
+          
+          // Asegurar que gallery sea un array
+          if (!Array.isArray(shopData.gallery)) {
+            shopData.gallery = [];
+          }
+
+          // Convertir URLs de gallery a URLs públicas si son rutas de storage
+          if (Array.isArray(shopData.gallery)) {
+            shopData.gallery = shopData.gallery.map((imgUrl: string) => {
+              if (imgUrl && !imgUrl.startsWith('http') && !imgUrl.startsWith('/')) {
+                const { data: urlData } = supabase.storage
+                  .from('shops')
+                  .getPublicUrl(imgUrl);
+                return urlData.publicUrl;
+              }
+              return imgUrl;
+            });
+          }
+          
+          setShop(shopData);
+        }
+
+        // Obtener productos del comercio (usando el ID del shop encontrado)
+        if (!shopData) return;
+        
+        const { data: productsData, error: productsError } = await supabase
+          .from("shop_products")
+          .select("*")
+          .eq("shop_id", shopData.id)
+          .eq("is_active", true)
+          .order("created_at", { ascending: false });
+
+        if (productsError) {
+          console.error("Error fetching products:", productsError);
+        } else {
+          // Obtener imágenes de cada producto
+          const productsWithImages = await Promise.all(
+            (productsData || []).map(async (product) => {
+              const { data: images } = await supabase
+                .from("shop_product_images")
+                .select("*")
+                .eq("product_id", product.id)
+                .order("image_order", { ascending: true });
+
+              // Convertir URLs de imágenes a URLs públicas si son rutas de storage
+              const processedImages = (images || []).map((img: any) => {
+                if (img.image_url && !img.image_url.startsWith('http') && !img.image_url.startsWith('/')) {
+                  const { data: urlData } = supabase.storage
+                    .from('shops')
+                    .getPublicUrl(img.image_url);
+                  return {
+                    ...img,
+                    image_url: urlData.publicUrl,
+                  };
+                }
+                return img;
+              });
+
+              return {
+                ...product,
+                images: processedImages,
+              };
+            })
+          );
+          setProducts(productsWithImages);
         }
       } catch (error) {
-        console.error("Error fetching restaurant data:", error);
+        console.error("Error fetching shop data:", error);
       } finally {
         setLoading(false);
       }
     };
 
-    getRestaurantData();
-  }, [restaurantId, supabase]);
+    getShopData();
+  }, [slugParam, supabase]);
 
   if (loading || isAuthenticated === null) {
     return (
@@ -155,16 +247,16 @@ export default function RestaurantDetailPage() {
     );
   }
 
-  if (!restaurant) {
+  if (!shop) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <UtensilsCrossed className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+          <Store className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
           <h2 className="text-2xl font-semibold text-foreground mb-2">
-            Restaurante no encontrado
+            Comercio no encontrado
           </h2>
           <p className="text-muted-foreground mb-6">
-            El restaurante que buscas no existe o no está disponible
+            El comercio que buscas no existe o no está disponible
           </p>
           <Button onClick={() => router.back()}>
             <ArrowLeft className="mr-2 h-4 w-4" />
@@ -175,8 +267,8 @@ export default function RestaurantDetailPage() {
     );
   }
 
-  // Función para renderizar el contenido del restaurante
-  const renderRestaurantContent = () => {
+  // Función para renderizar el contenido del comercio
+  const renderShopContent = () => {
     return (
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         {/* Botón de regresar */}
@@ -192,14 +284,26 @@ export default function RestaurantDetailPage() {
         {/* Imagen principal y título */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
           {/* Imagen */}
-          <div className="relative w-full h-96 rounded-lg overflow-hidden">
-            {restaurant.image_url ? (
+          <div className="relative w-full h-96 rounded-lg overflow-hidden bg-muted">
+            {shop.image_url ? (
               <Image
-                src={restaurant.image_url}
-                alt={restaurant.name}
+                src={shop.image_url}
+                alt={shop.name}
                 fill
                 className="object-cover"
-                unoptimized={restaurant.image_url.includes('supabase.co') || restaurant.image_url.includes('supabase.in')}
+                unoptimized={shop.image_url.includes('supabase.co') || shop.image_url.includes('supabase.in')}
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.src = "/logos/holistia-black.png";
+                }}
+              />
+            ) : shop.gallery && Array.isArray(shop.gallery) && shop.gallery.length > 0 ? (
+              <Image
+                src={shop.gallery[0]}
+                alt={shop.name}
+                fill
+                className="object-cover"
+                unoptimized={shop.gallery[0].includes('supabase.co') || shop.gallery[0].includes('supabase.in')}
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
                   target.src = "/logos/holistia-black.png";
@@ -207,7 +311,7 @@ export default function RestaurantDetailPage() {
               />
             ) : (
               <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center">
-                <UtensilsCrossed className="h-32 w-32 text-primary/40" />
+                <Store className="h-32 w-32 text-primary/40" />
               </div>
             )}
           </div>
@@ -217,27 +321,24 @@ export default function RestaurantDetailPage() {
             <div className="mb-4">
               <div className="flex items-start justify-between gap-4 mb-2">
                 <h1 className="text-3xl sm:text-4xl font-bold text-foreground flex-1">
-                  {restaurant.name}
+                  {shop.name}
                 </h1>
                 <Button variant="outline" size="sm" onClick={handleShare}>
                   <Share2 className="w-4 h-4 sm:mr-2" />
                   <span className="hidden sm:inline">Compartir</span>
                 </Button>
               </div>
-              <div className="flex flex-wrap gap-2">
-                {restaurant.cuisine_type && (
-                  <Badge variant="secondary">{restaurant.cuisine_type}</Badge>
-                )}
-                {restaurant.price_range && (
-                  <Badge variant="outline">{restaurant.price_range}</Badge>
-                )}
-              </div>
+              {shop.category && (
+                <Badge variant="secondary" className="w-fit">
+                  {shop.category}
+                </Badge>
+              )}
             </div>
 
-            {restaurant.description && (
+            {shop.description && (
               <div
                 className="text-muted-foreground mb-6"
-                dangerouslySetInnerHTML={{ __html: restaurant.description }}
+                dangerouslySetInnerHTML={{ __html: shop.description }}
               />
             )}
 
@@ -245,36 +346,38 @@ export default function RestaurantDetailPage() {
 
             {/* Información de contacto */}
             <div className="space-y-3">
-              {restaurant.address && (
+              {(shop.address || shop.city) && (
                 <div className="flex items-start gap-3 text-foreground">
                   <MapPin className="h-5 w-5 flex-shrink-0 mt-0.5" />
-                  <span>{restaurant.address}</span>
+                  <span>
+                    {shop.address && shop.city ? `${shop.address}, ${shop.city}` : shop.address || shop.city}
+                  </span>
                 </div>
               )}
 
-              {restaurant.phone && (
+              {shop.phone && (
                 <div className="flex items-center gap-3 text-foreground">
                   <Phone className="h-5 w-5 flex-shrink-0" />
-                  <a href={`tel:${formatPhoneForTel(restaurant.phone)}`} className="hover:text-primary transition-colors">
-                    {formatPhone(restaurant.phone)}
+                  <a href={`tel:${formatPhoneForTel(shop.phone)}`} className="hover:text-primary transition-colors">
+                    {formatPhone(shop.phone)}
                   </a>
                 </div>
               )}
 
-              {restaurant.email && (
+              {shop.email && (
                 <div className="flex items-center gap-3 text-foreground">
                   <Mail className="h-5 w-5 flex-shrink-0" />
-                  <a href={`mailto:${restaurant.email}`} className="hover:text-primary transition-colors">
-                    {restaurant.email}
+                  <a href={`mailto:${shop.email}`} className="hover:text-primary transition-colors">
+                    {shop.email}
                   </a>
                 </div>
               )}
 
-              {restaurant.website && (
+              {shop.website && (
                 <div className="flex items-center gap-3 text-foreground">
                   <Globe className="h-5 w-5 flex-shrink-0" />
                   <a
-                    href={restaurant.website}
+                    href={shop.website}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="hover:text-primary transition-colors flex items-center gap-1"
@@ -285,16 +388,16 @@ export default function RestaurantDetailPage() {
                 </div>
               )}
 
-              {restaurant.instagram && (
+              {shop.instagram && (
                 <div className="flex items-center gap-3 text-foreground">
                   <Instagram className="h-5 w-5 flex-shrink-0" />
                   <a
-                    href={`https://instagram.com/${restaurant.instagram.replace('@', '')}`}
+                    href={`https://instagram.com/${shop.instagram.replace('@', '')}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="hover:text-primary transition-colors flex items-center gap-1"
                   >
-                    {restaurant.instagram}
+                    {shop.instagram}
                     <ExternalLink className="h-4 w-4" />
                   </a>
                 </div>
@@ -304,15 +407,15 @@ export default function RestaurantDetailPage() {
         </div>
 
         {/* Galería de imágenes */}
-        {restaurant.gallery && restaurant.gallery.length > 0 && (
+        {shop.gallery && Array.isArray(shop.gallery) && shop.gallery.length > 0 && (
           <div className="mb-8">
             <h2 className="text-2xl font-bold text-foreground mb-6">Galería</h2>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {restaurant.gallery.map((imageUrl, index) => (
+              {shop.gallery.filter(url => url && url.trim() !== '').map((imageUrl, index) => (
                 <div key={index} className="relative aspect-square rounded-lg overflow-hidden">
                   <Image
                     src={imageUrl}
-                    alt={`Imagen ${index + 1} de ${restaurant.name}`}
+                    alt={`Imagen ${index + 1} de ${shop.name}`}
                     fill
                     className="object-cover hover:scale-105 transition-transform duration-300 cursor-pointer"
                     unoptimized={imageUrl.includes('supabase.co') || imageUrl.includes('supabase.in')}
@@ -327,25 +430,25 @@ export default function RestaurantDetailPage() {
           </div>
         )}
 
-        {/* Menú en PDF */}
-        {restaurant.menu_pdf_url && (
+        {/* Catálogo en PDF */}
+        {shop.catalog_pdf_url && (
           <Card className="mb-8">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <FileText className="h-5 w-5" />
-                Menú Completo
+                Catálogo Completo
               </CardTitle>
             </CardHeader>
             <CardContent>
               <Button asChild variant="outline" className="w-full sm:w-auto">
                 <a
-                  href={restaurant.menu_pdf_url}
+                  href={shop.catalog_pdf_url}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-2"
                 >
                   <FileText className="h-4 w-4" />
-                  Ver Menú en PDF
+                  Ver Catálogo en PDF
                   <ExternalLink className="h-4 w-4" />
                 </a>
               </Button>
@@ -353,45 +456,71 @@ export default function RestaurantDetailPage() {
           </Card>
         )}
 
-        {/* Menú individual (platillos) */}
-        {menus.length > 0 && (
+        {/* Productos */}
+        {products.length > 0 && (
           <div>
             <h2 className="text-2xl font-bold text-foreground mb-6 flex items-center gap-2">
-              <UtensilsCrossed className="h-6 w-6" />
-              Nuestro Menú
+              <Tag className="h-6 w-6" />
+              Nuestros Productos
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {menus.map((menu) => (
-                <Card key={menu.id} className="overflow-hidden">
-                  {menu.images && menu.images.length > 0 && (
+              {products.map((product) => (
+                <Card key={product.id} className="overflow-hidden">
+                  {product.images && product.images.length > 0 && (
                     <div className="relative w-full h-48">
                       <Image
-                        src={menu.images[0]}
-                        alt={menu.title}
+                        src={product.images[0].image_url}
+                        alt={product.name}
                         fill
                         className="object-cover"
-                        unoptimized={menu.images[0].includes('supabase.co') || menu.images[0].includes('supabase.in')}
+                        unoptimized={product.images[0].image_url.includes('supabase.co') || product.images[0].image_url.includes('supabase.in')}
                         onError={(e) => {
                           const target = e.target as HTMLImageElement;
                           target.src = "/logos/holistia-black.png";
                         }}
                       />
+                      {product.is_featured && (
+                        <Badge className="absolute top-2 right-2 bg-yellow-500 text-white">
+                          Destacado
+                        </Badge>
+                      )}
                     </div>
                   )}
                   <CardHeader>
-                    <CardTitle className="text-lg">{menu.title}</CardTitle>
+                    <CardTitle className="text-lg">{product.name}</CardTitle>
+                    {product.category && (
+                      <Badge variant="outline" className="w-fit">
+                        {product.category}
+                      </Badge>
+                    )}
                   </CardHeader>
                   <CardContent>
-                    {menu.description && (
+                    {product.description && (
                       <p className="text-sm text-muted-foreground mb-3">
-                        {menu.description}
+                        {product.description}
                       </p>
                     )}
-                    {menu.price && (
-                      <p className="text-lg font-bold text-primary">
-                        ${menu.price.toFixed(2)}
-                      </p>
-                    )}
+                    <div className="flex items-center justify-between">
+                      {product.discount_price ? (
+                        <div className="flex flex-col">
+                          <span className="text-lg font-bold text-primary">
+                            ${product.discount_price.toFixed(2)}
+                          </span>
+                          <span className="text-sm text-muted-foreground line-through">
+                            ${product.price?.toFixed(2)}
+                          </span>
+                        </div>
+                      ) : product.price ? (
+                        <span className="text-lg font-bold text-primary">
+                          ${product.price.toFixed(2)}
+                        </span>
+                      ) : null}
+                      {product.stock > 0 && (
+                        <Badge variant="secondary">
+                          Stock: {product.stock}
+                        </Badge>
+                      )}
+                    </div>
                   </CardContent>
                 </Card>
               ))}
@@ -408,7 +537,7 @@ export default function RestaurantDetailPage() {
       <>
         <Navbar />
         <div className="min-h-screen bg-background">
-          {renderRestaurantContent()}
+          {renderShopContent()}
         </div>
         <Footer />
       </>
@@ -418,7 +547,7 @@ export default function RestaurantDetailPage() {
   // Si está autenticado, mostrar con layout normal (navbar del dashboard)
   return (
     <div className="min-h-screen bg-background">
-      {renderRestaurantContent()}
+      {renderShopContent()}
     </div>
   );
 }

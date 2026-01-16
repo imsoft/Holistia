@@ -19,7 +19,7 @@ import { FavoriteButton } from "@/components/ui/favorite-button";
 import { JoinChallengeButton } from "@/components/ui/join-challenge-button";
 
 interface ChallengePageProps {
-  params: Promise<{ challengeId: string }>;
+  params: Promise<{ slug: string }>;
 }
 
 const difficultyLabels = {
@@ -36,17 +36,61 @@ const difficultyColors = {
   expert: "bg-red-100 text-red-800",
 };
 
+// Helper function para buscar challenge por slug o ID
+async function findChallenge(supabase: any, slugParam: string) {
+  // Primero intentar buscar por slug
+  let { data: challenge, error } = await supabase
+    .from("challenges")
+    .select(`
+      *,
+      professional_applications(
+        id,
+        slug,
+        first_name,
+        last_name,
+        profile_photo,
+        profession,
+        is_verified
+      )
+    `)
+    .eq("slug", slugParam)
+    .single();
+
+  // Si no encuentra por slug, intentar por ID (compatibilidad hacia atrás)
+  if (error || !challenge) {
+    const { data: dataById, error: errorById } = await supabase
+      .from("challenges")
+      .select(`
+        *,
+        professional_applications(
+          id,
+          slug,
+          first_name,
+          last_name,
+          profile_photo,
+          profession,
+          is_verified
+        )
+      `)
+      .eq("id", slugParam)
+      .single();
+    
+    if (!errorById && dataById) {
+      challenge = dataById;
+      error = null;
+    }
+  }
+
+  return { challenge, error };
+}
+
 export async function generateMetadata({
   params,
 }: ChallengePageProps): Promise<Metadata> {
-  const { challengeId } = await params;
+  const { slug: slugParam } = await params;
   const supabase = await createClient();
 
-  const { data: challenge } = await supabase
-    .from("challenges")
-    .select("*")
-    .eq("id", challengeId)
-    .single();
+  const { challenge } = await findChallenge(supabase, slugParam);
 
   if (!challenge) {
     return {
@@ -61,26 +105,12 @@ export async function generateMetadata({
 }
 
 export default async function ChallengePage({ params }: ChallengePageProps) {
-  const { challengeId } = await params;
+  const { slug: slugParam } = await params;
   const userId = "";
   const supabase = await createClient();
 
   // Obtener información del reto
-  const { data: challenge, error } = await supabase
-    .from("challenges")
-    .select(`
-      *,
-      professional_applications(
-        id,
-        first_name,
-        last_name,
-        profile_photo,
-        profession,
-        is_verified
-      )
-    `)
-    .eq("id", challengeId)
-    .single();
+  const { challenge, error } = await findChallenge(supabase, slugParam);
 
   if (error || !challenge) {
     console.error("Error fetching challenge:", error);
@@ -242,7 +272,8 @@ export default async function ChallengePage({ params }: ChallengePageProps) {
 
                 {/* Botón de unirse */}
                 <JoinChallengeButton 
-                  challengeId={challenge.id} 
+                  challengeId={challenge.id}
+                  challengeSlug={challenge.slug}
                   userId=""
                   challengePrice={challenge.price}
                 />

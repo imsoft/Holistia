@@ -442,7 +442,7 @@ export default function RestaurantsPage() {
             {filteredRestaurants.map((restaurant) => (
               <Link
                 key={restaurant.id}
-                href={`/patient/${userId}/explore/restaurant/${restaurant.id}`}
+                href={`/explore/restaurant/${restaurant.slug || restaurant.id}`}
               >
                 <Card className="group hover:shadow-lg hover:-translate-y-2 transition-all duration-300 overflow-hidden cursor-pointer h-[480px] flex flex-col">
                   <div className="relative w-full h-48 shrink-0">

@@ -925,7 +925,7 @@ const HomeUserPage = () => {
                     return (
                       <Link
                         key={product.id}
-                        href={`/patient/${userId}/explore/program/${product.id}`}
+                        href={`/explore/program/${product.id}`}
                         className="shrink-0 w-96"
                       >
                         <Card className="group overflow-hidden hover:shadow-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer h-[480px] flex flex-col">
@@ -1286,7 +1286,7 @@ const HomeUserPage = () => {
                   {filteredRestaurants.map((restaurant) => (
                     <Link
                       key={restaurant.id}
-                      href={`/patient/${userId}/explore/restaurant/${restaurant.id}`}
+                      href={`/explore/restaurant/${restaurant.slug || restaurant.id}`}
                       className="shrink-0 w-96"
                       onClick={() => {
                       }}
@@ -1401,7 +1401,7 @@ const HomeUserPage = () => {
                   {filteredShops.map((shop) => (
                     <Link
                       key={shop.id}
-                      href={`/patient/${userId}/explore/shop/${shop.id}`}
+                      href={`/explore/shop/${shop.slug || shop.id}`}
                       className="shrink-0 w-96"
                       onClick={() => {
                       }}
@@ -1526,7 +1526,7 @@ const HomeUserPage = () => {
                   {filteredHolisticCenters.map((center) => (
                     <Link
                       key={center.id}
-                      href={`/patient/${userId}/explore/holistic-center/${center.id}`}
+                      href={`/explore/holistic-center/${center.slug || center.id}`}
                       className="shrink-0 w-96"
                       onClick={() => {
                       }}

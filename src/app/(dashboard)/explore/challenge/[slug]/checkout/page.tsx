@@ -16,7 +16,7 @@ export default function ChallengeCheckoutPage() {
   const params = useParams();
   const router = useRouter();
   const userId = useUserId();
-  const challengeId = params.challengeId as string;
+  const slugParam = params.slug as string;
   const supabase = createClient();
 
   const [challenge, setChallenge] = useState<any>(null);
@@ -25,17 +25,20 @@ export default function ChallengeCheckoutPage() {
 
   useEffect(() => {
     fetchChallenge();
-  }, [challengeId]);
+  }, [slugParam]);
 
   const fetchChallenge = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
+      
+      // Primero intentar buscar por slug
+      let { data, error } = await supabase
         .from('challenges')
         .select(`
           *,
           professional_applications(
             id,
+            slug,
             first_name,
             last_name,
             stripe_account_id,
@@ -43,14 +46,39 @@ export default function ChallengeCheckoutPage() {
             stripe_payouts_enabled
           )
         `)
-        .eq('id', challengeId)
+        .eq('slug', slugParam)
         .single();
+
+      // Si no encuentra por slug, intentar por ID (compatibilidad hacia atrás)
+      if (error || !data) {
+        const { data: dataById, error: errorById } = await supabase
+          .from('challenges')
+          .select(`
+            *,
+            professional_applications(
+              id,
+              slug,
+              first_name,
+              last_name,
+              stripe_account_id,
+              stripe_charges_enabled,
+              stripe_payouts_enabled
+            )
+          `)
+          .eq('id', slugParam)
+          .single();
+        
+        if (!errorById && dataById) {
+          data = dataById;
+          error = null;
+        }
+      }
 
       if (error) throw error;
 
       if (!data.price || data.price <= 0) {
         toast.error("Este reto es gratuito");
-        router.push(`/explore/challenge/${challengeId}`);
+        router.push(`/explore/challenge/${data.slug || slugParam}`);
         return;
       }
 
@@ -78,7 +106,7 @@ export default function ChallengeCheckoutPage() {
       const { data: existingParticipation } = await supabase
         .from('challenge_purchases')
         .select('id')
-        .eq('challenge_id', challengeId)
+        .eq('challenge_id', challenge.id)
         .eq('participant_id', user.id)
         .maybeSingle();
 
@@ -92,7 +120,7 @@ export default function ChallengeCheckoutPage() {
       const response = await fetch('/api/stripe/challenge-checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ challenge_id: challengeId }),
+        body: JSON.stringify({ challenge_id: challenge.id }),
       });
 
       const data = await response.json();
@@ -136,7 +164,7 @@ export default function ChallengeCheckoutPage() {
       <div className="container max-w-4xl mx-auto px-4 py-8">
         <Button
           variant="ghost"
-          onClick={() => router.push(`/explore/challenge/${challengeId}`)}
+          onClick={() => router.push(`/explore/challenge/${challenge?.slug || slugParam}`)}
           className="mb-6"
         >
           <ArrowLeft className="h-4 w-4 mr-2" />

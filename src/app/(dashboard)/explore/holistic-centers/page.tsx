@@ -284,7 +284,7 @@ export default function HolisticCentersPage() {
                 {filteredCenters.map((center) => (
                   <Link
                     key={center.id}
-                    href={`/patient/${userId}/explore/holistic-center/${center.id}`}
+                    href={`/explore/holistic-center/${center.slug || center.id}`}
                   >
                     <Card className="group hover:shadow-lg hover:-translate-y-2 transition-all duration-300 overflow-hidden cursor-pointer h-[480px] flex flex-col">
                       <div className="relative w-full h-48 bg-linear-to-br from-primary/20 to-primary/10 shrink-0">

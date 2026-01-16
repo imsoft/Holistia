@@ -83,7 +83,9 @@ export default function ProgramDetailPage() {
   const params = useParams();
   const router = useRouter();
   const userId = useUserId();
-  const programId = params.programId as string;
+  const slugParam = params.slug as string;
+  // digital_products usa ID por ahora (no tiene slug)
+  const programId = slugParam;
   const [product, setProduct] = useState<DigitalProduct | null>(null);
   const [loading, setLoading] = useState(true);
   const [hasPurchased, setHasPurchased] = useState(false);
@@ -102,7 +104,7 @@ export default function ProgramDetailPage() {
 
   useEffect(() => {
     fetchProduct();
-  }, [programId]);
+  }, [slugParam]);
 
   const fetchProduct = async () => {
     try {
@@ -502,7 +504,7 @@ export default function ProgramDetailPage() {
               <>
                 <div className="space-y-3">
                   <Button
-                    onClick={() => router.push(`/signup?redirect=${encodeURIComponent(`/explore/program/${programId}`)}`)}
+                    onClick={() => router.push(`/signup?redirect=${encodeURIComponent(`/explore/program/${slugParam}`)}`)}
                     className="w-full"
                     size="lg"
                   >
@@ -510,7 +512,7 @@ export default function ProgramDetailPage() {
                   </Button>
                   <Button
                     variant="outline"
-                    onClick={() => router.push(`/login?redirect=${encodeURIComponent(`/explore/program/${programId}`)}`)}
+                    onClick={() => router.push(`/login?redirect=${encodeURIComponent(`/explore/program/${slugParam}`)}`)}
                     className="w-full"
                     size="lg"
                   >

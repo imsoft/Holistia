@@ -206,7 +206,7 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
         // Cargar comercios (6 para el carousel)
         const { data: shopsData, error: shopsError } = await supabase
           .from("shops")
-          .select("id, name, image_url, gallery, category, city, description, address")
+          .select("id, slug, name, image_url, gallery, category, city, description, address")
           .eq("is_active", true)
           .order("created_at", { ascending: false })
           .limit(6);
@@ -226,7 +226,7 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
         // Cargar restaurantes (6 para el carousel)
         const { data: restaurantsData } = await supabase
           .from("restaurants")
-          .select("id, name, image_url, cuisine_type, price_range, address")
+          .select("id, slug, name, image_url, cuisine_type, price_range, address")
           .eq("is_active", true)
           .limit(6);
 
@@ -308,7 +308,7 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
         console.log("🔍 [ExploreSection] Loading holistic centers...");
         const { data: holisticCentersData, error: holisticCentersError } = await supabase
           .from("holistic_centers")
-          .select("id, name, image_url, city, description, address")
+          .select("id, slug, name, image_url, city, description, address")
           .eq("is_active", true)
           .order("created_at", { ascending: false })
           .limit(6);
@@ -863,7 +863,7 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
                   return (
                     <Link
                       key={shop.id}
-                      href={`/explore/shop/${shop.id}`}
+                      href={`/explore/shop/${shop.slug || shop.id}`}
                       className="shrink-0 w-[280px] sm:w-[320px]"
                     >
                       <Card className="relative min-h-[400px] flex flex-col hover:shadow-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer">
@@ -996,7 +996,7 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
                   return (
                     <Link
                       key={center.id}
-                      href={`/explore/holistic-center/${center.id}`}
+                      href={`/explore/holistic-center/${center.slug || center.id}`}
                       className="shrink-0 w-[280px] sm:w-[320px]"
                     >
                       <Card className="group relative flex flex-col hover:shadow-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer">
@@ -1121,7 +1121,7 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
                 {restaurants.map((restaurant) => (
                   <Link
                     key={restaurant.id}
-                    href={`/explore/restaurant/${restaurant.id}`}
+                    href={`/explore/restaurant/${restaurant.slug || restaurant.id}`}
                     className="shrink-0 w-[280px] sm:w-[320px]"
                   >
                     <Card className="relative flex flex-col hover:shadow-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer">

@@ -73,12 +73,8 @@ export function DigitalProductCard({
   const CategoryIcon = CATEGORY_ICONS[product.category] || Tag;
 
   const handleClick = () => {
-    // Usar ruta limpia si no hay userId en los parámetros
-    if (userId) {
-      router.push(`/patient/${userId}/explore/program/${product.id}`);
-    } else {
-      router.push(`/explore/program/${product.id}`);
-    }
+    // Usar ruta con el ID del producto (digital_products aún no tiene slug)
+    router.push(`/explore/program/${product.id}`);
   };
 
   return (

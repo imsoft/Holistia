@@ -13,6 +13,7 @@ import { VerifiedBadge } from "@/components/ui/verified-badge";
 
 interface Challenge {
   id: string;
+  slug?: string;
   title: string;
   description?: string;
   short_description?: string;
@@ -119,7 +120,7 @@ export function ChallengeCard({ challenge, onJoin, userId }: ChallengeCardProps)
       if (challenge.price && challenge.price > 0) {
         toast.dismiss(toastId);
         if (userId) {
-          router.push(`/patient/${userId}/explore/challenge/${challenge.id}/checkout`);
+          router.push(`/explore/challenge/${challenge.slug || challenge.id}/checkout`);
         }
         return;
       }

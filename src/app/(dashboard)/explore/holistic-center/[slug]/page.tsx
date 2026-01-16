@@ -52,7 +52,7 @@ export default function HolisticCenterDetailPage() {
   const params = useParams();
   const router = useRouter();
   const userId = useUserId();
-  const centerId = params.centerId as string;
+  const slugParam = params.slug as string;
   const [center, setCenter] = useState<HolisticCenter | null>(null);
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
@@ -68,7 +68,7 @@ export default function HolisticCenterDetailPage() {
   }, [supabase]);
 
   const handleShare = async () => {
-    const shareUrl = `${window.location.origin}/explore/holistic-center/${centerId}`;
+    const shareUrl = `${window.location.origin}/explore/holistic-center/${center?.slug || slugParam}`;
 
     try {
       await navigator.clipboard.writeText(shareUrl);
@@ -115,12 +115,28 @@ export default function HolisticCenterDetailPage() {
       try {
         setLoading(true);
 
-        const { data: centerData, error: centerError } = await supabase
+        // Primero intentar buscar por slug
+        let { data: centerData, error: centerError } = await supabase
           .from("holistic_centers")
           .select("*")
-          .eq("id", centerId)
+          .eq("slug", slugParam)
           .eq("is_active", true)
           .single();
+
+        // Si no encuentra por slug, intentar por ID (compatibilidad hacia atrás)
+        if (centerError || !centerData) {
+          const { data: dataById, error: errorById } = await supabase
+            .from("holistic_centers")
+            .select("*")
+            .eq("id", slugParam)
+            .eq("is_active", true)
+            .single();
+          
+          if (!errorById && dataById) {
+            centerData = dataById;
+            centerError = null;
+          }
+        }
 
         if (centerError) {
           console.error("Error fetching holistic center:", centerError);
@@ -128,7 +144,7 @@ export default function HolisticCenterDetailPage() {
             // No encontrado
             setCenter(null);
           }
-        } else {
+        } else if (centerData) {
           // Convertir image_url a URL pública si es una ruta de storage
           if (centerData.image_url && !centerData.image_url.startsWith('http') && !centerData.image_url.startsWith('/')) {
             const { data: urlData } = supabase.storage
@@ -150,7 +166,7 @@ export default function HolisticCenterDetailPage() {
     };
 
     getCenterData();
-  }, [centerId, supabase]);
+  }, [slugParam, supabase]);
 
   if (loading || isAuthenticated === null) {
     return (

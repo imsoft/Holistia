@@ -29,8 +29,6 @@ interface DigitalProduct {
 
 export function DigitalProductsTab({ professionalId }: DigitalProductsTabProps) {
   const router = useRouter();
-  const params = useParams();
-  const adminId = params.id as string;
   const supabase = createClient();
   const [products, setProducts] = useState<DigitalProduct[]>([]);
   const [loading, setLoading] = useState(true);
@@ -110,7 +108,7 @@ export function DigitalProductsTab({ professionalId }: DigitalProductsTabProps) 
               <CardTitle>Programas</CardTitle>
               <CardDescription>Gestiona los programas que vende este profesional</CardDescription>
             </div>
-            <Button onClick={() => router.push(`/admin/${adminId}/digital-products/new?professional_id=${professionalId}`)}>
+            <Button onClick={() => router.push(`/admin/digital-products/new?professional_id=${professionalId}`)}>
               <Plus className="mr-2 h-4 w-4" />
               Nuevo Programa
             </Button>
@@ -158,7 +156,7 @@ export function DigitalProductsTab({ professionalId }: DigitalProductsTabProps) 
                         variant="outline" 
                         size="sm" 
                         className="flex-1"
-                        onClick={() => router.push(`/admin/${adminId}/digital-products/${product.id}/edit?professional_id=${professionalId}`)}
+                        onClick={() => router.push(`/admin/digital-products/${product.id}/edit?professional_id=${professionalId}`)}
                       >
                         <Edit className="h-4 w-4 mr-2" />
                         Editar

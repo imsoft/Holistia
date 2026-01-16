@@ -15,7 +15,6 @@ export default function EditAdminServicePage() {
   useUserStoreInit();
   const params = useParams();
   const router = useRouter();
-  const adminId = useUserId();
   const professionalId = params.professionalId as string;
   const serviceId = params.serviceId as string;
   const [service, setService] = useState<Service | null>(null);
@@ -57,7 +56,7 @@ export default function EditAdminServicePage() {
     };
 
     fetchData();
-  }, [serviceId, professionalId, adminId, router, supabase]);
+  }, [serviceId, professionalId, router, supabase]);
 
   if (loading) {
     return (

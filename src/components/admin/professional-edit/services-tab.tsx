@@ -13,8 +13,6 @@ interface ServicesTabProps {
 }
 
 export function ServicesTab({ professionalId }: ServicesTabProps) {
-  const params = useParams();
-  const adminId = params.id as string;
   const supabase = createClient();
   const [userId, setUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -75,7 +73,6 @@ export function ServicesTab({ professionalId }: ServicesTabProps) {
           <ServiceManager 
             professionalId={professionalId} 
             userId={userId} 
-            adminId={adminId}
             isAdminContext={true}
           />
         </CardContent>

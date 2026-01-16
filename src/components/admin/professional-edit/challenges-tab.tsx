@@ -28,8 +28,6 @@ interface Challenge {
 
 export function ChallengesTab({ professionalId }: ChallengesTabProps) {
   const router = useRouter();
-  const params = useParams();
-  const adminId = params.id as string;
   const supabase = createClient();
   const [challenges, setChallenges] = useState<Challenge[]>([]);
   const [loading, setLoading] = useState(true);
@@ -110,7 +108,7 @@ export function ChallengesTab({ professionalId }: ChallengesTabProps) {
               <CardTitle>Retos</CardTitle>
               <CardDescription>Gestiona los retos creados por este profesional</CardDescription>
             </div>
-            <Button onClick={() => router.push(`/admin/${adminId}/challenges/new?professional_id=${professionalId}`)}>
+            <Button onClick={() => router.push(`/admin/challenges/new?professional_id=${professionalId}`)}>
               <Plus className="mr-2 h-4 w-4" />
               Nuevo Reto
             </Button>
@@ -161,7 +159,7 @@ export function ChallengesTab({ professionalId }: ChallengesTabProps) {
                     <Button 
                       variant="outline" 
                       size="sm"
-                      onClick={() => router.push(`/admin/${adminId}/challenges/${challenge.id}/edit?professional_id=${professionalId}`)}
+                      onClick={() => router.push(`/admin/challenges/${challenge.id}/edit?professional_id=${professionalId}`)}
                     >
                       <Edit className="h-4 w-4" />
                     </Button>

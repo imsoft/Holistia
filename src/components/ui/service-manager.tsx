@@ -28,11 +28,10 @@ import { MapModal } from "@/components/ui/map-modal";
 interface ServiceManagerProps {
   professionalId: string;
   userId: string;
-  adminId?: string;
   isAdminContext?: boolean;
 }
 
-export function ServiceManager({ professionalId, userId, adminId, isAdminContext = false }: ServiceManagerProps) {
+export function ServiceManager({ professionalId, userId, isAdminContext = false }: ServiceManagerProps) {
   const router = useRouter();
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
@@ -45,10 +44,10 @@ export function ServiceManager({ professionalId, userId, adminId, isAdminContext
   
   // Determinar rutas según el contexto
   const getServicePath = (action: 'new' | 'edit', serviceId?: string) => {
-    if (isAdminContext && adminId) {
+    if (isAdminContext) {
       return action === 'new' 
-        ? `/admin/${adminId}/professionals/${professionalId}/services/new`
-        : `/admin/${adminId}/professionals/${professionalId}/services/${serviceId}/edit`;
+        ? `/admin/professionals/${professionalId}/services/new`
+        : `/admin/professionals/${professionalId}/services/${serviceId}/edit`;
     }
     return action === 'new'
       ? `/professional/${userId}/services/new`
@@ -56,8 +55,8 @@ export function ServiceManager({ professionalId, userId, adminId, isAdminContext
   };
   
   const getRedirectPath = () => {
-    if (isAdminContext && adminId) {
-      return `/admin/${adminId}/professionals/${professionalId}`;
+    if (isAdminContext) {
+      return `/admin/professionals/${professionalId}`;
     }
     return `/professional/${userId}/services`;
   };

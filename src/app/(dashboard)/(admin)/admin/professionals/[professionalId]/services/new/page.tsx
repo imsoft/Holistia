@@ -14,7 +14,6 @@ export default function NewAdminServicePage() {
   useUserStoreInit();
   const params = useParams();
   const router = useRouter();
-  const adminId = useUserId();
   const professionalId = params.professionalId as string;
   const [userId, setUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -58,7 +57,7 @@ export default function NewAdminServicePage() {
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <p className="text-muted-foreground mb-4">No se pudo obtener la información del profesional</p>
-          <Button onClick={() => router.push(`/admin/${adminId}/professionals/${professionalId}`)}>
+          <Button onClick={() => router.push(`/admin/professionals/${professionalId}`)}>
             Volver
           </Button>
         </div>

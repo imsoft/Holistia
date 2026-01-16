@@ -159,6 +159,13 @@ export default function MessagesLayout({
     return currentPathname.startsWith(href);
   };
 
+  // Redirigir al login si no hay perfil después de cargar
+  useEffect(() => {
+    if (!loading && !profile) {
+      router.push(`/login?redirect=${encodeURIComponent(pathname || '/messages')}`);
+    }
+  }, [loading, profile, router, pathname]);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -170,11 +177,13 @@ export default function MessagesLayout({
     );
   }
 
+  // No renderizar si no hay perfil (se está redirigiendo)
   if (!profile) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <p className="text-sm text-muted-foreground">Error al cargar datos del usuario</p>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-2 text-sm text-muted-foreground">Redirigiendo...</p>
         </div>
       </div>
     );

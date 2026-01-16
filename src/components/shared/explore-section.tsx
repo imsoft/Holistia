@@ -553,9 +553,6 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
                               ${product.price.toFixed(2)} {product.currency}
                             </span>
                           </div>
-                          <Button variant="default" size="sm" className="w-full">
-                            Ver programa
-                          </Button>
                         </CardContent>
                       </Card>
                     </Link>
@@ -624,69 +621,70 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
               >
                 {events.map((event) => {
                   return (
-                    <Card key={event.id} className="relative shrink-0 w-[280px] sm:w-[320px] h-[480px] flex flex-col hover:shadow-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer">
-                      <div className="relative w-full h-48 bg-gray-100 shrink-0">
-                        <div className="absolute inset-0 overflow-hidden">
-                          {event.image_url ? (
-                            <Image
-                              src={event.image_url}
-                              alt={event.name}
-                              fill
-                              className="object-cover"
-                              unoptimized
-                            />
-                          ) : (
-                            <div className="w-full h-full bg-linear-to-br from-primary/20 to-primary/10 flex items-center justify-center">
-                              <Calendar className="h-16 w-16 text-primary/40" />
+                    <Link
+                      key={event.id}
+                      href={`/explore/event/${generateEventSlug(event.name, event.id)}`}
+                      className="shrink-0 w-[280px] sm:w-[320px]"
+                    >
+                      <Card className="relative h-[480px] flex flex-col hover:shadow-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer">
+                        <div className="relative w-full h-48 bg-gray-100 shrink-0">
+                          <div className="absolute inset-0 overflow-hidden">
+                            {event.image_url ? (
+                              <Image
+                                src={event.image_url}
+                                alt={event.name}
+                                fill
+                                className="object-cover"
+                                unoptimized
+                              />
+                            ) : (
+                              <div className="w-full h-full bg-linear-to-br from-primary/20 to-primary/10 flex items-center justify-center">
+                                <Calendar className="h-16 w-16 text-primary/40" />
+                              </div>
+                            )}
+                          </div>
+                          {showFavorites && (
+                            <div 
+                              className="absolute top-3 right-3 pointer-events-auto" 
+                              style={{ zIndex: 9999, position: 'absolute', top: '12px', right: '12px' }}
+                            >
+                              <FavoriteButton
+                                itemId={event.id}
+                                favoriteType="event"
+                                variant="floating"
+                              />
                             </div>
                           )}
                         </div>
-                        {showFavorites && (
-                          <div 
-                            className="absolute top-3 right-3 pointer-events-auto" 
-                            style={{ zIndex: 9999, position: 'absolute', top: '12px', right: '12px' }}
-                          >
-                            <FavoriteButton
-                              itemId={event.id}
-                              favoriteType="event"
-                              variant="floating"
-                            />
+                        <CardHeader className="pb-1.5 px-4 pt-3">
+                          <CardTitle className="text-lg line-clamp-2">{event.name}</CardTitle>
+                          <div className="flex flex-wrap gap-1.5 mt-1">
+                            {event.category && (
+                              <Badge variant="secondary" className="text-xs">{getCategoryLabel(event.category)}</Badge>
+                            )}
+                            {event.price !== null && (
+                              <Badge variant="outline" className="text-xs">
+                                {event.price === 0 ? 'Gratis' : `$${event.price}`}
+                              </Badge>
+                            )}
                           </div>
-                        )}
-                      </div>
-                      <CardHeader className="pb-1.5 px-4 pt-3">
-                        <CardTitle className="text-lg line-clamp-2">{event.name}</CardTitle>
-                        <div className="flex flex-wrap gap-1.5 mt-1">
-                          {event.category && (
-                            <Badge variant="secondary" className="text-xs">{getCategoryLabel(event.category)}</Badge>
-                          )}
-                          {event.price !== null && (
-                            <Badge variant="outline" className="text-xs">
-                              {event.price === 0 ? 'Gratis' : `$${event.price}`}
-                            </Badge>
-                          )}
-                        </div>
-                      </CardHeader>
-                      <CardContent className="px-4 pt-0 pb-3 flex flex-col grow">
-                        <div className="grow">
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1.5">
-                            <Calendar className="w-4 h-4 shrink-0" />
-                            <span className="line-clamp-1">{formatDate(event.event_date)}</span>
-                          </div>
-                          {event.location && (
-                            <div className="flex items-start gap-2 text-sm text-muted-foreground mb-2">
-                              <MapPin className="w-4 h-4 shrink-0 mt-0.5" />
-                              <span className="line-clamp-2">{event.location}</span>
+                        </CardHeader>
+                        <CardContent className="px-4 pt-0 pb-3 flex flex-col grow">
+                          <div className="grow">
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1.5">
+                              <Calendar className="w-4 h-4 shrink-0" />
+                              <span className="line-clamp-1">{formatDate(event.event_date)}</span>
                             </div>
-                          )}
-                        </div>
-                        <Button variant="default" size="sm" className="w-full" asChild>
-                          <Link href={`/explore/event/${generateEventSlug(event.name, event.id)}`}>
-                            Ver evento
-                          </Link>
-                        </Button>
-                      </CardContent>
-                    </Card>
+                            {event.location && (
+                              <div className="flex items-start gap-2 text-sm text-muted-foreground mb-2">
+                                <MapPin className="w-4 h-4 shrink-0 mt-0.5" />
+                                <span className="line-clamp-2">{event.location}</span>
+                              </div>
+                            )}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </Link>
                   );
                 })}
               </div>
@@ -861,71 +859,72 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
                   const cleanDescription = shop.description ? stripHtml(shop.description) : null;
                   
                   return (
-                    <Card key={shop.id} className="relative shrink-0 w-[280px] sm:w-[320px] h-[480px] flex flex-col hover:shadow-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer">
-                      <div className="relative w-full h-48 bg-gray-100 shrink-0">
-                        <div className="absolute inset-0 overflow-hidden">
-                          {mainImage ? (
-                            <Image
-                              src={mainImage}
-                              alt={shop.name}
-                              fill
-                              className="object-cover"
-                              unoptimized
-                            />
-                          ) : (
-                            <div className="w-full h-full bg-linear-to-br from-primary/20 to-primary/10 flex items-center justify-center">
-                              <Store className="h-16 w-16 text-primary/40" />
-                            </div>
-                          )}
-                        </div>
-                        {showFavorites && (
-                          <div 
-                            className="absolute top-3 right-3 pointer-events-auto" 
-                            style={{ zIndex: 9999, position: 'absolute', top: '12px', right: '12px' }}
-                          >
-                            <FavoriteButton
-                              itemId={shop.id}
-                              favoriteType="shop"
-                              variant="floating"
-                            />
+                    <Link
+                      key={shop.id}
+                      href={`/explore/shop/${shop.id}`}
+                      className="shrink-0 w-[280px] sm:w-[320px]"
+                    >
+                      <Card className="relative h-[480px] flex flex-col hover:shadow-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer">
+                        <div className="relative w-full h-48 bg-gray-100 shrink-0">
+                          <div className="absolute inset-0 overflow-hidden">
+                            {mainImage ? (
+                              <Image
+                                src={mainImage}
+                                alt={shop.name}
+                                fill
+                                className="object-cover"
+                                unoptimized
+                              />
+                            ) : (
+                              <div className="w-full h-full bg-linear-to-br from-primary/20 to-primary/10 flex items-center justify-center">
+                                <Store className="h-16 w-16 text-primary/40" />
+                              </div>
+                            )}
                           </div>
-                        )}
-                      </div>
-                      <CardHeader className="pb-1.5 px-4 pt-3">
-                        <CardTitle className="text-lg line-clamp-2">{shop.name}</CardTitle>
-                        <div className="flex flex-wrap gap-1.5 mt-1">
-                          {shop.category && (
-                            <Badge variant="secondary" className="text-xs">{shop.category}</Badge>
-                          )}
-                          {shop.city && (
-                            <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                              <MapPin className="w-3 h-3 shrink-0" />
-                              <span>{shop.city}</span>
+                          {showFavorites && (
+                            <div 
+                              className="absolute top-3 right-3 pointer-events-auto" 
+                              style={{ zIndex: 9999, position: 'absolute', top: '12px', right: '12px' }}
+                            >
+                              <FavoriteButton
+                                itemId={shop.id}
+                                favoriteType="shop"
+                                variant="floating"
+                              />
                             </div>
                           )}
                         </div>
-                      </CardHeader>
-                      <CardContent className="px-4 pt-0 pb-3 flex flex-col grow">
-                        <div className="grow">
-                          {cleanDescription && (
-                            <p className="text-sm text-muted-foreground line-clamp-2 mb-2">
-                              {cleanDescription}
-                            </p>
-                          )}
-                          {shop.address && (
-                            <div className="flex items-start gap-1 text-xs text-muted-foreground mb-2">
-                              <MapPin className="w-3 h-3 shrink-0 mt-0.5" />
-                              <span className="line-clamp-1">{shop.address}</span>
-                            </div>
-                          )}
-                        </div>
-                        <Button variant="default" size="sm" className="w-full" asChild>
-                          <Link href={`/explore/shop/${shop.id}`}>
-                            Ver comercio
-                          </Link>
-                        </Button>
-                      </CardContent>
-                    </Card>
+                        <CardHeader className="pb-1.5 px-4 pt-3">
+                          <CardTitle className="text-lg line-clamp-2">{shop.name}</CardTitle>
+                          <div className="flex flex-wrap gap-1.5 mt-1">
+                            {shop.category && (
+                              <Badge variant="secondary" className="text-xs">{shop.category}</Badge>
+                            )}
+                            {shop.city && (
+                              <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                <MapPin className="w-3 h-3 shrink-0" />
+                                <span>{shop.city}</span>
+                              </div>
+                            )}
+                          </div>
+                        </CardHeader>
+                        <CardContent className="px-4 pt-0 pb-3 flex flex-col grow">
+                          <div className="grow">
+                            {cleanDescription && (
+                              <p className="text-sm text-muted-foreground line-clamp-2 mb-2">
+                                {cleanDescription}
+                              </p>
+                            )}
+                            {shop.address && (
+                              <div className="flex items-start gap-1 text-xs text-muted-foreground mb-2">
+                                <MapPin className="w-3 h-3 shrink-0 mt-0.5" />
+                                <span className="line-clamp-1">{shop.address}</span>
+                              </div>
+                            )}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </Link>
                   );
                 })}
               </div>
@@ -995,68 +994,69 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
                   const cleanDescription = center.description ? stripHtml(center.description) : null;
                   
                   return (
-                    <Card key={center.id} className="group relative shrink-0 w-[280px] sm:w-[320px] h-[480px] flex flex-col hover:shadow-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer">
-                      <div className="relative w-full h-48 bg-gray-100 shrink-0">
-                        <div className="absolute inset-0 overflow-hidden">
-                          {center.image_url ? (
-                            <Image
-                              src={center.image_url}
-                              alt={center.name}
-                              fill
-                              className="object-cover"
-                              unoptimized
-                            />
-                          ) : (
-                            <div className="w-full h-full bg-linear-to-br from-primary/20 to-primary/10 flex items-center justify-center">
-                              <Building2 className="h-16 w-16 text-primary/40" />
-                            </div>
-                          )}
-                        </div>
-                        {showFavorites && (
-                          <div 
-                            className="absolute top-3 right-3 pointer-events-auto" 
-                            style={{ zIndex: 9999, position: 'absolute', top: '12px', right: '12px' }}
-                          >
-                            <FavoriteButton
-                              itemId={center.id}
-                              favoriteType="holistic_center"
-                              variant="floating"
-                            />
+                    <Link
+                      key={center.id}
+                      href={`/explore/holistic-center/${center.id}`}
+                      className="shrink-0 w-[280px] sm:w-[320px]"
+                    >
+                      <Card className="group relative h-[480px] flex flex-col hover:shadow-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer">
+                        <div className="relative w-full h-48 bg-gray-100 shrink-0">
+                          <div className="absolute inset-0 overflow-hidden">
+                            {center.image_url ? (
+                              <Image
+                                src={center.image_url}
+                                alt={center.name}
+                                fill
+                                className="object-cover"
+                                unoptimized
+                              />
+                            ) : (
+                              <div className="w-full h-full bg-linear-to-br from-primary/20 to-primary/10 flex items-center justify-center">
+                                <Building2 className="h-16 w-16 text-primary/40" />
+                              </div>
+                            )}
                           </div>
-                        )}
-                      </div>
-                      <CardHeader className="pb-1.5 px-4 pt-3">
-                        <CardTitle className="text-lg line-clamp-2 group-hover:text-primary transition-colors">{center.name}</CardTitle>
-                        <div className="flex flex-wrap gap-1.5 mt-1">
-                          {center.city && (
-                            <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                              <MapPin className="w-3 h-3 shrink-0" />
-                              <span>{center.city}</span>
+                          {showFavorites && (
+                            <div 
+                              className="absolute top-3 right-3 pointer-events-auto" 
+                              style={{ zIndex: 9999, position: 'absolute', top: '12px', right: '12px' }}
+                            >
+                              <FavoriteButton
+                                itemId={center.id}
+                                favoriteType="holistic_center"
+                                variant="floating"
+                              />
                             </div>
                           )}
                         </div>
-                      </CardHeader>
-                      <CardContent className="px-4 pt-0 pb-3 flex flex-col grow">
-                        <div className="grow">
-                          {cleanDescription && (
-                            <p className="text-sm text-muted-foreground line-clamp-2 mb-2">
-                              {cleanDescription}
-                            </p>
-                          )}
-                          {center.address && (
-                            <div className="flex items-start gap-1 text-xs text-muted-foreground mb-2">
-                              <MapPin className="w-3 h-3 shrink-0 mt-0.5" />
-                              <span className="line-clamp-1">{center.address}</span>
-                            </div>
-                          )}
-                        </div>
-                        <Button variant="default" size="sm" className="w-full" asChild>
-                          <Link href={`/explore/holistic-center/${center.id}`}>
-                            Ver centro
-                          </Link>
-                        </Button>
-                      </CardContent>
-                    </Card>
+                        <CardHeader className="pb-1.5 px-4 pt-3">
+                          <CardTitle className="text-lg line-clamp-2 group-hover:text-primary transition-colors">{center.name}</CardTitle>
+                          <div className="flex flex-wrap gap-1.5 mt-1">
+                            {center.city && (
+                              <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                <MapPin className="w-3 h-3 shrink-0" />
+                                <span>{center.city}</span>
+                              </div>
+                            )}
+                          </div>
+                        </CardHeader>
+                        <CardContent className="px-4 pt-0 pb-3 flex flex-col grow">
+                          <div className="grow">
+                            {cleanDescription && (
+                              <p className="text-sm text-muted-foreground line-clamp-2 mb-2">
+                                {cleanDescription}
+                              </p>
+                            )}
+                            {center.address && (
+                              <div className="flex items-start gap-1 text-xs text-muted-foreground mb-2">
+                                <MapPin className="w-3 h-3 shrink-0 mt-0.5" />
+                                <span className="line-clamp-1">{center.address}</span>
+                              </div>
+                            )}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </Link>
                   );
                 })}
               </div>
@@ -1121,62 +1121,63 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
                 }}
               >
                 {restaurants.map((restaurant) => (
-                  <Card key={restaurant.id} className="relative shrink-0 w-[280px] sm:w-[320px] h-[480px] flex flex-col hover:shadow-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer">
-                    <div className="relative w-full h-48 bg-gray-100 shrink-0">
-                      <div className="absolute inset-0 overflow-hidden">
-                        {restaurant.image_url ? (
-                          <Image
-                            src={restaurant.image_url}
-                            alt={restaurant.name}
-                            fill
-                            className="object-cover"
-                            unoptimized
-                          />
-                        ) : (
-                          <div className="w-full h-full bg-linear-to-br from-primary/20 to-primary/10 flex items-center justify-center">
-                            <UtensilsCrossed className="h-16 w-16 text-primary/40" />
+                  <Link
+                    key={restaurant.id}
+                    href={`/explore/restaurant/${restaurant.id}`}
+                    className="shrink-0 w-[280px] sm:w-[320px]"
+                  >
+                    <Card className="relative h-[480px] flex flex-col hover:shadow-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer">
+                      <div className="relative w-full h-48 bg-gray-100 shrink-0">
+                        <div className="absolute inset-0 overflow-hidden">
+                          {restaurant.image_url ? (
+                            <Image
+                              src={restaurant.image_url}
+                              alt={restaurant.name}
+                              fill
+                              className="object-cover"
+                              unoptimized
+                            />
+                          ) : (
+                            <div className="w-full h-full bg-linear-to-br from-primary/20 to-primary/10 flex items-center justify-center">
+                              <UtensilsCrossed className="h-16 w-16 text-primary/40" />
+                            </div>
+                          )}
+                        </div>
+                        {showFavorites && (
+                          <div 
+                            className="absolute top-3 right-3 pointer-events-auto" 
+                            style={{ zIndex: 9999, position: 'absolute', top: '12px', right: '12px' }}
+                          >
+                            <FavoriteButton
+                              itemId={restaurant.id}
+                              favoriteType="restaurant"
+                              variant="floating"
+                            />
                           </div>
                         )}
                       </div>
-                      {showFavorites && (
-                        <div 
-                          className="absolute top-3 right-3 pointer-events-auto" 
-                          style={{ zIndex: 9999, position: 'absolute', top: '12px', right: '12px' }}
-                        >
-                          <FavoriteButton
-                            itemId={restaurant.id}
-                            favoriteType="restaurant"
-                            variant="floating"
-                          />
+                      <CardHeader className="pb-1.5 px-4 pt-3">
+                        <CardTitle className="text-lg line-clamp-2">{restaurant.name}</CardTitle>
+                        <div className="flex flex-wrap gap-1.5 mt-1">
+                          {restaurant.cuisine_type && (
+                            <Badge variant="secondary" className="text-xs">{restaurant.cuisine_type}</Badge>
+                          )}
+                          {restaurant.price_range && (
+                            <Badge variant="outline" className="text-xs">{restaurant.price_range}</Badge>
+                          )}
                         </div>
-                      )}
-                    </div>
-                    <CardHeader className="pb-1.5 px-4 pt-3">
-                      <CardTitle className="text-lg line-clamp-2">{restaurant.name}</CardTitle>
-                      <div className="flex flex-wrap gap-1.5 mt-1">
-                        {restaurant.cuisine_type && (
-                          <Badge variant="secondary" className="text-xs">{restaurant.cuisine_type}</Badge>
-                        )}
-                        {restaurant.price_range && (
-                          <Badge variant="outline" className="text-xs">{restaurant.price_range}</Badge>
-                        )}
-                      </div>
-                    </CardHeader>
-                    <CardContent className="px-4 pt-0 pb-3 flex flex-col grow">
-                      <div className="grow">
-                        {restaurant.address && (
-                          <p className="text-sm text-muted-foreground line-clamp-2 mb-2">
-                            {restaurant.address}
-                          </p>
-                        )}
-                      </div>
-                      <Button variant="default" size="sm" className="w-full" asChild>
-                        <Link href={`/explore/restaurant/${restaurant.id}`}>
-                          Ver restaurante
-                        </Link>
-                      </Button>
-                    </CardContent>
-                  </Card>
+                      </CardHeader>
+                      <CardContent className="px-4 pt-0 pb-3 flex flex-col grow">
+                        <div className="grow">
+                          {restaurant.address && (
+                            <p className="text-sm text-muted-foreground line-clamp-2 mb-2">
+                              {restaurant.address}
+                            </p>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </Link>
                 ))}
               </div>
             ) : null}

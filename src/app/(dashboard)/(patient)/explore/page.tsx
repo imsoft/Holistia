@@ -240,11 +240,14 @@ const HomeUserPage = () => {
   const shopsScrollRef = useRef<HTMLDivElement>(null);
   const digitalProductsScrollRef = useRef<HTMLDivElement>(null);
   const holisticCentersScrollRef = useRef<HTMLDivElement>(null);
-  const supabase = createClient();
 
   useEffect(() => {
+    let isMounted = true; // Flag para evitar actualizaciones de estado si el componente se desmontó
+    const supabase = createClient(); // Crear cliente dentro del efecto
+    
     const getData = async () => {
       try {
+        if (!isMounted) return;
         setLoading(true);
 
         // Cargar todos los datos en paralelo para mejorar el rendimiento
@@ -508,14 +511,22 @@ const HomeUserPage = () => {
           console.error("Error crítico:", error);
         }
       } finally {
-        setLoading(false);
+        // Solo actualizar loading si el componente aún está montado
+        if (isMounted) {
+          setLoading(false);
+        }
         // Los estados aún no se han actualizado aquí porque setState es asíncrono
         // Los logs reales están en cada sección donde se setean los datos
       }
     };
 
     getData();
-  }, [supabase]);
+    
+    // Cleanup function
+    return () => {
+      isMounted = false;
+    };
+  }, []); // Cambiar dependencias a array vacío para que solo se ejecute una vez
 
   // Asegurar que los carruseles se muestren desde el inicio cuando cambian los datos
   useEffect(() => {

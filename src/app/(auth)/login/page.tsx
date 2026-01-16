@@ -62,6 +62,14 @@ function LoginFormWithMessage() {
     setIsLoading(true);
     setError(null);
     
+    // Timeout de seguridad: si después de 10 segundos no hay respuesta, mostrar error
+    const timeoutId = setTimeout(() => {
+      setIsLoading(false);
+      const errorMessage = "El inicio de sesión está tardando demasiado. Por favor, intenta de nuevo.";
+      toast.error(errorMessage);
+      setError(errorMessage);
+    }, 10000);
+    
     try {
       const formData = new FormData();
       formData.append("email", values.email);
@@ -69,18 +77,35 @@ function LoginFormWithMessage() {
 
       const result = await login(formData);
       
+      // Limpiar el timeout si la respuesta llegó
+      clearTimeout(timeoutId);
+      
       if (result?.error) {
         // Mostrar error en toast en lugar de en la UI
         toast.error(result.error);
         setError(result.error);
         setIsLoading(false);
+      } else if (result?.success) {
+        // Si hay éxito pero no hubo redirect, usar window.location como fallback
+        // Esto no debería ejecutarse normalmente ya que login() hace redirect
+        const redirect = searchParams.get('redirect') || '/dashboard';
+        window.location.href = redirect;
       }
-      // Si no hay error, la acción redirige automáticamente
-      // No llamamos setIsLoading(false) aquí para mantener el estado de carga
-    } catch (error) {
+      // Si no hay error ni success explícito, puede ser que redirect() haya sido llamado
+      // en ese caso Next.js maneja el redirect automáticamente
+    } catch (error: unknown) {
+      // Limpiar el timeout si hubo error
+      clearTimeout(timeoutId);
+      
+      // Verificar si es un error de redirect de Next.js (que no es realmente un error)
+      if (error instanceof Error && error.message.includes('NEXT_REDIRECT')) {
+        // Es un redirect, no un error real - dejar que Next.js lo maneje
+        return;
+      }
+      
       console.error("Error inesperado en login:", error);
       const errorMessage = "Ocurrió un error inesperado. Por favor, intenta de nuevo.";
-      // toast.error(errorMessage);
+      toast.error(errorMessage);
       setError(errorMessage);
       setIsLoading(false);
     }

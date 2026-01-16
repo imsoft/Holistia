@@ -21,10 +21,46 @@ export function GoogleButton({
 
   const handleGoogleSignIn = async () => {
     setIsLoading(true);
+    
+    // Timeout de seguridad: si después de 5 segundos no hay respuesta, mostrar error
+    const timeoutId = setTimeout(() => {
+      setIsLoading(false);
+      console.error("Timeout al iniciar sesión con Google");
+    }, 5000);
+    
     try {
-      await signInWithGoogle();
-    } catch (error) {
-      console.error("Error al iniciar sesión con Google:", error);
+      const result = await signInWithGoogle();
+      
+      // Limpiar timeout si la acción se completó
+      clearTimeout(timeoutId);
+      
+      if (result?.error) {
+        console.error("Error al iniciar sesión con Google:", result.error);
+        setIsLoading(false);
+        return;
+      }
+      
+      if (result?.url) {
+        // Redirigir usando window.location para asegurar que funcione
+        window.location.href = result.url;
+        // No resetear isLoading aquí porque la página se está redirigiendo
+        return;
+      }
+      
+      // Si no hay URL, mostrar error
+      console.error("No se recibió URL de autenticación");
+      setIsLoading(false);
+    } catch (error: unknown) {
+      // Limpiar timeout si hubo error
+      clearTimeout(timeoutId);
+      
+      // Verificar si es un error de redirect de Next.js (que no es realmente un error)
+      if (error instanceof Error && error.message.includes('NEXT_REDIRECT')) {
+        // Es un redirect, no un error real - dejar que Next.js lo maneje
+        return;
+      }
+      
+      console.error("Error inesperado al iniciar sesión con Google:", error);
       setIsLoading(false);
     }
   };

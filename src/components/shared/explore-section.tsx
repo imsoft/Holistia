@@ -301,6 +301,7 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
         }
 
         // Cargar centros holísticos (6 para el carousel)
+        console.log("🔍 [ExploreSection] Loading holistic centers...");
         const { data: holisticCentersData, error: holisticCentersError } = await supabase
           .from("holistic_centers")
           .select("id, name, image_url, city, description, address")
@@ -309,13 +310,13 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
           .limit(6);
 
         if (holisticCentersError) {
-          console.error("❌ Error loading holistic centers:", holisticCentersError);
+          console.error("❌ [ExploreSection] Error loading holistic centers:", holisticCentersError);
           setHolisticCenters([]);
         } else if (holisticCentersData && holisticCentersData.length > 0) {
-          console.log("✅ Holistic centers loaded:", holisticCentersData.length, holisticCentersData);
+          console.log("✅ [ExploreSection] Holistic centers loaded:", holisticCentersData.length, holisticCentersData);
           setHolisticCenters(holisticCentersData);
         } else {
-          console.log("⚠️ No holistic centers found or array is empty. Data:", holisticCentersData);
+          console.log("⚠️ [ExploreSection] No holistic centers found or array is empty. Data:", holisticCentersData);
           setHolisticCenters([]);
         }
       } catch (error) {
@@ -924,7 +925,10 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
         ) : null}
 
         {/* 5. Centros Holísticos */}
-        {(!loading && holisticCenters.length > 0) || loading ? (
+        {(() => {
+          console.log("🔍 [ExploreSection] Rendering holistic centers section:", { loading, centersCount: holisticCenters.length, centers: holisticCenters });
+          return (!loading && holisticCenters.length > 0) || loading;
+        })() ? (
           <div className="mb-16">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-2">
               <div>

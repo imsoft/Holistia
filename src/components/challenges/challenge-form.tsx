@@ -708,6 +708,8 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
           });
         }
         
+        setSaving(false);
+        
         if (onFormSubmit) {
           onFormSubmit();
         } else if (showButtons) {

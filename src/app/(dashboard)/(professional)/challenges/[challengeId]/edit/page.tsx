@@ -40,6 +40,7 @@ export default function EditProfessionalChallengePage() {
 
   const [challenge, setChallenge] = useState<Challenge | null>(null);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
 
   const supabase = createClient();
 
@@ -113,6 +114,28 @@ export default function EditProfessionalChallengePage() {
     return null;
   }
 
+  const handleFormSubmit = () => {
+    setSaving(false);
+    // Recargar los datos del challenge después de actualizar
+    fetchChallenge();
+  };
+
+  const handleCancel = () => {
+    router.push(`/challenges`);
+  };
+
+  const handleUpdate = () => {
+    setSaving(true);
+    // El formulario se enviará automáticamente cuando se haga submit
+    const form = document.getElementById('challenge-form') as HTMLFormElement;
+    if (form) {
+      form.requestSubmit();
+    } else {
+      setSaving(false);
+      toast.error("No se pudo encontrar el formulario");
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <div className="border-b border-border bg-card">
@@ -135,12 +158,35 @@ export default function EditProfessionalChallengePage() {
             challenge={challenge}
             redirectPath={`/challenges`}
             userType="professional"
-            onFormSubmit={() => {
-              // Recargar los datos del challenge después de actualizar
-              fetchChallenge();
-            }}
+            onFormSubmit={handleFormSubmit}
             showButtons={false}
           />
+
+          {/* Botones al final absoluto - DESPUÉS de todas las cards */}
+          <div className="flex gap-3 justify-end pt-6 border-t">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleCancel}
+              disabled={saving}
+            >
+              Cancelar
+            </Button>
+            <Button
+              type="button"
+              onClick={handleUpdate}
+              disabled={saving}
+            >
+              {saving ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Guardando...
+                </>
+              ) : (
+                "Actualizar Reto"
+              )}
+            </Button>
+          </div>
         </div>
       </div>
     </div>

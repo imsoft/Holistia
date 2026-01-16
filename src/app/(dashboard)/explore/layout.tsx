@@ -157,9 +157,18 @@ export default function ExploreLayout({
     return currentPathname.startsWith(href);
   };
 
-  // Si no está autenticado y es una página de programa, no mostrar el layout del dashboard
-  // (la página de programa manejará su propio navbar)
-  if (isAuthenticated === false && pathname?.startsWith('/explore/program/')) {
+  // Si no está autenticado y es una página pública de detalle, no mostrar el layout del dashboard
+  // (estas páginas manejarán su propio navbar)
+  const publicDetailPages = [
+    '/explore/program/',
+    '/explore/event/',
+    '/explore/professional/',
+    '/explore/holistic-center/',
+    '/explore/shop/',
+    '/explore/restaurant/',
+  ];
+
+  if (isAuthenticated === false && pathname && publicDetailPages.some(page => pathname.startsWith(page))) {
     return <>{children}</>;
   }
 
@@ -172,13 +181,6 @@ export default function ExploreLayout({
         </div>
       </div>
     );
-  }
-
-  // Si no está autenticado, redirigir al login o mostrar contenido sin navbar del dashboard
-  if (isAuthenticated === false) {
-    // Para otras páginas de explore, también podemos no mostrar el navbar del dashboard
-    // pero por ahora solo lo hacemos para programas
-    return <>{children}</>;
   }
 
   const userName = profile?.first_name && profile?.last_name 

@@ -60,6 +60,10 @@ import { FollowStats } from "@/components/ui/follow-stats";
 import { ChallengeCard } from "@/components/ui/challenge-card";
 import { Target } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Navbar } from "@/components/shared/navbar";
+import { Footer } from "@/components/shared/footer";
+import { useRouter } from "next/navigation";
+import { ArrowLeft } from "lucide-react";
 
 interface Professional {
   id: string;
@@ -126,9 +130,21 @@ interface CurrentUser {
 }
 
 export default function ProfessionalProfilePage() {
+  const router = useRouter();
   const [professional, setProfessional] = useState<Professional | null>(null);
   const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const supabase = createClient();
+
+  // Verificar si el usuario está autenticado
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setIsAuthenticated(!!user);
+    };
+    checkAuth();
+  }, [supabase]);
   const [isFavorite, setIsFavorite] = useState(false);
   const [favoriteLoading, setFavoriteLoading] = useState(false);
   const [bookingLoading, setBookingLoading] = useState(false);
@@ -929,7 +945,7 @@ export default function ProfessionalProfilePage() {
     }
   };
 
-  if (loading) {
+  if (loading || isAuthenticated === null) {
     return (
       <div className="min-h-screen bg-background">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
@@ -980,9 +996,9 @@ export default function ProfessionalProfilePage() {
     );
   }
 
-  return (
-    <div className="min-h-screen bg-background">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+  // Función para renderizar el contenido del profesional
+  const renderProfessionalContent = () => (
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         {/* Header del profesional */}
         <div className="mb-8 sm:mb-12">
           <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 sm:gap-6">
@@ -1226,53 +1242,76 @@ export default function ProfessionalProfilePage() {
 
               {/* Botones de acción */}
               <div className="space-y-2 sm:space-y-3">
-                <Button
-                  type="button"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    console.log('🔵 Click en botón Reservar cita');
-                    setIsBookingModalOpen(true);
-                    console.log('🔵 Estado isBookingModalOpen actualizado a:', true);
-                  }}
-                  onTouchStart={(e) => {
-                    e.stopPropagation();
-                  }}
-                  onTouchEnd={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    console.log('🔵 TouchEnd en botón Reservar cita');
-                    setIsBookingModalOpen(true);
-                    console.log('🔵 Estado isBookingModalOpen actualizado a:', true);
-                  }}
-                  className="w-full h-11 sm:h-12 text-sm sm:text-base font-semibold rounded-xl bg-linear-to-r from-green-300 to-green-400 hover:from-green-400 hover:to-green-500 shadow-lg text-white touch-manipulation"
-                  style={{
-                    touchAction: 'manipulation',
-                    WebkitTapHighlightColor: 'transparent',
-                    userSelect: 'none',
-                    WebkitUserSelect: 'none',
-                    WebkitTouchCallout: 'none',
-                    position: 'relative',
-                    zIndex: 10,
-                    pointerEvents: 'auto'
-                  }}
-                >
-                  <Calendar className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
-                  Reservar cita
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={async (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    await handleOpenMessageDialog();
-                  }}
-                  className="w-full h-11 sm:h-12 text-sm sm:text-base font-semibold rounded-xl"
-                >
-                  <MessageSquare className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
-                  Enviar Mensaje
-                </Button>
+                {!isAuthenticated ? (
+                  <>
+                    <Button
+                      type="button"
+                      onClick={() => router.push(`/signup?redirect=${encodeURIComponent(`/explore/professional/${slugParam}`)}`)}
+                      className="w-full h-11 sm:h-12 text-sm sm:text-base font-semibold rounded-xl bg-linear-to-r from-green-300 to-green-400 hover:from-green-400 hover:to-green-500 shadow-lg text-white touch-manipulation"
+                    >
+                      <Calendar className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+                      Registrarse para reservar
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => router.push(`/login?redirect=${encodeURIComponent(`/explore/professional/${slugParam}`)}`)}
+                      className="w-full h-11 sm:h-12 text-sm sm:text-base font-semibold rounded-xl"
+                    >
+                      Ya tengo cuenta
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Button
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        console.log('🔵 Click en botón Reservar cita');
+                        setIsBookingModalOpen(true);
+                        console.log('🔵 Estado isBookingModalOpen actualizado a:', true);
+                      }}
+                      onTouchStart={(e) => {
+                        e.stopPropagation();
+                      }}
+                      onTouchEnd={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        console.log('🔵 TouchEnd en botón Reservar cita');
+                        setIsBookingModalOpen(true);
+                        console.log('🔵 Estado isBookingModalOpen actualizado a:', true);
+                      }}
+                      className="w-full h-11 sm:h-12 text-sm sm:text-base font-semibold rounded-xl bg-linear-to-r from-green-300 to-green-400 hover:from-green-400 hover:to-green-500 shadow-lg text-white touch-manipulation"
+                      style={{
+                        touchAction: 'manipulation',
+                        WebkitTapHighlightColor: 'transparent',
+                        userSelect: 'none',
+                        WebkitUserSelect: 'none',
+                        WebkitTouchCallout: 'none',
+                        position: 'relative',
+                        zIndex: 10,
+                        pointerEvents: 'auto'
+                      }}
+                    >
+                      <Calendar className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+                      Reservar cita
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={async (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        await handleOpenMessageDialog();
+                      }}
+                      className="w-full h-11 sm:h-12 text-sm sm:text-base font-semibold rounded-xl"
+                    >
+                      <MessageSquare className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+                      Enviar Mensaje
+                    </Button>
+                  </>
+                )}
               </div>
             </div>
 
@@ -1585,59 +1624,111 @@ export default function ProfessionalProfilePage() {
 
                 {/* Botones de acción */}
                 <div className="space-y-2 sm:space-y-3">
-                  <Button
-                    type="button"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      console.log('🔵 Click en botón Reservar cita (servicios)');
-                      setIsBookingModalOpen(true);
-                      console.log('🔵 Estado isBookingModalOpen actualizado a:', true);
-                    }}
-                    onTouchStart={(e) => {
-                      e.stopPropagation();
-                    }}
-                    onTouchEnd={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      console.log('🔵 TouchEnd en botón Reservar cita (servicios)');
-                      setIsBookingModalOpen(true);
-                      console.log('🔵 Estado isBookingModalOpen actualizado a:', true);
-                    }}
-                    className="w-full h-11 sm:h-12 text-sm sm:text-base font-semibold rounded-xl bg-linear-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 shadow-lg text-white touch-manipulation"
-                    style={{ 
-                      touchAction: 'manipulation', 
-                      WebkitTapHighlightColor: 'transparent',
-                      userSelect: 'none',
-                      WebkitUserSelect: 'none',
-                      WebkitTouchCallout: 'none',
-                      position: 'relative',
-                      zIndex: 10,
-                      pointerEvents: 'auto'
-                    }}
-                  >
-                    <Calendar className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
-                    Reservar cita
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={async (e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      await handleOpenMessageDialog();
-                    }}
-                    className="w-full h-11 sm:h-12 text-sm sm:text-base font-semibold rounded-xl"
-                  >
-                    <MessageSquare className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
-                    Enviar Mensaje
-                  </Button>
-                          </div>
-                        </div>
-                                        </div>
-                                    </div>
+                  {!isAuthenticated ? (
+                    <>
+                      <Button
+                        type="button"
+                        onClick={() => router.push(`/signup?redirect=${encodeURIComponent(`/explore/professional/${slugParam}`)}`)}
+                        className="w-full h-11 sm:h-12 text-sm sm:text-base font-semibold rounded-xl bg-linear-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 shadow-lg text-white touch-manipulation"
+                      >
+                        <Calendar className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+                        Registrarse para reservar
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => router.push(`/login?redirect=${encodeURIComponent(`/explore/professional/${slugParam}`)}`)}
+                        className="w-full h-11 sm:h-12 text-sm sm:text-base font-semibold rounded-xl"
+                      >
+                        Ya tengo cuenta
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <Button
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          console.log('🔵 Click en botón Reservar cita (servicios)');
+                          setIsBookingModalOpen(true);
+                          console.log('🔵 Estado isBookingModalOpen actualizado a:', true);
+                        }}
+                        onTouchStart={(e) => {
+                          e.stopPropagation();
+                        }}
+                        onTouchEnd={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          console.log('🔵 TouchEnd en botón Reservar cita (servicios)');
+                          setIsBookingModalOpen(true);
+                          console.log('🔵 Estado isBookingModalOpen actualizado a:', true);
+                        }}
+                        className="w-full h-11 sm:h-12 text-sm sm:text-base font-semibold rounded-xl bg-linear-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 shadow-lg text-white touch-manipulation"
+                        style={{ 
+                          touchAction: 'manipulation', 
+                          WebkitTapHighlightColor: 'transparent',
+                          userSelect: 'none',
+                          WebkitUserSelect: 'none',
+                          WebkitTouchCallout: 'none',
+                          position: 'relative',
+                          zIndex: 10,
+                          pointerEvents: 'auto'
+                        }}
+                      >
+                        <Calendar className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+                        Reservar cita
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={async (e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          await handleOpenMessageDialog();
+                        }}
+                        className="w-full h-11 sm:h-12 text-sm sm:text-base font-semibold rounded-xl"
+                      >
+                        <MessageSquare className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+                        Enviar Mensaje
+                      </Button>
+                    </>
+                  )}
+                </div>
+                      </div>
+                    </div>
         </div>
       </div>
+    </div>
+  );
+
+  // Si no está autenticado, mostrar con navbar público
+  if (!isAuthenticated) {
+    return (
+      <>
+        <Navbar />
+        <div className="min-h-screen bg-background">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+            <Button
+              variant="ghost"
+              onClick={() => router.push('/')}
+              className="mb-6"
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Volver
+            </Button>
+            {renderProfessionalContent()}
+          </div>
+        </div>
+        <Footer />
+      </>
+    );
+  }
+
+  // Si está autenticado, mostrar con layout normal (navbar del dashboard)
+  return (
+    <>
+      {renderProfessionalContent()}
 
       {/* Dialog de Solicitud de Cotización */}
       <Dialog open={isQuoteDialogOpen} onOpenChange={(open) => {
@@ -2165,6 +2256,36 @@ export default function ProfessionalProfilePage() {
           </div>
         </div>
       </BookingDialog>
+    </>
+  );
+
+  // Si no está autenticado, mostrar con navbar público
+  if (!isAuthenticated) {
+    return (
+      <>
+        <Navbar />
+        <div className="min-h-screen bg-background">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+            <Button
+              variant="ghost"
+              onClick={() => router.push('/')}
+              className="mb-6"
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Volver
+            </Button>
+            {renderProfessionalContent()}
+          </div>
+        </div>
+        <Footer />
+      </>
+    );
+  }
+
+  // Si está autenticado, mostrar con layout normal (navbar del dashboard)
+  return (
+    <div className="min-h-screen bg-background">
+      {renderProfessionalContent()}
     </div>
   );
 }

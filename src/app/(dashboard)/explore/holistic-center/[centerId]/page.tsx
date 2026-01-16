@@ -27,6 +27,8 @@ import { Separator } from "@/components/ui/separator";
 import { FavoriteButton } from "@/components/ui/favorite-button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatPhone, formatPhoneForTel } from "@/utils/phone-utils";
+import { Navbar } from "@/components/shared/navbar";
+import { Footer } from "@/components/shared/footer";
 
 interface HolisticCenter {
   id: string;
@@ -52,7 +54,17 @@ export default function HolisticCenterDetailPage() {
   const centerId = params.centerId as string;
   const [center, setCenter] = useState<HolisticCenter | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const supabase = createClient();
+
+  // Verificar si el usuario está autenticado
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setIsAuthenticated(!!user);
+    };
+    checkAuth();
+  }, [supabase]);
 
   const handleShare = async () => {
     const shareUrl = `${window.location.origin}/explore/holistic-center/${centerId}`;
@@ -139,7 +151,7 @@ export default function HolisticCenterDetailPage() {
     getCenterData();
   }, [centerId, supabase]);
 
-  if (loading) {
+  if (loading || isAuthenticated === null) {
     return (
       <div className="min-h-screen bg-background">
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
@@ -177,11 +189,12 @@ export default function HolisticCenterDetailPage() {
     );
   }
 
-  const formattedHours = center.opening_hours ? formatOpeningHours(center.opening_hours) : null;
-
-  return (
-    <div className="min-h-screen bg-background">
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+  // Función para renderizar el contenido del centro holístico
+  const renderCenterContent = () => {
+    const formattedHours = center.opening_hours ? formatOpeningHours(center.opening_hours) : null;
+    
+    return (
+    <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         {/* Botón de regresar */}
         <Button
           variant="ghost"
@@ -349,6 +362,26 @@ export default function HolisticCenterDetailPage() {
           </Card>
         )}
       </main>
+    );
+  };
+
+  // Si no está autenticado, mostrar con navbar público
+  if (!isAuthenticated) {
+    return (
+      <>
+        <Navbar />
+        <div className="min-h-screen bg-background">
+          {renderCenterContent()}
+        </div>
+        <Footer />
+      </>
+    );
+  }
+
+  // Si está autenticado, mostrar con layout normal (navbar del dashboard)
+  return (
+    <div className="min-h-screen bg-background">
+      {renderCenterContent()}
     </div>
   );
 }

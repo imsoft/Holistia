@@ -25,6 +25,8 @@ import Image from "next/image";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatPhone, formatPhoneForTel } from "@/utils/phone-utils";
+import { Navbar } from "@/components/shared/navbar";
+import { Footer } from "@/components/shared/footer";
 
 interface Restaurant {
   id: string;
@@ -64,7 +66,17 @@ export default function RestaurantDetailPage() {
   const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
   const [menus, setMenus] = useState<RestaurantMenu[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const supabase = createClient();
+
+  // Verificar si el usuario está autenticado
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setIsAuthenticated(!!user);
+    };
+    checkAuth();
+  }, [supabase]);
 
   const handleShare = async () => {
     const shareUrl = `${window.location.origin}/explore/restaurant/${restaurantId}`;
@@ -124,7 +136,7 @@ export default function RestaurantDetailPage() {
     getRestaurantData();
   }, [restaurantId, supabase]);
 
-  if (loading) {
+  if (loading || isAuthenticated === null) {
     return (
       <div className="min-h-screen bg-background">
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
@@ -162,9 +174,9 @@ export default function RestaurantDetailPage() {
     );
   }
 
-  return (
-    <div className="min-h-screen bg-background">
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+  // Función para renderizar el contenido del restaurante
+  const renderRestaurantContent = () => (
+    <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         {/* Botón de regresar */}
         <Button
           variant="ghost"
@@ -385,6 +397,26 @@ export default function RestaurantDetailPage() {
           </div>
         )}
       </main>
+    );
+  };
+
+  // Si no está autenticado, mostrar con navbar público
+  if (!isAuthenticated) {
+    return (
+      <>
+        <Navbar />
+        <div className="min-h-screen bg-background">
+          {renderRestaurantContent()}
+        </div>
+        <Footer />
+      </>
+    );
+  }
+
+  // Si está autenticado, mostrar con layout normal (navbar del dashboard)
+  return (
+    <div className="min-h-screen bg-background">
+      {renderRestaurantContent()}
     </div>
   );
 }

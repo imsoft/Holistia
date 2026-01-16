@@ -28,6 +28,8 @@ import { toast } from "sonner";
 import EventPaymentButton from "@/components/ui/event-payment-button";
 import { formatEventDate, formatEventTime } from "@/utils/date-utils";
 import { EventQuestionsSection } from "@/components/events/event-questions-section";
+import { Navbar } from "@/components/shared/navbar";
+import { Footer } from "@/components/shared/footer";
 
 const EventDetailPage = () => {
   useUserStoreInit();
@@ -51,8 +53,18 @@ const EventDetailPage = () => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [isProfessional, setIsProfessional] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | undefined>();
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   
   const supabase = createClient();
+
+  // Verificar si el usuario está autenticado
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setIsAuthenticated(!!user);
+    };
+    checkAuth();
+  }, [supabase]);
 
   // Extraer ID del evento del slug
   // El slug tiene formato: "nombre-del-evento--uuid-del-evento"
@@ -205,7 +217,7 @@ const EventDetailPage = () => {
   };
 
 
-  if (loading) {
+  if (loading || isAuthenticated === null) {
     return (
       <div className="min-h-screen bg-background">
         <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-8">
@@ -260,11 +272,33 @@ const EventDetailPage = () => {
     );
   }
 
-  return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-8">
+  // Si no está autenticado, mostrar con navbar público
+  if (!isAuthenticated) {
+    return (
+      <>
+        <Navbar />
+        <div className="min-h-screen bg-background">
+          <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-8">
+            <Button
+              variant="ghost"
+              onClick={() => router.push('/')}
+              className="mb-6"
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Volver
+            </Button>
+            {renderEventContent()}
+          </div>
+        </div>
+        <Footer />
+      </>
+    );
+  }
 
-        <div className="grid gap-6 sm:gap-8 lg:grid-cols-3">
+  // Si está autenticado, mostrar con layout normal (navbar del dashboard)
+  // Función para renderizar el contenido del evento
+  const renderEventContent = () => (
+    <div className="grid gap-6 sm:gap-8 lg:grid-cols-3">
           {/* Contenido principal */}
           <div className="lg:col-span-2 space-y-4 sm:space-y-6">
             {/* Imagen principal con botón de compartir */}
@@ -508,6 +542,42 @@ const EventDetailPage = () => {
                       )}
                     </div>
                   </div>
+                ) : !isAuthenticated ? (
+                  <>
+                    <div className="text-center">
+                      <p className="text-xl sm:text-2xl font-bold text-primary">
+                        {event.is_free ? "Gratuito" : `$${event.price}`}
+                      </p>
+                      <p className="text-xs sm:text-sm text-muted-foreground">
+                        {event.is_free ? "Evento sin costo" : "Costo por persona"}
+                      </p>
+                    </div>
+
+                    <div className="space-y-3">
+                      <Button
+                        className="w-full text-sm sm:text-base touch-manipulation"
+                        size="lg"
+                        onClick={() => router.push(`/signup?redirect=${encodeURIComponent(`/explore/event/${slug}`)}`)}
+                      >
+                        Registrarse para participar
+                      </Button>
+                      <Button
+                        variant="outline"
+                        className="w-full text-sm sm:text-base touch-manipulation"
+                        size="lg"
+                        onClick={() => router.push(`/login?redirect=${encodeURIComponent(`/explore/event/${slug}`)}`)}
+                      >
+                        Ya tengo cuenta
+                      </Button>
+                    </div>
+
+                    <p className="text-xs text-muted-foreground text-center px-2">
+                      {event.is_free
+                        ? "Regístrate para participar en este evento. Recibirás un email de confirmación con todos los detalles."
+                        : "Regístrate para participar en este evento. Serás redirigido a Stripe para completar el pago de forma segura."
+                      }
+                    </p>
+                  </>
                 ) : (
                   <>
                     <div className="text-center">
@@ -553,7 +623,43 @@ const EventDetailPage = () => {
             </Card>
           </div>
         </div>
+  );
 
+  // Si no está autenticado, mostrar con navbar público
+  if (!isAuthenticated) {
+    return (
+      <>
+        <Navbar />
+        <div className="min-h-screen bg-background">
+          <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-8">
+            <Button
+              variant="ghost"
+              onClick={() => router.push('/')}
+              className="mb-6"
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Volver
+            </Button>
+            {renderEventContent()}
+            {/* Sección de Preguntas y Respuestas */}
+            <EventQuestionsSection
+              eventId={eventId}
+              currentUserId={currentUserId}
+              isAdmin={isAdmin}
+              isProfessional={isProfessional}
+            />
+          </div>
+        </div>
+        <Footer />
+      </>
+    );
+  }
+
+  // Si está autenticado, mostrar con layout normal (navbar del dashboard)
+  return (
+    <div className="min-h-screen bg-background">
+      <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-8">
+        {renderEventContent()}
         {/* Sección de Preguntas y Respuestas */}
         <EventQuestionsSection
           eventId={eventId}

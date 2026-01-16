@@ -59,8 +59,6 @@ interface ResourceFormData {
   description: string;
   resource_type: string;
   url: string;
-  file_size_bytes: string;
-  duration_minutes: string;
 }
 
 const emptyFormData: ResourceFormData = {
@@ -68,8 +66,6 @@ const emptyFormData: ResourceFormData = {
   description: "",
   resource_type: "link",
   url: "",
-  file_size_bytes: "",
-  duration_minutes: "",
 };
 
 export function ChallengeResourcesManager({
@@ -126,8 +122,6 @@ export function ChallengeResourcesManager({
       description: resource.description || "",
       resource_type: resource.resource_type,
       url: resource.url,
-      file_size_bytes: resource.file_size_bytes?.toString() || "",
-      duration_minutes: resource.duration_minutes?.toString() || "",
     });
   };
 
@@ -152,12 +146,6 @@ export function ChallengeResourcesManager({
         description: formData.description?.trim() || null,
         resource_type: formData.resource_type,
         url: formData.url.trim(),
-        file_size_bytes: formData.file_size_bytes
-          ? parseInt(formData.file_size_bytes)
-          : null,
-        duration_minutes: formData.duration_minutes
-          ? parseInt(formData.duration_minutes)
-          : null,
         display_order: editingId
           ? undefined
           : resources.length > 0
@@ -325,42 +313,6 @@ export function ChallengeResourcesManager({
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="file-size">Tamaño (bytes)</Label>
-                  <Input
-                    id="file-size"
-                    type="number"
-                    min="0"
-                    value={formData.file_size_bytes}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        file_size_bytes: e.target.value,
-                      })
-                    }
-                    placeholder="Opcional"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="duration">Duración (minutos)</Label>
-                  <Input
-                    id="duration"
-                    type="number"
-                    min="0"
-                    value={formData.duration_minutes}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        duration_minutes: e.target.value,
-                      })
-                    }
-                    placeholder="Opcional"
-                  />
-                </div>
-              </div>
-
               <div className="flex gap-2 justify-end">
                 <Button
                   type="button"
@@ -432,17 +384,6 @@ export function ChallengeResourcesManager({
                             <Icon className="h-3 w-3" />
                             {resourceType?.label}
                           </span>
-                          {resource.duration_minutes && (
-                            <span>{resource.duration_minutes} min</span>
-                          )}
-                          {resource.file_size_bytes && (
-                            <span>
-                              {(resource.file_size_bytes / 1024 / 1024).toFixed(
-                                2
-                              )}{" "}
-                              MB
-                            </span>
-                          )}
                           <a
                             href={resource.url}
                             target="_blank"

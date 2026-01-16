@@ -66,25 +66,50 @@ const EventDetailPage = () => {
     checkAuth();
   }, [supabase]);
 
-  // Extraer ID del evento del slug
-  // El slug tiene formato: "nombre-del-evento--uuid-del-evento"
-  // Usar regex para extraer el UUID (formato: 8-4-4-4-12 caracteres hexadecimales)
-  const uuidMatch = slug.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i);
-  const eventId = uuidMatch ? uuidMatch[0] : slug;
+  const [resolvedEventId, setResolvedEventId] = useState<string | null>(null);
 
   const fetchEventDetails = React.useCallback(async () => {
     try {
       setLoading(true);
       
-      // Obtener detalles del evento
-      const { data: eventData, error: eventError } = await supabase
+      // Primero intentar buscar por slug
+      let eventData = null;
+      let eventId = null;
+      
+      const { data: eventBySlug } = await supabase
         .from("events_workshops")
         .select("*")
-        .eq("id", eventId)
+        .eq("slug", slug)
         .eq("is_active", true)
-        .single();
+        .maybeSingle();
 
-      if (eventError) throw eventError;
+      if (eventBySlug) {
+        eventData = eventBySlug;
+        eventId = eventBySlug.id;
+      } else {
+        // Si no se encuentra por slug, intentar por ID (backward compatibility)
+        const { data: eventById, error: eventError } = await supabase
+          .from("events_workshops")
+          .select("*")
+          .eq("id", slug)
+          .eq("is_active", true)
+          .maybeSingle();
+        
+        if (eventError && eventError.code !== 'PGRST116' && eventError.code !== '22P02') {
+          throw eventError;
+        }
+        
+        if (eventById) {
+          eventData = eventById;
+          eventId = eventById.id;
+        }
+      }
+
+      if (!eventData || !eventId) {
+        throw new Error('Evento no encontrado');
+      }
+
+      setResolvedEventId(eventId);
       setEvent(eventData);
 
       // Si hay un profesional asignado, obtener sus datos
@@ -157,13 +182,13 @@ const EventDetailPage = () => {
     } finally {
       setLoading(false);
     }
-  }, [supabase, eventId, userId]);
+  }, [supabase, slug, userId]);
 
   useEffect(() => {
-    if (eventId) {
+    if (slug) {
       fetchEventDetails();
     }
-  }, [eventId, fetchEventDetails]);
+  }, [slug, fetchEventDetails]);
 
   const handleRegister = async () => {
     if (!event) return;
@@ -619,7 +644,7 @@ const EventDetailPage = () => {
             {renderEventContent()}
             {/* Sección de Preguntas y Respuestas */}
             <EventQuestionsSection
-              eventId={eventId}
+              eventId={resolvedEventId || event?.id || ''}
               currentUserId={currentUserId}
               isAdmin={isAdmin}
               isProfessional={isProfessional}
@@ -638,7 +663,7 @@ const EventDetailPage = () => {
         {renderEventContent()}
         {/* Sección de Preguntas y Respuestas */}
         <EventQuestionsSection
-          eventId={eventId}
+          eventId={resolvedEventId || event?.id || ''}
           currentUserId={currentUserId}
           isAdmin={isAdmin}
           isProfessional={isProfessional}

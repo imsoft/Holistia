@@ -199,15 +199,12 @@ export default function ProfessionalProfilePage() {
   
   const patientId = useUserId();
   const slugParam = params.slug as string;
-  
-  // Extraer UUID del slug si está presente (formato: "nombre-apellido-{uuid}" o solo UUID)
-  const uuidMatch = slugParam.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i);
-  const professionalId = uuidMatch ? uuidMatch[0] : slugParam; // Si no hay UUID, usar el slug completo (puede ser un UUID directo)
+  const [resolvedProfessionalId, setResolvedProfessionalId] = useState<string | null>(null);
 
   // Scroll al inicio cuando se carga la página (usar useLayoutEffect para ejecutar antes del render)
   useLayoutEffect(() => {
     window.scrollTo({ top: 0, behavior: 'instant' });
-  }, [professionalId]);
+  }, [slugParam]);
 
   // Obtener datos del profesional y usuario actual
   useEffect(() => {
@@ -251,35 +248,52 @@ export default function ProfessionalProfilePage() {
           });
         }
 
-        // Obtener profesional por ID
-        const { data: professionalData, error } = await supabase
+        // Primero intentar buscar por slug
+        let professionalData = null;
+        let professionalId = null;
+        
+        const { data: professionalBySlug } = await supabase
           .from('professional_applications')
           .select('*')
-          .eq('id', professionalId)
+          .eq('slug', slugParam)
           .eq('status', 'approved')
           .eq('is_active', true)
           .eq('registration_fee_paid', true)
           .gt('registration_fee_expires_at', new Date().toISOString())
           .maybeSingle();
 
-        // Manejar error PGRST116 (no rows found) - profesional no encontrado o no cumple condiciones
-        if (error) {
-          if (error.code === 'PGRST116') {
-            console.warn('⚠️ Profesional no encontrado o no cumple condiciones:', {
-              professionalId,
-              error: error.message
-            });
-            // No mostrar error al usuario, simplemente no cargar datos
+        if (professionalBySlug) {
+          professionalData = professionalBySlug;
+          professionalId = professionalBySlug.id;
+        } else {
+          // Si no se encuentra por slug, intentar por ID (backward compatibility)
+          const { data: professionalById, error } = await supabase
+            .from('professional_applications')
+            .select('*')
+            .eq('id', slugParam)
+            .eq('status', 'approved')
+            .eq('is_active', true)
+            .eq('registration_fee_paid', true)
+            .gt('registration_fee_expires_at', new Date().toISOString())
+            .maybeSingle();
+          
+          if (error && error.code !== 'PGRST116' && error.code !== '22P02') {
+            console.error('❌ Error fetching professional:', error);
             return;
           }
-          console.error('❌ Error fetching professional:', error);
+          
+          if (professionalById) {
+            professionalData = professionalById;
+            professionalId = professionalById.id;
+          }
+        }
+
+        if (!professionalData || !professionalId) {
+          console.warn('⚠️ Profesional no encontrado:', slugParam);
           return;
         }
 
-        if (!professionalData) {
-          console.warn('⚠️ Profesional no encontrado:', professionalId);
-          return;
-        }
+        setResolvedProfessionalId(professionalId);
 
         // Obtener servicios del profesional usando la función RPC para evitar problemas de RLS
         console.log('🔍 Buscando servicios para professional_id:', professionalId);
@@ -524,15 +538,19 @@ export default function ProfessionalProfilePage() {
     };
 
     getData();
+  }, [slugParam, patientId, supabase]);
 
-    // Sincronizar Google Calendar del profesional para asegurar que los eventos estén actualizados
+  // Sincronizar Google Calendar cuando se resuelve el profesional
+  useEffect(() => {
+    if (!resolvedProfessionalId) return;
+
     const syncGoogleCalendar = async () => {
       try {
         // Obtener el user_id del profesional
         const { data: professionalData } = await supabase
           .from('professional_applications')
           .select('user_id')
-          .eq('id', professionalId)
+          .eq('id', resolvedProfessionalId)
           .single();
 
         if (professionalData?.user_id) {
@@ -565,7 +583,7 @@ export default function ProfessionalProfilePage() {
 
     // Sincronizar en segundo plano sin bloquear la carga
     syncGoogleCalendar();
-  }, [professionalId, patientId, supabase]);
+  }, [resolvedProfessionalId, supabase]);
 
   // No establecer fecha inicial - el usuario debe seleccionar una fecha primero
   // useEffect(() => {

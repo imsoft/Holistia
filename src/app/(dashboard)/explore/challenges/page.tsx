@@ -15,6 +15,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import { Navbar } from "@/components/shared/navbar";
+import { Footer } from "@/components/shared/footer";
 
 interface Challenge {
   id: string;
@@ -152,8 +154,10 @@ export default function ChallengesPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+    <>
+      <Navbar />
+      <div className="min-h-screen bg-background">
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-4">
@@ -270,7 +274,9 @@ export default function ChallengesPage() {
             ))}
           </div>
         )}
-      </main>
-    </div>
+        </main>
+      </div>
+      <Footer />
+    </>
   );
 }

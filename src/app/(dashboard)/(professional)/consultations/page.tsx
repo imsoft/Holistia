@@ -15,6 +15,8 @@ import { es } from "date-fns/locale";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useUserId, useUserType, useProfessionalData } from "@/stores/user-store";
 import { useUserStoreInit } from "@/hooks/use-user-store-init";
+import { Navbar } from "@/components/shared/navbar";
+import { Footer } from "@/components/shared/footer";
 
 interface Conversation {
   id: string;
@@ -166,16 +168,18 @@ function ConsultationsPageContent() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-7xl">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-foreground mb-2 flex items-center gap-2">
-          <Users className="h-8 w-8" />
-          Consultas
-        </h1>
-        <p className="text-muted-foreground">
-          Mensajes de tus pacientes y prospectos
-        </p>
-      </div>
+    <>
+      <Navbar />
+      <div className="container mx-auto px-4 py-8 max-w-7xl">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-foreground mb-2 flex items-center gap-2">
+            <Users className="h-8 w-8" />
+            Consultas
+          </h1>
+          <p className="text-muted-foreground">
+            Mensajes de tus pacientes y prospectos
+          </p>
+        </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[calc(100vh-200px)]">
         <div className={`lg:col-span-1 ${selectedConversation ? 'hidden lg:block' : ''}`}>
@@ -287,7 +291,9 @@ function ConsultationsPageContent() {
           )}
         </div>
       </div>
-    </div>
+      </div>
+      <Footer />
+    </>
   );
 }
 

@@ -19,7 +19,6 @@ import {
 import { Menu, User, LogOut, Briefcase } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { createClient } from "@/utils/supabase/client";
 import { useProfile } from "@/hooks/use-profile";
 import { NotificationsDropdown } from "@/components/ui/notifications-dropdown";
 
@@ -165,11 +164,11 @@ export default function UserLayout({
     if (!loading && !profile) {
       const checkAuthAndRedirect = async () => {
         const supabase = createClient();
+        const currentPath = window.location.pathname;
         const { data: { user } } = await supabase.auth.getUser();
         
         if (!user) {
           // No hay usuario autenticado, redirigir al login
-          const currentPath = window.location.pathname;
           router.push(`/login?redirect=${encodeURIComponent(currentPath)}`);
         } else {
           // Hay usuario pero no perfil, intentar refrescar una vez más
@@ -197,6 +196,11 @@ export default function UserLayout({
         </div>
       </div>
     );
+  }
+
+  // Si no hay perfil, no continuar (esto no debería ejecutarse debido al early return arriba, pero TypeScript necesita la verificación)
+  if (!profile) {
+    return null;
   }
 
   const userName = profile.first_name && profile.last_name 

@@ -20,11 +20,11 @@ export default function ProfessionalLayout({
     if (!loading && !profile) {
       const checkAuthAndRedirect = async () => {
         const supabase = createClient();
+        const currentPath = window.location.pathname;
         const { data: { user } } = await supabase.auth.getUser();
         
         if (!user) {
           // No hay usuario autenticado, redirigir al login
-          const currentPath = window.location.pathname;
           router.push(`/login?redirect=${encodeURIComponent(currentPath)}`);
         } else {
           // Hay usuario pero no perfil, intentar refrescar una vez más

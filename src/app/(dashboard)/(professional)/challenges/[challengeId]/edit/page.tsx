@@ -7,6 +7,7 @@ import { useUserStoreInit } from "@/hooks/use-user-store-init";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { ChallengeForm } from "@/components/challenges/challenge-form";
+import { ChallengeResourcesManager } from "@/components/challenges/challenge-resources-manager";
 import { createClient } from "@/utils/supabase/client";
 import { toast } from "sonner";
 
@@ -162,6 +163,9 @@ export default function EditProfessionalChallengePage() {
             onFormSubmit={handleFormSubmit}
             showButtons={false}
           />
+
+          {/* Recursos del Reto */}
+          <ChallengeResourcesManager challengeId={challengeId} />
 
           {/* Botones al final absoluto - DESPUÉS de todas las cards */}
           <div className="flex gap-3 justify-end pt-6 border-t">

@@ -16,6 +16,8 @@ import {
   User,
   TrendingUp,
   Target,
+  BookOpen,
+  Video,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -42,6 +44,8 @@ interface Challenge {
   is_active: boolean;
   created_at: string;
   updated_at: string;
+  resources_count?: number;
+  meetings_count?: number;
 }
 
 export default function ProfessionalChallenges() {
@@ -88,7 +92,32 @@ export default function ProfessionalChallenges() {
         throw challengesError;
       }
 
-      setChallenges(challengesData || []);
+      // Obtener conteos de recursos y reuniones para cada challenge
+      const challengesWithCounts = await Promise.all(
+        (challengesData || []).map(async (challenge) => {
+          // Contar recursos
+          const { count: resourcesCount } = await supabase
+            .from('challenge_resources')
+            .select('*', { count: 'exact', head: true })
+            .eq('challenge_id', challenge.id)
+            .eq('is_active', true);
+
+          // Contar reuniones
+          const { count: meetingsCount } = await supabase
+            .from('challenge_meetings')
+            .select('*', { count: 'exact', head: true })
+            .eq('challenge_id', challenge.id)
+            .eq('is_active', true);
+
+          return {
+            ...challenge,
+            resources_count: resourcesCount || 0,
+            meetings_count: meetingsCount || 0,
+          };
+        })
+      );
+
+      setChallenges(challengesWithCounts);
 
       // Calcular estadísticas (sin ventas)
       setStats({
@@ -249,6 +278,20 @@ export default function ProfessionalChallenges() {
                       Reto vinculado a profesional
                     </div>
                   )}
+                  <div className="flex items-center gap-4 pt-2 border-t">
+                    {challenge.resources_count !== undefined && (
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <BookOpen className="h-4 w-4" />
+                        {challenge.resources_count} {challenge.resources_count === 1 ? 'recurso' : 'recursos'}
+                      </div>
+                    )}
+                    {challenge.meetings_count !== undefined && (
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Video className="h-4 w-4" />
+                        {challenge.meetings_count} {challenge.meetings_count === 1 ? 'reunión' : 'reuniones'}
+                      </div>
+                    )}
+                  </div>
                 </CardContent>
                 <CardContent className="pt-0">
                   <div className="flex flex-col gap-2">

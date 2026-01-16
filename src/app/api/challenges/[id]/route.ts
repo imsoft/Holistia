@@ -160,10 +160,11 @@ export async function PUT(
       updateData.linked_professional_id = (linked_professional_id && linked_professional_id !== 'none') ? linked_professional_id : null;
     }
     if (price !== undefined) {
-      // Si price es null, undefined, 0, o string vacío, guardar null. Si tiene valor válido, parsearlo.
-      const priceValue = price === null || price === undefined || price === '' || price === 0 
-        ? null 
-        : parseFloat(price.toString());
+      // Si price es null, undefined, 0, o string vacío, guardar null. Si tiene valor válido (> 0), parsearlo.
+      // Consistente con la lógica de creación (POST)
+      const priceValue = price !== null && price !== undefined && price !== '' && parseFloat(String(price)) > 0 
+        ? parseFloat(String(price)) 
+        : null;
       updateData.price = priceValue;
     }
     // currency siempre se actualiza si se envía, incluso si price es null (para mantener consistencia)

@@ -155,9 +155,21 @@ export async function PUT(
     if (category !== undefined) updateData.category = category || null;
     if (wellness_areas !== undefined) updateData.wellness_areas = wellness_areas || [];
     if (linked_patient_id !== undefined) updateData.linked_patient_id = linked_patient_id || null;
-    if (linked_professional_id !== undefined) updateData.linked_professional_id = linked_professional_id || null;
-    if (price !== undefined) updateData.price = price ? parseFloat(price.toString()) : null;
-    if (currency !== undefined) updateData.currency = currency || 'MXN';
+    if (linked_professional_id !== undefined) {
+      // Si linked_professional_id es "none" o vacío, guardar null. Si tiene valor, guardarlo.
+      updateData.linked_professional_id = (linked_professional_id && linked_professional_id !== 'none') ? linked_professional_id : null;
+    }
+    if (price !== undefined) {
+      // Si price es null, undefined, 0, o string vacío, guardar null. Si tiene valor válido, parsearlo.
+      const priceValue = price === null || price === undefined || price === '' || price === 0 
+        ? null 
+        : parseFloat(price.toString());
+      updateData.price = priceValue;
+    }
+    // currency siempre se actualiza si se envía, incluso si price es null (para mantener consistencia)
+    if (currency !== undefined) {
+      updateData.currency = currency || 'MXN';
+    }
     // Solo admins pueden cambiar professional_id
     if (isAdmin && professional_id !== undefined) {
       updateData.professional_id = professional_id || null;

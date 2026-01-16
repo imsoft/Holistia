@@ -183,7 +183,8 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
         category: challenge.category || "",
         wellness_areas: challenge.wellness_areas || [],
         linked_professional_id: challenge.linked_professional_id ? challenge.linked_professional_id : "none",
-        price: challenge.price !== null && challenge.price !== undefined ? challenge.price.toString() : "",
+        // Si price es null o undefined, usar string vacío para que el input se muestre vacío
+        price: challenge.price !== null && challenge.price !== undefined && challenge.price !== 0 ? challenge.price.toString() : "",
         currency: challenge.currency || "MXN",
         is_active: challenge.is_active !== undefined ? challenge.is_active : true,
         is_public: challenge.is_public !== undefined ? challenge.is_public : false,
@@ -658,8 +659,10 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
         category: formData.category || null,
         wellness_areas: formData.wellness_areas || [],
         linked_professional_id: formData.linked_professional_id && formData.linked_professional_id !== 'none' ? formData.linked_professional_id : null,
-        price: formData.price && formData.price.trim() !== '' ? parseFloat(formData.price) : null,
-        currency: formData.price && formData.price.trim() !== '' ? (formData.currency || 'MXN') : null,
+        // Convertir price: si está vacío o es 0, guardar null. Si tiene valor, parsear como float.
+        price: formData.price && formData.price.trim() !== '' && parseFloat(formData.price) > 0 ? parseFloat(formData.price) : null,
+        // currency solo se guarda si hay un price válido
+        currency: formData.price && formData.price.trim() !== '' && parseFloat(formData.price) > 0 ? (formData.currency || 'MXN') : (formData.currency || 'MXN'),
         is_active: formData.is_active,
       };
 

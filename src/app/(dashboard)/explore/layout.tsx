@@ -157,7 +157,7 @@ export default function ExploreLayout({
     return currentPathname.startsWith(href);
   };
 
-  // Si no está autenticado y es una página pública de detalle, no mostrar el layout del dashboard
+  // Si no está autenticado y es una página pública, no mostrar el layout del dashboard
   // (estas páginas manejarán su propio navbar)
   const publicDetailPages = [
     '/explore/program/',
@@ -167,8 +167,23 @@ export default function ExploreLayout({
     '/explore/shop/',
     '/explore/restaurant/',
   ];
+  
+  const publicListingPages = [
+    '/explore/programs',
+    '/explore/events',
+    '/explore/professionals',
+    '/explore/holistic-centers',
+    '/explore/shops',
+    '/explore/restaurants',
+    '/explore/challenges',
+  ];
 
-  if (isAuthenticated === false && pathname && publicDetailPages.some(page => pathname.startsWith(page))) {
+  const isPublicPage = pathname && (
+    publicDetailPages.some(page => pathname.startsWith(page)) ||
+    publicListingPages.some(page => pathname === page || pathname.startsWith(page + '/'))
+  );
+
+  if (isAuthenticated === false && isPublicPage) {
     return <>{children}</>;
   }
 

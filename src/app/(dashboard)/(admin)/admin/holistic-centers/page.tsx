@@ -51,6 +51,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface HolisticCenter {
   id: string;
+  slug?: string;
   name: string;
   description?: string;
   address?: string;

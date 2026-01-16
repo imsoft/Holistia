@@ -44,6 +44,7 @@ interface Professional {
 
 interface Shop {
   id: string;
+  slug?: string;
   name: string;
   image_url: string | null;
   gallery: string[] | null;
@@ -55,6 +56,7 @@ interface Shop {
 
 interface Restaurant {
   id: string;
+  slug?: string;
   name: string;
   image_url: string | null;
   cuisine_type: string | null;
@@ -64,6 +66,7 @@ interface Restaurant {
 
 interface Event {
   id: string;
+  slug?: string;
   name: string;
   image_url: string | null;
   category: string | null;
@@ -89,6 +92,7 @@ interface DigitalProduct {
 
 interface HolisticCenter {
   id: string;
+  slug?: string;
   name: string;
   image_url: string | null;
   city: string | null;

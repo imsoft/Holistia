@@ -2,6 +2,7 @@
 
 export interface Challenge {
   id: string;
+  slug?: string;
   professional_id?: string | null;
   created_by_user_id: string;
   created_by_type: 'professional' | 'patient' | 'admin';

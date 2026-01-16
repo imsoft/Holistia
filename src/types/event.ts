@@ -1,5 +1,6 @@
 export interface EventWorkshop {
   id?: string;
+  slug?: string;
   name: string;
   duration_hours: number;
   duration_unit?: "hours" | "days" | "weeks"; // Unidad de duración: horas, días o semanas

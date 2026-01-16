@@ -25,6 +25,7 @@ import {
 
 interface HolisticCenter {
   id: string;
+  slug?: string;
   name: string;
   description?: string;
   address?: string;

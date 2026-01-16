@@ -57,6 +57,7 @@ import { formatPhone } from "@/utils/phone-utils";
 
 interface Restaurant {
   id: string;
+  slug?: string;
   name: string;
   description?: string;
   address?: string;

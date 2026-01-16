@@ -30,6 +30,7 @@ import { Footer } from "@/components/shared/footer";
 
 interface Restaurant {
   id: string;
+  slug?: string;
   name: string;
   description?: string;
   address?: string;

@@ -57,6 +57,7 @@ import { formatPhone } from "@/utils/phone-utils";
 
 interface Shop {
   id: string;
+  slug?: string;
   name: string;
   description?: string;
   address?: string;

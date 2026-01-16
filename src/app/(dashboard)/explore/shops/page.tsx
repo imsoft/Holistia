@@ -24,6 +24,7 @@ import {
 
 interface Shop {
   id: string;
+  slug?: string;
   name: string;
   description?: string;
   address?: string;

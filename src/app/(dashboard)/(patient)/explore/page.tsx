@@ -84,6 +84,7 @@ interface Professional {
 
 interface Restaurant {
   id: string;
+  slug?: string;
   name: string;
   description?: string;
   address?: string;
@@ -100,6 +101,7 @@ interface Restaurant {
 
 interface Shop {
   id: string;
+  slug?: string;
   name: string;
   description?: string;
   address?: string;
@@ -140,6 +142,7 @@ interface DigitalProduct {
 
 interface HolisticCenter {
   id: string;
+  slug?: string;
   name: string;
   description?: string;
   address?: string;

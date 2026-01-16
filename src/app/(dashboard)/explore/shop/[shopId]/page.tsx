@@ -31,6 +31,7 @@ import { Footer } from "@/components/shared/footer";
 
 interface Shop {
   id: string;
+  slug?: string;
   name: string;
   description?: string;
   address?: string;

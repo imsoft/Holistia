@@ -154,41 +154,31 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
           // Try one more time to find professional by matching name from profile
           const fullName = `${profileData.first_name || ''} ${profileData.last_name || ''}`.trim();
           if (fullName) {
-            // Try exact match first
+            // Try exact match first (case-insensitive)
             let professionalByName = null;
             const { data: exactMatch } = await supabase
               .from('professional_applications')
-              .select('id, slug, first_name, last_name')
-              .eq('first_name', profileData.first_name || '')
-              .eq('last_name', profileData.last_name || '')
+              .select('id, slug, first_name, last_name, profession, profile_photo')
+              .ilike('first_name', profileData.first_name || '')
+              .ilike('last_name', profileData.last_name || '')
               .maybeSingle();
             
             professionalByName = exactMatch;
 
-            // If no exact match, try case-insensitive search
-            if (!professionalByName) {
-              const { data: caseInsensitiveMatch } = await supabase
-                .from('professional_applications')
-                .select('id, slug, first_name, last_name')
-                .ilike('first_name', profileData.first_name || '')
-                .ilike('last_name', profileData.last_name || '')
-                .maybeSingle();
-              
-              professionalByName = caseInsensitiveMatch;
-            }
-
-            // If still no match, try searching by full name concatenated
+            // If still no match, try searching all professionals and match by full name
             if (!professionalByName) {
               const { data: allProfessionals } = await supabase
                 .from('professional_applications')
-                .select('id, slug, first_name, last_name')
-                .or(`first_name.ilike.%${profileData.first_name || ''}%,last_name.ilike.%${profileData.last_name || ''}%`);
+                .select('id, slug, first_name, last_name, profession, profile_photo')
+                .limit(1000); // Limitar para no sobrecargar
               
-              // Find the best match
+              // Find the best match by comparing full names
               if (allProfessionals && allProfessionals.length > 0) {
-                professionalByName = allProfessionals.find(p => 
-                  `${p.first_name} ${p.last_name}`.toLowerCase() === fullName.toLowerCase()
-                ) || allProfessionals[0];
+                const normalizedFullName = fullName.toLowerCase().trim();
+                professionalByName = allProfessionals.find(p => {
+                  const profFullName = `${p.first_name} ${p.last_name}`.toLowerCase().trim();
+                  return profFullName === normalizedFullName;
+                });
               }
             }
             
@@ -198,19 +188,58 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
               
               authorInfo = {
                 name: fullName || 'Holistia',
-                profession: profileData.type === 'Admin' || profileData.type === 'admin' ? 'Equipo Holistia' : 'Colaborador',
-                avatar: profileData.avatar_url || undefined,
+                profession: professionalByName.profession || (profileData.type === 'Admin' || profileData.type === 'admin' ? 'Equipo Holistia' : 'Colaborador'),
+                avatar: professionalByName.profile_photo || profileData.avatar_url || undefined,
                 professionalId: professionalByName.id,
                 professionalSlug: generatedSlug,
                 isProfessional: true,
               };
             } else {
-              authorInfo = {
-                name: fullName || 'Holistia',
-                profession: profileData.type === 'Admin' || profileData.type === 'admin' ? 'Equipo Holistia' : 'Colaborador',
-                avatar: profileData.avatar_url || undefined,
-                isProfessional: false,
-              };
+              // Even if not found as professional, if we have a profile, we can still try to create a link
+              // by searching in professional_applications with a more lenient search
+              const firstName = (profileData.first_name || '').split(' ')[0];
+              const lastName = (profileData.last_name || '').split(' ')[0];
+              const { data: lenientMatch } = await supabase
+                .from('professional_applications')
+                .select('id, slug, first_name, last_name')
+                .or(`first_name.ilike.%${firstName}%,last_name.ilike.%${lastName}%`)
+                .limit(10);
+              
+              if (lenientMatch && lenientMatch.length > 0) {
+                // Try to find the best match
+                const bestMatch = lenientMatch.find(p => {
+                  const profFullName = `${p.first_name} ${p.last_name}`.toLowerCase();
+                  return profFullName.includes(fullName.toLowerCase()) || fullName.toLowerCase().includes(profFullName);
+                });
+                
+                if (bestMatch) {
+                  const generatedSlug = bestMatch.slug || 
+                    `${bestMatch.first_name?.toLowerCase() || ''}-${bestMatch.last_name?.toLowerCase() || ''}-${bestMatch.id}`.replace(/\s+/g, '-');
+                  
+                  authorInfo = {
+                    name: fullName || 'Holistia',
+                    profession: profileData.type === 'Admin' || profileData.type === 'admin' ? 'Equipo Holistia' : 'Colaborador',
+                    avatar: profileData.avatar_url || undefined,
+                    professionalId: bestMatch.id,
+                    professionalSlug: generatedSlug,
+                    isProfessional: true,
+                  };
+                } else {
+                  authorInfo = {
+                    name: fullName || 'Holistia',
+                    profession: profileData.type === 'Admin' || profileData.type === 'admin' ? 'Equipo Holistia' : 'Colaborador',
+                    avatar: profileData.avatar_url || undefined,
+                    isProfessional: false,
+                  };
+                }
+              } else {
+                authorInfo = {
+                  name: fullName || 'Holistia',
+                  profession: profileData.type === 'Admin' || profileData.type === 'admin' ? 'Equipo Holistia' : 'Colaborador',
+                  avatar: profileData.avatar_url || undefined,
+                  isProfessional: false,
+                };
+              }
             }
           } else {
             authorInfo = {

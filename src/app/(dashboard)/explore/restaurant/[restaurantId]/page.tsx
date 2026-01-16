@@ -24,6 +24,7 @@ import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
+import { formatPhone, formatPhoneForTel } from "@/utils/phone-utils";
 
 interface Restaurant {
   id: string;
@@ -240,8 +241,8 @@ export default function RestaurantDetailPage() {
               {restaurant.phone && (
                 <div className="flex items-center gap-3 text-foreground">
                   <Phone className="h-5 w-5 flex-shrink-0" />
-                  <a href={`tel:${restaurant.phone}`} className="hover:text-primary transition-colors">
-                    {restaurant.phone}
+                  <a href={`tel:${formatPhoneForTel(restaurant.phone)}`} className="hover:text-primary transition-colors">
+                    {formatPhone(restaurant.phone)}
                   </a>
                 </div>
               )}

@@ -267,7 +267,7 @@ export function EventRegistrationsList({ eventId }: EventRegistrationsListProps)
                       <div className="text-xs text-muted-foreground mt-2">
                         <p>Contacto de emergencia:</p>
                         <p>{reg.emergency_contact_name}</p>
-                        <p>{reg.emergency_contact_phone}</p>
+                        <p>{formatPhone(reg.emergency_contact_phone || '')}</p>
                       </div>
                     )}
                   </div>

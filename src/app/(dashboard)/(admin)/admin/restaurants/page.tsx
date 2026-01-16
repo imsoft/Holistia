@@ -53,6 +53,7 @@ import { RestaurantCenterImageUploader } from "@/components/ui/restaurant-center
 import { RestaurantMenuManager } from "@/components/ui/restaurant-menu-manager";
 import { RestaurantGalleryManager } from "@/components/ui/restaurant-gallery-manager";
 import { WellnessAreasSelector } from "@/components/ui/wellness-areas-selector";
+import { formatPhone } from "@/utils/phone-utils";
 
 interface Restaurant {
   id: string;
@@ -510,7 +511,7 @@ export default function AdminRestaurants() {
                   {restaurant.phone && (
                     <div className="flex items-center gap-2 text-sm">
                       <Phone className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                      <span className="text-muted-foreground">{restaurant.phone}</span>
+                      <span className="text-muted-foreground">{formatPhone(restaurant.phone)}</span>
                     </div>
                   )}
                   {restaurant.opening_hours && (
@@ -835,7 +836,7 @@ export default function AdminRestaurants() {
                     <Label className="text-muted-foreground">Teléfono</Label>
                     <p className="mt-1 text-sm flex items-center gap-2">
                       <Phone className="w-4 h-4" />
-                      {viewingRestaurant.phone}
+                      {formatPhone(viewingRestaurant.phone)}
                     </p>
                   </div>
                 )}

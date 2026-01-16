@@ -162,8 +162,9 @@ export function PhoneInput({
 
 // Función auxiliar para formatear números de teléfono
 export function formatPhoneNumber(phone: string): string {
-  if (!phone) return "";
-  return phone.trim();
+  // Importar y usar la función centralizada de formateo
+  const { formatPhone } = require("@/utils/phone-utils");
+  return formatPhone(phone);
 }
 
 // Función auxiliar para validar números de teléfono

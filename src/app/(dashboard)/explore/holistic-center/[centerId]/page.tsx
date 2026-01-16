@@ -26,6 +26,7 @@ import Image from "next/image";
 import { Separator } from "@/components/ui/separator";
 import { FavoriteButton } from "@/components/ui/favorite-button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { formatPhone, formatPhoneForTel } from "@/utils/phone-utils";
 
 interface HolisticCenter {
   id: string;
@@ -265,8 +266,8 @@ export default function HolisticCenterDetailPage() {
               {center.phone && (
                 <div className="flex items-center gap-3 text-foreground">
                   <Phone className="h-5 w-5 shrink-0" />
-                  <a href={`tel:${center.phone}`} className="hover:text-primary transition-colors">
-                    {center.phone}
+                  <a href={`tel:${center.phone.replace(/\s/g, '')}`} className="hover:text-primary transition-colors">
+                    {formatPhone(center.phone)}
                   </a>
                 </div>
               )}

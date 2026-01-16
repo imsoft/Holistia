@@ -43,6 +43,7 @@ import {
   formatScheduleForDisplay,
 } from "@/components/ui/schedule-editor";
 import { RestaurantCenterImageUploader } from "@/components/ui/restaurant-center-image-uploader";
+import { formatPhone } from "@/utils/phone-utils";
 import { HolisticCenterLicenseUploader } from "@/components/ui/holistic-center-license-uploader";
 import { HolisticCenterServicesManager } from "@/components/ui/holistic-center-services-manager";
 import { HolisticCenterProfessionalsManager } from "@/components/ui/holistic-center-professionals-manager";
@@ -416,7 +417,7 @@ export default function AdminHolisticCenters() {
                   {center.phone && (
                     <div className="flex items-center gap-2 text-sm">
                       <Phone className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                      <span className="text-muted-foreground">{center.phone}</span>
+                      <span className="text-muted-foreground">{formatPhone(center.phone)}</span>
                     </div>
                   )}
                   {center.email && (
@@ -683,7 +684,7 @@ export default function AdminHolisticCenters() {
                     <Label className="text-muted-foreground">Teléfono</Label>
                     <p className="mt-1 text-sm flex items-center gap-2">
                       <Phone className="w-4 h-4" />
-                      {viewingCenter.phone}
+                      {formatPhone(viewingCenter.phone)}
                     </p>
                   </div>
                 )}

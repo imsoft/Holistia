@@ -36,6 +36,7 @@ import {
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import Image from "next/image";
 import { createClient } from "@/utils/supabase/client";
+import { formatPhone } from "@/utils/phone-utils";
 
 // Interfaces para los datos dinámicos
 interface User {
@@ -255,7 +256,7 @@ export default function AdminUsers() {
       ...filteredUsers.map(user => [
         user.name,
         user.email,
-        user.phone || 'N/A',
+        user.phone ? formatPhone(user.phone) : 'N/A',
         getTypeText(user.type),
         getStatusText(user.status),
         new Date(user.joinDate).toLocaleDateString('es-ES'),
@@ -591,7 +592,7 @@ export default function AdminUsers() {
                 <div className="space-y-2 mb-4 flex-grow">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Phone className="h-4 w-4 flex-shrink-0" />
-                    <span className="truncate">{user.phone}</span>
+                    <span className="truncate">{formatPhone(user.phone || '')}</span>
                   </div>
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Mail className="h-4 w-4 flex-shrink-0" />
@@ -725,7 +726,7 @@ export default function AdminUsers() {
                       <Phone className="h-4 w-4" />
                       <span>Teléfono</span>
                     </div>
-                    <span className="text-base font-medium pl-6">{selectedUser.phone || 'No disponible'}</span>
+                    <span className="text-base font-medium pl-6">{selectedUser.phone ? formatPhone(selectedUser.phone) : 'No disponible'}</span>
                   </div>
                   <div className="flex flex-col gap-1">
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">

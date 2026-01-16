@@ -13,6 +13,7 @@ import { UsernameSettings } from "@/components/username-settings";
 import { FollowButton } from "@/components/ui/follow-button";
 import { FollowStats } from "@/components/ui/follow-stats";
 import { Skeleton } from "@/components/ui/skeleton";
+import { formatPhone } from "@/utils/phone-utils";
 
 const ProfilePage = () => {
   const { profile, loading, updateProfile } = useProfile();
@@ -383,7 +384,7 @@ const ProfilePage = () => {
                   ) : (
                     <div className="flex items-center justify-between">
                       <div className="text-foreground">
-                        {profile.phone || "No agregado"}
+                        {profile.phone ? formatPhone(profile.phone) : "No agregado"}
                       </div>
                       <Button
                         size="sm"

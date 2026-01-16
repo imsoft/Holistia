@@ -564,7 +564,7 @@ export default function AdminCompanies() {
 
       if (quotingLead.contact_phone) {
         yPos += 6;
-        doc.text(`Teléfono: ${quotingLead.contact_phone}`, 20, yPos);
+        doc.text(`Teléfono: ${formatPhone(quotingLead.contact_phone || '')}`, 20, yPos);
       }
 
       if (quotingLead.company_size) {
@@ -1155,7 +1155,7 @@ export default function AdminCompanies() {
                   {company.contact_phone && (
                     <div className="flex items-center gap-2 text-sm">
                       <Phone className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                      <span className="text-muted-foreground">{company.contact_phone}</span>
+                      <span className="text-muted-foreground">{formatPhone(company.contact_phone || '')}</span>
                     </div>
                   )}
                   {company.city && (

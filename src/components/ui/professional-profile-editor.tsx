@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { RichTextEditor } from "@/components/ui/rich-text-editor";
 import { Badge } from "@/components/ui/badge";
 import { PhoneInput } from "@/components/ui/phone-input";
+import { formatPhone } from "@/utils/phone-utils";
 import { 
   Save, 
   X, 
@@ -429,7 +430,7 @@ export default function ProfessionalProfileEditor({
                   onClick={() => startEditing('contact')}
                 >
                   <Phone className="h-4 w-4 text-muted-foreground" />
-                  {professionalData.phone || 'No especificado'}
+                  {professionalData.phone ? formatPhone(professionalData.phone) : 'No especificado'}
                 </div>
               )}
             </div>

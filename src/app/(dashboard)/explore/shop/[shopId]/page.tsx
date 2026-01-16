@@ -25,6 +25,7 @@ import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
+import { formatPhone, formatPhoneForTel } from "@/utils/phone-utils";
 
 interface Shop {
   id: string;
@@ -326,8 +327,8 @@ export default function ShopDetailPage() {
               {shop.phone && (
                 <div className="flex items-center gap-3 text-foreground">
                   <Phone className="h-5 w-5 flex-shrink-0" />
-                  <a href={`tel:${shop.phone}`} className="hover:text-primary transition-colors">
-                    {shop.phone}
+                  <a href={`tel:${formatPhoneForTel(shop.phone)}`} className="hover:text-primary transition-colors">
+                    {formatPhone(shop.phone)}
                   </a>
                 </div>
               )}

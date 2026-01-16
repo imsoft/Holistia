@@ -51,6 +51,7 @@ import { createClient } from "@/utils/supabase/client";
 import { AdminRatingForm } from "@/components/ui/admin-rating-form";
 import { getRegistrationFeeStatus } from "@/utils/registration-utils";
 import { VerifiedBadge } from "@/components/ui/verified-badge";
+import { formatPhone } from "@/utils/phone-utils";
 
 // Interfaces para los datos dinámicos
 interface Professional {
@@ -1026,7 +1027,7 @@ export default function AdminProfessionals() {
                 <div className="space-y-2 mb-4 flex-grow">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Phone className="h-4 w-4 flex-shrink-0" />
-                    <span className="truncate">{professional.phone}</span>
+                    <span className="truncate">{formatPhone(professional.phone || '')}</span>
                   </div>
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Mail className="h-4 w-4 flex-shrink-0" />
@@ -1220,7 +1221,7 @@ export default function AdminProfessionals() {
                       <Phone className="h-4 w-4" />
                       <span>Teléfono</span>
                     </div>
-                    <span className="text-base font-medium pl-6 break-all">{selectedProfessional.phone || 'No disponible'}</span>
+                    <span className="text-base font-medium pl-6 break-all">{selectedProfessional.phone ? formatPhone(selectedProfessional.phone) : 'No disponible'}</span>
                   </div>
                   <div className="flex flex-col gap-1">
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">

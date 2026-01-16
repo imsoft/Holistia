@@ -43,6 +43,7 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 import Image from "next/image";
 import { Patient } from "@/types";
 import { createClient } from "@/utils/supabase/client";
+import { formatPhone } from "@/utils/phone-utils";
 
 
 export default function ProfessionalPatients() {
@@ -169,9 +170,7 @@ export default function ProfessionalPatients() {
           const joinDate = firstAppointment?.appointment_date || '';
           
           // Obtener información de contacto formateada
-          const formattedPhone = patientInfo?.phone ? 
-            (patientInfo.phone.startsWith('+') ? patientInfo.phone : `+52 ${patientInfo.phone}`) : 
-            'No disponible';
+          const formattedPhone = patientInfo?.phone ? formatPhone(patientInfo.phone) : 'No disponible';
           
           // Calcular total de citas por tipo
           const presencialCount = patientAppointments.filter(apt => apt.appointment_type === 'presencial').length;
@@ -453,7 +452,7 @@ export default function ProfessionalPatients() {
                 <div className="space-y-3 mb-4">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Phone className="h-4 w-4" />
-                    <span>{patient.phone}</span>
+                    <span>{formatPhone(patient.phone || '')}</span>
                   </div>
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Mail className="h-4 w-4" />
@@ -574,7 +573,7 @@ export default function ProfessionalPatients() {
                   <div className="flex items-center gap-2">
                     <Phone className="h-4 w-4 text-muted-foreground" />
                     <span className="font-medium">Teléfono:</span>
-                    <span>{selectedPatient.phone}</span>
+                    <span>{formatPhone(selectedPatient.phone || '')}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <MapPin className="h-4 w-4 text-muted-foreground" />

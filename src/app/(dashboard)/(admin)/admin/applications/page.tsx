@@ -40,6 +40,7 @@ import {
 } from "@/components/ui/dialog";
 import { createClient } from "@/utils/supabase/client";
 import Image from "next/image";
+import { formatPhone } from "@/utils/phone-utils";
 
 interface ProfessionalApplication {
   id: string;
@@ -304,7 +305,7 @@ export default function ApplicationsPage() {
       ...filteredApplications.map(application => [
         `${application.first_name} ${application.last_name}`,
         application.email,
-        application.phone || 'N/A',
+        application.phone ? formatPhone(application.phone) : 'N/A',
         application.profession,
         application.specializations.join('; '),
         application.city,
@@ -486,7 +487,7 @@ export default function ApplicationsPage() {
                           {application.phone && (
                             <span className="flex items-center">
                               <Phone className="h-4 w-4 mr-1" />
-                              {application.phone}
+                              {formatPhone(application.phone)}
                             </span>
                           )}
                           {application.instagram && (
@@ -575,7 +576,7 @@ export default function ApplicationsPage() {
                                 {application.phone && (
                                   <div className="space-y-2">
                                     <Label className="text-sm font-medium text-muted-foreground">Teléfono</Label>
-                                    <p className="text-base">{application.phone}</p>
+                                    <p className="text-base">{formatPhone(application.phone)}</p>
                                   </div>
                                 )}
                                 {application.instagram && (

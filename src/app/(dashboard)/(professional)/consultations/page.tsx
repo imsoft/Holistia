@@ -15,6 +15,7 @@ import { es } from "date-fns/locale";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useUserId, useUserType, useProfessionalData } from "@/stores/user-store";
 import { useUserStoreInit } from "@/hooks/use-user-store-init";
+import { SidebarTrigger } from "@/components/ui/sidebar";
 
 interface Conversation {
   id: string;
@@ -166,16 +167,27 @@ function ConsultationsPageContent() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-7xl">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-foreground mb-2 flex items-center gap-2">
-          <Users className="h-8 w-8" />
-          Consultas
-        </h1>
-        <p className="text-muted-foreground">
-          Mensajes de tus pacientes y prospectos
-        </p>
+    <div className="min-h-screen bg-background w-full">
+      {/* Header */}
+      <div className="border-b border-border bg-card w-full">
+        <div className="flex flex-col sm:flex-row sm:h-16 sm:items-center justify-between px-4 sm:px-6 py-4 sm:py-0 gap-4 sm:gap-0 w-full">
+          <div className="flex items-center gap-3 sm:gap-4">
+            <SidebarTrigger />
+            <div>
+              <h1 className="text-xl sm:text-2xl font-bold text-foreground flex items-center gap-2">
+                <Users className="h-5 w-5 sm:h-6 sm:w-6" />
+                Consultas
+              </h1>
+              <p className="text-xs sm:text-sm text-muted-foreground">
+                Mensajes de tus pacientes y prospectos
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
+
+      {/* Main Content */}
+      <div className="container mx-auto px-4 py-8 max-w-7xl">
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[calc(100vh-200px)]">
         <div className={`lg:col-span-1 ${selectedConversation ? 'hidden lg:block' : ''}`}>

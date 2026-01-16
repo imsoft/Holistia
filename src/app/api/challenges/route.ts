@@ -99,6 +99,9 @@ export async function POST(request: NextRequest) {
       wellness_areas,
       linked_patient_id,
       linked_professional_id,
+      price,
+      currency,
+      is_public,
     } = body;
 
     // Validar campos requeridos
@@ -201,8 +204,16 @@ export async function POST(request: NextRequest) {
       wellness_areas: wellness_areas || [],
       linked_patient_id: linked_patient_id || null,
       linked_professional_id: linked_professional_id || null,
+      // Convertir price: si está vacío, undefined, null o es 0, guardar null. Si tiene valor, parsear como float.
+      price: price !== null && price !== undefined && price !== '' && parseFloat(String(price)) > 0 ? parseFloat(String(price)) : null,
+      currency: price !== null && price !== undefined && price !== '' && parseFloat(String(price)) > 0 ? (currency || 'MXN') : (currency || 'MXN'),
       is_active: true,
     };
+
+    // Agregar is_public si está definido
+    if (typeof is_public === 'boolean') {
+      challengeData.is_public = is_public;
+    }
 
     const { data: challenge, error: challengeError } = await supabase
       .from('challenges')

@@ -32,7 +32,96 @@ export function useProfile() {
       // Obtener usuario autenticado
       const { data: { user }, error: authError } = await supabase.auth.getUser();
       
-      if (authError) throw authError;
+      // Si hay error de autenticación, intentar refrescar la sesión
+      if (authError) {
+        console.warn('⚠️ Auth error detected, attempting to refresh session...', authError);
+        
+        // Intentar refrescar la sesión
+        const { data: { session }, error: refreshError } = await supabase.auth.refreshSession();
+        
+        if (refreshError || !session) {
+          console.error('❌ Failed to refresh session:', refreshError);
+          setProfile(null);
+          setError(authError);
+          return;
+        }
+        
+        // Intentar obtener el usuario de nuevo después del refresh
+        const { data: { user: refreshedUser }, error: retryError } = await supabase.auth.getUser();
+        
+        if (retryError || !refreshedUser) {
+          console.error('❌ Failed to get user after refresh:', retryError);
+          setProfile(null);
+          setError(retryError || authError);
+          return;
+        }
+        
+        // Continuar con el usuario refrescado
+        const finalUser = refreshedUser;
+        
+        // Obtener perfil desde public.profiles
+        const { data, error: profileError } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', finalUser.id)
+          .single();
+
+        if (profileError) {
+          // Si el perfil no existe (error PGRST116), intentar crearlo automáticamente
+          if (profileError.code === 'PGRST116') {
+            console.log('📝 Profile not found, creating automatically...');
+            
+            // Llamar a la función que crea el perfil
+            const { data: createResult, error: createError } = await supabase.rpc('ensure_profile_exists');
+
+            if (createError) {
+              console.error('❌ Error calling ensure_profile_exists:', createError);
+              
+              // Si falla, intentar crear manualmente con los datos disponibles
+              const manualProfile = {
+                id: finalUser.id,
+                email: finalUser.email || '',
+                first_name: finalUser.user_metadata?.first_name || '',
+                last_name: finalUser.user_metadata?.last_name || '',
+                phone: finalUser.user_metadata?.phone || null,
+                avatar_url: finalUser.user_metadata?.avatar_url || null,
+                type: finalUser.user_metadata?.type || 'patient',
+                account_active: true,
+              };
+              
+              const { error: insertError } = await supabase
+                .from('profiles')
+                .insert(manualProfile);
+              
+              if (insertError) {
+                console.error('❌ Error creating profile manually:', insertError);
+                throw new Error('Failed to create profile automatically');
+              }
+            }
+
+            // Intentar cargar el perfil de nuevo
+            const { data: newProfile, error: retryError } = await supabase
+              .from('profiles')
+              .select('*')
+              .eq('id', finalUser.id)
+              .single();
+
+            if (retryError) {
+              console.error('❌ Error loading profile after creation:', retryError);
+              throw retryError;
+            }
+
+            setProfile(newProfile);
+            return;
+          } else {
+            throw profileError;
+          }
+        } else {
+          setProfile(data);
+          return;
+        }
+      }
+      
       if (!user) {
         setProfile(null);
         return;
@@ -147,9 +236,25 @@ export function useProfile() {
     loadProfile();
   };
 
-  // Cargar perfil al montar el componente
+  // Cargar perfil al montar el componente y escuchar cambios en la sesión
   useEffect(() => {
     loadProfile();
+
+    // Escuchar cambios en el estado de autenticación
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_OUT') {
+        setProfile(null);
+        setError(null);
+      } else if (event === 'TOKEN_REFRESHED' || event === 'SIGNED_IN') {
+        // Recargar el perfil cuando se refresca el token o se inicia sesión
+        await loadProfile();
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return {

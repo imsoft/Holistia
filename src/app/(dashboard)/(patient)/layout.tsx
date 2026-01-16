@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { usePathname, useParams, useRouter } from "next/navigation";
+import { createClient } from "@/utils/supabase/client";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -159,12 +160,40 @@ export default function UserLayout({
     );
   }
 
-  // Si no hay perfil, mostrar error
-  if (!profile) {
+  // Si no hay perfil después de cargar, verificar si hay sesión y redirigir al login si es necesario
+  useEffect(() => {
+    if (!loading && !profile) {
+      const checkAuthAndRedirect = async () => {
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        
+        if (!user) {
+          // No hay usuario autenticado, redirigir al login
+          const currentPath = window.location.pathname;
+          router.push(`/login?redirect=${encodeURIComponent(currentPath)}`);
+        } else {
+          // Hay usuario pero no perfil, intentar refrescar una vez más
+          console.warn('⚠️ User exists but profile not found, attempting final refresh...');
+          const { error: refreshError } = await supabase.auth.refreshSession();
+          
+          if (refreshError) {
+            // Si no se puede refrescar, redirigir al login
+            router.push(`/login?redirect=${encodeURIComponent(currentPath)}`);
+          }
+        }
+      };
+      
+      checkAuthAndRedirect();
+    }
+  }, [loading, profile, router]);
+
+  // Si no hay perfil, mostrar mensaje mientras se verifica la sesión
+  if (!profile && !loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <p className="text-sm text-muted-foreground">Error al cargar datos del usuario</p>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-sm text-muted-foreground">Verificando sesión...</p>
         </div>
       </div>
     );

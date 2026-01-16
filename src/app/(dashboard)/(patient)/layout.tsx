@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { usePathname, useParams, useRouter } from "next/navigation";
-import { createClient } from "@/utils/supabase/client";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -19,6 +18,7 @@ import {
 import { Menu, User, LogOut, Briefcase } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { createClient } from "@/utils/supabase/client";
 import { useProfile } from "@/hooks/use-profile";
 import { NotificationsDropdown } from "@/components/ui/notifications-dropdown";
 
@@ -159,48 +159,15 @@ export default function UserLayout({
     );
   }
 
-  // Si no hay perfil después de cargar, verificar si hay sesión y redirigir al login si es necesario
-  useEffect(() => {
-    if (!loading && !profile) {
-      const checkAuthAndRedirect = async () => {
-        const supabase = createClient();
-        const currentPath = window.location.pathname;
-        const { data: { user } } = await supabase.auth.getUser();
-        
-        if (!user) {
-          // No hay usuario autenticado, redirigir al login
-          router.push(`/login?redirect=${encodeURIComponent(currentPath)}`);
-        } else {
-          // Hay usuario pero no perfil, intentar refrescar una vez más
-          console.warn('⚠️ User exists but profile not found, attempting final refresh...');
-          const { error: refreshError } = await supabase.auth.refreshSession();
-          
-          if (refreshError) {
-            // Si no se puede refrescar, redirigir al login
-            router.push(`/login?redirect=${encodeURIComponent(currentPath)}`);
-          }
-        }
-      };
-      
-      checkAuthAndRedirect();
-    }
-  }, [loading, profile, router]);
-
-  // Si no hay perfil, mostrar mensaje mientras se verifica la sesión
-  if (!profile && !loading) {
+  // Si no hay perfil, mostrar error
+  if (!profile) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-sm text-muted-foreground">Verificando sesión...</p>
+          <p className="text-sm text-muted-foreground">Error al cargar datos del usuario</p>
         </div>
       </div>
     );
-  }
-
-  // Si no hay perfil, no continuar (esto no debería ejecutarse debido al early return arriba, pero TypeScript necesita la verificación)
-  if (!profile) {
-    return null;
   }
 
   const userName = profile.first_name && profile.last_name 

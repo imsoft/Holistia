@@ -205,10 +205,8 @@ export async function signInWithGoogle() {
   }
 
   if (data.url) {
-    // Retornar la URL en lugar de hacer redirect aquí
-    // El cliente hará el redirect para evitar problemas con server actions
-    return { success: true, url: data.url };
+    redirect(data.url);
   }
 
-  return { error: "No se pudo obtener la URL de autenticación" };
+  return { success: true };
 }

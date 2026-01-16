@@ -15,12 +15,14 @@ import {
   Loader2,
   User,
   TrendingUp,
+  Target,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { createClient } from "@/utils/supabase/client";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { SidebarTrigger } from "@/components/ui/sidebar";
 
 interface Challenge {
   id: string;
@@ -131,28 +133,38 @@ export default function ProfessionalChallenges() {
   };
 
   return (
-    <div className="flex flex-col h-screen">
-      <div className="border-b px-6 py-4 flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Mis Retos</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Crea y gestiona retos para tus usuarios
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline" asChild>
-            <a href={`/challenges/participants`}>
-              Ver Participantes
-            </a>
-          </Button>
-          <Button onClick={() => router.push(`/professional/${professionalId}/challenges/new`)}>
-            <Plus className="h-4 w-4 mr-2" />
-            Nuevo Reto
-          </Button>
+    <div className="min-h-screen bg-background w-full">
+      {/* Header */}
+      <div className="border-b border-border bg-card w-full">
+        <div className="flex flex-col sm:flex-row sm:h-16 sm:items-center justify-between px-4 sm:px-6 py-4 sm:py-0 gap-4 sm:gap-0 w-full">
+          <div className="flex items-center gap-3 sm:gap-4">
+            <SidebarTrigger />
+            <div>
+              <h1 className="text-xl sm:text-2xl font-bold text-foreground flex items-center gap-2">
+                <Target className="h-5 w-5 sm:h-6 sm:w-6" />
+                Mis Retos
+              </h1>
+              <p className="text-xs sm:text-sm text-muted-foreground">
+                Crea y gestiona retos para tus usuarios
+              </p>
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <Button variant="outline" asChild>
+              <a href={`/challenges/participants`}>
+                Ver Participantes
+              </a>
+            </Button>
+            <Button onClick={() => router.push(`/professional/${professionalId}/challenges/new`)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Nuevo Reto
+            </Button>
+          </div>
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-6">
+      {/* Main Content */}
+      <div className="container mx-auto px-4 py-8 max-w-7xl">
         {/* Estadísticas */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
           <Card className="py-4">

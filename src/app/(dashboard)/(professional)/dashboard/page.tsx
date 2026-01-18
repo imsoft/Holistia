@@ -57,6 +57,14 @@ export default function ProfessionalDashboard() {
     expires_at: string | null;
     paid_at: string | null;
   } | null>(null);
+  const [stripeConnectStatus, setStripeConnectStatus] = useState<{
+    connected: boolean;
+    charges_enabled: boolean;
+    payouts_enabled: boolean;
+  } | null>(null);
+  const [googleCalendarStatus, setGoogleCalendarStatus] = useState<{
+    connected: boolean;
+  } | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -71,7 +79,7 @@ export default function ProfessionalDashboard() {
         // El parámetro de la URL es el user_id, no el professional_id
         const { data: professionalApp, error: profError } = await supabase
           .from('professional_applications')
-          .select('id, user_id, first_name, last_name, profile_photo, working_start_time, working_end_time, registration_fee_paid, registration_fee_amount, registration_fee_currency, registration_fee_paid_at, registration_fee_expires_at, is_verified')
+          .select('id, user_id, first_name, last_name, profile_photo, working_start_time, working_end_time, registration_fee_paid, registration_fee_amount, registration_fee_currency, registration_fee_paid_at, registration_fee_expires_at, is_verified, stripe_account_id, stripe_account_status, stripe_charges_enabled, stripe_payouts_enabled')
           .eq('user_id', userIdParam || '')
           .eq('status', 'approved')
           .single();
@@ -93,6 +101,27 @@ export default function ProfessionalDashboard() {
             currency: professionalApp.registration_fee_currency || 'mxn',
             expires_at: professionalApp.registration_fee_expires_at,
             paid_at: professionalApp.registration_fee_paid_at,
+          });
+
+          // Establecer estado de Stripe Connect
+          const isStripeConnected = !!(professionalApp.stripe_account_id &&
+            professionalApp.stripe_charges_enabled &&
+            professionalApp.stripe_payouts_enabled);
+          setStripeConnectStatus({
+            connected: isStripeConnected,
+            charges_enabled: professionalApp.stripe_charges_enabled || false,
+            payouts_enabled: professionalApp.stripe_payouts_enabled || false,
+          });
+
+          // Obtener estado de Google Calendar desde el perfil del usuario
+          const { data: profileData } = await supabase
+            .from('profiles')
+            .select('google_calendar_connected')
+            .eq('id', professionalApp.user_id)
+            .single();
+
+          setGoogleCalendarStatus({
+            connected: profileData?.google_calendar_connected || false,
           });
           
           // Obtener citas próximas del profesional (desde hoy en adelante)
@@ -595,6 +624,72 @@ export default function ProfessionalDashboard() {
               </Card>
             )}
           </>
+        )}
+
+        {/* Alertas de Integraciones Pendientes */}
+        {/* Solo mostrar si la inscripción está pagada y vigente */}
+        {registrationFeeStatus?.paid &&
+         registrationFeeStatus?.expires_at &&
+         new Date(registrationFeeStatus.expires_at) > new Date() && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Alerta de Stripe Connect */}
+            {stripeConnectStatus && !stripeConnectStatus.connected && (
+              <Card className="border-blue-200 bg-blue-50">
+                <CardContent className="p-4 sm:p-6">
+                  <div className="flex items-start gap-3 sm:gap-4">
+                    <div className="flex-shrink-0">
+                      <CreditCard className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600" />
+                    </div>
+                    <div className="flex-1 space-y-2">
+                      <h3 className="text-sm sm:text-base font-semibold text-blue-900">
+                        Conecta tu cuenta de Stripe
+                      </h3>
+                      <p className="text-xs sm:text-sm text-blue-800">
+                        Para recibir pagos por tus citas y servicios, necesitas conectar tu cuenta de Stripe.
+                      </p>
+                      <Button
+                        className="mt-3 bg-blue-600 hover:bg-blue-700"
+                        size="sm"
+                        onClick={() => router.push('/finances')}
+                      >
+                        <CreditCard className="h-4 w-4 mr-2" />
+                        Conectar Stripe
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Alerta de Google Calendar */}
+            {googleCalendarStatus && !googleCalendarStatus.connected && (
+              <Card className="border-purple-200 bg-purple-50">
+                <CardContent className="p-4 sm:p-6">
+                  <div className="flex items-start gap-3 sm:gap-4">
+                    <div className="flex-shrink-0">
+                      <Calendar className="h-5 w-5 sm:h-6 sm:w-6 text-purple-600" />
+                    </div>
+                    <div className="flex-1 space-y-2">
+                      <h3 className="text-sm sm:text-base font-semibold text-purple-900">
+                        Conecta Google Calendar
+                      </h3>
+                      <p className="text-xs sm:text-sm text-purple-800">
+                        Sincroniza tus citas automáticamente con tu calendario de Google para no perder ninguna cita.
+                      </p>
+                      <Button
+                        className="mt-3 bg-purple-600 hover:bg-purple-700"
+                        size="sm"
+                        onClick={() => router.push('/appointments')}
+                      >
+                        <Calendar className="h-4 w-4 mr-2" />
+                        Conectar Google Calendar
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
         )}
 
       </div>

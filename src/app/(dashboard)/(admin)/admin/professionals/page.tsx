@@ -474,6 +474,57 @@ export default function AdminProfessionals() {
     window.location.reload();
   };
 
+  // Función para marcar manualmente el pago como completado
+  const handleMarkPaymentComplete = async (professionalId: string) => {
+    try {
+      setActionLoading(`mark-${professionalId}`);
+
+      const response = await fetch('/api/admin/mark-payment-complete', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          professional_application_id: professionalId,
+          notes: 'Pago marcado manualmente por administrador desde el panel',
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        toast.error(data.error || 'Error al marcar el pago');
+        return;
+      }
+
+      // Actualizar el estado local
+      setProfessionals(prev =>
+        prev.map(prof =>
+          prof.id === professionalId
+            ? {
+                ...prof,
+                registration_fee_paid: true,
+                registration_fee_paid_at: data.registration_fee_paid_at,
+                registration_fee_expires_at: data.registration_fee_expires_at,
+                status: 'active' as const,
+              }
+            : prof
+        )
+      );
+
+      if (data.stripe_payment_found) {
+        toast.success(`Pago confirmado y encontrado en Stripe. Expira: ${new Date(data.registration_fee_expires_at).toLocaleDateString('es-ES')}`);
+      } else {
+        toast.success(`Pago marcado como completado. Expira: ${new Date(data.registration_fee_expires_at).toLocaleDateString('es-ES')}`);
+      }
+    } catch (error) {
+      console.error('Error al marcar pago:', error);
+      toast.error('Error al marcar el pago como completado');
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
   // Función para ver el perfil del profesional
   const handleViewProfile = async (professional: Professional) => {
     setSelectedProfessional(professional);
@@ -1046,9 +1097,20 @@ export default function AdminProfessionals() {
                         )}
                       </div>
                     ) : (
-                      <Badge className="bg-red-100 text-red-800 hover:bg-red-100 text-xs">
-                        ❌ Sin pagar
-                      </Badge>
+                      <div className="flex items-center gap-2">
+                        <Badge className="bg-red-100 text-red-800 hover:bg-red-100 text-xs">
+                          ❌ Sin pagar
+                        </Badge>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 px-2 text-xs text-green-600 hover:text-green-700 hover:bg-green-50"
+                          onClick={() => handleMarkPaymentComplete(professional.id)}
+                          disabled={actionLoading === `mark-${professional.id}`}
+                        >
+                          {actionLoading === `mark-${professional.id}` ? '...' : '✓ Marcar pagado'}
+                        </Button>
+                      </div>
                     )}
                     {professional.registration_fee_expires_at && (
                       <p className="text-xs text-muted-foreground mt-1">

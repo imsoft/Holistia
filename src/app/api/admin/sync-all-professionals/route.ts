@@ -164,10 +164,22 @@ export async function POST() {
 
                 for (const session of sessions.data) {
                   // Verificar si es un pago de inscripción (por monto o metadata)
+                  // Montos posibles de inscripción anual en centavos
+                  const registrationAmounts = [
+                    88800,   // $888 MXN
+                    100000,  // $1000 MXN
+                    88900,   // $889 MXN (variaciones)
+                    99900,   // $999 MXN
+                    50000,   // $500 MXN (promociones)
+                    75000,   // $750 MXN
+                    120000,  // $1200 MXN
+                  ];
+
                   const isRegistrationPayment =
                     (session.metadata?.payment_type === 'registration') ||
-                    (session.amount_total === 88800) || // $888 MXN en centavos
-                    (session.amount_total === 100000);  // $1000 MXN en centavos (monto anterior)
+                    (session.metadata?.type === 'registration') ||
+                    (session.metadata?.payment_for === 'professional_registration') ||
+                    (session.amount_total && registrationAmounts.includes(session.amount_total));
 
                   if (session.payment_status === 'paid' && isRegistrationPayment) {
                     const sessionDate = new Date((session.created || 0) * 1000);
@@ -201,6 +213,99 @@ export async function POST() {
                 }
 
                 if (result.payment_found_in_stripe) break;
+
+                // Caso C: Buscar por PaymentIntents del cliente (para pagos directos, no checkout)
+                if (!result.payment_found_in_stripe) {
+                  const paymentIntents = await stripe.paymentIntents.list({
+                    customer: customer.id,
+                    limit: 20,
+                  });
+
+                  for (const pi of paymentIntents.data) {
+                    // Verificar si es un pago de inscripción
+                    const registrationAmounts = [88800, 100000, 88900, 99900, 50000, 75000, 120000];
+                    const isRegistrationPayment =
+                      (pi.metadata?.payment_type === 'registration') ||
+                      (pi.metadata?.type === 'registration') ||
+                      (pi.metadata?.payment_for === 'professional_registration') ||
+                      (pi.amount && registrationAmounts.includes(pi.amount));
+
+                    if (pi.status === 'succeeded' && isRegistrationPayment) {
+                      const paymentDate = new Date((pi.created || 0) * 1000);
+                      const expiresAt = new Date(paymentDate);
+                      expiresAt.setFullYear(expiresAt.getFullYear() + 1);
+
+                      if (expiresAt > now) {
+                        const { error: updateError } = await supabase
+                          .from('professional_applications')
+                          .update({
+                            registration_fee_paid: true,
+                            registration_fee_paid_at: paymentDate.toISOString(),
+                            registration_fee_expires_at: expiresAt.toISOString(),
+                          })
+                          .eq('id', professional.id);
+
+                        if (!updateError) {
+                          result.registration_payment_synced = true;
+                          result.payment_found_in_stripe = true;
+                          result.changes_made.push(`Pago encontrado por PaymentIntent (${pi.id.substring(0, 20)}..., fecha: ${paymentDate.toLocaleDateString('es-ES')})`);
+                          totalPaymentsSynced++;
+                          totalPaymentsFound++;
+                          break;
+                        }
+                      }
+                    }
+                  }
+                }
+
+                if (result.payment_found_in_stripe) break;
+              }
+
+              // Caso D: Buscar por charges (cargos) directamente por email en la descripción o metadata
+              if (!result.payment_found_in_stripe) {
+                const charges = await stripe.charges.list({
+                  limit: 50,
+                });
+
+                for (const charge of charges.data) {
+                  // Verificar si el cargo es para este profesional
+                  const chargeEmail = charge.billing_details?.email?.toLowerCase() || charge.receipt_email?.toLowerCase();
+                  const professionalEmail = professional.email.toLowerCase();
+                  
+                  if (chargeEmail === professionalEmail && charge.status === 'succeeded') {
+                    const registrationAmounts = [88800, 100000, 88900, 99900, 50000, 75000, 120000];
+                    const isRegistrationPayment =
+                      (charge.metadata?.payment_type === 'registration') ||
+                      (charge.metadata?.type === 'registration') ||
+                      (charge.amount && registrationAmounts.includes(charge.amount));
+
+                    if (isRegistrationPayment) {
+                      const chargeDate = new Date((charge.created || 0) * 1000);
+                      const expiresAt = new Date(chargeDate);
+                      expiresAt.setFullYear(expiresAt.getFullYear() + 1);
+
+                      if (expiresAt > now) {
+                        const { error: updateError } = await supabase
+                          .from('professional_applications')
+                          .update({
+                            registration_fee_paid: true,
+                            registration_fee_paid_at: chargeDate.toISOString(),
+                            registration_fee_expires_at: expiresAt.toISOString(),
+                          })
+                          .eq('id', professional.id);
+
+                        if (!updateError) {
+                          result.registration_payment_synced = true;
+                          result.payment_found_in_stripe = true;
+                          result.changes_made.push(`Pago encontrado por Charge (${charge.id.substring(0, 20)}..., fecha: ${chargeDate.toLocaleDateString('es-ES')})`);
+                          totalPaymentsSynced++;
+                          totalPaymentsFound++;
+                          break;
+                        }
+                      }
+                    }
+                  }
+                }
               }
             } catch (searchError) {
               // No es crítico si falla la búsqueda por email

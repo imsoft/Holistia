@@ -424,57 +424,46 @@ export default function AdminProfessionals() {
     document.body.removeChild(link);
   };
 
-  // Función para sincronizar pagos pendientes con Stripe
-  const handleSyncPayments = async () => {
+  // Función unificada para sincronizar TODO de los profesionales
+  const handleSyncAll = async () => {
     try {
-      setActionLoading('sync-payments');
+      setActionLoading('sync-all');
 
-      const response = await fetch('/api/admin/sync-registration-payments', {
+      const response = await fetch('/api/admin/sync-all-professionals', {
         method: 'POST',
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        toast.error(data.error || 'Error al sincronizar pagos');
+        toast.error(data.error || 'Error al sincronizar');
         return;
       }
 
-      toast.success(`Sincronización completada: ${data.synced} pagos actualizados de ${data.total} revisados`);
+      const { summary } = data;
+      const messages = [];
+
+      if (summary.payments_found_in_stripe > 0) {
+        messages.push(`${summary.payments_found_in_stripe} pagos encontrados en Stripe`);
+      }
+      if (summary.payments_synced > 0) {
+        messages.push(`${summary.payments_synced} pagos sincronizados`);
+      }
+      if (summary.stripe_connect_synced > 0) {
+        messages.push(`${summary.stripe_connect_synced} cuentas Stripe actualizadas`);
+      }
+
+      if (messages.length === 0) {
+        toast.success('Todo está sincronizado. No se encontraron cambios pendientes.');
+      } else {
+        toast.success(`Sincronización completada: ${messages.join(', ')}`);
+      }
 
       // Recargar la página para ver los cambios
       window.location.reload();
     } catch (error) {
-      console.error('Error syncing payments:', error);
-      toast.error('Error al sincronizar pagos');
-    } finally {
-      setActionLoading(null);
-    }
-  };
-
-  // Función para sincronizar estado de Stripe de todos los profesionales
-  const handleSyncStripeStatus = async () => {
-    try {
-      setActionLoading('sync-stripe');
-
-      const response = await fetch('/api/admin/sync-stripe-status', {
-        method: 'POST',
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        toast.error(data.error || 'Error al sincronizar estado de Stripe');
-        return;
-      }
-
-      toast.success(data.message || `Sincronización completada: ${data.synced} de ${data.total} profesionales actualizados`);
-
-      // Recargar la página para ver los cambios
-      window.location.reload();
-    } catch (error) {
-      console.error('Error syncing Stripe status:', error);
-      toast.error('Error al sincronizar estado de Stripe');
+      console.error('Error syncing:', error);
+      toast.error('Error al sincronizar');
     } finally {
       setActionLoading(null);
     }
@@ -761,21 +750,11 @@ export default function AdminProfessionals() {
               variant="outline"
               size="sm"
               className="sm:size-default w-full sm:w-auto"
-              onClick={handleSyncPayments}
-              disabled={actionLoading === 'sync-payments'}
+              onClick={handleSyncAll}
+              disabled={actionLoading === 'sync-all'}
             >
               <CreditCard className="h-4 w-4 mr-2" />
-              <span>{actionLoading === 'sync-payments' ? 'Sincronizando...' : 'Sincronizar Pagos'}</span>
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              className="sm:size-default w-full sm:w-auto"
-              onClick={handleSyncStripeStatus}
-              disabled={actionLoading === 'sync-stripe'}
-            >
-              <CreditCard className="h-4 w-4 mr-2" />
-              <span>{actionLoading === 'sync-stripe' ? 'Sincronizando...' : 'Sincronizar Stripe'}</span>
+              <span>{actionLoading === 'sync-all' ? 'Sincronizando...' : 'Sincronizar con Stripe'}</span>
             </Button>
             <Button
               variant="outline"

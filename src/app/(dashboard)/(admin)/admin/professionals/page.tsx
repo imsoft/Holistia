@@ -383,17 +383,6 @@ export default function AdminProfessionals() {
     return `${sign}${Math.round(change)}%`;
   };
 
-  // Función para verificar documentos pendientes
-  const handleVerifyDocuments = () => {
-    // Filtrar profesionales que no han sido verificados
-    const unverifiedProfessionals = professionals.filter(p => !p.reviewed_at);
-    if (unverifiedProfessionals.length === 0) {
-      toast.error('No hay documentos pendientes de verificación');
-      return;
-    }
-    toast.error(`Hay ${unverifiedProfessionals.length} profesionales con documentos pendientes de verificación`);
-  };
-
   // Función para exportar la lista de profesionales
   const handleExportProfessionals = () => {
     const csvContent = [
@@ -755,15 +744,6 @@ export default function AdminProfessionals() {
             >
               <CreditCard className="h-4 w-4 mr-2" />
               <span>{actionLoading === 'sync-all' ? 'Sincronizando...' : 'Sincronizar con Stripe'}</span>
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              className="sm:size-default w-full sm:w-auto"
-              onClick={handleVerifyDocuments}
-            >
-              <Shield className="h-4 w-4 mr-2" />
-              <span>Verificar Documentos</span>
             </Button>
           </div>
         </div>

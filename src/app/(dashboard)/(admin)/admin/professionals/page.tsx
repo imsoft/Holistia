@@ -413,6 +413,28 @@ export default function AdminProfessionals() {
     document.body.removeChild(link);
   };
 
+  // Estado para el diálogo de resultados de sincronización
+  const [syncResults, setSyncResults] = useState<{
+    isOpen: boolean;
+    summary: {
+      total_professionals: number;
+      payments_synced: number;
+      payments_found_in_stripe: number;
+      stripe_connect_synced: number;
+    } | null;
+    details: Array<{
+      professional_id: string;
+      professional_name: string;
+      professional_email: string;
+      changes_made: string[];
+      errors: string[];
+    }>;
+  }>({
+    isOpen: false,
+    summary: null,
+    details: [],
+  });
+
   // Función unificada para sincronizar TODO de los profesionales
   const handleSyncAll = async () => {
     try {
@@ -429,33 +451,27 @@ export default function AdminProfessionals() {
         return;
       }
 
-      const { summary } = data;
-      const messages = [];
+      const { summary, details } = data;
 
-      if (summary.payments_found_in_stripe > 0) {
-        messages.push(`${summary.payments_found_in_stripe} pagos encontrados en Stripe`);
-      }
-      if (summary.payments_synced > 0) {
-        messages.push(`${summary.payments_synced} pagos sincronizados`);
-      }
-      if (summary.stripe_connect_synced > 0) {
-        messages.push(`${summary.stripe_connect_synced} cuentas Stripe actualizadas`);
-      }
+      // Mostrar el diálogo con los resultados
+      setSyncResults({
+        isOpen: true,
+        summary,
+        details: details || [],
+      });
 
-      if (messages.length === 0) {
-        toast.success('Todo está sincronizado. No se encontraron cambios pendientes.');
-      } else {
-        toast.success(`Sincronización completada: ${messages.join(', ')}`);
-      }
-
-      // Recargar la página para ver los cambios
-      window.location.reload();
     } catch (error) {
       console.error('Error syncing:', error);
       toast.error('Error al sincronizar');
     } finally {
       setActionLoading(null);
     }
+  };
+
+  // Función para cerrar el diálogo y recargar
+  const handleCloseSyncResults = () => {
+    setSyncResults({ isOpen: false, summary: null, details: [] });
+    window.location.reload();
   };
 
   // Función para ver el perfil del profesional
@@ -1515,6 +1531,108 @@ export default function AdminProfessionals() {
                   disabled={actionLoading === selectedProfessional.id}
                 >
                   {actionLoading === selectedProfessional.id ? 'Guardando...' : 'Guardar Cambios'}
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal de resultados de sincronización */}
+      <Dialog open={syncResults.isOpen} onOpenChange={(open) => !open && handleCloseSyncResults()}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <CheckCircle2 className="h-5 w-5 text-green-600" />
+              Sincronización Completada
+            </DialogTitle>
+            <DialogDescription>
+              Resumen de la sincronización con Stripe
+            </DialogDescription>
+          </DialogHeader>
+
+          {syncResults.summary && (
+            <div className="space-y-4">
+              {/* Resumen general */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div className="bg-muted/50 rounded-lg p-3 text-center">
+                  <p className="text-2xl font-bold text-foreground">{syncResults.summary.total_professionals}</p>
+                  <p className="text-xs text-muted-foreground">Profesionales revisados</p>
+                </div>
+                <div className="bg-green-50 rounded-lg p-3 text-center border border-green-200">
+                  <p className="text-2xl font-bold text-green-700">{syncResults.summary.payments_found_in_stripe}</p>
+                  <p className="text-xs text-green-600">Pagos encontrados</p>
+                </div>
+                <div className="bg-blue-50 rounded-lg p-3 text-center border border-blue-200">
+                  <p className="text-2xl font-bold text-blue-700">{syncResults.summary.payments_synced}</p>
+                  <p className="text-xs text-blue-600">Pagos sincronizados</p>
+                </div>
+                <div className="bg-purple-50 rounded-lg p-3 text-center border border-purple-200">
+                  <p className="text-2xl font-bold text-purple-700">{syncResults.summary.stripe_connect_synced}</p>
+                  <p className="text-xs text-purple-600">Stripe Connect actualizados</p>
+                </div>
+              </div>
+
+              {/* Detalles de cambios */}
+              {syncResults.details.length > 0 ? (
+                <div className="space-y-3">
+                  <h4 className="font-medium text-sm text-muted-foreground">Detalles de los cambios:</h4>
+                  <div className="space-y-2 max-h-[300px] overflow-y-auto">
+                    {syncResults.details.map((detail, index) => (
+                      <div
+                        key={index}
+                        className={`p-3 rounded-lg border ${
+                          detail.errors.length > 0
+                            ? 'bg-red-50 border-red-200'
+                            : 'bg-green-50 border-green-200'
+                        }`}
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="min-w-0 flex-1">
+                            <p className="font-medium text-sm truncate">{detail.professional_name}</p>
+                            <p className="text-xs text-muted-foreground truncate">{detail.professional_email}</p>
+                          </div>
+                          {detail.errors.length > 0 ? (
+                            <XCircle className="h-4 w-4 text-red-500 shrink-0" />
+                          ) : (
+                            <CheckCircle2 className="h-4 w-4 text-green-500 shrink-0" />
+                          )}
+                        </div>
+                        {detail.changes_made.length > 0 && (
+                          <ul className="mt-2 space-y-1">
+                            {detail.changes_made.map((change, i) => (
+                              <li key={i} className="text-xs text-green-700 flex items-start gap-1">
+                                <span className="shrink-0">✓</span>
+                                <span>{change}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                        {detail.errors.length > 0 && (
+                          <ul className="mt-2 space-y-1">
+                            {detail.errors.map((error, i) => (
+                              <li key={i} className="text-xs text-red-700 flex items-start gap-1">
+                                <span className="shrink-0">✗</span>
+                                <span>{error}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center py-6 text-muted-foreground">
+                  <CheckCircle2 className="h-12 w-12 mx-auto mb-2 text-green-500" />
+                  <p className="font-medium">Todo está sincronizado</p>
+                  <p className="text-sm">No se encontraron cambios pendientes</p>
+                </div>
+              )}
+
+              <div className="flex justify-end pt-4">
+                <Button onClick={handleCloseSyncResults}>
+                  Cerrar y Actualizar
                 </Button>
               </div>
             </div>

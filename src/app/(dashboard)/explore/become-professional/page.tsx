@@ -285,7 +285,80 @@ export default function BecomeProfessionalPage() {
   };
 
   const handleNext = () => {
-    if (validateStep(currentStep)) {
+    // Si estamos en el paso 2, agregar automáticamente lo que esté en los inputs
+    let updatedSpecializations = [...formData.specializations];
+    let updatedLanguages = [...formData.languages];
+
+    if (currentStep === 2) {
+      // Agregar especialización del input si hay texto
+      if (specializationInput.trim()) {
+        updatedSpecializations = [...updatedSpecializations, specializationInput.trim()];
+        setFormData((prev) => ({
+          ...prev,
+          specializations: updatedSpecializations
+        }));
+        setSpecializationInput('');
+      }
+
+      // Agregar idioma del input si hay texto
+      if (languageInput.trim()) {
+        const normalizedLanguage = normalizeLanguage(languageInput.trim());
+        if (!updatedLanguages.includes(normalizedLanguage)) {
+          updatedLanguages = [...updatedLanguages, normalizedLanguage];
+          setFormData((prev) => ({
+            ...prev,
+            languages: updatedLanguages
+          }));
+        }
+        setLanguageInput('');
+      }
+    }
+
+    // Validar con los datos actualizados
+    const validateStepWithUpdatedData = (step: number): boolean => {
+      const newErrors: Record<string, string> = {};
+
+      switch (step) {
+        case 1:
+          if (!formData.first_name.trim())
+            newErrors.first_name = "El nombre es requerido";
+          if (!formData.last_name.trim())
+            newErrors.last_name = "El apellido es requerido";
+          if (!formData.email.trim()) newErrors.email = "El email es requerido";
+          if (!formData.phone.trim())
+            newErrors.phone = "El teléfono es requerido";
+          break;
+        case 2:
+          if (!formData.profession.trim())
+            newErrors.profession = "La profesión es requerida";
+          // Usar las especializaciones actualizadas para validación
+          if (updatedSpecializations.length === 0)
+            newErrors.specializations =
+              "Al menos una especialización es requerida";
+          if (!formData.experience.trim())
+            newErrors.experience = "Los años de experiencia son requeridos";
+          break;
+        case 3:
+          if (!formData.address.trim())
+            newErrors.address = "La dirección es requerida";
+          if (!formData.city.trim()) newErrors.city = "La ciudad es requerida";
+          if (!formData.state.trim()) newErrors.state = "El estado es requerido";
+          if (!formData.country.trim())
+            newErrors.country = "El país es requerido";
+          break;
+        case 4:
+          if (!formData.biography.trim())
+            newErrors.biography = "La biografía es requerida";
+          if (!formData.instagram.trim())
+            newErrors.instagram = "El Instagram es requerido";
+          break;
+      }
+
+      setErrors(newErrors);
+      return Object.keys(newErrors).length === 0;
+    };
+
+    if (validateStepWithUpdatedData(currentStep)) {
       setCurrentStep((prev) => prev + 1);
     }
   };

@@ -284,6 +284,19 @@ export function ServiceForm({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // VALIDACIÓN CRÍTICA: Verificar que tenemos IDs válidos
+    if (!professionalId || professionalId.trim() === '') {
+      toast.error("Error: No se pudo identificar al profesional. Por favor, recarga la página.");
+      console.error("❌ [ServiceForm] professionalId está vacío o no definido:", professionalId);
+      return;
+    }
+
+    if (!userId || userId.trim() === '') {
+      toast.error("Error: No se pudo identificar al usuario. Por favor, recarga la página.");
+      console.error("❌ [ServiceForm] userId está vacío o no definido:", userId);
+      return;
+    }
+
     // Validación exhaustiva de todos los campos antes de proceder
     const errors: string[] = [];
 
@@ -370,9 +383,8 @@ export function ServiceForm({
     }
 
     try {
-      const serviceData = {
-        professional_id: professionalId,
-        user_id: userId,
+      // Datos base del servicio (sin IDs para edición)
+      const serviceDataBase = {
         name: toTitleCase(formData.name.trim()),
         description: formData.description.trim(),
         type: formData.type,
@@ -391,31 +403,48 @@ export function ServiceForm({
 
       if (service) {
         // Actualizar servicio existente
+        // IMPORTANTE: NO sobrescribir professional_id ni user_id para evitar pérdida de acceso
+        console.log('📝 [ServiceForm] Actualizando servicio existente:', {
+          id: service.id,
+          new_data: serviceDataBase,
+        });
+
+        let updateData = { ...serviceDataBase };
+
         if (imageFile) {
           const imageUrl = await uploadServiceImage(service.id!);
           if (imageUrl) {
-            serviceData.image_url = imageUrl;
+            updateData.image_url = imageUrl;
           }
         }
 
         const { error } = await supabase
           .from("professional_services")
-          .update(serviceData)
+          .update(updateData)
           .eq("id", service.id);
 
-        if (error) throw error;
+        if (error) {
+          console.error("❌ [ServiceForm] Error al actualizar servicio:", error);
+          throw error;
+        }
         toast.success("Servicio actualizado exitosamente");
       } else {
-        // Crear nuevo servicio
+        // Crear nuevo servicio - incluir IDs
+        const serviceDataWithIds = {
+          ...serviceDataBase,
+          professional_id: professionalId,
+          user_id: userId,
+        };
+
         console.log("🔍 [ServiceForm] Creando servicio con datos:", {
           professional_id: professionalId,
           user_id: userId,
-          serviceData
+          serviceDataWithIds
         });
 
         const { data: newService, error: insertError } = await supabase
           .from("professional_services")
-          .insert(serviceData)
+          .insert(serviceDataWithIds)
           .select()
           .single();
 

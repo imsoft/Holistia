@@ -107,6 +107,8 @@ export function ServiceForm({
         ...formDataToSet,
         description_length: formDataToSet.description.length,
         description_preview: formDataToSet.description.substring(0, 50),
+        modality_original: service.modality,
+        modality_final: formDataToSet.modality,
       });
 
       setFormData(formDataToSet);
@@ -485,13 +487,18 @@ export function ServiceForm({
           <div className="space-y-2">
             <Label htmlFor="modality">Modalidad *</Label>
             <Select
-              value={formData.modality}
+              key={`modality-${service?.id || 'new'}-${formData.modality}`}
+              value={formData.modality || "both"}
               onValueChange={(value: "presencial" | "online" | "both") =>
                 setFormData({ ...formData, modality: value })
               }
             >
               <SelectTrigger className="w-full">
-                <SelectValue />
+                <SelectValue placeholder="Selecciona la modalidad">
+                  {formData.modality === "presencial" && "Solo Presencial"}
+                  {formData.modality === "online" && "Solo En Línea"}
+                  {formData.modality === "both" && "Presencial y En Línea"}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="presencial">Solo Presencial</SelectItem>
@@ -504,13 +511,17 @@ export function ServiceForm({
           <div className="space-y-2">
             <Label htmlFor="type">Tipo de Servicio *</Label>
             <Select
+              key={`type-${service?.id || 'new'}-${formData.type}`}
               value={formData.type || "session"}
               onValueChange={(value: "session" | "program") =>
                 setFormData({ ...formData, type: value })
               }
             >
               <SelectTrigger className="w-full">
-                <SelectValue placeholder="Selecciona el tipo de servicio" />
+                <SelectValue placeholder="Selecciona el tipo de servicio">
+                  {formData.type === "session" && "Sesión Individual"}
+                  {formData.type === "program" && "Programa/Paquete"}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="session">Sesión Individual</SelectItem>

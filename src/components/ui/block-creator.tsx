@@ -180,6 +180,19 @@ export function BlockCreator({
   };
 
   const handleSubmit = async () => {
+    // VALIDACIÓN CRÍTICA: Verificar que tenemos IDs válidos
+    if (!professionalId || professionalId.trim() === '') {
+      toast.error("Error: No se pudo identificar al profesional. Por favor, recarga la página.");
+      console.error("❌ [BlockCreator] professionalId está vacío o no definido:", professionalId);
+      return;
+    }
+
+    if (!userId || userId.trim() === '') {
+      toast.error("Error: No se pudo identificar al usuario. Por favor, recarga la página.");
+      console.error("❌ [BlockCreator] userId está vacío o no definido:", userId);
+      return;
+    }
+
     if (!formData.title.trim()) {
       toast.error('El título es obligatorio');
       return;
@@ -203,6 +216,14 @@ export function BlockCreator({
 
     setLoading(true);
     try {
+      console.log('📝 [BlockCreator] Creando bloqueo con datos:', {
+        professional_id: professionalId,
+        user_id: userId,
+        title: formData.title,
+        block_type: formData.block_type,
+        start_date: formData.start_date,
+      });
+
       const blockData = {
         professional_id: professionalId,
         user_id: userId,
@@ -222,15 +243,36 @@ export function BlockCreator({
           .update(blockData)
           .eq('id', editingBlock.id);
 
-        if (error) throw error;
+        if (error) {
+          console.error('❌ [BlockCreator] Error al actualizar bloqueo:', error);
+          throw error;
+        }
         toast.success('Bloqueo actualizado correctamente');
         onBlockUpdated?.();
       } else {
-        const { error } = await supabase
+        const { error, data } = await supabase
           .from('availability_blocks')
-          .insert([blockData]);
+          .insert([blockData])
+          .select();
 
-        if (error) throw error;
+        if (error) {
+          console.error('❌ [BlockCreator] Error al crear bloqueo:', error);
+          console.error('   Datos enviados:', blockData);
+          
+          // Mensajes de error más descriptivos
+          if (error.code === '42501' || error.message.includes('permission') || error.message.includes('policy')) {
+            toast.error('No tienes permisos para crear este bloqueo. Verifica que seas el propietario del perfil profesional.');
+          } else if (error.code === '23503' || error.message.includes('foreign key')) {
+            toast.error('Error: El profesional asociado no existe o no es válido.');
+          } else if (error.code === '23514' || error.message.includes('check constraint')) {
+            toast.error('Error: Los datos del bloqueo no son válidos. Verifica las fechas y horarios.');
+          } else {
+            toast.error(`Error al crear el bloqueo: ${error.message}`);
+          }
+          throw error;
+        }
+        
+        console.log('✅ [BlockCreator] Bloqueo creado exitosamente:', data);
         toast.success('Bloqueo creado correctamente');
         onBlockCreated?.();
       }

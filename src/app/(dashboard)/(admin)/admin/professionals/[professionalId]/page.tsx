@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
@@ -95,6 +95,10 @@ export default function AdminProfessionalEdit() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState("basic");
+  
+  // Ref para el método de guardar del tab activo
+  const basicInfoSaveRef = useRef<(() => Promise<void>) | null>(null);
+  const settingsSaveRef = useRef<(() => Promise<void>) | null>(null);
 
   useEffect(() => {
     fetchProfessional();
@@ -163,8 +167,21 @@ export default function AdminProfessionalEdit() {
 
   const handleSave = async () => {
     setSaving(true);
-    toast.success('Cambios guardados exitosamente');
-    setSaving(false);
+    try {
+      // Llamar al método de guardar del tab activo
+      if (activeTab === 'basic' && basicInfoSaveRef.current) {
+        await basicInfoSaveRef.current();
+      } else if (activeTab === 'settings' && settingsSaveRef.current) {
+        await settingsSaveRef.current();
+      } else {
+        toast.info('No hay cambios para guardar en este tab');
+      }
+    } catch (error) {
+      console.error('Error saving:', error);
+      // El error ya se maneja en cada tab
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleUpdate = (updates: Partial<Professional>) => {
@@ -262,7 +279,11 @@ export default function AdminProfessionalEdit() {
           </TabsList>
 
           <TabsContent value="basic">
-            <BasicInfoTab professional={professional} onUpdate={handleUpdate} />
+            <BasicInfoTab 
+              professional={professional} 
+              onUpdate={handleUpdate}
+              onSaveRef={basicInfoSaveRef}
+            />
           </TabsContent>
 
           <TabsContent value="services">

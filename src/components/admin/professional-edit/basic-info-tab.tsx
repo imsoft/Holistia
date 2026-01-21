@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { Upload, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -45,12 +45,14 @@ interface Professional {
 interface BasicInfoTabProps {
   professional: Professional;
   onUpdate: (professional: Partial<Professional>) => void;
+  onSaveRef?: React.MutableRefObject<(() => Promise<void>) | null>;
 }
 
-export function BasicInfoTab({ professional, onUpdate }: BasicInfoTabProps) {
+export function BasicInfoTab({ professional, onUpdate, onSaveRef }: BasicInfoTabProps) {
   const supabase = createClient();
   const [formData, setFormData] = useState({
     ...professional,
+    email: professional.email || '',
     biography: professional.biography || professional.bio || '',
     bio: professional.biography || professional.bio || '',
     country: professional.country || 'México',
@@ -65,6 +67,22 @@ export function BasicInfoTab({ professional, onUpdate }: BasicInfoTabProps) {
   const [newCertification, setNewCertification] = useState("");
   const [newLanguage, setNewLanguage] = useState("");
   const [uploading, setUploading] = useState(false);
+
+  // Actualizar formData cuando cambie el professional
+  useEffect(() => {
+    setFormData({
+      ...professional,
+      email: professional.email || '',
+      biography: professional.biography || professional.bio || '',
+      bio: professional.biography || professional.bio || '',
+      country: professional.country || 'México',
+      address: professional.address || '',
+      experience: professional.experience || '',
+      languages: professional.languages || ['Español'],
+      image_position: professional.image_position || 'center center',
+      tolerance_minutes: professional.tolerance_minutes || 15,
+    });
+  }, [professional]);
 
   const handleChange = (field: string, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -172,6 +190,13 @@ export function BasicInfoTab({ professional, onUpdate }: BasicInfoTabProps) {
 
   const handleSave = async () => {
     try {
+      console.log('💾 [BasicInfoTab] Guardando cambios...', {
+        id: professional.id,
+        email: formData.email,
+        first_name: formData.first_name,
+        last_name: formData.last_name,
+      });
+
       const { error } = await supabase
         .from('professional_applications')
         .update({
@@ -197,15 +222,41 @@ export function BasicInfoTab({ professional, onUpdate }: BasicInfoTabProps) {
         })
         .eq('id', professional.id);
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ [BasicInfoTab] Error al actualizar:', error);
+        throw error;
+      }
 
+      console.log('✅ [BasicInfoTab] Cambios guardados exitosamente');
       onUpdate(formData);
       toast.success('Información actualizada exitosamente');
     } catch (error) {
       console.error('Error updating professional:', error);
-      toast.error('Error al actualizar la información');
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
+      
+      // Mensajes de error más descriptivos
+      if (errorMessage.includes('permission') || errorMessage.includes('policy')) {
+        toast.error('No tienes permisos para actualizar esta información');
+      } else if (errorMessage.includes('unique') || errorMessage.includes('duplicate')) {
+        toast.error('El email ya está en uso por otro profesional');
+      } else {
+        toast.error(`Error al actualizar la información: ${errorMessage}`);
+      }
     }
   };
+
+  // Exponer handleSave al padre mediante ref
+  useEffect(() => {
+    if (onSaveRef) {
+      onSaveRef.current = handleSave;
+    }
+    return () => {
+      if (onSaveRef) {
+        onSaveRef.current = null;
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [onSaveRef, formData, professional.id]);
 
   return (
     <div className="space-y-6">
@@ -281,9 +332,10 @@ export function BasicInfoTab({ professional, onUpdate }: BasicInfoTabProps) {
               <Input
                 id="email"
                 type="email"
-                value={formData.email}
+                value={formData.email || ''}
                 onChange={(e) => handleChange('email', e.target.value)}
                 placeholder="email@ejemplo.com"
+                disabled={false}
               />
               <p className="text-xs text-muted-foreground">
                 El administrador puede editar el email del profesional

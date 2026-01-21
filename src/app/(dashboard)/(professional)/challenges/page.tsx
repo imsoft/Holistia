@@ -184,7 +184,7 @@ export default function ProfessionalChallenges() {
                 Ver Participantes
               </a>
             </Button>
-            <Button onClick={() => router.push(`/professional/${professionalId}/challenges/new`)}>
+            <Button onClick={() => router.push(`/challenges/new`)}>
               <Plus className="h-4 w-4 mr-2" />
               Nuevo Reto
             </Button>
@@ -227,7 +227,7 @@ export default function ProfessionalChallenges() {
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-12">
               <p className="text-muted-foreground mb-4">No tienes retos aún</p>
-              <Button onClick={() => router.push(`/professional/${professionalId}/challenges/new`)}>
+              <Button onClick={() => router.push(`/challenges/new`)}>
                 <Plus className="h-4 w-4 mr-2" />
                 Crear Primer Reto
               </Button>

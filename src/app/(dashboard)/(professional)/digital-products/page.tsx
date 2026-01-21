@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { toast } from "sonner";
 import { getDescriptiveErrorMessage, getFullErrorMessage, isSystemError } from "@/lib/error-messages";
@@ -91,7 +91,6 @@ const CATEGORY_OPTIONS = [
 ] as const;
 
 export default function ProfessionalDigitalProducts() {
-  const params = useParams();
   const router = useRouter();
   const supabase = createClient();
 
@@ -233,7 +232,7 @@ export default function ProfessionalDigitalProducts() {
               </p>
             </div>
           </div>
-          <Button onClick={() => router.push(`/professional/${params.id}/digital-products/new`)}>
+          <Button onClick={() => router.push(`/digital-products/new`)}>
             <Plus className="h-4 w-4 mr-2" />
             Nuevo Programa
           </Button>
@@ -304,7 +303,7 @@ export default function ProfessionalDigitalProducts() {
               <p className="text-muted-foreground text-center mb-4">
                 Comienza a vender meditaciones, ebooks y más
               </p>
-              <Button onClick={() => router.push(`/professional/${params.id}/digital-products/new`)}>
+              <Button onClick={() => router.push(`/digital-products/new`)}>
                 <Plus className="h-4 w-4 mr-2" />
                 Crear Primer Programa
               </Button>
@@ -372,7 +371,7 @@ export default function ProfessionalDigitalProducts() {
                         variant="outline"
                         size="sm"
                         className="flex-1"
-                        onClick={() => router.push(`/professional/${params.id}/digital-products/${product.id}/edit`)}
+                        onClick={() => router.push(`/digital-products/${product.id}/edit`)}
                       >
                         <Edit className="h-4 w-4 mr-1" />
                         Editar

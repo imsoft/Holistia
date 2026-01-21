@@ -372,7 +372,7 @@ export default function ProfessionalDashboard() {
 
   // Función para navegar a la página de citas
   const handleViewAllAppointments = () => {
-    router.push(`/professional/${userId}/appointments`);
+    router.push(`/appointments`);
   };
 
   // Función para ver detalles de una cita específica

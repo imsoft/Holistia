@@ -113,6 +113,29 @@ export default function ProfessionalDashboard() {
             payouts_enabled: professionalApp.stripe_payouts_enabled || false,
           });
 
+          // Verificar estado de Stripe Connect desde la API si ya tiene cuenta
+          // Esto asegura que el estado esté actualizado desde Stripe
+          if (professionalApp.stripe_account_id) {
+            fetch(`/api/stripe/connect/account-status`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ professional_id: professionalApp.id }),
+            })
+              .then(res => res.json())
+              .then(data => {
+                if (data.connected && data.charges_enabled && data.payouts_enabled) {
+                  setStripeConnectStatus({
+                    connected: true,
+                    charges_enabled: data.charges_enabled,
+                    payouts_enabled: data.payouts_enabled,
+                  });
+                }
+              })
+              .catch(err => {
+                console.error('Error verificando estado de Stripe:', err);
+              });
+          }
+
           // Obtener estado de Google Calendar desde el perfil del usuario
           const { data: profileData } = await supabase
             .from('profiles')

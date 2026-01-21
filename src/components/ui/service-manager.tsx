@@ -50,15 +50,15 @@ export function ServiceManager({ professionalId, userId, isAdminContext = false 
         : `/admin/professionals/${professionalId}/services/${serviceId}/edit`;
     }
     return action === 'new'
-      ? `/professional/${userId}/services/new`
-      : `/professional/${userId}/services/${serviceId}/edit`;
+      ? `/services/new`
+      : `/services/${serviceId}/edit`;
   };
   
   const getRedirectPath = () => {
     if (isAdminContext) {
       return `/admin/professionals/${professionalId}`;
     }
-    return `/professional/${userId}/services`;
+    return `/services`;
   };
 
   const fetchServices = useCallback(async () => {

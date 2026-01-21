@@ -94,14 +94,37 @@ export default function EventRegistrationsPage() {
           return;
         }
 
-        // Get user IDs
-        const userIds = [...new Set(data.map(reg => reg.user_id))];
+        if (!data || data.length === 0) {
+          setRegistrations([]);
+          setLoading(false);
+          return;
+        }
 
-        // Get user profiles
-        const { data: profiles } = await supabase
-          .from('profiles')
-          .select('id, email, first_name, last_name')
-          .in('id', userIds);
+        // OPTIMIZACIÓN: Batch queries en lugar de N+1 queries individuales
+        const userIds = [...new Set(data.map(reg => reg.user_id))];
+        const registrationIds = data.map(reg => reg.id);
+
+        // Obtener todos los datos en batch (solo 2 queries en total en lugar de 1 + N)
+        const [
+          profilesResult,
+          allPaymentsResult
+        ] = await Promise.allSettled([
+          // Todos los perfiles de todos los usuarios
+          supabase
+            .from('profiles')
+            .select('id, email, first_name, last_name')
+            .in('id', userIds),
+          // Todos los payments de todos los registros
+          supabase
+            .from('payments')
+            .select('event_registration_id, amount, status, paid_at')
+            .in('event_registration_id', registrationIds)
+            .eq('status', 'succeeded')
+        ]);
+
+        // Procesar resultados de batch queries
+        const profiles = profilesResult.status === 'fulfilled' ? (profilesResult.value.data || []) : [];
+        const allPayments = allPaymentsResult.status === 'fulfilled' ? (allPaymentsResult.value.data || []) : [];
 
         // Create profiles map
         const profilesMap = new Map(
@@ -118,26 +141,27 @@ export default function EventRegistrationsPage() {
           ])
         );
 
-        // Get user details for each registration
-        const registrationsWithUsers = await Promise.all(
-          data.map(async (registration) => {
-            const profile = profilesMap.get(registration.user_id);
-            
-            // Get payment details
-            const { data: paymentData } = await supabase
-              .from('payments')
-              .select('amount, status, paid_at')
-              .eq('event_registration_id', registration.id)
-              .eq('status', 'succeeded')
-              .single();
+        // Create payments map (puede haber solo un payment por registration)
+        const paymentsMap = new Map<string, any>();
+        allPayments.forEach((payment: any) => {
+          paymentsMap.set(payment.event_registration_id, payment);
+        });
 
-            return {
-              ...registration,
-              user: profile || null,
-              payment: paymentData || null
-            };
-          })
-        );
+        // Transformar registros con datos ya cargados (ya no necesitamos Promise.all, todo está en memoria)
+        const registrationsWithUsers = data.map((registration) => {
+          const profile = profilesMap.get(registration.user_id);
+          const paymentData = paymentsMap.get(registration.id) || null;
+
+          return {
+            ...registration,
+            user: profile || null,
+            payment: paymentData ? {
+              amount: paymentData.amount,
+              status: paymentData.status,
+              paid_at: paymentData.paid_at
+            } : null
+          };
+        });
 
         setRegistrations(registrationsWithUsers.filter(r => r.user));
 

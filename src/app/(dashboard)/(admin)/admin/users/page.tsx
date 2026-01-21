@@ -102,72 +102,113 @@ export default function AdminUsers() {
           return;
         }
 
-        // Transformar usuarios a nuestro formato
-        const transformedUsers: User[] = await Promise.all(
-          (allProfiles || []).map(async (profile) => {
-            // Verificar si tiene solicitud profesional
-            const { data: professionalApp } = await supabase
-              .from('professional_applications')
-              .select('city, state, status, submitted_at')
-              .eq('user_id', profile.id)
-              .single();
+        if (!allProfiles || allProfiles.length === 0) {
+          setUsers([]);
+          setLoading(false);
+          return;
+        }
 
-            // Obtener número total de citas del usuario (como paciente o como profesional)
-            const [
-              { data: asPatient },
-              { data: asProfessional }
-            ] = await Promise.all([
-              supabase
-                .from('appointments')
-                .select('id')
-                .eq('patient_id', profile.id),
-              supabase
-                .from('appointments')
-                .select('id')
-                .eq('professional_id', profile.id)
-            ]);
+        // OPTIMIZACIÓN: Batch queries en lugar de N+1 queries individuales
+        const userIds = allProfiles.map(p => p.id);
+        
+        // Obtener todos los datos en batch (solo 3 queries en total en lugar de 3 * N)
+        const [
+          allProfessionalAppsResult,
+          allPatientAppointmentsResult,
+          allProfessionalAppointmentsResult
+        ] = await Promise.allSettled([
+          // Todas las solicitudes profesionales de todos los usuarios
+          supabase
+            .from('professional_applications')
+            .select('user_id, city, state, status, submitted_at')
+            .in('user_id', userIds),
+          // Todos los appointments como paciente
+          supabase
+            .from('appointments')
+            .select('patient_id')
+            .in('patient_id', userIds),
+          // Todos los appointments como profesional
+          supabase
+            .from('appointments')
+            .select('professional_id')
+            .in('professional_id', userIds)
+        ]);
 
-            const appointmentsCount = (asPatient?.length || 0) + (asProfessional?.length || 0);
+        // Procesar resultados de batch queries
+        const allProfessionalApps = allProfessionalAppsResult.status === 'fulfilled' ? (allProfessionalAppsResult.value.data || []) : [];
+        const allPatientAppointments = allPatientAppointmentsResult.status === 'fulfilled' ? (allPatientAppointmentsResult.value.data || []) : [];
+        const allProfessionalAppointments = allProfessionalAppointmentsResult.status === 'fulfilled' ? (allProfessionalAppointmentsResult.value.data || []) : [];
 
-            // Determinar el estado del usuario
-            let status: 'active' | 'inactive' | 'suspended' = 'active';
-            if (profile.account_status) {
-              status = profile.account_status as 'active' | 'inactive' | 'suspended';
+        // Crear maps para acceso rápido O(1)
+        const professionalAppsMap = new Map<string, any>();
+        const patientAppointmentsMap = new Map<string, number>();
+        const professionalAppointmentsMap = new Map<string, number>();
+
+        // Agrupar professional_applications por user_id (puede haber solo una por usuario)
+        allProfessionalApps.forEach((app: any) => {
+          professionalAppsMap.set(app.user_id, app);
+        });
+
+        // Contar appointments como paciente por patient_id
+        allPatientAppointments.forEach((apt: any) => {
+          const patientId = apt.patient_id;
+          patientAppointmentsMap.set(patientId, (patientAppointmentsMap.get(patientId) || 0) + 1);
+        });
+
+        // Contar appointments como profesional por professional_id
+        allProfessionalAppointments.forEach((apt: any) => {
+          const professionalId = apt.professional_id;
+          professionalAppointmentsMap.set(professionalId, (professionalAppointmentsMap.get(professionalId) || 0) + 1);
+        });
+
+        // Transformar usuarios a nuestro formato (ya no necesitamos Promise.all, todo está en memoria)
+        const transformedUsers: User[] = (allProfiles || []).map((profile) => {
+          // Obtener solicitud profesional desde el map
+          const professionalApp = professionalAppsMap.get(profile.id);
+
+          // Obtener conteo de appointments desde los maps
+          const patientAppointmentsCount = patientAppointmentsMap.get(profile.id) || 0;
+          const professionalAppointmentsCount = professionalAppointmentsMap.get(profile.id) || 0;
+          const appointmentsCount = patientAppointmentsCount + professionalAppointmentsCount;
+
+          // Determinar el estado del usuario
+          let status: 'active' | 'inactive' | 'suspended' = 'active';
+          if (profile.account_status) {
+            status = profile.account_status as 'active' | 'inactive' | 'suspended';
+          }
+
+          // Determinar el tipo de usuario
+          let userType: 'user' | 'professional' | 'admin' | 'patient' = profile.type || 'patient';
+          if (professionalApp && professionalApp.status === 'approved') {
+            userType = 'professional';
+          }
+
+          // Construir ubicación desde professional_applications si existe
+          let location = 'No especificada';
+          if (professionalApp) {
+            if (professionalApp.city && professionalApp.state) {
+              location = `${professionalApp.city}, ${professionalApp.state}`;
+            } else if (professionalApp.city) {
+              location = professionalApp.city;
+            } else if (professionalApp.state) {
+              location = professionalApp.state;
             }
+          }
 
-            // Determinar el tipo de usuario
-            let userType: 'user' | 'professional' | 'admin' | 'patient' = profile.type || 'patient';
-            if (professionalApp && professionalApp.status === 'approved') {
-              userType = 'professional';
-            }
-
-            // Construir ubicación desde professional_applications si existe
-            let location = 'No especificada';
-            if (professionalApp) {
-              if (professionalApp.city && professionalApp.state) {
-                location = `${professionalApp.city}, ${professionalApp.state}`;
-              } else if (professionalApp.city) {
-                location = professionalApp.city;
-              } else if (professionalApp.state) {
-                location = professionalApp.state;
-              }
-            }
-
-            return {
-              id: profile.id,
-              name: `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || 'Sin nombre',
-              email: profile.email,
-              phone: profile.phone || '',
-              location,
-              status,
-              type: userType,
-              joinDate: profile.created_at,
-              lastLogin: profile.updated_at || profile.created_at,
-              appointments: appointmentsCount || 0,
-              avatar: profile.avatar_url || '',
-            };
-          })
-        );
+          return {
+            id: profile.id,
+            name: `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || 'Sin nombre',
+            email: profile.email,
+            phone: profile.phone || '',
+            location,
+            status,
+            type: userType,
+            joinDate: profile.created_at,
+            lastLogin: profile.updated_at || profile.created_at,
+            appointments: appointmentsCount,
+            avatar: profile.avatar_url || '',
+          };
+        });
 
         setUsers(transformedUsers);
 

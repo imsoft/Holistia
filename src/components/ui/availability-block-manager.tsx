@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter, useParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { Card, CardContent } from '@/components/ui/card';
 import { BlocksCalendarView } from '@/components/ui/blocks-calendar-view';
 import { createClient } from '@/utils/supabase/client';
@@ -14,9 +14,6 @@ interface AvailabilityBlockManagerProps {
 
 export default function AvailabilityBlockManager({ professionalId, userId: propUserId }: AvailabilityBlockManagerProps) {
   const router = useRouter();
-  const params = useParams();
-  const professionalUserId = params.id as string;
-
   const supabase = createClient();
   const [userId, setUserId] = useState<string | null>(propUserId || null);
 
@@ -34,11 +31,11 @@ export default function AvailabilityBlockManager({ professionalId, userId: propU
   }, [propUserId, supabase]);
 
   const handleCreateBlock = () => {
-    router.push(`/professional/${professionalUserId}/availability/blocks/new`);
+    router.push(`/availability/blocks/new`);
   };
 
   const handleEditBlock = (block: AvailabilityBlock) => {
-    router.push(`/professional/${professionalUserId}/availability/blocks/${block.id}/edit`);
+    router.push(`/availability/blocks/${block.id}/edit`);
   };
 
   const handleDeleteBlock = () => {

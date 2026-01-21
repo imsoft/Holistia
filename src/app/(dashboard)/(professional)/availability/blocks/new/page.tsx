@@ -9,39 +9,58 @@ import { createClient } from "@/utils/supabase/client";
 import { toast } from "sonner";
 
 export default function NewAvailabilityBlockPage() {
-  const params = useParams();
   const router = useRouter();
-  const professionalUserId = params.id as string;
-
   const [professionalId, setProfessionalId] = useState<string | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   const supabase = createClient();
 
   useEffect(() => {
-    const fetchProfessionalId = async () => {
+    const fetchProfessionalData = async () => {
       try {
         setLoading(true);
+        
+        // Obtener el usuario autenticado
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        
+        if (userError || !user) {
+          throw new Error('Usuario no autenticado');
+        }
+        
+        setUserId(user.id);
+
+        // Obtener el professional_id usando el user_id
         const { data, error } = await supabase
           .from("professional_applications")
           .select("id")
-          .eq("user_id", professionalUserId)
+          .eq("user_id", user.id)
           .single();
 
-        if (error) throw error;
+        if (error) {
+          console.error("Error fetching professional ID:", error);
+          if (error.code === 'PGRST116') {
+            toast.error("No se encontró una aplicación profesional asociada");
+          } else {
+            toast.error("Error al cargar datos del profesional");
+          }
+          router.push(`/availability`);
+          return;
+        }
 
         setProfessionalId(data.id);
       } catch (error) {
-        console.error("Error fetching professional ID:", error);
-        toast.error("Error al cargar datos del profesional");
-        router.push(`/professional/${professionalUserId}/availability`);
+        console.error("Error fetching professional data:", error);
+        const errorMessage = error instanceof Error ? error.message : "Error al cargar datos del profesional";
+        toast.error(errorMessage);
+        router.push(`/availability`);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchProfessionalId();
-  }, [professionalUserId, router, supabase]);
+    fetchProfessionalData();
+  }, [router, supabase]);
 
   if (loading) {
     return (
@@ -51,7 +70,7 @@ export default function NewAvailabilityBlockPage() {
     );
   }
 
-  if (!professionalId) {
+  if (!professionalId || !userId) {
     return null;
   }
 
@@ -62,7 +81,7 @@ export default function NewAvailabilityBlockPage() {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => router.push(`/professional/${professionalUserId}/availability`)}
+            onClick={() => router.push(`/availability`)}
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>
@@ -74,9 +93,9 @@ export default function NewAvailabilityBlockPage() {
         <div className="max-w-3xl mx-auto">
           <BlockCreatorTabs
             professionalId={professionalId}
-            userId={professionalUserId}
-            onBlockCreated={() => router.push(`/professional/${professionalUserId}/availability`)}
-            onCancel={() => router.push(`/professional/${professionalUserId}/availability`)}
+            userId={userId}
+            onBlockCreated={() => router.push(`/availability`)}
+            onCancel={() => router.push(`/availability`)}
           />
         </div>
       </div>

@@ -12,10 +12,10 @@ import type { AvailabilityBlock } from "@/types/availability";
 export default function EditAvailabilityBlockPage() {
   const params = useParams();
   const router = useRouter();
-  const professionalUserId = params.id as string;
   const blockId = params.blockId as string;
 
   const [professionalId, setProfessionalId] = useState<string | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
   const [block, setBlock] = useState<AvailabilityBlock | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -26,14 +26,32 @@ export default function EditAvailabilityBlockPage() {
       try {
         setLoading(true);
 
-        // Fetch professional ID
+        // Obtener el usuario autenticado
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        
+        if (userError || !user) {
+          throw new Error('Usuario no autenticado');
+        }
+        
+        setUserId(user.id);
+
+        // Fetch professional ID usando el user_id autenticado
         const { data: professionalData, error: professionalError } = await supabase
           .from("professional_applications")
           .select("id")
-          .eq("user_id", professionalUserId)
+          .eq("user_id", user.id)
           .single();
 
-        if (professionalError) throw professionalError;
+        if (professionalError) {
+          console.error("Error fetching professional ID:", professionalError);
+          if (professionalError.code === 'PGRST116') {
+            toast.error("No se encontró una aplicación profesional asociada");
+          } else {
+            toast.error("Error al cargar datos del profesional");
+          }
+          router.push(`/availability`);
+          return;
+        }
 
         setProfessionalId(professionalData.id);
 
@@ -42,22 +60,29 @@ export default function EditAvailabilityBlockPage() {
           .from("availability_blocks")
           .select("*")
           .eq("id", blockId)
+          .eq("professional_id", professionalData.id) // Asegurar que el bloque pertenece al profesional
           .single();
 
-        if (blockError) throw blockError;
+        if (blockError) {
+          console.error("Error fetching block:", blockError);
+          toast.error("Error al cargar el bloqueo");
+          router.push(`/availability`);
+          return;
+        }
 
         setBlock(blockData);
       } catch (error) {
         console.error("Error fetching data:", error);
-        toast.error("Error al cargar el bloqueo");
-        router.push(`/professional/${professionalUserId}/availability`);
+        const errorMessage = error instanceof Error ? error.message : "Error al cargar el bloqueo";
+        toast.error(errorMessage);
+        router.push(`/availability`);
       } finally {
         setLoading(false);
       }
     };
 
     fetchData();
-  }, [professionalUserId, blockId, router, supabase]);
+  }, [blockId, router, supabase]);
 
   if (loading) {
     return (
@@ -67,7 +92,7 @@ export default function EditAvailabilityBlockPage() {
     );
   }
 
-  if (!professionalId || !block) {
+  if (!professionalId || !userId || !block) {
     return null;
   }
 
@@ -78,7 +103,7 @@ export default function EditAvailabilityBlockPage() {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => router.push(`/professional/${professionalUserId}/availability`)}
+            onClick={() => router.push(`/availability`)}
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>
@@ -90,10 +115,10 @@ export default function EditAvailabilityBlockPage() {
         <div className="max-w-3xl mx-auto">
           <BlockCreatorTabs
             professionalId={professionalId}
-            userId={professionalUserId}
+            userId={userId}
             editingBlock={block}
-            onBlockUpdated={() => router.push(`/professional/${professionalUserId}/availability`)}
-            onCancel={() => router.push(`/professional/${professionalUserId}/availability`)}
+            onBlockUpdated={() => router.push(`/availability`)}
+            onCancel={() => router.push(`/availability`)}
           />
         </div>
       </div>

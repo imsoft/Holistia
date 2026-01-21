@@ -262,8 +262,7 @@ const HomeUserPage = () => {
             .select("*")
             .eq("status", "approved")
             .eq("is_active", true)
-            .order("created_at", { ascending: false })
-            .limit(50), // Limitar para mejor rendimiento
+            .order("created_at", { ascending: false }),
           // Eventos
           supabase
             .from("events_workshops")
@@ -277,22 +276,19 @@ const HomeUserPage = () => {
             `)
             .eq("is_active", true)
             .gte("event_date", new Date().toISOString().split('T')[0])
-            .order("event_date", { ascending: true })
-            .limit(20),
+            .order("event_date", { ascending: true }),
           // Restaurantes
           supabase
             .from("restaurants")
             .select("*")
             .eq("is_active", true)
-            .order("created_at", { ascending: false })
-            .limit(10),
+            .order("created_at", { ascending: false }),
           // Comercios
           supabase
             .from("shops")
             .select("*")
             .eq("is_active", true)
-            .order("created_at", { ascending: false })
-            .limit(10),
+            .order("created_at", { ascending: false }),
           // Programas
           supabase
             .from("digital_products")
@@ -311,15 +307,13 @@ const HomeUserPage = () => {
             .eq("is_active", true)
             // Asegurar que solo mostremos productos de profesionales aprobados y activos
             // El JOIN ya filtra automáticamente por RLS, pero agregamos filtro explícito
-            .order("created_at", { ascending: false })
-            .limit(20), // Aumentar límite para mostrar más programas
+            .order("created_at", { ascending: false }),
           // Centros holísticos
           supabase
             .from("holistic_centers")
             .select("*")
             .eq("is_active", true)
             .order("created_at", { ascending: false })
-            .limit(10)
         ]);
 
         // Procesar profesionales

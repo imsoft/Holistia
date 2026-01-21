@@ -54,8 +54,17 @@
             color: white;
             font-size: 36px;
             font-weight: bold;
-            line-height: 60px;
+            line-height: 1;
             text-align: center;
+            position: relative;
+        }
+        .success-icon .icon::before {
+            content: '✓';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: block;
         }
         .product-details {
             background-color: #f9fafb;
@@ -121,7 +130,7 @@
         .button {
             display: inline-block;
             background-color: #667eea;
-            color: white;
+            color: white !important;
             padding: 12px 24px;
             text-decoration: none;
             border-radius: 6px;
@@ -131,18 +140,22 @@
         .button:hover {
             background-color: #5a67d8;
         }
+        .button-secondary {
+            background-color: #6b7280;
+            color: white !important;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
             <img src="https://holistia.io/logos/holistia-white.png" alt="Holistia" class="logo">
-            <h1>¡Programa Disponible! 🎁</h1>
+            <h1>¡Programa Disponible!</h1>
         </div>
         
         <div class="content">
             <div class="success-icon">
-                <div class="icon">✓</div>
+                <div class="icon"></div>
             </div>
             
             <h2 style="text-align: center; color: #1f2937; margin-bottom: 20px;">
@@ -190,7 +203,7 @@
             </div>
             
             <div style="text-align: center; margin: 20px 0;">
-                <a href="{{product_url}}" class="button" style="background-color: #6b7280;">Ver Programa</a>
+                <a href="{{product_url}}" class="button button-secondary">Ver Programa</a>
             </div>
             
             <p style="color: #6b7280; font-size: 14px; text-align: center;">

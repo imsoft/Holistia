@@ -21,8 +21,8 @@ import Link from "next/link";
 import { createClient } from "@/utils/supabase/client";
 import { useProfile } from "@/hooks/use-profile";
 import { NotificationsDropdown } from "@/components/ui/notifications-dropdown";
-import { FavoritesProvider } from "@/components/ui/favorite-button";
 import { useUserId } from "@/stores/user-store";
+import { useLoadFavorites } from "@/stores/favorites-store";
 
 // Función para generar navegación (URLs limpias sin IDs)
 const getNavigation = (hasEvents: boolean = false) => {
@@ -82,9 +82,18 @@ export default function UserLayout({
   const [isProfessional, setIsProfessional] = useState(false);
   const { profile, loading } = useProfile();
   const userId = useUserId();
+  const loadFavorites = useLoadFavorites();
   const pathname = usePathname();
   const router = useRouter();
   const supabase = createClient();
+
+  // Cargar favoritos cuando el userId esté disponible
+  useEffect(() => {
+    if (userId) {
+      loadFavorites(userId);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId]);
 
   useEffect(() => {
     setCurrentPathname(pathname);
@@ -389,11 +398,7 @@ export default function UserLayout({
       </nav>
 
       {/* Main content */}
-      <main className="flex-1">
-        <FavoritesProvider userId={userId}>
-          {children}
-        </FavoritesProvider>
-      </main>
+      <main className="flex-1">{children}</main>
     </div>
   );
 }

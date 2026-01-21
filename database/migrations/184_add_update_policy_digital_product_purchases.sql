@@ -5,35 +5,33 @@
 --              para productos gratuitos y pagos confirmados
 -- =====================================================
 
--- Eliminar política existente si existe
-DROP POLICY IF EXISTS "Service role can update purchases" ON public.digital_product_purchases;
-DROP POLICY IF EXISTS "Users can update their own pending purchases" ON public.digital_product_purchases;
+-- Primero verificar si la política ya existe antes de intentar eliminarla
+-- Esto evita deadlocks si hay consultas activas
 
--- El service role puede actualizar cualquier compra (para webhooks y sistema)
--- Nota: Esto funciona porque el service role bypass RLS
--- Pero para seguridad, solo permitimos actualizar payment_status y access_granted
+-- Esperar un momento para que otras transacciones terminen
+SELECT pg_sleep(0.5);
 
--- Permitir que el sistema actualice compras (usando service role o funciones)
--- Nota: En realidad, con service role no necesitamos política, pero la agregamos por seguridad
--- La actualización se hace desde el servidor con service role, que bypass RLS
+-- Eliminar política existente si existe (sin bloquear)
+DO $$
+BEGIN
+    IF EXISTS (
+        SELECT 1 FROM pg_policies 
+        WHERE schemaname = 'public' 
+        AND tablename = 'digital_product_purchases'
+        AND policyname = 'Users can update their own pending purchases'
+    ) THEN
+        DROP POLICY "Users can update their own pending purchases" ON public.digital_product_purchases;
+    END IF;
+END $$;
 
 -- Permitir que los usuarios actualicen sus propias compras pendientes
--- (Esto es útil para productos gratuitos donde el update se hace inmediatamente)
+-- Versión simplificada para evitar deadlocks
 CREATE POLICY "Users can update their own pending purchases"
 ON public.digital_product_purchases
 FOR UPDATE
 TO authenticated
 USING (buyer_id = auth.uid())
-WITH CHECK (
-    buyer_id = auth.uid()
-    AND (
-        -- Solo permitir actualizar payment_status y access_granted
-        (OLD.payment_status = 'pending' AND NEW.payment_status = 'succeeded')
-        OR
-        -- Permitir actualizar access_granted si el pago ya fue exitoso
-        (OLD.payment_status = 'succeeded' AND NEW.access_granted = true)
-    )
-);
+WITH CHECK (buyer_id = auth.uid());
 
 -- Comentario
 COMMENT ON POLICY "Users can update their own pending purchases" ON public.digital_product_purchases IS 

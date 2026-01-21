@@ -157,41 +157,68 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
           .order("created_at", { ascending: false });
 
         if (professionalsData) {
-          // Para cada profesional, obtener calificaciones de admin y de pacientes
-          const professionalsWithRatings = await Promise.all(
-            professionalsData.map(async (prof) => {
-              // Obtener calificación de administrador
-              const { data: adminRatingStats } = await supabase
-                .from("professional_admin_rating_stats")
-                .select("average_admin_rating")
-                .eq("professional_id", prof.id)
-                .maybeSingle();
+          // OPTIMIZACIÓN: Batch queries en lugar de N+1 queries individuales
+          // Similar a la optimización en /explore page
+          const professionalIds = professionalsData.map(p => p.id);
+          const userIds = professionalsData.map(p => p.user_id).filter((id): id is string => !!id);
+          
+          // Obtener todos los datos en batch (solo 2 queries en total en lugar de 2 * N)
+          const [
+            allAdminRatingResult,
+            allReviewStatsResult,
+          ] = await Promise.allSettled([
+            // Todas las estadísticas de admin ratings
+            supabase
+              .from("professional_admin_rating_stats")
+              .select("professional_id, average_admin_rating")
+              .in("professional_id", professionalIds),
+            // Todas las estadísticas de reviews (usar professional_review_stats que usa user_id)
+            supabase
+              .from("professional_review_stats")
+              .select("professional_id, average_rating, total_reviews")
+              .in("professional_id", userIds),
+          ]);
 
-              // Obtener calificaciones de pacientes
-              const { data: reviewStats } = await supabase
-                .from("review_stats")
-                .select("average_rating, total_reviews")
-                .eq("professional_id", prof.id)
-                .maybeSingle();
+          // Procesar resultados de batch queries
+          const allAdminRatings = allAdminRatingResult.status === 'fulfilled' ? (allAdminRatingResult.value.data || []) : [];
+          const allReviewStats = allReviewStatsResult.status === 'fulfilled' ? (allReviewStatsResult.value.data || []) : [];
 
-              return {
-                id: prof.id,
-                slug: prof.slug,
-                first_name: prof.first_name,
-                last_name: prof.last_name,
-                avatar_url: prof.profile_photo,
-                specializations: prof.specializations || [],
-                years_of_experience: prof.experience,
-                average_rating: reviewStats?.average_rating || 0,
-                total_reviews: reviewStats?.total_reviews || 0,
-                user_id: prof.user_id,
-                profession: prof.profession,
-                city: prof.city,
-                admin_rating: adminRatingStats?.average_admin_rating || null,
-                is_verified: prof.is_verified || false,
-              };
-            })
-          );
+          // Crear maps para acceso rápido O(1) en lugar de buscar en arrays
+          const adminRatingMap = new Map<string, any>();
+          const reviewStatsMap = new Map<string, any>();
+
+          // Crear map de admin ratings por professional_id
+          allAdminRatings.forEach((rating: any) => {
+            adminRatingMap.set(rating.professional_id, rating);
+          });
+
+          // Crear map de review stats por professional_id (usando user_id)
+          allReviewStats.forEach((stat: any) => {
+            reviewStatsMap.set(stat.professional_id, stat);
+          });
+
+          // Mapear profesionales con sus datos (ya no necesitamos Promise.all, todo está en memoria)
+          const professionalsWithRatings = professionalsData.map((prof) => {
+            const adminRatingData = adminRatingMap.get(prof.id) || null;
+            const reviewStats = reviewStatsMap.get(prof.user_id) || null;
+
+            return {
+              id: prof.id,
+              slug: prof.slug,
+              first_name: prof.first_name,
+              last_name: prof.last_name,
+              avatar_url: prof.profile_photo,
+              specializations: prof.specializations || [],
+              years_of_experience: prof.experience,
+              average_rating: reviewStats?.average_rating || 0,
+              total_reviews: reviewStats?.total_reviews || 0,
+              user_id: prof.user_id,
+              profession: prof.profession,
+              city: prof.city,
+              admin_rating: adminRatingData?.average_admin_rating || null,
+              is_verified: prof.is_verified || false,
+            };
+          });
 
           // Filtrar solo profesionales con calificación de admin > 4.5
           const filteredProfessionals = professionalsWithRatings.filter(

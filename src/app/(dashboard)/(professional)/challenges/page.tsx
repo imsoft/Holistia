@@ -92,30 +92,56 @@ export default function ProfessionalChallenges() {
         throw challengesError;
       }
 
-      // Obtener conteos de recursos y reuniones para cada challenge
-      const challengesWithCounts = await Promise.all(
-        (challengesData || []).map(async (challenge) => {
-          // Contar recursos
-          const { count: resourcesCount } = await supabase
-            .from('challenge_resources')
-            .select('*', { count: 'exact', head: true })
-            .eq('challenge_id', challenge.id)
-            .eq('is_active', true);
+      // OPTIMIZACIÓN: Batch queries en lugar de N+1 queries individuales
+      const challengeIds = (challengesData || []).map(c => c.id);
+      
+      // Obtener todos los conteos en batch (solo 2 queries en total en lugar de 2 * N)
+      const [
+        allResourcesResult,
+        allMeetingsResult
+      ] = await Promise.allSettled([
+        // Todos los recursos de todos los challenges
+        supabase
+          .from('challenge_resources')
+          .select('challenge_id')
+          .in('challenge_id', challengeIds)
+          .eq('is_active', true),
+        // Todas las reuniones de todos los challenges
+        supabase
+          .from('challenge_meetings')
+          .select('challenge_id')
+          .in('challenge_id', challengeIds)
+          .eq('is_active', true)
+      ]);
 
-          // Contar reuniones
-          const { count: meetingsCount } = await supabase
-            .from('challenge_meetings')
-            .select('*', { count: 'exact', head: true })
-            .eq('challenge_id', challenge.id)
-            .eq('is_active', true);
+      // Procesar resultados de batch queries
+      const allResources = allResourcesResult.status === 'fulfilled' ? (allResourcesResult.value.data || []) : [];
+      const allMeetings = allMeetingsResult.status === 'fulfilled' ? (allMeetingsResult.value.data || []) : [];
 
-          return {
-            ...challenge,
-            resources_count: resourcesCount || 0,
-            meetings_count: meetingsCount || 0,
-          };
-        })
-      );
+      // Crear maps para contar recursos y reuniones por challenge_id
+      const resourcesMap = new Map<string, number>();
+      const meetingsMap = new Map<string, number>();
+
+      // Contar recursos por challenge_id
+      allResources.forEach((resource: any) => {
+        const challengeId = resource.challenge_id;
+        resourcesMap.set(challengeId, (resourcesMap.get(challengeId) || 0) + 1);
+      });
+
+      // Contar reuniones por challenge_id
+      allMeetings.forEach((meeting: any) => {
+        const challengeId = meeting.challenge_id;
+        meetingsMap.set(challengeId, (meetingsMap.get(challengeId) || 0) + 1);
+      });
+
+      // Mapear challenges con sus conteos (ya no necesitamos Promise.all, todo está en memoria)
+      const challengesWithCounts = (challengesData || []).map((challenge) => {
+        return {
+          ...challenge,
+          resources_count: resourcesMap.get(challenge.id) || 0,
+          meetings_count: meetingsMap.get(challenge.id) || 0,
+        };
+      });
 
       setChallenges(challengesWithCounts);
 

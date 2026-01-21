@@ -162,35 +162,60 @@ export default function AdminProfessionals() {
         console.log('📊 Loaded professionals from DB:', professionalsData.length);
         console.log('🔍 Sample professional data:', professionalsData[0]);
 
+        // OPTIMIZACIÓN: Batch queries en lugar de N+1 queries individuales
+        const professionalIds = professionalsData.map(p => p.id);
+        
+        // Obtener todos los appointments en batch (solo 2 queries en total en lugar de 2 * N)
+        const [
+          allAppointmentsResult,
+          monthlyAppointmentsResult
+        ] = await Promise.allSettled([
+          // Todos los appointments de todos los profesionales
+          supabase
+            .from('appointments')
+            .select('professional_id, patient_id, created_at')
+            .in('professional_id', professionalIds),
+          // Appointments del mes actual de todos los profesionales
+          supabase
+            .from('appointments')
+            .select('professional_id, patient_id')
+            .in('professional_id', professionalIds)
+            .gte('created_at', currentMonthStart.toISOString())
+        ]);
+
+        // Procesar resultados de batch queries
+        const allAppointments = allAppointmentsResult.status === 'fulfilled' ? (allAppointmentsResult.value.data || []) : [];
+        const monthlyAppointments = monthlyAppointmentsResult.status === 'fulfilled' ? (monthlyAppointmentsResult.value.data || []) : [];
+
+        // Crear maps para contar pacientes únicos por professional_id
+        const patientsMap = new Map<string, Set<string>>();
+        const monthlyPatientsMap = new Map<string, Set<string>>();
+
+        // Agrupar appointments por professional_id
+        allAppointments.forEach((apt: any) => {
+          const profId = apt.professional_id;
+          if (!patientsMap.has(profId)) {
+            patientsMap.set(profId, new Set());
+          }
+          patientsMap.get(profId)!.add(apt.patient_id);
+        });
+
+        monthlyAppointments.forEach((apt: any) => {
+          const profId = apt.professional_id;
+          if (!monthlyPatientsMap.has(profId)) {
+            monthlyPatientsMap.set(profId, new Set());
+          }
+          monthlyPatientsMap.get(profId)!.add(apt.patient_id);
+        });
+
         // Transformar datos y obtener número de pacientes para cada profesional
-        const transformedProfessionals: Professional[] = await Promise.all(
-          professionalsData.map(async (prof) => {
-            // Obtener número de pacientes únicos para este profesional
-            // professional_id en appointments corresponde al id del profesional en professional_applications
-            const [
-              { data: appointmentsData },
-              { data: monthlyAppointmentsData }
-            ] = await Promise.all([
-              // Todos los pacientes (histórico)
-              supabase
-                .from('appointments')
-                .select('patient_id, created_at')
-                .eq('professional_id', prof.id),
-              // Pacientes del mes actual
-              supabase
-                .from('appointments')
-                .select('patient_id')
-                .eq('professional_id', prof.id)
-                .gte('created_at', currentMonthStart.toISOString())
-            ]);
+        const transformedProfessionals: Professional[] = professionalsData.map((prof) => {
+          // Obtener pacientes únicos desde los maps
+          const uniquePatients = patientsMap.get(prof.id) || new Set();
+          const patientsCount = uniquePatients.size;
 
-            // Contar pacientes únicos totales
-            const uniquePatients = new Set(appointmentsData?.map(apt => apt.patient_id) || []);
-            const patientsCount = uniquePatients.size;
-
-            // Contar pacientes únicos del mes
-            const monthlyUniquePatients = new Set(monthlyAppointmentsData?.map(apt => apt.patient_id) || []);
-            const monthlyPatientsCount = monthlyUniquePatients.size;
+          const monthlyUniquePatients = monthlyPatientsMap.get(prof.id) || new Set();
+          const monthlyPatientsCount = monthlyUniquePatients.size;
 
             // Determinar el estado basado en:
             // 1. Si está aprobado
@@ -252,8 +277,7 @@ export default function AdminProfessionals() {
               stripe_charges_enabled: prof.stripe_charges_enabled ?? false,
               stripe_payouts_enabled: prof.stripe_payouts_enabled ?? false,
             };
-          })
-        );
+        });
 
         setProfessionals(transformedProfessionals);
 

@@ -1,10 +1,16 @@
 import { useState, useEffect } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import type { Profile, ProfileUpdate } from '@/types/profile';
+import { useUserStore } from '@/stores/user-store';
 
 /**
  * Hook para manejar el perfil de usuario desde public.profiles
  * Reemplaza el uso de auth.users.user_metadata
+ * 
+ * OPTIMIZACIÓN: Usa caché de Zustand para evitar consultas repetidas
+ * - Primero verifica el caché (inmediato, no bloquea)
+ * - Solo hace consulta a Supabase si no hay caché válido
+ * - Actualiza el caché cuando carga el perfil
  * 
  * @example
  * const { profile, loading, updateProfile, refreshProfile } = useProfile();
@@ -20,6 +26,13 @@ export function useProfile() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const supabase = createClient();
+  
+  // Obtener caché del store de Zustand
+  const profileCache = useUserStore((state) => state.profileCache);
+  const profileCacheTimestamp = useUserStore((state) => state.profileCacheTimestamp);
+  const isProfileCacheValidFn = useUserStore((state) => state.isProfileCacheValid);
+  const setProfileCache = useUserStore((state) => state.setProfileCache);
+  const clearProfileCache = useUserStore((state) => state.clearProfileCache);
 
   /**
    * Cargar perfil del usuario autenticado
@@ -100,11 +113,15 @@ export function useProfile() {
 
           console.log('✅ Profile loaded successfully:', newProfile);
           setProfile(newProfile);
+          // Actualizar caché
+          setProfileCache(newProfile);
         } else {
           throw profileError;
         }
       } else {
         setProfile(data);
+        // Actualizar caché
+        setProfileCache(data);
       }
     } catch (err) {
       console.error('Error loading profile:', err);
@@ -132,6 +149,8 @@ export function useProfile() {
       if (updateError) throw updateError;
 
       setProfile(data);
+      // Actualizar caché cuando se actualiza el perfil
+      setProfileCache(data);
       return data;
     } catch (err) {
       console.error('Error updating profile:', err);
@@ -142,15 +161,35 @@ export function useProfile() {
 
   /**
    * Refrescar perfil manualmente
+   * Limpia el caché y vuelve a cargar
    */
   const refreshProfile = () => {
+    clearProfileCache();
     loadProfile();
   };
 
   // Cargar perfil al montar el componente
   useEffect(() => {
+    // Optimización: Si hay caché válido, usarlo inmediatamente (loading optimista)
+    const isCacheValid = isProfileCacheValidFn();
+    if (profileCache && isCacheValid) {
+      // Cargar inmediatamente desde caché (no bloquea)
+      setProfile(profileCache);
+      setLoading(false);
+      setError(null);
+      
+      // Cargar en segundo plano para actualizar si es necesario (no bloquea el render)
+      loadProfile().catch(err => {
+        console.error('Error loading profile in background:', err);
+        // No actualizar el estado si falla, mantener el caché
+      });
+      return;
+    }
+    
+    // Si no hay caché válido, cargar normalmente
     loadProfile();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Solo ejecutar una vez al montar
 
   return {
     profile,

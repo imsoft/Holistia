@@ -24,20 +24,33 @@ interface UserState {
   isLoading: boolean;
   isAuthenticated: boolean;
   
+  // Cache del perfil completo
+  profileCache: Profile | null;
+  profileCacheTimestamp: number | null;
+  
   // Actions
   setUser: (user: UserProfile | null) => void;
   setProfessional: (professional: ProfessionalData | null) => void;
   setLoading: (loading: boolean) => void;
+  setProfileCache: (profile: Profile | null) => void;
   clearUser: () => void;
+  clearProfileCache: () => void;
+  
+  // Helper para verificar si el caché es válido (menos de 5 minutos)
+  isProfileCacheValid: () => boolean;
 }
 
 export const useUserStore = create<UserState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       user: null,
       professional: null,
       isLoading: true,
       isAuthenticated: false,
+      
+      // Cache del perfil completo
+      profileCache: null,
+      profileCacheTimestamp: null,
 
       setUser: (user) => {
         set({
@@ -54,6 +67,30 @@ export const useUserStore = create<UserState>()(
       setLoading: (isLoading) => {
         set({ isLoading });
       },
+      
+      setProfileCache: (profile) => {
+        set({
+          profileCache: profile,
+          profileCacheTimestamp: Date.now(),
+        });
+      },
+      
+      clearProfileCache: () => {
+        set({
+          profileCache: null,
+          profileCacheTimestamp: null,
+        });
+      },
+      
+      isProfileCacheValid: () => {
+        const state = get();
+        if (!state.profileCache || !state.profileCacheTimestamp) {
+          return false;
+        }
+        // Cache válido por 5 minutos (300000 ms)
+        const CACHE_DURATION = 5 * 60 * 1000;
+        return Date.now() - state.profileCacheTimestamp < CACHE_DURATION;
+      },
 
       clearUser: () => {
         set({
@@ -61,6 +98,8 @@ export const useUserStore = create<UserState>()(
           professional: null,
           isAuthenticated: false,
           isLoading: false,
+          profileCache: null,
+          profileCacheTimestamp: null,
         });
       },
     }),
@@ -78,6 +117,9 @@ export const useUserStore = create<UserState>()(
           account_active: state.user.account_active,
         } : null,
         professional: state.professional,
+        // Persistir caché del perfil también (útil para reutilizar entre sesiones)
+        profileCache: state.profileCache,
+        profileCacheTimestamp: state.profileCacheTimestamp,
       }),
     }
   )
@@ -89,3 +131,5 @@ export const useUserType = () => useUserStore((state) => state.user?.type || nul
 export const useIsAuthenticated = () => useUserStore((state) => state.isAuthenticated);
 export const useUserProfile = () => useUserStore((state) => state.user);
 export const useProfessionalData = () => useUserStore((state) => state.professional);
+export const useProfileCache = () => useUserStore((state) => state.profileCache);
+export const useIsProfileCacheValid = () => useUserStore((state) => state.isProfileCacheValid());

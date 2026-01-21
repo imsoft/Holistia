@@ -20,6 +20,7 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import { useProfile } from "@/hooks/use-profile";
+import { useProfileCache, useIsProfileCacheValid, useUserStore } from "@/stores/user-store";
 import { createClient } from "@/utils/supabase/client";
 
 const navigation = [
@@ -32,12 +33,28 @@ const navigation = [
 
 export const Navbar = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const { profile, loading } = useProfile();
+  
+  // Optimización: Usar caché primero para renderizado inmediato
+  const profileCache = useProfileCache();
+  const isCacheValid = useIsProfileCacheValid();
+  const clearUser = useUserStore((state) => state.clearUser);
+  const clearProfileCache = useUserStore((state) => state.clearProfileCache);
+  
+  // Solo usar useProfile() si no hay caché válido (pero no bloquear el render)
+  const { profile: profileFromHook, loading: profileLoading } = useProfile();
+  
+  // Usar perfil del caché si está disponible, sino el del hook
+  const profile = (isCacheValid && profileCache) ? profileCache : profileFromHook;
+  const loading = !isCacheValid && profileLoading;
+  
   const router = useRouter();
   const supabase = createClient();
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
+    // Limpiar caché del store al cerrar sesión
+    clearUser();
+    clearProfileCache();
     router.push("/login");
     router.refresh();
   };

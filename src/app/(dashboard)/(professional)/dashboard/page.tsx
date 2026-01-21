@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useUserId } from "@/stores/user-store";
 import { useUserStoreInit } from "@/hooks/use-user-store-init";
+import { useProfessionalData } from "@/hooks/use-professional-data";
 import {
   Calendar,
   Users,
@@ -38,18 +39,15 @@ export default function ProfessionalDashboard() {
   const userIdParam = useUserId(); // Este es el user_id, no el professional_id
   const supabase = createClient();
   
+  // OPTIMIZACIÓN: Usar hook para cachear datos del profesional
+  const { professional: professionalData, loading: professionalLoading } = useProfessionalData();
+  
   const [loading, setLoading] = useState(true);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [stats, setStats] = useState<DashboardStats[]>([]);
-  const [professionalName, setProfessionalName] = useState<string>("");
-  const [professionalEmail, setProfessionalEmail] = useState<string>("");
-  const [profilePhoto, setProfilePhoto] = useState<string>("");
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
-  const [professionalId, setProfessionalId] = useState<string>("");
-  const [userId, setUserId] = useState<string>("");
-  const [isVerified, setIsVerified] = useState<boolean>(false);
   const [registrationFeeStatus, setRegistrationFeeStatus] = useState<{
     paid: boolean;
     amount: number;
@@ -69,118 +67,92 @@ export default function ProfessionalDashboard() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // OPTIMIZACIÓN: Usar userId de Zustand (ya cacheado)
-        const currentUserId = userIdParam;
-        if (!currentUserId) {
-          console.log("⚠️ No userId disponible aún");
+        // OPTIMIZACIÓN: Esperar a que los datos del profesional estén cargados del cache
+        if (professionalLoading || !professionalData) {
+          console.log("⚠️ Esperando datos del profesional del cache...");
           return;
         }
 
-        // Obtener email del usuario autenticado (una sola vez)
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user?.email) {
-          setProfessionalEmail(user.email);
+        // OPTIMIZACIÓN: Usar datos del profesional del cache (no hacer query)
+        setRegistrationFeeStatus({
+          paid: professionalData.registration_fee_paid || false,
+          amount: professionalData.registration_fee_amount || 888,
+          currency: professionalData.registration_fee_currency || 'mxn',
+          expires_at: professionalData.registration_fee_expires_at,
+          paid_at: professionalData.registration_fee_paid_at,
+        });
+
+        // Establecer estado de Stripe Connect
+        const isStripeConnected = !!(professionalData.stripe_account_id &&
+          professionalData.stripe_charges_enabled &&
+          professionalData.stripe_payouts_enabled);
+        setStripeConnectStatus({
+          connected: isStripeConnected,
+          charges_enabled: professionalData.stripe_charges_enabled || false,
+          payouts_enabled: professionalData.stripe_payouts_enabled || false,
+        });
+
+        // Verificar estado de Stripe Connect desde la API si ya tiene cuenta
+        // Esto asegura que el estado esté actualizado desde Stripe
+        if (professionalData.stripe_account_id) {
+          fetch(`/api/stripe/connect/account-status`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ professional_id: professionalData.id }),
+          })
+            .then(res => res.json())
+            .then(data => {
+              if (data.connected && data.charges_enabled && data.payouts_enabled) {
+                setStripeConnectStatus({
+                  connected: true,
+                  charges_enabled: data.charges_enabled,
+                  payouts_enabled: data.payouts_enabled,
+                });
+              }
+            })
+            .catch(err => {
+              console.error('Error verificando estado de Stripe:', err);
+            });
         }
 
-        // Obtener la aplicación profesional del usuario
-        // El parámetro de la URL es el user_id, no el professional_id
-        const { data: professionalApp, error: profError } = await supabase
-          .from('professional_applications')
-          .select('id, user_id, first_name, last_name, profile_photo, working_start_time, working_end_time, registration_fee_paid, registration_fee_amount, registration_fee_currency, registration_fee_paid_at, registration_fee_expires_at, is_verified, stripe_account_id, stripe_account_status, stripe_charges_enabled, stripe_payouts_enabled')
-          .eq('user_id', currentUserId)
-          .eq('status', 'approved')
+        // Obtener estado de Google Calendar desde el perfil del usuario
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('google_calendar_connected')
+          .eq('id', professionalData.user_id)
           .single();
 
-        if (profError) {
-          console.error('Error obteniendo profesional:', profError);
+        setGoogleCalendarStatus({
+          connected: profileData?.google_calendar_connected || false,
+        });
+        
+        // Obtener citas próximas del profesional (desde hoy en adelante)
+        const today = new Date().toISOString().split('T')[0];
+
+        const { data: appointmentsData, error: appointmentsError } = await supabase
+          .from('appointments')
+          .select(`
+            id,
+            appointment_date,
+            appointment_time,
+            duration_minutes,
+            appointment_type,
+            status,
+            location,
+            notes,
+            patient_id
+          `)
+          .eq('professional_id', professionalData.id)
+          .gte('appointment_date', today) // Citas desde hoy en adelante
+          .in('status', ['pending', 'confirmed', 'completed']) // Incluir todos los estados relevantes
+          .order('appointment_date', { ascending: true })
+          .order('appointment_time', { ascending: true })
+          .limit(10); // Limitar a las próximas 10 citas
+
+        if (appointmentsError) {
+          console.error('Error obteniendo citas:', appointmentsError);
           return;
         }
-
-        if (professionalApp) {
-          setProfessionalName(`${professionalApp.first_name} ${professionalApp.last_name}`);
-          setProfilePhoto(professionalApp.profile_photo || '');
-          setProfessionalId(professionalApp.id);
-          setUserId(professionalApp.user_id);
-          setIsVerified(professionalApp.is_verified || false);
-          setRegistrationFeeStatus({
-            paid: professionalApp.registration_fee_paid || false,
-            amount: professionalApp.registration_fee_amount || 888,
-            currency: professionalApp.registration_fee_currency || 'mxn',
-            expires_at: professionalApp.registration_fee_expires_at,
-            paid_at: professionalApp.registration_fee_paid_at,
-          });
-
-          // Establecer estado de Stripe Connect
-          const isStripeConnected = !!(professionalApp.stripe_account_id &&
-            professionalApp.stripe_charges_enabled &&
-            professionalApp.stripe_payouts_enabled);
-          setStripeConnectStatus({
-            connected: isStripeConnected,
-            charges_enabled: professionalApp.stripe_charges_enabled || false,
-            payouts_enabled: professionalApp.stripe_payouts_enabled || false,
-          });
-
-          // Verificar estado de Stripe Connect desde la API si ya tiene cuenta
-          // Esto asegura que el estado esté actualizado desde Stripe
-          if (professionalApp.stripe_account_id) {
-            fetch(`/api/stripe/connect/account-status`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ professional_id: professionalApp.id }),
-            })
-              .then(res => res.json())
-              .then(data => {
-                if (data.connected && data.charges_enabled && data.payouts_enabled) {
-                  setStripeConnectStatus({
-                    connected: true,
-                    charges_enabled: data.charges_enabled,
-                    payouts_enabled: data.payouts_enabled,
-                  });
-                }
-              })
-              .catch(err => {
-                console.error('Error verificando estado de Stripe:', err);
-              });
-          }
-
-          // Obtener estado de Google Calendar desde el perfil del usuario
-          const { data: profileData } = await supabase
-            .from('profiles')
-            .select('google_calendar_connected')
-            .eq('id', professionalApp.user_id)
-            .single();
-
-          setGoogleCalendarStatus({
-            connected: profileData?.google_calendar_connected || false,
-          });
-          
-          // Obtener citas próximas del profesional (desde hoy en adelante)
-          const today = new Date().toISOString().split('T')[0];
-
-          const { data: appointmentsData, error: appointmentsError } = await supabase
-            .from('appointments')
-            .select(`
-              id,
-              appointment_date,
-              appointment_time,
-              duration_minutes,
-              appointment_type,
-              status,
-              location,
-              notes,
-              patient_id
-            `)
-            .eq('professional_id', professionalApp.id)
-            .gte('appointment_date', today) // Citas desde hoy en adelante
-            .in('status', ['pending', 'confirmed', 'completed']) // Incluir todos los estados relevantes
-            .order('appointment_date', { ascending: true })
-            .order('appointment_time', { ascending: true })
-            .limit(10); // Limitar a las próximas 10 citas
-
-          if (appointmentsError) {
-            console.error('Error obteniendo citas:', appointmentsError);
-            return;
-          }
 
           // Obtener información de los pacientes usando la vista professional_patient_info
           let patientsData: { patient_id: string; full_name: string; email: string; phone: string }[] = [];
@@ -191,7 +163,7 @@ export default function ProfessionalDashboard() {
             const { data: patientsInfo } = await supabase
               .from('professional_patient_info')
               .select('patient_id, full_name, phone, email')
-              .eq('professional_id', professionalApp.id)
+              .eq('professional_id', professionalData.id)
               .in('patient_id', patientIds);
 
             if (patientsInfo) {
@@ -235,7 +207,7 @@ export default function ProfessionalDashboard() {
               patient_id,
               status
             `)
-            .eq('professional_id', professionalApp.id)
+            .eq('professional_id', professionalData.id)
             .in('status', ['pending', 'confirmed', 'completed']); // Incluir todos los estados relevantes
 
           // Obtener pagos para todas las citas con el monto
@@ -359,7 +331,6 @@ export default function ProfessionalDashboard() {
               bgColor: "bg-purple-50",
             },
           ]);
-        }
       } catch (error) {
         console.error('Error inesperado:', error);
       } finally {
@@ -368,7 +339,7 @@ export default function ProfessionalDashboard() {
     };
 
     fetchData();
-  }, [userIdParam, supabase, refreshKey]);
+  }, [professionalData, professionalLoading, supabase, refreshKey]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -426,10 +397,10 @@ export default function ProfessionalDashboard() {
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="text-xl sm:text-2xl font-bold text-foreground">Dashboard</h1>
-                {isVerified && <VerifiedBadge size={20} />}
+                {professionalData?.is_verified && <VerifiedBadge size={20} />}
               </div>
               <p className="text-xs sm:text-sm text-muted-foreground">
-                {loading ? 'Cargando...' : `Bienvenido/a${professionalName ? `, ${professionalName}` : ''}`}
+                {loading || professionalLoading ? 'Cargando...' : `Bienvenido/a${professionalData ? `, ${professionalData.first_name} ${professionalData.last_name}` : ''}`}
               </p>
             </div>
           </div>
@@ -553,7 +524,7 @@ export default function ProfessionalDashboard() {
                       <Button 
                         className="mt-3 bg-red-600 hover:bg-red-700"
                         size="sm"
-                        onClick={() => router.push(`/patient/${userId}/explore/become-professional`)}
+                        onClick={() => router.push(`/patient/${professionalData?.user_id || userIdParam}/explore/become-professional`)}
                       >
                         <CreditCard className="h-4 w-4 mr-2" />
                         Pagar Inscripción
@@ -583,7 +554,7 @@ export default function ProfessionalDashboard() {
                       <Button 
                         className="mt-3 bg-red-600 hover:bg-red-700"
                         size="sm"
-                        onClick={() => router.push(`/patient/${userId}/explore/become-professional`)}
+                        onClick={() => router.push(`/patient/${professionalData?.user_id || userIdParam}/explore/become-professional`)}
                       >
                         <CreditCard className="h-4 w-4 mr-2" />
                         Renovar Inscripción
@@ -616,7 +587,7 @@ export default function ProfessionalDashboard() {
                       <Button 
                         className="mt-3 bg-yellow-600 hover:bg-yellow-700"
                         size="sm"
-                        onClick={() => router.push(`/patient/${userId}/explore/become-professional`)}
+                        onClick={() => router.push(`/patient/${professionalData?.user_id || userIdParam}/explore/become-professional`)}
                       >
                         <CreditCard className="h-4 w-4 mr-2" />
                         Renovar Ahora

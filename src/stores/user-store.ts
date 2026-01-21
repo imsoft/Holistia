@@ -18,6 +18,27 @@ interface ProfessionalData {
   stripe_account_status?: string | null;
 }
 
+interface ProfessionalApplicationCache {
+  id: string;
+  user_id: string;
+  first_name: string;
+  last_name: string;
+  profile_photo: string | null;
+  working_start_time: string | null;
+  working_end_time: string | null;
+  registration_fee_paid: boolean;
+  registration_fee_amount: number | null;
+  registration_fee_currency: string | null;
+  registration_fee_paid_at: string | null;
+  registration_fee_expires_at: string | null;
+  is_verified: boolean;
+  stripe_account_id: string | null;
+  stripe_account_status: string | null;
+  stripe_charges_enabled: boolean | null;
+  stripe_payouts_enabled: boolean | null;
+  email?: string;
+}
+
 interface UserState {
   user: UserProfile | null;
   professional: ProfessionalData | null;
@@ -28,16 +49,23 @@ interface UserState {
   profileCache: Profile | null;
   profileCacheTimestamp: number | null;
   
+  // Cache de datos del profesional
+  professionalCache: ProfessionalApplicationCache | null;
+  professionalCacheTimestamp: number | null;
+  
   // Actions
   setUser: (user: UserProfile | null) => void;
   setProfessional: (professional: ProfessionalData | null) => void;
   setLoading: (loading: boolean) => void;
   setProfileCache: (profile: Profile | null) => void;
+  setProfessionalCache: (professional: ProfessionalApplicationCache | null) => void;
   clearUser: () => void;
   clearProfileCache: () => void;
+  clearProfessionalCache: () => void;
   
   // Helper para verificar si el caché es válido (menos de 5 minutos)
   isProfileCacheValid: () => boolean;
+  isProfessionalCacheValid: () => boolean;
 }
 
 export const useUserStore = create<UserState>()(
@@ -51,6 +79,10 @@ export const useUserStore = create<UserState>()(
       // Cache del perfil completo
       profileCache: null,
       profileCacheTimestamp: null,
+      
+      // Cache de datos del profesional
+      professionalCache: null,
+      professionalCacheTimestamp: null,
 
       setUser: (user) => {
         set({
@@ -82,6 +114,20 @@ export const useUserStore = create<UserState>()(
         });
       },
       
+      setProfessionalCache: (professional) => {
+        set({
+          professionalCache: professional,
+          professionalCacheTimestamp: Date.now(),
+        });
+      },
+      
+      clearProfessionalCache: () => {
+        set({
+          professionalCache: null,
+          professionalCacheTimestamp: null,
+        });
+      },
+      
       isProfileCacheValid: () => {
         const state = get();
         if (!state.profileCache || !state.profileCacheTimestamp) {
@@ -90,6 +136,16 @@ export const useUserStore = create<UserState>()(
         // Cache válido por 5 minutos (300000 ms)
         const CACHE_DURATION = 5 * 60 * 1000;
         return Date.now() - state.profileCacheTimestamp < CACHE_DURATION;
+      },
+      
+      isProfessionalCacheValid: () => {
+        const state = get();
+        if (!state.professionalCache || !state.professionalCacheTimestamp) {
+          return false;
+        }
+        // Cache válido por 5 minutos (300000 ms)
+        const CACHE_DURATION = 5 * 60 * 1000;
+        return Date.now() - state.professionalCacheTimestamp < CACHE_DURATION;
       },
 
       clearUser: () => {
@@ -100,6 +156,8 @@ export const useUserStore = create<UserState>()(
           isLoading: false,
           profileCache: null,
           profileCacheTimestamp: null,
+          professionalCache: null,
+          professionalCacheTimestamp: null,
         });
       },
     }),
@@ -120,6 +178,9 @@ export const useUserStore = create<UserState>()(
         // Persistir caché del perfil también (útil para reutilizar entre sesiones)
         profileCache: state.profileCache,
         profileCacheTimestamp: state.profileCacheTimestamp,
+        // Persistir caché del profesional también
+        professionalCache: state.professionalCache,
+        professionalCacheTimestamp: state.professionalCacheTimestamp,
       }),
     }
   )
@@ -133,3 +194,7 @@ export const useUserProfile = () => useUserStore((state) => state.user);
 export const useProfessionalData = () => useUserStore((state) => state.professional);
 export const useProfileCache = () => useUserStore((state) => state.profileCache);
 export const useIsProfileCacheValid = () => useUserStore((state) => state.isProfileCacheValid());
+export const useProfessionalCache = () => useUserStore((state) => state.professionalCache);
+export const useIsProfessionalCacheValid = () => useUserStore((state) => state.isProfessionalCacheValid());
+export const useSetProfessionalCache = () => useUserStore((state) => state.setProfessionalCache);
+export const useClearProfessionalCache = () => useUserStore((state) => state.clearProfessionalCache);

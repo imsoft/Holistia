@@ -69,7 +69,14 @@ export default function ProfessionalDashboard() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Obtener email del usuario autenticado
+        // OPTIMIZACIÓN: Usar userId de Zustand (ya cacheado)
+        const currentUserId = userIdParam;
+        if (!currentUserId) {
+          console.log("⚠️ No userId disponible aún");
+          return;
+        }
+
+        // Obtener email del usuario autenticado (una sola vez)
         const { data: { user } } = await supabase.auth.getUser();
         if (user?.email) {
           setProfessionalEmail(user.email);
@@ -80,7 +87,7 @@ export default function ProfessionalDashboard() {
         const { data: professionalApp, error: profError } = await supabase
           .from('professional_applications')
           .select('id, user_id, first_name, last_name, profile_photo, working_start_time, working_end_time, registration_fee_paid, registration_fee_amount, registration_fee_currency, registration_fee_paid_at, registration_fee_expires_at, is_verified, stripe_account_id, stripe_account_status, stripe_charges_enabled, stripe_payouts_enabled')
-          .eq('user_id', userIdParam || '')
+          .eq('user_id', currentUserId)
           .eq('status', 'approved')
           .single();
 

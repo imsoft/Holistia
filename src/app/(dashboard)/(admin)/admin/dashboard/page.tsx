@@ -17,6 +17,7 @@ import { Badge } from "@/components/ui/badge";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import Link from "next/link";
 import { createClient } from "@/utils/supabase/client";
+import { useUserId } from "@/stores/user-store";
 
 // Interfaces para los datos dinámicos
 interface DashboardStats {
@@ -55,19 +56,9 @@ export default function AdminDashboard() {
   const [recentApplications, setRecentApplications] = useState<ProfessionalApplication[]>([]);
   const [recentActivities, setRecentActivities] = useState<RecentActivity[]>([]);
   const [loading, setLoading] = useState(true);
-  const [userId, setUserId] = useState<string>("");
+  // OPTIMIZACIÓN: Usar userId de Zustand en lugar de query manual
+  const userId = useUserId();
   const supabase = createClient();
-
-  // Obtener el ID del usuario autenticado
-  useEffect(() => {
-    const getUserId = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        setUserId(user.id);
-      }
-    };
-    getUserId();
-  }, [supabase]);
 
   // Obtener datos del dashboard
   useEffect(() => {

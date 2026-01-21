@@ -170,6 +170,7 @@ export async function POST(request: NextRequest) {
             month: 'long', 
             day: 'numeric' 
           }),
+          file_url: product.file_url || null,
         });
 
         if (emailResult.success) {

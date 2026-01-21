@@ -55,6 +55,7 @@ interface DigitalProductConfirmationEmailData {
   product_url: string;
   my_products_url: string;
   purchase_date: string;
+  file_url?: string | null;
 }
 
 interface AppointmentPaymentConfirmationData {
@@ -302,7 +303,7 @@ export async function sendDigitalProductConfirmationEmail(data: DigitalProductCo
     }
     
     // Replace placeholders
-    const emailContent = emailTemplate
+    let emailContent = emailTemplate
       .replace(/\{\{user_name\}\}/g, data.user_name)
       .replace(/\{\{product_title\}\}/g, data.product_title)
       .replace(/\{\{product_description\}\}/g, data.product_description)
@@ -310,6 +311,19 @@ export async function sendDigitalProductConfirmationEmail(data: DigitalProductCo
       .replace(/\{\{product_url\}\}/g, data.product_url)
       .replace(/\{\{my_products_url\}\}/g, data.my_products_url)
       .replace(/\{\{purchase_date\}\}/g, data.purchase_date);
+    
+    // Handle file_url - show button only if file_url exists
+    if (data.file_url) {
+      emailContent = emailContent.replace(/\{\{file_url\}\}/g, data.file_url);
+      // Remove the conditional wrapper comments and show the download button section
+      emailContent = emailContent.replace(/<!-- START_DOWNLOAD_BUTTON -->[\s\S]*?<!-- END_DOWNLOAD_BUTTON -->/g, (match) => {
+        return match.replace(/<!-- START_DOWNLOAD_BUTTON -->/g, '').replace(/<!-- END_DOWNLOAD_BUTTON -->/g, '');
+      });
+    } else {
+      // Remove the entire download button section if no file_url
+      emailContent = emailContent.replace(/<!-- START_DOWNLOAD_BUTTON -->[\s\S]*?<!-- END_DOWNLOAD_BUTTON -->/g, '');
+      emailContent = emailContent.replace(/\{\{file_url\}\}/g, '');
+    }
 
     // Send email using Resend
     const { data: emailData, error } = await resend.emails.send({

@@ -533,6 +533,7 @@ export async function POST(request: NextRequest) {
                     title,
                     description,
                     slug,
+                    file_url,
                     professional_applications (
                       first_name,
                       last_name
@@ -569,6 +570,7 @@ export async function POST(request: NextRequest) {
                     month: 'long', 
                     day: 'numeric' 
                   }),
+                  file_url: product.file_url || null,
                 });
 
                 console.log('✅ Confirmation email sent for digital product purchase');

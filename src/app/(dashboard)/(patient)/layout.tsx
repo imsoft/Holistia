@@ -21,6 +21,8 @@ import Link from "next/link";
 import { createClient } from "@/utils/supabase/client";
 import { useProfile } from "@/hooks/use-profile";
 import { NotificationsDropdown } from "@/components/ui/notifications-dropdown";
+import { FavoritesProvider } from "@/components/ui/favorite-button";
+import { useUserId } from "@/stores/user-store";
 
 // Función para generar navegación (URLs limpias sin IDs)
 const getNavigation = (hasEvents: boolean = false) => {
@@ -79,6 +81,7 @@ export default function UserLayout({
   const [hasEvents, setHasEvents] = useState(false);
   const [isProfessional, setIsProfessional] = useState(false);
   const { profile, loading } = useProfile();
+  const userId = useUserId();
   const pathname = usePathname();
   const router = useRouter();
   const supabase = createClient();
@@ -386,7 +389,11 @@ export default function UserLayout({
       </nav>
 
       {/* Main content */}
-      <main className="flex-1">{children}</main>
+      <main className="flex-1">
+        <FavoritesProvider userId={userId}>
+          {children}
+        </FavoritesProvider>
+      </main>
     </div>
   );
 }

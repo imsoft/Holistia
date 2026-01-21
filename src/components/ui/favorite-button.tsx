@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext, createContext } from "react";
 import { Heart } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useUserId } from "@/stores/user-store";
 
 type FavoriteType = "professional" | "challenge" | "event" | "restaurant" | "shop" | "digital_product" | "holistic_center";
 
@@ -15,6 +16,81 @@ interface FavoriteButtonProps {
   className?: string;
   size?: "default" | "sm" | "lg" | "icon";
   onToggle?: (isFavorite: boolean) => void;
+  favoritesCache?: Set<string>; // Cache opcional de favoritos para evitar queries
+}
+
+// Contexto para cachear favoritos globalmente
+const FavoritesContext = createContext<{
+  favoritesCache: { [key: string]: Set<string> };
+  refreshFavorites: () => void;
+} | null>(null);
+
+export function FavoritesProvider({ children, userId }: { children: React.ReactNode; userId: string | null }) {
+  const [favoritesCache, setFavoritesCache] = useState<{ [key: string]: Set<string> }>({});
+  const supabase = createClient();
+
+  const refreshFavorites = async () => {
+    if (!userId) {
+      setFavoritesCache({});
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from("user_favorites")
+        .select("*")
+        .eq("user_id", userId);
+
+      if (error) throw error;
+
+      const cache: { [key: string]: Set<string> } = {};
+      (data || []).forEach((fav: any) => {
+        if (fav.professional_id) {
+          if (!cache.professional) cache.professional = new Set();
+          cache.professional.add(fav.professional_id);
+        }
+        if (fav.challenge_id) {
+          if (!cache.challenge) cache.challenge = new Set();
+          cache.challenge.add(fav.challenge_id);
+        }
+        if (fav.event_id) {
+          if (!cache.event) cache.event = new Set();
+          cache.event.add(fav.event_id);
+        }
+        if (fav.restaurant_id) {
+          if (!cache.restaurant) cache.restaurant = new Set();
+          cache.restaurant.add(fav.restaurant_id);
+        }
+        if (fav.shop_id) {
+          if (!cache.shop) cache.shop = new Set();
+          cache.shop.add(fav.shop_id);
+        }
+        if (fav.digital_product_id) {
+          if (!cache.digital_product) cache.digital_product = new Set();
+          cache.digital_product.add(fav.digital_product_id);
+        }
+        if (fav.holistic_center_id) {
+          if (!cache.holistic_center) cache.holistic_center = new Set();
+          cache.holistic_center.add(fav.holistic_center_id);
+        }
+      });
+
+      setFavoritesCache(cache);
+    } catch (error) {
+      console.error("Error loading favorites:", error);
+    }
+  };
+
+  useEffect(() => {
+    refreshFavorites();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId]);
+
+  return (
+    <FavoritesContext.Provider value={{ favoritesCache, refreshFavorites }}>
+      {children}
+    </FavoritesContext.Provider>
+  );
 }
 
 export function FavoriteButton({
@@ -24,51 +100,49 @@ export function FavoriteButton({
   className,
   size = "icon",
   onToggle,
+  favoritesCache: propCache, // Cache pasado como prop (para backwards compatibility)
 }: FavoriteButtonProps) {
   const [isFavorite, setIsFavorite] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [userId, setUserId] = useState<string | null>(null);
-  const [isChecking, setIsChecking] = useState(true); // Estado para saber si estamos verificando
+  const userId = useUserId();
   const supabase = createClient();
+  const context = useContext(FavoritesContext);
+
+  // Usar cache del contexto o prop, priorizando prop si existe
+  const favoritesCache = propCache || context?.favoritesCache[favoriteType];
 
   useEffect(() => {
-    checkIfFavorite();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [itemId, favoriteType]);
+    // Verificar favorito desde cache (no hace query)
+    if (favoritesCache) {
+      setIsFavorite(favoritesCache.has(itemId));
+    } else if (userId) {
+      // Fallback: verificar individualmente solo si no hay cache
+      checkIfFavorite();
+    } else {
+      setIsFavorite(false);
+    }
+  }, [itemId, favoriteType, favoritesCache, userId]);
 
   const checkIfFavorite = async () => {
+    if (!userId) return;
+    
     try {
-      setIsChecking(true);
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        setUserId(null);
-        setIsFavorite(false);
-        setIsChecking(false);
-        return;
-      }
-
-      setUserId(user.id);
-
-      // Construir la query según el tipo
       const columnName = `${favoriteType}_id`;
       const { data, error } = await supabase
         .from("user_favorites")
         .select("id")
-        .eq("user_id", user.id)
+        .eq("user_id", userId)
         .eq(columnName, itemId)
         .maybeSingle();
 
       if (error && error.code !== 'PGRST116') {
         console.error("Error checking favorite:", error);
-        setIsChecking(false);
         return;
       }
 
       setIsFavorite(!!data);
-      setIsChecking(false);
     } catch (error) {
       console.error("Error checking favorite:", error);
-      setIsChecking(false);
     }
   };
 
@@ -97,7 +171,10 @@ export function FavoriteButton({
           .eq(columnName, itemId);
 
         if (error) throw error;
+        
+        // Optimistic update: remover del cache
         setIsFavorite(false);
+        context?.refreshFavorites(); // Refrescar cache global
         onToggle?.(false);
       } else {
         // Add to favorites
@@ -112,7 +189,10 @@ export function FavoriteButton({
           .insert(favoriteData);
 
         if (error) throw error;
+        
+        // Optimistic update: agregar al cache
         setIsFavorite(true);
+        context?.refreshFavorites(); // Refrescar cache global
         onToggle?.(true);
       }
     } catch (error) {
@@ -132,13 +212,13 @@ export function FavoriteButton({
       <button
         type="button"
         onClick={handleToggleFavorite}
-        disabled={isLoading || isChecking}
+        disabled={isLoading}
         className={cn(
           "p-2.5 bg-white rounded-full hover:bg-gray-50 active:bg-gray-100 transition-all shadow-xl border-2 border-gray-400 group/favorite",
           "w-[40px] h-[40px] flex items-center justify-center",
           "relative",
-          (isLoading || isChecking) && "opacity-90 cursor-wait",
-          !(isLoading || isChecking) && "opacity-100 cursor-pointer hover:scale-110",
+          isLoading && "opacity-90 cursor-wait",
+          !isLoading && "opacity-100 cursor-pointer hover:scale-110",
           className
         )}
         title={!userId ? "Inicia sesión para agregar a favoritos" : isFavorite ? "Quitar de favoritos" : "Agregar a favoritos"}

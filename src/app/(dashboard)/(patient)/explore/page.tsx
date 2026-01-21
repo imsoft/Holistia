@@ -328,21 +328,87 @@ const HomeUserPage = () => {
           
           if (professionalsData && professionalsData.length > 0) {
             console.log("✅ [Explore] Processing", professionalsData.length, "professionals");
-            const professionalsWithServices = await Promise.all(
-              professionalsData.map(async (prof) => {
-              const [servicesResult, reviewStatsResult, adminRatingResult, appointmentsResult] = await Promise.allSettled([
-                supabase.from("professional_services").select("*").eq("professional_id", prof.id).eq("isactive", true),
-                supabase.from("professional_review_stats").select("average_rating, total_reviews").eq("professional_id", prof.user_id),
-                supabase.from("professional_admin_rating_stats").select("average_admin_rating").eq("professional_id", prof.id).maybeSingle(),
-                supabase.from("appointments").select("*", { count: "exact", head: true }).eq("professional_id", prof.id).eq("status", "completed")
-              ]);
+            
+            // OPTIMIZACIÓN: Batch queries en lugar de N+1 queries individuales
+            const professionalIds = professionalsData.map(p => p.id);
+            const userIds = professionalsData.map(p => p.user_id).filter((id): id is string => !!id);
+            
+            // Obtener todos los datos en batch (solo 4 queries en total en lugar de 4 * N)
+            const [
+              allServicesResult,
+              allReviewStatsResult,
+              allAdminRatingResult,
+              allAppointmentsResult
+            ] = await Promise.allSettled([
+              // Todos los servicios de todos los profesionales
+              supabase
+                .from("professional_services")
+                .select("*")
+                .in("professional_id", professionalIds)
+                .eq("isactive", true),
+              // Todas las estadísticas de reviews
+              supabase
+                .from("professional_review_stats")
+                .select("professional_id, average_rating, total_reviews")
+                .in("professional_id", userIds),
+              // Todas las estadísticas de admin ratings
+              supabase
+                .from("professional_admin_rating_stats")
+                .select("professional_id, average_admin_rating")
+                .in("professional_id", professionalIds),
+              // Count de citas completadas para todos los profesionales
+              supabase
+                .from("appointments")
+                .select("professional_id", { count: "exact", head: false })
+                .in("professional_id", professionalIds)
+                .eq("status", "completed")
+            ]);
 
-              const services = servicesResult.status === 'fulfilled' ? servicesResult.value.data : [];
-              const reviewStats = reviewStatsResult.status === 'fulfilled' && reviewStatsResult.value.data && reviewStatsResult.value.data.length > 0 ? reviewStatsResult.value.data[0] : null;
-              const adminRatingData = adminRatingResult.status === 'fulfilled' ? adminRatingResult.value.data : null;
-              const completedAppointmentsCount = appointmentsResult.status === 'fulfilled' ? appointmentsResult.value.count : 0;
+            // Procesar resultados de batch queries
+            const allServices = allServicesResult.status === 'fulfilled' ? (allServicesResult.value.data || []) : [];
+            const allReviewStats = allReviewStatsResult.status === 'fulfilled' ? (allReviewStatsResult.value.data || []) : [];
+            const allAdminRatings = allAdminRatingResult.status === 'fulfilled' ? (allAdminRatingResult.value.data || []) : [];
+            const allAppointments = allAppointmentsResult.status === 'fulfilled' ? (allAppointmentsResult.value.data || []) : [];
 
-              const transformedServices = transformServicesFromDB(services || []);
+            // Crear maps para acceso rápido O(1) en lugar de buscar en arrays
+            const servicesMap = new Map<string, any[]>();
+            const reviewStatsMap = new Map<string, any>();
+            const adminRatingMap = new Map<string, any>();
+            const appointmentsMap = new Map<string, number>();
+
+            // Agrupar servicios por professional_id
+            allServices.forEach((service: any) => {
+              const profId = service.professional_id;
+              if (!servicesMap.has(profId)) {
+                servicesMap.set(profId, []);
+              }
+              servicesMap.get(profId)!.push(service);
+            });
+
+            // Crear map de review stats por professional_id (usando user_id)
+            allReviewStats.forEach((stat: any) => {
+              reviewStatsMap.set(stat.professional_id, stat);
+            });
+
+            // Crear map de admin ratings por professional_id
+            allAdminRatings.forEach((rating: any) => {
+              adminRatingMap.set(rating.professional_id, rating);
+            });
+
+            // Agrupar y contar appointments por professional_id
+            allAppointments.forEach((apt: any) => {
+              const profId = apt.professional_id;
+              appointmentsMap.set(profId, (appointmentsMap.get(profId) || 0) + 1);
+            });
+
+            // Mapear profesionales con sus datos (ya no necesitamos Promise.all, todo está en memoria)
+            const professionalsWithServices = professionalsData.map((prof) => {
+              const services = servicesMap.get(prof.id) || [];
+              const reviewStats = reviewStatsMap.get(prof.user_id) || null;
+              const adminRatingData = adminRatingMap.get(prof.id) || null;
+              const completedAppointmentsCount = appointmentsMap.get(prof.id) || 0;
+
+              const transformedServices = transformServicesFromDB(services);
               const professionalModality = determineProfessionalModality(transformedServices);
 
               return {
@@ -353,13 +419,12 @@ const HomeUserPage = () => {
                 average_rating: reviewStats?.average_rating || undefined,
                 total_reviews: reviewStats?.total_reviews || undefined,
                 admin_rating: adminRatingData?.average_admin_rating || undefined,
-                completed_appointments: completedAppointmentsCount || 0,
+                completed_appointments: completedAppointmentsCount,
                 is_active: prof.is_active !== false,
                 is_verified: prof.is_verified || false,
                 verified: prof.is_verified || false
               };
-            })
-          );
+            });
 
             // Mostrar todos los profesionales sin filtrar por membresía
             // Solo ordenar por ranking

@@ -246,7 +246,14 @@ export default function ProgramDetailPage() {
         throw new Error(data.error || 'Error al procesar la compra');
       }
 
-      // Redirect to Stripe Checkout
+      // Handle free products ($0) - redirect to my-products
+      if (data.free && data.redirect_url) {
+        toast.success('¡Programa agregado exitosamente!');
+        window.location.href = data.redirect_url;
+        return;
+      }
+
+      // Redirect to Stripe Checkout for paid products
       if (data.url) {
         window.location.href = data.url;
       } else {

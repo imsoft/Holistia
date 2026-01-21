@@ -38,6 +38,7 @@ export async function POST(request: NextRequest) {
       .from('digital_products')
       .select(`
         *,
+        slug,
         professional_applications!inner(
           id,
           stripe_account_id,
@@ -83,23 +84,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if professional has Stripe Connect enabled
     const professional = product.professional_applications;
-    if (!professional.stripe_account_id || !professional.stripe_charges_enabled || !professional.stripe_payouts_enabled) {
-      return NextResponse.json(
-        { error: 'El profesional no tiene configurado el sistema de pagos' },
-        { status: 400 }
-      );
-    }
-
-    // Calculate platform fee (15% for Holistia, 85% for professional)
-    // Ejemplo: Si el programa cuesta $100 MXN:
-    // - Holistia recibe: $15 MXN (15%)
-    // - Profesional recibe: $85 MXN (85%)
-    const platformFee = calculateCommission(product.price, 15);
-    const transferAmount = calculateTransferAmount(product.price, 15);
-    
-    console.log(`💰 Comisión calculada - Precio: $${product.price}, Holistia (15%): $${platformFee}, Profesional (85%): $${transferAmount}`);
 
     // Create purchase record
     const { data: purchase, error: purchaseError } = await supabase
@@ -123,6 +108,90 @@ export async function POST(request: NextRequest) {
         { status: 500 }
       );
     }
+
+    // Handle free products ($0) - grant access immediately without Stripe
+    if (product.price === 0 || product.price === null) {
+      console.log('🎁 Free product detected, granting access immediately');
+      
+      // Update purchase to succeeded and grant access
+      const { error: updateError } = await supabase
+        .from('digital_product_purchases')
+        .update({
+          payment_status: 'succeeded',
+          access_granted: true,
+        })
+        .eq('id', purchase.id);
+
+      if (updateError) {
+        console.error('Error updating free purchase:', updateError);
+        return NextResponse.json(
+          { error: 'Error al otorgar acceso al programa' },
+          { status: 500 }
+        );
+      }
+
+      // Send confirmation email for free product
+      try {
+        const { sendDigitalProductConfirmationEmail } = await import('@/lib/email-sender');
+        
+        // Get user profile
+        const { data: buyerProfile } = await supabase
+          .from('profiles')
+          .select('first_name, last_name, email')
+          .eq('id', user.id)
+          .single();
+
+        const buyerName = buyerProfile?.first_name 
+          ? `${buyerProfile.first_name} ${buyerProfile.last_name || ''}`.trim()
+          : user.email?.split('@')[0] || 'Usuario';
+
+        await sendDigitalProductConfirmationEmail({
+          user_email: user.email || '',
+          user_name: buyerName,
+          product_title: product.title,
+          product_description: product.description,
+          professional_name: `${professional.first_name} ${professional.last_name}`,
+          product_url: `${process.env.NEXT_PUBLIC_SITE_URL || request.nextUrl.origin}/explore/program/${product.slug || product.id}`,
+          my_products_url: `${process.env.NEXT_PUBLIC_SITE_URL || request.nextUrl.origin}/my-products`,
+          purchase_date: new Date().toLocaleDateString('es-MX', { 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+          }),
+        });
+
+        console.log('✅ Free product access granted and confirmation email sent');
+      } catch (emailError) {
+        console.error('Error sending confirmation email for free product:', emailError);
+        // Don't fail the request if email fails
+      }
+
+      return NextResponse.json({
+        success: true,
+        message: 'Acceso otorgado',
+        purchase_id: purchase.id,
+        free: true,
+        redirect_url: `${process.env.NEXT_PUBLIC_SITE_URL || request.nextUrl.origin}/my-products?purchase=success`,
+      });
+    }
+
+    // For paid products, proceed with Stripe Checkout
+    // Check if professional has Stripe Connect enabled
+    if (!professional.stripe_account_id || !professional.stripe_charges_enabled || !professional.stripe_payouts_enabled) {
+      return NextResponse.json(
+        { error: 'El profesional no tiene configurado el sistema de pagos' },
+        { status: 400 }
+      );
+    }
+
+    // Calculate platform fee (15% for Holistia, 85% for professional)
+    // Ejemplo: Si el programa cuesta $100 MXN:
+    // - Holistia recibe: $15 MXN (15%)
+    // - Profesional recibe: $85 MXN (85%)
+    const platformFee = calculateCommission(product.price, 15);
+    const transferAmount = calculateTransferAmount(product.price, 15);
+    
+    console.log(`💰 Comisión calculada - Precio: $${product.price}, Holistia (15%): $${platformFee}, Profesional (85%): $${transferAmount}`);
 
     // Create Stripe Checkout Session with Connect
     const checkoutSession = await stripe.checkout.sessions.create({
@@ -159,8 +228,8 @@ export async function POST(request: NextRequest) {
         platform_fee: platformFee.toString(),
         transfer_amount: transferAmount.toString(),
       },
-      success_url: `${process.env.NEXT_PUBLIC_SITE_URL || request.nextUrl.origin}/patient/${user.id}/explore/professional/${professional.id}?purchase=success`,
-      cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL || request.nextUrl.origin}/patient/${user.id}/explore/professional/${professional.id}`,
+      success_url: `${process.env.NEXT_PUBLIC_SITE_URL || request.nextUrl.origin}/my-products?purchase=success`,
+      cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL || request.nextUrl.origin}/explore/program/${product.slug || product.id}`,
       customer_email: user.email,
     });
 

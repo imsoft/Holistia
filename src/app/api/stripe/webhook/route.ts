@@ -517,6 +517,66 @@ export async function POST(request: NextRequest) {
             console.error('Error updating digital product purchase:', purchaseUpdateError);
           } else {
             console.log('✅ Digital product purchase confirmed and access granted:', purchase_id);
+            
+            // Send confirmation email
+            try {
+              const { sendDigitalProductConfirmationEmail } = await import('@/lib/email-sender');
+              
+              // Get purchase details with product and buyer info
+              const { data: purchaseData } = await supabase
+                .from('digital_product_purchases')
+                .select(`
+                  id,
+                  buyer_id,
+                  digital_products (
+                    id,
+                    title,
+                    description,
+                    slug,
+                    professional_applications (
+                      first_name,
+                      last_name
+                    )
+                  ),
+                  profiles!digital_product_purchases_buyer_id_fkey (
+                    first_name,
+                    last_name,
+                    email
+                  )
+                `)
+                .eq('id', purchase_id)
+                .single();
+
+              if (purchaseData?.digital_products && purchaseData?.profiles) {
+                const product = purchaseData.digital_products as any;
+                const buyer = purchaseData.profiles as any;
+                const professional = product.professional_applications;
+
+                const buyerName = buyer.first_name 
+                  ? `${buyer.first_name} ${buyer.last_name || ''}`.trim()
+                  : buyer.email?.split('@')[0] || 'Usuario';
+
+                await sendDigitalProductConfirmationEmail({
+                  user_email: buyer.email,
+                  user_name: buyerName,
+                  product_title: product.title,
+                  product_description: product.description,
+                  professional_name: `${professional.first_name} ${professional.last_name}`,
+                  product_url: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://holistia.io'}/explore/program/${product.slug || product.id}`,
+                  my_products_url: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://holistia.io'}/my-products`,
+                  purchase_date: new Date().toLocaleDateString('es-MX', { 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric' 
+                  }),
+                });
+
+                console.log('✅ Confirmation email sent for digital product purchase');
+              }
+            } catch (emailError) {
+              console.error('Error sending confirmation email for digital product:', emailError);
+              // Don't fail the webhook if email fails
+            }
           }
           break; // Exit early for digital products
         }

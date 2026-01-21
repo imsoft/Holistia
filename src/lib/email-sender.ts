@@ -46,6 +46,17 @@ interface AppointmentConfirmationToPatientData {
   notes?: string;
 }
 
+interface DigitalProductConfirmationEmailData {
+  user_name: string;
+  user_email: string;
+  product_title: string;
+  product_description: string;
+  professional_name: string;
+  product_url: string;
+  my_products_url: string;
+  purchase_date: string;
+}
+
 interface AppointmentPaymentConfirmationData {
   patient_name: string;
   patient_email: string;
@@ -269,6 +280,55 @@ export async function sendEventConfirmationEmailSimple(data: EventConfirmationEm
 
   } catch (error) {
     console.error('Error sending event confirmation email:', error);
+    return { success: false, error: 'Failed to send email' };
+  }
+}
+
+// Send digital product purchase confirmation email
+export async function sendDigitalProductConfirmationEmail(data: DigitalProductConfirmationEmailData) {
+  try {
+    const fs = await import('fs');
+    const path = await import('path');
+    
+    // Read the email template
+    const templatePath = path.join(process.cwd(), 'database/email-templates/digital-product-confirmation.html');
+    let emailTemplate: string;
+    
+    try {
+      emailTemplate = fs.readFileSync(templatePath, 'utf8');
+    } catch (error) {
+      console.error('Error reading email template:', error);
+      return { success: false, error: 'Template not found' };
+    }
+    
+    // Replace placeholders
+    const emailContent = emailTemplate
+      .replace(/\{\{user_name\}\}/g, data.user_name)
+      .replace(/\{\{product_title\}\}/g, data.product_title)
+      .replace(/\{\{product_description\}\}/g, data.product_description)
+      .replace(/\{\{professional_name\}\}/g, data.professional_name)
+      .replace(/\{\{product_url\}\}/g, data.product_url)
+      .replace(/\{\{my_products_url\}\}/g, data.my_products_url)
+      .replace(/\{\{purchase_date\}\}/g, data.purchase_date);
+
+    // Send email using Resend
+    const { data: emailData, error } = await resend.emails.send({
+      from: 'Holistia <noreply@holistia.io>',
+      to: [data.user_email],
+      subject: `🎁 ¡Tu programa "${data.product_title}" está disponible! | Holistia`,
+      html: emailContent,
+    });
+
+    if (error) {
+      console.error('Error sending digital product confirmation email:', error);
+      return { success: false, error: error.message };
+    }
+
+    console.log('Digital product confirmation email sent successfully:', emailData?.id);
+    return { success: true, message: 'Email sent successfully', id: emailData?.id };
+
+  } catch (error) {
+    console.error('Error sending digital product confirmation email:', error);
     return { success: false, error: 'Failed to send email' };
   }
 }

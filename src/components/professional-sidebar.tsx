@@ -50,32 +50,32 @@ interface UserData {
   profession: string;
 }
 
-// Función para generar URLs con ID dinámico
-const getNavItems = (id: string): { mainNavItems: ProfessionalNavItem[] } => {
+// Función para generar URLs (sin prefijo /professional/[id])
+const getNavItems = (): { mainNavItems: ProfessionalNavItem[] } => {
   const navItems = [
     {
       title: "Dashboard",
-      url: `/professional/${id}/dashboard`,
+      url: `/dashboard`,
       icon: Home,
     },
     {
       title: "Servicios",
-      url: `/professional/${id}/services`,
+      url: `/services`,
       icon: Package,
     },
     {
       title: "Horarios",
-      url: `/professional/${id}/availability`,
+      url: `/availability`,
       icon: Clock,
     },
     {
       title: "Citas",
-      url: `/professional/${id}/appointments`,
+      url: `/appointments`,
       icon: Calendar,
     },
     {
       title: "Pacientes",
-      url: `/professional/${id}/patients`,
+      url: `/patients`,
       icon: Users,
     },
     {
@@ -85,32 +85,32 @@ const getNavItems = (id: string): { mainNavItems: ProfessionalNavItem[] } => {
     },
     {
       title: "Galería",
-      url: `/professional/${id}/gallery`,
+      url: `/gallery`,
       icon: ImageIcon,
     },
     {
       title: "Finanzas",
-      url: `/professional/${id}/finances`,
+      url: `/finances`,
       icon: DollarSign,
     },
     {
       title: "Programas",
-      url: `/professional/${id}/digital-products`,
+      url: `/digital-products`,
       icon: ShoppingBag,
     },
     {
       title: "Retos",
-      url: `/professional/${id}/challenges`,
+      url: `/challenges`,
       icon: Target,
     },
     {
       title: "Mis eventos",
-      url: `/professional/${id}/my-events`,
+      url: `/my-events`,
       icon: CalendarCheck,
     },
     {
       title: "Mi perfil",
-      url: `/professional/${id}/profile`,
+      url: `/profile`,
       icon: User,
     },
   ];
@@ -124,9 +124,7 @@ export function ProfessionalSidebar() {
   const [userData, setUserData] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
   const pathname = usePathname();
-  const params = useParams();
   const router = useRouter();
-  const id = params.id as string;
   const supabase = createClient();
 
   useEffect(() => {
@@ -177,14 +175,14 @@ export function ProfessionalSidebar() {
     };
 
     fetchUserData();
-  }, [id, profile, supabase, router]);
+  }, [profile, supabase, router]);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
     router.push('/login');
   };
 
-  const navItems = getNavItems(id);
+  const navItems = getNavItems();
 
   const isActive = (href: string) => {
     if (!currentPathname) return false;
@@ -282,13 +280,13 @@ export function ProfessionalSidebar() {
               </div>
               <div className="border-t border-border" />
               <DropdownMenuItem asChild>
-                <Link href={`/professional/${id}/settings`} className="flex items-center gap-2">
+                <Link href={`/settings`} className="flex items-center gap-2">
                   <Settings className="h-4 w-4" />
                   <span>Configuración</span>
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link href={`/patient/${id}/explore`} className="flex items-center gap-2">
+                <Link href={`/patient/${profile?.id}/explore`} className="flex items-center gap-2">
                   <User className="h-4 w-4" />
                   <span>Vista de usuario</span>
                 </Link>
@@ -339,13 +337,13 @@ export function ProfessionalSidebar() {
               </div>
               <div className="border-t border-border" />
               <DropdownMenuItem asChild>
-                <Link href={`/professional/${id}/settings`} className="flex items-center gap-2">
+                <Link href={`/settings`} className="flex items-center gap-2">
                   <Settings className="h-4 w-4" />
                   <span>Configuración</span>
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link href={`/patient/${id}/explore`} className="flex items-center gap-2">
+                <Link href={`/patient/${profile?.id}/explore`} className="flex items-center gap-2">
                   <User className="h-4 w-4" />
                   <span>Vista de usuario</span>
                 </Link>

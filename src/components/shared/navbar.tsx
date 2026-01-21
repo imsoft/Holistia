@@ -54,8 +54,7 @@ export const Navbar = () => {
     if (!profile) return "/login";
     if (profile.type === "admin") return `/admin/${profile.id}/dashboard`;
     if (profile.type === "professional") {
-      // Necesitamos obtener el professional_application_id
-      return `/professional/${profile.id}/dashboard`;
+      return `/dashboard`;
     }
     return `/patient/${profile.id}/explore`;
   };
@@ -235,7 +234,7 @@ export const Navbar = () => {
                 </DropdownMenuItem>
                 {profile?.type === "professional" && (
                   <DropdownMenuItem asChild>
-                    <Link href={`/professional/${profile.id}/settings`} className="flex items-center gap-2">
+                    <Link href={`/settings`} className="flex items-center gap-2">
                       <Settings className="h-4 w-4" />
                       <span>Configuración</span>
                     </Link>

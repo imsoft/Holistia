@@ -303,12 +303,16 @@ const HomeUserPage = () => {
                 last_name,
                 profile_photo,
                 is_verified,
-                wellness_areas
+                wellness_areas,
+                status,
+                is_active
               )
             `)
             .eq("is_active", true)
+            // Asegurar que solo mostremos productos de profesionales aprobados y activos
+            // El JOIN ya filtra automáticamente por RLS, pero agregamos filtro explícito
             .order("created_at", { ascending: false })
-            .limit(10),
+            .limit(20), // Aumentar límite para mostrar más programas
           // Centros holísticos
           supabase
             .from("holistic_centers")
@@ -455,13 +459,35 @@ const HomeUserPage = () => {
         console.log("🔍 [Explore] Processing products result:", productsResult.status);
         if (productsResult.status === 'fulfilled') {
           const productsData = productsResult.value.data;
-          if (productsData && productsData.length > 0) {
+          const error = productsResult.value.error;
+          
+          if (error) {
+            console.error("❌ [Explore] Error fetching digital products:", error);
+            setDigitalProducts([]);
+            setFilteredDigitalProducts([]);
+          } else if (productsData && productsData.length > 0) {
             console.log("✅ [Explore] Products data:", productsData.length, "products");
-            const transformedProducts = productsData.map((product: any) => ({
+            
+            // Filtrar productos que tienen información del profesional válida
+            const validProducts = productsData.filter((product: any) => {
+              const professional = product.professional_applications;
+              // Verificar que el producto tenga información del profesional y que esté aprobado
+              if (Array.isArray(professional)) {
+                const prof = professional[0];
+                return prof && prof.status === 'approved' && prof.is_active !== false;
+              } else if (professional) {
+                return professional.status === 'approved' && professional.is_active !== false;
+              }
+              return false;
+            });
+            
+            console.log("✅ [Explore] Valid products (after filtering):", validProducts.length, "products");
+            
+            const transformedProducts = validProducts.map((product: any) => ({
               ...product,
               professional_applications: Array.isArray(product.professional_applications) && product.professional_applications.length > 0
                 ? product.professional_applications[0]
-                : undefined,
+                : product.professional_applications || undefined,
             }));
 
             setDigitalProducts(transformedProducts);

@@ -225,21 +225,19 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
             (prof) => prof.admin_rating !== null && prof.admin_rating > 4.5
           );
 
-          // Limitar a 6 y ordenar por calificación de admin descendente
+          // Ordenar por calificación de admin descendente (sin límite)
           const sortedProfessionals = filteredProfessionals
-            .sort((a, b) => (b.admin_rating || 0) - (a.admin_rating || 0))
-            .slice(0, 6);
+            .sort((a, b) => (b.admin_rating || 0) - (a.admin_rating || 0));
 
           setProfessionals(sortedProfessionals);
         }
 
-        // Cargar comercios (6 para el carousel)
+        // Cargar comercios (sin límite)
         const { data: shopsData, error: shopsError } = await supabase
           .from("shops")
           .select("id, slug, name, image_url, gallery, category, city, description, address")
           .eq("is_active", true)
-          .order("created_at", { ascending: false })
-          .limit(6);
+          .order("created_at", { ascending: false });
 
         if (shopsError) {
           console.error("❌ Error loading shops:", shopsError);
@@ -253,25 +251,23 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
           setShops([]);
         }
 
-        // Cargar restaurantes (6 para el carousel)
+        // Cargar restaurantes (sin límite)
         const { data: restaurantsData } = await supabase
           .from("restaurants")
           .select("id, slug, name, image_url, cuisine_type, price_range, address")
-          .eq("is_active", true)
-          .limit(6);
+          .eq("is_active", true);
 
         if (restaurantsData) {
           setRestaurants(restaurantsData);
         }
 
-        // Cargar eventos (6 para el carousel)
+        // Cargar eventos (sin límite)
         const { data: eventsData } = await supabase
           .from("events_workshops")
           .select("id, slug, name, gallery_images, category, event_date, event_time, price, location")
           .eq("is_active", true)
           .gte("event_date", new Date().toISOString().split('T')[0])
-          .order("event_date", { ascending: true })
-          .limit(6);
+          .order("event_date", { ascending: true });
 
         if (eventsData) {
           // Mapear gallery_images[0] a image_url
@@ -289,7 +285,7 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
           setEvents(mappedEvents);
         }
 
-        // Cargar programas - 6 para el carousel
+        // Cargar programas (sin límite)
         const { data: digitalProductsData, error: digitalProductsError } = await supabase
           .from("digital_products")
           .select(`
@@ -307,8 +303,7 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
             )
           `)
           .eq('is_active', true)
-          .order("created_at", { ascending: false })
-          .limit(6);
+          .order("created_at", { ascending: false });
 
         if (digitalProductsError) {
           console.error("❌ Error loading digital products:", digitalProductsError);
@@ -337,14 +332,13 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
           setDigitalProducts([]);
         }
 
-        // Cargar centros holísticos (6 para el carousel)
+        // Cargar centros holísticos (sin límite)
         console.log("🔍 [ExploreSection] Loading holistic centers...");
         const { data: holisticCentersData, error: holisticCentersError } = await supabase
           .from("holistic_centers")
           .select("id, slug, name, image_url, city, description, address")
           .eq("is_active", true)
-          .order("created_at", { ascending: false })
-          .limit(6);
+          .order("created_at", { ascending: false });
 
         if (holisticCentersError) {
           console.error("❌ [ExploreSection] Error loading holistic centers:", holisticCentersError);

@@ -112,23 +112,30 @@ export async function POST(request: NextRequest) {
     // Handle free products ($0) - grant access immediately without Stripe
     if (product.price === 0 || product.price === null) {
       console.log('🎁 Free product detected, granting access immediately');
+      console.log('📝 Purchase ID:', purchase.id);
+      console.log('👤 Buyer ID:', user.id);
+      console.log('📦 Product ID:', product_id);
       
       // Update purchase to succeeded and grant access
-      const { error: updateError } = await supabase
+      const { data: updatedPurchase, error: updateError } = await supabase
         .from('digital_product_purchases')
         .update({
           payment_status: 'succeeded',
           access_granted: true,
         })
-        .eq('id', purchase.id);
+        .eq('id', purchase.id)
+        .select()
+        .single();
 
       if (updateError) {
-        console.error('Error updating free purchase:', updateError);
+        console.error('❌ Error updating free purchase:', updateError);
         return NextResponse.json(
           { error: 'Error al otorgar acceso al programa' },
           { status: 500 }
         );
       }
+
+      console.log('✅ Free purchase updated successfully:', updatedPurchase);
 
       // Send confirmation email for free product
       try {
@@ -145,8 +152,13 @@ export async function POST(request: NextRequest) {
           ? `${buyerProfile.first_name} ${buyerProfile.last_name || ''}`.trim()
           : user.email?.split('@')[0] || 'Usuario';
 
-        await sendDigitalProductConfirmationEmail({
-          user_email: user.email || '',
+        const buyerEmail = buyerProfile?.email || user.email || '';
+        
+        console.log('📧 Sending confirmation email to:', buyerEmail);
+        console.log('👤 Buyer name:', buyerName);
+
+        const emailResult = await sendDigitalProductConfirmationEmail({
+          user_email: buyerEmail,
           user_name: buyerName,
           product_title: product.title,
           product_description: product.description,
@@ -160,7 +172,12 @@ export async function POST(request: NextRequest) {
           }),
         });
 
-        console.log('✅ Free product access granted and confirmation email sent');
+        if (emailResult.success) {
+          console.log('✅ Free product access granted and confirmation email sent:', emailResult.id);
+        } else {
+          console.error('❌ Error sending confirmation email:', emailResult.error);
+          // No fallar la request si el email falla, el acceso ya fue otorgado
+        }
       } catch (emailError) {
         console.error('Error sending confirmation email for free product:', emailError);
         // Don't fail the request if email fails

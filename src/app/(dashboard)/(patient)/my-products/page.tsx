@@ -84,6 +84,19 @@ export default function MyProducts() {
     fetchPurchasedProducts();
   }, []);
 
+  // Recargar productos cuando la URL tiene parámetro de éxito
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('purchase') === 'success') {
+      // Recargar después de 500ms para asegurar que el servidor haya procesado
+      setTimeout(() => {
+        fetchPurchasedProducts();
+        // Limpiar el parámetro de la URL
+        window.history.replaceState({}, '', '/my-products');
+      }, 500);
+    }
+  }, []);
+
   const fetchPurchasedProducts = async () => {
     try {
       setLoading(true);
@@ -94,6 +107,8 @@ export default function MyProducts() {
         return;
       }
 
+      console.log('🔍 Fetching purchased products for user:', user.id);
+
       // Consulta combinando compras con productos y profesionales
       const { data: purchasesData, error } = await supabase
         .from("digital_product_purchases")
@@ -103,6 +118,8 @@ export default function MyProducts() {
           purchased_at,
           download_count,
           last_accessed_at,
+          payment_status,
+          access_granted,
           digital_products!inner (
             id,
             title,
@@ -125,9 +142,15 @@ export default function MyProducts() {
         `)
         .eq("buyer_id", user.id)
         .eq("payment_status", "succeeded")
+        .eq("access_granted", true)
         .order("purchased_at", { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Error fetching purchased products:', error);
+        throw error;
+      }
+
+      console.log('✅ Purchased products found:', purchasesData?.length || 0);
 
       // Transformar los datos
       const transformedProducts: PurchasedProduct[] = purchasesData?.map((purchase: any) => ({

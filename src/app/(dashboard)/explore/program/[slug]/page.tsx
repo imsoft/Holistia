@@ -249,7 +249,10 @@ export default function ProgramDetailPage() {
       // Handle free products ($0) - redirect to my-products
       if (data.free && data.redirect_url) {
         toast.success('¡Programa agregado exitosamente!');
-        window.location.href = data.redirect_url;
+        // Forzar recarga completa de la página para actualizar los datos
+        setTimeout(() => {
+          window.location.href = data.redirect_url;
+        }, 1000);
         return;
       }
 

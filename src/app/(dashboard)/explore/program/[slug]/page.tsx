@@ -283,34 +283,13 @@ export default function ProgramDetailPage() {
   };
 
   const handleShare = async () => {
-    if (!product) return;
-    
     const url = window.location.href;
     try {
-      // Intentar usar la API de compartir del navegador si está disponible
-      if (navigator.share) {
-        await navigator.share({
-          title: product.title,
-          text: product.description?.substring(0, 100) || '',
-          url: url,
-        });
-        toast.success("Compartiendo programa...");
-      } else {
-        // Fallback: copiar al portapapeles
-        await navigator.clipboard.writeText(url);
-        toast.success("URL copiada al portapapeles");
-      }
+      await navigator.clipboard.writeText(url);
+      toast.success("URL copiada al portapapeles");
     } catch (error) {
-      // Si el usuario cancela el compartir o hay un error, intentar copiar
-      if (error instanceof Error && error.name !== 'AbortError') {
-        try {
-          await navigator.clipboard.writeText(url);
-          toast.success("URL copiada al portapapeles");
-        } catch (clipboardError) {
-          console.error('Error copying to clipboard:', clipboardError);
-          toast.error("Error al compartir. Intenta copiar la URL manualmente.");
-        }
-      }
+      console.error('Error copying to clipboard:', error);
+      toast.error("Error al copiar la URL. Intenta copiar manualmente.");
     }
   };
 

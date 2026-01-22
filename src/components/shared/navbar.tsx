@@ -43,18 +43,22 @@ export const Navbar = () => {
   // Solo usar useProfile() si no hay caché válido (pero no bloquear el render)
   const { profile: profileFromHook, loading: profileLoading } = useProfile();
   
-  // Usar perfil del caché si está disponible, sino el del hook
-  const profile = (isCacheValid && profileCache) ? profileCache : profileFromHook;
-  const loading = !isCacheValid && profileLoading;
+  // Verificar autenticación antes de usar el perfil
+  // Si el caché fue limpiado (null), no usar profileFromHook aunque tenga datos
+  const hasValidCache = isCacheValid && profileCache;
+  const profile = hasValidCache ? profileCache : (profileCache === null ? null : profileFromHook);
+  const loading = !hasValidCache && profileLoading;
   
   const router = useRouter();
   const supabase = createClient();
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
-    // Limpiar caché del store al cerrar sesión
+    // Limpiar caché del store PRIMERO para actualizar UI inmediatamente
     clearUser();
     clearProfileCache();
+    // Luego cerrar sesión en Supabase
+    await supabase.auth.signOut();
+    // Finalmente redirigir
     router.push("/login");
     router.refresh();
   };

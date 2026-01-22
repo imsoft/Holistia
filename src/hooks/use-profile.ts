@@ -168,28 +168,75 @@ export function useProfile() {
     loadProfile();
   };
 
-  // Cargar perfil al montar el componente
+  // Limpiar perfil local cuando el caché se limpia explícitamente
   useEffect(() => {
-    // Optimización: Si hay caché válido, usarlo inmediatamente (loading optimista)
-    const isCacheValid = isProfileCacheValidFn();
-    if (profileCache && isCacheValid) {
-      // Cargar inmediatamente desde caché (no bloquea)
-      setProfile(profileCache);
+    // Si el caché es null (limpiado explícitamente), limpiar también el estado local
+    if (profileCache === null && profile !== null) {
+      setProfile(null);
       setLoading(false);
       setError(null);
-      
-      // Cargar en segundo plano para actualizar si es necesario (no bloquea el render)
-      loadProfile().catch(err => {
-        console.error('Error loading profile in background:', err);
-        // No actualizar el estado si falla, mantener el caché
-      });
-      return;
     }
-    
-    // Si no hay caché válido, cargar normalmente
-    loadProfile();
+  }, [profileCache, profile]);
+
+  // Escuchar cambios en el estado de autenticación
+  useEffect(() => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_OUT' || !session) {
+        // Si el usuario cerró sesión, limpiar perfil inmediatamente
+        setProfile(null);
+        setLoading(false);
+        setError(null);
+        clearProfileCache();
+      } else if (event === 'SIGNED_IN' && session?.user) {
+        // Si el usuario inició sesión, cargar perfil
+        loadProfile();
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Solo ejecutar una vez al montar
+  }, [supabase, clearProfileCache]);
+
+  // Cargar perfil al montar el componente o cuando cambie el caché
+  useEffect(() => {
+    // Verificar primero si hay usuario autenticado
+    const checkAndLoad = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        // Si no hay usuario, limpiar perfil y no cargar
+        setProfile(null);
+        setLoading(false);
+        setError(null);
+        return;
+      }
+
+      // Optimización: Si hay caché válido, usarlo inmediatamente (loading optimista)
+      const isCacheValid = isProfileCacheValidFn();
+      if (profileCache && isCacheValid) {
+        // Cargar inmediatamente desde caché (no bloquea)
+        setProfile(profileCache);
+        setLoading(false);
+        setError(null);
+        
+        // Cargar en segundo plano para actualizar si es necesario (no bloquea el render)
+        loadProfile().catch(err => {
+          console.error('Error loading profile in background:', err);
+          // No actualizar el estado si falla, mantener el caché
+        });
+        return;
+      }
+      
+      // Si no hay caché válido, cargar normalmente
+      loadProfile();
+    };
+
+    checkAndLoad();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profileCache]); // Re-ejecutar cuando cambie el caché
 
   return {
     profile,

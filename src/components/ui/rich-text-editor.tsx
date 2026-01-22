@@ -27,6 +27,7 @@ interface RichTextEditorProps {
   placeholder?: string;
   className?: string;
   maxLength?: number;
+  onValidationChange?: (isValid: boolean) => void;
 }
 
 export function RichTextEditor({
@@ -34,18 +35,20 @@ export function RichTextEditor({
   onChange,
   placeholder = "Escribe aquí el contenido de tu post...",
   className,
-  maxLength = 500
+  maxLength = 500,
+  onValidationChange
 }: RichTextEditorProps) {
   const [isMounted, setIsMounted] = useState(false);
   const [, forceUpdate] = useState({});
-  const isUpdatingFromOutside = useRef(false); // Ref para rastrear actualizaciones externas
-  const lastContentRef = useRef<string>(content || ''); // Ref para rastrear el último contenido externo
-  const isFocusedRef = useRef(false); // Ref para rastrear si el editor está enfocado
+  const isUpdatingFromOutside = useRef(false);
+  const lastContentRef = useRef<string>(content || '');
+  const isFocusedRef = useRef(false);
+  const editorRef = useRef<HTMLDivElement>(null);
 
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
-        heading: false, // Disable default heading to use custom one
+        heading: false,
       }),
       Heading.configure({
         levels: [1, 2, 3],
@@ -57,29 +60,37 @@ export function RichTextEditor({
         limit: maxLength,
       }),
     ],
-    enablePasteRules: true, // Habilitar reglas de pegado
-    content: content || '<p></p>', // Asegurar que siempre tenga contenido inicial
+    enablePasteRules: true,
+    content: content || '<p></p>',
     onUpdate: ({ editor }) => {
-      // Solo actualizar el estado si el cambio viene del usuario (no de una actualización externa)
       if (!isUpdatingFromOutside.current) {
         const newContent = editor.getHTML();
-        // Actualizar el ref del último contenido del usuario
+        const charCount = editor.storage.characterCount.characters();
+        const isValid = charCount <= maxLength;
+        
+        if (onValidationChange) {
+          onValidationChange(isValid);
+        }
+        
         lastContentRef.current = newContent;
-        // Solo actualizar el estado del padre si el editor NO está enfocado
-        // Esto previene actualizaciones mientras el usuario escribe
         if (!isFocusedRef.current) {
           onChange(newContent);
         }
       }
-      // Forzar actualización para reflejar cambios en el estado activo de los botones
       forceUpdate({});
+      
+      // Actualizar estilos de texto excedente después de un pequeño delay
+      setTimeout(() => {
+        if (editor && editorRef.current) {
+          updateExceededTextStyles();
+        }
+      }, 50);
     },
     onFocus: () => {
       isFocusedRef.current = true;
     },
     onBlur: () => {
       isFocusedRef.current = false;
-      // Cuando el editor pierde el foco, sincronizar el contenido con el estado del padre
       if (editor && !isUpdatingFromOutside.current) {
         const currentContent = editor.getHTML();
         lastContentRef.current = currentContent;
@@ -87,7 +98,6 @@ export function RichTextEditor({
       }
     },
     onSelectionUpdate: () => {
-      // Actualizar estado cuando cambia la selección
       forceUpdate({});
     },
     editorProps: {
@@ -109,7 +119,6 @@ export function RichTextEditor({
         style: "line-height: 1.75;",
       },
       handleKeyDown: (view, event) => {
-        // Permitir que Shift+Enter cree un <br> en lugar de un nuevo párrafo
         if (event.key === 'Enter' && event.shiftKey) {
           const { state, dispatch } = view;
           const { tr } = state;
@@ -117,55 +126,42 @@ export function RichTextEditor({
           dispatch(tr);
           return true;
         }
-        // NO bloquear otros eventos de teclado - permitir escritura normal
         return false;
       },
       handlePaste: (view, event, slice) => {
-        // Prevenir pegar imágenes, pero permitir texto siempre
         const clipboardData = event.clipboardData;
         
-        // Si no hay clipboardData, permitir que Tiptap maneje el pegado normalmente
         if (!clipboardData) {
-          return false; // Permitir comportamiento por defecto
+          return false;
         }
         
-        // Verificar si hay imágenes en el clipboard
         const items = Array.from(clipboardData.items);
         const hasImage = items.some(item => item.type.startsWith('image/'));
         
         if (hasImage) {
-          // Bloquear solo imágenes
           event.preventDefault();
           return true;
         }
         
-        // Si hay texto (text/plain o text/html), siempre permitir el pegado
         const hasText = items.some(item => 
           item.type.startsWith('text/plain') || 
           item.type.startsWith('text/html')
         );
         
         if (hasText) {
-          // Permitir que Tiptap procese el texto/HTML normalmente
           return false;
         }
         
-        // Por defecto, permitir el comportamiento de Tiptap
-        // Esto asegura que el pegado funcione incluso si no detectamos el tipo
         return false;
       },
       transformPastedHTML: (html) => {
-        // Limpiar y normalizar HTML pegado de otras plataformas
         if (!html) return html;
         
-        // Crear un elemento temporal para procesar el HTML
         const tempDiv = document.createElement('div');
         tempDiv.innerHTML = html;
         
-        // Remover estilos inline que pueden causar problemas
         const allElements = tempDiv.querySelectorAll('*');
         allElements.forEach(el => {
-          // Mantener solo atributos básicos necesarios
           Array.from(el.attributes).forEach(attr => {
             if (attr.name === 'style' || attr.name.startsWith('data-')) {
               el.removeAttribute(attr.name);
@@ -176,7 +172,6 @@ export function RichTextEditor({
         return tempDiv.innerHTML;
       },
       handleDrop: (view, event) => {
-        // Prevenir arrastrar y soltar imágenes
         const dataTransfer = event.dataTransfer;
         if (dataTransfer) {
           const hasImage = Array.from(dataTransfer.files).some(
@@ -193,32 +188,145 @@ export function RichTextEditor({
     immediatelyRender: false,
   });
 
+  // Función para actualizar estilos de texto excedente usando CSS
+  const updateExceededTextStyles = () => {
+    if (!editor || !editorRef.current) return;
+
+    const charCount = editor.storage.characterCount.characters();
+    const editorElement = editorRef.current.querySelector('.ProseMirror') as HTMLElement;
+    
+    if (!editorElement) return;
+
+    // Remover estilos anteriores
+    editorElement.classList.remove('has-exceeded-text');
+    const existingStyle = document.getElementById('exceeded-text-styles');
+    if (existingStyle) {
+      existingStyle.remove();
+    }
+
+    if (charCount <= maxLength) {
+      return;
+    }
+
+    // Agregar clase al editor para indicar que tiene texto excedente
+    editorElement.classList.add('has-exceeded-text');
+
+    // Crear estilos CSS dinámicos para marcar texto excedente
+    const styleElement = document.createElement('style');
+    styleElement.id = 'exceeded-text-styles';
+    
+    // Calcular posiciones usando el documento de ProseMirror
+    const doc = editor.view.state.doc;
+    let charIndex = 0;
+    const exceededRanges: Array<{ start: number; end: number }> = [];
+    
+    doc.descendants((node, pos) => {
+      if (node.isText) {
+        const nodeText = node.textContent;
+        const nodeStart = charIndex;
+        const nodeEnd = charIndex + nodeText.length;
+        
+        if (nodeEnd > maxLength) {
+          const exceededStart = Math.max(0, maxLength - nodeStart);
+          if (exceededStart < nodeText.length) {
+            exceededRanges.push({
+              start: pos + exceededStart,
+              end: pos + nodeText.length
+            });
+          }
+        }
+        
+        charIndex = nodeEnd;
+      }
+      return true;
+    });
+
+    // Generar CSS para marcar el texto excedente
+    if (exceededRanges.length > 0) {
+      // Usar un enfoque más simple: aplicar estilos a través de clases CSS
+      // y usar JavaScript para aplicar los estilos directamente a los nodos
+      styleElement.textContent = `
+        .has-exceeded-text [data-exceeded="true"] {
+          text-decoration: underline !important;
+          text-decoration-color: red !important;
+          text-decoration-thickness: 2px !important;
+        }
+      `;
+      document.head.appendChild(styleElement);
+
+      // Aplicar el atributo data-exceeded a los nodos que exceden
+      exceededRanges.forEach(range => {
+        try {
+          const startPos = editor.view.domAtPos(range.start);
+          const endPos = editor.view.domAtPos(range.end);
+          
+          if (startPos.node && endPos.node) {
+            // Crear un rango y envolver el contenido
+            const domRange = document.createRange();
+            domRange.setStart(startPos.node, startPos.offset);
+            domRange.setEnd(endPos.node, endPos.offset);
+            
+            // Verificar si el rango es válido
+            if (domRange.collapsed) return;
+            
+            const span = document.createElement('span');
+            span.setAttribute('data-exceeded', 'true');
+            span.style.textDecoration = 'underline';
+            span.style.textDecorationColor = 'red';
+            span.style.textDecorationThickness = '2px';
+            
+            try {
+              domRange.surroundContents(span);
+            } catch (e) {
+              // Si falla, usar un enfoque alternativo
+              const contents = domRange.extractContents();
+              span.appendChild(contents);
+              domRange.insertNode(span);
+            }
+          }
+        } catch (e) {
+          // Si falla, continuar con el siguiente rango
+        }
+      });
+    }
+  };
+
+  // Aplicar estilos CSS dinámicos para marcar texto excedente
+  useEffect(() => {
+    if (!editor || !editorRef.current) return;
+
+    // Actualizar estilos inicialmente
+    updateExceededTextStyles();
+
+    // Actualizar estilos periódicamente (cada 300ms) para capturar cambios
+    const intervalId = setInterval(() => {
+      updateExceededTextStyles();
+    }, 300);
+
+    return () => {
+      clearInterval(intervalId);
+    };
+  }, [editor, maxLength]);
+
   useEffect(() => {
     setIsMounted(true);
   }, []);
 
-  // Actualizar el contenido del editor cuando cambia la prop content
-  // IMPORTANTE: Solo actualizar si el cambio viene de fuera (no del usuario escribiendo)
   useEffect(() => {
     if (editor && isMounted) {
-      // CRÍTICO: Si el editor está enfocado (usando ref para evitar timing issues), NUNCA actualizar desde fuera
-      // Esto previene que el usuario pierda el foco mientras escribe
       if (isFocusedRef.current) {
-        return; // No interferir con la escritura del usuario
+        return;
       }
 
       const currentContent = editor.getHTML();
       const newContent = content || '<p></p>';
       
-      // Si el contenido es exactamente igual, no hacer nada
       if (currentContent === newContent) {
         return;
       }
 
-      // Normalizar contenido para comparación - remover espacios en blanco y normalizar
       const normalizeHTML = (html: string) => {
         if (!html) return '';
-        // Remover espacios en blanco excesivos y normalizar
         return html
           .replace(/\s+/g, ' ')
           .replace(/>\s+</g, '><')
@@ -228,24 +336,11 @@ export function RichTextEditor({
       const normalizedCurrent = normalizeHTML(currentContent);
       const normalizedNew = normalizeHTML(newContent);
       
-      // Solo actualizar si el contenido realmente cambió
       if (normalizedCurrent !== normalizedNew) {
-        console.log('🔄 [RichTextEditor] Actualizando contenido del editor (cambio externo):', {
-          contenido_nuevo_length: newContent.length,
-          contenido_actual_length: currentContent.length,
-          editor_enfocado: isFocusedRef.current,
-        });
-        
-        // Marcar que estamos actualizando desde fuera para evitar que onUpdate se dispare
         isUpdatingFromOutside.current = true;
-        
-        // Actualizar el ref del último contenido externo
         lastContentRef.current = newContent;
-        
-        // Usar setContent con emitUpdate: false para evitar loops
         editor.commands.setContent(newContent, { emitUpdate: false });
         
-        // Resetear el flag después de un pequeño delay
         setTimeout(() => {
           isUpdatingFromOutside.current = false;
         }, 50);
@@ -270,6 +365,9 @@ export function RichTextEditor({
       </div>
     );
   }
+
+  const charCount = editor.storage.characterCount.characters();
+  const isValid = charCount <= maxLength;
 
   const ToolbarButton = ({ 
     onClick, 
@@ -298,7 +396,7 @@ export function RichTextEditor({
   );
 
   return (
-    <div className="border rounded-lg overflow-hidden">
+    <div ref={editorRef} className="border rounded-lg overflow-hidden">
       {/* Toolbar */}
       <div className="flex items-center gap-1 p-2 border-b bg-muted/50 flex-wrap">
         <ToolbarButton
@@ -429,13 +527,18 @@ export function RichTextEditor({
       <div className="flex items-center justify-end p-2 border-t bg-muted/30">
         <div className={cn(
           "text-xs font-medium",
-          editor.storage.characterCount.characters() > maxLength
-            ? "text-destructive"
-            : editor.storage.characterCount.characters() > maxLength * 0.9
+          charCount > maxLength
+            ? "text-destructive font-bold"
+            : charCount > maxLength * 0.9
             ? "text-orange-500"
             : "text-muted-foreground"
         )}>
-          {editor.storage.characterCount.characters()} / {maxLength} caracteres
+          {charCount} / {maxLength} caracteres
+          {charCount > maxLength && (
+            <span className="ml-2 text-destructive">
+              (Excede por {charCount - maxLength} caracteres)
+            </span>
+          )}
         </div>
       </div>
     </div>

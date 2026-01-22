@@ -57,6 +57,7 @@ export function ServiceForm({
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [isContentValid, setIsContentValid] = useState(true);
 
   // Cargar datos del servicio si estamos editando
   useEffect(() => {
@@ -284,6 +285,12 @@ export function ServiceForm({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Validar que el contenido no exceda el límite
+    if (!isContentValid) {
+      toast.error('La descripción excede el límite de caracteres. Por favor, reduce el texto.');
+      return;
+    }
+
     // VALIDACIÓN CRÍTICA: Verificar que tenemos IDs válidos
     if (!professionalId || professionalId.trim() === '') {
       toast.error("Error: No se pudo identificar al profesional. Por favor, recarga la página.");
@@ -510,6 +517,7 @@ export function ServiceForm({
               }}
               placeholder="Describe qué incluye este servicio..."
               maxLength={2000}
+              onValidationChange={setIsContentValid}
             />
           </div>
 
@@ -741,9 +749,14 @@ export function ServiceForm({
         </Button>
         <Button
           type="submit"
-          disabled={uploadingImage}
+          disabled={uploadingImage || !isContentValid}
         >
           {uploadingImage ? "Subiendo..." : service ? "Actualizar Servicio" : "Crear Servicio"}
+          {!isContentValid && (
+            <span className="ml-2 text-xs text-destructive">
+              (Excede límite de caracteres)
+            </span>
+          )}
         </Button>
       </div>
     </form>

@@ -134,6 +134,7 @@ export default function AdminShops() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [tempShopId, setTempShopId] = useState<string | null>(null);
+  const [isContentValid, setIsContentValid] = useState(true);
   const [formData, setFormData] = useState<FormData>({
     name: "",
     description: "",
@@ -281,6 +282,12 @@ export default function AdminShops() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Validar que el contenido no exceda el límite
+    if (!isContentValid) {
+      toast.error('La descripción excede el límite de caracteres. Por favor, reduce el texto.');
+      return;
+    }
 
     if (!formData.name.trim()) {
       toast.error("El nombre es requerido");
@@ -579,6 +586,7 @@ export default function AdminShops() {
                 content={formData.description || ""}
                 onChange={(content) => setFormData({ ...formData, description: content })}
                 placeholder="Descripción del comercio"
+                onValidationChange={setIsContentValid}
               />
             </div>
 
@@ -755,9 +763,14 @@ export default function AdminShops() {
               <Button type="button" variant="outline" onClick={() => setIsFormOpen(false)}>
                 Cancelar
               </Button>
-              <Button type="submit" disabled={saving}>
+              <Button type="submit" disabled={saving || !isContentValid}>
                 {saving ? "Guardando..." : editingShop ? "Actualizar" : "Crear"}
               </Button>
+              {!isContentValid && (
+                <p className="text-sm text-destructive">
+                  La descripción excede el límite de caracteres.
+                </p>
+              )}
             </DialogFooter>
           </form>
         </DialogContent>

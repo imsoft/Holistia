@@ -186,6 +186,8 @@ export default function AdminCompanies() {
   const [managingCompany, setManagingCompany] = useState<Company | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [isContentValid, setIsContentValid] = useState(true);
+  const [isQuoteNotesValid, setIsQuoteNotesValid] = useState(true);
   const [formData, setFormData] = useState<FormData>({
     name: "",
     description: "",
@@ -454,6 +456,12 @@ export default function AdminCompanies() {
   const sendQuoteEmail = async () => {
     if (!quotingLead) return;
 
+    // Validar que las notas no excedan el límite
+    if (!isQuoteNotesValid) {
+      toast.error('Las notas adicionales exceden el límite de caracteres. Por favor, reduce el texto.');
+      return;
+    }
+
     try {
       setSaving(true);
 
@@ -521,6 +529,12 @@ export default function AdminCompanies() {
 
   const generateQuotePDF = async () => {
     if (!quotingLead) return;
+
+    // Validar que las notas no excedan el límite
+    if (!isQuoteNotesValid) {
+      toast.error('Las notas adicionales exceden el límite de caracteres. Por favor, reduce el texto.');
+      return;
+    }
 
     try {
       const { jsPDF } = await import('jspdf');
@@ -748,6 +762,12 @@ export default function AdminCompanies() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Validar que el contenido no exceda el límite
+    if (!isContentValid) {
+      toast.error('La descripción excede el límite de caracteres. Por favor, reduce el texto.');
+      return;
+    }
 
     if (!formData.name.trim()) {
       toast.error("El nombre de la empresa es requerido");
@@ -1341,6 +1361,7 @@ export default function AdminCompanies() {
                 content={formData.description || ""}
                 onChange={(content) => setFormData({ ...formData, description: content })}
                 placeholder="Descripción de la empresa"
+                onValidationChange={setIsContentValid}
               />
             </div>
 
@@ -1471,9 +1492,14 @@ export default function AdminCompanies() {
               <Button type="button" variant="outline" onClick={() => setIsFormOpen(false)}>
                 Cancelar
               </Button>
-              <Button type="submit" disabled={saving}>
+              <Button type="submit" disabled={saving || !isContentValid}>
                 {saving ? "Guardando..." : editingCompany ? "Actualizar" : "Crear"}
               </Button>
+              {!isContentValid && (
+                <p className="text-sm text-destructive">
+                  La descripción excede el límite de caracteres.
+                </p>
+              )}
             </DialogFooter>
           </form>
         </DialogContent>
@@ -2162,6 +2188,7 @@ export default function AdminCompanies() {
                   content={quoteNotes}
                   onChange={setQuoteNotes}
                   placeholder="Términos y condiciones, plazos de pago, vigencia de la cotización, etc."
+                  onValidationChange={setIsQuoteNotesValid}
                 />
               </div>
 
@@ -2177,7 +2204,7 @@ export default function AdminCompanies() {
                 <Button
                   variant="outline"
                   className="flex-1"
-                  disabled={quoteServices.length === 0}
+                  disabled={quoteServices.length === 0 || !isQuoteNotesValid}
                   onClick={generateQuotePDF}
                 >
                   <Download className="w-4 h-4 mr-2" />
@@ -2185,12 +2212,17 @@ export default function AdminCompanies() {
                 </Button>
                 <Button
                   className="flex-1"
-                  disabled={quoteServices.length === 0 || saving}
+                  disabled={quoteServices.length === 0 || saving || !isQuoteNotesValid}
                   onClick={sendQuoteEmail}
                 >
                   <Send className="w-4 h-4 mr-2" />
                   {saving ? 'Enviando...' : 'Enviar por Email'}
                 </Button>
+                {!isQuoteNotesValid && (
+                  <p className="text-sm text-destructive col-span-2">
+                    Las notas adicionales exceden el límite de caracteres.
+                  </p>
+                )}
               </div>
             </div>
           )}

@@ -49,6 +49,7 @@ export default function EditBlogPostPage({
     author_id: "",
   });
 
+  const [isContentValid, setIsContentValid] = useState(true);
   const supabase = createClient();
 
   useEffect(() => {
@@ -489,6 +490,7 @@ export default function EditBlogPostPage({
                 content={formData.content}
                 onChange={(content) => setFormData(prev => ({ ...prev, content }))}
                 placeholder="Escribe aquí el contenido de tu post..."
+                onValidationChange={setIsContentValid}
               />
               <p className="text-xs sm:text-sm text-muted-foreground">
                 Usa la barra de herramientas para formatear el texto
@@ -511,7 +513,7 @@ export default function EditBlogPostPage({
         )}
 
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
-          <Button type="submit" disabled={loading} className="w-full sm:w-auto">
+          <Button type="submit" disabled={loading || !isContentValid} className="w-full sm:w-auto">
             {loading ? (
               "Guardando..."
             ) : (
@@ -521,6 +523,11 @@ export default function EditBlogPostPage({
               </>
             )}
           </Button>
+          {!isContentValid && (
+            <p className="text-sm text-destructive">
+              El contenido excede el límite de caracteres. Por favor, reduce el texto.
+            </p>
+          )}
           
           <Button type="button" variant="outline" asChild className="w-full sm:w-auto">
             <Link href={`/admin/${id}/blog`}>

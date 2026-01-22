@@ -410,11 +410,19 @@ export function EventForm({ event, professionals, onSuccess, onCancel }: EventFo
     setIsCropDialogOpen(true);
   };
 
+  const [isContentValid, setIsContentValid] = useState(true);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     // Prevenir múltiples submissions
     if (saving) {
+      return;
+    }
+    
+    // Validar que el contenido no exceda el límite
+    if (!isContentValid) {
+      toast.error('La descripción excede el límite de caracteres. Por favor, reduce el texto.');
       return;
     }
     
@@ -656,6 +664,7 @@ export function EventForm({ event, professionals, onSuccess, onCancel }: EventFo
               onChange={(content) => handleInputChange('description', content)}
               placeholder="Describe el contenido del evento..."
               maxLength={1000}
+              onValidationChange={setIsContentValid}
             />
           </div>
         </CardContent>
@@ -1024,9 +1033,14 @@ export function EventForm({ event, professionals, onSuccess, onCancel }: EventFo
         <Button type="button" variant="outline" onClick={onCancel} disabled={saving}>
           Cancelar
         </Button>
-        <Button type="submit" disabled={uploadingImages || saving}>
+        <Button type="submit" disabled={uploadingImages || saving || !isContentValid}>
           {saving ? "Guardando..." : event ? "Actualizar Evento" : "Crear Evento"}
         </Button>
+        {!isContentValid && (
+          <p className="text-sm text-destructive">
+            La descripción excede el límite de caracteres. Por favor, reduce el texto.
+          </p>
+        )}
       </div>
 
       {/* Diálogo del editor de recorte */}

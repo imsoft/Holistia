@@ -95,6 +95,7 @@ export default function AdminHolisticCenters() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [tempCenterId, setTempCenterId] = useState<string | null>(null); // ID temporal para nuevas creaciones
+  const [isContentValid, setIsContentValid] = useState(true);
   const [formData, setFormData] = useState<FormData>({
     name: "",
     description: "",
@@ -221,6 +222,12 @@ export default function AdminHolisticCenters() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Validar que el contenido no exceda el límite
+    if (!isContentValid) {
+      toast.error('La descripción excede el límite de caracteres. Por favor, reduce el texto.');
+      return;
+    }
 
     if (!formData.name.trim()) {
       toast.error("El nombre es requerido");
@@ -516,6 +523,7 @@ export default function AdminHolisticCenters() {
                 content={formData.description || ""}
                 onChange={(content) => setFormData({ ...formData, description: content })}
                 placeholder="Descripción del centro"
+                onValidationChange={setIsContentValid}
               />
             </div>
 
@@ -626,9 +634,14 @@ export default function AdminHolisticCenters() {
               <Button type="button" variant="outline" onClick={() => setIsFormOpen(false)}>
                 Cancelar
               </Button>
-              <Button type="submit" disabled={saving}>
+              <Button type="submit" disabled={saving || !isContentValid}>
                 {saving ? "Guardando..." : editingCenter ? "Actualizar" : "Crear"}
               </Button>
+              {!isContentValid && (
+                <p className="text-sm text-destructive">
+                  La descripción excede el límite de caracteres.
+                </p>
+              )}
             </DialogFooter>
           </form>
         </DialogContent>

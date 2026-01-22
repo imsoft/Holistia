@@ -67,6 +67,7 @@ export function BasicInfoTab({ professional, onUpdate, onSaveRef }: BasicInfoTab
   const [newCertification, setNewCertification] = useState("");
   const [newLanguage, setNewLanguage] = useState("");
   const [uploading, setUploading] = useState(false);
+  const [isContentValid, setIsContentValid] = useState(true);
 
   // Actualizar formData cuando cambie el professional
   useEffect(() => {
@@ -189,6 +190,12 @@ export function BasicInfoTab({ professional, onUpdate, onSaveRef }: BasicInfoTab
   };
 
   const handleSave = async () => {
+    // Validar que el contenido no exceda el límite
+    if (!isContentValid) {
+      toast.error('La biografía excede el límite de caracteres. Por favor, reduce el texto.');
+      return;
+    }
+
     try {
       console.log('💾 [BasicInfoTab] Guardando cambios...', {
         id: professional.id,
@@ -451,6 +458,7 @@ export function BasicInfoTab({ professional, onUpdate, onSaveRef }: BasicInfoTab
               }}
               placeholder="Escribe aquí la biografía del profesional..."
               maxLength={2000}
+              onValidationChange={setIsContentValid}
             />
             <p className="text-xs text-muted-foreground">
               Usa la barra de herramientas para formatear el texto (negrita, cursiva, listas, etc.)
@@ -567,8 +575,13 @@ export function BasicInfoTab({ professional, onUpdate, onSaveRef }: BasicInfoTab
         </CardContent>
       </Card>
 
-      <div className="flex justify-end">
-        <Button onClick={handleSave} size="lg">
+      <div className="flex flex-col items-end gap-2">
+        {!isContentValid && (
+          <p className="text-sm text-destructive">
+            La biografía excede el límite de caracteres. Por favor, reduce el texto.
+          </p>
+        )}
+        <Button onClick={handleSave} size="lg" disabled={!isContentValid}>
           Guardar Cambios
         </Button>
       </div>

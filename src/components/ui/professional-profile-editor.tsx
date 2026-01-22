@@ -63,6 +63,7 @@ export default function ProfessionalProfileEditor({
   const [error, setError] = useState<string | null>(null);
   const [professionalData, setProfessionalData] = useState<ProfessionalData | null>(null);
   const [editingField, setEditingField] = useState<string | null>(null);
+  const [isContentValid, setIsContentValid] = useState(true);
   const supabase = createClient();
 
   // Estados para campos editables
@@ -141,6 +142,12 @@ export default function ProfessionalProfileEditor({
 
   const handleSave = async () => {
     if (!professionalData) return;
+
+    // Validar que el contenido no exceda el límite
+    if (!isContentValid) {
+      setError('La biografía excede el límite de caracteres. Por favor, reduce el texto.');
+      return;
+    }
 
     try {
       setSaving(true);
@@ -702,6 +709,7 @@ export default function ProfessionalProfileEditor({
                 onChange={(content) => setFormData(prev => ({ ...prev, biography: content }))}
                 placeholder="Cuéntanos sobre tu experiencia, enfoque terapéutico y cómo puedes ayudar a tus pacientes..."
                 maxLength={500}
+                onValidationChange={setIsContentValid}
               />
             ) : (
               <div 
@@ -810,10 +818,15 @@ export default function ProfessionalProfileEditor({
               <X className="h-4 w-4 mr-2" />
               Cancelar
             </Button>
-            <Button onClick={handleSave} disabled={saving} size="sm">
+            <Button onClick={handleSave} disabled={saving || !isContentValid} size="sm">
               <Save className="h-4 w-4 mr-2" />
               {saving ? 'Guardando...' : 'Guardar cambios'}
             </Button>
+            {!isContentValid && (
+              <p className="text-xs text-destructive mt-1">
+                La biografía excede el límite de caracteres.
+              </p>
+            )}
           </div>
         )}
       </CardContent>

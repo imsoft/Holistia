@@ -121,20 +121,37 @@ export function RichTextEditor({
         return false;
       },
       handlePaste: (view, event, slice) => {
-        // Prevenir pegar imágenes, pero permitir texto
+        // Prevenir pegar imágenes, pero permitir texto siempre
         const clipboardData = event.clipboardData;
-        if (clipboardData) {
-          const items = Array.from(clipboardData.items);
-          const hasImage = items.some(item => item.type.startsWith('image/'));
-          if (hasImage) {
-            event.preventDefault();
-            return true; // Bloquear pegado de imágenes
-          }
-          // Si hay texto, permitir que Tiptap lo procese normalmente
-          // No retornar true aquí para que Tiptap maneje el pegado de texto
+        
+        // Si no hay clipboardData, permitir que Tiptap maneje el pegado normalmente
+        if (!clipboardData) {
+          return false; // Permitir comportamiento por defecto
         }
-        // Retornar false para permitir el comportamiento por defecto de Tiptap
-        // Esto permite que Tiptap procese el HTML/texto pegado correctamente
+        
+        // Verificar si hay imágenes en el clipboard
+        const items = Array.from(clipboardData.items);
+        const hasImage = items.some(item => item.type.startsWith('image/'));
+        
+        if (hasImage) {
+          // Bloquear solo imágenes
+          event.preventDefault();
+          return true;
+        }
+        
+        // Si hay texto (text/plain o text/html), siempre permitir el pegado
+        const hasText = items.some(item => 
+          item.type.startsWith('text/plain') || 
+          item.type.startsWith('text/html')
+        );
+        
+        if (hasText) {
+          // Permitir que Tiptap procese el texto/HTML normalmente
+          return false;
+        }
+        
+        // Por defecto, permitir el comportamiento de Tiptap
+        // Esto asegura que el pegado funcione incluso si no detectamos el tipo
         return false;
       },
       transformPastedHTML: (html) => {

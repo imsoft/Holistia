@@ -159,6 +159,20 @@ export default function UserLayout({
     return currentPathname.startsWith(href);
   };
 
+  // Verificar autenticación y redirigir si no hay usuario
+  useEffect(() => {
+    const checkAuth = async () => {
+      if (!loading) {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user && !profile) {
+          // Si no hay usuario autenticado, redirigir al login
+          router.replace("/login");
+        }
+      }
+    };
+    checkAuth();
+  }, [loading, profile, supabase, router]);
+
   // Mostrar loading mientras se cargan los datos
   if (loading) {
     return (
@@ -171,15 +185,9 @@ export default function UserLayout({
     );
   }
 
-  // Si no hay perfil, mostrar error
+  // Si no hay perfil después de cargar, redirigir (no mostrar error para evitar parpadeo)
   if (!profile) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-sm text-muted-foreground">Error al cargar datos del usuario</p>
-        </div>
-      </div>
-    );
+    return null; // Retornar null mientras redirige
   }
 
   const userName = profile.first_name && profile.last_name 

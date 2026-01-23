@@ -86,9 +86,8 @@ export const Navbar = () => {
     clearProfileCache();
     // Luego cerrar sesión en Supabase
     await supabase.auth.signOut();
-    // Finalmente redirigir
-    router.push("/login");
-    router.refresh();
+    // Finalmente redirigir (usar replace para no agregar al historial)
+    router.replace("/login");
   };
 
   const getUserName = () => {

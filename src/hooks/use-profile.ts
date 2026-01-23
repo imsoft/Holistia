@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import type { Profile, ProfileUpdate } from '@/types/profile';
 import { useUserStore } from '@/stores/user-store';
@@ -113,14 +113,16 @@ export function useProfile() {
 
           console.log('✅ Profile loaded successfully:', newProfile);
           setProfile(newProfile);
-          // Actualizar caché
-          setProfileCache(newProfile);
+          // Actualizar caché (solo si no es el mismo objeto para evitar loops)
+          if (profileCache?.id !== newProfile.id) {
+            setProfileCache(newProfile);
+          }
         } else {
           throw profileError;
         }
       } else {
         setProfile(data);
-        // Actualizar caché
+        // Actualizar caché (Zustand manejará la comparación internamente)
         setProfileCache(data);
       }
     } catch (err) {
@@ -168,6 +170,9 @@ export function useProfile() {
     loadProfile();
   };
 
+  // Flag para evitar loops de carga
+  const loadingRef = useRef(false);
+
   // Escuchar cambios en el estado de autenticación
   useEffect(() => {
     const {
@@ -175,13 +180,17 @@ export function useProfile() {
     } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_OUT' || !session) {
         // Si el usuario cerró sesión, limpiar perfil inmediatamente
+        loadingRef.current = false;
         setProfile(null);
         setLoading(false);
         setError(null);
         clearProfileCache();
-      } else if (event === 'SIGNED_IN' && session?.user) {
-        // Si el usuario inició sesión, cargar perfil
-        loadProfile();
+      } else if (event === 'SIGNED_IN' && session?.user && !loadingRef.current) {
+        // Si el usuario inició sesión, cargar perfil (solo si no está cargando)
+        loadingRef.current = true;
+        loadProfile().finally(() => {
+          loadingRef.current = false;
+        });
       }
     });
 
@@ -191,10 +200,13 @@ export function useProfile() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [supabase, clearProfileCache]);
 
-  // Cargar perfil al montar el componente o cuando cambie el caché
+  // Cargar perfil al montar el componente (solo una vez)
   useEffect(() => {
     // Verificar primero si hay usuario autenticado
     const checkAndLoad = async () => {
+      // Evitar cargar si ya se está cargando
+      if (loadingRef.current) return;
+
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         // Si no hay usuario, limpiar perfil y no cargar
@@ -207,7 +219,10 @@ export function useProfile() {
       // Si el caché fue limpiado explícitamente (null), no cargar desde caché
       if (profileCache === null) {
         // Cargar desde la base de datos
-        loadProfile();
+        loadingRef.current = true;
+        loadProfile().finally(() => {
+          loadingRef.current = false;
+        });
         return;
       }
 
@@ -219,21 +234,31 @@ export function useProfile() {
         setLoading(false);
         setError(null);
         
-        // Cargar en segundo plano para actualizar si es necesario (no bloquea el render)
-        loadProfile().catch(err => {
-          console.error('Error loading profile in background:', err);
-          // No actualizar el estado si falla, mantener el caché
-        });
+        // Cargar en segundo plano para actualizar si es necesario (solo si no está cargando)
+        if (!loadingRef.current) {
+          loadingRef.current = true;
+          loadProfile().catch(err => {
+            console.error('Error loading profile in background:', err);
+            // No actualizar el estado si falla, mantener el caché
+          }).finally(() => {
+            loadingRef.current = false;
+          });
+        }
         return;
       }
       
       // Si no hay caché válido, cargar normalmente
-      loadProfile();
+      if (!loadingRef.current) {
+        loadingRef.current = true;
+        loadProfile().finally(() => {
+          loadingRef.current = false;
+        });
+      }
     };
 
     checkAndLoad();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [profileCache]); // Re-ejecutar cuando cambie el caché
+  }, []); // Solo ejecutar una vez al montar, NO cuando cambie profileCache
 
   return {
     profile,

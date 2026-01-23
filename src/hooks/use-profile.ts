@@ -168,16 +168,6 @@ export function useProfile() {
     loadProfile();
   };
 
-  // Limpiar perfil local cuando el caché se limpia explícitamente
-  useEffect(() => {
-    // Si el caché es null (limpiado explícitamente), limpiar también el estado local
-    if (profileCache === null && profile !== null) {
-      setProfile(null);
-      setLoading(false);
-      setError(null);
-    }
-  }, [profileCache, profile]);
-
   // Escuchar cambios en el estado de autenticación
   useEffect(() => {
     const {
@@ -211,6 +201,13 @@ export function useProfile() {
         setProfile(null);
         setLoading(false);
         setError(null);
+        return;
+      }
+
+      // Si el caché fue limpiado explícitamente (null), no cargar desde caché
+      if (profileCache === null) {
+        // Cargar desde la base de datos
+        loadProfile();
         return;
       }
 

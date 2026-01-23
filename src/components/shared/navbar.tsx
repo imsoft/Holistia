@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Menu, LogOut, User, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -33,6 +33,7 @@ const navigation = [
 
 export const Navbar = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   
   // Optimización: Usar caché primero para renderizado inmediato
   const profileCache = useProfileCache();
@@ -52,8 +53,35 @@ export const Navbar = () => {
   const router = useRouter();
   const supabase = createClient();
 
+  // Verificar estado de autenticación directamente
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setIsAuthenticated(!!user);
+    };
+
+    checkAuth();
+
+    // Escuchar cambios en el estado de autenticación
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      setIsAuthenticated(!!session?.user);
+      if (event === 'SIGNED_OUT') {
+        // Limpiar caché cuando se cierra sesión
+        clearUser();
+        clearProfileCache();
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [supabase, clearUser, clearProfileCache]);
+
   const handleLogout = async () => {
     // Limpiar caché del store PRIMERO para actualizar UI inmediatamente
+    setIsAuthenticated(false);
     clearUser();
     clearProfileCache();
     // Luego cerrar sesión en Supabase
@@ -80,7 +108,8 @@ export const Navbar = () => {
     return `/patient/${profile.id}/explore`;
   };
 
-  const isAuthenticated = !!profile && !loading;
+  // Usar el estado de autenticación verificado directamente, no depender solo del perfil
+  const shouldShowAuthUI = isAuthenticated && profile && !loading;
 
   return (
     <header className="w-full z-50">
@@ -138,7 +167,7 @@ export const Navbar = () => {
                   ))}
                 </div>
                 <div className="mt-6 pt-6 border-t border-border space-y-1">
-                  {isAuthenticated ? (
+                  {shouldShowAuthUI ? (
                     <>
                       <div className="flex items-center gap-3 px-3 py-3">
                         <div className="relative">
@@ -207,7 +236,7 @@ export const Navbar = () => {
           ))}
         </div>
         <div className="hidden lg:flex lg:flex-1 lg:justify-end lg:items-center lg:gap-4">
-          {isAuthenticated ? (
+          {shouldShowAuthUI ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button

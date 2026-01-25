@@ -58,6 +58,7 @@ export function ChallengeCard({ challenge, onJoin, userId }: ChallengeCardProps)
   const [loading, setLoading] = useState(true);
   const supabase = createClient();
   const router = useRouter();
+  const detailHref = `/explore/challenge/${challenge.slug || challenge.id}`;
 
   // Verificar si ya está participando al cargar
   useEffect(() => {
@@ -160,7 +161,18 @@ export function ChallengeCard({ challenge, onJoin, userId }: ChallengeCardProps)
   };
 
   return (
-    <Card className="group overflow-hidden hover:shadow-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer py-4">
+    <Card
+      className="group overflow-hidden hover:shadow-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer py-4"
+      onClick={() => router.push(detailHref)}
+      role="link"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          router.push(detailHref);
+        }
+      }}
+    >
       <div className="relative h-48 w-full">
         <Image
           src={
@@ -246,7 +258,11 @@ export function ChallengeCard({ challenge, onJoin, userId }: ChallengeCardProps)
           </Button>
         ) : isParticipating ? (
           <Button
-            onClick={() => userId && router.push(`/patient/${userId}/my-challenges`)}
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              if (userId) router.push(`/patient/${userId}/my-challenges`);
+            }}
             className="w-full"
             size="lg"
             variant="outline"
@@ -256,7 +272,11 @@ export function ChallengeCard({ challenge, onJoin, userId }: ChallengeCardProps)
           </Button>
         ) : (
           <Button
-            onClick={handleJoin}
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              void handleJoin();
+            }}
             disabled={isJoining}
             className="w-full"
             size="lg"

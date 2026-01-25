@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { RichTextEditor } from "@/components/ui/rich-text-editor";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import {
@@ -94,6 +95,16 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
   const router = useRouter();
   const supabase = createClient();
   const isProfessional = userType === 'professional';
+  const [isDescriptionValid, setIsDescriptionValid] = useState(true);
+
+  const isRichTextEffectivelyEmpty = (html: string) => {
+    const plain = (html || '')
+      .replace(/<[^>]*>/g, ' ')
+      .replace(/&nbsp;/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+    return plain.length === 0;
+  };
 
   const [formData, setFormData] = useState<ChallengeFormData>({
     title: "",
@@ -583,7 +594,12 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.title?.trim() || !formData.description?.trim()) {
+    if (!isDescriptionValid) {
+      toast.error("La descripción excede el límite de caracteres. Por favor, reduce el texto.");
+      return;
+    }
+
+    if (!formData.title?.trim() || isRichTextEffectivelyEmpty(formData.description)) {
       toast.error("Por favor completa el título y la descripción");
       return;
     }
@@ -816,13 +832,12 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
 
           <div className="space-y-2">
             <Label htmlFor="description">Descripción *</Label>
-            <Textarea
-              id="description"
-              value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+            <RichTextEditor
+              content={formData.description || ""}
+              onChange={(content) => setFormData({ ...formData, description: content })}
               placeholder="Describe el reto en detalle..."
-              rows={5}
-              required
+              maxLength={2000}
+              onValidationChange={setIsDescriptionValid}
             />
           </div>
 
@@ -1775,7 +1790,7 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
           >
             Cancelar
           </Button>
-          <Button type="submit" disabled={saving}>
+          <Button type="submit" disabled={saving || !isDescriptionValid}>
             {saving ? (
               <>
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />

@@ -35,6 +35,9 @@ export function ChallengesTab({ professionalId }: ChallengesTabProps) {
   const [challengeToDelete, setChallengeToDelete] = useState<Challenge | null>(null);
   const [deleting, setDeleting] = useState(false);
 
+  const stripHtml = (html: string) =>
+    (html || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+
   useEffect(() => {
     fetchChallenges();
   }, [professionalId]);
@@ -147,7 +150,7 @@ export function ChallengesTab({ professionalId }: ChallengesTabProps) {
                       )}
                     </div>
                     <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
-                      {challenge.short_description || challenge.description}
+                      {stripHtml(challenge.short_description || challenge.description)}
                     </p>
                     {challenge.duration_days && (
                       <p className="text-sm mt-2">

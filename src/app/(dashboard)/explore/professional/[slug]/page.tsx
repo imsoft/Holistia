@@ -101,6 +101,11 @@ interface Professional {
   working_start_time?: string;
   working_end_time?: string;
   working_days?: number[];
+  // Estado de Stripe
+  stripe_account_id?: string | null;
+  stripe_charges_enabled?: boolean | null;
+  stripe_payouts_enabled?: boolean | null;
+  hasStripeConfigured?: boolean;
 }
 
 
@@ -254,7 +259,7 @@ export default function ProfessionalProfilePage() {
         
         const { data: professionalBySlug } = await supabase
           .from('professional_applications')
-          .select('*')
+          .select('*, stripe_account_id, stripe_charges_enabled, stripe_payouts_enabled')
           .eq('slug', slugParam)
           .eq('status', 'approved')
           .eq('is_active', true)
@@ -269,7 +274,7 @@ export default function ProfessionalProfilePage() {
           // Si no se encuentra por slug, intentar por ID (backward compatibility)
           const { data: professionalById, error } = await supabase
             .from('professional_applications')
-            .select('*')
+            .select('*, stripe_account_id, stripe_charges_enabled, stripe_payouts_enabled')
             .eq('id', slugParam)
             .eq('status', 'approved')
             .eq('is_active', true)
@@ -482,10 +487,18 @@ export default function ProfessionalProfilePage() {
         console.log('🎯 Estableciendo servicios en el estado:', validServices);
         console.log('🎯 Cantidad final de servicios:', validServices.length);
         
+        // Verificar estado de Stripe del profesional
+        const hasStripeConfigured = !!(
+          professionalData.stripe_account_id && 
+          professionalData.stripe_charges_enabled && 
+          professionalData.stripe_payouts_enabled
+        );
+
         setProfessional({
           ...professionalData,
           profile_photo: finalProfilePhoto,
-          services: validServices
+          services: validServices,
+          hasStripeConfigured
         });
 
         // Verificar si es favorito
@@ -1336,6 +1349,14 @@ export default function ProfessionalProfilePage() {
                         e.preventDefault();
                         e.stopPropagation();
                         console.log('🔵 Click en botón Reservar cita');
+                        
+                        // Verificar si el profesional tiene Stripe configurado
+                        if (professional && professional.hasStripeConfigured === false) {
+                          setErrorMessage("Este profesional aún no ha configurado su cuenta de pagos. Por favor, contacta al profesional o intenta con otro experto.");
+                          setIsErrorModalOpen(true);
+                          return;
+                        }
+                        
                         setIsBookingModalOpen(true);
                         console.log('🔵 Estado isBookingModalOpen actualizado a:', true);
                       }}
@@ -1346,6 +1367,14 @@ export default function ProfessionalProfilePage() {
                         e.preventDefault();
                         e.stopPropagation();
                         console.log('🔵 TouchEnd en botón Reservar cita');
+                        
+                        // Verificar si el profesional tiene Stripe configurado
+                        if (professional && professional.hasStripeConfigured === false) {
+                          setErrorMessage("Este profesional aún no ha configurado su cuenta de pagos. Por favor, contacta al profesional o intenta con otro experto.");
+                          setIsErrorModalOpen(true);
+                          return;
+                        }
+                        
                         setIsBookingModalOpen(true);
                         console.log('🔵 Estado isBookingModalOpen actualizado a:', true);
                       }}
@@ -1714,23 +1743,77 @@ export default function ProfessionalProfilePage() {
                     <>
                       <Button
                         type="button"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          console.log('🔵 Click en botón Reservar cita (servicios)');
-                          setIsBookingModalOpen(true);
-                          console.log('🔵 Estado isBookingModalOpen actualizado a:', true);
-                        }}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            console.log('🔵 Click en botón Reservar cita (servicios)');
+                            
+                            // Verificar si el profesional tiene servicios disponibles
+                            if (!professional?.services || professional.services.length === 0) {
+                              setErrorMessage("Este profesional no tiene servicios configurados. Por favor, contacta al profesional.");
+                              setIsErrorModalOpen(true);
+                              return;
+                            }
+                            
+                            // Verificar si hay servicios con precios
+                            const hasServicesWithPrices = professional.services.some(service => 
+                              (service.presencialCost && service.presencialCost !== '' && service.presencialCost !== '0' && Number(service.presencialCost) > 0) ||
+                              (service.onlineCost && service.onlineCost !== '' && service.onlineCost !== '0' && Number(service.onlineCost) > 0)
+                            );
+                            
+                            if (!hasServicesWithPrices) {
+                              setErrorMessage("Este profesional no tiene servicios con precios configurados. Por favor, contacta al profesional.");
+                              setIsErrorModalOpen(true);
+                              return;
+                            }
+                            
+                            // Verificar si el profesional tiene Stripe configurado
+                            if (professional.hasStripeConfigured === false) {
+                              setErrorMessage("Este profesional aún no ha configurado su cuenta de pagos. Por favor, contacta al profesional o intenta con otro experto.");
+                              setIsErrorModalOpen(true);
+                              return;
+                            }
+                            
+                            setIsBookingModalOpen(true);
+                            console.log('🔵 Estado isBookingModalOpen actualizado a:', true);
+                          }}
                         onTouchStart={(e) => {
                           e.stopPropagation();
                         }}
-                        onTouchEnd={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          console.log('🔵 TouchEnd en botón Reservar cita (servicios)');
-                          setIsBookingModalOpen(true);
-                          console.log('🔵 Estado isBookingModalOpen actualizado a:', true);
-                        }}
+                          onTouchEnd={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            console.log('🔵 TouchEnd en botón Reservar cita (servicios)');
+                            
+                            // Verificar si el profesional tiene servicios disponibles
+                            if (!professional?.services || professional.services.length === 0) {
+                              setErrorMessage("Este profesional no tiene servicios configurados. Por favor, contacta al profesional.");
+                              setIsErrorModalOpen(true);
+                              return;
+                            }
+                            
+                            // Verificar si hay servicios con precios
+                            const hasServicesWithPrices = professional.services.some(service => 
+                              (service.presencialCost && service.presencialCost !== '' && service.presencialCost !== '0' && Number(service.presencialCost) > 0) ||
+                              (service.onlineCost && service.onlineCost !== '' && service.onlineCost !== '0' && Number(service.onlineCost) > 0)
+                            );
+                            
+                            if (!hasServicesWithPrices) {
+                              setErrorMessage("Este profesional no tiene servicios con precios configurados. Por favor, contacta al profesional.");
+                              setIsErrorModalOpen(true);
+                              return;
+                            }
+                            
+                            // Verificar si el profesional tiene Stripe configurado
+                            if (professional.hasStripeConfigured === false) {
+                              setErrorMessage("Este profesional aún no ha configurado su cuenta de pagos. Por favor, contacta al profesional o intenta con otro experto.");
+                              setIsErrorModalOpen(true);
+                              return;
+                            }
+                            
+                            setIsBookingModalOpen(true);
+                            console.log('🔵 Estado isBookingModalOpen actualizado a:', true);
+                          }}
                         className="w-full h-11 sm:h-12 text-sm sm:text-base font-semibold rounded-xl bg-linear-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 shadow-lg text-white touch-manipulation"
                         style={{ 
                           touchAction: 'manipulation', 

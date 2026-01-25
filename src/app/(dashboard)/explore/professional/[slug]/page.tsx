@@ -890,15 +890,36 @@ export default function ProfessionalProfilePage() {
   };
 
   const handleBookingSubmit = async () => {
+    console.log('🔵 handleBookingSubmit llamado', {
+      selectedDate,
+      selectedTime,
+      selectedService,
+      hasCurrentUser: !!currentUser,
+      hasProfessional: !!professional,
+      appointmentForm
+    });
+
     // Validación de campos requeridos
     if (!selectedDate || !selectedTime || !selectedService || !currentUser || !professional) {
-      setErrorMessage("Por favor completa todos los campos requeridos");
+      const missingFields = [];
+      if (!selectedDate) missingFields.push('fecha');
+      if (!selectedTime) missingFields.push('hora');
+      if (!selectedService) missingFields.push('servicio');
+      if (!currentUser) missingFields.push('usuario autenticado');
+      if (!professional) missingFields.push('profesional');
+      
+      console.error('❌ Campos faltantes:', missingFields);
+      setErrorMessage(`Por favor completa todos los campos requeridos. Faltan: ${missingFields.join(', ')}`);
       setIsErrorModalOpen(true);
       return;
     }
     
     // Validación de datos del usuario
     if (!appointmentForm.name || !appointmentForm.email) {
+      console.error('❌ Datos del usuario incompletos:', {
+        hasName: !!appointmentForm.name,
+        hasEmail: !!appointmentForm.email
+      });
       setErrorMessage("Los datos de tu perfil están incompletos. Por favor, actualiza tu perfil antes de reservar.");
       setIsErrorModalOpen(true);
       return;
@@ -906,9 +927,10 @@ export default function ProfessionalProfilePage() {
     
     try {
       setBookingLoading(true);
+      console.log('🔄 Verificando cita duplicada...');
       
       // Verificar que no exista una cita duplicada
-      const { data: existingAppointment } = await supabase
+      const { data: existingAppointment, error: duplicateError } = await supabase
         .from('appointments')
         .select('id')
         .eq('patient_id', currentUser.id)
@@ -917,7 +939,16 @@ export default function ProfessionalProfilePage() {
         .eq('appointment_time', selectedTime)
         .maybeSingle();
 
+      if (duplicateError) {
+        console.error('❌ Error verificando cita duplicada:', duplicateError);
+        setErrorMessage(`Error al verificar disponibilidad: ${duplicateError.message}`);
+        setIsErrorModalOpen(true);
+        setBookingLoading(false);
+        return;
+      }
+
       if (existingAppointment) {
+        console.warn('⚠️ Cita duplicada encontrada:', existingAppointment.id);
         setErrorMessage("Ya tienes una cita reservada en este horario con este profesional.");
         setIsErrorModalOpen(true);
         setBookingLoading(false);
@@ -926,9 +957,15 @@ export default function ProfessionalProfilePage() {
       
       // Determinar el costo basado en el tipo de servicio seleccionado
       const [serviceName, serviceModality] = selectedService.split('-');
-      const service = professional.services.find(s => s.name === serviceName);
+      console.log('🔍 Buscando servicio:', { serviceName, serviceModality, servicesCount: professional.services?.length });
+      
+      const service = professional.services?.find(s => s.name === serviceName);
       
       if (!service) {
+        console.error('❌ Servicio no encontrado:', {
+          serviceName,
+          availableServices: professional.services?.map(s => s.name)
+        });
         setErrorMessage("El servicio seleccionado no está disponible.");
         setIsErrorModalOpen(true);
         setBookingLoading(false);
@@ -938,6 +975,16 @@ export default function ProfessionalProfilePage() {
       const cost = serviceModality === 'presencial' 
         ? parseFloat(service.presencialCost || '0')
         : parseFloat(service.onlineCost || '0');
+      
+      console.log('💰 Costo calculado:', { cost, serviceModality, service });
+      
+      if (cost <= 0) {
+        console.error('❌ Costo inválido:', cost);
+        setErrorMessage("El servicio seleccionado no tiene un precio válido. Por favor, selecciona otro servicio.");
+        setIsErrorModalOpen(true);
+        setBookingLoading(false);
+        return;
+      }
       
       // NO crear la cita todavía - primero preparar datos para el pago
       setPaymentData({
@@ -949,13 +996,16 @@ export default function ProfessionalProfilePage() {
         professionalName: `${professional.first_name} ${professional.last_name}`
       });
       
+      console.log('✅ Datos de pago preparados, abriendo modal de pago');
+      
       // Cerrar modal de booking y abrir modal de pago
       setIsBookingModalOpen(false);
       setIsPaymentModalOpen(true);
       
     } catch (error) {
-      console.error('Error preparing payment:', error);
-      setErrorMessage("Error inesperado. Por favor, inténtalo de nuevo.");
+      console.error('❌ Error preparing payment:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
+      setErrorMessage(`Error inesperado: ${errorMessage}. Por favor, inténtalo de nuevo.`);
       setIsErrorModalOpen(true);
     } finally {
       setBookingLoading(false);

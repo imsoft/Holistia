@@ -222,15 +222,27 @@ export async function POST(request: NextRequest) {
 
     // Check if professional has Stripe Connect enabled
     if (!professional.stripe_account_id) {
+      console.error('❌ Professional does not have Stripe account configured:', professional_id);
       return NextResponse.json(
-        { error: 'El profesional aún no ha configurado su cuenta de pagos' },
+        { 
+          error: 'El profesional aún no ha configurado su cuenta de pagos. Por favor, contacta al profesional o intenta con otro experto.',
+          code: 'STRIPE_NOT_CONFIGURED'
+        },
         { status: 400 }
       );
     }
 
     if (!professional.stripe_charges_enabled || !professional.stripe_payouts_enabled) {
+      console.error('❌ Professional Stripe account not fully configured:', {
+        professional_id,
+        charges_enabled: professional.stripe_charges_enabled,
+        payouts_enabled: professional.stripe_payouts_enabled
+      });
       return NextResponse.json(
-        { error: 'La cuenta de pagos del profesional no está completamente configurada' },
+        { 
+          error: 'La cuenta de pagos del profesional está en proceso de configuración. Por favor, intenta más tarde o contacta al profesional.',
+          code: 'STRIPE_INCOMPLETE'
+        },
         { status: 400 }
       );
     }

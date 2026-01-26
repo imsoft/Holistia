@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useMemo, useState, useEffect, useRef } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import type { Profile, ProfileUpdate } from '@/types/profile';
 import { useUserStore } from '@/stores/user-store';
@@ -25,7 +25,8 @@ export function useProfile() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
-  const supabase = createClient();
+  // Importante: evitar recrear el cliente en cada render.
+  const supabase = useMemo(() => createClient(), []);
   
   // Obtener caché del store de Zustand
   const profileCache = useUserStore((state) => state.profileCache);
@@ -37,9 +38,11 @@ export function useProfile() {
   /**
    * Cargar perfil del usuario autenticado
    */
-  const loadProfile = async () => {
+  const loadProfile = async (opts?: { silent?: boolean }) => {
+    const silent = Boolean(opts?.silent);
     try {
-      setLoading(true);
+      // Si ya tenemos UI pintada (por caché), refrescar en background sin parpadeo.
+      if (!silent) setLoading(true);
       setError(null);
 
       // Obtener usuario autenticado
@@ -127,10 +130,13 @@ export function useProfile() {
       }
     } catch (err) {
       console.error('Error loading profile:', err);
-      setError(err instanceof Error ? err : new Error('Failed to load profile'));
-      setProfile(null);
+      // En refresh silencioso, no “romper” la UI ni mostrar skeleton; mantener el caché.
+      if (!silent) {
+        setError(err instanceof Error ? err : new Error('Failed to load profile'));
+        setProfile(null);
+      }
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
 
@@ -167,7 +173,7 @@ export function useProfile() {
    */
   const refreshProfile = () => {
     clearProfileCache();
-    loadProfile();
+    loadProfile({ silent: false });
   };
 
   // Flag para evitar loops de carga
@@ -188,7 +194,13 @@ export function useProfile() {
       } else if (event === 'SIGNED_IN' && session?.user && !loadingRef.current) {
         // Si el usuario inició sesión, cargar perfil (solo si no está cargando)
         loadingRef.current = true;
-        loadProfile().finally(() => {
+        loadProfile({ silent: false }).finally(() => {
+          loadingRef.current = false;
+        });
+      } else if ((event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') && session?.user && !loadingRef.current) {
+        // Enfocar pestaña / refresh de token puede disparar eventos: refrescar sin parpadeo.
+        loadingRef.current = true;
+        loadProfile({ silent: true }).finally(() => {
           loadingRef.current = false;
         });
       }
@@ -237,7 +249,7 @@ export function useProfile() {
         // Cargar en segundo plano para actualizar si es necesario (solo si no está cargando)
         if (!loadingRef.current) {
           loadingRef.current = true;
-          loadProfile().catch(err => {
+          loadProfile({ silent: true }).catch(err => {
             console.error('Error loading profile in background:', err);
             // No actualizar el estado si falla, mantener el caché
           }).finally(() => {
@@ -250,7 +262,7 @@ export function useProfile() {
       // Si no hay caché válido, cargar normalmente
       if (!loadingRef.current) {
         loadingRef.current = true;
-        loadProfile().finally(() => {
+        loadProfile({ silent: false }).finally(() => {
           loadingRef.current = false;
         });
       }

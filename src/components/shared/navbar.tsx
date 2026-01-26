@@ -66,6 +66,10 @@ export const Navbar = () => {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
+      // Ignorar eventos que no requieren cambio de UI (como TOKEN_REFRESHED)
+      if (event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION') {
+        return;
+      }
       setIsAuthenticated(!!session?.user);
       if (event === 'SIGNED_OUT') {
         // Limpiar caché cuando se cierra sesión

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useProfile } from './use-profile';
 import { useUserStore } from '@/stores/user-store';
 import { createClient } from '@/utils/supabase/client';
@@ -14,7 +14,8 @@ import { createClient } from '@/utils/supabase/client';
 export function useUserStoreInit() {
   const { profile, loading } = useProfile();
   const { setUser, setProfessional, setLoading, professional: cachedProfessional } = useUserStore();
-  const supabase = createClient();
+  // Evitar recrear el cliente en cada render (dispara effects innecesarios).
+  const supabase = useMemo(() => createClient(), []);
 
   useEffect(() => {
     if (loading) {

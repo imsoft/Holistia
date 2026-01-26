@@ -100,8 +100,13 @@ export default function ExploreLayout({
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange((event, session) => {
       if (!mounted) return;
+      // Ignorar eventos que no requieren cambio de UI (como TOKEN_REFRESHED)
+      // Solo actualizar en eventos de login/logout reales
+      if (event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION') {
+        return;
+      }
       setIsAuthenticated(Boolean(session?.user));
     });
 

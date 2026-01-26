@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
@@ -83,7 +83,7 @@ const DIFFICULTY_OPTIONS = [
 ] as const;
 
 const RESOURCE_TYPE_OPTIONS = [
-  { value: 'ebook', label: 'eBook', icon: BookOpen },
+  { value: 'ebook', label: 'Workbook', icon: BookOpen },
   { value: 'audio', label: 'Audio', icon: Headphones },
   { value: 'video', label: 'Video', icon: Video },
   { value: 'pdf', label: 'Documento PDF', icon: FileText },
@@ -139,6 +139,17 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
   const [searchedPatients, setSearchedPatients] = useState<any[]>([]);
   const [existingParticipants, setExistingParticipants] = useState<any[]>([]);
   const [loadingExistingParticipants, setLoadingExistingParticipants] = useState(false);
+  const [removeParticipantDialogOpen, setRemoveParticipantDialogOpen] = useState(false);
+  const [removingParticipantId, setRemovingParticipantId] = useState<string | null>(null);
+  const [removingParticipant, setRemovingParticipant] = useState(false);
+
+  const existingParticipantIds = useMemo(() => {
+    return new Set((existingParticipants || []).map((p) => p.id));
+  }, [existingParticipants]);
+
+  const filteredFrequentPatients = useMemo(() => {
+    return (patients || []).filter((p) => !existingParticipantIds.has(p.id));
+  }, [patients, existingParticipantIds]);
 
   // Estados para reuniones
   const [meetings, setMeetings] = useState<ChallengeMeeting[]>([]);
@@ -394,13 +405,46 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
 
       // Filtrar los que ya están en la lista de pacientes frecuentes
       const frequentPatientIds = new Set(patients.map(p => p.id));
-      const newPatients = (patientsData || []).filter(p => !frequentPatientIds.has(p.id));
+      const newPatients = (patientsData || []).filter(p => !frequentPatientIds.has(p.id) && !existingParticipantIds.has(p.id));
 
       setSearchedPatients(newPatients);
     } catch (error) {
       console.error("Error searching patients:", error);
     } finally {
       setSearchingPatients(false);
+    }
+  };
+
+  const openRemoveParticipantDialog = (participantId: string) => {
+    setRemovingParticipantId(participantId);
+    setRemoveParticipantDialogOpen(true);
+  };
+
+  const handleRemoveParticipantConfirm = async () => {
+    if (!challenge?.id || !removingParticipantId) return;
+
+    try {
+      setRemovingParticipant(true);
+      const response = await fetch(`/api/challenges/${challenge.id}/participants`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ participant_id: removingParticipantId }),
+      });
+
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(data?.error || "Error al eliminar participante");
+      }
+
+      toast.success("Participante eliminado del reto");
+      setRemoveParticipantDialogOpen(false);
+      setRemovingParticipantId(null);
+      await fetchExistingParticipants();
+    } catch (error) {
+      console.error("Error removing participant:", error);
+      toast.error(error instanceof Error ? error.message : "Error al eliminar participante");
+    } finally {
+      setRemovingParticipant(false);
     }
   };
 
@@ -882,7 +926,7 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
 
             // Agregar campos específicos según el tipo
             if (resource.resource_type === 'ebook' || resource.resource_type === 'pdf') {
-              // Para ebooks/PDFs, podríamos usar file_size_bytes si tenemos el tamaño
+              // Para workbooks/PDFs, podríamos usar file_size_bytes si tenemos el tamaño
               // Por ahora solo guardamos la URL
             }
 
@@ -1199,11 +1243,11 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
                     <Loader2 className="h-4 w-4 animate-spin" />
                     Cargando pacientes...
                   </div>
-                ) : patients.length > 0 && (
+                ) : filteredFrequentPatients.length > 0 && (
                   <div className="space-y-1">
                     <p className="text-xs text-muted-foreground font-medium">Pacientes frecuentes:</p>
                     <div className="space-y-2 max-h-40 overflow-y-auto border rounded-lg p-3">
-                      {patients.map((patient) => {
+                      {filteredFrequentPatients.map((patient) => {
                         const isSelected = selectedPatientIds.includes(patient.id);
                         return (
                           <div
@@ -1299,8 +1343,20 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
                                 )}
                               </div>
                             </div>
-                            <div className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center">
-                              <CheckCircle2 className="h-3 w-3 text-white" />
+                            <div className="flex items-center gap-2">
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => openRemoveParticipantDialog(participant.id)}
+                                disabled={removingParticipant}
+                              >
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                Eliminar
+                              </Button>
+                              <div className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center">
+                                <CheckCircle2 className="h-3 w-3 text-white" />
+                              </div>
                             </div>
                           </div>
                         ))}
@@ -1321,6 +1377,24 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
               </div>
             </>
           )}
+
+          {/* Confirmación para eliminar participante */}
+          <AlertDialog open={removeParticipantDialogOpen} onOpenChange={setRemoveParticipantDialogOpen}>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>¿Eliminar participante?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Esta acción quitará a la persona del reto. Podrá volver a ser agregada después si lo necesitas.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel disabled={removingParticipant}>Cancelar</AlertDialogCancel>
+                <AlertDialogAction onClick={handleRemoveParticipantConfirm} disabled={removingParticipant}>
+                  {removingParticipant ? "Eliminando..." : "Sí, eliminar"}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
 
           <div className="space-y-2">
             <Label>Imagen de Portada</Label>

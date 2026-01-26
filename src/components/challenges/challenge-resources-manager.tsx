@@ -46,7 +46,7 @@ interface ChallengeResourcesManagerProps {
 }
 
 const RESOURCE_TYPE_OPTIONS = [
-  { value: "ebook", label: "eBook", icon: BookOpen },
+  { value: "ebook", label: "Workbook", icon: BookOpen },
   { value: "audio", label: "Audio", icon: Headphones },
   { value: "video", label: "Video", icon: Video },
   { value: "pdf", label: "Documento PDF", icon: FileText },

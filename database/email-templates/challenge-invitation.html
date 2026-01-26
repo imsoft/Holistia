@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Invitación a Reto - Holistia</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      line-height: 1.6;
+      color: #1f2937;
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+      background-color: #f9fafb;
+    }
+    .container {
+      background-color: #ffffff;
+      border-radius: 12px;
+      padding: 0;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      overflow: hidden;
+    }
+    .header {
+      text-align: center;
+      padding: 30px 30px 20px 30px;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    .logo-img {
+      max-width: 120px;
+      height: auto;
+      margin-bottom: 12px;
+    }
+    .header h1 {
+      color: #111827;
+      margin: 0;
+      font-size: 22px;
+      font-weight: 700;
+    }
+    .content {
+      padding: 22px 30px 28px 30px;
+    }
+    .intro {
+      margin: 0 0 14px 0;
+      color: #374151;
+      font-size: 15px;
+    }
+    .card {
+      background-color: #f9fafb;
+      border: 1px solid #e5e7eb;
+      border-radius: 10px;
+      padding: 16px;
+      margin: 16px 0 18px 0;
+    }
+    .label {
+      font-size: 12px;
+      color: #6b7280;
+      margin: 0 0 6px 0;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .title {
+      font-size: 18px;
+      font-weight: 700;
+      margin: 0 0 4px 0;
+      color: #111827;
+    }
+    .meta {
+      font-size: 14px;
+      color: #4b5563;
+      margin: 0;
+    }
+    .cta-wrap {
+      text-align: center;
+      margin: 22px 0 10px 0;
+    }
+    .cta-button {
+      display: inline-block;
+      background-color: #8B5CF6;
+      color: #ffffff !important;
+      padding: 12px 22px;
+      text-decoration: none;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 15px;
+      box-shadow: 0 4px 6px rgba(139, 92, 246, 0.25);
+    }
+    .cta-note {
+      font-size: 12px;
+      color: #9ca3af;
+      margin-top: 10px;
+    }
+    .footer {
+      text-align: center;
+      padding: 18px 30px;
+      border-top: 1px solid #e5e7eb;
+      font-size: 12px;
+      color: #9ca3af;
+      background-color: #f9fafb;
+    }
+    .footer a {
+      color: #8B5CF6;
+      text-decoration: none;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <img src="{{logo_url}}" alt="Holistia" class="logo-img" />
+      <h1>{{action_title}}</h1>
+    </div>
+
+    <div class="content">
+      <p class="intro">Hola <strong>{{recipient_name}}</strong>,</p>
+      <p class="intro"><strong>{{inviter_name}}</strong> te ha {{action_verb}} al siguiente reto en Holistia:</p>
+
+      <div class="card">
+        <p class="label">Reto</p>
+        <p class="title">{{challenge_title}}</p>
+        <p class="meta">Entra a Holistia para ver los detalles y empezar.</p>
+      </div>
+
+      <div class="cta-wrap">
+        <a href="{{challenge_url}}" class="cta-button" style="color:#ffffff !important;">Ver mi reto</a>
+        <div class="cta-note">Si el botón no funciona, copia y pega este enlace en tu navegador:<br />{{challenge_url}}</div>
+      </div>
+    </div>
+
+    <div class="footer">
+      <p>Este es un email automático de Holistia. No respondas a este correo.</p>
+      <p><a href="https://www.holistia.io">www.holistia.io</a></p>
+    </div>
+  </div>
+</body>
+</html>
+

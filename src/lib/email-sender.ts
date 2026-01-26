@@ -706,6 +706,77 @@ interface NewMessageNotificationData {
   conversation_id?: string;
 }
 
+// ============================================================================
+// CHALLENGE INVITATION EMAILS
+// ============================================================================
+
+interface ChallengeInvitationEmailData {
+  recipient_name: string;
+  recipient_email: string;
+  inviter_name: string;
+  challenge_title: string;
+  challenge_url: string;
+  action: 'invited' | 'added';
+}
+
+export async function sendChallengeInvitationEmail(data: ChallengeInvitationEmailData) {
+  try {
+    const fs = await import('fs');
+    const path = await import('path');
+
+    const templatePath = path.join(process.cwd(), 'database/email-templates/challenge-invitation.html');
+    let emailTemplate: string;
+
+    try {
+      emailTemplate = fs.readFileSync(templatePath, 'utf8');
+    } catch (error) {
+      console.error('Error reading email template:', error);
+      return { success: false, error: 'Template not found' };
+    }
+
+    const logoUrl = 'https://www.holistia.io/logos/holistia-black.png';
+
+    const actionTitle = data.action === 'added'
+      ? 'Te agregaron a un reto'
+      : 'Te invitaron a un reto';
+
+    const actionVerb = data.action === 'added'
+      ? 'agregado'
+      : 'invitado';
+
+    const emailContent = emailTemplate
+      .replace(/\{\{logo_url\}\}/g, logoUrl)
+      .replace(/\{\{recipient_name\}\}/g, data.recipient_name)
+      .replace(/\{\{inviter_name\}\}/g, data.inviter_name)
+      .replace(/\{\{challenge_title\}\}/g, data.challenge_title)
+      .replace(/\{\{challenge_url\}\}/g, data.challenge_url)
+      .replace(/\{\{action_title\}\}/g, actionTitle)
+      .replace(/\{\{action_verb\}\}/g, actionVerb);
+
+    const subject = data.action === 'added'
+      ? `🎯 Te agregaron al reto "${data.challenge_title}" | Holistia`
+      : `🎯 Invitación al reto "${data.challenge_title}" | Holistia`;
+
+    const { data: emailData, error } = await resend.emails.send({
+      from: 'Holistia <noreply@holistia.io>',
+      to: [data.recipient_email],
+      subject,
+      html: emailContent,
+    });
+
+    if (error) {
+      console.error('Error sending challenge invitation email:', error);
+      return { success: false, error: error.message };
+    }
+
+    console.log('Challenge invitation email sent successfully:', emailData?.id);
+    return { success: true, message: 'Email sent successfully', id: emailData?.id };
+  } catch (error) {
+    console.error('Error in sendChallengeInvitationEmail:', error);
+    return { success: false, error: 'Failed to send email' };
+  }
+}
+
 // Send notification when a new message is received
 export async function sendNewMessageNotification(data: NewMessageNotificationData) {
   try {

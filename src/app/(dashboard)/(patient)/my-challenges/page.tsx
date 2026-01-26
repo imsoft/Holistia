@@ -1171,7 +1171,7 @@ export default function MyChallengesPage() {
                                     )}
                                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
                                       <Badge variant="outline" className="text-xs">
-                                        {resource.resource_type === 'ebook' ? 'Ebook' :
+                                        {resource.resource_type === 'ebook' ? 'Workbook' :
                                          resource.resource_type === 'audio' ? 'Audio' :
                                          resource.resource_type === 'video' ? 'Video' :
                                          resource.resource_type === 'pdf' ? 'PDF' :

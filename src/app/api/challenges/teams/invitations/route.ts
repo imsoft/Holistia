@@ -1,5 +1,6 @@
 import { createClient } from "@/utils/supabase/server";
 import { NextResponse } from "next/server";
+import { sendChallengeInvitationEmail } from "@/lib/email-sender";
 
 // GET - Obtener invitaciones del usuario
 export async function GET(request: Request) {
@@ -121,6 +122,42 @@ export async function POST(request: Request) {
 
     if (invitationError) {
       return NextResponse.json({ error: invitationError.message }, { status: 500 });
+    }
+
+    // Enviar email al invitado (no romper el flujo si falla)
+    try {
+      const { data: inviteeProfile } = await supabase
+        .from("profiles")
+        .select("first_name, last_name, email")
+        .eq("id", inviteeId)
+        .single();
+
+      const inviteeEmail = inviteeProfile?.email;
+      if (inviteeEmail) {
+        const inviteeName =
+          [inviteeProfile?.first_name, inviteeProfile?.last_name].filter(Boolean).join(" ").trim() ||
+          inviteeEmail.split("@")[0] ||
+          "Usuario";
+
+        const inviterName =
+          [invitation?.inviter?.first_name, invitation?.inviter?.last_name].filter(Boolean).join(" ").trim() ||
+          user.email?.split("@")[0] ||
+          "Usuario";
+
+        const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://holistia.io";
+        const challengeUrl = `${siteUrl}/my-challenges`;
+
+        await sendChallengeInvitationEmail({
+          recipient_name: inviteeName,
+          recipient_email: inviteeEmail,
+          inviter_name: inviterName,
+          challenge_title: invitation?.team?.challenge?.title || "Reto",
+          challenge_url: challengeUrl,
+          action: "invited",
+        });
+      }
+    } catch (emailError) {
+      console.error("Error sending challenge invitation email:", emailError);
     }
 
     return NextResponse.json({ data: invitation });

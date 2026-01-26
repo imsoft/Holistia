@@ -61,7 +61,7 @@ export interface ChallengeFormData {
 }
 
 export const RESOURCE_TYPE_OPTIONS = [
-  { value: 'ebook', label: 'eBook/PDF', icon: 'BookOpen' },
+  { value: 'ebook', label: 'Workbook/PDF', icon: 'BookOpen' },
   { value: 'audio', label: 'Audio', icon: 'Headphones' },
   { value: 'video', label: 'Video', icon: 'Video' },
   { value: 'pdf', label: 'Documento PDF', icon: 'FileText' },

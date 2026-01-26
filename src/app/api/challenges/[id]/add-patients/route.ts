@@ -1,5 +1,6 @@
 import { createClient } from '@/utils/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
+import { sendChallengeInvitationEmail } from '@/lib/email-sender';
 
 export async function POST(
   request: NextRequest,
@@ -28,10 +29,10 @@ export async function POST(
       );
     }
 
-    // Verificar que el reto existe y que el usuario es el creador (profesional)
+    // Verificar que el reto existe
     const { data: challenge, error: challengeError } = await supabase
       .from('challenges')
-      .select('id, created_by_user_id, created_by_type, professional_id')
+      .select('id, title, created_by_user_id, created_by_type, professional_id')
       .eq('id', challengeId)
       .single();
 
@@ -42,10 +43,21 @@ export async function POST(
       );
     }
 
-    // Verificar que el usuario es el creador del reto y es profesional
-    if (challenge.created_by_user_id !== user.id || challenge.created_by_type !== 'professional') {
+    // Permisos:
+    // - El creador del reto (sin importar tipo) puede agregar participantes
+    // - Admin puede agregar participantes a cualquier reto
+    const { data: requesterProfile } = await supabase
+      .from('profiles')
+      .select('type, first_name, last_name, email')
+      .eq('id', user.id)
+      .single();
+
+    const isAdmin = requesterProfile?.type === 'admin';
+    const isCreator = challenge.created_by_user_id === user.id;
+
+    if (!isCreator && !isAdmin) {
       return NextResponse.json(
-        { error: 'Solo el profesional creador del reto puede agregar pacientes' },
+        { error: 'No tienes permisos para agregar participantes a este reto' },
         { status: 403 }
       );
     }
@@ -104,6 +116,49 @@ export async function POST(
         { error: 'Error al agregar pacientes al reto' },
         { status: 500 }
       );
+    }
+
+    // Enviar email a los nuevos participantes (no romper el flujo si falla)
+    try {
+      const { data: recipients } = await supabase
+        .from('profiles')
+        .select('id, first_name, last_name, email')
+        .in('id', newPatientIds);
+
+      const inviterName = (() => {
+        const first = requesterProfile?.first_name?.trim();
+        const last = requesterProfile?.last_name?.trim();
+        const full = [first, last].filter(Boolean).join(' ').trim();
+        if (full) return full;
+        const email = requesterProfile?.email || user.email || 'Usuario';
+        return email.split('@')[0] || 'Usuario';
+      })();
+
+      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://holistia.io';
+      const challengeUrl = `${siteUrl}/my-challenges`;
+
+      await Promise.allSettled(
+        (recipients || [])
+          .filter((r) => typeof r.email === 'string' && r.email.length > 3)
+          .map((recipient) => {
+            const recipientName = [recipient.first_name, recipient.last_name]
+              .filter(Boolean)
+              .join(' ')
+              .trim() || (recipient.email?.split('@')[0] ?? 'Usuario');
+
+            return sendChallengeInvitationEmail({
+              recipient_name: recipientName,
+              recipient_email: recipient.email,
+              inviter_name: inviterName,
+              challenge_title: challenge.title || 'Reto',
+              challenge_url: challengeUrl,
+              action: 'added',
+            });
+          })
+      );
+    } catch (emailError) {
+      console.error('Error sending challenge added emails:', emailError);
+      // No fallar
     }
 
     return NextResponse.json({

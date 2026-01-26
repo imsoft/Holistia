@@ -134,7 +134,9 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
   const [patientSearchQuery, setPatientSearchQuery] = useState("");
   const [searchingPatients, setSearchingPatients] = useState(false);
   const [searchedPatients, setSearchedPatients] = useState<any[]>([]);
-  
+  const [existingParticipants, setExistingParticipants] = useState<any[]>([]);
+  const [loadingExistingParticipants, setLoadingExistingParticipants] = useState(false);
+
   // Estados para reuniones
   const [meetings, setMeetings] = useState<ChallengeMeeting[]>([]);
   const [loadingMeetings, setLoadingMeetings] = useState(false);
@@ -201,6 +203,13 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
       fetchMeetings();
     }
   }, [challenge?.id]);
+
+  // Cargar participantes existentes cuando hay un challenge (para edición)
+  useEffect(() => {
+    if (challenge?.id && isProfessional) {
+      fetchExistingParticipants();
+    }
+  }, [challenge?.id, isProfessional]);
 
   // Si es profesional y NO hay challenge cargado, vincular automáticamente al profesional actual
   useEffect(() => {
@@ -300,6 +309,46 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
       console.error("Error fetching patients:", error);
     } finally {
       setLoadingPatients(false);
+    }
+  };
+
+  // Función para cargar participantes existentes del reto
+  const fetchExistingParticipants = async () => {
+    if (!challenge?.id) return;
+
+    try {
+      setLoadingExistingParticipants(true);
+
+      // Obtener los IDs de participantes del reto
+      const { data: purchases, error: purchasesError } = await supabase
+        .from('challenge_purchases')
+        .select('participant_id')
+        .eq('challenge_id', challenge.id);
+
+      if (purchasesError || !purchases || purchases.length === 0) {
+        setExistingParticipants([]);
+        return;
+      }
+
+      const participantIds = purchases.map(p => p.participant_id);
+
+      // Obtener información de los participantes
+      const { data: participantsData, error: participantsError } = await supabase
+        .from('profiles')
+        .select('id, first_name, last_name, email, avatar_url')
+        .in('id', participantIds)
+        .order('first_name', { ascending: true });
+
+      if (participantsError) {
+        console.error('Error fetching existing participants:', participantsError);
+        return;
+      }
+
+      setExistingParticipants(participantsData || []);
+    } catch (error) {
+      console.error("Error fetching existing participants:", error);
+    } finally {
+      setLoadingExistingParticipants(false);
     }
   };
 
@@ -1197,12 +1246,61 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
                   </div>
                 )}
 
-                {/* Pacientes seleccionados */}
+                {/* Participantes existentes (solo en modo edición) */}
+                {challenge?.id && (
+                  loadingExistingParticipants ? (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Cargando participantes actuales...
+                    </div>
+                  ) : existingParticipants.length > 0 && (
+                    <div className="space-y-1">
+                      <p className="text-xs text-muted-foreground font-medium">Participantes actuales del reto:</p>
+                      <div className="space-y-2 max-h-40 overflow-y-auto border rounded-lg p-3 bg-green-50/50">
+                        {existingParticipants.map((participant) => (
+                          <div
+                            key={participant.id}
+                            className="flex items-center gap-3 p-2 rounded-lg bg-green-100/50 border border-green-200"
+                          >
+                            <div className="flex items-center gap-2 flex-1">
+                              {participant.avatar_url ? (
+                                <Image
+                                  src={participant.avatar_url}
+                                  alt={`${participant.first_name} ${participant.last_name}`}
+                                  width={32}
+                                  height={32}
+                                  className="rounded-full"
+                                />
+                              ) : (
+                                <div className="w-8 h-8 rounded-full bg-green-200 flex items-center justify-center">
+                                  <Users className="h-4 w-4 text-green-700" />
+                                </div>
+                              )}
+                              <div>
+                                <p className="text-sm font-medium">
+                                  {participant.first_name} {participant.last_name}
+                                </p>
+                                {participant.email && (
+                                  <p className="text-xs text-muted-foreground">{participant.email}</p>
+                                )}
+                              </div>
+                            </div>
+                            <div className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center">
+                              <CheckCircle2 className="h-3 w-3 text-white" />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )
+                )}
+
+                {/* Pacientes seleccionados (nuevos a agregar) */}
                 {selectedPatientIds.length > 0 && (
                   <div className="flex items-center gap-2 p-2 bg-primary/5 rounded-lg">
                     <UserPlus className="h-4 w-4 text-primary" />
                     <p className="text-sm font-medium text-primary">
-                      {selectedPatientIds.length} paciente(s) seleccionado(s)
+                      {selectedPatientIds.length} nuevo(s) paciente(s) a agregar
                     </p>
                   </div>
                 )}

@@ -650,7 +650,7 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
                       href={`/explore/event/${event.slug || event.id}`}
                       className="shrink-0 w-[280px] sm:w-[320px]"
                     >
-                      <Card className="relative min-h-[400px] flex flex-col hover:shadow-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer">
+                      <Card className="group relative min-h-[400px] flex flex-col hover:shadow-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer">
                         <div className="relative w-full h-48 bg-gray-100 shrink-0">
                           <div className="absolute inset-0 overflow-hidden">
                             {event.image_url ? (
@@ -681,7 +681,7 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
                           )}
                         </div>
                         <CardHeader className="pb-1.5 px-4 pt-3">
-                          <CardTitle className="text-lg line-clamp-2">{event.name}</CardTitle>
+                          <CardTitle className="text-lg line-clamp-2 group-hover:text-primary transition-colors">{event.name}</CardTitle>
                           <div className="flex flex-wrap gap-1.5 mt-1">
                             {event.category && (
                               <Badge variant="secondary" className="text-xs">{getCategoryLabel(event.category)}</Badge>
@@ -886,7 +886,7 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
                       href={`/explore/shop/${shop.slug || shop.id}`}
                       className="shrink-0 w-[280px] sm:w-[320px]"
                     >
-                      <Card className="relative min-h-[400px] flex flex-col hover:shadow-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer">
+                      <Card className="group relative min-h-[400px] flex flex-col hover:shadow-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer">
                         <div className="relative w-full h-48 bg-gray-100 shrink-0">
                           <div className="absolute inset-0 overflow-hidden">
                             {mainImage ? (
@@ -917,7 +917,7 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
                           )}
                         </div>
                         <CardHeader className="pb-1.5 px-4 pt-3">
-                          <CardTitle className="text-lg line-clamp-2">{shop.name}</CardTitle>
+                          <CardTitle className="text-lg line-clamp-2 group-hover:text-primary transition-colors">{shop.name}</CardTitle>
                           <div className="flex flex-wrap gap-1.5 mt-1">
                             {shop.category && (
                               <Badge variant="secondary" className="text-xs">{shop.category}</Badge>
@@ -1144,7 +1144,7 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
                     href={`/explore/restaurant/${restaurant.slug || restaurant.id}`}
                     className="shrink-0 w-[280px] sm:w-[320px]"
                   >
-                    <Card className="relative flex flex-col hover:shadow-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer">
+                    <Card className="group relative flex flex-col hover:shadow-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer">
                       <div className="relative w-full h-48 bg-gray-100 shrink-0">
                         <div className="absolute inset-0 overflow-hidden">
                           {restaurant.image_url ? (
@@ -1175,7 +1175,7 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
                         )}
                       </div>
                       <CardHeader className="pb-1.5 px-4 pt-3">
-                        <CardTitle className="text-lg line-clamp-2">{restaurant.name}</CardTitle>
+                        <CardTitle className="text-lg line-clamp-2 group-hover:text-primary transition-colors">{restaurant.name}</CardTitle>
                         <div className="flex flex-wrap gap-1.5 mt-1">
                           {restaurant.cuisine_type && (
                             <Badge variant="secondary" className="text-xs">{restaurant.cuisine_type}</Badge>

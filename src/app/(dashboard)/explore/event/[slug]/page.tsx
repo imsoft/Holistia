@@ -1,16 +1,13 @@
-"use client";
+import Link from "next/link";
+import Image from "next/image";
+import { notFound } from "next/navigation";
 
-import React, { useState, useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
-import { useUserId } from "@/stores/user-store";
-import { useUserStoreInit } from "@/hooks/use-user-store-init";
-import { createClient } from "@/utils/supabase/client";
+import { createClient } from "@/utils/supabase/server";
 import { EventWorkshop } from "@/types/event";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Skeleton } from "@/components/ui/skeleton";
 import {
   Calendar,
   MapPin,
@@ -23,283 +20,167 @@ import {
   XCircle,
   Share2
 } from "lucide-react";
-import Image from "next/image";
-import { toast } from "sonner";
+
 import EventPaymentButton from "@/components/ui/event-payment-button";
 import { formatEventDate, formatEventTime } from "@/utils/date-utils";
 import { EventQuestionsSection } from "@/components/events/event-questions-section";
 import { Navbar } from "@/components/shared/navbar";
 import { Footer } from "@/components/shared/footer";
+import { CopyUrlButton } from "@/components/ui/copy-url-button";
+import { EventFreeRegisterButton } from "@/components/events/event-free-register-button";
 
-const EventDetailPage = () => {
-  useUserStoreInit();
-  const params = useParams();
-  const router = useRouter();
-  const userId = useUserId();
-  const slug = params.slug as string;
-  
-  const [event, setEvent] = useState<EventWorkshop | null>(null);
-  const [professional, setProfessional] = useState<{
-    id: string;
-    first_name: string;
-    last_name: string;
-    profession: string;
-    profile_photo?: string;
-  } | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [registering, setRegistering] = useState(false);
-  const [isRegistered, setIsRegistered] = useState(false);
-  const [hasPayment, setHasPayment] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [isProfessional, setIsProfessional] = useState(false);
-  const [currentUserId, setCurrentUserId] = useState<string | undefined>();
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
-  
-  const supabase = createClient();
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
-  // Verificar si el usuario está autenticado
-  useEffect(() => {
-    const checkAuth = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      setIsAuthenticated(!!user);
-    };
-    checkAuth();
-  }, [supabase]);
+function getCategoryLabel(category: string) {
+  const categories: Record<string, string> = {
+    espiritualidad: "Espiritualidad",
+    salud_mental: "Salud Mental",
+    salud_fisica: "Salud Física",
+    alimentacion: "Alimentación",
+    social: "Social",
+  };
+  return categories[category] || category;
+}
 
-  const [resolvedEventId, setResolvedEventId] = useState<string | null>(null);
+function getParticipantLevelLabel(level: string) {
+  const levels: Record<string, string> = {
+    todos: "Todos los niveles",
+    principiante: "Principiante",
+    medio: "Intermedio",
+    avanzado: "Avanzado",
+  };
+  return levels[level] || level;
+}
 
-  const fetchEventDetails = React.useCallback(async () => {
-    try {
-      setLoading(true);
-      
-      // Primero intentar buscar por slug
-      let eventData = null;
-      let eventId = null;
-      
-      const { data: eventBySlug } = await supabase
-        .from("events_workshops")
-        .select("*")
-        .eq("slug", slug)
-        .eq("is_active", true)
-        .maybeSingle();
+function extractUuidCandidate(slug: string) {
+  const parts = slug.split("--");
+  const last = parts[parts.length - 1];
+  if (last && UUID_RE.test(last)) return last;
+  if (UUID_RE.test(slug)) return slug;
+  return null;
+}
 
-      if (eventBySlug) {
-        eventData = eventBySlug;
-        eventId = eventBySlug.id;
-      } else {
-        // Si no se encuentra por slug, intentar por ID (backward compatibility)
-        const { data: eventById, error: eventError } = await supabase
-          .from("events_workshops")
-          .select("*")
-          .eq("id", slug)
-          .eq("is_active", true)
-          .maybeSingle();
-        
-        if (eventError && eventError.code !== 'PGRST116' && eventError.code !== '22P02') {
-          throw eventError;
-        }
-        
-        if (eventById) {
-          eventData = eventById;
-          eventId = eventById.id;
-        }
-      }
+type ProfessionalMini = {
+  id: string;
+  first_name: string;
+  last_name: string;
+  profession: string;
+  profile_photo?: string | null;
+  user_id?: string | null;
+} | null;
 
-      if (!eventData || !eventId) {
-        throw new Error('Evento no encontrado');
-      }
+type EventWithProfessional = EventWorkshop & {
+  professional_applications?: ProfessionalMini;
+};
 
-      setResolvedEventId(eventId);
-      setEvent(eventData);
+export default async function EventDetailPage({
+  params,
+}: {
+  params: { slug: string };
+}) {
+  const supabase = await createClient();
+  const slugParam = params.slug;
 
-      // Si hay un profesional asignado, obtener sus datos
-      if (eventData?.professional_id) {
-        const { data: professionalData, error: professionalError } = await supabase
-          .from("professional_applications")
-          .select("id, first_name, last_name, profession, profile_photo")
-          .eq("id", eventData.professional_id)
-          .eq("status", "approved")
-          .single();
+  const eventIdFromParam = extractUuidCandidate(slugParam);
 
-        if (!professionalError && professionalData) {
-          setProfessional(professionalData);
-        }
-      }
+  const eventQuery = supabase
+    .from("events_workshops")
+    .select(
+      `
+        *,
+        professional_applications(
+          id,
+          first_name,
+          last_name,
+          profession,
+          profile_photo,
+          user_id
+        )
+      `
+    )
+    .eq("is_active", true);
 
-      // Verificar si el usuario ya está registrado
-      const { data: registration } = await supabase
+  const { data: eventData, error: eventError } = eventIdFromParam
+    ? await eventQuery.eq("id", eventIdFromParam).maybeSingle()
+    : await eventQuery.eq("slug", slugParam).maybeSingle();
+
+  if (eventError) {
+    // En producción esto se verá como 404, pero dejamos el log para debug.
+    console.error("Error fetching event details (server):", eventError);
+  }
+
+  if (!eventData?.id) {
+    notFound();
+  }
+
+  const event = eventData as unknown as EventWithProfessional;
+  const professional = (event.professional_applications || null) as ProfessionalMini;
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const currentUserId = user?.id;
+  const isAuthenticated = Boolean(currentUserId);
+
+  let isRegistered = false;
+  let hasPayment = false;
+  let isAdmin = false;
+  const isProfessional = Boolean(
+    currentUserId && professional?.user_id && professional.user_id === currentUserId
+  );
+
+  if (currentUserId) {
+    const [registrationResult, paymentResult, profileResult] = await Promise.allSettled([
+      supabase
         .from("event_registrations")
         .select("id, status")
-        .eq("event_id", eventId)
-        .eq("user_id", userId)
-        .single();
-
-      if (registration) {
-        setIsRegistered(true);
-        
-        // Verificar si ya tiene un pago exitoso
-        const { data: payment } = await supabase
-          .from("payments")
-          .select("id, status")
-          .eq("event_id", eventId)
-          .eq("patient_id", userId)
-          .eq("status", "succeeded")
-          .single();
-
-        if (payment) {
-          setHasPayment(true);
-        }
-      }
-
-      // Verificar si el usuario es admin
-      const { data: profile } = await supabase
+        .eq("event_id", event.id!)
+        .eq("user_id", currentUserId)
+        .maybeSingle(),
+      supabase
+        .from("payments")
+        .select("id, status")
+        .eq("event_id", event.id!)
+        .eq("patient_id", currentUserId)
+        .eq("status", "succeeded")
+        .maybeSingle(),
+      supabase
         .from("profiles")
         .select("type")
-        .eq("id", userId)
-        .single();
+        .eq("id", currentUserId)
+        .maybeSingle(),
+    ]);
 
-      setIsAdmin(profile?.type === "admin");
-
-      // Verificar si el usuario es el profesional del evento
-      if (eventData?.professional_id) {
-        const { data: professionalApp } = await supabase
-          .from("professional_applications")
-          .select("user_id")
-          .eq("id", eventData.professional_id)
-          .eq("user_id", userId)
-          .eq("status", "approved")
-          .single();
-
-        setIsProfessional(!!professionalApp);
-      }
-
-      // Obtener ID del usuario actual
-      const { data: { user } } = await supabase.auth.getUser();
-      setCurrentUserId(user?.id);
-    } catch (error) {
-      console.error("Error fetching event details:", error);
-      toast.error("Error al cargar los detalles del evento");
-    } finally {
-      setLoading(false);
+    if (registrationResult.status === "fulfilled" && registrationResult.value.data) {
+      isRegistered = true;
     }
-  }, [supabase, slug, userId]);
 
-  useEffect(() => {
-    if (slug) {
-      fetchEventDetails();
+    if (paymentResult.status === "fulfilled" && paymentResult.value.data) {
+      hasPayment = true;
     }
-  }, [slug, fetchEventDetails]);
 
-  const handleRegister = async () => {
-    if (!event) return;
-    
-    try {
-      setRegistering(true);
-      
-      // Aquí implementarías la lógica de registro
-      // Por ahora solo mostramos un mensaje
-      toast.success("¡Registro exitoso! Te hemos enviado un email de confirmación.");
-      
-    } catch (error) {
-      console.error("Error registering for event:", error);
-      toast.error("Error al registrarse en el evento");
-    } finally {
-      setRegistering(false);
+    if (profileResult.status === "fulfilled") {
+      isAdmin = profileResult.value.data?.type === "admin";
     }
-  };
-
-  const getCategoryLabel = (category: string) => {
-    const categories = {
-      espiritualidad: "Espiritualidad",
-      salud_mental: "Salud Mental",
-      salud_fisica: "Salud Física",
-      alimentacion: "Alimentación",
-      social: "Social"
-    };
-    return categories[category as keyof typeof categories] || category;
-  };
-
-  const getParticipantLevelLabel = (level: string) => {
-    const levels = {
-      beginner: "Principiante",
-      intermediate: "Intermedio",
-      advanced: "Avanzado",
-      all: "Todos los niveles"
-    };
-    return levels[level as keyof typeof levels] || level;
-  };
-
-  const handleShare = async () => {
-    const shareUrl = `${window.location.origin}/explore/event/${slug}`;
-
-    try {
-      await navigator.clipboard.writeText(shareUrl);
-      toast.success("Enlace copiado al portapapeles");
-    } catch (error) {
-      console.error("Error copying to clipboard:", error);
-      toast.error("No se pudo copiar el enlace");
-    }
-  };
-
-
-  if (loading || isAuthenticated === null) {
-    return (
-      <div className="min-h-screen bg-background">
-        <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-8">
-          <div className="grid gap-6 sm:gap-8 lg:grid-cols-3">
-            <div className="lg:col-span-2 space-y-4 sm:space-y-6">
-              <Skeleton className="w-full h-64 md:h-80 rounded-lg" />
-              <div className="space-y-2">
-                <Skeleton className="h-8 w-3/4" />
-                <Skeleton className="h-5 w-1/2" />
-              </div>
-              <Card>
-                <CardContent className="p-6 space-y-4">
-                  <Skeleton className="h-6 w-1/4" />
-                  <Skeleton className="h-4 w-full" />
-                  <Skeleton className="h-4 w-5/6" />
-                  <Skeleton className="h-4 w-4/6" />
-                </CardContent>
-              </Card>
-            </div>
-            <div className="space-y-6">
-              <Card>
-                <CardContent className="p-6 space-y-4">
-                  <Skeleton className="h-6 w-1/2" />
-                  <Skeleton className="h-10 w-full" />
-                  <Skeleton className="h-12 w-full" />
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
   }
 
-  if (!event) {
-    return (
-      <div className="min-h-screen bg-background">
-        <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-8">
-          <div className="text-center py-12 px-4">
-            <XCircle className="w-12 h-12 sm:w-16 sm:h-16 text-muted-foreground mx-auto mb-4" />
-            <h1 className="text-xl sm:text-2xl font-bold text-foreground mb-2">Evento no encontrado</h1>
-            <p className="text-sm sm:text-base text-muted-foreground mb-6 max-w-md mx-auto">
-              El evento que buscas no existe o ya no está disponible.
-            </p>
-            <Button onClick={() => router.back()} className="w-full sm:w-auto">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Volver
-            </Button>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  // Preferimos compartir la URL canónica con slug si existe.
+  const sharePath = `/explore/event/${event.slug || event.id}`;
+  const redirectAfterAuth = encodeURIComponent(sharePath);
 
-  // Función para renderizar el contenido del evento
-  const renderEventContent = () => (
-    <div className="grid gap-6 sm:gap-8 lg:grid-cols-3">
+  const pageInner = (
+    <div className="min-h-screen bg-background">
+      <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-8">
+        <Link href="/" className="inline-block mb-6">
+          <Button variant="ghost">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Volver
+          </Button>
+        </Link>
+
+        <div className="grid gap-6 sm:gap-8 lg:grid-cols-3">
           {/* Contenido principal */}
           <div className="lg:col-span-2 space-y-4 sm:space-y-6">
             {/* Imagen principal con botón de compartir */}
@@ -312,15 +193,20 @@ const EventDetailPage = () => {
                   height={400}
                   className="w-full h-full object-cover"
                   style={{
-                    objectPosition: event.image_position || 'center center'
+                    objectPosition: event.image_position || "center center",
                   }}
                   priority
                 />
                 <div className="absolute top-4 right-4">
-                  <Button variant="secondary" size="sm" onClick={handleShare} className="shadow-lg">
+                  <CopyUrlButton
+                    variant="secondary"
+                    size="sm"
+                    urlPath={sharePath}
+                    className="shadow-lg"
+                  >
                     <Share2 className="w-4 h-4 mr-2" />
                     Compartir
-                  </Button>
+                  </CopyUrlButton>
                 </div>
               </div>
             )}
@@ -358,7 +244,7 @@ const EventDetailPage = () => {
                 {/* Detalles del evento */}
                 <div className="grid gap-3 sm:gap-4 sm:grid-cols-2">
                   <div className="flex items-center gap-2 sm:gap-3">
-                    <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-primary flex-shrink-0" />
+                    <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-primary shrink-0" />
                     <div>
                       <p className="text-sm sm:text-base font-medium">
                         {event.end_date && event.event_date !== event.end_date
@@ -373,7 +259,7 @@ const EventDetailPage = () => {
                   </div>
 
                   <div className="flex items-center gap-2 sm:gap-3">
-                    <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-primary flex-shrink-0" />
+                    <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-primary shrink-0" />
                     <div>
                       <p className="text-sm sm:text-base font-medium">
                         {formatEventTime(event.event_time)}
@@ -384,7 +270,7 @@ const EventDetailPage = () => {
                   </div>
 
                   <div className="flex items-center gap-2 sm:gap-3">
-                    <MapPin className="w-4 h-4 sm:w-5 sm:h-5 text-primary flex-shrink-0" />
+                    <MapPin className="w-4 h-4 sm:w-5 sm:h-5 text-primary shrink-0" />
                     <div>
                       <p className="text-sm sm:text-base font-medium">{event.location}</p>
                       <p className="text-xs sm:text-sm text-muted-foreground">Ubicación</p>
@@ -392,7 +278,7 @@ const EventDetailPage = () => {
                   </div>
 
                   <div className="flex items-center gap-2 sm:gap-3">
-                    <Users className="w-4 h-4 sm:w-5 sm:h-5 text-primary flex-shrink-0" />
+                    <Users className="w-4 h-4 sm:w-5 sm:h-5 text-primary shrink-0" />
                     <div>
                       <p className="text-sm sm:text-base font-medium">{event.max_capacity} personas</p>
                       <p className="text-xs sm:text-sm text-muted-foreground">Cupo máximo</p>
@@ -400,7 +286,7 @@ const EventDetailPage = () => {
                   </div>
 
                   <div className="flex items-center gap-2 sm:gap-3">
-                    <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-primary flex-shrink-0" />
+                    <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-primary shrink-0" />
                     <div>
                       <p className="text-sm sm:text-base font-medium">{event.duration_hours} horas</p>
                       <p className="text-xs sm:text-sm text-muted-foreground">Duración</p>
@@ -408,9 +294,11 @@ const EventDetailPage = () => {
                   </div>
 
                   <div className="flex items-center gap-2 sm:gap-3">
-                    <User className="w-4 h-4 sm:w-5 sm:h-5 text-primary flex-shrink-0" />
+                    <User className="w-4 h-4 sm:w-5 sm:h-5 text-primary shrink-0" />
                     <div>
-                      <p className="text-sm sm:text-base font-medium">{getParticipantLevelLabel(event.participant_level)}</p>
+                      <p className="text-sm sm:text-base font-medium">
+                        {getParticipantLevelLabel(event.participant_level)}
+                      </p>
                       <p className="text-xs sm:text-sm text-muted-foreground">Nivel requerido</p>
                     </div>
                   </div>
@@ -419,7 +307,7 @@ const EventDetailPage = () => {
                 {/* Estacionamiento */}
                 {event.has_parking && (
                   <div className="flex items-center gap-2 sm:gap-3 p-3 sm:p-4 bg-green-50 dark:bg-green-950/20 rounded-lg">
-                    <Car className="w-4 h-4 sm:w-5 sm:h-5 text-green-600 flex-shrink-0" />
+                    <Car className="w-4 h-4 sm:w-5 sm:h-5 text-green-600 shrink-0" />
                     <div>
                       <p className="text-sm sm:text-base font-medium text-green-800 dark:text-green-200">Estacionamiento disponible</p>
                       <p className="text-xs sm:text-sm text-green-600 dark:text-green-300">El lugar cuenta con estacionamiento</p>
@@ -532,9 +420,6 @@ const EventDetailPage = () => {
                             serviceAmount={event.price || 0}
                             eventName={event.name}
                             eventDate={event.event_date}
-                            onError={(error) => {
-                              toast.error(error);
-                            }}
                           />
                           <p className="text-xs text-muted-foreground text-center px-2">
                             Al completar el pago, recibirás un email de confirmación.
@@ -555,21 +440,20 @@ const EventDetailPage = () => {
                     </div>
 
                     <div className="space-y-3">
-                      <Button
-                        className="w-full text-sm sm:text-base touch-manipulation"
-                        size="lg"
-                        onClick={() => router.push(`/signup?redirect=${encodeURIComponent(`/explore/event/${slug}`)}`)}
-                      >
-                        Registrarse para participar
-                      </Button>
-                      <Button
-                        variant="outline"
-                        className="w-full text-sm sm:text-base touch-manipulation"
-                        size="lg"
-                        onClick={() => router.push(`/login?redirect=${encodeURIComponent(`/explore/event/${slug}`)}`)}
-                      >
-                        Ya tengo cuenta
-                      </Button>
+                      <Link href={`/signup?redirect=${redirectAfterAuth}`}>
+                        <Button className="w-full text-sm sm:text-base touch-manipulation" size="lg">
+                          Registrarse para participar
+                        </Button>
+                      </Link>
+                      <Link href={`/login?redirect=${redirectAfterAuth}`}>
+                        <Button
+                          variant="outline"
+                          className="w-full text-sm sm:text-base touch-manipulation"
+                          size="lg"
+                        >
+                          Ya tengo cuenta
+                        </Button>
+                      </Link>
                     </div>
 
                     <p className="text-xs text-muted-foreground text-center px-2">
@@ -591,24 +475,13 @@ const EventDetailPage = () => {
                     </div>
 
                     {event.is_free ? (
-                      <Button
-                        className="w-full text-sm sm:text-base touch-manipulation"
-                        size="lg"
-                        onClick={handleRegister}
-                        disabled={registering}
-                        type="button"
-                      >
-                        {registering ? "Registrando..." : "Registrarse al evento"}
-                      </Button>
+                      <EventFreeRegisterButton />
                     ) : (
                       <EventPaymentButton
                         eventId={event.id!}
                         serviceAmount={event.price || 0}
                         eventName={event.name}
                         eventDate={event.event_date}
-                        onError={(error) => {
-                          toast.error(error);
-                        }}
                       />
                     )}
 
@@ -624,46 +497,8 @@ const EventDetailPage = () => {
             </Card>
           </div>
         </div>
-  );
-
-  // Si no está autenticado, mostrar con navbar público
-  if (!isAuthenticated) {
-    return (
-      <>
-        <Navbar />
-        <div className="min-h-screen bg-background">
-          <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-8">
-            <Button
-              variant="ghost"
-              onClick={() => router.push('/')}
-              className="mb-6"
-            >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Volver
-            </Button>
-            {renderEventContent()}
-            {/* Sección de Preguntas y Respuestas */}
-            <EventQuestionsSection
-              eventId={resolvedEventId || event?.id || ''}
-              currentUserId={currentUserId}
-              isAdmin={isAdmin}
-              isProfessional={isProfessional}
-            />
-          </div>
-        </div>
-        <Footer />
-      </>
-    );
-  }
-
-  // Si está autenticado, mostrar con layout normal (navbar del dashboard)
-  return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-8">
-        {renderEventContent()}
-        {/* Sección de Preguntas y Respuestas */}
         <EventQuestionsSection
-          eventId={resolvedEventId || event?.id || ''}
+          eventId={event.id || ""}
           currentUserId={currentUserId}
           isAdmin={isAdmin}
           isProfessional={isProfessional}
@@ -671,6 +506,18 @@ const EventDetailPage = () => {
       </div>
     </div>
   );
-};
 
-export default EventDetailPage;
+  // Si no está autenticado, mostramos navbar/footer público como antes.
+  if (!isAuthenticated) {
+    return (
+      <>
+        <Navbar />
+        {pageInner}
+        <Footer />
+      </>
+    );
+  }
+
+  // Si está autenticado, el layout del dashboard se encarga del navbar.
+  return pageInner;
+}

@@ -86,11 +86,29 @@ export default function ExploreLayout({
 
   // Verificar si el usuario está autenticado
   useEffect(() => {
+    let mounted = true;
+
     const checkAuth = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      setIsAuthenticated(!!user);
+      // `getSession()` es instantáneo (no hace request) y evita que el layout
+      // bloquee el render por una llamada de red en páginas públicas.
+      const { data } = await supabase.auth.getSession();
+      if (!mounted) return;
+      setIsAuthenticated(Boolean(data.session?.user));
     };
+
     checkAuth();
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!mounted) return;
+      setIsAuthenticated(Boolean(session?.user));
+    });
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, [supabase]);
 
   useEffect(() => {
@@ -265,7 +283,7 @@ export default function ExploreLayout({
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="min-w-64 max-w-80">
                   <div className="flex items-start gap-3 p-3">
-                    <div className="relative flex-shrink-0">
+                    <div className="relative shrink-0">
                       <Image
                         src={profile?.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=random`}
                         alt=""
@@ -275,7 +293,7 @@ export default function ExploreLayout({
                       />
                     </div>
                     <div className="flex flex-col space-y-1 leading-tight min-w-0 flex-1">
-                      <p className="font-medium text-foreground break-words leading-tight">
+                      <p className="font-medium text-foreground wrap-break-word leading-tight">
                         {userName}
                       </p>
                       <p className="text-sm text-muted-foreground break-all">
@@ -366,7 +384,7 @@ export default function ExploreLayout({
                         alt=""
                         width={48}
                         height={48}
-                        className="h-12 w-12 aspect-square rounded-full object-cover border-2 border-primary/20 flex-shrink-0"
+                        className="h-12 w-12 aspect-square rounded-full object-cover border-2 border-primary/20 shrink-0"
                       />
                       <div>
                         <div className="text-base font-medium text-sidebar-foreground">

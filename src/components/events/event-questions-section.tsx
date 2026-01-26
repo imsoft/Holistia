@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { createClient } from "@/utils/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -58,21 +57,11 @@ export function EventQuestionsSection({
   const [submittingAnswer, setSubmittingAnswer] = useState<string | null>(null);
   const [newQuestion, setNewQuestion] = useState("");
   const [answerTexts, setAnswerTexts] = useState<Record<string, string>>({});
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-
-  const supabase = createClient();
+  const isAuthenticated = Boolean(currentUserId);
 
   useEffect(() => {
-    checkAuth();
     fetchQuestions();
   }, [eventId]);
-
-  const checkAuth = async () => {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    setIsAuthenticated(!!user);
-  };
 
   const fetchQuestions = async () => {
     try {
@@ -285,7 +274,7 @@ export function EventQuestionsSection({
                           )}
                         </span>
                       </div>
-                      <p className="text-sm whitespace-pre-wrap break-words">
+                      <p className="text-sm whitespace-pre-wrap wrap-break-word">
                         {question.question}
                       </p>
                     </div>
@@ -338,7 +327,7 @@ export function EventQuestionsSection({
                             )}
                           </span>
                         </div>
-                        <p className="text-sm whitespace-pre-wrap break-words text-muted-foreground">
+                        <p className="text-sm whitespace-pre-wrap wrap-break-word text-muted-foreground">
                           {question.answer.answer}
                         </p>
                       </div>

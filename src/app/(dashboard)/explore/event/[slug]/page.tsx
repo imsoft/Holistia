@@ -32,6 +32,29 @@ import { EventFreeRegisterButton } from "@/components/events/event-free-register
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
+// Mantener en sync con `next.config.ts` (images.remotePatterns)
+const ALLOWED_IMAGE_HOSTNAMES = new Set([
+  "images.unsplash.com",
+  "lh3.googleusercontent.com",
+  "ui-avatars.com",
+  "raylqjmjdlojgkggvenq.supabase.co",
+  "fbchqkbvlnkesyevkwoa.supabase.co",
+  "hdwyugqswocsfhzsrdxj.supabase.co",
+]);
+
+function isAllowedNextImageSrc(src: string) {
+  if (!src) return false;
+  // Archivos locales
+  if (src.startsWith("/")) return true;
+
+  try {
+    const url = new URL(src);
+    return url.protocol === "https:" && ALLOWED_IMAGE_HOSTNAMES.has(url.hostname);
+  } catch {
+    return false;
+  }
+}
+
 function getCategoryLabel(category: string) {
   const categories: Record<string, string> = {
     espiritualidad: "Espiritualidad",
@@ -116,6 +139,8 @@ export default async function EventDetailPage({
 
   const event = eventData as unknown as EventWithProfessional;
   const professional = (event.professional_applications || null) as ProfessionalMini;
+  const galleryImages = Array.isArray(event.gallery_images) ? event.gallery_images : [];
+  const mainImageSrc = (galleryImages[0] || event.image_url || "").toString();
 
   const {
     data: { user },
@@ -184,19 +209,33 @@ export default async function EventDetailPage({
           {/* Contenido principal */}
           <div className="lg:col-span-2 space-y-4 sm:space-y-6">
             {/* Imagen principal con botón de compartir */}
-            {(event.gallery_images?.[0] || event.image_url) && (
+            {mainImageSrc && (
               <div className="relative w-full h-64 md:h-80 overflow-hidden rounded-lg">
-                <Image
-                  src={event.gallery_images?.[0] || event.image_url || ""}
-                  alt={event.name}
-                  width={800}
-                  height={400}
-                  className="w-full h-full object-cover"
-                  style={{
-                    objectPosition: event.image_position || "center center",
-                  }}
-                  priority
-                />
+                {isAllowedNextImageSrc(mainImageSrc) ? (
+                  <Image
+                    src={mainImageSrc}
+                    alt={event.name}
+                    width={800}
+                    height={400}
+                    className="w-full h-full object-cover"
+                    style={{
+                      objectPosition: event.image_position || "center center",
+                    }}
+                    priority
+                  />
+                ) : (
+                  // Fallback para URLs no permitidas por Next/Image (evita error server-side en producción)
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={mainImageSrc}
+                    alt={event.name}
+                    className="w-full h-full object-cover"
+                    style={{
+                      objectPosition: event.image_position || "center center",
+                    }}
+                    loading="eager"
+                  />
+                )}
                 <div className="absolute top-4 right-4">
                   <CopyUrlButton
                     variant="secondary"
@@ -318,22 +357,32 @@ export default async function EventDetailPage({
             </Card>
 
             {/* Galería de imágenes */}
-            {event.gallery_images && event.gallery_images.length > 1 && (
+            {galleryImages.length > 1 && (
               <Card className="py-6 sm:py-8">
                 <CardHeader>
                   <CardTitle className="text-lg sm:text-xl">Galería de imágenes</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="grid gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                    {event.gallery_images.slice(1).map((image, index) => (
+                    {galleryImages.slice(1).map((image, index) => (
                       <div key={index} className="relative">
-                        <Image
-                          src={image}
-                          alt={`${event.name} - Imagen ${index + 2}`}
-                          width={300}
-                          height={200}
-                          className="w-full h-48 object-cover rounded-lg"
-                        />
+                        {isAllowedNextImageSrc(image) ? (
+                          <Image
+                            src={image}
+                            alt={`${event.name} - Imagen ${index + 2}`}
+                            width={300}
+                            height={200}
+                            className="w-full h-48 object-cover rounded-lg"
+                          />
+                        ) : (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={image}
+                            alt={`${event.name} - Imagen ${index + 2}`}
+                            className="w-full h-48 object-cover rounded-lg"
+                            loading="lazy"
+                          />
+                        )}
                       </div>
                     ))}
                   </div>
@@ -356,13 +405,23 @@ export default async function EventDetailPage({
                 <CardContent className="space-y-3 sm:space-y-4">
                   <div className="flex items-center gap-2 sm:gap-3">
                     {professional.profile_photo ? (
-                      <Image
-                        src={professional.profile_photo}
-                        alt={`${professional.first_name} ${professional.last_name}`}
-                        width={60}
-                        height={60}
-                        className="w-15 h-15 rounded-full object-cover aspect-square"
-                      />
+                      isAllowedNextImageSrc(professional.profile_photo) ? (
+                        <Image
+                          src={professional.profile_photo}
+                          alt={`${professional.first_name} ${professional.last_name}`}
+                          width={60}
+                          height={60}
+                          className="w-15 h-15 rounded-full object-cover aspect-square"
+                        />
+                      ) : (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={professional.profile_photo}
+                          alt={`${professional.first_name} ${professional.last_name}`}
+                          className="w-15 h-15 rounded-full object-cover aspect-square"
+                          loading="lazy"
+                        />
+                      )
                     ) : (
                       <div className="w-15 h-15 rounded-full bg-muted flex items-center justify-center">
                         <User className="w-8 h-8 text-muted-foreground" />

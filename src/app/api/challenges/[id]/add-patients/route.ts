@@ -50,35 +50,11 @@ export async function POST(
       );
     }
 
-    // Verificar que el profesional tiene citas con estos pacientes
-    if (!challenge.professional_id) {
-      return NextResponse.json(
-        { error: 'El reto no tiene un profesional asociado' },
-        { status: 400 }
-      );
-    }
-
-    // Verificar que los pacientes han tenido citas con el profesional
-    const { data: appointments } = await supabase
-      .from('appointments')
-      .select('patient_id')
-      .eq('professional_id', challenge.professional_id)
-      .in('patient_id', patient_ids);
-
-    if (!appointments || appointments.length === 0) {
-      return NextResponse.json(
-        { error: 'Los pacientes seleccionados no han tenido citas con este profesional' },
-        { status: 400 }
-      );
-    }
-
-    const validPatientIds = [...new Set(appointments.map(apt => apt.patient_id))];
-
     // Verificar que los pacientes existen y están activos
     const { data: patients } = await supabase
       .from('profiles')
       .select('id')
-      .in('id', validPatientIds)
+      .in('id', patient_ids)
       .eq('type', 'patient')
       .eq('account_active', true);
 

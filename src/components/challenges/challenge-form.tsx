@@ -131,6 +131,9 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
   const [patients, setPatients] = useState<any[]>([]);
   const [loadingPatients, setLoadingPatients] = useState(false);
   const [selectedPatientIds, setSelectedPatientIds] = useState<string[]>([]);
+  const [patientSearchQuery, setPatientSearchQuery] = useState("");
+  const [searchingPatients, setSearchingPatients] = useState(false);
+  const [searchedPatients, setSearchedPatients] = useState<any[]>([]);
   
   // Estados para reuniones
   const [meetings, setMeetings] = useState<ChallengeMeeting[]>([]);
@@ -299,6 +302,57 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
       setLoadingPatients(false);
     }
   };
+
+  // Función para buscar pacientes por nombre o email
+  const searchPatients = async (query: string) => {
+    if (!query || query.trim().length < 2) {
+      setSearchedPatients([]);
+      return;
+    }
+
+    try {
+      setSearchingPatients(true);
+      const searchTerm = query.trim().toLowerCase();
+
+      // Buscar pacientes por nombre o email
+      const { data: patientsData, error } = await supabase
+        .from('profiles')
+        .select('id, first_name, last_name, email, avatar_url')
+        .eq('type', 'patient')
+        .eq('account_active', true)
+        .or(`first_name.ilike.%${searchTerm}%,last_name.ilike.%${searchTerm}%,email.ilike.%${searchTerm}%`)
+        .limit(20)
+        .order('first_name', { ascending: true });
+
+      if (error) {
+        console.error('Error searching patients:', error);
+        return;
+      }
+
+      // Filtrar los que ya están en la lista de pacientes frecuentes
+      const frequentPatientIds = new Set(patients.map(p => p.id));
+      const newPatients = (patientsData || []).filter(p => !frequentPatientIds.has(p.id));
+
+      setSearchedPatients(newPatients);
+    } catch (error) {
+      console.error("Error searching patients:", error);
+    } finally {
+      setSearchingPatients(false);
+    }
+  };
+
+  // Debounce para la búsqueda
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (patientSearchQuery) {
+        searchPatients(patientSearchQuery);
+      } else {
+        setSearchedPatients([]);
+      }
+    }, 300);
+
+    return () => clearTimeout(timeoutId);
+  }, [patientSearchQuery]);
 
   // Funciones para manejar reuniones
   const fetchMeetings = async () => {
@@ -877,33 +931,33 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
             )}
           </div>
 
-          {/* Visibilidad Pública/Privada - Solo para pacientes */}
-          {!isProfessional && (
-            <div className="flex items-center justify-between space-x-4 rounded-lg border p-4">
-              <div className="flex-1 space-y-1">
-                <div className="flex items-center gap-2">
-                  {formData.is_public ? (
-                    <Eye className="h-4 w-4" />
-                  ) : (
-                    <EyeOff className="h-4 w-4" />
-                  )}
-                  <Label htmlFor="is_public" className="cursor-pointer">
-                    {formData.is_public ? "Reto Público" : "Reto Privado"}
-                  </Label>
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  {formData.is_public
-                    ? "El reto será visible para todos los usuarios en la plataforma"
-                    : "El reto será privado, solo visible para ti y las personas que invites"}
-                </p>
+          {/* Visibilidad Pública/Privada - Para todos los usuarios */}
+          <div className="flex items-center justify-between space-x-4 rounded-lg border p-4">
+            <div className="flex-1 space-y-1">
+              <div className="flex items-center gap-2">
+                {formData.is_public ? (
+                  <Eye className="h-4 w-4" />
+                ) : (
+                  <EyeOff className="h-4 w-4" />
+                )}
+                <Label htmlFor="is_public" className="cursor-pointer">
+                  {formData.is_public ? "Reto Público" : "Reto Privado"}
+                </Label>
               </div>
-              <Switch
-                id="is_public"
-                checked={formData.is_public}
-                onCheckedChange={(checked) => setFormData({ ...formData, is_public: checked })}
-              />
+              <p className="text-sm text-muted-foreground">
+                {formData.is_public
+                  ? "El reto será visible para todos los usuarios en la plataforma"
+                  : isProfessional
+                    ? "El reto será privado, solo visible para los pacientes que agregues"
+                    : "El reto será privado, solo visible para ti y las personas que invites"}
+              </p>
             </div>
-          )}
+            <Switch
+              id="is_public"
+              checked={formData.is_public}
+              onCheckedChange={(checked) => setFormData({ ...formData, is_public: checked })}
+            />
+          </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
@@ -988,77 +1042,169 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
 
           {isProfessional && (
             <>
-              <div className="space-y-2">
+              <div className="space-y-3">
                 <Label>Agregar Pacientes al Reto (Opcional)</Label>
-                <p className="text-xs text-muted-foreground mb-2">
+                <p className="text-xs text-muted-foreground">
                   Selecciona los pacientes que deseas agregar automáticamente a este reto
                 </p>
+
+                {/* Campo de búsqueda */}
+                <div className="relative">
+                  <Input
+                    placeholder="Buscar paciente por nombre o email..."
+                    value={patientSearchQuery}
+                    onChange={(e) => setPatientSearchQuery(e.target.value)}
+                    className="pr-10"
+                  />
+                  {searchingPatients && (
+                    <Loader2 className="h-4 w-4 animate-spin absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                  )}
+                </div>
+
+                {/* Resultados de búsqueda */}
+                {searchedPatients.length > 0 && (
+                  <div className="space-y-1">
+                    <p className="text-xs text-muted-foreground font-medium">Resultados de búsqueda:</p>
+                    <div className="space-y-2 max-h-40 overflow-y-auto border rounded-lg p-3 bg-muted/30">
+                      {searchedPatients.map((patient) => {
+                        const isSelected = selectedPatientIds.includes(patient.id);
+                        return (
+                          <div
+                            key={patient.id}
+                            className={`flex items-center gap-3 p-2 rounded-lg cursor-pointer transition-colors ${
+                              isSelected
+                                ? 'bg-primary/10 border border-primary'
+                                : 'hover:bg-muted border border-transparent'
+                            }`}
+                            onClick={() => {
+                              if (isSelected) {
+                                setSelectedPatientIds(selectedPatientIds.filter(id => id !== patient.id));
+                              } else {
+                                setSelectedPatientIds([...selectedPatientIds, patient.id]);
+                              }
+                            }}
+                          >
+                            <div className="flex items-center gap-2 flex-1">
+                              {patient.avatar_url ? (
+                                <Image
+                                  src={patient.avatar_url}
+                                  alt={`${patient.first_name} ${patient.last_name}`}
+                                  width={32}
+                                  height={32}
+                                  className="rounded-full"
+                                />
+                              ) : (
+                                <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
+                                  <Users className="h-4 w-4 text-primary" />
+                                </div>
+                              )}
+                              <div>
+                                <p className="text-sm font-medium">
+                                  {patient.first_name} {patient.last_name}
+                                </p>
+                                {patient.email && (
+                                  <p className="text-xs text-muted-foreground">{patient.email}</p>
+                                )}
+                              </div>
+                            </div>
+                            {isSelected ? (
+                              <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center">
+                                <X className="h-3 w-3 text-primary-foreground" />
+                              </div>
+                            ) : (
+                              <div className="w-5 h-5 rounded-full border-2 border-muted-foreground/30 flex items-center justify-center">
+                                <Plus className="h-3 w-3 text-muted-foreground" />
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Mensaje cuando no hay resultados de búsqueda */}
+                {patientSearchQuery.length >= 2 && !searchingPatients && searchedPatients.length === 0 && patients.length === 0 && (
+                  <p className="text-sm text-muted-foreground text-center py-2">
+                    No se encontraron pacientes con &quot;{patientSearchQuery}&quot;
+                  </p>
+                )}
+
+                {/* Pacientes frecuentes (de citas anteriores) */}
                 {loadingPatients ? (
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Loader2 className="h-4 w-4 animate-spin" />
                     Cargando pacientes...
                   </div>
-                ) : patients.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">
-                    No tienes pacientes aún. Los pacientes aparecerán aquí después de tener citas con ellos.
-                  </p>
-                ) : (
-                  <div className="space-y-2 max-h-60 overflow-y-auto border rounded-lg p-3">
-                    {patients.map((patient) => {
-                      const isSelected = selectedPatientIds.includes(patient.id);
-                      return (
-                        <div
-                          key={patient.id}
-                          className={`flex items-center gap-3 p-2 rounded-lg cursor-pointer transition-colors ${
-                            isSelected
-                              ? 'bg-primary/10 border border-primary'
-                              : 'hover:bg-muted border border-transparent'
-                          }`}
-                          onClick={() => {
-                            if (isSelected) {
-                              setSelectedPatientIds(selectedPatientIds.filter(id => id !== patient.id));
-                            } else {
-                              setSelectedPatientIds([...selectedPatientIds, patient.id]);
-                            }
-                          }}
-                        >
-                          <div className="flex items-center gap-2 flex-1">
-                            {patient.avatar_url ? (
-                              <Image
-                                src={patient.avatar_url}
-                                alt={`${patient.first_name} ${patient.last_name}`}
-                                width={32}
-                                height={32}
-                                className="rounded-full"
-                              />
+                ) : patients.length > 0 && (
+                  <div className="space-y-1">
+                    <p className="text-xs text-muted-foreground font-medium">Pacientes frecuentes:</p>
+                    <div className="space-y-2 max-h-40 overflow-y-auto border rounded-lg p-3">
+                      {patients.map((patient) => {
+                        const isSelected = selectedPatientIds.includes(patient.id);
+                        return (
+                          <div
+                            key={patient.id}
+                            className={`flex items-center gap-3 p-2 rounded-lg cursor-pointer transition-colors ${
+                              isSelected
+                                ? 'bg-primary/10 border border-primary'
+                                : 'hover:bg-muted border border-transparent'
+                            }`}
+                            onClick={() => {
+                              if (isSelected) {
+                                setSelectedPatientIds(selectedPatientIds.filter(id => id !== patient.id));
+                              } else {
+                                setSelectedPatientIds([...selectedPatientIds, patient.id]);
+                              }
+                            }}
+                          >
+                            <div className="flex items-center gap-2 flex-1">
+                              {patient.avatar_url ? (
+                                <Image
+                                  src={patient.avatar_url}
+                                  alt={`${patient.first_name} ${patient.last_name}`}
+                                  width={32}
+                                  height={32}
+                                  className="rounded-full"
+                                />
+                              ) : (
+                                <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
+                                  <Users className="h-4 w-4 text-primary" />
+                                </div>
+                              )}
+                              <div>
+                                <p className="text-sm font-medium">
+                                  {patient.first_name} {patient.last_name}
+                                </p>
+                                {patient.email && (
+                                  <p className="text-xs text-muted-foreground">{patient.email}</p>
+                                )}
+                              </div>
+                            </div>
+                            {isSelected ? (
+                              <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center">
+                                <X className="h-3 w-3 text-primary-foreground" />
+                              </div>
                             ) : (
-                              <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
-                                <Users className="h-4 w-4 text-primary" />
+                              <div className="w-5 h-5 rounded-full border-2 border-muted-foreground/30 flex items-center justify-center">
+                                <Plus className="h-3 w-3 text-muted-foreground" />
                               </div>
                             )}
-                            <div>
-                              <p className="text-sm font-medium">
-                                {patient.first_name} {patient.last_name}
-                              </p>
-                              {patient.email && (
-                                <p className="text-xs text-muted-foreground">{patient.email}</p>
-                              )}
-                            </div>
                           </div>
-                          {isSelected && (
-                            <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center">
-                              <X className="h-3 w-3 text-primary-foreground" />
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
+                        );
+                      })}
+                    </div>
                   </div>
                 )}
+
+                {/* Pacientes seleccionados */}
                 {selectedPatientIds.length > 0 && (
-                  <p className="text-xs text-muted-foreground">
-                    {selectedPatientIds.length} paciente(s) seleccionado(s)
-                  </p>
+                  <div className="flex items-center gap-2 p-2 bg-primary/5 rounded-lg">
+                    <UserPlus className="h-4 w-4 text-primary" />
+                    <p className="text-sm font-medium text-primary">
+                      {selectedPatientIds.length} paciente(s) seleccionado(s)
+                    </p>
+                  </div>
                 )}
               </div>
             </>

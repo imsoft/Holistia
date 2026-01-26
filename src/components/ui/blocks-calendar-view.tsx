@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 import { formatDate, parseLocalDate, formatLocalDate } from '@/lib/date-utils';
 import type { AvailabilityBlock } from '@/types/availability';
 import { deleteBlockFromGoogleCalendar, syncAllBlocksToGoogleCalendar } from '@/actions/google-calendar';
+import { syncGoogleCalendarEvents } from '@/actions/google-calendar/sync';
 
 interface BlocksCalendarViewProps {
   professionalId: string;
@@ -31,6 +32,7 @@ export function BlocksCalendarView({
   const [loading, setLoading] = useState(true);
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [syncing, setSyncing] = useState(false);
+  const didAutoSyncRef = useRef(false);
 
   // Cargar bloqueos
   const fetchBlocks = useCallback(async () => {
@@ -63,6 +65,24 @@ export function BlocksCalendarView({
   useEffect(() => {
     fetchBlocks();
   }, [fetchBlocks]);
+
+  // Auto-import suave: traer eventos de Google al abrir /availability (una vez por montaje)
+  useEffect(() => {
+    if (!userId) return;
+    if (didAutoSyncRef.current) return;
+    didAutoSyncRef.current = true;
+
+    syncGoogleCalendarEvents(userId)
+      .then((result) => {
+        if (result.success) {
+          // No spamear toasts si no hubo cambios; solo refrescar.
+          fetchBlocks();
+        }
+      })
+      .catch((err) => {
+        console.warn('⚠️ No se pudo importar desde Google Calendar:', err);
+      });
+  }, [userId, fetchBlocks]);
 
   // Listener para recargar cuando se cree/actualice un bloqueo
   useEffect(() => {
@@ -239,6 +259,31 @@ export function BlocksCalendarView({
     }
   };
 
+  // Importar eventos externos desde Google Calendar (crear/actualizar bloques externos)
+  const handleImportFromGoogleCalendar = async () => {
+    if (!userId) {
+      toast.error('No se pudo identificar el usuario');
+      return;
+    }
+
+    setSyncing(true);
+    try {
+      const result = await syncGoogleCalendarEvents(userId);
+
+      if (result.success) {
+        toast.success(result.message || 'Eventos de Google Calendar importados correctamente');
+        fetchBlocks();
+      } else {
+        toast.error(result.error || 'Error al importar eventos de Google Calendar');
+      }
+    } catch (error) {
+      console.error('Error importing Google Calendar events:', error);
+      toast.error('Error al importar eventos de Google Calendar');
+    } finally {
+      setSyncing(false);
+    }
+  };
+
   // Eliminar bloqueo
   const handleDeleteBlock = async (blockId: string) => {
     if (!confirm('¿Estás seguro de que quieres eliminar este bloqueo?')) {
@@ -310,14 +355,24 @@ export function BlocksCalendarView({
       {/* Header */}
       <div className="flex items-center justify-end gap-2">
         {userId && (
-          <Button
-            variant="outline"
-            onClick={handleSyncWithGoogleCalendar}
-            disabled={syncing}
-          >
-            <RefreshCw className={`w-4 h-4 mr-2 ${syncing ? 'animate-spin' : ''}`} />
-            {syncing ? 'Sincronizando...' : 'Sincronizar con Google Calendar'}
-          </Button>
+          <>
+            <Button
+              variant="outline"
+              onClick={handleImportFromGoogleCalendar}
+              disabled={syncing}
+            >
+              <RefreshCw className={`w-4 h-4 mr-2 ${syncing ? 'animate-spin' : ''}`} />
+              {syncing ? 'Actualizando...' : 'Importar desde Google'}
+            </Button>
+            <Button
+              variant="outline"
+              onClick={handleSyncWithGoogleCalendar}
+              disabled={syncing}
+            >
+              <RefreshCw className={`w-4 h-4 mr-2 ${syncing ? 'animate-spin' : ''}`} />
+              {syncing ? 'Sincronizando...' : 'Enviar bloqueos a Google'}
+            </Button>
+          </>
         )}
         <Button onClick={onCreateBlock}>
           <Plus className="w-4 h-4 mr-2" />

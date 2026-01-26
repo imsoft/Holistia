@@ -197,8 +197,9 @@ export function useProfile() {
         loadProfile({ silent: false }).finally(() => {
           loadingRef.current = false;
         });
-      } else if ((event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') && session?.user && !loadingRef.current) {
-        // Enfocar pestaña / refresh de token puede disparar eventos: refrescar sin parpadeo.
+      } else if (event === 'USER_UPDATED' && session?.user && !loadingRef.current) {
+        // Solo refrescar el perfil cuando el usuario cambió (no en TOKEN_REFRESHED),
+        // para evitar “refresh” al cambiar de pestaña/ventana.
         loadingRef.current = true;
         loadProfile({ silent: true }).finally(() => {
           loadingRef.current = false;

@@ -95,16 +95,10 @@ export function ServiceManager({ professionalId, userId, isAdminContext = false 
       fetchServices();
     };
 
-    const handleFocus = () => {
-      fetchServices();
-    };
-
     window.addEventListener('service-created', handleServiceCreated);
-    window.addEventListener('focus', handleFocus);
     
     return () => {
       window.removeEventListener('service-created', handleServiceCreated);
-      window.removeEventListener('focus', handleFocus);
     };
   }, [fetchServices]);
 

@@ -157,6 +157,31 @@ export async function syncGoogleCalendarEvents(userId: string) {
       ) || []
     );
 
+    // Helper: convertir Date a fecha/hora en la TZ del evento
+    const formatInEventTimeZone = (date: Date, timeZone: string) => {
+      const formatOptions: Intl.DateTimeFormatOptions = {
+        timeZone,
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false,
+      };
+
+      const parts = new Intl.DateTimeFormat('en-CA', formatOptions).formatToParts(date);
+      const year = parts.find(p => p.type === 'year')?.value;
+      const month = parts.find(p => p.type === 'month')?.value;
+      const day = parts.find(p => p.type === 'day')?.value;
+      const hour = parts.find(p => p.type === 'hour')?.value;
+      const minute = parts.find(p => p.type === 'minute')?.value;
+
+      return {
+        date: `${year}-${month}-${day}`,
+        time: `${hour}:${minute}`,
+      };
+    };
+
     // Filtrar eventos que no son de Holistia y que no están ya creados como bloques
     const externalEvents = result.events.filter(event => {
       // Saltar eventos que no tienen ID
@@ -179,12 +204,16 @@ export async function syncGoogleCalendarEvents(userId: string) {
         const startDate = event.start!.date!;
         eventKey = `${event.id}_${startDate}_full_day_full_day`;
       } else {
+        // IMPORTANTE: la key debe usar la misma TZ que usamos al guardar el bloque,
+        // si no, se desincroniza (especialmente en serverless/UTC).
         const startDateTime = new Date(event.start!.dateTime!);
         const endDateTime = new Date(event.end!.dateTime!);
-        const startDate = startDateTime.toISOString().split('T')[0];
-        const startTime = startDateTime.toTimeString().substring(0, 5);
-        const endTime = endDateTime.toTimeString().substring(0, 5);
-        eventKey = `${event.id}_${startDate}_${startTime}_${endTime}`;
+        const eventTimeZone = event.start!.timeZone || 'America/Mexico_City';
+
+        const start = formatInEventTimeZone(startDateTime, eventTimeZone);
+        const end = formatInEventTimeZone(endDateTime, eventTimeZone);
+
+        eventKey = `${event.id}_${start.date}_${start.time}_${end.time}`;
       }
 
       // Saltar eventos que ya están creados como bloques (por fecha y hora específica)

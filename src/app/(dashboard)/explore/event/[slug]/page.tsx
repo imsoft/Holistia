@@ -100,10 +100,14 @@ type EventWithProfessional = EventWorkshop & {
 export default async function EventDetailPage({
   params,
 }: {
-  params: { slug: string };
+  // Next 16 puede entregar `params` como Promise en Server Components
+  params: Promise<{ slug: string }>;
 }) {
   const supabase = await createClient();
-  const slugParam = params.slug;
+  const { slug: slugParam } = await params;
+  if (!slugParam) {
+    notFound();
+  }
 
   const eventIdFromParam = extractUuidCandidate(slugParam);
 

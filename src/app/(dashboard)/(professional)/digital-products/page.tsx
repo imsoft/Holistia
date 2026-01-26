@@ -82,7 +82,7 @@ interface FormData {
 
 const CATEGORY_OPTIONS = [
   { value: 'meditation', label: 'Meditación', icon: Sparkles },
-  { value: 'ebook', label: 'eBook', icon: BookOpen },
+  { value: 'ebook', label: 'Workbook', icon: BookOpen },
   { value: 'manual', label: 'Manual', icon: FileText },
   { value: 'guide', label: 'Guía', icon: FileCheck },
   { value: 'audio', label: 'Audio', icon: Headphones },
@@ -228,7 +228,7 @@ export default function ProfessionalDigitalProducts() {
             <div>
               <h1 className="text-2xl font-bold text-foreground">Programas</h1>
               <p className="text-sm text-muted-foreground">
-                Gestiona tus meditaciones, ebooks y cursos
+                Gestiona tus meditaciones, workbooks y cursos
               </p>
             </div>
           </div>
@@ -301,7 +301,7 @@ export default function ProfessionalDigitalProducts() {
               <ShoppingBag className="h-12 w-12 text-muted-foreground mb-4" />
               <h3 className="text-lg font-semibold mb-2">No tienes programas aún</h3>
               <p className="text-muted-foreground text-center mb-4">
-                Comienza a vender meditaciones, ebooks y más
+                Comienza a vender meditaciones, workbooks y más
               </p>
               <Button onClick={() => router.push(`/digital-products/new`)}>
                 <Plus className="h-4 w-4 mr-2" />

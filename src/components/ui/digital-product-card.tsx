@@ -54,7 +54,7 @@ const CATEGORY_ICONS: Record<string, any> = {
 
 const CATEGORY_LABELS: Record<string, string> = {
   meditation: "Meditación",
-  ebook: "eBook",
+  ebook: "Workbook",
   manual: "Manual",
   course: "Curso",
   guide: "Guía",

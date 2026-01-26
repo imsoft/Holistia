@@ -75,7 +75,7 @@ const categories = [
 
 const CATEGORY_TYPE_OPTIONS = [
   { value: "meditation", label: "Meditación" },
-  { value: "ebook", label: "eBook" },
+  { value: "ebook", label: "Workbook" },
   { value: "manual", label: "Manual" },
   { value: "guide", label: "Guía" },
   { value: "audio", label: "Audio" },
@@ -227,7 +227,7 @@ export default function ProgramsPage() {
       });
     }
 
-    // Filtrar por tipo de categoría (meditation, ebook, etc.)
+    // Filtrar por tipo de categoría (meditation, workbook, etc.)
     if (selectedCategoryTypes.length > 0) {
       filtered = filtered.filter((product) => selectedCategoryTypes.includes(product.category));
     }
@@ -257,7 +257,7 @@ export default function ProgramsPage() {
             Programas Digitales
           </h1>
           <p className="text-muted-foreground">
-            Descubre meditaciones, ebooks, guías y más recursos para tu bienestar
+            Descubre meditaciones, workbooks, guías y más recursos para tu bienestar
           </p>
         </div>
 

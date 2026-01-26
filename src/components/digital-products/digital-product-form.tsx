@@ -57,7 +57,7 @@ interface DigitalProductFormProps {
 
 const CATEGORY_OPTIONS = [
   { value: 'meditation', label: 'Meditación', icon: Sparkles },
-  { value: 'ebook', label: 'eBook', icon: BookOpen },
+  { value: 'ebook', label: 'Workbook', icon: BookOpen },
   { value: 'manual', label: 'Manual', icon: FileText },
   { value: 'guide', label: 'Guía', icon: FileCheck },
   { value: 'audio', label: 'Audio', icon: Headphones },
@@ -426,7 +426,7 @@ export function DigitalProductForm({ professionalId, product, redirectPath, isAd
           </SelectContent>
         </Select>
         <p className="text-xs text-muted-foreground mt-1">
-          Selecciona el tipo de programa (meditación, ebook, audio, etc.)
+          Selecciona el tipo de programa (meditación, workbook, audio, etc.)
         </p>
       </div>
 
@@ -561,7 +561,7 @@ export function DigitalProductForm({ professionalId, product, redirectPath, isAd
             min="0"
             value={formData.pages_count}
             onChange={(e) => setFormData({ ...formData, pages_count: e.target.value })}
-            placeholder="Para ebooks/manuales"
+            placeholder="Para workbooks/manuales"
           />
         </div>
       )}

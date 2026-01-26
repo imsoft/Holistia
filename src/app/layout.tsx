@@ -45,7 +45,7 @@ export const metadata: Metadata = {
     "mindfulness México",
     "productos digitales bienestar",
     "programas de meditación",
-    "ebooks salud mental",
+    "workbooks salud mental",
     "cursos online bienestar",
     "recursos digitales salud",
     "retos de bienestar",

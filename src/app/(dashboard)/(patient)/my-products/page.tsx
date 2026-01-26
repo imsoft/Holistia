@@ -63,7 +63,7 @@ const CATEGORY_ICONS: Record<string, any> = {
 
 const CATEGORY_LABELS: Record<string, string> = {
   meditation: "Meditación",
-  ebook: "eBook",
+  ebook: "Workbook",
   manual: "Manual",
   course: "Curso",
   guide: "Guía",
@@ -289,7 +289,7 @@ export default function MyProducts() {
               <ShoppingBag className="h-12 w-12 text-muted-foreground mb-4" />
               <h3 className="text-lg font-semibold mb-2">No has comprado programas aún</h3>
               <p className="text-muted-foreground text-center mb-4">
-                Explora los perfiles de expertos verificados para descubrir meditaciones, ebooks y más
+                Explora los perfiles de expertos verificados para descubrir meditaciones, workbooks y más
               </p>
               <Button asChild>
                 <a href={`/patient/${id}/explore`}>
@@ -354,13 +354,15 @@ export default function MyProducts() {
                     {/* Professional Info */}
                     <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg">
                       {product.professional_photo ? (
-                        <Image
-                          src={product.professional_photo}
-                          alt=""
-                          width={32}
-                          height={32}
-                          className="rounded-full"
-                        />
+                        <div className="relative h-8 w-8 shrink-0 overflow-hidden rounded-full bg-primary/10">
+                          <Image
+                            src={product.professional_photo}
+                            alt={`${product.professional_first_name} ${product.professional_last_name}`}
+                            fill
+                            sizes="32px"
+                            className="object-cover"
+                          />
+                        </div>
                       ) : (
                         <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
                           <User className="h-4 w-4 text-primary" />

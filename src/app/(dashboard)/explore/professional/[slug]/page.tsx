@@ -1525,7 +1525,7 @@ export default function ProfessionalProfilePage() {
                   Programas
                 </h2>
                 <p className="text-sm text-muted-foreground mb-6">
-                  Meditaciones, ebooks y recursos creados por {professional.first_name}
+                  Meditaciones, workbooks y recursos creados por {professional.first_name}
                 </p>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {digitalProducts.map((product) => (

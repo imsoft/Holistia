@@ -75,7 +75,7 @@ export const DEFAULT_SEO: Metadata = {
     'mindfulness México',
     'programas de bienestar',
     'programas de meditación',
-    'ebooks salud mental',
+    'workbooks salud mental',
     'cursos online bienestar',
     'recursos digitales salud',
     'retos de bienestar',
@@ -1068,7 +1068,7 @@ export function generateDigitalProductMetadata(product: DigitalProductData): Met
   
   const categoryLabels: Record<string, string> = {
     meditation: 'Meditación',
-    ebook: 'Ebook',
+    ebook: 'Workbook',
     manual: 'Manual',
     course: 'Curso',
     guide: 'Guía',
@@ -1096,7 +1096,7 @@ export function generateDigitalProductMetadata(product: DigitalProductData): Met
       'programa',
       'programa de bienestar',
       'meditación guiada',
-      'ebook salud mental',
+      'workbook salud mental',
       'curso online',
       'recursos digitales',
       'descarga inmediata',
@@ -1137,7 +1137,7 @@ export function generateDigitalProductSchema(product: DigitalProductData): strin
 
   const categoryLabels: Record<string, string> = {
     meditation: 'Meditación',
-    ebook: 'Ebook',
+    ebook: 'Workbook',
     manual: 'Manual',
     course: 'Curso',
     guide: 'Guía',

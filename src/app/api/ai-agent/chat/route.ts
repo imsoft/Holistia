@@ -191,7 +191,7 @@ Holistia es una plataforma que facilita la conexión entre profesionales de bien
 - Profesionales: Psicólogos, terapeutas, coaches, nutriólogos, etc.
 - Eventos y Talleres: Eventos presenciales y online
 - Retos/Challenges: Programas de bienestar con duración específica
-- Productos Digitales: Programas, ebooks, cursos online
+- Productos Digitales: Programas, workbooks, cursos online
 - Restaurantes: Establecimientos de comida saludable
 - Centros Holísticos: Centros de bienestar con múltiples servicios
 

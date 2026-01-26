@@ -16,27 +16,16 @@ export async function GET(request: Request) {
     const offset = parseInt(searchParams.get("offset") || "0");
     const unreadOnly = searchParams.get("unreadOnly") === "true";
 
-    // Construir query base
-    let query = supabase
+    // Query base (sin joins a FK por nombre: evita 500 en producción si cambia el constraint)
+    let baseQuery = supabase
       .from("notifications")
-      .select(`
-        *,
-        related_user:profiles!notifications_related_user_id_fkey(
-          first_name,
-          last_name,
-          avatar_url
-        )
-      `, { count: "exact" })
+      .select("*", { count: "exact" })
       .eq("user_id", user.id)
       .order("created_at", { ascending: false });
 
-    if (unreadOnly) {
-      query = query.eq("is_read", false);
-    }
+    if (unreadOnly) baseQuery = baseQuery.eq("is_read", false);
 
-    // Aplicar paginación
-    const { data, error, count } = await query
-      .range(offset, offset + limit - 1);
+    const { data, error, count } = await baseQuery.range(offset, offset + limit - 1);
 
     if (error) {
       console.error("❌ Error fetching notifications:", {
@@ -45,66 +34,60 @@ export async function GET(request: Request) {
         hint: error.hint,
         code: error.code,
       });
-      
-      // Si es un error de relación, intentar sin la relación
-      if (error.code === "42P01" || error.message?.includes("not found") || error.message?.includes("does not exist")) {
-        console.log("⚠️ Retrying without related_user join...");
-        let fallbackQuery = supabase
-          .from("notifications")
-          .select("*", { count: "exact" })
-          .eq("user_id", user.id)
-          .order("created_at", { ascending: false});
-        
-        if (unreadOnly) {
-          fallbackQuery = fallbackQuery.eq("is_read", false);
-        }
-        
-        const { data: fallbackData, error: fallbackError } = await fallbackQuery
-          .range(offset, offset + limit - 1);
-        
-        if (fallbackError) {
-          return NextResponse.json({ 
-            error: "Error al obtener notificaciones",
-            details: fallbackError.message 
-          }, { status: 500 });
-        }
-        
-        // Transformar sin related_user
-        const transformedData = (fallbackData || []).map((notification: any) => ({
-          ...notification,
-          related_user_first_name: null,
-          related_user_last_name: null,
-          related_user_avatar: null,
-        }));
 
-        // Obtener conteo de no leídas
-        const { count: unreadCount } = await supabase
-          .from("notifications")
-          .select("id", { count: "exact", head: true })
-          .eq("user_id", user.id)
-          .eq("is_read", false);
-
-        return NextResponse.json({
-          data: transformedData || [],
-          count: count || 0,
-          unreadCount: unreadCount || 0,
-          hasMore: (transformedData?.length || 0) === limit,
-        });
-      }
-      
-      return NextResponse.json({ 
-        error: "Error al obtener notificaciones",
-        details: error.message 
-      }, { status: 500 });
+      // No romper UI: responder OK con lista vacía
+      return NextResponse.json({
+        data: [],
+        count: 0,
+        unreadCount: 0,
+        hasMore: false,
+      });
     }
 
-    // Transformar datos para incluir información del usuario relacionado
-    const transformedData = (data || []).map((notification: any) => ({
-      ...notification,
-      related_user_first_name: notification.related_user?.first_name || null,
-      related_user_last_name: notification.related_user?.last_name || null,
-      related_user_avatar: notification.related_user?.avatar_url || null,
-    }));
+    const notifications = (data || []) as any[];
+
+    // Resolver perfiles relacionados (si existen) por `related_user_id`
+    const relatedUserIds = Array.from(
+      new Set(
+        notifications
+          .map((n) => n.related_user_id)
+          .filter((id) => typeof id === "string" && id.length > 0)
+      )
+    );
+
+    let profilesMap = new Map<string, { first_name: string | null; last_name: string | null; avatar_url: string | null }>();
+
+    if (relatedUserIds.length > 0) {
+      const { data: profiles, error: profilesError } = await supabase
+        .from("profiles")
+        .select("id, first_name, last_name, avatar_url")
+        .in("id", relatedUserIds);
+
+      if (profilesError) {
+        console.error("⚠️ Error fetching related profiles:", profilesError);
+      } else {
+        profilesMap = new Map(
+          (profiles || []).map((p: any) => [
+            p.id,
+            {
+              first_name: p.first_name ?? null,
+              last_name: p.last_name ?? null,
+              avatar_url: p.avatar_url ?? null,
+            },
+          ])
+        );
+      }
+    }
+
+    const transformedData = notifications.map((n) => {
+      const related = n.related_user_id ? profilesMap.get(n.related_user_id) : undefined;
+      return {
+        ...n,
+        related_user_first_name: related?.first_name ?? null,
+        related_user_last_name: related?.last_name ?? null,
+        related_user_avatar: related?.avatar_url ?? null,
+      };
+    });
 
     // Obtener conteo de no leídas
     const { count: unreadCount, error: countError } = await supabase
@@ -126,10 +109,13 @@ export async function GET(request: Request) {
     });
   } catch (error) {
     console.error("Error fetching notifications:", error);
-    return NextResponse.json(
-      { error: "Error al obtener notificaciones" },
-      { status: 500 }
-    );
+    // No romper UI: responder OK con lista vacía
+    return NextResponse.json({
+      data: [],
+      count: 0,
+      unreadCount: 0,
+      hasMore: false,
+    });
   }
 }
 

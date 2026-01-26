@@ -1026,11 +1026,7 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
                 ))}
               </SelectContent>
             </Select>
-            {formData.linked_professional_id && formData.linked_professional_id !== "none" && professionals.length > 0 && (
-              <p className="text-xs text-green-600 font-semibold">
-                ✓ Profesional vinculado: {professionals.find(p => p.id === formData.linked_professional_id)?.first_name} {professionals.find(p => p.id === formData.linked_professional_id)?.last_name}
-              </p>
-            )}
+            {formData.linked_professional_id && formData.linked_professional_id !== "none" && professionals.length > 0 && null}
             {isProfessional && (
               <p className="text-xs text-muted-foreground">
                 Este reto se vinculará automáticamente a tu perfil profesional
@@ -1098,11 +1094,7 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
                   ))}
                 </SelectContent>
               </Select>
-              {formData.difficulty_level && (
-                <p className="text-xs text-green-600 font-semibold">
-                  ✓ Actual: {DIFFICULTY_OPTIONS.find(opt => opt.value === formData.difficulty_level)?.label}
-                </p>
-              )}
+              {formData.difficulty_level && null}
             </div>
           </div>
 
@@ -1398,11 +1390,7 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
 
           <div className="space-y-2">
             <Label>Imagen de Portada</Label>
-            {formData.cover_image_url && formData.cover_image_url.trim() !== "" && (
-              <p className="text-xs text-green-600 font-semibold mb-2">
-                ✓ Imagen de portada cargada
-              </p>
-            )}
+            {formData.cover_image_url && formData.cover_image_url.trim() !== "" && null}
             <div className="space-y-3">
               {formData.cover_image_url && formData.cover_image_url.trim() !== "" ? (
                 <div key={`cover-${formData.cover_image_url}`} className="relative h-48 w-full rounded-lg overflow-hidden border-2 border-dashed border-muted">

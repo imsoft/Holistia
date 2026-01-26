@@ -107,6 +107,11 @@ export function NotificationsPage() {
   const pageSize = 20;
 
   const offset = useMemo(() => notifications.length, [notifications.length]);
+  const clientUnreadCount = useMemo(
+    () => notifications.filter((n) => !n.is_read).length,
+    [notifications]
+  );
+  const displayUnreadCount = Math.max(unreadCount, clientUnreadCount);
 
   const loadNotifications = async (opts?: { reset?: boolean }) => {
     const reset = Boolean(opts?.reset);
@@ -129,8 +134,12 @@ export function NotificationsPage() {
       }
 
       const next = data.data ?? [];
-      setNotifications((prev) => (reset ? next : [...prev, ...next]));
-      setUnreadCount(data.unreadCount ?? 0);
+      const nextList = reset ? next : [...notifications, ...next];
+
+      setNotifications(nextList);
+      // Si el API no trae unreadCount fiable, usa el conteo local como fallback.
+      const computedUnread = nextList.filter((n) => !n.is_read).length;
+      setUnreadCount(typeof data.unreadCount === "number" ? data.unreadCount : computedUnread);
       setHasMore(Boolean(data.hasMore));
     } catch (error) {
       console.error("Error loading notifications:", error);
@@ -167,6 +176,8 @@ export function NotificationsPage() {
 
   const markAllAsRead = async () => {
     try {
+      if (displayUnreadCount === 0) return;
+
       const response = await fetch("/api/notifications", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -178,7 +189,8 @@ export function NotificationsPage() {
         setUnreadCount(0);
         toast.success("Todas las notificaciones marcadas como leídas");
       } else {
-        toast.error("Error al marcar notificaciones");
+        const data = (await response.json().catch(() => ({}))) as { error?: string };
+        toast.error(data?.error || "Error al marcar notificaciones");
       }
     } catch (error) {
       console.error("Error marking all as read:", error);
@@ -219,14 +231,14 @@ export function NotificationsPage() {
 
   return (
     <div className="mx-auto w-full max-w-3xl px-4 py-8 sm:py-10">
-      <Card>
+      <Card className="py-4">
         <CardHeader className="border-b">
           <CardTitle className="flex items-center gap-2">
             <Bell className="h-5 w-5" />
             Notificaciones
-            {unreadCount > 0 && (
+            {displayUnreadCount > 0 && (
               <Badge variant="destructive" className="ml-2">
-                {unreadCount}
+                {displayUnreadCount}
               </Badge>
             )}
           </CardTitle>
@@ -237,7 +249,7 @@ export function NotificationsPage() {
             <Button
               variant="ghost"
               onClick={markAllAsRead}
-              disabled={unreadCount === 0}
+              disabled={displayUnreadCount === 0}
               className="gap-2"
             >
               <CheckCheck className="h-4 w-4" />

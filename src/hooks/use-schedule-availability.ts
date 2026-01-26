@@ -26,6 +26,13 @@ interface ProfessionalWorkingHours {
 
 export function useScheduleAvailability(professionalId: string) {
   const supabase = createClient();
+  const normalizeDayOfWeek = useCallback((jsDay: number) => (jsDay === 0 ? 7 : jsDay), []);
+
+  // Rango de días de la semana (1=Lun ... 7=Dom). Soporta wrap-around (p.ej. 6-2).
+  const isDayOfWeekInRange = useCallback((day: number, start: number, end: number) => {
+    if (start <= end) return day >= start && day <= end;
+    return day >= start || day <= end;
+  }, []);
   
   // Caché global para datos del profesional
   const professionalCache = useRef<{
@@ -203,8 +210,16 @@ export function useScheduleAvailability(professionalId: string) {
         rangeStart.setHours(0, 0, 0, 0);
         rangeEnd.setHours(0, 0, 0, 0);
 
-        // Para bloqueos recurrentes, SIEMPRE incluirlos ya que se aplican a todos los días de la semana
-        if (block.is_recurring && (block.block_type === 'weekly_day' || block.block_type === 'weekly_range')) {
+        // Para bloqueos recurrentes, SIEMPRE incluirlos ya que se aplican por patrón semanal.
+        // Nota: También incluimos legacy `full_day`/`time_range` con `is_recurring=true` porque
+        // hay UI que crea bloqueos recurrentes sin cambiar el block_type.
+        if (
+          block.is_recurring &&
+          (block.block_type === 'weekly_day' ||
+            block.block_type === 'weekly_range' ||
+            block.block_type === 'full_day' ||
+            block.block_type === 'time_range')
+        ) {
           console.log('🔍 Bloqueo recurrente (siempre incluido):', {
             id: block.id,
             type: block.block_type,
@@ -333,6 +348,9 @@ export function useScheduleAvailability(professionalId: string) {
       
       // Verificar si la fecha actual está dentro del rango del bloqueo
       const isInDateRange = currentDate >= blockStartDate && currentDate <= blockEndDate;
+      const dayOfWeekCurrent = normalizeDayOfWeek(currentDate.getDay());
+      const dayOfWeekStart = normalizeDayOfWeek(blockStartDate.getDay());
+      const dayOfWeekEnd = normalizeDayOfWeek(blockEndDate.getDay());
       
       // Manejar diferentes tipos de bloqueos
       if (block.block_type === 'weekly_day') {
@@ -340,7 +358,7 @@ export function useScheduleAvailability(professionalId: string) {
         // JavaScript getDay(): 0=Domingo, 1=Lunes, 2=Martes, etc.
         // Nuestro sistema: 1=Lunes, 2=Martes, 3=Miércoles, ..., 7=Domingo
         const jsDay = currentDate.getDay();
-        const dayOfWeekCurrent = jsDay === 0 ? 7 : jsDay; // Convertir domingo de 0 a 7
+        const dayOfWeekCurrent = normalizeDayOfWeek(jsDay); // Convertir domingo de 0 a 7
         const matchesDayOfWeek = block.day_of_week === dayOfWeekCurrent;
 
         if (block.is_recurring) {
@@ -377,12 +395,8 @@ export function useScheduleAvailability(professionalId: string) {
         }
       } else if (block.block_type === 'weekly_range') {
         // Bloqueo de rango de horas (puede ser recurrente o de una sola vez)
-        const dayOfWeekCurrent = currentDate.getDay() === 0 ? 7 : currentDate.getDay();
-        const dayOfWeekStart = blockStartDate.getDay() === 0 ? 7 : blockStartDate.getDay();
-        const dayOfWeekEnd = blockEndDate ? (blockEndDate.getDay() === 0 ? 7 : blockEndDate.getDay()) : dayOfWeekStart;
-
-        // Verificar si el día actual está en el rango de días de la semana
-        const isInWeekRange = dayOfWeekCurrent >= dayOfWeekStart && dayOfWeekCurrent <= dayOfWeekEnd;
+        // Verificar si el día actual está en el rango de días de la semana (con soporte wrap-around)
+        const isInWeekRange = isDayOfWeekInRange(dayOfWeekCurrent, dayOfWeekStart, dayOfWeekEnd);
 
         if (block.is_recurring) {
           // Recurrente: Aplica a TODAS las ocurrencias dentro del rango de días, sin importar la fecha
@@ -410,8 +424,21 @@ export function useScheduleAvailability(professionalId: string) {
         }
       } else if (block.block_type === 'full_day') {
         // Bloqueo de día completo (legacy)
+        if (block.is_recurring) {
+          // Legacy recurrente: interpretar como patrón semanal basado en start_date/end_date
+          // (si es un solo día, start=end).
+          const applies = isDayOfWeekInRange(dayOfWeekCurrent, dayOfWeekStart, dayOfWeekEnd);
+          console.log('📅 Bloqueo de día completo (legacy recurrente) aplica:', {
+            applies,
+            dayOfWeekCurrent,
+            weekRange: `${dayOfWeekStart}-${dayOfWeekEnd}`,
+            currentDate: currentDate.toISOString().split('T')[0]
+          });
+          return applies;
+        }
+
         const applies = isInDateRange;
-        console.log('📅 Bloqueo de día completo aplica:', applies);
+        console.log('📅 Bloqueo de día completo (legacy) aplica:', applies);
         return applies;
       } else if (block.block_type === 'time_range') {
         // Bloqueo de rango de tiempo (legacy o de Google Calendar)
@@ -420,8 +447,23 @@ export function useScheduleAvailability(professionalId: string) {
         const isGoogleCalendarBlock = blockData.is_external_event === true && 
                                       blockData.external_event_source === 'google_calendar';
         
+        if (block.is_recurring) {
+          // Legacy recurrente: interpretar como patrón semanal dentro del rango de días de la semana.
+          const applies = isDayOfWeekInRange(dayOfWeekCurrent, dayOfWeekStart, dayOfWeekEnd);
+          console.log('⏰ Bloqueo de rango de tiempo (legacy recurrente) aplica:', {
+            applies,
+            isGoogleCalendarBlock,
+            dayOfWeekCurrent,
+            weekRange: `${dayOfWeekStart}-${dayOfWeekEnd}`,
+            blockTitle: block.title,
+            start_time: block.start_time,
+            end_time: block.end_time
+          });
+          return applies;
+        }
+
         const applies = isInDateRange;
-        console.log('⏰ Bloqueo de rango de tiempo aplica (fecha):', {
+        console.log('⏰ Bloqueo de rango de tiempo (legacy) aplica (fecha):', {
           applies,
           isGoogleCalendarBlock,
           blockTitle: block.title,

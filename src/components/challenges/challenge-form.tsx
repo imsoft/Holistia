@@ -95,6 +95,9 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
   const router = useRouter();
   const supabase = createClient();
   const isProfessional = userType === 'professional';
+  const isAdmin = userType === 'admin';
+  // Los admins pueden agregar pacientes cuando crean retos para profesionales (cuando hay professionalId)
+  const canAddPatients = isProfessional || (isAdmin && !!professionalId);
   const [isDescriptionValid, setIsDescriptionValid] = useState(true);
 
   const isRichTextEffectivelyEmpty = (html: string) => {
@@ -168,10 +171,10 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
   }, []);
 
   useEffect(() => {
-    if (isProfessional) {
+    if (canAddPatients) {
       fetchPatients();
     }
-  }, [isProfessional, userId]);
+  }, [canAddPatients, userId, professionalId]);
 
   // Cargar datos del challenge cuando esté disponible (prioridad)
   useEffect(() => {
@@ -206,10 +209,10 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
 
   // Cargar participantes existentes cuando hay un challenge (para edición)
   useEffect(() => {
-    if (challenge?.id && isProfessional) {
+    if (challenge?.id && canAddPatients) {
       fetchExistingParticipants();
     }
-  }, [challenge?.id, isProfessional]);
+  }, [challenge?.id, canAddPatients]);
 
   // Si es profesional y NO hay challenge cargado, vincular automáticamente al profesional actual
   useEffect(() => {
@@ -268,24 +271,35 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
     try {
       setLoadingPatients(true);
       const { data: { user } } = await supabase.auth.getUser();
-      
+
       if (!user) return;
 
-      // Obtener el professional_id del usuario
-      const { data: professionalApp } = await supabase
-        .from('professional_applications')
-        .select('id')
-        .eq('user_id', userId)
-        .eq('status', 'approved')
-        .single();
+      let targetProfessionalId: string | null = null;
 
-      if (!professionalApp) return;
+      // Si es admin, usar directamente el professionalId prop
+      if (isAdmin && professionalId) {
+        targetProfessionalId = professionalId;
+      } else if (isProfessional) {
+        // Si es profesional, buscar su professional_id
+        const { data: professionalApp } = await supabase
+          .from('professional_applications')
+          .select('id')
+          .eq('user_id', userId)
+          .eq('status', 'approved')
+          .single();
+
+        if (professionalApp) {
+          targetProfessionalId = professionalApp.id;
+        }
+      }
+
+      if (!targetProfessionalId) return;
 
       // Obtener pacientes que han tenido citas con el profesional
       const { data: appointments } = await supabase
         .from('appointments')
         .select('patient_id')
-        .eq('professional_id', professionalApp.id);
+        .eq('professional_id', targetProfessionalId);
 
       if (!appointments || appointments.length === 0) {
         setPatients([]);
@@ -1089,7 +1103,7 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
             )}
           </div>
 
-          {isProfessional && (
+          {canAddPatients && (
             <>
               <div className="space-y-3">
                 <Label>Agregar Pacientes al Reto (Opcional)</Label>

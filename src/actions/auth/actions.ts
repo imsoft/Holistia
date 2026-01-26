@@ -5,6 +5,18 @@ import { redirect } from "next/navigation";
 
 import { createClient } from "@/utils/supabase/server";
 
+// Helper para detectar errores de redirección de Next.js
+// En Next.js 16, el redirect() lanza un error con digest que empieza con 'NEXT_REDIRECT'
+function isRedirectError(error: unknown): boolean {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "digest" in error &&
+    typeof (error as { digest?: string }).digest === "string" &&
+    (error as { digest: string }).digest.startsWith("NEXT_REDIRECT")
+  );
+}
+
 export async function login(formData: FormData) {
   const supabase = await createClient();
 
@@ -72,6 +84,10 @@ export async function login(formData: FormData) {
             redirect(`/patient/${result.user.id}/explore`);
           }
         } catch (queryError) {
+          // Verificar si es un error de redirección de Next.js
+          if (isRedirectError(queryError)) {
+            throw queryError;
+          }
           console.error('Error inesperado consultando professional_applications:', queryError);
           // En caso de error, redirigir al dashboard del paciente por defecto
           redirect(`/patient/${result.user.id}/explore`);
@@ -83,11 +99,10 @@ export async function login(formData: FormData) {
     return { success: true };
   } catch (error) {
     // Verificar si es un error de redirección de Next.js
-    if (error instanceof Error && error.message.includes('NEXT_REDIRECT')) {
-      // Es una redirección, no un error real
-      throw error; // Re-lanzar para que Next.js la maneje
+    if (isRedirectError(error)) {
+      throw error; // Re-lanzar para que Next.js maneje la redirección
     }
-    
+
     console.error("Error inesperado en login:", error);
     return { error: "Ocurrió un error inesperado. Por favor, intenta de nuevo." };
   }
@@ -164,6 +179,10 @@ export async function signup(formData: FormData) {
             redirect(`/patient/${result.user.id}/explore`);
           }
         } catch (queryError) {
+          // Verificar si es un error de redirección de Next.js
+          if (isRedirectError(queryError)) {
+            throw queryError;
+          }
           console.error('Error inesperado consultando professional_applications:', queryError);
           // En caso de error, redirigir al dashboard del paciente por defecto
           redirect(`/patient/${result.user.id}/explore`);
@@ -175,11 +194,10 @@ export async function signup(formData: FormData) {
     return { success: true };
   } catch (error) {
     // Verificar si es un error de redirección de Next.js
-    if (error instanceof Error && error.message.includes('NEXT_REDIRECT')) {
-      // Es una redirección, no un error real
-      throw error; // Re-lanzar para que Next.js la maneje
+    if (isRedirectError(error)) {
+      throw error; // Re-lanzar para que Next.js maneje la redirección
     }
-    
+
     console.error("Error inesperado en registro:", error);
     return { error: "Ocurrió un error inesperado. Por favor, intenta de nuevo." };
   }

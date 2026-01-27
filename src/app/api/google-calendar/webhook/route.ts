@@ -7,7 +7,18 @@ import { syncGoogleCalendarEvents } from '@/actions/google-calendar/sync';
  *
  * Google Calendar envía notificaciones cuando hay cambios en el calendario
  * Documentación: https://developers.google.com/calendar/api/guides/push
+ *
+ * Estados de recurso (x-goog-resource-state):
+ * - 'sync': Notificación inicial cuando se crea el canal (no hay cambios todavía)
+ * - 'exists': Hay cambios en el recurso (evento creado, modificado, etc.)
+ * - 'not_exists': El recurso fue eliminado
  */
+
+// Rate limiting: Evitar sincronizaciones duplicadas
+// Map<userId, timestamp> - última sincronización por usuario
+const syncInProgress = new Map<string, number>();
+const SYNC_COOLDOWN_MS = 30000; // 30 segundos mínimo entre sincronizaciones
+
 export async function POST(request: NextRequest) {
   try {
     // Obtener headers de la notificación de Google
@@ -21,6 +32,7 @@ export async function POST(request: NextRequest) {
       resourceId,
       resourceState,
       messageNumber,
+      timestamp: new Date().toISOString(),
     });
 
     // Validar que la notificación es de Google Calendar
@@ -32,7 +44,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Responder inmediatamente a Google (deben recibir 200 OK rápidamente)
+    // Responder inmediatamente a Google (deben recibir 200 OK en <10 segundos)
     // Procesaremos la sincronización de forma asíncrona
     const response = NextResponse.json({ received: true }, { status: 200 });
 
@@ -76,14 +88,34 @@ async function processWebhookNotification(
 
     console.log('✅ Perfil encontrado para canal:', profile.id);
 
-    // Solo sincronizar si el estado es 'sync' (hay cambios)
-    // 'exists' es solo para verificar que el canal está activo
-    if (resourceState !== 'sync') {
+    // Estados de Google Calendar Push Notifications:
+    // - 'sync': Notificación inicial al crear el canal (NO hay cambios todavía)
+    // - 'exists': HAY CAMBIOS en el recurso (evento creado, modificado, eliminado)
+    // - 'not_exists': El recurso fue eliminado
+    if (resourceState === 'sync') {
+      console.log('ℹ️ Notificación inicial de sincronización - canal activo');
+      return;
+    }
+
+    if (resourceState !== 'exists') {
       console.log('ℹ️ Estado del recurso no requiere sincronización:', resourceState);
       return;
     }
 
-    console.log('🔄 Iniciando sincronización de eventos...');
+    // Rate limiting: evitar sincronizaciones muy frecuentes
+    const now = Date.now();
+    const lastSync = syncInProgress.get(profile.id);
+
+    if (lastSync && (now - lastSync) < SYNC_COOLDOWN_MS) {
+      console.log('⏳ Sincronización en cooldown para usuario:', profile.id,
+        `(esperar ${Math.ceil((SYNC_COOLDOWN_MS - (now - lastSync)) / 1000)}s)`);
+      return;
+    }
+
+    // Marcar que estamos sincronizando
+    syncInProgress.set(profile.id, now);
+
+    console.log('🔄 Iniciando sincronización de eventos para:', profile.id);
 
     // Sincronizar eventos de Google Calendar
     const result = await syncGoogleCalendarEvents(profile.id);
@@ -92,6 +124,8 @@ async function processWebhookNotification(
       console.log('✅ Sincronización completada:', result.message);
     } else {
       console.error('❌ Error en sincronización:', result.error);
+      // Limpiar el rate limit si hubo error para permitir reintento
+      syncInProgress.delete(profile.id);
     }
   } catch (error) {
     console.error('Error procesando notificación:', error);
@@ -101,7 +135,7 @@ async function processWebhookNotification(
 /**
  * Verificación del webhook (usado por Google para verificar la URL)
  */
-export async function GET(request: NextRequest) {
+export async function GET() {
   // Google puede enviar una solicitud GET para verificar la URL del webhook
   return NextResponse.json({ status: 'ok' }, { status: 200 });
 }

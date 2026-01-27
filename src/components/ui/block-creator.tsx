@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -9,11 +9,12 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, Clock, AlertCircle, CheckCircle, X } from 'lucide-react';
+import { Calendar, Clock, AlertCircle, CheckCircle, X, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { createClient } from '@/utils/supabase/client';
 import { toast } from 'sonner';
 import type { AvailabilityBlock, AvailabilityBlockFormData } from '@/types/availability';
+import { useValidateBlock, useInvalidateBlocksCache } from '@/stores/blocks-store';
 
 interface BlockCreatorProps {
   professionalId: string;
@@ -33,6 +34,9 @@ export function BlockCreator({
   onCancel 
 }: BlockCreatorProps) {
   const supabase = createClient();
+  const validateBlock = useValidateBlock();
+  const invalidateCache = useInvalidateBlocksCache();
+
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState<AvailabilityBlockFormData>({
     title: '',
@@ -47,6 +51,7 @@ export function BlockCreator({
   const [loading, setLoading] = useState(false);
   const [selectedDates, setSelectedDates] = useState<string[]>([]);
   const [selectedTimeRange, setSelectedTimeRange] = useState<{start: string, end: string} | null>(null);
+  const [validationErrors, setValidationErrors] = useState<string[]>([]);
 
   // Inicializar formulario si se está editando
   useEffect(() => {
@@ -180,6 +185,9 @@ export function BlockCreator({
   };
 
   const handleSubmit = async () => {
+    // Limpiar errores anteriores
+    setValidationErrors([]);
+
     // VALIDACIÓN CRÍTICA: Verificar que tenemos IDs válidos
     if (!professionalId || professionalId.trim() === '') {
       toast.error("Error: No se pudo identificar al profesional. Por favor, recarga la página.");
@@ -216,14 +224,6 @@ export function BlockCreator({
 
     setLoading(true);
     try {
-      console.log('📝 [BlockCreator] Creando bloqueo con datos:', {
-        professional_id: professionalId,
-        user_id: userId,
-        title: formData.title,
-        block_type: formData.block_type,
-        start_date: formData.start_date,
-      });
-
       const blockData = {
         professional_id: professionalId,
         user_id: userId,
@@ -237,6 +237,28 @@ export function BlockCreator({
         is_recurring: formData.is_recurring,
       };
 
+      // Validar superposiciones con bloques existentes
+      const validation = await validateBlock(
+        professionalId,
+        blockData,
+        editingBlock?.id // Excluir el bloque actual si estamos editando
+      );
+
+      if (!validation.isValid) {
+        setValidationErrors(validation.errors);
+        validation.errors.forEach(error => toast.error(error));
+        setLoading(false);
+        return;
+      }
+
+      console.log('📝 [BlockCreator] Creando bloqueo con datos:', {
+        professional_id: professionalId,
+        user_id: userId,
+        title: formData.title,
+        block_type: formData.block_type,
+        start_date: formData.start_date,
+      });
+
       if (editingBlock) {
         const { error } = await supabase
           .from('availability_blocks')
@@ -247,6 +269,10 @@ export function BlockCreator({
           console.error('❌ [BlockCreator] Error al actualizar bloqueo:', error);
           throw error;
         }
+
+        // Invalidar cache después de actualizar
+        invalidateCache(professionalId);
+
         toast.success('Bloqueo actualizado correctamente');
         onBlockUpdated?.();
       } else {
@@ -258,7 +284,7 @@ export function BlockCreator({
         if (error) {
           console.error('❌ [BlockCreator] Error al crear bloqueo:', error);
           console.error('   Datos enviados:', blockData);
-          
+
           // Mensajes de error más descriptivos
           if (error.code === '42501' || error.message.includes('permission') || error.message.includes('policy')) {
             toast.error('No tienes permisos para crear este bloqueo. Verifica que seas el propietario del perfil profesional.');
@@ -271,7 +297,10 @@ export function BlockCreator({
           }
           throw error;
         }
-        
+
+        // Invalidar cache después de crear
+        invalidateCache(professionalId);
+
         console.log('✅ [BlockCreator] Bloqueo creado exitosamente:', data);
         toast.success('Bloqueo creado correctamente');
         onBlockCreated?.();
@@ -290,8 +319,9 @@ export function BlockCreator({
       });
       setSelectedDates([]);
       setSelectedTimeRange(null);
+      setValidationErrors([]);
       setCurrentStep(1);
-      
+
     } catch (error: unknown) {
       console.error('Error saving block:', error);
       const errorMessage = error instanceof Error ? error.message : 'Error al guardar el bloqueo';
@@ -609,6 +639,23 @@ export function BlockCreator({
               <div>
                 <Label className="text-sm font-medium text-muted-foreground">Descripción</Label>
                 <p className="text-base">{formData.description}</p>
+              </div>
+            )}
+
+            {/* Mostrar errores de validación si existen */}
+            {validationErrors.length > 0 && (
+              <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+                <div className="flex items-start gap-2">
+                  <AlertTriangle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="font-medium text-red-800">Errores de validación:</p>
+                    <ul className="mt-1 list-disc list-inside text-sm text-red-700">
+                      {validationErrors.map((error, index) => (
+                        <li key={index}>{error}</li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
               </div>
             )}
           </CardContent>

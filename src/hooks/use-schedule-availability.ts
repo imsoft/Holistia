@@ -3,6 +3,7 @@
 import { useCallback, useRef } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import { parseLocalDate } from '@/lib/date-utils';
+import { useBlocksStore } from '@/stores/blocks-store';
 
 interface TimeSlot {
   time: string;
@@ -141,39 +142,14 @@ export function useScheduleAvailability(professionalId: string) {
     }
   }, [professionalId, supabase]);
 
-  // Obtener bloqueos de disponibilidad para un rango de fechas (con caché)
-  const blocksCache = useRef<Map<string, Array<{id?: string; title?: string; block_type: string; start_date: string; end_date?: string; start_time?: string; end_time?: string; day_of_week?: number; is_recurring?: boolean}>>>(new Map());
-  
+  // Obtener bloqueos de disponibilidad usando el store centralizado (con cache y invalidación)
+  const loadBlocksFromStore = useBlocksStore((state) => state.loadBlocks);
+
   const getAvailabilityBlocks = useCallback(async (startDate: string, endDate: string) => {
-    const cacheKey = `${startDate}-${endDate}`;
-    
-    // TEMPORAL: Deshabilitar caché de bloqueos para asegurar datos frescos
-    // TODO: Implementar invalidación de caché cuando se actualiza un bloqueo
-    const USE_CACHE = false;
-
-    // Verificar caché
-    if (USE_CACHE && blocksCache.current.has(cacheKey)) {
-      const cached = blocksCache.current.get(cacheKey)!;
-      return cached;
-    }
-
     try {
-      // Consulta para obtener TODOS los bloqueos del profesional
-      // NO filtramos por fechas en SQL porque los bloqueos recurrentes deben incluirse siempre
-      // El filtrado por fechas se hace en JavaScript después
-      // Incluimos bloqueos externos de Google Calendar (is_external_event = true)
-      const { data, error } = await supabase
-        .from('availability_blocks')
-        .select('*')
-        .eq('professional_id', professionalId);
+      // Usar el store centralizado que tiene cache con TTL e invalidación
+      const blocks = await loadBlocksFromStore(professionalId);
 
-      if (error) {
-        console.error('❌ Error en consulta de bloqueos:', error);
-        throw error;
-      }
-      
-      const blocks = data || [];
-      
       // Filtrar bloqueos que se superponen con el rango de fechas
       const filteredBlocks = blocks.filter(block => {
         const blockStart = parseLocalDate(block.start_date);
@@ -205,23 +181,20 @@ export function useScheduleAvailability(professionalId: string) {
         const overlaps = blockStart <= rangeEnd && blockEnd >= rangeStart;
         return overlaps;
       });
-      
-      // Guardar en caché
-      blocksCache.current.set(cacheKey, filteredBlocks);
-      
+
       return filteredBlocks;
     } catch (error) {
       console.error('Error fetching availability blocks:', error);
       return [];
     }
-  }, [professionalId, supabase]);
+  }, [professionalId, loadBlocksFromStore]);
 
   // Generar horarios para una fecha específica
   const generateTimeSlots = useCallback(async (
     date: string,
     workingHours: ProfessionalWorkingHours,
     existingAppointments: Array<{appointment_date: string; appointment_time: string; status: string}>,
-    availabilityBlocks: Array<{id?: string; title?: string; block_type: string; start_date: string; end_date?: string; start_time?: string; end_time?: string; day_of_week?: number; is_recurring?: boolean}>
+    availabilityBlocks: Array<{id?: string; title?: string; block_type: string; start_date: string; end_date?: string | null; start_time?: string | null; end_time?: string | null; day_of_week?: number | null; is_recurring?: boolean}>
   ): Promise<TimeSlot[]> => {
     const timeSlots: TimeSlot[] = [];
     

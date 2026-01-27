@@ -177,29 +177,40 @@ export async function syncGoogleCalendarEvents(userId: string) {
       };
     };
 
-    // Helper: extraer YYYY-MM-DD y HH:mm del RFC3339, convirtiendo a la zona horaria del evento.
-    // FIX: Cuando Google devuelve tiempos en UTC (terminan en 'Z') o con offset (+/-HH:MM),
-    // debemos convertir a la zona horaria del evento, no extraer directamente.
+    // Helper: extraer YYYY-MM-DD y HH:mm del RFC3339.
+    // IMPORTANTE: Cuando el datetime tiene un offset (ej: 2025-01-27T17:00:00-06:00),
+    // la hora local YA está en el string. NO debemos convertir usando Intl.DateTimeFormat
+    // porque eso puede causar desfases por DST.
+    //
+    // Casos manejados:
+    // 1. Con offset: "2025-01-27T17:00:00-06:00" -> extraer 17:00 directamente (es la hora local)
+    // 2. UTC (Z): "2025-01-27T23:00:00Z" -> convertir de UTC a la timezone del evento
+    // 3. Sin timezone: "2025-01-27T17:00:00" -> extraer directamente (ya es hora local)
     const extractFromGoogleDateTime = (dateTime: string, timeZone: string) => {
-      // Detectar si el datetime tiene información de timezone (UTC 'Z' o offset +/-HH:MM)
-      // El regex ahora también maneja milisegundos: 2025-01-14T16:00:00.000-06:00
-      const hasTimezoneInfo = dateTime.endsWith('Z') || /[+-]\d{2}:\d{2}$/.test(dateTime);
+      // Caso 1: Datetime con offset (ej: -06:00, +05:30)
+      // El offset indica la hora local, extraer directamente del string
+      const offsetMatch = /^(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2})(?::\d{2})?(?:\.\d+)?([+-]\d{2}:\d{2})$/.exec(dateTime);
+      if (offsetMatch) {
+        // La hora en el string YA es la hora local del evento
+        return { date: offsetMatch[1], time: offsetMatch[2] };
+      }
 
-      if (hasTimezoneInfo) {
-        // Convertir a la zona horaria del evento
+      // Caso 2: UTC (termina en Z)
+      // Necesitamos convertir de UTC a la timezone del evento
+      if (dateTime.endsWith('Z')) {
         const d = new Date(dateTime);
         const result = formatInEventTimeZone(d, timeZone);
         return result;
       }
 
-      // Si no hay información de timezone, el tiempo ya está en la zona horaria del evento
-      // Extraer directamente del string
-      const m = /^(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2})/.exec(dateTime);
-      if (m) {
-        return { date: m[1], time: m[2] };
+      // Caso 3: Sin timezone info (ya es hora local)
+      const localMatch = /^(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2})/.exec(dateTime);
+      if (localMatch) {
+        return { date: localMatch[1], time: localMatch[2] };
       }
 
-      // Fallback defensivo si el formato no es el esperado
+      // Fallback defensivo: usar Intl.DateTimeFormat
+      console.warn('⚠️ extractFromGoogleDateTime: formato no reconocido, usando fallback', { dateTime, timeZone });
       const d = new Date(dateTime);
       const result = formatInEventTimeZone(d, timeZone);
       return result;
@@ -393,6 +404,16 @@ export async function syncGoogleCalendarEvents(userId: string) {
 
         const start = extractFromGoogleDateTime(event.start!.dateTime!, eventTimeZone);
         const end = extractFromGoogleDateTime(event.end!.dateTime!, eventTimeZone);
+
+        // Log para debugging de timezone
+        console.log('📅 Procesando evento:', {
+          summary: event.summary,
+          googleStart: event.start!.dateTime,
+          googleEnd: event.end!.dateTime,
+          eventTimeZone,
+          extractedStart: start,
+          extractedEnd: end,
+        });
 
         blockData = {
           id: randomUUID(),

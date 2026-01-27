@@ -35,39 +35,86 @@ const difficultyColors = {
   expert: "bg-red-100 text-red-800",
 };
 
+// Helper function para obtener profesional por separado (evita problemas de RLS en joins)
+async function getProfessionalData(supabase: any, professionalId: string | null) {
+  if (!professionalId) return null;
+  
+  const { data: professional } = await supabase
+    .from("professional_applications")
+    .select("id, slug, first_name, last_name, profile_photo, profession, is_verified")
+    .eq("id", professionalId)
+    .maybeSingle();
+  
+  return professional;
+}
+
 // Helper function para buscar challenge por slug o ID
 async function findChallenge(supabase: any, slugParam: string, userId?: string | null) {
-  const selectQuery = `
-    *,
-    professional_applications(
-      id,
-      slug,
-      first_name,
-      last_name,
-      profile_photo,
-      profession,
-      is_verified
-    )
-  `;
-
-  // Primero intentar buscar por slug (retos públicos y activos)
+  // Estrategia: obtener el reto SIN join primero para evitar problemas de RLS
+  // Luego obtener el profesional por separado si existe
+  
+  console.log("🔍 [findChallenge] Iniciando búsqueda:", {
+    slug: slugParam,
+    userId: userId || "anon",
+    timestamp: new Date().toISOString(),
+  });
+  
+  // 1. Buscar reto público/activo por slug
   let { data: challenge, error } = await supabase
     .from("challenges")
-    .select(selectQuery)
+    .select("*")
     .eq("is_active", true)
     .eq("is_public", true)
     .eq("slug", slugParam)
-    .single();
+    .maybeSingle();
+  
+  // Log para debugging
+  if (error) {
+    console.log("🔍 [findChallenge] Error buscando por slug:", {
+      slug: slugParam,
+      error: error.message,
+      code: error.code,
+      details: error.details,
+      hint: error.hint,
+    });
+  } else if (!challenge) {
+    console.log("🔍 [findChallenge] No se encontró reto por slug (público/activo):", slugParam);
+    
+    // Intentar buscar sin filtros para ver si el reto existe pero no es público/activo
+    const { data: anyChallenge } = await supabase
+      .from("challenges")
+      .select("id, slug, is_active, is_public")
+      .eq("slug", slugParam)
+      .maybeSingle();
+    
+    if (anyChallenge) {
+      console.log("⚠️ [findChallenge] Reto existe pero no cumple filtros:", {
+        id: anyChallenge.id,
+        slug: anyChallenge.slug,
+        is_active: anyChallenge.is_active,
+        is_public: anyChallenge.is_public,
+      });
+    } else {
+      console.log("❌ [findChallenge] Reto no existe con slug:", slugParam);
+    }
+  } else {
+    console.log("✅ [findChallenge] Reto encontrado por slug:", {
+      id: challenge.id,
+      slug: challenge.slug,
+      is_public: challenge.is_public,
+      is_active: challenge.is_active,
+    });
+  }
 
-  // Si no encuentra por slug, intentar por ID (compatibilidad hacia atrás)
+  // 2. Si no encuentra por slug, intentar por ID (compatibilidad hacia atrás)
   if (error || !challenge) {
     const { data: dataById, error: errorById } = await supabase
       .from("challenges")
-      .select(selectQuery)
+      .select("*")
       .eq("is_active", true)
       .eq("is_public", true)
       .eq("id", slugParam)
-      .single();
+      .maybeSingle();
 
     if (!errorById && dataById) {
       challenge = dataById;
@@ -75,23 +122,23 @@ async function findChallenge(supabase: any, slugParam: string, userId?: string |
     }
   }
 
-  // Si no se encontró como público/activo pero hay usuario autenticado,
+  // 3. Si no se encontró como público/activo pero hay usuario autenticado,
   // verificar si es dueño o participante del reto (puede ser privado o inactivo)
   if ((error || !challenge) && userId) {
     // Buscar por slug sin filtros de público/activo
     let { data: privateChallenge, error: privateError } = await supabase
       .from("challenges")
-      .select(selectQuery)
+      .select("*")
       .eq("slug", slugParam)
-      .single();
+      .maybeSingle();
 
     // Si no encuentra por slug, intentar por ID
     if (privateError || !privateChallenge) {
       const { data: dataById, error: errorById } = await supabase
         .from("challenges")
-        .select(selectQuery)
+        .select("*")
         .eq("id", slugParam)
-        .single();
+        .maybeSingle();
 
       if (!errorById && dataById) {
         privateChallenge = dataById;
@@ -123,6 +170,26 @@ async function findChallenge(supabase: any, slugParam: string, userId?: string |
         error = null;
       }
     }
+  }
+
+  // 4. Si encontramos el reto, obtener el profesional por separado
+  if (challenge && !error) {
+    const professional = await getProfessionalData(supabase, challenge.professional_id);
+    if (professional) {
+      challenge.professional_applications = professional;
+      console.log("✅ [findChallenge] Profesional obtenido:", professional.id);
+    } else if (challenge.professional_id) {
+      console.log("⚠️ [findChallenge] No se pudo obtener profesional:", challenge.professional_id);
+    }
+  }
+
+  // Log final
+  if (error || !challenge) {
+    console.log("❌ [findChallenge] Resultado final: NO ENCONTRADO", {
+      slug: slugParam,
+      userId: userId || "anon",
+      error: error?.message || "No encontrado",
+    });
   }
 
   return { challenge, error };
@@ -164,9 +231,33 @@ export default async function ChallengePage({ params }: ChallengePageProps) {
   const { challenge, error } = await findChallenge(supabase, slugParam, userId);
 
   if (error || !challenge) {
-    console.error("Error fetching challenge:", error);
+    // Log detallado del error para debugging
+    console.error("❌ Error fetching challenge:", {
+      slug: slugParam,
+      error: error?.message || error,
+      errorCode: error?.code,
+      errorDetails: error?.details,
+      errorHint: error?.hint,
+      userId: userId || "anon",
+      timestamp: new Date().toISOString(),
+    });
+    
+    // Si es un error de RLS (permission denied), dar más información
+    if (error?.code === '42501' || error?.message?.includes('permission denied')) {
+      console.error("🔒 RLS Policy Error: El usuario no tiene permisos para ver este reto");
+    }
+    
     notFound();
   }
+
+  // Log de éxito para debugging
+  console.log("✅ Challenge found:", {
+    id: challenge.id,
+    slug: challenge.slug,
+    is_public: challenge.is_public,
+    is_active: challenge.is_active,
+    hasProfessional: !!challenge.professional_applications,
+  });
 
   return (
     <div className="min-h-screen bg-background">

@@ -21,6 +21,8 @@ import Link from "next/link";
 import { createClient } from "@/utils/supabase/client";
 import { useProfile } from "@/hooks/use-profile";
 import { NotificationsDropdown } from "@/components/ui/notifications-dropdown";
+import { Navbar } from "@/components/shared/navbar";
+import { Footer } from "@/components/shared/footer";
 
 // Función para generar navegación (URLs limpias sin IDs)
 const getNavigation = (hasEvents: boolean = false) => {
@@ -207,8 +209,17 @@ export default function ExploreLayout({
     publicListingPages.some(page => pathname === page || pathname.startsWith(page + '/'))
   );
 
+  // Si no está autenticado y es una página pública, mostrar navbar público
   if (isAuthenticated === false && isPublicPage) {
-    return <>{children}</>;
+    return (
+      <>
+        <Navbar />
+        <div className="min-h-screen bg-background">
+          {children}
+        </div>
+        <Footer />
+      </>
+    );
   }
 
   if (loading || isAuthenticated === null) {

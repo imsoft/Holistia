@@ -529,12 +529,13 @@ export default function ProfessionalProfilePage() {
           }
         }
 
-        // Cargar retos del profesional
+        // Cargar retos públicos del profesional (para vista pública)
         const { data: challengesData, error: challengesError } = await supabase
           .from('challenges')
           .select('*')
           .eq('professional_id', professionalData.id)
           .eq('is_active', true)
+          .eq('is_public', true)
           .order('created_at', { ascending: false });
 
         if (challengesError) {

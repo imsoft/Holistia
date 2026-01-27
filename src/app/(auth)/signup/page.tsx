@@ -73,6 +73,9 @@ const RegisterPageContent = () => {
         setSuccess(true);
         setIsLoading(false);
         router.push("/confirm-email");
+      } else if (result?.redirectTo) {
+        // Navegación "dura" para asegurar cookies y evitar quedarnos en "/"
+        window.location.assign(result.redirectTo);
       } else if (result?.success) {
         // Usuario registrado exitosamente (ya confirmado)
         toast.success("¡Cuenta creada exitosamente!");

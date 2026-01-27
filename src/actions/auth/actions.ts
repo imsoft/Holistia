@@ -1,7 +1,6 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 
 import { createClient } from "@/utils/supabase/server";
 
@@ -15,6 +14,54 @@ function isRedirectError(error: unknown): boolean {
     typeof (error as { digest?: string }).digest === "string" &&
     (error as { digest: string }).digest.startsWith("NEXT_REDIRECT")
   );
+}
+
+async function getRedirectPathForUser(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  userId: string
+): Promise<
+  | { redirectTo: string }
+  | { redirectTo: string; deactivated: true }
+> {
+  // Nota: usamos rutas limpias (sin IDs) y dejamos que el middleware aplique restricciones.
+  // Priorizamos `profiles.type` si existe; si no, caemos a revisar si tiene aplicación profesional aprobada.
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("type, account_active")
+    .eq("id", userId)
+    .maybeSingle();
+
+  if (profile?.account_active === false) {
+    return { redirectTo: "/account-deactivated", deactivated: true };
+  }
+
+  if (profile?.type === "admin") {
+    return { redirectTo: "/admin/dashboard" };
+  }
+
+  // Profesionales y “profesionales por aplicación aprobada” van al dashboard profesional.
+  // Si no está aprobado, cae a /explore.
+  if (profile?.type === "professional") {
+    const { data: professionalApp } = await supabase
+      .from("professional_applications")
+      .select("id")
+      .eq("user_id", userId)
+      .eq("status", "approved")
+      .maybeSingle();
+
+    return { redirectTo: professionalApp ? "/dashboard" : "/explore" };
+  }
+
+  // Si no es admin/professional, podría ser paciente o aún no tener profile.type seteado.
+  const { data: professionalApp } = await supabase
+    .from("professional_applications")
+    .select("id")
+    .eq("user_id", userId)
+    .eq("status", "approved")
+    .maybeSingle();
+
+  return { redirectTo: professionalApp ? "/dashboard" : "/explore" };
 }
 
 export async function login(formData: FormData) {
@@ -37,62 +84,9 @@ export async function login(formData: FormData) {
 
     // Si el login es exitoso, verificar el tipo de usuario y redirigir apropiadamente
     if (result.user) {
-      // Obtener tipo de usuario y estado de cuenta desde profiles
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('type, account_active')
-        .eq('id', result.user.id)
-        .maybeSingle();
-
-      // Verificar si la cuenta está desactivada
-      if (profile && profile.account_active === false) {
-        revalidatePath("/", "layout");
-        redirect('/account-deactivated');
-      }
-
-      const userType = profile?.type;
-      
+      const redirectInfo = await getRedirectPathForUser(supabase, result.user.id);
       revalidatePath("/", "layout");
-      
-      // Redirigir seg?n el tipo de usuario
-      if (userType === 'admin') {
-        redirect(`/admin/dashboard`);
-      } else if (userType === 'professional') {
-        redirect(`/professional/${result.user.id}/dashboard`);
-      } else {
-        // Verificar si el usuario tiene una aplicación profesional aprobada
-        try {
-          const { data: application, error: appError } = await supabase
-            .from('professional_applications')
-            .select('id, status')
-            .eq('user_id', result.user.id)
-            .eq('status', 'approved')
-            .single();
-
-          if (appError && appError.code !== 'PGRST116') {
-            // PGRST116 = no rows found, que es normal
-            console.error('Error consultando professional_applications:', appError);
-            // Si hay error en la consulta, redirigir al dashboard del paciente por defecto
-            redirect(`/patient/${result.user.id}/explore`);
-          }
-
-          if (application) {
-            // Si tiene una aplicación aprobada, redirigir al dashboard de profesionales
-            redirect(`/professional/${result.user.id}/dashboard`);
-          } else {
-            // Por defecto, redirigir al dashboard del paciente
-            redirect(`/patient/${result.user.id}/explore`);
-          }
-        } catch (queryError) {
-          // Verificar si es un error de redirección de Next.js
-          if (isRedirectError(queryError)) {
-            throw queryError;
-          }
-          console.error('Error inesperado consultando professional_applications:', queryError);
-          // En caso de error, redirigir al dashboard del paciente por defecto
-          redirect(`/patient/${result.user.id}/explore`);
-        }
-      }
+      return { success: true, redirectTo: redirectInfo.redirectTo };
     }
 
     revalidatePath("/", "layout");
@@ -138,56 +132,9 @@ export async function signup(formData: FormData) {
       revalidatePath("/", "layout");
       return { success: true, needsConfirmation: true };
     } else if (result.user) {
-      // Usuario ya confirmado, verificar tipo y redirigir apropiadamente
-      // Obtener tipo de usuario desde profiles
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('type')
-        .eq('id', result.user.id)
-        .maybeSingle();
-
-      const userType = profile?.type;
-      
+      const redirectInfo = await getRedirectPathForUser(supabase, result.user.id);
       revalidatePath("/", "layout");
-      
-      if (userType === 'admin') {
-        redirect(`/admin/dashboard`);
-      } else if (userType === 'professional') {
-        redirect(`/professional/${result.user.id}/dashboard`);
-      } else {
-        // Verificar si el usuario tiene una aplicación profesional aprobada
-        try {
-          const { data: application, error: appError } = await supabase
-            .from('professional_applications')
-            .select('id, status')
-            .eq('user_id', result.user.id)
-            .eq('status', 'approved')
-            .single();
-
-          if (appError && appError.code !== 'PGRST116') {
-            // PGRST116 = no rows found, que es normal
-            console.error('Error consultando professional_applications:', appError);
-            // Si hay error en la consulta, redirigir al dashboard del paciente por defecto
-            redirect(`/patient/${result.user.id}/explore`);
-          }
-
-          if (application) {
-            // Si tiene una aplicación aprobada, redirigir al dashboard de profesionales
-            redirect(`/professional/${result.user.id}/dashboard`);
-          } else {
-            // Por defecto, redirigir al dashboard del paciente
-            redirect(`/patient/${result.user.id}/explore`);
-          }
-        } catch (queryError) {
-          // Verificar si es un error de redirección de Next.js
-          if (isRedirectError(queryError)) {
-            throw queryError;
-          }
-          console.error('Error inesperado consultando professional_applications:', queryError);
-          // En caso de error, redirigir al dashboard del paciente por defecto
-          redirect(`/patient/${result.user.id}/explore`);
-        }
-      }
+      return { success: true, redirectTo: redirectInfo.redirectTo };
     }
 
     revalidatePath("/", "layout");
@@ -222,9 +169,5 @@ export async function signInWithGoogle() {
     return { error: error.message };
   }
 
-  if (data.url) {
-    redirect(data.url);
-  }
-
-  return { success: true };
+  return { success: true, url: data.url };
 }

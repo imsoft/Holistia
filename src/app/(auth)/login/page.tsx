@@ -21,7 +21,7 @@ import { useForm } from "react-hook-form";
 import { login } from "@/actions/auth/actions";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 const formSchema = z.object({
   email: z.email("Ingresa un correo electrónico válido"),
@@ -33,6 +33,7 @@ function LoginFormWithMessage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const searchParams = useSearchParams();
+  const router = useRouter();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -74,9 +75,17 @@ function LoginFormWithMessage() {
         toast.error(result.error);
         setError(result.error);
         setIsLoading(false);
+        return;
       }
-      // Si no hay error, la acción redirige automáticamente
-      // No llamamos setIsLoading(false) aquí para mantener el estado de carga
+
+      if (result?.redirectTo) {
+        // Navegación "dura" para asegurar cookies y evitar quedarse en "/"
+        window.location.assign(result.redirectTo);
+        return;
+      }
+
+      // Fallback defensivo
+      router.replace("/explore");
     } catch (error) {
       console.error("Error inesperado en login:", error);
       const errorMessage = "Ocurrió un error inesperado. Por favor, intenta de nuevo.";

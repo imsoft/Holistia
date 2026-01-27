@@ -22,7 +22,12 @@ export function GoogleButton({
   const handleGoogleSignIn = async () => {
     setIsLoading(true);
     try {
-      await signInWithGoogle();
+      const result = await signInWithGoogle();
+      if (result?.url) {
+        window.location.assign(result.url);
+        return;
+      }
+      throw new Error(result?.error || "No se pudo iniciar sesión con Google");
     } catch (error) {
       console.error("Error al iniciar sesión con Google:", error);
       setIsLoading(false);

@@ -32,8 +32,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const body = await request.json();
-    const { professionalId } = body;
+    const body = await request.json().catch(() => ({}));
+    const { professionalId, clearFirst } = body as {
+      professionalId?: string;
+      clearFirst?: boolean;
+    };
 
     if (!professionalId) {
       return NextResponse.json(
@@ -99,6 +102,27 @@ export async function POST(request: NextRequest) {
 
     console.log('📊 [Admin Force Sync] Bloques externos antes de sync:', blocksBefore?.length || 0);
 
+    let cleared = 0;
+    if (clearFirst) {
+      console.log('🧹 [Admin Force Sync] clearFirst=true → borrando bloques externos antes de sincronizar...');
+      const { error: clearError, count } = await supabase
+        .from('availability_blocks')
+        .delete({ count: 'exact' })
+        .eq('professional_id', professional.id)
+        .eq('is_external_event', true);
+
+      if (clearError) {
+        console.error('❌ [Admin Force Sync] Error borrando bloques externos:', clearError);
+        return NextResponse.json(
+          { error: 'Error al borrar bloques externos', details: clearError },
+          { status: 500 }
+        );
+      }
+
+      cleared = count || 0;
+      console.log('✅ [Admin Force Sync] Bloques externos borrados:', cleared);
+    }
+
     // Ejecutar la sincronización
     console.log('🔄 [Admin Force Sync] Ejecutando syncGoogleCalendarEvents...');
     const syncResult = await syncGoogleCalendarEvents(professional.user_id);
@@ -130,6 +154,7 @@ export async function POST(request: NextRequest) {
       },
       blocks: {
         before: blocksBefore?.length || 0,
+        cleared,
         after: blocksAfter?.length || 0,
         difference: (blocksAfter?.length || 0) - (blocksBefore?.length || 0)
       },

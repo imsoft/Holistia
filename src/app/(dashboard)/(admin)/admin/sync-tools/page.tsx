@@ -93,6 +93,50 @@ export default function SyncToolsPage() {
     }
   };
 
+  const handleClearAndResync = async () => {
+    if (!professionalId.trim()) {
+      toast.error("Por favor ingresa un Professional ID");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setSyncResult(null);
+
+      const response = await fetch("/api/admin/force-sync-google-calendar", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ professionalId: professionalId.trim(), clearFirst: true }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Error al sincronizar");
+      }
+
+      setSyncResult(data);
+
+      if (data.success) {
+        toast.success(
+          `Resincronización completa: ${data.blocks.cleared} borrados, ${data.syncResult.created} creados`
+        );
+      } else {
+        toast.error(data.syncResult.error || "Error en sincronización");
+      }
+
+      // Actualizar diagnóstico después de sincronizar
+      setTimeout(() => handleDiagnostic(), 1000);
+    } catch (error: any) {
+      console.error("Error en resincronización:", error);
+      toast.error(error.message || "Error al resincronizar");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleCleanDuplicates = async () => {
     if (!professionalId.trim()) {
       toast.error("Por favor ingresa un Professional ID");
@@ -287,6 +331,22 @@ export default function SyncToolsPage() {
                   <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
                   {loading ? "Sincronizando..." : "Forzar Sincronización"}
                 </Button>
+              </div>
+
+              <div className="mt-4">
+                <Button
+                  onClick={handleClearAndResync}
+                  disabled={loading || !diagnosticResult.googleCalendar.connected}
+                  variant="destructive"
+                  size="lg"
+                  className="w-full"
+                >
+                  <AlertCircle className="h-4 w-4 mr-2" />
+                  Borrar bloqueos de Google y resincronizar
+                </Button>
+                <p className="mt-2 text-xs text-gray-500">
+                  Esto elimina todos los bloqueos externos (Google) del profesional y los vuelve a importar.
+                </p>
               </div>
             </CardContent>
           </Card>

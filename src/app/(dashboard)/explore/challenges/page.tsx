@@ -83,10 +83,15 @@ export default function ChallengesPage() {
             last_name,
             profile_photo,
             profession,
-            is_verified
+            is_verified,
+            status,
+            is_active
           )
         `)
         .eq('is_active', true)
+        // En exploración solo deben mostrarse retos públicos de profesionales
+        .eq('is_public', true)
+        .eq('created_by_type', 'professional')
         .order('created_at', { ascending: false });
 
       if (error) {

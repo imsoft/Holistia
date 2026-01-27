@@ -121,7 +121,10 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
     price: "",
     currency: "MXN",
     is_active: true,
-    is_public: false, // Por defecto privado para pacientes
+    // Por defecto:
+    // - Profesionales/admins: público (aparece en Exploración)
+    // - Pacientes: privado
+    is_public: isProfessional || isAdmin,
   });
 
   const [professionals, setProfessionals] = useState<any[]>([]);

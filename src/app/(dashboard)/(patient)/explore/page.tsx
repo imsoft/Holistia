@@ -5,6 +5,8 @@ import { Calendar, MapPin, Users, ChevronLeft, ChevronRight, Brain, Sparkles, Ac
 import Link from "next/link";
 import Image from "next/image";
 import { ProfessionalCard } from "@/components/ui/professional-card";
+import { ChallengeCard } from "@/components/ui/challenge-card";
+import { SkeletonChallengeCard } from "@/components/ui/skeleton-challenge-card";
 import { createClient } from "@/utils/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -157,6 +159,34 @@ interface HolisticCenter {
   created_at: string;
 }
 
+interface Challenge {
+  id: string;
+  slug?: string;
+  title: string;
+  description: string;
+  short_description?: string;
+  cover_image_url?: string;
+  duration_days?: number;
+  difficulty_level?: 'beginner' | 'intermediate' | 'advanced' | 'expert';
+  category?: string;
+  price?: number | null;
+  currency?: string;
+  is_active: boolean;
+  is_public?: boolean;
+  created_by_type?: 'professional' | 'patient' | 'admin';
+  created_at: string;
+  wellness_areas?: string[];
+  professional_applications?: {
+    first_name?: string;
+    last_name?: string;
+    profile_photo?: string;
+    profession?: string;
+    is_verified?: boolean;
+    status?: string;
+    is_active?: boolean;
+  } | { [key: string]: unknown }[] | null;
+}
+
 const getCategoryLabel = (category: string) => {
   const categories: Record<string, string> = {
     espiritualidad: "Espiritualidad",
@@ -180,6 +210,8 @@ const HomeUserPage = () => {
   const [professionals, setProfessionals] = useState<Professional[]>([]);
   const [filteredProfessionals, setFilteredProfessionals] = useState<Professional[]>([]);
   const [filteredEvents, setFilteredEvents] = useState<EventWorkshop[]>([]);
+  const [challenges, setChallenges] = useState<Challenge[]>([]);
+  const [filteredChallenges, setFilteredChallenges] = useState<Challenge[]>([]);
   const [filteredRestaurants, setFilteredRestaurants] = useState<Restaurant[]>([]);
   const [filteredShops, setFilteredShops] = useState<Shop[]>([]);
   const [filteredDigitalProducts, setFilteredDigitalProducts] = useState<DigitalProduct[]>([]);
@@ -233,6 +265,7 @@ const HomeUserPage = () => {
   const [digitalProducts, setDigitalProducts] = useState<DigitalProduct[]>([]);
   const eventsScrollRef = useRef<HTMLDivElement>(null);
   const professionalsScrollRef = useRef<HTMLDivElement>(null);
+  const challengesScrollRef = useRef<HTMLDivElement>(null);
   const restaurantsScrollRef = useRef<HTMLDivElement>(null);
   const shopsScrollRef = useRef<HTMLDivElement>(null);
   const digitalProductsScrollRef = useRef<HTMLDivElement>(null);
@@ -251,6 +284,7 @@ const HomeUserPage = () => {
         const [
           professionalsResult,
           eventsResult,
+          challengesResult,
           restaurantsResult,
           shopsResult,
           productsResult,
@@ -277,6 +311,26 @@ const HomeUserPage = () => {
             .eq("is_active", true)
             .gte("event_date", new Date().toISOString().split('T')[0])
             .order("event_date", { ascending: true }),
+          // Retos públicos de profesionales
+          supabase
+            .from("challenges")
+            .select(`
+              *,
+              professional_applications(
+                first_name,
+                last_name,
+                profile_photo,
+                profession,
+                is_verified,
+                status,
+                is_active
+              )
+            `)
+            .eq("is_active", true)
+            .eq("is_public", true)
+            .eq("created_by_type", "professional")
+            .order("created_at", { ascending: false })
+            .limit(20),
           // Restaurantes
           supabase
             .from("restaurants")
@@ -470,6 +524,57 @@ const HomeUserPage = () => {
           setFilteredEvents([]);
         }
 
+        // Procesar retos
+        console.log("🔍 [Explore] Processing challenges result:", challengesResult.status);
+        if (challengesResult.status === 'fulfilled') {
+          const challengesData = challengesResult.value.data as any[] | null;
+          const error = challengesResult.value.error;
+
+          if (error) {
+            console.error("❌ [Explore] Error fetching challenges:", error);
+            setChallenges([]);
+            setFilteredChallenges([]);
+          } else if (challengesData && challengesData.length > 0) {
+            // Filtrar solo retos que tengan info válida del profesional (aprobado y activo)
+            const validChallenges = challengesData.filter((challenge: any) => {
+              const professional = challenge.professional_applications;
+              if (Array.isArray(professional)) {
+                const prof = professional[0];
+                return prof && prof.status === 'approved' && prof.is_active !== false;
+              }
+              return professional && professional.status === 'approved' && professional.is_active !== false;
+            });
+
+            const transformedChallenges = validChallenges.map((challenge: any) => {
+              const professional = Array.isArray(challenge.professional_applications)
+                ? challenge.professional_applications[0]
+                : challenge.professional_applications;
+
+              return {
+                ...challenge,
+                professional_first_name: professional?.first_name,
+                professional_last_name: professional?.last_name,
+                professional_photo: professional?.profile_photo,
+                professional_profession: professional?.profession,
+                professional_is_verified: professional?.is_verified,
+              };
+            });
+
+            setChallenges(transformedChallenges);
+            setFilteredChallenges(transformedChallenges);
+          } else {
+            setChallenges([]);
+            setFilteredChallenges([]);
+          }
+        } else if (challengesResult.status === 'rejected') {
+          console.error("❌ [Explore] Error fetching challenges:", challengesResult.reason);
+          setChallenges([]);
+          setFilteredChallenges([]);
+        } else {
+          setChallenges([]);
+          setFilteredChallenges([]);
+        }
+
         // Procesar restaurantes
         console.log("🔍 [Explore] Processing restaurants result:", restaurantsResult.status);
         if (restaurantsResult.status === 'fulfilled') {
@@ -618,7 +723,10 @@ const HomeUserPage = () => {
     if (eventsScrollRef.current && filteredEvents.length > 0) {
       eventsScrollRef.current.scrollTo({ left: 0, behavior: 'auto' });
     }
-  }, [filteredProfessionals.length, filteredEvents.length]);
+    if (challengesScrollRef.current && filteredChallenges.length > 0) {
+      challengesScrollRef.current.scrollTo({ left: 0, behavior: 'auto' });
+    }
+  }, [filteredProfessionals.length, filteredEvents.length, filteredChallenges.length]);
 
   const handleCategoryToggle = (categoryId: string) => {
     setSelectedCategories((prev) => {
@@ -734,6 +842,29 @@ const HomeUserPage = () => {
       digitalProductsScrollRef.current.scrollTo({ left: 0, behavior: 'smooth' });
     }
 
+    // Filtrar retos (públicos) por wellness_areas
+    let filteredChals = [...challenges];
+    if (categoryIds.length > 0) {
+      filteredChals = filteredChals.filter((challenge) => {
+        const challengeAreas = Array.isArray(challenge.wellness_areas) ? challenge.wellness_areas : [];
+        if (challengeAreas.length === 0) return false;
+
+        return categoryIds.some((categoryId) => {
+          const mappedAreas = categoryToWellnessAreas[categoryId] || [];
+          if (mappedAreas.length === 0) return false;
+          return challengeAreas.some((area) => mappedAreas.includes(area));
+        });
+      });
+    } else {
+      filteredChals = [...challenges];
+    }
+    setFilteredChallenges(filteredChals);
+
+    // Reiniciar scroll del carrusel de retos al inicio
+    if (challengesScrollRef.current) {
+      challengesScrollRef.current.scrollTo({ left: 0, behavior: 'smooth' });
+    }
+
     // Filtrar restaurantes - siempre mostrar en "Alimentación"
     let filteredRests = [...restaurants];
     if (categoryIds.length > 0) {
@@ -779,6 +910,18 @@ const HomeUserPage = () => {
   const scrollEventsRight = () => {
     if (eventsScrollRef.current) {
       eventsScrollRef.current.scrollBy({ left: 416, behavior: 'smooth' });
+    }
+  };
+
+  const scrollChallengesLeft = () => {
+    if (challengesScrollRef.current) {
+      challengesScrollRef.current.scrollBy({ left: -416, behavior: 'smooth' });
+    }
+  };
+
+  const scrollChallengesRight = () => {
+    if (challengesScrollRef.current) {
+      challengesScrollRef.current.scrollBy({ left: 416, behavior: 'smooth' });
     }
   };
 
@@ -888,6 +1031,18 @@ const HomeUserPage = () => {
                   ))}
                 </div>
               </div>
+              <div className="relative z-10">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-3xl sm:text-4xl font-bold text-foreground">Retos</h2>
+                </div>
+                <div className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar px-12">
+                  {Array.from({ length: 3 }).map((_, i) => (
+                    <div key={`challenge-skeleton-${i}`} className="shrink-0 w-96">
+                      <SkeletonChallengeCard />
+                    </div>
+                  ))}
+                </div>
+              </div>
               <div className="relative z-0">
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="text-3xl sm:text-4xl font-bold text-foreground">Eventos</h2>
@@ -944,6 +1099,7 @@ const HomeUserPage = () => {
           {/* Mostrar mensaje cuando no hay datos y no está cargando - Solo si realmente no hay datos */}
           {!loading && 
            filteredDigitalProducts.length === 0 && 
+           filteredChallenges.length === 0 &&
            filteredEvents.length === 0 && 
            filteredProfessionals.length === 0 && 
            filteredRestaurants.length === 0 && 
@@ -955,11 +1111,11 @@ const HomeUserPage = () => {
                 No hay contenido disponible
               </h3>
               <p className="text-muted-foreground max-w-md mx-auto">
-                Por el momento no hay profesionales, eventos, programas, restaurantes, comercios o centros holísticos disponibles. 
+                Por el momento no hay profesionales, retos, eventos, programas, restaurantes, comercios o centros holísticos disponibles. 
                 Vuelve más tarde para descubrir nuevo contenido.
               </p>
               <div className="mt-4 text-xs text-muted-foreground">
-                Debug: professionals={professionals.length}, events={events.length}, products={digitalProducts.length}, restaurants={restaurants.length}, shops={shops.length}, centers={holisticCenters.length}
+                Debug: professionals={professionals.length}, challenges={challenges.length}, events={events.length}, products={digitalProducts.length}, restaurants={restaurants.length}, shops={shops.length}, centers={holisticCenters.length}
               </div>
             </div>
           )}
@@ -1062,6 +1218,49 @@ const HomeUserPage = () => {
                       </Link>
                     );
                   })}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Sección de Retos - Solo mostrar si hay datos */}
+          {!loading && filteredChallenges.length > 0 && (
+            <div className="relative z-10">
+              <div className="flex items-center justify-between mb-6">
+                <Link href="/explore/challenges" className="group flex items-center gap-2">
+                  <h2 className="text-3xl sm:text-4xl font-bold text-foreground group-hover:text-primary transition-colors">
+                    Retos
+                  </h2>
+                  <ChevronRight className="h-6 w-6 text-foreground group-hover:text-primary transition-colors" />
+                </Link>
+              </div>
+
+              <div className="relative">
+                <button
+                  onClick={scrollChallengesLeft}
+                  className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-background/80 backdrop-blur-sm rounded-full p-2 shadow-lg hover:bg-background transition-colors"
+                  aria-label="Scroll left"
+                >
+                  <ChevronLeft className="h-6 w-6" />
+                </button>
+                <button
+                  onClick={scrollChallengesRight}
+                  className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-background/80 backdrop-blur-sm rounded-full p-2 shadow-lg hover:bg-background transition-colors"
+                  aria-label="Scroll right"
+                >
+                  <ChevronRight className="h-6 w-6" />
+                </button>
+
+                <div
+                  ref={challengesScrollRef}
+                  className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar px-12"
+                  style={{ scrollPaddingLeft: '1rem', scrollPaddingRight: '1rem' }}
+                >
+                  {filteredChallenges.map((challenge) => (
+                    <div key={challenge.id} className="shrink-0 w-96">
+                      <ChallengeCard challenge={challenge as any} userId={userId || undefined} />
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>

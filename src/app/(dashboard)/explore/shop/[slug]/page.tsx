@@ -15,7 +15,8 @@ import {
   ExternalLink,
   FileText,
   Tag,
-  Share2
+  Share2,
+  Clock
 } from "lucide-react";
 import { toast } from "sonner";
 import { createClient } from "@/utils/supabase/client";
@@ -28,6 +29,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { formatPhone, formatPhoneForTel } from "@/utils/phone-utils";
 import { Navbar } from "@/components/shared/navbar";
 import { Footer } from "@/components/shared/footer";
+import { formatScheduleForDisplay, parseScheduleFromString } from "@/components/ui/schedule-editor";
 
 interface Shop {
   id: string;
@@ -41,6 +43,7 @@ interface Shop {
   website?: string;
   instagram?: string;
   image_url?: string;
+  opening_hours?: unknown;
   category?: string;
   catalog_pdf_url?: string;
   gallery?: string[];
@@ -335,17 +338,51 @@ export default function ShopDetailPage() {
               )}
             </div>
 
-            {shop.description && (
-              <div
-                className="text-muted-foreground mb-6"
-                dangerouslySetInnerHTML={{ __html: shop.description }}
-              />
-            )}
+            {shop.description && (() => {
+              const description = shop.description;
+              const looksLikeHtml = /<\/?[a-z][\s\S]*>/i.test(description);
+
+              // Si es HTML (rich text), respetar saltos de línea convirtiéndolos a <br />
+              if (looksLikeHtml) {
+                const htmlWithLineBreaks = description.replace(/\n/g, "<br />");
+                return (
+                  <div
+                    className="mb-6 whitespace-pre-line text-muted-foreground prose prose-sm max-w-none"
+                    dangerouslySetInnerHTML={{ __html: htmlWithLineBreaks }}
+                  />
+                );
+              }
+
+              // Si es texto plano, preservar saltos de línea sin usar HTML (evita XSS).
+              return (
+                <p className="mb-6 whitespace-pre-line text-muted-foreground">
+                  {description}
+                </p>
+              );
+            })()}
 
             <Separator className="my-6" />
 
             {/* Información de contacto */}
             <div className="space-y-3">
+              {(() => {
+                const schedule = parseScheduleFromString(shop.opening_hours as any);
+                const formatted = formatScheduleForDisplay(schedule);
+                if (!formatted || formatted === "No hay horarios configurados") return null;
+
+                return (
+                  <div className="flex items-start gap-3 text-foreground">
+                    <Clock className="h-5 w-5 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="font-medium">Horario de atención</p>
+                      <p className="text-muted-foreground whitespace-pre-line">
+                        {formatted}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })()}
+
               {(shop.address || shop.city) && (
                 <div className="flex items-start gap-3 text-foreground">
                   <MapPin className="h-5 w-5 flex-shrink-0 mt-0.5" />

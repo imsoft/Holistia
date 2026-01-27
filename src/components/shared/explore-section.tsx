@@ -351,7 +351,7 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
             }
           }
           
-          // Transformar datos para asegurar el formato correcto
+          // Transformar datos para asegurar el formato correcto que espera ChallengeCard
           const transformedChallenges = challengesData.map((challenge: any) => {
             const professional = challenge.professional_id 
               ? professionalsMap.get(challenge.professional_id)
@@ -366,18 +366,38 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
               duration_days: challenge.duration_days,
               difficulty_level: challenge.difficulty_level,
               price: challenge.price,
-              professional_applications: professional ? {
-                first_name: professional.first_name,
-                last_name: professional.last_name,
-                profile_photo: professional.profile_photo,
-                profession: professional.profession,
-                is_verified: professional.is_verified,
-              } : undefined,
+              currency: challenge.currency,
+              // ChallengeCard espera propiedades planas, no professional_applications
+              professional_first_name: professional?.first_name,
+              professional_last_name: professional?.last_name,
+              professional_photo: professional?.profile_photo,
+              professional_profession: professional?.profession,
+              professional_is_verified: professional?.is_verified,
             };
           });
+          console.log("✅ [ExploreSection] Setting challenges:", {
+            count: transformedChallenges.length,
+            challenges: transformedChallenges.map(c => ({ id: c.id, title: c.title, slug: c.slug }))
+          });
           setChallenges(transformedChallenges);
+          
+          // Log después de un pequeño delay para verificar que el estado se actualizó
+          setTimeout(() => {
+            console.log("🔍 [ExploreSection] State after setChallenges:", {
+              challengesCount: transformedChallenges.length,
+              firstChallenge: transformedChallenges[0] ? {
+                id: transformedChallenges[0].id,
+                title: transformedChallenges[0].title,
+                hasProfessional: !!(transformedChallenges[0] as any).professional_first_name
+              } : null
+            });
+          }, 100);
         } else {
-          console.log("⚠️ [ExploreSection] No challenges found");
+          console.log("⚠️ [ExploreSection] No challenges found. Query returned:", {
+            dataLength: challengesData?.length || 0,
+            data: challengesData,
+            error: challengesError
+          });
           setChallenges([]);
         }
 

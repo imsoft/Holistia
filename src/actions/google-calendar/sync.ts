@@ -135,14 +135,52 @@ export async function syncGoogleCalendarEvents(userId: string) {
     const tzResult = await getCalendarTimeZone(accessToken, refreshToken, 'primary');
     const primaryCalendarTimeZone = tzResult.timeZone || 'America/Mexico_City';
 
-    // Helper: extraer YYYY-MM-DD y HH:mm directamente del RFC3339.
-    // Esto evita desfases por interpretación de TZ/DST en serverless y asegura que
-    // guardemos exactamente lo que Google entrega para esa instancia.
+    // Helper: convertir Date a fecha/hora en la TZ del evento
+    // IMPORTANTE: Debe estar definida ANTES de extractFromGoogleDateTime
+    const formatInEventTimeZone = (date: Date, timeZone: string) => {
+      const formatOptions: Intl.DateTimeFormatOptions = {
+        timeZone,
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false,
+      };
+
+      const parts = new Intl.DateTimeFormat('en-CA', formatOptions).formatToParts(date);
+      const year = parts.find(p => p.type === 'year')?.value;
+      const month = parts.find(p => p.type === 'month')?.value;
+      const day = parts.find(p => p.type === 'day')?.value;
+      const hour = parts.find(p => p.type === 'hour')?.value;
+      const minute = parts.find(p => p.type === 'minute')?.value;
+
+      return {
+        date: `${year}-${month}-${day}`,
+        time: `${hour}:${minute}`,
+      };
+    };
+
+    // Helper: extraer YYYY-MM-DD y HH:mm del RFC3339, convirtiendo a la zona horaria del evento.
+    // FIX: Cuando Google devuelve tiempos en UTC (terminan en 'Z') o con offset (+/-HH:MM),
+    // debemos convertir a la zona horaria del evento, no extraer directamente.
     const extractFromGoogleDateTime = (dateTime: string, timeZone: string) => {
+      // Detectar si el datetime tiene información de timezone (UTC 'Z' o offset +/-HH:MM)
+      const hasTimezoneInfo = dateTime.endsWith('Z') || /[+-]\d{2}:\d{2}$/.test(dateTime);
+
+      if (hasTimezoneInfo) {
+        // Convertir a la zona horaria del evento
+        const d = new Date(dateTime);
+        return formatInEventTimeZone(d, timeZone);
+      }
+
+      // Si no hay información de timezone, el tiempo ya está en la zona horaria del evento
+      // Extraer directamente del string
       const m = /^(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2})/.exec(dateTime);
       if (m) {
         return { date: m[1], time: m[2] };
       }
+
       // Fallback defensivo si el formato no es el esperado
       const d = new Date(dateTime);
       return formatInEventTimeZone(d, timeZone);
@@ -174,31 +212,6 @@ export async function syncGoogleCalendarEvents(userId: string) {
         `${block.google_calendar_event_id}_${block.start_date}_${block.start_time || 'full_day'}_${block.end_time || 'full_day'}`
       ) || []
     );
-
-    // Helper: convertir Date a fecha/hora en la TZ del evento
-    const formatInEventTimeZone = (date: Date, timeZone: string) => {
-      const formatOptions: Intl.DateTimeFormatOptions = {
-        timeZone,
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: false,
-      };
-
-      const parts = new Intl.DateTimeFormat('en-CA', formatOptions).formatToParts(date);
-      const year = parts.find(p => p.type === 'year')?.value;
-      const month = parts.find(p => p.type === 'month')?.value;
-      const day = parts.find(p => p.type === 'day')?.value;
-      const hour = parts.find(p => p.type === 'hour')?.value;
-      const minute = parts.find(p => p.type === 'minute')?.value;
-
-      return {
-        date: `${year}-${month}-${day}`,
-        time: `${hour}:${minute}`,
-      };
-    };
 
     // Filtrar eventos que no son de Holistia y que no están ya creados como bloques
     const externalEvents = result.events.filter(event => {

@@ -4,7 +4,6 @@ import { notFound } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -37,23 +36,24 @@ const difficultyColors = {
 };
 
 // Helper function para buscar challenge por slug o ID
-async function findChallenge(supabase: any, slugParam: string) {
-  // Primero intentar buscar por slug
+async function findChallenge(supabase: any, slugParam: string, userId?: string | null) {
+  const selectQuery = `
+    *,
+    professional_applications(
+      id,
+      slug,
+      first_name,
+      last_name,
+      profile_photo,
+      profession,
+      is_verified
+    )
+  `;
+
+  // Primero intentar buscar por slug (retos públicos y activos)
   let { data: challenge, error } = await supabase
     .from("challenges")
-    .select(`
-      *,
-      professional_applications(
-        id,
-        slug,
-        first_name,
-        last_name,
-        profile_photo,
-        profession,
-        is_verified
-      )
-    `)
-    // En exploración solo mostramos retos públicos/activos
+    .select(selectQuery)
     .eq("is_active", true)
     .eq("is_public", true)
     .eq("slug", slugParam)
@@ -63,27 +63,65 @@ async function findChallenge(supabase: any, slugParam: string) {
   if (error || !challenge) {
     const { data: dataById, error: errorById } = await supabase
       .from("challenges")
-      .select(`
-        *,
-        professional_applications(
-          id,
-          slug,
-          first_name,
-          last_name,
-          profile_photo,
-          profession,
-          is_verified
-        )
-      `)
-      // En exploración solo mostramos retos públicos/activos
+      .select(selectQuery)
       .eq("is_active", true)
       .eq("is_public", true)
       .eq("id", slugParam)
       .single();
-    
+
     if (!errorById && dataById) {
       challenge = dataById;
       error = null;
+    }
+  }
+
+  // Si no se encontró como público/activo pero hay usuario autenticado,
+  // verificar si es dueño o participante del reto (puede ser privado o inactivo)
+  if ((error || !challenge) && userId) {
+    // Buscar por slug sin filtros de público/activo
+    let { data: privateChallenge, error: privateError } = await supabase
+      .from("challenges")
+      .select(selectQuery)
+      .eq("slug", slugParam)
+      .single();
+
+    // Si no encuentra por slug, intentar por ID
+    if (privateError || !privateChallenge) {
+      const { data: dataById, error: errorById } = await supabase
+        .from("challenges")
+        .select(selectQuery)
+        .eq("id", slugParam)
+        .single();
+
+      if (!errorById && dataById) {
+        privateChallenge = dataById;
+        privateError = null;
+      }
+    }
+
+    // Si encontramos el reto, verificar si el usuario tiene acceso
+    if (privateChallenge && !privateError) {
+      // Verificar si es el creador del reto
+      const isCreator = privateChallenge.created_by_user_id === userId;
+
+      // Verificar si es participante
+      let isParticipant = false;
+      if (!isCreator) {
+        const { data: participation } = await supabase
+          .from("challenge_purchases")
+          .select("id")
+          .eq("challenge_id", privateChallenge.id)
+          .eq("participant_id", userId)
+          .maybeSingle();
+
+        isParticipant = !!participation;
+      }
+
+      // Si es creador o participante, mostrar el reto
+      if (isCreator || isParticipant) {
+        challenge = privateChallenge;
+        error = null;
+      }
     }
   }
 
@@ -96,7 +134,11 @@ export async function generateMetadata({
   const { slug: slugParam } = await params;
   const supabase = await createClient();
 
-  const { challenge } = await findChallenge(supabase, slugParam);
+  // Obtener usuario autenticado (si existe)
+  const { data: { user } } = await supabase.auth.getUser();
+  const userId = user?.id || null;
+
+  const { challenge } = await findChallenge(supabase, slugParam, userId);
 
   if (!challenge) {
     return {
@@ -112,11 +154,14 @@ export async function generateMetadata({
 
 export default async function ChallengePage({ params }: ChallengePageProps) {
   const { slug: slugParam } = await params;
-  const userId = "";
   const supabase = await createClient();
 
+  // Obtener usuario autenticado (si existe)
+  const { data: { user } } = await supabase.auth.getUser();
+  const userId = user?.id || null;
+
   // Obtener información del reto
-  const { challenge, error } = await findChallenge(supabase, slugParam);
+  const { challenge, error } = await findChallenge(supabase, slugParam, userId);
 
   if (error || !challenge) {
     console.error("Error fetching challenge:", error);
@@ -277,10 +322,10 @@ export default async function ChallengePage({ params }: ChallengePageProps) {
                 <Separator />
 
                 {/* Botón de unirse */}
-                <JoinChallengeButton 
+                <JoinChallengeButton
                   challengeId={challenge.id}
                   challengeSlug={challenge.slug}
-                  userId=""
+                  userId={userId || ""}
                   challengePrice={challenge.price}
                 />
 

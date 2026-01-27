@@ -312,20 +312,10 @@ const HomeUserPage = () => {
             .gte("event_date", new Date().toISOString().split('T')[0])
             .order("event_date", { ascending: true }),
           // Retos públicos (de profesionales y admins)
+          // Obtener sin join para evitar problemas de RLS
           supabase
             .from("challenges")
-            .select(`
-              *,
-              professional_applications(
-                first_name,
-                last_name,
-                profile_photo,
-                profession,
-                is_verified,
-                status,
-                is_active
-              )
-            `)
+            .select("*")
             .eq("is_active", true)
             .eq("is_public", true)
             .in("created_by_type", ["professional", "admin"])
@@ -535,20 +525,39 @@ const HomeUserPage = () => {
             setChallenges([]);
             setFilteredChallenges([]);
           } else if (challengesData && challengesData.length > 0) {
-            // Filtrar solo retos que tengan info válida del profesional (aprobado y activo)
-            const validChallenges = challengesData.filter((challenge: any) => {
-              const professional = challenge.professional_applications;
-              if (Array.isArray(professional)) {
-                const prof = professional[0];
-                return prof && prof.status === 'approved' && prof.is_active !== false;
+            // Obtener profesionales por separado para evitar problemas de RLS en joins
+            const professionalIds = challengesData
+              .map((c: any) => c.professional_id)
+              .filter((id: any): id is string => !!id);
+            
+            let professionalsMap = new Map();
+            if (professionalIds.length > 0) {
+              const { data: professionalsData } = await supabase
+                .from("professional_applications")
+                .select("id, first_name, last_name, profile_photo, profession, is_verified, status, is_active")
+                .in("id", professionalIds)
+                .eq("status", "approved")
+                .eq("is_active", true);
+              
+              if (professionalsData) {
+                professionalsData.forEach(prof => {
+                  professionalsMap.set(prof.id, prof);
+                });
               }
-              return professional && professional.status === 'approved' && professional.is_active !== false;
+            }
+
+            // Filtrar solo retos que tengan profesional válido (si tienen professional_id)
+            const validChallenges = challengesData.filter((challenge: any) => {
+              // Si no tiene professional_id, está bien (puede ser creado por admin sin profesional)
+              if (!challenge.professional_id) return true;
+              // Si tiene professional_id, debe existir en el map
+              return professionalsMap.has(challenge.professional_id);
             });
 
             const transformedChallenges = validChallenges.map((challenge: any) => {
-              const professional = Array.isArray(challenge.professional_applications)
-                ? challenge.professional_applications[0]
-                : challenge.professional_applications;
+              const professional = challenge.professional_id 
+                ? professionalsMap.get(challenge.professional_id)
+                : null;
 
               return {
                 ...challenge,

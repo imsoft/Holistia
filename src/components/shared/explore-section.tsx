@@ -307,25 +307,11 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
         }
 
         // Cargar retos públicos (de profesionales y admins)
+        // Estrategia: obtener retos SIN join primero para evitar problemas de RLS
+        console.log("🔍 [ExploreSection] Loading challenges...");
         const { data: challengesData, error: challengesError } = await supabase
           .from("challenges")
-          .select(`
-            id,
-            slug,
-            title,
-            short_description,
-            cover_image_url,
-            duration_days,
-            difficulty_level,
-            price,
-            professional_applications(
-              first_name,
-              last_name,
-              profile_photo,
-              profession,
-              is_verified
-            )
-          `)
+          .select("id, slug, title, short_description, cover_image_url, duration_days, difficulty_level, price, professional_id")
           .eq("is_active", true)
           .eq("is_public", true)
           .in("created_by_type", ["professional", "admin"])
@@ -333,16 +319,43 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
           .limit(10);
 
         if (challengesError) {
-          console.error("❌ [ExploreSection] Error loading challenges:", challengesError);
-        }
-
-        if (challengesData && challengesData.length > 0) {
+          console.error("❌ [ExploreSection] Error loading challenges:", {
+            error: challengesError.message,
+            code: challengesError.code,
+            details: challengesError.details,
+            hint: challengesError.hint,
+          });
+          setChallenges([]);
+        } else if (challengesData && challengesData.length > 0) {
+          console.log("✅ [ExploreSection] Challenges query successful:", challengesData.length, "challenges found");
           console.log("✅ [ExploreSection] Challenges loaded:", challengesData.length);
+          
+          // Obtener profesionales por separado si existen
+          const professionalIds = challengesData
+            .map(c => c.professional_id)
+            .filter((id): id is string => !!id);
+          
+          let professionalsMap = new Map();
+          if (professionalIds.length > 0) {
+            const { data: professionalsData } = await supabase
+              .from("professional_applications")
+              .select("id, first_name, last_name, profile_photo, profession, is_verified")
+              .in("id", professionalIds)
+              .eq("status", "approved")
+              .eq("is_active", true);
+            
+            if (professionalsData) {
+              professionalsData.forEach(prof => {
+                professionalsMap.set(prof.id, prof);
+              });
+            }
+          }
+          
           // Transformar datos para asegurar el formato correcto
           const transformedChallenges = challengesData.map((challenge: any) => {
-            const professional = Array.isArray(challenge.professional_applications)
-              ? challenge.professional_applications[0]
-              : challenge.professional_applications;
+            const professional = challenge.professional_id 
+              ? professionalsMap.get(challenge.professional_id)
+              : null;
             
             return {
               id: challenge.id,

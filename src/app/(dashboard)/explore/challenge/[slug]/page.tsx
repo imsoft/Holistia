@@ -10,7 +10,6 @@ import {
   Calendar,
   Clock,
   User,
-  ArrowLeft,
   Check,
 } from "lucide-react";
 import { VerifiedBadge } from "@/components/ui/verified-badge";
@@ -262,14 +261,6 @@ export default async function ChallengePage({ params }: ChallengePageProps) {
   return (
     <div className="min-h-screen bg-background">
       <main className="container max-w-6xl mx-auto px-4 py-8">
-        {/* Botón de regresar */}
-        <Link
-          href={`/explore`}
-          className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-6"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Volver a explorar
-        </Link>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Columna principal - Información del reto */}
@@ -328,7 +319,7 @@ export default async function ChallengePage({ params }: ChallengePageProps) {
                   Sobre este reto
                 </h2>
                 <div
-                  className="prose prose-sm max-w-none text-muted-foreground"
+                  className="prose prose-sm max-w-none prose-headings:font-semibold prose-p:text-muted-foreground prose-strong:text-foreground prose-strong:font-semibold prose-ul:text-muted-foreground prose-ol:text-muted-foreground prose-li:text-muted-foreground prose-a:text-primary prose-a:underline hover:prose-a:text-primary/80"
                   dangerouslySetInnerHTML={{ __html: challenge.description }}
                 />
               </div>

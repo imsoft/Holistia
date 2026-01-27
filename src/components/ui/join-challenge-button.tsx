@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/utils/supabase/client";
 import { toast } from "sonner";
@@ -21,11 +22,15 @@ export function JoinChallengeButton({ challengeId, challengeSlug, userId, challe
   const supabase = createClient();
   const router = useRouter();
 
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
   // Verificar si ya está participando al cargar
   useEffect(() => {
     const checkParticipation = async () => {
       try {
         const { data: { user } } = await supabase.auth.getUser();
+        setIsAuthenticated(!!user);
+        
         if (!user) {
           setLoading(false);
           return;
@@ -118,6 +123,38 @@ export function JoinChallengeButton({ challengeId, challengeSlug, userId, challe
         <Loader2 className="h-4 w-4 mr-2 animate-spin" />
         Cargando...
       </Button>
+    );
+  }
+
+  // Si no está autenticado, mostrar botones de login/signup
+  if (!isAuthenticated || !userId) {
+    return (
+      <div className="space-y-3">
+        <p className="text-sm text-center text-muted-foreground">
+          Debes iniciar sesión para unirte a este reto
+        </p>
+        <div className="flex flex-col gap-2">
+          <Button
+            asChild
+            className="w-full"
+            size="lg"
+          >
+            <Link href={`/login?redirect=${encodeURIComponent(`/explore/challenge/${challengeSlug || challengeId}`)}`}>
+              Iniciar sesión
+            </Link>
+          </Button>
+          <Button
+            asChild
+            className="w-full"
+            size="lg"
+            variant="outline"
+          >
+            <Link href={`/signup?redirect=${encodeURIComponent(`/explore/challenge/${challengeSlug || challengeId}`)}`}>
+              Crear cuenta
+            </Link>
+          </Button>
+        </div>
+      </div>
     );
   }
 

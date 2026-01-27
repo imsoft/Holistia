@@ -38,14 +38,21 @@ export const useFavoritesStore = create<FavoritesState>()(
           return;
         }
 
-        // Verificar si el cache es válido
+        // Verificar si ya hay una carga en progreso (evitar race condition)
         const state = get();
+        if (state.isLoading) {
+          return; // Ya hay una carga en progreso
+        }
+
+        // Verificar si el cache es válido
         if (state.isCacheValid() && Object.keys(state.favoritesCache).length > 0) {
           return; // Usar cache existente
         }
 
+        // Marcar como cargando ANTES de cualquier operación async
+        set({ isLoading: true });
+
         try {
-          set({ isLoading: true });
           const supabase = createClient();
 
           const { data, error } = await supabase

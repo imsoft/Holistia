@@ -7,10 +7,8 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useUserId } from "@/stores/user-store";
 import {
-  useFavoritesStore,
   useIsFavorite,
   useLoadFavorites,
-  useRefreshFavorites,
   useAddToCache,
   useRemoveFromCache,
 } from "@/stores/favorites-store";
@@ -41,7 +39,6 @@ export function FavoriteButton({
   // Zustand store hooks
   const isFavorite = useIsFavorite(itemId, favoriteType);
   const loadFavorites = useLoadFavorites();
-  const refreshFavorites = useRefreshFavorites();
   const addToCache = useAddToCache();
   const removeFromCache = useRemoveFromCache();
 

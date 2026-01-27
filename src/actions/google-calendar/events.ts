@@ -88,10 +88,31 @@ export async function createEventWorkshopInGoogleCalendar(
     }
 
     // Construir el evento de Google Calendar
-    const startDate = new Date(`${event.event_date}T${event.event_time}`);
-    const endDate = event.end_date && event.end_time
-      ? new Date(`${event.end_date}T${event.end_time}`)
-      : new Date(startDate.getTime() + (event.duration_hours || 2) * 60 * 60 * 1000);
+    // IMPORTANTE: NO usar new Date() + toISOString() porque convierte a UTC.
+    // Google Calendar API acepta datetime local cuando se especifica timeZone.
+    // Formato: YYYY-MM-DDTHH:MM:SS (sin 'Z' al final)
+    const startDateTime = `${event.event_date}T${event.event_time}:00`;
+
+    let endDateTime: string;
+    if (event.end_date && event.end_time) {
+      endDateTime = `${event.end_date}T${event.end_time}:00`;
+    } else {
+      // Calcular fecha/hora de fin basada en duración
+      const [startHour, startMinute] = event.event_time.split(':').map(Number);
+      const durationHours = event.duration_hours || 2;
+      const endHour = startHour + durationHours;
+      const endMinuteStr = String(startMinute).padStart(2, '0');
+
+      // Si la hora supera las 24, ajustar al día siguiente
+      if (endHour >= 24) {
+        const [year, month, day] = event.event_date.split('-').map(Number);
+        const nextDay = new Date(year, month - 1, day + 1);
+        const nextDayStr = `${nextDay.getFullYear()}-${String(nextDay.getMonth() + 1).padStart(2, '0')}-${String(nextDay.getDate()).padStart(2, '0')}`;
+        endDateTime = `${nextDayStr}T${String(endHour - 24).padStart(2, '0')}:${endMinuteStr}:00`;
+      } else {
+        endDateTime = `${event.event_date}T${String(endHour).padStart(2, '0')}:${endMinuteStr}:00`;
+      }
+    }
 
     const calendarEvent: GoogleCalendarEvent = {
       summary: event.name,
@@ -101,11 +122,11 @@ export async function createEventWorkshopInGoogleCalendar(
         event.max_capacity
       } personas\nPrecio: ${event.is_free ? 'Gratis' : `$${event.price} MXN`}`,
       start: {
-        dateTime: startDate.toISOString(),
+        dateTime: startDateTime,
         timeZone: 'America/Mexico_City',
       },
       end: {
-        dateTime: endDate.toISOString(),
+        dateTime: endDateTime,
         timeZone: 'America/Mexico_City',
       },
       location: event.location || undefined,
@@ -206,10 +227,29 @@ export async function updateEventWorkshopInGoogleCalendar(
     }
 
     // Construir el evento actualizado
-    const startDate = new Date(`${event.event_date}T${event.event_time}`);
-    const endDate = event.end_date && event.end_time
-      ? new Date(`${event.end_date}T${event.end_time}`)
-      : new Date(startDate.getTime() + (event.duration_hours || 2) * 60 * 60 * 1000);
+    // IMPORTANTE: NO usar new Date() + toISOString() porque convierte a UTC.
+    // Google Calendar API acepta datetime local cuando se especifica timeZone.
+    const startDateTime = `${event.event_date}T${event.event_time}:00`;
+
+    let endDateTime: string;
+    if (event.end_date && event.end_time) {
+      endDateTime = `${event.end_date}T${event.end_time}:00`;
+    } else {
+      // Calcular fecha/hora de fin basada en duración
+      const [startHour, startMinute] = event.event_time.split(':').map(Number);
+      const durationHours = event.duration_hours || 2;
+      const endHour = startHour + durationHours;
+      const endMinuteStr = String(startMinute).padStart(2, '0');
+
+      if (endHour >= 24) {
+        const [year, month, day] = event.event_date.split('-').map(Number);
+        const nextDay = new Date(year, month - 1, day + 1);
+        const nextDayStr = `${nextDay.getFullYear()}-${String(nextDay.getMonth() + 1).padStart(2, '0')}-${String(nextDay.getDate()).padStart(2, '0')}`;
+        endDateTime = `${nextDayStr}T${String(endHour - 24).padStart(2, '0')}:${endMinuteStr}:00`;
+      } else {
+        endDateTime = `${event.event_date}T${String(endHour).padStart(2, '0')}:${endMinuteStr}:00`;
+      }
+    }
 
     const eventUpdate: Partial<GoogleCalendarEvent> = {
       summary: event.name,
@@ -219,11 +259,11 @@ export async function updateEventWorkshopInGoogleCalendar(
         event.max_capacity
       } personas\nPrecio: ${event.is_free ? 'Gratis' : `$${event.price} MXN`}`,
       start: {
-        dateTime: startDate.toISOString(),
+        dateTime: startDateTime,
         timeZone: 'America/Mexico_City',
       },
       end: {
-        dateTime: endDate.toISOString(),
+        dateTime: endDateTime,
         timeZone: 'America/Mexico_City',
       },
       location: event.location || undefined,

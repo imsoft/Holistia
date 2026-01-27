@@ -17,7 +17,7 @@ import { Badge } from "@/components/ui/badge";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import Link from "next/link";
 import { createClient } from "@/utils/supabase/client";
-import { useUserId } from "@/stores/user-store";
+import { useProfile } from "@/hooks/use-profile";
 
 // Interfaces para los datos dinámicos
 interface DashboardStats {
@@ -56,13 +56,18 @@ export default function AdminDashboard() {
   const [recentApplications, setRecentApplications] = useState<ProfessionalApplication[]>([]);
   const [recentActivities, setRecentActivities] = useState<RecentActivity[]>([]);
   const [loading, setLoading] = useState(true);
-  // OPTIMIZACIÓN: Usar userId de Zustand en lugar de query manual
-  const userId = useUserId();
+  const { profile, loading: profileLoading } = useProfile();
+  const userId = profile?.id || null;
   const supabase = createClient();
 
   // Obtener datos del dashboard
   useEffect(() => {
-    if (!userId) return; // Esperar a que se obtenga el userId
+    // Evitar spinner infinito: el dashboard no depende de userId, solo de sesión/perfil.
+    if (profileLoading) return;
+    if (!profile) {
+      setLoading(false);
+      return;
+    }
     
     const fetchDashboardData = async () => {
       try {
@@ -202,7 +207,7 @@ export default function AdminDashboard() {
     };
 
     fetchDashboardData();
-  }, [supabase, userId]);
+  }, [supabase, profileLoading, profile]);
 
   // Función para calcular tiempo transcurrido
   const getTimeAgo = (dateString: string): string => {
@@ -286,7 +291,7 @@ export default function AdminDashboard() {
           </div>
           <div className="flex items-center gap-2 sm:gap-3">
             <Button asChild size="sm" className="sm:size-default w-full sm:w-auto">
-              <Link href={`/admin/${userId}/applications`}>
+              <Link href="/admin/applications">
                 <UserPlus className="h-4 w-4 mr-2" />
                 <span className="sm:inline">Revisar Solicitudes</span>
               </Link>
@@ -332,7 +337,7 @@ export default function AdminDashboard() {
                   </CardDescription>
                 </div>
                 <Button variant="outline" size="sm" asChild className="w-full sm:w-auto">
-                  <Link href={`/admin/${userId}/applications`}>
+                  <Link href="/admin/applications">
                     Ver todas
                   </Link>
                 </Button>
@@ -361,7 +366,7 @@ export default function AdminDashboard() {
                         {getStatusText(application.status)}
                       </Badge>
                       <Button variant="ghost" size="sm" asChild className="w-full sm:w-auto">
-                        <Link href={`/admin/${userId}/applications`}>
+                        <Link href="/admin/applications">
                           Revisar
                         </Link>
                       </Button>

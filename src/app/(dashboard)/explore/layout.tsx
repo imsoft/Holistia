@@ -185,6 +185,7 @@ export default function ExploreLayout({
   const publicDetailPages = [
     '/explore/program/',
     '/explore/event/',
+    '/explore/challenge/',
     '/explore/professional/',
     '/explore/holistic-center/',
     '/explore/shop/',

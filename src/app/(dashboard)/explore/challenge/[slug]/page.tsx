@@ -53,6 +53,9 @@ async function findChallenge(supabase: any, slugParam: string) {
         is_verified
       )
     `)
+    // En exploración solo mostramos retos públicos/activos
+    .eq("is_active", true)
+    .eq("is_public", true)
     .eq("slug", slugParam)
     .single();
 
@@ -72,6 +75,9 @@ async function findChallenge(supabase: any, slugParam: string) {
           is_verified
         )
       `)
+      // En exploración solo mostramos retos públicos/activos
+      .eq("is_active", true)
+      .eq("is_public", true)
       .eq("id", slugParam)
       .single();
     

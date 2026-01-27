@@ -319,8 +319,10 @@ export default async function ChallengePage({ params }: ChallengePageProps) {
                   Sobre este reto
                 </h2>
                 <div
-                  className="prose prose-sm max-w-none prose-headings:font-semibold prose-p:text-muted-foreground prose-strong:text-foreground prose-strong:font-semibold prose-ul:text-muted-foreground prose-ol:text-muted-foreground prose-li:text-muted-foreground prose-a:text-primary prose-a:underline hover:prose-a:text-primary/80"
-                  dangerouslySetInnerHTML={{ __html: challenge.description }}
+                  className="prose prose-sm max-w-none prose-headings:font-semibold prose-p:text-muted-foreground prose-strong:text-foreground prose-strong:font-semibold prose-ul:text-muted-foreground prose-ol:text-muted-foreground prose-li:text-muted-foreground prose-a:text-primary prose-a:underline hover:prose-a:text-primary/80 whitespace-pre-line"
+                  dangerouslySetInnerHTML={{ 
+                    __html: challenge.description.replace(/\n/g, '<br />')
+                  }}
                 />
               </div>
             )}

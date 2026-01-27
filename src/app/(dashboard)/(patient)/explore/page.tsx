@@ -311,7 +311,7 @@ const HomeUserPage = () => {
             .eq("is_active", true)
             .gte("event_date", new Date().toISOString().split('T')[0])
             .order("event_date", { ascending: true }),
-          // Retos públicos de profesionales
+          // Retos públicos (de profesionales y admins)
           supabase
             .from("challenges")
             .select(`
@@ -328,7 +328,7 @@ const HomeUserPage = () => {
             `)
             .eq("is_active", true)
             .eq("is_public", true)
-            .eq("created_by_type", "professional")
+            .in("created_by_type", ["professional", "admin"])
             .order("created_at", { ascending: false })
             .limit(20),
           // Restaurantes

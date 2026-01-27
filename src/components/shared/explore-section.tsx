@@ -24,6 +24,7 @@ import { stripHtml } from "@/lib/text-utils";
 import { VerifiedBadge } from "@/components/ui/verified-badge";
 import { FavoriteButton } from "@/components/ui/favorite-button";
 import { ProfessionalCard } from "@/components/ui/professional-card";
+import { ChallengeCard } from "@/components/ui/challenge-card";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface Professional {
@@ -108,11 +109,30 @@ interface ExploreSectionProps {
   showFavorites?: boolean; // Mostrar botones de favoritos (default: false)
 }
 
+interface Challenge {
+  id: string;
+  slug?: string;
+  title: string;
+  short_description?: string;
+  cover_image_url?: string;
+  duration_days?: number;
+  difficulty_level?: string;
+  price?: number;
+  professional_applications?: {
+    first_name: string;
+    last_name: string;
+    profile_photo?: string;
+    profession?: string;
+    is_verified?: boolean;
+  };
+}
+
 export function ExploreSection({ hideHeader = false, userId, showFavorites = false }: ExploreSectionProps) {
   const [professionals, setProfessionals] = useState<Professional[]>([]);
   const [shops, setShops] = useState<Shop[]>([]);
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [events, setEvents] = useState<Event[]>([]);
+  const [challenges, setChallenges] = useState<Challenge[]>([]);
   const [digitalProducts, setDigitalProducts] = useState<DigitalProduct[]>([]);
   const [holisticCenters, setHolisticCenters] = useState<HolisticCenter[]>([]);
   const [loading, setLoading] = useState(true);
@@ -122,6 +142,7 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
   const shopsRef = useRef<HTMLDivElement>(null);
   const restaurantsRef = useRef<HTMLDivElement>(null);
   const eventsRef = useRef<HTMLDivElement>(null);
+  const challengesRef = useRef<HTMLDivElement>(null);
   const digitalProductsRef = useRef<HTMLDivElement>(null);
   const holisticCentersRef = useRef<HTMLDivElement>(null);
 
@@ -285,6 +306,68 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
           setEvents(mappedEvents);
         }
 
+        // Cargar retos públicos (de profesionales y admins)
+        const { data: challengesData, error: challengesError } = await supabase
+          .from("challenges")
+          .select(`
+            id,
+            slug,
+            title,
+            short_description,
+            cover_image_url,
+            duration_days,
+            difficulty_level,
+            price,
+            professional_applications(
+              first_name,
+              last_name,
+              profile_photo,
+              profession,
+              is_verified
+            )
+          `)
+          .eq("is_active", true)
+          .eq("is_public", true)
+          .in("created_by_type", ["professional", "admin"])
+          .order("created_at", { ascending: false })
+          .limit(10);
+
+        if (challengesError) {
+          console.error("❌ [ExploreSection] Error loading challenges:", challengesError);
+        }
+
+        if (challengesData && challengesData.length > 0) {
+          console.log("✅ [ExploreSection] Challenges loaded:", challengesData.length);
+          // Transformar datos para asegurar el formato correcto
+          const transformedChallenges = challengesData.map((challenge: any) => {
+            const professional = Array.isArray(challenge.professional_applications)
+              ? challenge.professional_applications[0]
+              : challenge.professional_applications;
+            
+            return {
+              id: challenge.id,
+              slug: challenge.slug,
+              title: challenge.title,
+              short_description: challenge.short_description,
+              cover_image_url: challenge.cover_image_url,
+              duration_days: challenge.duration_days,
+              difficulty_level: challenge.difficulty_level,
+              price: challenge.price,
+              professional_applications: professional ? {
+                first_name: professional.first_name,
+                last_name: professional.last_name,
+                profile_photo: professional.profile_photo,
+                profession: professional.profession,
+                is_verified: professional.is_verified,
+              } : undefined,
+            };
+          });
+          setChallenges(transformedChallenges);
+        } else {
+          console.log("⚠️ [ExploreSection] No challenges found");
+          setChallenges([]);
+        }
+
         // Cargar programas (sin límite)
         const { data: digitalProductsData, error: digitalProductsError } = await supabase
           .from("digital_products")
@@ -358,6 +441,7 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
           shops: shops.length,
           restaurants: restaurants.length,
           events: events.length,
+          challenges: challenges.length,
           digitalProducts: digitalProducts.length,
           holisticCenters: holisticCenters.length,
           loading
@@ -714,7 +798,73 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
           </div>
         ) : null}
 
-        {/* 3. Expertos */}
+        {/* 3. Retos */}
+        {(!loading && challenges.length > 0) || loading ? (
+          <div className="mb-16">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-2xl font-bold flex items-center gap-2">
+                <Sparkles className="w-6 h-6 text-primary" />
+                Retos
+              </h3>
+              {!loading && challenges.length > 0 && (
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => scroll(challengesRef, 'left')}
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => scroll(challengesRef, 'right')}
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </Button>
+                  <Button variant="outline" size="sm" asChild className="ml-2">
+                    <Link href="/explore/challenges">
+                      Ver más <ArrowRight className="w-4 h-4 ml-2" />
+                    </Link>
+                  </Button>
+                </div>
+              )}
+            </div>
+            {loading ? (
+              <div
+                ref={challengesRef}
+                className="flex gap-6 overflow-x-auto pb-4"
+                style={{
+                  scrollbarWidth: 'none',
+                  msOverflowStyle: 'none',
+                  WebkitOverflowScrolling: 'touch'
+                }}
+              >
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <CardSkeleton key={`challenge-skeleton-${i}`} />
+                ))}
+              </div>
+            ) : challenges.length > 0 ? (
+              <div
+                ref={challengesRef}
+                className="flex gap-6 overflow-x-auto pb-4"
+                style={{
+                  scrollbarWidth: 'none',
+                  msOverflowStyle: 'none',
+                  WebkitOverflowScrolling: 'touch'
+                }}
+              >
+                {challenges.map((challenge) => (
+                  <div key={challenge.id} className="shrink-0 w-[280px] sm:w-[320px]">
+                    <ChallengeCard challenge={challenge as any} userId={currentUserId} />
+                  </div>
+                ))}
+              </div>
+            ) : null}
+          </div>
+        ) : null}
+
+        {/* 4. Expertos */}
         {(!loading && professionals.length > 0) || loading ? (
           <div className="mb-16">
             <div className="flex items-center justify-between mb-6">

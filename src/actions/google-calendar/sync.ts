@@ -152,8 +152,22 @@ export async function syncGoogleCalendarEvents(userId: string) {
       const year = parts.find(p => p.type === 'year')?.value;
       const month = parts.find(p => p.type === 'month')?.value;
       const day = parts.find(p => p.type === 'day')?.value;
-      const hour = parts.find(p => p.type === 'hour')?.value;
+      let hour = parts.find(p => p.type === 'hour')?.value;
       const minute = parts.find(p => p.type === 'minute')?.value;
+
+      // Intl.DateTimeFormat puede devolver "24" para medianoche en algunos locales
+      // Normalizamos a "00"
+      if (hour === '24') {
+        hour = '00';
+      }
+
+      console.log('🕐 formatInEventTimeZone debug:', {
+        inputDate: date.toISOString(),
+        inputTimestamp: date.getTime(),
+        targetTimeZone: timeZone,
+        parts: parts.map(p => ({ type: p.type, value: p.value })),
+        result: { date: `${year}-${month}-${day}`, time: `${hour}:${minute}` }
+      });
 
       return {
         date: `${year}-${month}-${day}`,
@@ -166,24 +180,45 @@ export async function syncGoogleCalendarEvents(userId: string) {
     // debemos convertir a la zona horaria del evento, no extraer directamente.
     const extractFromGoogleDateTime = (dateTime: string, timeZone: string) => {
       // Detectar si el datetime tiene información de timezone (UTC 'Z' o offset +/-HH:MM)
+      // El regex ahora también maneja milisegundos: 2025-01-14T16:00:00.000-06:00
       const hasTimezoneInfo = dateTime.endsWith('Z') || /[+-]\d{2}:\d{2}$/.test(dateTime);
+
+      console.log('🕐 extractFromGoogleDateTime:', {
+        input: dateTime,
+        targetTimeZone: timeZone,
+        hasTimezoneInfo,
+        serverTimezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+      });
 
       if (hasTimezoneInfo) {
         // Convertir a la zona horaria del evento
         const d = new Date(dateTime);
-        return formatInEventTimeZone(d, timeZone);
+        const result = formatInEventTimeZone(d, timeZone);
+        console.log('🕐 Conversión con timezone info:', {
+          input: dateTime,
+          dateObject: d.toISOString(),
+          targetTimeZone: timeZone,
+          result
+        });
+        return result;
       }
 
       // Si no hay información de timezone, el tiempo ya está en la zona horaria del evento
       // Extraer directamente del string
       const m = /^(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2})/.exec(dateTime);
       if (m) {
+        console.log('🕐 Extracción directa (sin timezone info):', {
+          input: dateTime,
+          extracted: { date: m[1], time: m[2] }
+        });
         return { date: m[1], time: m[2] };
       }
 
       // Fallback defensivo si el formato no es el esperado
       const d = new Date(dateTime);
-      return formatInEventTimeZone(d, timeZone);
+      const result = formatInEventTimeZone(d, timeZone);
+      console.log('🕐 Fallback:', { input: dateTime, result });
+      return result;
     };
 
     // Obtener todas las citas existentes de Holistia para este profesional
@@ -371,8 +406,24 @@ export async function syncGoogleCalendarEvents(userId: string) {
         // IMPORTANTE: Google Calendar devuelve las fechas en ISO 8601 con timezone
         // Necesitamos convertir correctamente a la zona horaria del evento
         const eventTimeZone = event.start!.timeZone || primaryCalendarTimeZone;
+
+        console.log('📅 Procesando evento de Google Calendar:', {
+          eventSummary: event.summary,
+          googleStartDateTime: event.start!.dateTime,
+          googleEndDateTime: event.end!.dateTime,
+          googleEventTimeZone: event.start!.timeZone,
+          usingTimeZone: eventTimeZone,
+          primaryCalendarTimeZone
+        });
+
         const start = extractFromGoogleDateTime(event.start!.dateTime!, eventTimeZone);
         const end = extractFromGoogleDateTime(event.end!.dateTime!, eventTimeZone);
+
+        console.log('📅 Resultado de conversión:', {
+          eventSummary: event.summary,
+          convertedStart: start,
+          convertedEnd: end
+        });
 
         blockData = {
           id: randomUUID(),

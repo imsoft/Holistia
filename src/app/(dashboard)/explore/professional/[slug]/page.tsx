@@ -1547,9 +1547,6 @@ export default function ProfessionalProfilePage() {
                   <Target className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
                   Retos Disponibles
                 </h2>
-                <p className="text-sm text-muted-foreground mb-6">
-                  Desafíos creados por {professional.first_name} para ayudarte a alcanzar tus metas
-                </p>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {challenges.map((challenge) => (
                     <ChallengeCard

@@ -1,6 +1,22 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
+function getCookieDomain(): string | undefined {
+  try {
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+    if (!siteUrl) return undefined;
+    const host = new URL(siteUrl).hostname;
+
+    if (host === "localhost" || host.endsWith(".localhost")) return undefined;
+    if (host === "holistia.io" || host === "www.holistia.io" || host.endsWith(".holistia.io")) {
+      return ".holistia.io";
+    }
+    return undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 export async function updateSession(request: NextRequest) {
   try {
     let supabaseResponse = NextResponse.next({
@@ -22,15 +38,17 @@ export async function updateSession(request: NextRequest) {
             return request.cookies.getAll();
           },
           setAll(cookiesToSet) {
+            const cookieDomain = getCookieDomain();
             cookiesToSet.forEach(({ name, value }) =>
               request.cookies.set(name, value)
             );
             supabaseResponse = NextResponse.next({
               request,
             });
-            cookiesToSet.forEach(({ name, value, options }) =>
-              supabaseResponse.cookies.set(name, value, options)
-            );
+            cookiesToSet.forEach(({ name, value, options }) => {
+              const nextOptions = cookieDomain ? { ...options, domain: cookieDomain } : options;
+              supabaseResponse.cookies.set(name, value, nextOptions);
+            });
           },
         },
       }

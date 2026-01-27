@@ -162,7 +162,7 @@ export async function syncGoogleCalendarEvents(userId: string) {
     // Obtener bloques externos existentes para evitar duplicados
     const { data: existingBlocks } = await supabase
       .from('availability_blocks')
-      .select('google_calendar_event_id, start_date, start_time, end_time')
+      .select('id, google_calendar_event_id, start_date, start_time, end_time')
       .eq('professional_id', professional.id)
       .eq('is_external_event', true)
       .not('google_calendar_event_id', 'is', null);
@@ -447,7 +447,9 @@ export async function syncGoogleCalendarEvents(userId: string) {
       existingBlocks.forEach(block => {
         const blockKey = `${block.google_calendar_event_id}_${block.start_date}_${block.start_time || 'full_day'}_${block.end_time || 'full_day'}`;
         if (!currentGoogleEventKeys.has(blockKey)) {
-          blocksToDeleteIds.push(block.google_calendar_event_id);
+          // Importante: borrar por ID del bloque (no por google_calendar_event_id),
+          // para no eliminar también bloques recién insertados en este mismo sync.
+          if (block.id) blocksToDeleteIds.push(block.id);
         }
       });
     }
@@ -458,7 +460,7 @@ export async function syncGoogleCalendarEvents(userId: string) {
         .delete()
         .eq('professional_id', professional.id)
         .eq('is_external_event', true)
-        .in('google_calendar_event_id', blocksToDeleteIds);
+        .in('id', blocksToDeleteIds);
     }
 
     return {

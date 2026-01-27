@@ -154,17 +154,10 @@ export function useScheduleAvailability(professionalId: string) {
     // Verificar caché
     if (USE_CACHE && blocksCache.current.has(cacheKey)) {
       const cached = blocksCache.current.get(cacheKey)!;
-      console.log('🚀 Usando bloqueos desde caché:', {
-        cacheKey,
-        totalBlocks: cached.length,
-        blocks: cached.map(b => ({ type: b.block_type, day_of_week: b.day_of_week, is_recurring: b.is_recurring }))
-      });
       return cached;
     }
 
     try {
-      console.log('🔍 Buscando bloqueos para rango:', { startDate, endDate, professionalId });
-
       // Consulta para obtener TODOS los bloqueos del profesional
       // NO filtramos por fechas en SQL porque los bloqueos recurrentes deben incluirse siempre
       // El filtrado por fechas se hace en JavaScript después
@@ -176,26 +169,10 @@ export function useScheduleAvailability(professionalId: string) {
 
       if (error) {
         console.error('❌ Error en consulta de bloqueos:', error);
-        console.error('❌ Detalles del error:', {
-          message: error.message,
-          details: error.details,
-          hint: error.hint,
-          code: error.code
-        });
         throw error;
       }
       
       const blocks = data || [];
-      console.log('📋 Bloqueos encontrados:', blocks);
-      console.log('📋 Total de bloqueos:', blocks.length);
-      console.log('📋 Resumen de bloqueos cargados:', blocks.map(b => ({
-        id: b.id?.substring(0, 8),
-        type: b.block_type,
-        day_of_week: b.day_of_week,
-        is_recurring: b.is_recurring,
-        start_date: b.start_date,
-        title: b.title
-      })));
       
       // Filtrar bloqueos que se superponen con el rango de fechas
       const filteredBlocks = blocks.filter(block => {
@@ -220,32 +197,14 @@ export function useScheduleAvailability(professionalId: string) {
             block.block_type === 'full_day' ||
             block.block_type === 'time_range')
         ) {
-          console.log('🔍 Bloqueo recurrente (siempre incluido):', {
-            id: block.id,
-            type: block.block_type,
-            day_of_week: block.day_of_week,
-            is_recurring: block.is_recurring
-          });
           return true; // Siempre incluir bloqueos recurrentes
         }
 
-        // Para bloqueos no recurrentes, verificar superposición normal
+        // Para bloqueos no recurrentes (incluye Google Calendar), verificar superposición normal
+        // IMPORTANTE: Los bloqueos de Google Calendar son siempre no recurrentes
         const overlaps = blockStart <= rangeEnd && blockEnd >= rangeStart;
-        console.log('🔍 Bloqueo no recurrente:', {
-          id: block.id,
-          type: block.block_type,
-          blockStart: blockStart.toISOString().split('T')[0],
-          blockEnd: blockEnd.toISOString().split('T')[0],
-          rangeStart: rangeStart.toISOString().split('T')[0],
-          rangeEnd: rangeEnd.toISOString().split('T')[0],
-          overlaps
-        });
-
         return overlaps;
       });
-      
-      console.log('📋 Bloqueos filtrados para el rango:', filteredBlocks);
-      console.log('📋 Total de bloqueos filtrados:', filteredBlocks.length);
       
       // Guardar en caché
       blocksCache.current.set(cacheKey, filteredBlocks);
@@ -272,20 +231,9 @@ export function useScheduleAvailability(professionalId: string) {
     const selectedDate = new Date(year, month - 1, day);
     const dayOfWeek = selectedDate.getDay() === 0 ? 7 : selectedDate.getDay();
     
-    console.log('🔍 Verificando día de trabajo:', {
-      date,
-      dayOfWeek,
-      workingDays: workingHours.working_days,
-      isWorkingDay: workingHours.working_days.includes(dayOfWeek),
-      dayName: ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'][selectedDate.getDay()]
-    });
-    
     if (!workingHours.working_days.includes(dayOfWeek)) {
-      console.log('❌ No es día de trabajo, retornando slots vacíos');
       return timeSlots; // No hay horarios si no es día de trabajo
     }
-    
-    console.log('✅ Es día de trabajo, continuando con generación de horarios');
 
     // Obtener horarios personalizados para este día
     const customSchedules = await getCustomDaySchedules();
@@ -297,38 +245,13 @@ export function useScheduleAvailability(professionalId: string) {
     
     const [startHour] = startTime.split(':').map(Number);
     const [endHour] = endTime.split(':').map(Number);
-    
-    console.log('🕐 Horarios de trabajo para fecha:', {
-      date,
-      dayOfWeek,
-      daySchedule: daySchedule ? 'personalizado' : 'general',
-      startTime,
-      endTime,
-      startHour,
-      endHour,
-      workingDays: workingHours.working_days
-    });
 
     // Obtener citas para esta fecha
     const dayAppointments = existingAppointments.filter(apt => apt.appointment_date === date);
     const appointmentTimes = new Set(dayAppointments.map(apt => apt.appointment_time));
 
     // Obtener bloqueos para esta fecha
-    console.log('🔍 Procesando bloqueos para fecha:', date);
-    console.log('📋 Todos los bloqueos disponibles:', availabilityBlocks);
-    
     const dayBlocks = availabilityBlocks.filter(block => {
-      console.log('🔍 Evaluando bloqueo:', {
-        id: block.id || 'sin-id',
-        block_type: block.block_type,
-        start_date: block.start_date,
-        end_date: block.end_date,
-        start_time: block.start_time,
-        end_time: block.end_time,
-        is_recurring: block.is_recurring,
-        fecha_actual: date
-      });
-      
       // Convertir fechas a objetos Date para comparación correcta
       // Usar hora local para evitar problemas de zona horaria
       const blockStartDate = parseLocalDate(block.start_date);
@@ -339,12 +262,6 @@ export function useScheduleAvailability(professionalId: string) {
       blockStartDate.setHours(0, 0, 0, 0);
       blockEndDate.setHours(0, 0, 0, 0);
       currentDate.setHours(0, 0, 0, 0);
-      
-      console.log('📅 Fechas normalizadas:', {
-        blockStart: blockStartDate.toISOString().split('T')[0],
-        blockEnd: blockEndDate.toISOString().split('T')[0],
-        current: currentDate.toISOString().split('T')[0]
-      });
       
       // Verificar si la fecha actual está dentro del rango del bloqueo
       const isInDateRange = currentDate >= blockStartDate && currentDate <= blockEndDate;
@@ -363,35 +280,11 @@ export function useScheduleAvailability(professionalId: string) {
 
         if (block.is_recurring) {
           // Recurrente: Aplica a TODAS las ocurrencias del día de la semana, sin importar la fecha
-          const applies = matchesDayOfWeek;
-          console.log('📅 Bloqueo de día completo (recurrente):', {
-            blockId: block.id?.substring(0, 8),
-            blockTitle: block.title,
-            date: currentDate.toISOString().split('T')[0],
-            jsDay,
-            dayOfWeekCurrent,
-            blockDayOfWeek: block.day_of_week,
-            matchesDayOfWeek,
-            isRecurring: block.is_recurring,
-            applies,
-            reason: !applies ? 'Día no coincide' : 'OK'
-          });
-          return applies;
+          return matchesDayOfWeek;
         } else {
           // No recurrente: Solo aplica a la fecha específica en start_date
           const dateString = date; // Ya es string YYYY-MM-DD
-          const applies = matchesDayOfWeek && block.start_date === dateString;
-          console.log('📅 Bloqueo de día completo (una sola vez):', {
-            date: dateString,
-            jsDay,
-            dayOfWeekCurrent,
-            blockDayOfWeek: block.day_of_week,
-            isRecurring: block.is_recurring,
-            applies,
-            blockStartDate: block.start_date,
-            matchesExactDate: block.start_date === dateString
-          });
-          return applies;
+          return matchesDayOfWeek && block.start_date === dateString;
         }
       } else if (block.block_type === 'weekly_range') {
         // Bloqueo de rango de horas (puede ser recurrente o de una sola vez)
@@ -400,93 +293,39 @@ export function useScheduleAvailability(professionalId: string) {
 
         if (block.is_recurring) {
           // Recurrente: Aplica a TODAS las ocurrencias dentro del rango de días, sin importar la fecha
-          const applies = isInWeekRange;
-          console.log('⏰ Bloqueo de rango de horas (recurrente):', {
-            applies,
-            dayOfWeekCurrent,
-            weekRange: `${dayOfWeekStart}-${dayOfWeekEnd}`,
-            isRecurring: block.is_recurring,
-            currentDate: currentDate.toISOString().split('T')[0]
-          });
-          return applies;
+          return isInWeekRange;
         } else {
           // No recurrente: Solo aplica dentro del rango de fechas específicas
-          const applies = isInWeekRange && isInDateRange;
-          console.log('⏰ Bloqueo de rango de horas (una sola vez):', {
-            applies,
-            dayOfWeekCurrent,
-            weekRange: `${dayOfWeekStart}-${dayOfWeekEnd}`,
-            isRecurring: block.is_recurring,
-            isInDateRange,
-            currentDate: currentDate.toISOString().split('T')[0]
-          });
-          return applies;
+          return isInWeekRange && isInDateRange;
         }
       } else if (block.block_type === 'full_day') {
         // Bloqueo de día completo (legacy)
         if (block.is_recurring) {
           // Legacy recurrente: interpretar como patrón semanal basado en start_date/end_date
-          // (si es un solo día, start=end).
-          const applies = isDayOfWeekInRange(dayOfWeekCurrent, dayOfWeekStart, dayOfWeekEnd);
-          console.log('📅 Bloqueo de día completo (legacy recurrente) aplica:', {
-            applies,
-            dayOfWeekCurrent,
-            weekRange: `${dayOfWeekStart}-${dayOfWeekEnd}`,
-            currentDate: currentDate.toISOString().split('T')[0]
-          });
-          return applies;
+          return isDayOfWeekInRange(dayOfWeekCurrent, dayOfWeekStart, dayOfWeekEnd);
         }
-
-        const applies = isInDateRange;
-        console.log('📅 Bloqueo de día completo (legacy) aplica:', applies);
-        return applies;
+        return isInDateRange;
       } else if (block.block_type === 'time_range') {
         // Bloqueo de rango de tiempo (legacy o de Google Calendar)
-        // Verificar si es un bloqueo externo de Google Calendar
-        const blockData = block as any;
-        const isGoogleCalendarBlock = blockData.is_external_event === true && 
-                                      blockData.external_event_source === 'google_calendar';
-        
+        // IMPORTANTE: Los bloqueos de Google Calendar son siempre no recurrentes
+        // porque cada instancia de un evento recurrente se trata como un evento separado
         if (block.is_recurring) {
-          // Legacy recurrente: interpretar como patrón semanal dentro del rango de días de la semana.
-          const applies = isDayOfWeekInRange(dayOfWeekCurrent, dayOfWeekStart, dayOfWeekEnd);
-          console.log('⏰ Bloqueo de rango de tiempo (legacy recurrente) aplica:', {
-            applies,
-            isGoogleCalendarBlock,
-            dayOfWeekCurrent,
-            weekRange: `${dayOfWeekStart}-${dayOfWeekEnd}`,
-            blockTitle: block.title,
-            start_time: block.start_time,
-            end_time: block.end_time
-          });
-          return applies;
+          // Legacy recurrente: interpretar como patrón semanal dentro del rango de días de la semana
+          return isDayOfWeekInRange(dayOfWeekCurrent, dayOfWeekStart, dayOfWeekEnd);
         }
-
-        const applies = isInDateRange;
-        console.log('⏰ Bloqueo de rango de tiempo (legacy) aplica (fecha):', {
-          applies,
-          isGoogleCalendarBlock,
-          blockTitle: block.title,
-          start_time: block.start_time,
-          end_time: block.end_time
-        });
-        return applies;
+        // No recurrente (incluye Google Calendar): Solo aplica dentro del rango de fechas específicas
+        return isInDateRange;
       }
       
-      console.log('❌ Bloqueo no aplica para esta fecha');
       return false;
     });
-
-    console.log('📋 Bloqueos aplicables para la fecha:', dayBlocks);
 
     // Verificar si hay bloqueo de día completo
     const hasFullDayBlock = dayBlocks.some(block =>
       block.block_type === 'full_day' || block.block_type === 'weekly_day'
     );
-    console.log('🚫 ¿Día completamente bloqueado?', hasFullDayBlock);
 
     // Generar horarios de hora en hora
-    console.log('🕐 Generando horarios desde', startHour, 'hasta', endHour);
     for (let hour = startHour; hour < endHour; hour++) {
       const timeString = `${hour.toString().padStart(2, '0')}:00`;
       const display = `${hour.toString().padStart(2, '0')}:00`;
@@ -504,45 +343,20 @@ export function useScheduleAvailability(professionalId: string) {
       }
       // Verificar si está bloqueado por rango de horas (incluyendo eventos de Google Calendar)
       else if (dayBlocks.some(block => {
-        const blockData = block as any;
-        const isGoogleCalendarBlock = blockData.is_external_event === true && 
-                                      blockData.external_event_source === 'google_calendar';
-        
         if (block.block_type === 'time_range' && block.start_time && block.end_time) {
           const blockStart = block.start_time;
           const blockEnd = block.end_time;
-          const isBlocked = timeString >= blockStart && timeString < blockEnd;
-          if (isBlocked) {
-            console.log('⏰ Horario bloqueado:', {
-              timeString,
-              blockStart,
-              blockEnd,
-              blockId: block.id,
-              isGoogleCalendarBlock,
-              blockTitle: block.title
-            });
-          }
-          return isBlocked;
+          // Verificar si el horario está dentro del rango bloqueado
+          // El bloqueo aplica si timeString >= start_time Y timeString < end_time
+          return timeString >= blockStart && timeString < blockEnd;
         } else if (block.block_type === 'weekly_range' && block.start_time && block.end_time) {
           const blockStart = block.start_time;
           const blockEnd = block.end_time;
-          const isBlocked = timeString >= blockStart && timeString < blockEnd;
-          if (isBlocked) {
-            console.log('⏰ Horario bloqueado (semanal):', {
-              timeString,
-              blockStart,
-              blockEnd,
-              blockId: block.id,
-              isGoogleCalendarBlock,
-              blockTitle: block.title
-            });
-          }
-          return isBlocked;
+          return timeString >= blockStart && timeString < blockEnd;
         }
         return false;
       })) {
         status = 'blocked';
-        console.log('🚫 Horario bloqueado:', timeString);
       }
 
       timeSlots.push({
@@ -552,11 +366,6 @@ export function useScheduleAvailability(professionalId: string) {
         status
       });
     }
-
-    console.log('📋 Horarios generados para', date, ':', timeSlots.map(slot => ({
-      time: slot.time,
-      status: slot.status
-    })));
 
     return timeSlots;
   }, [getCustomDaySchedules]);

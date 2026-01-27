@@ -110,16 +110,17 @@ export async function syncGoogleCalendarEvents(userId: string) {
       };
     }
 
-    // Obtener eventos de Google Calendar de los próximos 30 días
+    // Obtener eventos de Google Calendar de los próximos 90 días (3 meses)
+    // Esto asegura que capturemos suficientes eventos para mostrar bloqueos
     const timeMin = new Date().toISOString();
     const timeMax = new Date(
-      Date.now() + 30 * 24 * 60 * 60 * 1000
+      Date.now() + 90 * 24 * 60 * 60 * 1000
     ).toISOString();
 
     const result = await listCalendarEvents(accessToken, refreshToken, {
       timeMin,
       timeMax,
-      maxResults: 100,
+      maxResults: 250, // Aumentar límite para capturar más eventos
       singleEvents: true,
       orderBy: 'startTime',
     });
@@ -161,13 +162,14 @@ export async function syncGoogleCalendarEvents(userId: string) {
         hour = '00';
       }
 
-      console.log('🕐 formatInEventTimeZone debug:', {
-        inputDate: date.toISOString(),
-        inputTimestamp: date.getTime(),
-        targetTimeZone: timeZone,
-        parts: parts.map(p => ({ type: p.type, value: p.value })),
-        result: { date: `${year}-${month}-${day}`, time: `${hour}:${minute}` }
-      });
+      // Log solo en caso de error o valores inesperados
+      if (hour === '24' || !year || !month || !day || !hour || !minute) {
+        console.warn('⚠️ formatInEventTimeZone: valores inesperados', {
+          inputDate: date.toISOString(),
+          targetTimeZone: timeZone,
+          result: { date: `${year}-${month}-${day}`, time: `${hour}:${minute}` }
+        });
+      }
 
       return {
         date: `${year}-${month}-${day}`,
@@ -183,23 +185,10 @@ export async function syncGoogleCalendarEvents(userId: string) {
       // El regex ahora también maneja milisegundos: 2025-01-14T16:00:00.000-06:00
       const hasTimezoneInfo = dateTime.endsWith('Z') || /[+-]\d{2}:\d{2}$/.test(dateTime);
 
-      console.log('🕐 extractFromGoogleDateTime:', {
-        input: dateTime,
-        targetTimeZone: timeZone,
-        hasTimezoneInfo,
-        serverTimezone: Intl.DateTimeFormat().resolvedOptions().timeZone
-      });
-
       if (hasTimezoneInfo) {
         // Convertir a la zona horaria del evento
         const d = new Date(dateTime);
         const result = formatInEventTimeZone(d, timeZone);
-        console.log('🕐 Conversión con timezone info:', {
-          input: dateTime,
-          dateObject: d.toISOString(),
-          targetTimeZone: timeZone,
-          result
-        });
         return result;
       }
 
@@ -207,17 +196,12 @@ export async function syncGoogleCalendarEvents(userId: string) {
       // Extraer directamente del string
       const m = /^(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2})/.exec(dateTime);
       if (m) {
-        console.log('🕐 Extracción directa (sin timezone info):', {
-          input: dateTime,
-          extracted: { date: m[1], time: m[2] }
-        });
         return { date: m[1], time: m[2] };
       }
 
       // Fallback defensivo si el formato no es el esperado
       const d = new Date(dateTime);
       const result = formatInEventTimeZone(d, timeZone);
-      console.log('🕐 Fallback:', { input: dateTime, result });
       return result;
     };
 
@@ -407,23 +391,8 @@ export async function syncGoogleCalendarEvents(userId: string) {
         // Necesitamos convertir correctamente a la zona horaria del evento
         const eventTimeZone = event.start!.timeZone || primaryCalendarTimeZone;
 
-        console.log('📅 Procesando evento de Google Calendar:', {
-          eventSummary: event.summary,
-          googleStartDateTime: event.start!.dateTime,
-          googleEndDateTime: event.end!.dateTime,
-          googleEventTimeZone: event.start!.timeZone,
-          usingTimeZone: eventTimeZone,
-          primaryCalendarTimeZone
-        });
-
         const start = extractFromGoogleDateTime(event.start!.dateTime!, eventTimeZone);
         const end = extractFromGoogleDateTime(event.end!.dateTime!, eventTimeZone);
-
-        console.log('📅 Resultado de conversión:', {
-          eventSummary: event.summary,
-          convertedStart: start,
-          convertedEnd: end
-        });
 
         blockData = {
           id: randomUUID(),

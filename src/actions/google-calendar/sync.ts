@@ -4,6 +4,7 @@ import { createClient } from '@/utils/supabase/server';
 import {
   listCalendarEvents,
   refreshAccessToken,
+  getCalendarTimeZone,
   watchCalendar,
   stopWatchingCalendar,
 } from '@/lib/google-calendar';
@@ -130,6 +131,10 @@ export async function syncGoogleCalendarEvents(userId: string) {
       };
     }
 
+    // Timezone real del calendario (fallback cuando el evento no trae timeZone)
+    const tzResult = await getCalendarTimeZone(accessToken, refreshToken, 'primary');
+    const primaryCalendarTimeZone = tzResult.timeZone || 'America/Mexico_City';
+
     // Obtener todas las citas existentes de Holistia para este profesional
     const { data: appointments } = await supabase
       .from('appointments')
@@ -208,7 +213,7 @@ export async function syncGoogleCalendarEvents(userId: string) {
         // si no, se desincroniza (especialmente en serverless/UTC).
         const startDateTime = new Date(event.start!.dateTime!);
         const endDateTime = new Date(event.end!.dateTime!);
-        const eventTimeZone = event.start!.timeZone || 'America/Mexico_City';
+        const eventTimeZone = event.start!.timeZone || primaryCalendarTimeZone;
 
         const start = formatInEventTimeZone(startDateTime, eventTimeZone);
         const end = formatInEventTimeZone(endDateTime, eventTimeZone);
@@ -346,7 +351,7 @@ export async function syncGoogleCalendarEvents(userId: string) {
         const endDateTime = new Date(event.end!.dateTime!);
         
         // Obtener la zona horaria del evento (por defecto 'America/Mexico_City' si no está especificada)
-        const eventTimeZone = event.start!.timeZone || 'America/Mexico_City';
+        const eventTimeZone = event.start!.timeZone || primaryCalendarTimeZone;
         
         // Convertir a la zona horaria del evento usando Intl.DateTimeFormat
         const formatOptions: Intl.DateTimeFormatOptions = {
@@ -445,7 +450,7 @@ export async function syncGoogleCalendarEvents(userId: string) {
       } else {
         const startDateTime = new Date(event.start.dateTime!);
         const endDateTime = new Date(event.end.dateTime!);
-        const eventTimeZone = event.start.timeZone || 'America/Mexico_City';
+        const eventTimeZone = event.start.timeZone || primaryCalendarTimeZone;
         
         // Convertir a la zona horaria del evento
         const formatOptions: Intl.DateTimeFormatOptions = {

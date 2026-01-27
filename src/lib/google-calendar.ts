@@ -254,6 +254,40 @@ export async function listCalendarEvents(
 }
 
 /**
+ * Obtiene la zona horaria del calendario (p.ej. primary).
+ * Esto es clave para interpretar eventos cuando el item no trae start.timeZone/end.timeZone.
+ */
+export async function getCalendarTimeZone(
+  accessToken: string,
+  refreshToken: string,
+  calendarId: string = 'primary'
+) {
+  try {
+    const { calendar } = getCalendarClient(accessToken, refreshToken);
+    const response = await calendar.calendars.get({ calendarId });
+
+    return {
+      success: true,
+      timeZone: response.data.timeZone || 'America/Mexico_City',
+    };
+  } catch (error: unknown) {
+    if (error instanceof Error && "code" in error && (error as { code?: number }).code === 401) {
+      const newCredentials = await refreshAccessToken(refreshToken);
+      if (newCredentials.access_token) {
+        return getCalendarTimeZone(newCredentials.access_token, refreshToken, calendarId);
+      }
+    }
+
+    console.error('Error getting calendar timeZone:', error);
+    return {
+      success: false,
+      timeZone: 'America/Mexico_City',
+      error: (error instanceof Error ? error.message : String(error)),
+    };
+  }
+}
+
+/**
  * Actualiza un evento en Google Calendar
  */
 export async function updateCalendarEvent(

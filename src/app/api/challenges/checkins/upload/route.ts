@@ -85,7 +85,7 @@ export async function POST(request: NextRequest) {
     const fileName = `${Date.now()}-${file.name}`;
     const filePath = `${challenge_purchase_id}/evidence/${fileName}`;
 
-    const { error: uploadError } = await supabase.storage
+    const { error: uploadError, data: uploadData } = await supabase.storage
       .from('challenges')
       .upload(filePath, file, {
         cacheControl: '3600',
@@ -93,10 +93,48 @@ export async function POST(request: NextRequest) {
       });
 
     if (uploadError) {
-      console.error('Error uploading file:', uploadError);
+      console.error('❌ Error uploading file:', {
+        error: uploadError,
+        message: uploadError.message,
+        filePath,
+        challenge_purchase_id,
+        user_id: user.id,
+        purchase_participant_id: purchase.participant_id,
+      });
+      
+      // Proporcionar mensaje de error más específico
+      let errorMessage = 'Error al subir el archivo';
+      let statusCode = 500;
+      
+      const errorMsg = uploadError.message || String(uploadError);
+      
+      // Detectar errores de permisos
+      if (errorMsg.includes('permission') || 
+          errorMsg.includes('policy') || 
+          errorMsg.includes('403') ||
+          errorMsg.includes('unauthorized') ||
+          errorMsg.includes('Forbidden')) {
+        errorMessage = 'No tienes permisos para subir archivos a este reto. Verifica que seas participante del reto.';
+        statusCode = 403;
+      } else if (errorMsg.includes('400') || 
+                 errorMsg.includes('invalid') ||
+                 errorMsg.includes('format') ||
+                 errorMsg.includes('Bad Request')) {
+        errorMessage = 'El archivo no es válido o el formato no está permitido';
+        statusCode = 400;
+      } else if (errorMsg.includes('size') || 
+                 errorMsg.includes('large') ||
+                 errorMsg.includes('too big')) {
+        errorMessage = 'El archivo es demasiado grande';
+        statusCode = 400;
+      } else {
+        // Usar el mensaje del error si está disponible
+        errorMessage = errorMsg;
+      }
+      
       return NextResponse.json(
-        { error: 'Error al subir el archivo' },
-        { status: 500 }
+        { error: errorMessage },
+        { status: statusCode }
       );
     }
 

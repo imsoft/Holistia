@@ -1118,29 +1118,31 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
             description="Selecciona las áreas de bienestar relacionadas con este reto"
           />
 
-          {/* Precio - Mostrar siempre para que se pueda editar */}
-          <div className="space-y-2">
-            <Label htmlFor="price">Precio (MXN)</Label>
-            <Input
-              id="price"
-              type="number"
-              min="0"
-              step="0.01"
-              value={formData.price || ""}
-              onChange={(e) => {
-                setFormData({ ...formData, price: e.target.value });
-              }}
-              placeholder="0.00"
-            />
-            <p className="text-xs text-muted-foreground">
-              {isProfessional ? "Establece el precio del reto para los participantes" : "Precio del reto (si aplica)"}
-            </p>
-            {formData.price && (
-              <p className="text-xs text-green-600">
-                Precio actual: {formData.price} {formData.currency}
+          {/* Precio - Solo mostrar para profesionales */}
+          {isProfessional && (
+            <div className="space-y-2">
+              <Label htmlFor="price">Precio (MXN)</Label>
+              <Input
+                id="price"
+                type="number"
+                min="0"
+                step="0.01"
+                value={formData.price || ""}
+                onChange={(e) => {
+                  setFormData({ ...formData, price: e.target.value });
+                }}
+                placeholder="0.00"
+              />
+              <p className="text-xs text-muted-foreground">
+                Establece el precio del reto para los participantes
               </p>
-            )}
-          </div>
+              {formData.price && (
+                <p className="text-xs text-green-600">
+                  Precio actual: {formData.price} {formData.currency}
+                </p>
+              )}
+            </div>
+          )}
 
           {canAddPatients && (
             <>

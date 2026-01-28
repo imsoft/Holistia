@@ -15,7 +15,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { SidebarTrigger } from "@/components/ui/sidebar";
 
 interface Challenge {
   id: string;
@@ -163,7 +162,6 @@ export default function ChallengesPage() {
       <div className="border-b border-border bg-card w-full">
         <div className="flex flex-col sm:flex-row sm:h-16 sm:items-center justify-between px-4 sm:px-6 py-4 sm:py-0 gap-4 sm:gap-0 w-full">
           <div className="flex items-center gap-3 sm:gap-4">
-            <SidebarTrigger />
             <div>
               <h1 className="text-xl sm:text-2xl font-bold text-foreground flex items-center gap-2">
                 <Target className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />

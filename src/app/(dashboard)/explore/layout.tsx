@@ -23,6 +23,7 @@ import { useProfile } from "@/hooks/use-profile";
 import { NotificationsDropdown } from "@/components/ui/notifications-dropdown";
 import { Navbar } from "@/components/shared/navbar";
 import { Footer } from "@/components/shared/footer";
+import { useUserStore } from "@/stores/user-store";
 
 // Función para generar navegación (URLs limpias sin IDs)
 const getNavigation = (hasEvents: boolean = false) => {
@@ -80,7 +81,13 @@ export default function ExploreLayout({
   const [currentPathname, setCurrentPathname] = useState("");
   const [hasEvents, setHasEvents] = useState(false);
   const [isProfessional, setIsProfessional] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const [authChecked, setAuthChecked] = useState(false);
+
+  // Usar el store de Zustand para el estado de autenticación (persistido)
+  const isAuthenticated = useUserStore((state) => state.isAuthenticated);
+  const setUserStore = useUserStore((state) => state.setUser);
+  const clearUserStore = useUserStore((state) => state.clearUser);
+
   const { profile, loading } = useProfile();
   const pathname = usePathname();
   const router = useRouter();
@@ -95,7 +102,21 @@ export default function ExploreLayout({
       // bloquee el render por una llamada de red en páginas públicas.
       const { data } = await supabase.auth.getSession();
       if (!mounted) return;
-      setIsAuthenticated(Boolean(data.session?.user));
+
+      const user = data.session?.user;
+      if (user) {
+        // Actualizar el store con datos básicos del usuario
+        setUserStore({
+          id: user.id,
+          email: user.email || '',
+          first_name: user.user_metadata?.first_name || null,
+          last_name: user.user_metadata?.last_name || null,
+          type: user.user_metadata?.type || 'patient',
+          avatar_url: user.user_metadata?.avatar_url || null,
+          account_active: true,
+        });
+      }
+      setAuthChecked(true);
     };
 
     checkAuth();
@@ -109,14 +130,27 @@ export default function ExploreLayout({
       if (event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION') {
         return;
       }
-      setIsAuthenticated(Boolean(session?.user));
+
+      if (event === 'SIGNED_OUT' || !session?.user) {
+        clearUserStore();
+      } else if (session?.user) {
+        setUserStore({
+          id: session.user.id,
+          email: session.user.email || '',
+          first_name: session.user.user_metadata?.first_name || null,
+          last_name: session.user.user_metadata?.last_name || null,
+          type: session.user.user_metadata?.type || 'patient',
+          avatar_url: session.user.user_metadata?.avatar_url || null,
+          account_active: true,
+        });
+      }
     });
 
     return () => {
       mounted = false;
       subscription.unsubscribe();
     };
-  }, [supabase]);
+  }, [supabase, setUserStore, clearUserStore]);
 
   useEffect(() => {
     setCurrentPathname(pathname);
@@ -222,7 +256,9 @@ export default function ExploreLayout({
     );
   }
 
-  if (loading || isAuthenticated === null) {
+  // Solo mostrar loading si es la primera carga Y no hay datos en el store
+  // Si el store ya tiene datos (de una sesión anterior), mostrar contenido inmediatamente
+  if (!authChecked && !isAuthenticated && loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">

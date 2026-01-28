@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { signInWithGoogle } from "@/actions/auth/actions";
 import { useState } from "react";
+import { toast } from "sonner";
 
 interface GoogleButtonProps {
   text?: string;
@@ -22,14 +23,34 @@ export function GoogleButton({
   const handleGoogleSignIn = async () => {
     setIsLoading(true);
     try {
-      const result = await signInWithGoogle();
+      // Agregar timeout para evitar que se quede colgado
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error("Tiempo de espera agotado")), 10000);
+      });
+
+      const resultPromise = signInWithGoogle();
+      
+      const result = await Promise.race([resultPromise, timeoutPromise]) as Awaited<ReturnType<typeof signInWithGoogle>>;
+      
       if (result?.url) {
-        window.location.assign(result.url);
+        console.log("Redirecting to Google OAuth:", result.url);
+        // Usar window.location.href en lugar de assign para mejor compatibilidad
+        window.location.href = result.url;
         return;
       }
-      throw new Error(result?.error || "No se pudo iniciar sesión con Google");
+      
+      if (result?.error) {
+        console.error("Error en Google OAuth:", result.error);
+        toast.error(result.error || "No se pudo iniciar sesión con Google");
+        setIsLoading(false);
+        return;
+      }
+      
+      throw new Error("No se recibió URL de autenticación");
     } catch (error) {
       console.error("Error al iniciar sesión con Google:", error);
+      const errorMessage = error instanceof Error ? error.message : "Error desconocido";
+      toast.error(`Error al iniciar sesión: ${errorMessage}`);
       setIsLoading(false);
     }
   };

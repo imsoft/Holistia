@@ -596,6 +596,15 @@ export default function ProfessionalAppointments() {
     }
   };
 
+  // Calcular hora de fin a partir de hora de inicio y duración
+  const getEndTime = (startTime: string, durationMinutes: number) => {
+    const [hours, minutes] = startTime.split(":").map(Number);
+    const totalMinutes = hours * 60 + minutes + durationMinutes;
+    const endHours = Math.floor(totalMinutes / 60) % 24;
+    const endMinutes = totalMinutes % 60;
+    return `${endHours.toString().padStart(2, '0')}:${endMinutes.toString().padStart(2, '0')}`;
+  };
+
   // Generar título según la vista
   const getTitle = () => {
     if (view === "day") {
@@ -665,7 +674,7 @@ export default function ProfessionalAppointments() {
                         >
                           <div className="font-semibold truncate">{apt.patient.name}</div>
                           <div className="text-xs mt-1">
-                            {apt.time} • {apt.duration} min
+                            {apt.time} - {getEndTime(apt.time, apt.duration)}
                           </div>
                           {heightInPixels > 60 && <div className="text-xs">{apt.type}</div>}
                         </button>
@@ -802,7 +811,7 @@ export default function ProfessionalAppointments() {
                               <div className="font-semibold truncate">
                                 {apt.patient.name}
                               </div>
-                              <div className="truncate">{apt.time}</div>
+                              <div className="truncate">{apt.time} - {getEndTime(apt.time, apt.duration)}</div>
                             </button>
                           );
                         })}
@@ -919,7 +928,7 @@ export default function ProfessionalAppointments() {
                           className={`w-full text-left px-2 py-1 rounded text-xs border ${getStatusColor(apt.status)} hover:opacity-80 transition-opacity truncate`}
                         >
                           <div className="font-medium truncate">
-                            {apt.time} {apt.patient.name}
+                            {apt.time}-{getEndTime(apt.time, apt.duration)} {apt.patient.name}
                           </div>
                         </button>
                       ))}
@@ -1166,8 +1175,8 @@ export default function ProfessionalAppointments() {
                     </div>
                   </div>
                   <div>
-                    <div className="text-sm font-medium text-muted-foreground">Hora</div>
-                    <div className="text-base">{selectedAppointment.time}</div>
+                    <div className="text-sm font-medium text-muted-foreground">Horario</div>
+                    <div className="text-base">{selectedAppointment.time} - {getEndTime(selectedAppointment.time, selectedAppointment.duration)}</div>
                   </div>
                   <div>
                     <div className="text-sm font-medium text-muted-foreground">

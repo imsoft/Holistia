@@ -4,12 +4,20 @@ import { createClient } from '@/utils/supabase/server'
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url)
   const code = searchParams.get('code')
+  const type = searchParams.get('type') // Supabase incluye 'type=recovery' para reset de contraseña
   // if "next" is in param, use it as the redirect URL
   let next = searchParams.get('next') ?? '/'
   if (!next.startsWith('/')) {
     // if "next" is not a relative URL, use the default
     next = '/'
   }
+
+  console.log('🔗 Callback received with params:', {
+    code: code ? 'present' : 'missing',
+    type,
+    next,
+    allParams: Object.fromEntries(searchParams.entries())
+  });
 
   if (code) {
     const supabase = await createClient()
@@ -32,14 +40,20 @@ export async function GET(request: Request) {
       });
 
       // Detectar si es un flujo de recuperación de contraseña
-      // El AMR (Authentication Methods Reference) incluye "recovery" cuando es un reset de contraseña
+      // Método 1: Verificar el parámetro 'type=recovery' en la URL
+      // Método 2: Verificar el AMR (Authentication Methods Reference) de la sesión
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const sessionAny = data.session as any;
       const amr = sessionAny?.amr as Array<{ method: string }> | undefined;
-      const isRecoveryFlow = amr?.some((method) => method.method === 'recovery' || method.method === 'otp') ?? false;
+      const isRecoveryFromAMR = amr?.some((method) => method.method === 'recovery' || method.method === 'otp') ?? false;
+      const isRecoveryFromType = type === 'recovery';
+      const isRecoveryFlow = isRecoveryFromType || isRecoveryFromAMR;
 
       console.log('🔑 Auth flow detection:', {
         next,
+        type,
+        isRecoveryFromType,
+        isRecoveryFromAMR,
         isRecoveryFlow,
         amr
       });

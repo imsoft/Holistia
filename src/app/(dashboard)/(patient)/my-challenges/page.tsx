@@ -25,6 +25,7 @@ import { ChallengeProgress } from "@/components/ui/challenge-progress";
 import { ChallengeBadges } from "@/components/ui/challenge-badges";
 import { TeamInvitationsList } from "@/components/ui/team-invitations-list";
 import { TeamChat } from "@/components/ui/team-chat";
+import { stripHtml } from "@/lib/text-utils";
 import {
   Dialog,
   DialogContent,
@@ -882,7 +883,7 @@ export default function MyChallengesPage() {
                     </div>
                     {challenge.description && (
                       <p className="text-sm text-muted-foreground line-clamp-3 mb-4">
-                        {challenge.description}
+                        {stripHtml(challenge.description)}
                       </p>
                     )}
                   </CardContent>

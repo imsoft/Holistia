@@ -13,6 +13,7 @@ import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
 import { ReactionPicker, ReactionsSummary, type ReactionType } from "@/components/ui/reaction-picker";
 import { SharePostDialog } from "@/components/ui/share-post-dialog";
+import { ImageViewerDialog } from "@/components/ui/image-viewer-dialog";
 
 interface SocialFeedPostProps {
   checkin: {
@@ -84,6 +85,9 @@ export function SocialFeedPost({ checkin, onLike, onUnlike }: SocialFeedPostProp
     (checkin.reactions as Record<ReactionType, number>) || ({} as any)
   );
   const [totalReactions, setTotalReactions] = useState(checkin.total_reactions || 0);
+  
+  // Estado para el modal de imagen
+  const [isImageViewerOpen, setIsImageViewerOpen] = useState(false);
 
   // Manejar reacción
   const handleReactionSelect = async (reactionType: ReactionType) => {
@@ -340,15 +344,26 @@ export function SocialFeedPost({ checkin, onLike, onUnlike }: SocialFeedPostProp
 
         {/* Evidencia multimedia */}
         {checkin.evidence_url && checkin.evidence_type === "photo" && (
-          <div className="relative w-full h-80 rounded-lg overflow-hidden bg-muted">
-            <Image
-              src={checkin.evidence_url}
-              alt="Evidencia del reto"
-              fill
-              className="object-cover"
-              unoptimized
+          <>
+            <div 
+              className="relative w-full h-80 rounded-lg overflow-hidden bg-muted cursor-pointer hover:opacity-90 transition-opacity"
+              onClick={() => setIsImageViewerOpen(true)}
+            >
+              <Image
+                src={checkin.evidence_url}
+                alt="Evidencia del reto"
+                fill
+                className="object-cover"
+                unoptimized
+              />
+            </div>
+            <ImageViewerDialog
+              open={isImageViewerOpen}
+              onOpenChange={setIsImageViewerOpen}
+              imageUrl={checkin.evidence_url}
+              alt={`Evidencia del reto - ${checkin.challenge_title}`}
             />
-          </div>
+          </>
         )}
 
         {checkin.evidence_url && checkin.evidence_type === "video" && (

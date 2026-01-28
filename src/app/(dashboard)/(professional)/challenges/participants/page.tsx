@@ -22,7 +22,7 @@ import {
 
 interface Participant {
   purchase_id: string;
-  buyer_id: string;
+  participant_id: string;
   buyer_name: string;
   buyer_email: string;
   buyer_photo?: string;
@@ -87,7 +87,7 @@ export default function ChallengeParticipantsPage() {
         .from('challenge_purchases')
         .select(`
           id,
-          buyer_id,
+          participant_id,
           challenge_id,
           started_at,
           challenges!inner(
@@ -98,7 +98,6 @@ export default function ChallengeParticipantsPage() {
           )
         `)
         .eq('challenges.professional_applications.user_id', user.id)
-        .eq('payment_status', 'succeeded')
         .eq('access_granted', true);
 
       if (error) throw error;
@@ -110,7 +109,7 @@ export default function ChallengeParticipantsPage() {
           const { data: buyerProfile } = await supabase
             .from('profiles')
             .select('first_name, last_name, email, avatar_url')
-            .eq('id', purchase.buyer_id)
+            .eq('id', purchase.participant_id)
             .single();
 
           // Obtener progreso
@@ -134,7 +133,7 @@ export default function ChallengeParticipantsPage() {
 
           return {
             purchase_id: purchase.id,
-            buyer_id: purchase.buyer_id,
+            participant_id: purchase.participant_id,
             buyer_name: buyerProfile
               ? `${buyerProfile.first_name || ''} ${buyerProfile.last_name || ''}`.trim() || buyerProfile.email?.split('@')[0] || 'Usuario'
               : 'Usuario',

@@ -37,7 +37,7 @@ import {
 
 interface ParticipantProgress {
   purchase_id: string;
-  buyer_id: string;
+  participant_id: string;
   buyer_name: string;
   buyer_email: string;
   buyer_photo?: string;
@@ -128,7 +128,7 @@ export default function ChallengeProgressPage() {
         .from('challenge_purchases')
         .select(`
           id,
-          buyer_id,
+          participant_id,
           started_at
         `)
         .eq('challenge_id', challengeId)
@@ -144,7 +144,7 @@ export default function ChallengeProgressPage() {
         const { data: profileData } = await supabase
           .from('profiles')
           .select('id, first_name, last_name, email, photo_url')
-          .eq('id', purchase.buyer_id)
+          .eq('id', purchase.participant_id)
           .single();
 
         // Obtener progreso
@@ -179,7 +179,7 @@ export default function ChallengeProgressPage() {
         const profile = profileData;
         participantsData.push({
           purchase_id: purchase.id,
-          buyer_id: purchase.buyer_id,
+          participant_id: purchase.participant_id,
           buyer_name: `${profile?.first_name || ''} ${profile?.last_name || ''}`.trim() || 'Usuario',
           buyer_email: profile?.email || '',
           buyer_photo: profile?.photo_url || undefined,

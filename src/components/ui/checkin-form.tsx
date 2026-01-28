@@ -132,6 +132,7 @@ export function CheckinForm({
       // Reset form
       setNotes("");
       setEvidenceUrl(null);
+      setIsPublic(false);
 
       if (onCheckinComplete) {
         onCheckinComplete();

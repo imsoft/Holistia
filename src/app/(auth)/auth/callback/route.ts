@@ -39,6 +39,7 @@ export async function GET(request: Request) {
     const supabase = await createClient()
     
     // Intercambiar código por sesión
+    console.log('🔄 Exchanging code for session...');
     const { data, error } = await supabase.auth.exchangeCodeForSession(code);
     
     if (error) {
@@ -50,6 +51,13 @@ export async function GET(request: Request) {
       console.error('❌ No user data after exchange');
       return NextResponse.redirect(`${origin}/login?error=${encodeURIComponent('No se pudo obtener información del usuario')}`);
     }
+
+    if (!data?.session) {
+      console.error('❌ No session data after exchange');
+      return NextResponse.redirect(`${origin}/login?error=${encodeURIComponent('No se pudo crear la sesión')}`);
+    }
+
+    console.log('✅ Session created successfully for user:', data.user.id);
       console.log('🔐 User authenticated successfully:', {
         userId: data.user.id,
         email: data.user.email
@@ -98,71 +106,37 @@ export async function GET(request: Request) {
         return NextResponse.redirect(finalUrl);
       }
 
-      // Obtener tipo de usuario y estado de cuenta desde profiles
-      let profile: any = null;
+      // Redirigir inmediatamente después de crear la sesión
+      // El middleware y las páginas de destino manejarán la lógica de redirección
+      // Esto evita que queries adicionales bloqueen el proceso
+      let redirectUrl = `/explore`; // Por defecto, redirigir a explore
+      
+      // Intentar obtener tipo de usuario rápidamente, pero no bloquear si falla
       try {
-        const { data: profileData, error: profileError } = await supabase
+        const { data: profileData } = await supabase
           .from('profiles')
           .select('type, account_active')
           .eq('id', data.user.id)
           .maybeSingle();
         
-        if (profileError) {
-          console.warn('⚠️ Error obteniendo perfil (continuando):', profileError);
-        } else {
-          profile = profileData;
+        if (profileData) {
+          // Verificar si la cuenta está desactivada
+          if (profileData.account_active === false) {
+            return NextResponse.redirect(`${origin}/account-deactivated`);
+          }
+
+          const userType = profileData.type;
+          if (userType === 'admin') {
+            redirectUrl = `/admin/dashboard`;
+            console.log('👑 Admin user detected');
+          } else if (userType === 'professional') {
+            redirectUrl = `/dashboard`;
+            console.log('👨‍⚕️ Professional user detected');
+          }
         }
       } catch (profileError) {
-        console.warn('⚠️ Error obteniendo perfil (continuando):', profileError);
-        // Continuar sin perfil si hay error
-      }
-
-      // Verificar si la cuenta está desactivada
-      if (profile && profile.account_active === false) {
-        return NextResponse.redirect(`${origin}/account-deactivated`);
-      }
-
-      const userType = profile?.type;
-
-      // Determinar la URL de redirección según el tipo de usuario
-      let redirectUrl;
-      if (userType === 'admin') {
-        redirectUrl = `/admin/dashboard`;
-        console.log('👑 Admin user detected, redirecting to:', redirectUrl);
-      } else if (userType === 'professional') {
-        redirectUrl = `/dashboard`;
-        console.log('👨‍⚕️ Professional user detected, redirecting to:', redirectUrl);
-      } else {
-        console.log('🔍 Checking professional application for user:', data.user.id);
-        // Verificar si el usuario tiene una aplicación profesional aprobada
-        try {
-          const { data: application, error: appError } = await supabase
-            .from('professional_applications')
-            .select('id, status')
-            .eq('user_id', data.user.id)
-            .eq('status', 'approved')
-            .maybeSingle();
-
-          console.log('📋 Application check result:', { application, appError });
-
-          if (appError) {
-            console.warn('⚠️ Error verificando aplicación profesional (usando default):', appError);
-            redirectUrl = `/explore`;
-          } else if (application) {
-            // Si tiene una aplicación aprobada, redirigir al dashboard de profesionales
-            redirectUrl = `/dashboard`;
-            console.log('✅ Approved professional application found, redirecting to:', redirectUrl);
-          } else {
-            // Por defecto, redirigir al dashboard del paciente
-            redirectUrl = `/explore`;
-            console.log('👤 Default patient redirect to:', redirectUrl);
-          }
-        } catch (appError) {
-          console.warn('⚠️ Error verificando aplicación profesional (usando default):', appError);
-          // Por defecto, redirigir al dashboard del paciente si hay error
-          redirectUrl = `/explore`;
-          console.log('👤 Default patient redirect (fallback):', redirectUrl);
-        }
+        console.warn('⚠️ Error obteniendo perfil (usando default):', profileError);
+        // Continuar con redirect por defecto
       }
 
       const finalUrl = isLocalEnv

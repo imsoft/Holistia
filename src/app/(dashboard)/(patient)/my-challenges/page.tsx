@@ -356,9 +356,23 @@ export default function MyChallengesPage() {
 
   const fetchCheckins = async (challengePurchaseId: string) => {
     try {
+      // Validar que el challengePurchaseId es válido (no es un challenge.id)
+      if (!challengePurchaseId || challengePurchaseId.length < 36) {
+        console.warn("Invalid challengePurchaseId, skipping checkins fetch");
+        setCheckins([]);
+        setNextDayNumber(1);
+        return;
+      }
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 segundos timeout
+
       const response = await fetch(
-        `/api/challenges/checkins?challenge_purchase_id=${challengePurchaseId}`
+        `/api/challenges/checkins?challenge_purchase_id=${challengePurchaseId}`,
+        { signal: controller.signal }
       );
+      
+      clearTimeout(timeoutId);
       const data = await response.json();
 
       if (response.ok) {
@@ -368,9 +382,21 @@ export default function MyChallengesPage() {
           ? Math.max(...data.checkins.map((c: Checkin) => c.day_number))
           : 0;
         setNextDayNumber(maxDay + 1);
+      } else {
+        console.error("Error fetching checkins:", data.error);
+        // Establecer valores por defecto para no bloquear la UI
+        setCheckins([]);
+        setNextDayNumber(1);
       }
-    } catch (error) {
-      console.error("Error fetching checkins:", error);
+    } catch (error: any) {
+      if (error.name === 'AbortError') {
+        console.error("Timeout fetching checkins");
+      } else {
+        console.error("Error fetching checkins:", error);
+      }
+      // Establecer valores por defecto para no bloquear la UI
+      setCheckins([]);
+      setNextDayNumber(1);
     }
   };
 
@@ -438,7 +464,7 @@ export default function MyChallengesPage() {
         );
         const data = await response.json();
         
-        let purchaseId: string;
+        let purchaseId: string | null = null;
         
         if (response.ok && data.purchase) {
           // Ya existe un purchase
@@ -456,10 +482,32 @@ export default function MyChallengesPage() {
           if (createResponse.ok && createData.purchase) {
             purchaseId = createData.purchase.id;
           } else {
-            // Si falla la creación, usar challenge.id como fallback
-            purchaseId = challenge.id;
+            console.error('No se pudo crear la participación automática:', createData);
             toast.error('No se pudo crear la participación automática');
           }
+        }
+        
+        // Solo continuar si tenemos un purchaseId válido
+        if (!purchaseId) {
+          // Fallback: mostrar solo recursos sin checkins ni progreso
+          const createdChallenge: ChallengePurchase = {
+            id: challenge.id, // Usar challenge.id solo como identificador visual
+            challenge_id: challenge.id,
+            challenge: {
+              ...challenge,
+              type: 'created' as const,
+              is_active: challenge.is_active ?? true,
+              created_by_type: challenge.created_by_type,
+            },
+            access_granted: true,
+            started_at: undefined,
+            completed_at: undefined,
+          };
+          setSelectedChallenge(createdChallenge);
+          setCheckins([]);
+          await fetchResources(challenge.id);
+          await fetchParticipantsCount(challenge.id);
+          return;
         }
         
         const createdChallenge: ChallengePurchase = {
@@ -929,10 +977,24 @@ export default function MyChallengesPage() {
                 </TabsList>
 
                 <TabsContent value="progress" className="space-y-4">
-                  <ChallengeProgress
-                    challengePurchaseId={selectedChallenge.id}
-                    challengeDurationDays={selectedChallenge.challenge.duration_days}
-                  />
+                  {selectedChallenge.id !== selectedChallenge.challenge_id ? (
+                    <ChallengeProgress
+                      challengePurchaseId={selectedChallenge.id}
+                      challengeDurationDays={selectedChallenge.challenge.duration_days}
+                    />
+                  ) : (
+                    <Card className="py-4">
+                      <CardContent className="flex flex-col items-center justify-center py-12">
+                        <Target className="h-16 w-16 text-muted-foreground mb-4" />
+                        <h3 className="text-xl font-semibold mb-2">
+                          Progreso no disponible
+                        </h3>
+                        <p className="text-muted-foreground text-center">
+                          Para ver tu progreso, necesitas participar en este reto.
+                        </p>
+                      </CardContent>
+                    </Card>
+                  )}
                 </TabsContent>
 
                 <TabsContent value="checkins" className="space-y-4">
@@ -953,7 +1015,7 @@ export default function MyChallengesPage() {
                             )}
                             <Button
                               onClick={() => setIsCheckinDialogOpen(true)}
-                              disabled={!selectedChallenge.access_granted}
+                              disabled={!selectedChallenge.access_granted || selectedChallenge.id === selectedChallenge.challenge_id}
                             >
                               Nuevo Check-in
                             </Button>
@@ -1057,7 +1119,21 @@ export default function MyChallengesPage() {
                   </TabsContent>
 
                 <TabsContent value="badges">
-                  <ChallengeBadges challengePurchaseId={selectedChallenge.id} />
+                  {selectedChallenge.id !== selectedChallenge.challenge_id ? (
+                    <ChallengeBadges challengePurchaseId={selectedChallenge.id} />
+                  ) : (
+                    <Card className="py-4">
+                      <CardContent className="flex flex-col items-center justify-center py-12">
+                        <Trophy className="h-16 w-16 text-muted-foreground mb-4" />
+                        <h3 className="text-xl font-semibold mb-2">
+                          Badges no disponibles
+                        </h3>
+                        <p className="text-muted-foreground text-center">
+                          Para ver tus badges, necesitas participar en este reto.
+                        </p>
+                      </CardContent>
+                    </Card>
+                  )}
                 </TabsContent>
 
                 <TabsContent value="resources" className="space-y-4">

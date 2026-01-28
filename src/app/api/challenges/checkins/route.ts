@@ -29,9 +29,17 @@ export async function GET(request: NextRequest) {
       .from('challenge_purchases')
       .select('participant_id')
       .eq('id', challenge_purchase_id)
-      .single();
+      .maybeSingle();
 
-    if (purchaseError || !purchase) {
+    if (purchaseError) {
+      console.error('Error fetching purchase:', purchaseError);
+      return NextResponse.json(
+        { error: 'Error al buscar la compra' },
+        { status: 500 }
+      );
+    }
+
+    if (!purchase) {
       return NextResponse.json(
         { error: 'Compra no encontrada' },
         { status: 404 }

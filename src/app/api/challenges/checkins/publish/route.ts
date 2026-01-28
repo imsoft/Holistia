@@ -68,20 +68,12 @@ export async function PATCH(request: Request) {
       ? purchase.challenges[0]
       : purchase.challenges;
 
-    // Verificar que el reto es público (creado por profesional y activo) solo cuando se intenta publicar
+    // Verificar que el reto está activo solo cuando se intenta publicar
     if (is_public) {
-      // Verificar que el reto es público y activo
-      if (challenge.created_by_type !== 'professional' || !challenge.is_active) {
+      // Solo verificar que el reto está activo
+      if (!challenge.is_active) {
         return NextResponse.json(
-          { error: 'Solo puedes publicar check-ins de retos públicos creados por profesionales' },
-          { status: 400 }
-        );
-      }
-      
-      // Verificar que el reto tiene is_public = true
-      if (!challenge.is_public) {
-        return NextResponse.json(
-          { error: 'Este reto no es público, no se pueden publicar check-ins' },
+          { error: 'No puedes publicar check-ins de retos inactivos' },
           { status: 400 }
         );
       }

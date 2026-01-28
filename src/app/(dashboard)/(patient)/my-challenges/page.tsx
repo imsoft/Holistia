@@ -422,9 +422,8 @@ export default function MyChallengesPage() {
     }
   };
 
-  // Verificar si el reto es público (creado por profesional)
-  const isChallengePublic = selectedChallenge?.challenge?.is_public === true 
-    && selectedChallenge?.challenge?.is_active === true;
+  // Verificar si el reto está activo para permitir publicar check-ins
+  const isChallengeActive = selectedChallenge?.challenge?.is_active === true;
 
   const handleOpenChallenge = async (challenge: any): Promise<void> => {
     // Si es un reto participado, usar purchaseId
@@ -1102,15 +1101,21 @@ export default function MyChallengesPage() {
                                           <p className="text-xs">
                                             {new Date(checkin.checkin_date).toLocaleDateString('es-ES')}
                                           </p>
-                                          {isChallengePublic && (
-                                            <Button
-                                              variant={checkin.is_public ? "default" : "outline"}
-                                              size="sm"
-                                              className="h-7 text-xs"
-                                              onClick={() => handlePublishCheckin(checkin.id, checkin.is_public || false)}
-                                            >
-                                              {checkin.is_public ? "Ocultar" : "Publicar"}
-                                            </Button>
+                                          {isChallengeActive && (
+                                            checkin.is_public ? (
+                                              <Badge variant="default" className="text-xs">
+                                                Publicado
+                                              </Badge>
+                                            ) : (
+                                              <Button
+                                                variant="outline"
+                                                size="sm"
+                                                className="h-7 text-xs"
+                                                onClick={() => handlePublishCheckin(checkin.id, false)}
+                                              >
+                                                Publicar
+                                              </Button>
+                                            )
                                           )}
                                         </div>
                                       </div>

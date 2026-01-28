@@ -112,13 +112,22 @@ export async function POST(request: NextRequest) {
     }
 
     // Verificar que el usuario es el dueño de la compra y tiene acceso
+    // Separar query para evitar problemas con RLS en joins
     const { data: purchase, error: purchaseError } = await supabase
       .from('challenge_purchases')
-      .select('participant_id, access_granted, challenge_id, challenges(duration_days)')
+      .select('participant_id, access_granted, challenge_id')
       .eq('id', challenge_purchase_id)
-      .single();
+      .maybeSingle();
 
-    if (purchaseError || !purchase) {
+    if (purchaseError) {
+      console.error('Error fetching purchase:', purchaseError);
+      return NextResponse.json(
+        { error: 'Error al buscar la compra' },
+        { status: 500 }
+      );
+    }
+
+    if (!purchase) {
       return NextResponse.json(
         { error: 'Compra no encontrada' },
         { status: 404 }
@@ -139,12 +148,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Verificar que el día no exceda la duración del reto
-    const challenge = Array.isArray(purchase.challenges) && purchase.challenges.length > 0
-      ? purchase.challenges[0]
-      : (purchase.challenges as any);
-    
-    const durationDays = challenge?.duration_days;
+    // Obtener información del challenge por separado si es necesario
+    let durationDays: number | null = null;
+    if (purchase.challenge_id) {
+      const { data: challenge } = await supabase
+        .from('challenges')
+        .select('duration_days')
+        .eq('id', purchase.challenge_id)
+        .maybeSingle();
+      durationDays = challenge?.duration_days || null;
+    }
     if (durationDays && day_number > durationDays) {
       return NextResponse.json(
         { error: 'El día excede la duración del reto' },

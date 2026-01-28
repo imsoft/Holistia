@@ -25,9 +25,10 @@ export async function GET(request: NextRequest) {
     }
 
     // Verificar que el usuario es el dueño de la compra primero
+    // Separar query para evitar problemas con RLS en joins
     const { data: purchase, error: purchaseError } = await supabase
       .from('challenge_purchases')
-      .select('participant_id, challenge_id, challenges(duration_days)')
+      .select('participant_id, challenge_id')
       .eq('id', challenge_purchase_id)
       .maybeSingle();
 
@@ -53,6 +54,17 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    // Obtener información del challenge por separado si es necesario
+    let durationDays: number | null = null;
+    if (purchase.challenge_id) {
+      const { data: challenge } = await supabase
+        .from('challenges')
+        .select('duration_days')
+        .eq('id', purchase.challenge_id)
+        .maybeSingle();
+      durationDays = challenge?.duration_days || null;
+    }
+
     // Obtener progreso
     const { data: progress, error: progressError } = await supabase
       .from('challenge_progress')
@@ -63,11 +75,6 @@ export async function GET(request: NextRequest) {
     if (progressError) {
       console.error('Error fetching progress:', progressError);
       // Si hay error pero el usuario tiene acceso, retornar progreso por defecto
-      const challenge = Array.isArray(purchase.challenges) && purchase.challenges.length > 0
-        ? purchase.challenges[0]
-        : (purchase.challenges as any);
-      const durationDays = challenge?.duration_days || 0;
-      
       return NextResponse.json({
         progress: {
           challenge_purchase_id,

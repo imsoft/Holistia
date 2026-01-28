@@ -19,10 +19,12 @@ import {
 } from "@/components/ui/select";
 import { createClient } from "@/utils/supabase/client";
 import { toast } from "sonner";
-import { Calendar, Target, Loader2, CheckCircle2, Circle, Users, Plus, Edit, Trash2, Link as LinkIcon, Book, Headphones, Video, FileText, ExternalLink, Search, Filter, Share2 } from "lucide-react";
+import { Calendar, Target, Loader2, CheckCircle2, Circle, Users, Plus, Edit, Trash2, Link as LinkIcon, Book, Headphones, Video, FileText, ExternalLink, Search, Filter, Share2, UserPlus } from "lucide-react";
 import { CheckinForm } from "@/components/ui/checkin-form";
 import { ChallengeProgress } from "@/components/ui/challenge-progress";
 import { ChallengeBadges } from "@/components/ui/challenge-badges";
+import { ChallengeInviteDialog } from "@/components/ui/challenge-invite-dialog";
+import { ChallengeChat } from "@/components/ui/challenge-chat";
 import { stripHtml } from "@/lib/text-utils";
 import {
   Dialog,
@@ -123,6 +125,8 @@ export default function MyChallengesPage() {
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [difficultyFilter, setDifficultyFilter] = useState<string>("all");
+  const [participantsCount, setParticipantsCount] = useState<number>(0);
+  const [isInviteDialogOpen, setIsInviteDialogOpen] = useState(false);
 
   useEffect(() => {
     fetchChallenges();
@@ -423,6 +427,7 @@ export default function MyChallengesPage() {
       setSelectedChallenge(purchaseChallenge);
       await fetchCheckins(challenge.purchaseId);
       await fetchResources(challenge.id);
+      await fetchParticipantsCount(challenge.id);
     } else if (challenge.type === 'created') {
       // Si es un reto creado, buscar o crear un purchase automáticamente
       // para que el creador pueda ver progreso, check-ins y badges
@@ -473,6 +478,7 @@ export default function MyChallengesPage() {
         setSelectedChallenge(createdChallenge);
         await fetchCheckins(purchaseId);
         await fetchResources(challenge.id);
+        await fetchParticipantsCount(challenge.id);
       } catch (error) {
         console.error('Error al obtener/crear purchase para reto creado:', error);
         // Fallback: mostrar solo recursos
@@ -492,6 +498,7 @@ export default function MyChallengesPage() {
         setSelectedChallenge(createdChallenge);
         setCheckins([]);
         await fetchResources(challenge.id);
+        await fetchParticipantsCount(challenge.id);
       }
     }
   };
@@ -509,6 +516,22 @@ export default function MyChallengesPage() {
       console.error("Error fetching resources:", error);
     } finally {
       setLoadingResources(false);
+    }
+  };
+
+  const fetchParticipantsCount = async (challengeId: string) => {
+    try {
+      const { count, error } = await supabase
+        .from("challenge_purchases")
+        .select("id", { count: "exact", head: true })
+        .eq("challenge_id", challengeId)
+        .eq("access_granted", true);
+
+      if (!error && count !== null) {
+        setParticipantsCount(count);
+      }
+    } catch (error) {
+      console.error("Error fetching participants count:", error);
     }
   };
 
@@ -856,11 +879,17 @@ export default function MyChallengesPage() {
           {selectedChallenge && (
             <div className="lg:col-span-2 space-y-6">
               <Tabs defaultValue="progress" className="w-full">
-                <TabsList className="grid w-full grid-cols-4">
+                <TabsList className={`grid w-full ${participantsCount >= 2 ? 'grid-cols-5' : 'grid-cols-4'}`}>
                   <TabsTrigger value="progress">Progreso</TabsTrigger>
                   <TabsTrigger value="checkins">Check-ins</TabsTrigger>
                   <TabsTrigger value="badges">Badges</TabsTrigger>
                   <TabsTrigger value="resources">Recursos</TabsTrigger>
+                  {participantsCount >= 2 && (
+                    <TabsTrigger value="chat">
+                      <Users className="h-4 w-4 mr-1" />
+                      Chat
+                    </TabsTrigger>
+                  )}
                 </TabsList>
 
                 <TabsContent value="progress" className="space-y-4">
@@ -875,12 +904,24 @@ export default function MyChallengesPage() {
                       <CardHeader>
                         <div className="flex items-center justify-between">
                           <CardTitle>Check-ins Diarios</CardTitle>
-                          <Button
-                            onClick={() => setIsCheckinDialogOpen(true)}
-                            disabled={!selectedChallenge.access_granted}
-                          >
-                            Nuevo Check-in
-                          </Button>
+                          <div className="flex gap-2">
+                            {participantsCount < 5 && (
+                              <Button
+                                variant="outline"
+                                onClick={() => setIsInviteDialogOpen(true)}
+                                disabled={!selectedChallenge.access_granted}
+                              >
+                                <UserPlus className="h-4 w-4 mr-2" />
+                                Invitar
+                              </Button>
+                            )}
+                            <Button
+                              onClick={() => setIsCheckinDialogOpen(true)}
+                              disabled={!selectedChallenge.access_granted}
+                            >
+                              Nuevo Check-in
+                            </Button>
+                          </div>
                         </div>
                       </CardHeader>
                       <CardContent>
@@ -1056,10 +1097,48 @@ export default function MyChallengesPage() {
                   </Card>
                 </TabsContent>
 
+                {participantsCount >= 2 && (
+                  <TabsContent value="chat">
+                    <Card className="py-4">
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                          <Users className="h-5 w-5" />
+                          Chat del Reto
+                        </CardTitle>
+                        <p className="text-sm text-muted-foreground">
+                          Comunícate con los otros participantes del reto ({participantsCount} participantes)
+                        </p>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="h-[500px]">
+                          <ChallengeChat
+                            challengeId={selectedChallenge.challenge_id}
+                            currentUserId={userId || ""}
+                          />
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </TabsContent>
+                )}
               </Tabs>
             </div>
           )}
         </div>
+      )}
+
+      {/* Dialog para invitar participantes */}
+      {selectedChallenge && (
+        <ChallengeInviteDialog
+          open={isInviteDialogOpen}
+          onOpenChange={setIsInviteDialogOpen}
+          challengeId={selectedChallenge.challenge_id}
+          challengeTitle={selectedChallenge.challenge.title}
+          currentParticipants={participantsCount}
+          onInviteSuccess={() => {
+            fetchParticipantsCount(selectedChallenge.challenge_id);
+            fetchChallenges();
+          }}
+        />
       )}
 
       {/* Dialog para nuevo check-in */}

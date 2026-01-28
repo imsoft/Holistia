@@ -67,7 +67,21 @@ SELECT
     COALESCE(total_reactions.count, 0) AS total_reactions,
 
     -- Comentarios (con nombre correcto)
-    COALESCE(comment_count.count, 0) AS comments_count -- Nombre correcto
+    COALESCE(comment_count.count, 0) AS comments_count, -- Nombre correcto
+
+    -- Información de equipo (si el reto tiene 2 o más participantes)
+    (
+        SELECT COUNT(*) >= 2
+        FROM public.challenge_purchases cp2
+        WHERE cp2.challenge_id = ch.id
+        AND cp2.access_granted = true
+    ) AS is_team_challenge,
+    (
+        SELECT COUNT(*)
+        FROM public.challenge_purchases cp2
+        WHERE cp2.challenge_id = ch.id
+        AND cp2.access_granted = true
+    ) AS team_participants_count
 
 FROM public.challenge_checkins cc
 JOIN public.challenge_purchases cp ON cp.id = cc.challenge_purchase_id

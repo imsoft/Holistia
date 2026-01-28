@@ -47,6 +47,8 @@ interface SocialFeedPostProps {
     userReaction?: ReactionType | null;
     reactions?: Record<string, number>;
     total_reactions?: number;
+    is_team_challenge?: boolean;
+    team_participants_count?: number;
   };
   onLike?: () => void;
   onUnlike?: () => void;
@@ -309,6 +311,12 @@ export function SocialFeedPost({ checkin, onLike, onUnlike }: SocialFeedPostProp
             </div>
           </div>
           <div className="flex items-center gap-2">
+            {checkin.is_team_challenge && (
+              <Badge variant="outline" className="gap-1 bg-blue-50 text-blue-700 border-blue-200">
+                <Users className="h-3 w-3" />
+                Reto en equipo ({checkin.team_participants_count || 0})
+              </Badge>
+            )}
             {checkin.current_streak && checkin.current_streak > 0 && (
               <Badge variant="secondary" className="gap-1">
                 <TrendingUp className="h-3 w-3" />

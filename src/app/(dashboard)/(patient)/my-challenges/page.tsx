@@ -521,6 +521,14 @@ export default function MyChallengesPage() {
 
   const fetchParticipantsCount = async (challengeId: string) => {
     try {
+      // Obtener información del reto para verificar si fue creado por un profesional
+      const { data: challenge, error: challengeError } = await supabase
+        .from("challenges")
+        .select("created_by_user_id, created_by_type")
+        .eq("id", challengeId)
+        .single();
+
+      // Contar participantes en challenge_purchases
       const { count, error } = await supabase
         .from("challenge_purchases")
         .select("id", { count: "exact", head: true })
@@ -528,7 +536,26 @@ export default function MyChallengesPage() {
         .eq("access_granted", true);
 
       if (!error && count !== null) {
-        setParticipantsCount(count);
+        let totalCount = count;
+        
+        // Si el reto fue creado por un profesional, incluir al profesional en el conteo
+        // Solo si el profesional no está ya en challenge_purchases
+        if (challenge && challenge.created_by_type === 'professional') {
+          // Verificar si el profesional creador ya está en challenge_purchases
+          const { count: creatorCount } = await supabase
+            .from("challenge_purchases")
+            .select("id", { count: "exact", head: true })
+            .eq("challenge_id", challengeId)
+            .eq("participant_id", challenge.created_by_user_id)
+            .eq("access_granted", true);
+          
+          // Si el creador no está en challenge_purchases, agregarlo al conteo
+          if (creatorCount === 0) {
+            totalCount = count + 1;
+          }
+        }
+        
+        setParticipantsCount(totalCount);
       }
     } catch (error) {
       console.error("Error fetching participants count:", error);
@@ -1115,13 +1142,14 @@ export default function MyChallengesPage() {
                         Participantes del Reto
                       </CardTitle>
                       <p className="text-sm text-muted-foreground">
-                        {participantsCount >= 2
-                          ? `Comunícate con los otros participantes del reto (${participantsCount} participantes)`
+                        {participantsCount >= 1
+                          ? `Comunícate con los otros participantes del reto (${participantsCount} participante${participantsCount > 1 ? 's' : ''})`
                           : "Invita a otros usuarios para chatear y trabajar juntos en el reto"}
                       </p>
                     </CardHeader>
                     <CardContent>
-                      {participantsCount >= 2 ? (
+                      {/* Mostrar chat si hay al menos 1 participante (el profesional creador cuenta) */}
+                      {participantsCount >= 1 ? (
                         <div className="space-y-4">
                           {/* Lista de participantes */}
                           <div>

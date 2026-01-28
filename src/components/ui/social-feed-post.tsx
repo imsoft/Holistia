@@ -267,7 +267,7 @@ export function SocialFeedPost({ checkin, onLike, onUnlike }: SocialFeedPostProp
   const timeAgo = getTimeAgo();
 
   return (
-    <Card className="overflow-hidden">
+    <Card className="overflow-hidden py-4">
       {/* Header con información del usuario */}
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">

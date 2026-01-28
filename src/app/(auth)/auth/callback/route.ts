@@ -31,16 +31,30 @@ export async function GET(request: Request) {
         origin
       });
 
-      // Si hay un parámetro 'next' válido, usarlo directamente (ej: para reset de contraseña)
-      if (next !== '/') {
-        console.log('🔄 Using "next" parameter for redirect:', next);
-        const finalUrl = isLocalEnv
-          ? `${origin}${next}`
-          : forwardedHost
-            ? `https://${forwardedHost}${next}`
-            : `${origin}${next}`;
+      // Detectar si es un flujo de recuperación de contraseña
+      // El AMR (Authentication Methods Reference) incluye "recovery" cuando es un reset de contraseña
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const sessionAny = data.session as any;
+      const amr = sessionAny?.amr as Array<{ method: string }> | undefined;
+      const isRecoveryFlow = amr?.some((method) => method.method === 'recovery' || method.method === 'otp') ?? false;
 
-        console.log('🚀 Final redirect URL (from next param):', finalUrl);
+      console.log('🔑 Auth flow detection:', {
+        next,
+        isRecoveryFlow,
+        amr
+      });
+
+      // Si hay un parámetro 'next' válido O es un flujo de recovery, redirigir a confirm-password
+      if (next !== '/' || isRecoveryFlow) {
+        const targetUrl = isRecoveryFlow ? '/confirm-password' : next;
+        console.log('🔄 Redirecting to:', targetUrl, isRecoveryFlow ? '(recovery flow detected)' : '(next param)');
+        const finalUrl = isLocalEnv
+          ? `${origin}${targetUrl}`
+          : forwardedHost
+            ? `https://${forwardedHost}${targetUrl}`
+            : `${origin}${targetUrl}`;
+
+        console.log('🚀 Final redirect URL:', finalUrl);
         return NextResponse.redirect(finalUrl);
       }
 

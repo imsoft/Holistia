@@ -175,15 +175,33 @@ export default function MyChallengesPage() {
       }
 
       // Obtener retos en los que el usuario participa
-      const { data: purchases, error } = await supabase
+      // Hacer query separada para evitar problemas con RLS en joins
+      const { data: purchases, error: purchasesError } = await supabase
         .from('challenge_purchases')
         .select(`
           id,
           challenge_id,
           access_granted,
           started_at,
-          completed_at,
-          challenges(
+          completed_at
+        `)
+        .eq('participant_id', user.id)
+        .eq('access_granted', true)
+        .order('created_at', { ascending: false });
+
+      if (purchasesError) {
+        console.error('Error fetching purchases:', purchasesError);
+        throw purchasesError;
+      }
+
+      // Obtener información de los retos por separado
+      const purchaseChallengeIds = (purchases || []).map((p: any) => p.challenge_id);
+      let challengesData: any[] = [];
+      
+      if (purchaseChallengeIds.length > 0) {
+        const { data: challenges, error: challengesError } = await supabase
+          .from('challenges')
+          .select(`
             id,
             title,
             description,
@@ -197,31 +215,36 @@ export default function MyChallengesPage() {
             linked_professional_id,
             is_active,
             is_public
-          )
-        `)
-        .eq('participant_id', user.id)
-        .eq('access_granted', true)
-        .order('created_at', { ascending: false });
+          `)
+          .in('id', purchaseChallengeIds);
 
-      if (error) {
-        console.error('Error fetching purchases:', error);
-        throw error;
+        if (challengesError) {
+          console.error('Error fetching challenges:', challengesError);
+          // Continuar sin challenges si hay error, pero loguear
+        } else {
+          challengesData = challenges || [];
+        }
       }
+
+      // Crear un mapa de challenges por ID para acceso rápido
+      const challengesMap = new Map(challengesData.map((c: any) => [c.id, c]));
 
       // Transformar datos de Supabase a formato esperado
       const transformedPurchases = (purchases || []).map((purchase: any) => {
-        const challenge = Array.isArray(purchase.challenges) && purchase.challenges.length > 0
-          ? purchase.challenges[0]
-          : purchase.challenges;
+        const challenge = challengesMap.get(purchase.challenge_id);
         return {
           id: purchase.id,
           challenge_id: purchase.challenge_id,
           access_granted: purchase.access_granted,
           started_at: purchase.started_at,
           completed_at: purchase.completed_at,
-          challenge: {
+          challenge: challenge ? {
             ...challenge,
-            is_active: challenge?.is_active ?? true,
+            is_active: challenge.is_active ?? true,
+          } : {
+            id: purchase.challenge_id,
+            title: 'Reto no disponible',
+            is_active: false,
           },
         };
       });

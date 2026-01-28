@@ -136,11 +136,14 @@ export default function MyChallengesPage() {
   useEffect(() => {
     const challengeId = searchParams.get('challenge');
     
-    if (challengeId && allChallenges.length > 0 && !selectedChallenge) {
+    if (challengeId && allChallenges.length > 0 && !selectedChallenge && !loading) {
       const challenge = allChallenges.find((c: any) => c.id === challengeId);
       if (challenge) {
         // Abrir el reto
-        handleOpenChallenge(challenge).then(() => {
+        handleOpenChallenge(challenge).catch((error) => {
+          console.error('Error opening challenge:', error);
+          toast.error('Error al abrir el reto');
+        }).then(() => {
           // Limpiar query params después de abrir
           setTimeout(() => {
             if (window.history.replaceState) {
@@ -151,15 +154,23 @@ export default function MyChallengesPage() {
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams, allChallenges.length, selectedChallenge]);
+  }, [searchParams, allChallenges.length, selectedChallenge, loading]);
 
   const fetchChallenges = async () => {
+    const timeoutId = setTimeout(() => {
+      console.error('Timeout en fetchChallenges después de 15 segundos');
+      setLoading(false);
+      toast.error("Tiempo de espera agotado. Por favor, recarga la página.");
+    }, 15000); // 15 segundos timeout
+
     try {
       setLoading(true);
       const { data: { user } } = await supabase.auth.getUser();
 
       if (!user) {
+        clearTimeout(timeoutId);
         toast.error("Debes iniciar sesión");
+        setLoading(false);
         return;
       }
 
@@ -185,20 +196,17 @@ export default function MyChallengesPage() {
             created_by_user_id,
             linked_professional_id,
             is_active,
-            is_public,
-            professional_applications:challenges_linked_professional_id_fkey(
-              first_name,
-              last_name,
-              profile_photo,
-              is_verified
-            )
+            is_public
           )
         `)
         .eq('participant_id', user.id)
         .eq('access_granted', true)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching purchases:', error);
+        throw error;
+      }
 
       // Transformar datos de Supabase a formato esperado
       const transformedPurchases = (purchases || []).map((purchase: any) => {
@@ -236,20 +244,15 @@ export default function MyChallengesPage() {
           linked_professional_id,
           is_active,
           is_public,
-          created_at,
-          professional_applications!challenges_linked_professional_id_fkey(
-            first_name,
-            last_name,
-            profile_photo,
-            is_verified
-          )
+          created_at
         `)
         .eq('created_by_user_id', user.id)
         .order('created_at', { ascending: false });
 
       if (createdError) {
         console.error('Error fetching created challenges:', createdError);
-        throw createdError;
+        // No lanzar error, solo continuar sin retos creados
+        console.warn('Continuando sin retos creados debido a error');
       }
 
       console.log('🔍 Retos creados encontrados:', created?.length || 0, created);
@@ -258,9 +261,6 @@ export default function MyChallengesPage() {
       const transformedCreated = (created || []).map((challenge: any) => ({
         ...challenge,
         is_active: challenge.is_active ?? true,
-        professional_applications: Array.isArray(challenge.professional_applications) && challenge.professional_applications.length > 0
-          ? challenge.professional_applications[0]
-          : undefined,
       }));
 
       setCreatedChallenges(transformedCreated);
@@ -307,7 +307,9 @@ export default function MyChallengesPage() {
       setAllChallenges(combinedChallenges);
       setFilteredChallenges(combinedChallenges);
 
+      clearTimeout(timeoutId);
     } catch (error) {
+      clearTimeout(timeoutId);
       console.error("Error fetching challenges:", error);
       toast.error("Error al cargar retos");
     } finally {

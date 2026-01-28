@@ -1343,13 +1343,13 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
                             <div className="flex items-center gap-2">
                               <Button
                                 type="button"
-                                variant="outline"
-                                size="sm"
+                                variant="ghost"
+                                size="icon"
                                 onClick={() => openRemoveParticipantDialog(participant.id)}
                                 disabled={removingParticipant}
+                                className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
                               >
-                                <Trash2 className="h-4 w-4 mr-2" />
-                                Eliminar
+                                <Trash2 className="h-4 w-4" />
                               </Button>
                               <div className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center">
                                 <CheckCircle2 className="h-3 w-3 text-white" />

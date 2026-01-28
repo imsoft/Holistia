@@ -117,8 +117,8 @@ export default function EditProfessionalChallengePage() {
 
   const handleFormSubmit = () => {
     setSaving(false);
-    // Recargar los datos del challenge después de actualizar
-    fetchChallenge();
+    // Redirigir a la lista de retos después de editar exitosamente
+    router.push(`/challenges`);
   };
 
   const handleCancel = () => {

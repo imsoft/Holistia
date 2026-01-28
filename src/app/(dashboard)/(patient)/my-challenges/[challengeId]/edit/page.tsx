@@ -78,8 +78,8 @@ export default function EditChallengePage() {
   const handleFormSubmit = () => {
     setSaving(false);
     setFormSubmitted(true);
-    // Recargar los datos del challenge después de actualizar
-    fetchChallenge();
+    // Redirigir a la lista de retos después de editar exitosamente
+    router.push(`/my-challenges`);
   };
 
   const handleCancel = () => {

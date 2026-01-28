@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/select";
 import { createClient } from "@/utils/supabase/client";
 import { toast } from "sonner";
-import { Calendar, Target, Loader2, CheckCircle2, Circle, Users, Plus, Edit, Trash2, Link as LinkIcon, Book, Headphones, Video, FileText, ExternalLink, Search, Filter, Share2, UserPlus } from "lucide-react";
+import { Calendar, Target, Loader2, CheckCircle2, Circle, Users, Plus, Edit, Trash2, Link as LinkIcon, Book, Headphones, Video, FileText, ExternalLink, Search, Filter, Share2, UserPlus, Trophy, MessageSquare } from "lucide-react";
 import { CheckinForm } from "@/components/ui/checkin-form";
 import { ChallengeProgress } from "@/components/ui/challenge-progress";
 import { ChallengeBadges } from "@/components/ui/challenge-badges";
@@ -880,13 +880,25 @@ export default function MyChallengesPage() {
             <div className="lg:col-span-2 space-y-6">
               <Tabs defaultValue="progress" className="w-full">
                 <TabsList className="grid w-full grid-cols-5">
-                  <TabsTrigger value="progress">Progreso</TabsTrigger>
-                  <TabsTrigger value="checkins">Check-ins</TabsTrigger>
-                  <TabsTrigger value="badges">Badges</TabsTrigger>
-                  <TabsTrigger value="resources">Recursos</TabsTrigger>
+                  <TabsTrigger value="progress">
+                    <Target className="h-4 w-4 mr-1" />
+                    Progreso
+                  </TabsTrigger>
+                  <TabsTrigger value="checkins">
+                    <CheckCircle2 className="h-4 w-4 mr-1" />
+                    Check-ins
+                  </TabsTrigger>
+                  <TabsTrigger value="badges">
+                    <Trophy className="h-4 w-4 mr-1" />
+                    Badges
+                  </TabsTrigger>
+                  <TabsTrigger value="resources">
+                    <FileText className="h-4 w-4 mr-1" />
+                    Recursos
+                  </TabsTrigger>
                   <TabsTrigger value="chat">
                     <Users className="h-4 w-4 mr-1" />
-                    Chat
+                    Participantes
                   </TabsTrigger>
                 </TabsList>
 
@@ -1100,7 +1112,7 @@ export default function MyChallengesPage() {
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
                         <Users className="h-5 w-5" />
-                        Chat del Reto
+                        Participantes del Reto
                       </CardTitle>
                       <p className="text-sm text-muted-foreground">
                         {participantsCount >= 2
@@ -1110,11 +1122,28 @@ export default function MyChallengesPage() {
                     </CardHeader>
                     <CardContent>
                       {participantsCount >= 2 ? (
-                        <div className="h-[500px]">
-                          <ChallengeChat
-                            challengeId={selectedChallenge.challenge_id}
-                            currentUserId={userId || ""}
-                          />
+                        <div className="space-y-4">
+                          {/* Lista de participantes */}
+                          <div>
+                            <h4 className="text-sm font-medium mb-3">Participantes ({participantsCount})</h4>
+                            <div className="space-y-2">
+                              {/* Aquí podríamos agregar la lista de participantes en el futuro */}
+                            </div>
+                          </div>
+                          
+                          {/* Chat */}
+                          <div>
+                            <h4 className="text-sm font-medium mb-3 flex items-center gap-2">
+                              <MessageSquare className="h-4 w-4" />
+                              Chat del Reto
+                            </h4>
+                            <div className="h-[400px] border rounded-lg">
+                              <ChallengeChat
+                                challengeId={selectedChallenge.challenge_id}
+                                currentUserId={userId || ""}
+                              />
+                            </div>
+                          </div>
                         </div>
                       ) : (
                         <div className="flex flex-col items-center justify-center py-16 px-4 text-center">

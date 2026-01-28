@@ -51,12 +51,17 @@ export function TeamInvitationsList() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || "Error al cargar invitaciones");
+        console.error("Error loading invitations:", data.error);
+        // No mostrar toast para evitar spam, solo loggear el error
+        setInvitations([]);
+        return;
       }
 
       setInvitations(data.data || []);
     } catch (error) {
       console.error("Error loading invitations:", error);
+      // No romper la página si falla la carga de invitaciones
+      setInvitations([]);
     } finally {
       setLoading(false);
     }

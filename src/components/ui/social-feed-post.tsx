@@ -243,10 +243,26 @@ export function SocialFeedPost({ checkin, onLike, onUnlike }: SocialFeedPostProp
     return `${checkin.user_first_name.charAt(0)}${checkin.user_last_name.charAt(0)}`.toUpperCase();
   };
 
-  const timeAgo = formatDistanceToNow(new Date(checkin.checkin_time), {
-    addSuffix: true,
-    locale: es,
-  });
+  // Validar fecha antes de formatear
+  const getTimeAgo = () => {
+    if (!checkin.checkin_time) return "Hace un momento";
+    try {
+      const date = new Date(checkin.checkin_time);
+      if (isNaN(date.getTime())) {
+        console.warn("Invalid date:", checkin.checkin_time);
+        return "Hace un momento";
+      }
+      return formatDistanceToNow(date, {
+        addSuffix: true,
+        locale: es,
+      });
+    } catch (error) {
+      console.error("Error formatting date:", error);
+      return "Hace un momento";
+    }
+  };
+
+  const timeAgo = getTimeAgo();
 
   return (
     <Card className="overflow-hidden">

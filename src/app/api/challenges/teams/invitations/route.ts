@@ -15,6 +15,7 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const type = searchParams.get("type") || "received"; // received | sent
 
+    // Hacer query base sin joins problemáticos
     let query = supabase
       .from("challenge_team_invitations")
       .select(`
@@ -26,16 +27,6 @@ export async function GET(request: Request) {
           is_full,
           creator_id,
           challenge:challenges(id, title, cover_image_url)
-        ),
-        inviter:profiles!challenge_team_invitations_inviter_id_fkey(
-          first_name,
-          last_name,
-          avatar_url
-        ),
-        invitee:profiles!challenge_team_invitations_invitee_id_fkey(
-          first_name,
-          last_name,
-          avatar_url
         )
       `)
       .order("created_at", { ascending: false });
@@ -53,25 +44,51 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    // Obtener información del creador del equipo por separado si es necesario
+    // Obtener información de perfiles por separado para evitar problemas de foreign keys
     const enrichedData = await Promise.all(
       (data || []).map(async (invitation: any) => {
+        // Obtener perfil del inviter
+        let inviter = null;
+        if (invitation.inviter_id) {
+          const { data: inviterData } = await supabase
+            .from("profiles")
+            .select("first_name, last_name, avatar_url")
+            .eq("id", invitation.inviter_id)
+            .maybeSingle();
+          inviter = inviterData;
+        }
+
+        // Obtener perfil del invitee
+        let invitee = null;
+        if (invitation.invitee_id) {
+          const { data: inviteeData } = await supabase
+            .from("profiles")
+            .select("first_name, last_name, avatar_url")
+            .eq("id", invitation.invitee_id)
+            .maybeSingle();
+          invitee = inviteeData;
+        }
+
+        // Obtener información del creador del equipo por separado si es necesario
+        let creator = null;
         if (invitation.team?.creator_id) {
-          const { data: creator } = await supabase
+          const { data: creatorData } = await supabase
             .from("profiles")
             .select("first_name, last_name, avatar_url")
             .eq("id", invitation.team.creator_id)
-            .single();
-
-          return {
-            ...invitation,
-            team: {
-              ...invitation.team,
-              creator: creator || null,
-            },
-          };
+            .maybeSingle();
+          creator = creatorData;
         }
-        return invitation;
+
+        return {
+          ...invitation,
+          inviter: inviter || null,
+          invitee: invitee || null,
+          team: {
+            ...invitation.team,
+            creator: creator || null,
+          },
+        };
       })
     );
 
@@ -115,8 +132,7 @@ export async function POST(request: Request) {
           id,
           team_name,
           challenge:challenges(id, title)
-        ),
-        inviter:profiles!challenge_team_invitations_inviter_id_fkey(first_name, last_name)
+        )
       `)
       .single();
 
@@ -124,23 +140,31 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: invitationError.message }, { status: 500 });
     }
 
-    // Enviar email al invitado (no romper el flujo si falla)
-    try {
-      const { data: inviteeProfile } = await supabase
+    // Obtener perfiles por separado para evitar problemas de foreign keys
+    const [inviterProfile, inviteeProfile] = await Promise.all([
+      supabase
+        .from("profiles")
+        .select("first_name, last_name, email")
+        .eq("id", user.id)
+        .maybeSingle(),
+      supabase
         .from("profiles")
         .select("first_name, last_name, email")
         .eq("id", inviteeId)
-        .single();
+        .maybeSingle(),
+    ]);
 
-      const inviteeEmail = inviteeProfile?.email;
+    // Enviar email al invitado (no romper el flujo si falla)
+    try {
+      const inviteeEmail = inviteeProfile.data?.email;
       if (inviteeEmail) {
         const inviteeName =
-          [inviteeProfile?.first_name, inviteeProfile?.last_name].filter(Boolean).join(" ").trim() ||
+          [inviteeProfile.data?.first_name, inviteeProfile.data?.last_name].filter(Boolean).join(" ").trim() ||
           inviteeEmail.split("@")[0] ||
           "Usuario";
 
         const inviterName =
-          [invitation?.inviter?.first_name, invitation?.inviter?.last_name].filter(Boolean).join(" ").trim() ||
+          [inviterProfile.data?.first_name, inviterProfile.data?.last_name].filter(Boolean).join(" ").trim() ||
           user.email?.split("@")[0] ||
           "Usuario";
 
@@ -160,7 +184,13 @@ export async function POST(request: Request) {
       console.error("Error sending challenge invitation email:", emailError);
     }
 
-    return NextResponse.json({ data: invitation });
+    // Enriquecer respuesta con datos de perfiles
+    const enrichedInvitation = {
+      ...invitation,
+      inviter: inviterProfile.data || null,
+    };
+
+    return NextResponse.json({ data: enrichedInvitation });
   } catch (error) {
     console.error("Error creating invitation:", error);
     return NextResponse.json({ error: "Error al crear invitación" }, { status: 500 });

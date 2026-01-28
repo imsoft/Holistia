@@ -105,9 +105,16 @@ export async function GET(request: Request) {
       );
     }
 
-    // Ordenar por fecha
+    // Ordenar por fecha (con validación para evitar errores de fecha inválida)
     allCheckins.sort((a, b) => {
-      return new Date(b.checkin_time).getTime() - new Date(a.checkin_time).getTime();
+      const dateA = a.checkin_time ? new Date(a.checkin_time) : new Date(0);
+      const dateB = b.checkin_time ? new Date(b.checkin_time) : new Date(0);
+      
+      // Si alguna fecha es inválida, usar timestamp 0
+      const timeA = isNaN(dateA.getTime()) ? 0 : dateA.getTime();
+      const timeB = isNaN(dateB.getTime()) ? 0 : dateB.getTime();
+      
+      return timeB - timeA;
     });
 
     // Aplicar filtro de populares si es necesario

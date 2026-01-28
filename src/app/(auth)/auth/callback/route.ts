@@ -21,6 +21,29 @@ export async function GET(request: Request) {
         email: data.user.email
       });
 
+      const forwardedHost = request.headers.get('x-forwarded-host') // original origin before load balancer
+      const isLocalEnv = process.env.NODE_ENV === 'development'
+
+      console.log('🌍 Environment check:', {
+        NODE_ENV: process.env.NODE_ENV,
+        isLocalEnv,
+        forwardedHost,
+        origin
+      });
+
+      // Si hay un parámetro 'next' válido, usarlo directamente (ej: para reset de contraseña)
+      if (next !== '/') {
+        console.log('🔄 Using "next" parameter for redirect:', next);
+        const finalUrl = isLocalEnv
+          ? `${origin}${next}`
+          : forwardedHost
+            ? `https://${forwardedHost}${next}`
+            : `${origin}${next}`;
+
+        console.log('🚀 Final redirect URL (from next param):', finalUrl);
+        return NextResponse.redirect(finalUrl);
+      }
+
       // Obtener tipo de usuario y estado de cuenta desde profiles
       const { data: profile } = await supabase
         .from('profiles')
@@ -34,16 +57,7 @@ export async function GET(request: Request) {
       }
 
       const userType = profile?.type;
-      const forwardedHost = request.headers.get('x-forwarded-host') // original origin before load balancer
-      const isLocalEnv = process.env.NODE_ENV === 'development'
-      
-      console.log('🌍 Environment check:', {
-        NODE_ENV: process.env.NODE_ENV,
-        isLocalEnv,
-        forwardedHost,
-        origin
-      });
-      
+
       // Determinar la URL de redirección según el tipo de usuario
       let redirectUrl;
       if (userType === 'admin') {
@@ -74,10 +88,10 @@ export async function GET(request: Request) {
           console.log('👤 Default patient redirect to:', redirectUrl);
         }
       }
-      
-      const finalUrl = isLocalEnv 
+
+      const finalUrl = isLocalEnv
         ? `${origin}${redirectUrl}`
-        : forwardedHost 
+        : forwardedHost
           ? `https://${forwardedHost}${redirectUrl}`
           : `${origin}${redirectUrl}`;
 

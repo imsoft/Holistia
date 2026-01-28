@@ -2,6 +2,55 @@ import { Resend } from 'resend';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
+// ============================================================================
+// PASSWORD RESET EMAIL
+// ============================================================================
+
+interface PasswordResetEmailData {
+  user_name: string;
+  user_email: string;
+  reset_url: string;
+}
+
+export async function sendPasswordResetEmail(data: PasswordResetEmailData) {
+  try {
+    const fs = await import('fs');
+    const path = await import('path');
+
+    const templatePath = path.join(process.cwd(), 'database/email-templates/password-reset.html');
+    let emailTemplate: string;
+
+    try {
+      emailTemplate = fs.readFileSync(templatePath, 'utf8');
+    } catch (error) {
+      console.error('Error reading password reset email template:', error);
+      return { success: false, error: 'Template not found' };
+    }
+
+    const emailContent = emailTemplate
+      .replace(/\{\{user_name\}\}/g, data.user_name)
+      .replace(/\{\{reset_url\}\}/g, data.reset_url);
+
+    const { data: emailData, error } = await resend.emails.send({
+      from: 'Holistia <noreply@holistia.io>',
+      to: [data.user_email],
+      subject: 'Restablecer tu contraseña | Holistia',
+      html: emailContent,
+    });
+
+    if (error) {
+      console.error('Error sending password reset email:', error);
+      return { success: false, error: error.message };
+    }
+
+    console.log('Password reset email sent successfully:', emailData?.id);
+    return { success: true, message: 'Email sent successfully', id: emailData?.id };
+  } catch (error) {
+    console.error('Error in sendPasswordResetEmail:', error);
+    return { success: false, error: 'Failed to send email' };
+  }
+}
+
 interface EventConfirmationEmailData {
   user_name: string;
   user_email: string;

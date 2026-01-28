@@ -240,7 +240,9 @@ export function SocialFeedPost({ checkin, onLike, onUnlike }: SocialFeedPostProp
   };
 
   const getUserInitials = () => {
-    return `${checkin.user_first_name.charAt(0)}${checkin.user_last_name.charAt(0)}`.toUpperCase();
+    const firstName = checkin.user_first_name || "";
+    const lastName = checkin.user_last_name || "";
+    return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase() || "U";
   };
 
   // Validar fecha antes de formatear

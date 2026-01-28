@@ -118,31 +118,14 @@ export default function SocialFeedPage() {
       />
 
       <main className="max-w-2xl mx-auto px-4 py-8">
-        {/* Header */}
-        <motion.div
-          className="flex items-center justify-between mb-6"
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-        >
-          <h1 className="text-3xl font-bold">Feed Social</h1>
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={handleRefresh}
-            disabled={loading || isRefreshing}
-          >
-            <RefreshCw className={`h-4 w-4 ${loading || isRefreshing ? "animate-spin" : ""}`} />
-          </Button>
-        </motion.div>
-
         {/* Tabs de filtros */}
         <Tabs
           value={filter}
           onValueChange={(value) => setFilter(value as typeof filter)}
           className="mb-6"
         >
-          <TabsList className="grid w-full grid-cols-3">
+          <div className="flex items-center justify-between mb-4">
+            <TabsList className="grid w-full grid-cols-3 max-w-md">
             <TabsTrigger value="all" className="gap-2">
               <Sparkles className="h-4 w-4" />
               Todos
@@ -156,6 +139,16 @@ export default function SocialFeedPage() {
               Populares
             </TabsTrigger>
           </TabsList>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={handleRefresh}
+            disabled={loading || isRefreshing}
+            className="ml-4"
+          >
+            <RefreshCw className={`h-4 w-4 ${loading || isRefreshing ? "animate-spin" : ""}`} />
+          </Button>
+          </div>
 
           <TabsContent value={filter} className="mt-6">
             {/* Feed de posts */}

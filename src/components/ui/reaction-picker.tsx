@@ -104,7 +104,7 @@ export function ReactionPicker({
           "flex items-center gap-1.5 px-3 py-1.5 rounded-full transition-all",
           currentReaction
             ? "bg-primary/10 text-primary hover:bg-primary/20"
-            : "bg-muted hover:bg-muted/80",
+            : "bg-white hover:bg-gray-50 border border-gray-200",
           compact && "px-2 py-1"
         )}
       >

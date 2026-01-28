@@ -22,11 +22,13 @@ interface SocialFeedPostProps {
     user_first_name: string;
     user_last_name: string;
     user_photo_url: string | null;
+    user_email?: string | null;
     challenge_id: string;
     challenge_title: string;
     challenge_cover_image: string | null;
     challenge_category: string | null;
     challenge_difficulty: string | null;
+    challenge_duration_days?: number | null;
     professional_first_name: string;
     professional_last_name: string;
     day_number: number;
@@ -258,7 +260,13 @@ export function SocialFeedPost({ checkin, onLike, onUnlike }: SocialFeedPostProp
     if (firstName || lastName) {
       return `${firstName} ${lastName}`.trim();
     }
-    // Si no hay nombre, intentar usar el user_id como fallback o mostrar "Usuario"
+    // Si no hay nombre, intentar usar el email como fallback
+    if (checkin.user_email) {
+      const emailName = checkin.user_email.split("@")[0];
+      // Capitalizar primera letra
+      return emailName.charAt(0).toUpperCase() + emailName.slice(1);
+    }
+    // Último recurso: mostrar "Usuario"
     return "Usuario";
   };
 
@@ -339,7 +347,10 @@ export function SocialFeedPost({ checkin, onLike, onUnlike }: SocialFeedPostProp
         <div className="flex items-center gap-4 text-sm">
           <div className="flex items-center gap-1">
             <Calendar className="h-4 w-4 text-muted-foreground" />
-            <span>Día {checkin.day_number}</span>
+            <span>
+              Día {checkin.day_number}
+              {checkin.challenge_duration_days && ` / ${checkin.challenge_duration_days}`}
+            </span>
           </div>
           {checkin.completion_percentage != null && (
             <div className="text-muted-foreground">

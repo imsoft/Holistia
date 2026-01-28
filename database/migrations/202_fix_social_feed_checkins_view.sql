@@ -27,6 +27,7 @@ SELECT
     p.first_name AS user_first_name,
     p.last_name AS user_last_name,
     p.avatar_url AS user_photo_url,
+    p.email AS user_email,
     p.type AS user_type,
 
     -- Información del reto (con nombres correctos)
@@ -35,6 +36,7 @@ SELECT
     ch.cover_image_url AS challenge_cover_image, -- Nombre correcto
     ch.category AS challenge_category,
     ch.difficulty_level AS challenge_difficulty, -- Nombre correcto
+    ch.duration_days AS challenge_duration_days, -- Duración total del reto
 
     -- Información del profesional que creó el reto
     pa.id AS professional_id,
@@ -122,6 +124,7 @@ SELECT
     p.first_name as user_first_name,
     p.last_name as user_last_name,
     p.avatar_url as user_photo_url,
+    p.email as user_email,
     p.type as user_type,
     -- Información del equipo
     ct.id as team_id,
@@ -133,6 +136,7 @@ SELECT
     c.cover_image_url as challenge_cover_image,
     c.category as challenge_category,
     c.difficulty_level as challenge_difficulty,
+    c.duration_days as challenge_duration_days,
     -- Información del profesional
     pa.id as professional_id,
     pa.first_name as professional_first_name,

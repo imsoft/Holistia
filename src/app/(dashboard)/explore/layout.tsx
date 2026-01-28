@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
@@ -85,16 +85,23 @@ export default function ExploreLayout({
 
   // Usar el store de Zustand para el estado de autenticación (persistido)
   const isAuthenticated = useUserStore((state) => state.isAuthenticated);
-  const setUserStore = useUserStore((state) => state.setUser);
-  const clearUserStore = useUserStore((state) => state.clearUser);
 
   const { profile, loading } = useProfile();
   const pathname = usePathname();
   const router = useRouter();
-  const supabase = createClient();
+
+  // Memoizar el cliente de Supabase para evitar re-renders
+  const supabase = useMemo(() => createClient(), []);
+
+  // Ref para evitar múltiples ejecuciones del check de auth
+  const authCheckRef = useRef(false);
 
   // Verificar si el usuario está autenticado
   useEffect(() => {
+    // Evitar múltiples ejecuciones
+    if (authCheckRef.current) return;
+    authCheckRef.current = true;
+
     let mounted = true;
 
     const checkAuth = async () => {
@@ -106,7 +113,8 @@ export default function ExploreLayout({
       const user = data.session?.user;
       if (user) {
         // Actualizar el store con datos básicos del usuario
-        setUserStore({
+        // Usar getState() para obtener referencias estables
+        useUserStore.getState().setUser({
           id: user.id,
           email: user.email || '',
           first_name: user.user_metadata?.first_name || null,
@@ -132,9 +140,9 @@ export default function ExploreLayout({
       }
 
       if (event === 'SIGNED_OUT' || !session?.user) {
-        clearUserStore();
+        useUserStore.getState().clearUser();
       } else if (session?.user) {
-        setUserStore({
+        useUserStore.getState().setUser({
           id: session.user.id,
           email: session.user.email || '',
           first_name: session.user.user_metadata?.first_name || null,
@@ -150,15 +158,22 @@ export default function ExploreLayout({
       mounted = false;
       subscription.unsubscribe();
     };
-  }, [supabase, setUserStore, clearUserStore]);
+  }, [supabase]);
 
   useEffect(() => {
     setCurrentPathname(pathname);
   }, [pathname]);
 
+  // Ref para evitar múltiples verificaciones de profesional
+  const professionalCheckRef = useRef<string | null>(null);
+
   // Verificar si es profesional y tiene eventos
   useEffect(() => {
     if (!profile) return;
+
+    // Evitar verificar múltiples veces para el mismo usuario
+    if (professionalCheckRef.current === profile.id) return;
+    professionalCheckRef.current = profile.id;
 
     const checkProfessionalAndEvents = async () => {
       // Verificar si el usuario es profesional (tiene aplicación aprobada)
@@ -168,7 +183,7 @@ export default function ExploreLayout({
         .eq('user_id', profile.id)
         .eq('status', 'approved')
         .maybeSingle();
-      
+
       setIsProfessional(!!professionalApp);
 
       // Verificar si el usuario tiene eventos asignados

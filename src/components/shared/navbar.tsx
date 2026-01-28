@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Menu, LogOut, User, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -34,27 +34,34 @@ const navigation = [
 export const Navbar = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  
+
   // Optimización: Usar caché primero para renderizado inmediato
   const profileCache = useProfileCache();
   const isCacheValid = useIsProfileCacheValid();
-  const clearUser = useUserStore((state) => state.clearUser);
-  const clearProfileCache = useUserStore((state) => state.clearProfileCache);
-  
+
   // Solo usar useProfile() si no hay caché válido (pero no bloquear el render)
   const { profile: profileFromHook, loading: profileLoading } = useProfile();
-  
+
   // Verificar autenticación antes de usar el perfil
   // Si el caché fue limpiado (null), no usar profileFromHook aunque tenga datos
   const hasValidCache = isCacheValid && profileCache;
   const profile = hasValidCache ? profileCache : (profileCache === null ? null : profileFromHook);
   const loading = !hasValidCache && profileLoading;
-  
+
   const router = useRouter();
-  const supabase = createClient();
+
+  // Memoizar cliente de Supabase para evitar re-renders
+  const supabase = useMemo(() => createClient(), []);
+
+  // Ref para evitar múltiples ejecuciones
+  const authCheckRef = useRef(false);
 
   // Verificar estado de autenticación directamente
   useEffect(() => {
+    // Evitar múltiples ejecuciones
+    if (authCheckRef.current) return;
+    authCheckRef.current = true;
+
     const checkAuth = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       setIsAuthenticated(!!user);
@@ -72,22 +79,22 @@ export const Navbar = () => {
       }
       setIsAuthenticated(!!session?.user);
       if (event === 'SIGNED_OUT') {
-        // Limpiar caché cuando se cierra sesión
-        clearUser();
-        clearProfileCache();
+        // Limpiar caché cuando se cierra sesión - usar getState() para referencias estables
+        useUserStore.getState().clearUser();
+        useUserStore.getState().clearProfileCache();
       }
     });
 
     return () => {
       subscription.unsubscribe();
     };
-  }, [supabase, clearUser, clearProfileCache]);
+  }, [supabase]);
 
   const handleLogout = async () => {
     // Limpiar caché del store PRIMERO para actualizar UI inmediatamente
     setIsAuthenticated(false);
-    clearUser();
-    clearProfileCache();
+    useUserStore.getState().clearUser();
+    useUserStore.getState().clearProfileCache();
     // Luego cerrar sesión en Supabase
     await supabase.auth.signOut();
     // Finalmente redirigir (usar replace para no agregar al historial)

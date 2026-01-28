@@ -28,12 +28,9 @@ export function useProfile() {
   // Importante: evitar recrear el cliente en cada render.
   const supabase = useMemo(() => createClient(), []);
   
-  // Obtener caché del store de Zustand
+  // Obtener caché del store de Zustand (solo valores, no funciones para evitar re-renders)
   const profileCache = useUserStore((state) => state.profileCache);
-  const profileCacheTimestamp = useUserStore((state) => state.profileCacheTimestamp);
   const isProfileCacheValidFn = useUserStore((state) => state.isProfileCacheValid);
-  const setProfileCache = useUserStore((state) => state.setProfileCache);
-  const clearProfileCache = useUserStore((state) => state.clearProfileCache);
 
   /**
    * Cargar perfil del usuario autenticado
@@ -118,7 +115,7 @@ export function useProfile() {
           setProfile(newProfile);
           // Actualizar caché (solo si no es el mismo objeto para evitar loops)
           if (profileCache?.id !== newProfile.id) {
-            setProfileCache(newProfile);
+            useUserStore.getState().setProfileCache(newProfile);
           }
         } else {
           throw profileError;
@@ -126,7 +123,7 @@ export function useProfile() {
       } else {
         setProfile(data);
         // Actualizar caché (Zustand manejará la comparación internamente)
-        setProfileCache(data);
+        useUserStore.getState().setProfileCache(data);
       }
     } catch (err) {
       console.error('Error loading profile:', err);
@@ -158,7 +155,7 @@ export function useProfile() {
 
       setProfile(data);
       // Actualizar caché cuando se actualiza el perfil
-      setProfileCache(data);
+      useUserStore.getState().setProfileCache(data);
       return data;
     } catch (err) {
       console.error('Error updating profile:', err);
@@ -172,7 +169,7 @@ export function useProfile() {
    * Limpia el caché y vuelve a cargar
    */
   const refreshProfile = () => {
-    clearProfileCache();
+    useUserStore.getState().clearProfileCache();
     loadProfile({ silent: false });
   };
 
@@ -190,7 +187,8 @@ export function useProfile() {
         setProfile(null);
         setLoading(false);
         setError(null);
-        clearProfileCache();
+        // Usar getState() para evitar dependencias inestables
+        useUserStore.getState().clearProfileCache();
       } else if (event === 'SIGNED_IN' && session?.user && !loadingRef.current) {
         // Si el usuario inició sesión, cargar perfil (solo si no está cargando)
         loadingRef.current = true;
@@ -199,7 +197,7 @@ export function useProfile() {
         });
       } else if (event === 'USER_UPDATED' && session?.user && !loadingRef.current) {
         // Solo refrescar el perfil cuando el usuario cambió (no en TOKEN_REFRESHED),
-        // para evitar “refresh” al cambiar de pestaña/ventana.
+        // para evitar "refresh" al cambiar de pestaña/ventana.
         loadingRef.current = true;
         loadProfile({ silent: true }).finally(() => {
           loadingRef.current = false;
@@ -211,7 +209,7 @@ export function useProfile() {
       subscription.unsubscribe();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [supabase, clearProfileCache]);
+  }, [supabase]);
 
   // Cargar perfil al montar el componente (solo una vez)
   useEffect(() => {
@@ -239,24 +237,14 @@ export function useProfile() {
         return;
       }
 
-      // Optimización: Si hay caché válido, usarlo inmediatamente (loading optimista)
+      // Optimización: Si hay caché válido, usarlo inmediatamente sin hacer fetch
       const isCacheValid = isProfileCacheValidFn();
       if (profileCache && isCacheValid) {
-        // Cargar inmediatamente desde caché (no bloquea)
+        // Cargar inmediatamente desde caché (no bloquea, no hace fetch)
         setProfile(profileCache);
         setLoading(false);
         setError(null);
-        
-        // Cargar en segundo plano para actualizar si es necesario (solo si no está cargando)
-        if (!loadingRef.current) {
-          loadingRef.current = true;
-          loadProfile({ silent: true }).catch(err => {
-            console.error('Error loading profile in background:', err);
-            // No actualizar el estado si falla, mantener el caché
-          }).finally(() => {
-            loadingRef.current = false;
-          });
-        }
+        // NO hacer fetch en background - el caché es válido por 5 minutos
         return;
       }
       

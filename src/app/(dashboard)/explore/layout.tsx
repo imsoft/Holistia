@@ -93,34 +93,25 @@ export default function ExploreLayout({
   // Memoizar el cliente de Supabase para evitar re-renders
   const supabase = useMemo(() => createClient(), []);
 
-  // Ref para evitar múltiples ejecuciones del check de auth
-  const authCheckRef = useRef(false);
-
-  // Verificar si el usuario está autenticado
+  // Verificar auth una sola vez al montar (sin listener - useProfile ya maneja los cambios)
   useEffect(() => {
-    // Evitar múltiples ejecuciones
-    if (authCheckRef.current) return;
-    authCheckRef.current = true;
+    // Si ya hay datos en el store (persistido), no hacer check
+    if (isAuthenticated) {
+      setAuthChecked(true);
+      return;
+    }
 
-    let mounted = true;
-
+    // Solo hacer check inicial si no hay datos persistidos
     const checkAuth = async () => {
-      // `getSession()` es instantáneo (no hace request) y evita que el layout
-      // bloquee el render por una llamada de red en páginas públicas.
       const { data } = await supabase.auth.getSession();
-      if (!mounted) return;
-
-      const user = data.session?.user;
-      if (user) {
-        // Actualizar el store con datos básicos del usuario
-        // Usar getState() para obtener referencias estables
+      if (data.session?.user) {
         useUserStore.getState().setUser({
-          id: user.id,
-          email: user.email || '',
-          first_name: user.user_metadata?.first_name || null,
-          last_name: user.user_metadata?.last_name || null,
-          type: user.user_metadata?.type || 'patient',
-          avatar_url: user.user_metadata?.avatar_url || null,
+          id: data.session.user.id,
+          email: data.session.user.email || '',
+          first_name: data.session.user.user_metadata?.first_name || null,
+          last_name: data.session.user.user_metadata?.last_name || null,
+          type: data.session.user.user_metadata?.type || 'patient',
+          avatar_url: data.session.user.user_metadata?.avatar_url || null,
           account_active: true,
         });
       }
@@ -128,37 +119,8 @@ export default function ExploreLayout({
     };
 
     checkAuth();
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session) => {
-      if (!mounted) return;
-      // Ignorar eventos que no requieren cambio de UI (como TOKEN_REFRESHED)
-      // Solo actualizar en eventos de login/logout reales
-      if (event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION') {
-        return;
-      }
-
-      if (event === 'SIGNED_OUT' || !session?.user) {
-        useUserStore.getState().clearUser();
-      } else if (session?.user) {
-        useUserStore.getState().setUser({
-          id: session.user.id,
-          email: session.user.email || '',
-          first_name: session.user.user_metadata?.first_name || null,
-          last_name: session.user.user_metadata?.last_name || null,
-          type: session.user.user_metadata?.type || 'patient',
-          avatar_url: session.user.user_metadata?.avatar_url || null,
-          account_active: true,
-        });
-      }
-    });
-
-    return () => {
-      mounted = false;
-      subscription.unsubscribe();
-    };
-  }, [supabase]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     setCurrentPathname(pathname);

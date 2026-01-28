@@ -7,7 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { User } from 'lucide-react';
-import AvailabilityBlockManager from '@/components/ui/availability-block-manager';
+import { WorkingHoursManager } from '@/components/ui/working-hours-manager';
+import { ProfessionalToleranceSettings } from '@/components/professional-tolerance-settings';
 
 interface ProfessionalApplication {
   id: string;
@@ -23,6 +24,9 @@ export default function AvailabilityPage() {
   const [user, setUser] = useState<{ id: string } | null>(null);
   const [professional, setProfessional] = useState<ProfessionalApplication | null>(null);
   const [loading, setLoading] = useState(true);
+  const [workingStartTime, setWorkingStartTime] = useState<string>("09:00");
+  const [workingEndTime, setWorkingEndTime] = useState<string>("18:00");
+  const [workingDays, setWorkingDays] = useState<number[]>([1, 2, 3, 4, 5]);
 
   useEffect(() => {
     const getUser = async () => {
@@ -43,7 +47,7 @@ export default function AvailabilityPage() {
       try {
         const { data: professionalData, error } = await supabase
           .from('professional_applications')
-          .select('id, first_name, last_name, profession, status')
+          .select('*, working_start_time, working_end_time, working_days')
           .eq('user_id', user.id)
           .single();
 
@@ -55,6 +59,9 @@ export default function AvailabilityPage() {
           }
         } else {
           setProfessional(professionalData);
+          setWorkingStartTime(professionalData.working_start_time || '09:00');
+          setWorkingEndTime(professionalData.working_end_time || '18:00');
+          setWorkingDays(professionalData.working_days || [1, 2, 3, 4, 5]);
         }
       } catch (error) {
         console.error('Error:', error);
@@ -89,9 +96,9 @@ export default function AvailabilityPage() {
             <div className="flex items-center gap-3 sm:gap-4">
               <SidebarTrigger />
               <div>
-                <h1 className="text-xl sm:text-2xl font-bold text-foreground">Bloqueos de Disponibilidad</h1>
+                <h1 className="text-xl sm:text-2xl font-bold text-foreground">Horarios y Disponibilidad</h1>
                 <p className="text-xs sm:text-sm text-muted-foreground">
-                  Gestiona tus bloqueos de disponibilidad
+                  Configura tus horarios de trabajo
                 </p>
               </div>
             </div>
@@ -102,7 +109,7 @@ export default function AvailabilityPage() {
             <CardHeader className="px-4 sm:px-6">
               <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
                 <User className="w-4 h-4 sm:w-5 sm:h-5" />
-                Bloqueos de Disponibilidad
+                Horarios y Disponibilidad
               </CardTitle>
             </CardHeader>
             <CardContent className="px-4 sm:px-6">
@@ -110,7 +117,7 @@ export default function AvailabilityPage() {
                 <User className="w-12 h-12 sm:w-16 sm:h-16 mx-auto text-muted-foreground mb-3 sm:mb-4" />
                 <h3 className="text-base sm:text-lg font-semibold mb-2">No eres un profesional registrado</h3>
                 <p className="text-xs sm:text-sm text-muted-foreground mb-4 sm:mb-6 max-w-md mx-auto">
-                  Para gestionar bloqueos de disponibilidad, primero debes aplicar para ser un profesional.
+                  Para gestionar horarios de trabajo, primero debes aplicar para ser un profesional.
                 </p>
                 <Button
                   onClick={() => router.push(`/patient/${user.id}/explore/become-professional`)}
@@ -134,9 +141,9 @@ export default function AvailabilityPage() {
             <div className="flex items-center gap-3 sm:gap-4">
               <SidebarTrigger />
               <div>
-                <h1 className="text-xl sm:text-2xl font-bold text-foreground">Bloqueos de Disponibilidad</h1>
+                <h1 className="text-xl sm:text-2xl font-bold text-foreground">Horarios y Disponibilidad</h1>
                 <p className="text-xs sm:text-sm text-muted-foreground">
-                  Gestiona tus bloqueos de disponibilidad
+                  Configura tus horarios de trabajo
                 </p>
               </div>
             </div>
@@ -147,7 +154,7 @@ export default function AvailabilityPage() {
             <CardHeader className="px-4 sm:px-6">
               <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
                 <User className="w-4 h-4 sm:w-5 sm:h-5" />
-                Bloqueos de Disponibilidad
+                Horarios y Disponibilidad
               </CardTitle>
             </CardHeader>
             <CardContent className="px-4 sm:px-6">
@@ -156,7 +163,7 @@ export default function AvailabilityPage() {
                 <h3 className="text-base sm:text-lg font-semibold mb-2">Aplicación en revisión</h3>
                 <p className="text-xs sm:text-sm text-muted-foreground mb-4 sm:mb-6 max-w-md mx-auto">
                   Tu aplicación como profesional está siendo revisada.
-                  Una vez aprobada, podrás gestionar tus bloqueos de disponibilidad.
+                  Una vez aprobada, podrás gestionar tus horarios de trabajo.
                 </p>
                 <div className="text-xs sm:text-sm text-muted-foreground">
                   Estado actual: <span className="font-medium">{professional.status}</span>
@@ -177,9 +184,9 @@ export default function AvailabilityPage() {
           <div className="flex items-center gap-3 sm:gap-4">
             <SidebarTrigger />
             <div>
-              <h1 className="text-xl sm:text-2xl font-bold text-foreground">Bloqueos de Disponibilidad</h1>
+              <h1 className="text-xl sm:text-2xl font-bold text-foreground">Horarios de Trabajo</h1>
               <p className="text-xs sm:text-sm text-muted-foreground">
-                Gestiona tus bloqueos de disponibilidad
+                Configura tus días y horarios laborales
               </p>
             </div>
           </div>
@@ -187,8 +194,17 @@ export default function AvailabilityPage() {
       </div>
 
       {/* Main Content */}
-      <div className="container mx-auto p-4 sm:p-6">
-        <AvailabilityBlockManager professionalId={professional.id} userId={user.id} />
+      <div className="container mx-auto p-4 sm:p-6 space-y-6">
+        <WorkingHoursManager
+          professionalId={professional.id}
+          userId={user.id}
+          currentStartTime={workingStartTime}
+          currentEndTime={workingEndTime}
+          currentWorkingDays={workingDays}
+        />
+
+        {/* Tiempo de Tolerancia */}
+        <ProfessionalToleranceSettings professionalId={professional.id} />
       </div>
     </div>
   );

@@ -4,8 +4,7 @@ import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Upload, Image as ImageIcon, Headphones, FileText, Loader2, X } from "lucide-react";
+import { Upload, Image as ImageIcon, Loader2, X } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 import { toast } from "sonner";
 import Image from "next/image";
@@ -23,7 +22,6 @@ export function CheckinForm({
   challengeDurationDays,
   onCheckinComplete,
 }: CheckinFormProps) {
-  const [evidenceType, setEvidenceType] = useState<'text' | 'photo' | 'audio' | 'none'>('text');
   const [notes, setNotes] = useState("");
   const [evidenceUrl, setEvidenceUrl] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -34,6 +32,12 @@ export function CheckinForm({
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    // Validar que sea una imagen
+    if (!file.type.startsWith('image/')) {
+      toast.error("Por favor selecciona una imagen válida");
+      return;
+    }
 
     try {
       setUploading(true);
@@ -48,7 +52,7 @@ export function CheckinForm({
       const formData = new FormData();
       formData.append('file', file);
       formData.append('challenge_purchase_id', challengePurchaseId);
-      formData.append('evidence_type', evidenceType);
+      formData.append('evidence_type', 'photo');
 
       // Subir archivo
       const response = await fetch('/api/challenges/checkins/upload', {
@@ -63,11 +67,11 @@ export function CheckinForm({
       }
 
       setEvidenceUrl(data.url);
-      toast.success("Archivo subido exitosamente");
+      toast.success("Imagen subida exitosamente");
 
     } catch (error) {
       console.error('Error uploading file:', error);
-      toast.error(error instanceof Error ? error.message : 'Error al subir el archivo');
+      toast.error(error instanceof Error ? error.message : 'Error al subir la imagen');
     } finally {
       setUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
@@ -82,8 +86,9 @@ export function CheckinForm({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (evidenceType !== 'none' && !evidenceUrl && evidenceType !== 'text') {
-      toast.error("Por favor sube la evidencia o cambia el tipo a 'Solo texto'");
+    // Validar que al menos haya notas o una imagen
+    if (!notes.trim() && !evidenceUrl) {
+      toast.error("Por favor completa la descripción o sube una imagen");
       return;
     }
 
@@ -98,7 +103,7 @@ export function CheckinForm({
         body: JSON.stringify({
           challenge_purchase_id: challengePurchaseId,
           day_number: dayNumber,
-          evidence_type: evidenceType === 'none' ? 'text' : evidenceType,
+          evidence_type: evidenceUrl ? 'photo' : 'text',
           evidence_url: evidenceUrl,
           notes: notes || null,
         }),
@@ -124,7 +129,6 @@ export function CheckinForm({
       // Reset form
       setNotes("");
       setEvidenceUrl(null);
-      setEvidenceType('text');
 
       if (onCheckinComplete) {
         onCheckinComplete();
@@ -138,125 +142,12 @@ export function CheckinForm({
     }
   };
 
-  const getFileIcon = () => {
-    switch (evidenceType) {
-      case 'photo': return ImageIcon;
-      case 'audio': return Headphones;
-      default: return FileText;
-    }
-  };
-
-  const FileIcon = getFileIcon();
-
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <div>
-        <Label className="mb-2 block">Tipo de evidencia</Label>
-        <RadioGroup
-          value={evidenceType}
-          onValueChange={(value) => {
-            setEvidenceType(value as typeof evidenceType);
-            setEvidenceUrl(null); // Reset evidence when changing type
-          }}
-        >
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="text" id="text" />
-            <Label htmlFor="text" className="cursor-pointer">Solo texto</Label>
-          </div>
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="photo" id="photo" />
-            <Label htmlFor="photo" className="cursor-pointer">Foto</Label>
-          </div>
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="audio" id="audio" />
-            <Label htmlFor="audio" className="cursor-pointer">Audio</Label>
-          </div>
-        </RadioGroup>
-      </div>
-
-      {evidenceType !== 'none' && evidenceType !== 'text' && (
-        <div>
-          <Label className="mb-2 block">
-            Subir {evidenceType === 'photo' ? 'foto' : 'audio'}
-          </Label>
-          <div className="space-y-2">
-            {evidenceUrl ? (
-              <div className="relative">
-                {evidenceType === 'photo' ? (
-                  <div className="relative h-48 w-full rounded-lg overflow-hidden border">
-                    <Image
-                      src={evidenceUrl}
-                      alt="Evidencia"
-                      fill
-                      className="object-cover"
-                    />
-                    <Button
-                      type="button"
-                      variant="destructive"
-                      size="icon"
-                      className="absolute top-2 right-2"
-                      onClick={handleRemoveEvidence}
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="flex items-center justify-between p-4 border rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <FileIcon className="h-8 w-8 text-muted-foreground" />
-                      <span className="font-medium">Archivo subido</span>
-                    </div>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      onClick={handleRemoveEvidence}
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept={
-                    evidenceType === 'photo' ? 'image/*' :
-                    'audio/*'
-                  }
-                  onChange={handleFileSelect}
-                  className="hidden"
-                />
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={uploading}
-                  className="w-full"
-                >
-                  {uploading ? (
-                    <>
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Subiendo...
-                    </>
-                  ) : (
-                    <>
-                      <Upload className="h-4 w-4 mr-2" />
-                      Subir {evidenceType === 'photo' ? 'foto' : 'audio'}
-                    </>
-                  )}
-                </Button>
-              </>
-            )}
-          </div>
-        </div>
-      )}
-
+      {/* Descripción del check-in */}
       <div>
         <Label htmlFor="notes" className="mb-2 block">
-          Notas del día {dayNumber}
+          Descripción del día {dayNumber}
         </Label>
         <Textarea
           id="notes"
@@ -267,9 +158,66 @@ export function CheckinForm({
         />
       </div>
 
+      {/* Subir imagen (opcional) */}
+      <div>
+        <Label className="mb-2 block">Imagen (opcional)</Label>
+        <div className="space-y-2">
+          {evidenceUrl ? (
+            <div className="relative">
+              <div className="relative h-48 w-full rounded-lg overflow-hidden border">
+                <Image
+                  src={evidenceUrl}
+                  alt="Imagen del check-in"
+                  fill
+                  className="object-cover"
+                />
+                <Button
+                  type="button"
+                  variant="destructive"
+                  size="icon"
+                  className="absolute top-2 right-2"
+                  onClick={handleRemoveEvidence}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleFileSelect}
+                className="hidden"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading}
+                className="w-full"
+              >
+                {uploading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Subiendo...
+                  </>
+                ) : (
+                  <>
+                    <ImageIcon className="h-4 w-4 mr-2" />
+                    Subir imagen
+                  </>
+                )}
+              </Button>
+            </>
+          )}
+        </div>
+      </div>
+
       <Button
         type="submit"
-        disabled={submitting || uploading || (evidenceType !== 'text' && evidenceType !== 'none' && !evidenceUrl)}
+        disabled={submitting || uploading || (!notes.trim() && !evidenceUrl)}
         className="w-full"
       >
         {submitting ? (

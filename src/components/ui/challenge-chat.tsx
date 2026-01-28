@@ -214,13 +214,42 @@ export function ChallengeChat({ challengeId, currentUserId }: ChallengeChatProps
 
     try {
       setSending(true);
-      const { error } = await supabase.from("challenge_messages").insert({
-        conversation_id: conversationId,
-        sender_id: currentUserId,
-        content: message.trim(),
-      });
+      const { data: newMessage, error } = await supabase
+        .from("challenge_messages")
+        .insert({
+          conversation_id: conversationId,
+          sender_id: currentUserId,
+          content: message.trim(),
+        })
+        .select()
+        .single();
 
       if (error) throw error;
+
+      // Obtener challenge_id desde la conversación para enviar notificaciones
+      const { data: conversation } = await supabase
+        .from("challenge_conversations")
+        .select("challenge_id")
+        .eq("id", conversationId)
+        .single();
+
+      if (conversation && newMessage) {
+        // Enviar notificaciones por email (no bloquear si falla)
+        // Las notificaciones en la plataforma ya se crearon automáticamente por el trigger
+        fetch(`/api/challenges/${conversation.challenge_id}/messages/notify`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            message_id: newMessage.id,
+            conversation_id: conversationId,
+            sender_id: currentUserId,
+            content: message.trim(),
+          }),
+        }).catch((err) => {
+          console.error('Error sending email notifications:', err);
+          // No mostrar error al usuario, las notificaciones en la plataforma ya se crearon
+        });
+      }
 
       setMessage("");
     } catch (error) {

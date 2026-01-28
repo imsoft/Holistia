@@ -768,6 +768,18 @@ interface ChallengeInvitationEmailData {
   action: 'invited' | 'added';
 }
 
+interface ChallengeMessageNotificationData {
+  recipient_name: string;
+  recipient_email: string;
+  sender_name: string;
+  sender_type: 'user' | 'professional';
+  sender_avatar_url?: string | null;
+  challenge_title: string;
+  message_preview: string;
+  message_time: string;
+  challenge_url: string;
+}
+
 export async function sendChallengeInvitationEmail(data: ChallengeInvitationEmailData) {
   try {
     const fs = await import('fs');
@@ -827,6 +839,81 @@ export async function sendChallengeInvitationEmail(data: ChallengeInvitationEmai
 }
 
 // Send notification when a new message is received
+// Send notification when a new message is sent in a challenge chat
+export async function sendChallengeMessageNotification(data: ChallengeMessageNotificationData) {
+  try {
+    const fs = await import('fs');
+    const path = await import('path');
+
+    // Read the email template
+    const templatePath = path.join(process.cwd(), 'database/email-templates/challenge-message-notification.html');
+    let emailTemplate: string;
+
+    try {
+      emailTemplate = fs.readFileSync(templatePath, 'utf8');
+    } catch (error) {
+      console.error('Error reading email template:', error);
+      return { success: false, error: 'Template not found' };
+    }
+
+    // Get sender initials
+    const senderInitials = data.sender_name
+      .split(' ')
+      .map(n => n[0])
+      .join('')
+      .toUpperCase()
+      .substring(0, 2);
+
+    // Get sender type label
+    const senderTypeLabel = data.sender_type === 'professional' 
+      ? 'Profesional' 
+      : 'Usuario';
+
+    // Construir URL del logo de Holistia
+    const logoUrl = 'https://www.holistia.io/logos/holistia-black.png';
+    
+    // Construir HTML del avatar del remitente (imagen si existe, sino iniciales)
+    let senderAvatarHtml = '';
+    if (data.sender_avatar_url) {
+      senderAvatarHtml = `<img src="${data.sender_avatar_url}" alt="${data.sender_name}" />`;
+    } else {
+      senderAvatarHtml = senderInitials;
+    }
+
+    // Replace placeholders in the template
+    const emailContent = emailTemplate
+      .replace(/\{\{logo_url\}\}/g, logoUrl)
+      .replace(/\{\{sender_name\}\}/g, data.sender_name)
+      .replace(/\{\{sender_initials\}\}/g, senderInitials)
+      .replace(/\{\{sender_type_label\}\}/g, senderTypeLabel)
+      .replace(/\{\{sender_avatar_html\}\}/g, senderAvatarHtml)
+      .replace(/\{\{challenge_title\}\}/g, data.challenge_title)
+      .replace(/\{\{message_preview\}\}/g, data.message_preview)
+      .replace(/\{\{message_time\}\}/g, data.message_time)
+      .replace(/\{\{challenge_url\}\}/g, data.challenge_url);
+
+    // Send email using Resend
+    const { data: emailData, error } = await resend.emails.send({
+      from: 'Holistia <noreply@holistia.io>',
+      to: [data.recipient_email],
+      subject: `💬 Nuevo mensaje en "${data.challenge_title}" | Holistia`,
+      html: emailContent,
+    });
+
+    if (error) {
+      console.error('Error sending challenge message notification:', error);
+      return { success: false, error: error.message };
+    }
+
+    console.log('Challenge message notification sent successfully:', emailData?.id);
+    return { success: true, message: 'Email sent successfully', id: emailData?.id };
+
+  } catch (error) {
+    console.error('Error in sendChallengeMessageNotification:', error);
+    return { success: false, error: 'Failed to send email' };
+  }
+}
+
 export async function sendNewMessageNotification(data: NewMessageNotificationData) {
   try {
     const fs = await import('fs');

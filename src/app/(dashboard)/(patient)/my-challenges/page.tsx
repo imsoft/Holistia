@@ -879,17 +879,15 @@ export default function MyChallengesPage() {
           {selectedChallenge && (
             <div className="lg:col-span-2 space-y-6">
               <Tabs defaultValue="progress" className="w-full">
-                <TabsList className={`grid w-full ${participantsCount >= 2 ? 'grid-cols-5' : 'grid-cols-4'}`}>
+                <TabsList className="grid w-full grid-cols-5">
                   <TabsTrigger value="progress">Progreso</TabsTrigger>
                   <TabsTrigger value="checkins">Check-ins</TabsTrigger>
                   <TabsTrigger value="badges">Badges</TabsTrigger>
                   <TabsTrigger value="resources">Recursos</TabsTrigger>
-                  {participantsCount >= 2 && (
-                    <TabsTrigger value="chat">
-                      <Users className="h-4 w-4 mr-1" />
-                      Chat
-                    </TabsTrigger>
-                  )}
+                  <TabsTrigger value="chat">
+                    <Users className="h-4 w-4 mr-1" />
+                    Chat
+                  </TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="progress" className="space-y-4">
@@ -1097,29 +1095,55 @@ export default function MyChallengesPage() {
                   </Card>
                 </TabsContent>
 
-                {participantsCount >= 2 && (
-                  <TabsContent value="chat">
-                    <Card className="py-4">
-                      <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                          <Users className="h-5 w-5" />
-                          Chat del Reto
-                        </CardTitle>
-                        <p className="text-sm text-muted-foreground">
-                          Comunícate con los otros participantes del reto ({participantsCount} participantes)
-                        </p>
-                      </CardHeader>
-                      <CardContent>
+                <TabsContent value="chat">
+                  <Card className="py-4">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Users className="h-5 w-5" />
+                        Chat del Reto
+                      </CardTitle>
+                      <p className="text-sm text-muted-foreground">
+                        {participantsCount >= 2
+                          ? `Comunícate con los otros participantes del reto (${participantsCount} participantes)`
+                          : "Invita a otros usuarios para chatear y trabajar juntos en el reto"}
+                      </p>
+                    </CardHeader>
+                    <CardContent>
+                      {participantsCount >= 2 ? (
                         <div className="h-[500px]">
                           <ChallengeChat
                             challengeId={selectedChallenge.challenge_id}
                             currentUserId={userId || ""}
                           />
                         </div>
-                      </CardContent>
-                    </Card>
-                  </TabsContent>
-                )}
+                      ) : (
+                        <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
+                          <div className="rounded-full bg-muted p-6 mb-4">
+                            <Users className="h-12 w-12 text-muted-foreground" />
+                          </div>
+                          <h3 className="text-lg font-semibold mb-2">
+                            Invita a otros participantes
+                          </h3>
+                          <p className="text-sm text-muted-foreground mb-6 max-w-md">
+                            Para poder chatear con otros participantes, necesitas invitar al menos a una persona más al reto.
+                            Los retos en equipo son más divertidos y motivadores.
+                          </p>
+                          <Button
+                            onClick={() => setIsInviteDialogOpen(true)}
+                            size="lg"
+                            className="gap-2"
+                          >
+                            <UserPlus className="h-4 w-4" />
+                            Invitar Participantes
+                          </Button>
+                          <p className="text-xs text-muted-foreground mt-4">
+                            Puedes invitar hasta {5 - participantsCount} usuario(s) más
+                          </p>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </TabsContent>
               </Tabs>
             </div>
           )}

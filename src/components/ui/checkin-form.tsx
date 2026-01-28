@@ -4,7 +4,8 @@ import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Upload, Image as ImageIcon, Loader2, X } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Upload, Image as ImageIcon, Loader2, X, Globe, Lock } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 import { toast } from "sonner";
 import Image from "next/image";
@@ -26,6 +27,7 @@ export function CheckinForm({
   const [evidenceUrl, setEvidenceUrl] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [isPublic, setIsPublic] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const supabase = createClient();
 
@@ -106,6 +108,7 @@ export function CheckinForm({
           evidence_type: evidenceUrl ? 'photo' : 'text',
           evidence_url: evidenceUrl,
           notes: notes || null,
+          is_public: isPublic,
         }),
       });
 
@@ -213,6 +216,33 @@ export function CheckinForm({
             </>
           )}
         </div>
+      </div>
+
+      {/* Opción de privacidad */}
+      <div className="flex items-center justify-between p-4 border rounded-lg bg-muted/30">
+        <div className="flex items-center gap-3">
+          {isPublic ? (
+            <Globe className="h-5 w-5 text-primary" />
+          ) : (
+            <Lock className="h-5 w-5 text-muted-foreground" />
+          )}
+          <div>
+            <Label htmlFor="is-public" className="text-sm font-medium cursor-pointer">
+              {isPublic ? "Público" : "Privado"}
+            </Label>
+            <p className="text-xs text-muted-foreground">
+              {isPublic 
+                ? "Este check-in será visible en el feed social" 
+                : "Solo tú y el profesional pueden ver este check-in"}
+            </p>
+          </div>
+        </div>
+        <Switch
+          id="is-public"
+          checked={isPublic}
+          onCheckedChange={setIsPublic}
+          disabled={submitting}
+        />
       </div>
 
       <Button

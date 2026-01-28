@@ -92,6 +92,7 @@ export async function POST(request: NextRequest) {
       evidence_type = 'none',
       evidence_url,
       notes,
+      is_public = false, // Por defecto privado
     } = body;
 
     // Validar campos requeridos
@@ -167,6 +168,7 @@ export async function POST(request: NextRequest) {
         evidence_type: evidence_type || 'none',
         evidence_url: evidence_url || null,
         notes: notes || null,
+        is_public: is_public === true, // Solo público si explícitamente se solicita
       })
       .select()
       .single();

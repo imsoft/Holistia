@@ -374,7 +374,7 @@ export default function MyChallengesPage() {
     }
   };
 
-  const handlePublishCheckin = async (checkinId: string, isPublic: boolean) => {
+  const handlePublishCheckin = async (checkinId: string, makePublic: boolean) => {
     try {
       const response = await fetch('/api/challenges/checkins/publish', {
         method: 'PATCH',
@@ -383,25 +383,25 @@ export default function MyChallengesPage() {
         },
         body: JSON.stringify({
           checkin_id: checkinId,
-          is_public: !isPublic,
+          is_public: makePublic,
         }),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Error al publicar el check-in');
+        throw new Error(data.error || 'Error al cambiar la visibilidad del check-in');
       }
 
-      toast.success(isPublic ? 'Check-in ocultado del feed exitosamente' : 'Check-in publicado en el feed exitosamente');
+      toast.success(makePublic ? 'Check-in publicado en el feed exitosamente' : 'Check-in ocultado del feed exitosamente');
       
       // Actualizar el estado local
       setCheckins(prev => prev.map(c => 
-        c.id === checkinId ? { ...c, is_public: !isPublic } : c
+        c.id === checkinId ? { ...c, is_public: makePublic } : c
       ));
     } catch (error) {
       console.error('Error publishing checkin:', error);
-      toast.error(error instanceof Error ? error.message : 'Error al publicar el check-in');
+      toast.error(error instanceof Error ? error.message : 'Error al cambiar la visibilidad del check-in');
     }
   };
 
@@ -1037,7 +1037,7 @@ export default function MyChallengesPage() {
                                                 variant="outline"
                                                 size="sm"
                                                 className="h-7 text-xs"
-                                                onClick={() => handlePublishCheckin(checkin.id, false)}
+                                                onClick={() => handlePublishCheckin(checkin.id, true)}
                                               >
                                                 Publicar
                                               </Button>

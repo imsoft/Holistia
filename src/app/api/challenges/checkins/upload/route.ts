@@ -80,9 +80,35 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Sanitizar nombre de archivo para evitar caracteres especiales problemáticos
+    const sanitizeFileName = (fileName: string): string => {
+      // Obtener la extensión
+      const lastDotIndex = fileName.lastIndexOf('.');
+      const nameWithoutExt = lastDotIndex > 0 ? fileName.substring(0, lastDotIndex) : fileName;
+      const extension = lastDotIndex > 0 ? fileName.substring(lastDotIndex) : '';
+      
+      // Normalizar caracteres Unicode (convierte "ó" a "o", etc.)
+      let sanitized = nameWithoutExt
+        .normalize('NFD') // Descompone caracteres acentuados
+        .replace(/[\u0300-\u036f]/g, '') // Elimina diacríticos (acentos)
+        .replace(/[<>:"|?*\x00-\x1F]/g, '') // Remover caracteres de control y problemáticos
+        .replace(/\s+/g, '-') // Reemplazar espacios con guiones
+        .replace(/[^a-zA-Z0-9\-_]/g, '') // Solo permitir letras, números, guiones y guiones bajos
+        .replace(/^-+|-+$/g, '') // Remover guiones al inicio y final
+        .toLowerCase(); // Convertir a minúsculas
+      
+      // Si después de sanitizar queda vacío, usar un nombre por defecto
+      if (!sanitized || sanitized.trim().length === 0) {
+        sanitized = 'imagen';
+      }
+      
+      return `${sanitized}${extension}`;
+    };
+
     // Subir archivo a Supabase Storage
     const fileExt = file.name.split('.').pop();
-    const fileName = `${Date.now()}-${file.name}`;
+    const sanitizedFileName = sanitizeFileName(file.name);
+    const fileName = `${Date.now()}-${sanitizedFileName}`;
     const filePath = `${challenge_purchase_id}/evidence/${fileName}`;
 
     const { error: uploadError, data: uploadData } = await supabase.storage

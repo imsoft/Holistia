@@ -2,28 +2,54 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@/utils/supabase/server'
 
 export async function GET(request: Request) {
-  const { searchParams, origin } = new URL(request.url)
-  const code = searchParams.get('code')
-  const type = searchParams.get('type') // Supabase incluye 'type=recovery' para reset de contraseña
-  // if "next" is in param, use it as the redirect URL
-  let next = searchParams.get('next') ?? '/'
-  if (!next.startsWith('/')) {
-    // if "next" is not a relative URL, use the default
-    next = '/'
-  }
-
-  console.log('🔗 Callback received with params:', {
-    code: code ? 'present' : 'missing',
-    type,
-    next,
-    allParams: Object.fromEntries(searchParams.entries())
-  });
-
-  if (code) {
-    const supabase = await createClient()
-    const { data, error } = await supabase.auth.exchangeCodeForSession(code)
+  try {
+    const { searchParams, origin } = new URL(request.url)
+    const code = searchParams.get('code')
+    const type = searchParams.get('type') // Supabase incluye 'type=recovery' para reset de contraseña
+    const errorParam = searchParams.get('error')
+    const errorDescription = searchParams.get('error_description')
     
-    if (!error && data.user) {
+    // if "next" is in param, use it as the redirect URL
+    let next = searchParams.get('next') ?? '/'
+    if (!next.startsWith('/')) {
+      // if "next" is not a relative URL, use the default
+      next = '/'
+    }
+
+    console.log('🔗 Callback received with params:', {
+      code: code ? 'present' : 'missing',
+      type,
+      next,
+      errorParam,
+      errorDescription,
+      allParams: Object.fromEntries(searchParams.entries())
+    });
+
+    // Si hay un error de Google OAuth, redirigir a login con mensaje
+    if (errorParam) {
+      console.error('❌ Google OAuth error:', errorParam, errorDescription);
+      return NextResponse.redirect(`${origin}/login?error=${encodeURIComponent(errorDescription || errorParam)}`);
+    }
+
+    if (!code) {
+      console.error('❌ No code parameter found');
+      return NextResponse.redirect(`${origin}/login?error=${encodeURIComponent('Código de autorización no encontrado')}`);
+    }
+
+    const supabase = await createClient()
+    
+    // Intercambiar código por sesión
+    const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+    
+    if (error) {
+      console.error('❌ Error exchanging code for session:', error);
+      return NextResponse.redirect(`${origin}/login?error=${encodeURIComponent(error.message || 'Error al iniciar sesión')}`);
+    }
+
+    if (!data?.user) {
+      console.error('❌ No user data after exchange');
+      return NextResponse.redirect(`${origin}/login?error=${encodeURIComponent('No se pudo obtener información del usuario')}`);
+    }
       console.log('🔐 User authenticated successfully:', {
         userId: data.user.id,
         email: data.user.email
@@ -73,11 +99,23 @@ export async function GET(request: Request) {
       }
 
       // Obtener tipo de usuario y estado de cuenta desde profiles
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('type, account_active')
-        .eq('id', data.user.id)
-        .maybeSingle();
+      let profile: any = null;
+      try {
+        const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
+          .select('type, account_active')
+          .eq('id', data.user.id)
+          .maybeSingle();
+        
+        if (profileError) {
+          console.warn('⚠️ Error obteniendo perfil (continuando):', profileError);
+        } else {
+          profile = profileData;
+        }
+      } catch (profileError) {
+        console.warn('⚠️ Error obteniendo perfil (continuando):', profileError);
+        // Continuar sin perfil si hay error
+      }
 
       // Verificar si la cuenta está desactivada
       if (profile && profile.account_active === false) {
@@ -97,23 +135,33 @@ export async function GET(request: Request) {
       } else {
         console.log('🔍 Checking professional application for user:', data.user.id);
         // Verificar si el usuario tiene una aplicación profesional aprobada
-        const { data: application, error: appError } = await supabase
-          .from('professional_applications')
-          .select('id, status')
-          .eq('user_id', data.user.id)
-          .eq('status', 'approved')
-          .maybeSingle();
+        try {
+          const { data: application, error: appError } = await supabase
+            .from('professional_applications')
+            .select('id, status')
+            .eq('user_id', data.user.id)
+            .eq('status', 'approved')
+            .maybeSingle();
 
-        console.log('📋 Application check result:', { application, appError });
+          console.log('📋 Application check result:', { application, appError });
 
-        if (application) {
-          // Si tiene una aplicación aprobada, redirigir al dashboard de profesionales
-          redirectUrl = `/dashboard`;
-          console.log('✅ Approved professional application found, redirecting to:', redirectUrl);
-        } else {
-          // Por defecto, redirigir al dashboard del paciente
+          if (appError) {
+            console.warn('⚠️ Error verificando aplicación profesional (usando default):', appError);
+            redirectUrl = `/explore`;
+          } else if (application) {
+            // Si tiene una aplicación aprobada, redirigir al dashboard de profesionales
+            redirectUrl = `/dashboard`;
+            console.log('✅ Approved professional application found, redirecting to:', redirectUrl);
+          } else {
+            // Por defecto, redirigir al dashboard del paciente
+            redirectUrl = `/explore`;
+            console.log('👤 Default patient redirect to:', redirectUrl);
+          }
+        } catch (appError) {
+          console.warn('⚠️ Error verificando aplicación profesional (usando default):', appError);
+          // Por defecto, redirigir al dashboard del paciente si hay error
           redirectUrl = `/explore`;
-          console.log('👤 Default patient redirect to:', redirectUrl);
+          console.log('👤 Default patient redirect (fallback):', redirectUrl);
         }
       }
 
@@ -133,9 +181,9 @@ export async function GET(request: Request) {
       } else {
         return NextResponse.redirect(finalUrl)
       }
-    }
+  } catch (error) {
+    console.error('❌ Error inesperado en callback:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
+    return NextResponse.redirect(`${origin}/login?error=${encodeURIComponent(errorMessage)}`);
   }
-
-  // return the user to an error page with instructions
-  return NextResponse.redirect(`${origin}/auth/auth-code-error`)
 }

@@ -802,12 +802,12 @@ export default function MyChallengesPage() {
               {filteredChallenges.map((challenge) => (
                 <Card
                   key={`${challenge.type}-${challenge.id}`}
-                  className={`hover:shadow-lg transition-shadow overflow-hidden cursor-pointer gap-0 min-h-[400px] flex flex-col relative ${
+                  className={`hover:shadow-lg transition-shadow overflow-hidden cursor-pointer gap-0 flex flex-col relative ${
                     selectedChallenge?.challenge_id === challenge.id ? 'ring-2 ring-primary' : ''
                   }`}
                   onClick={() => handleOpenChallenge(challenge)}
                 >
-                  <div className="absolute top-0 left-0 right-0 h-40">
+                  <div className="relative h-40 w-full">
                     {challenge.cover_image_url ? (
                       <Image
                         src={challenge.cover_image_url}
@@ -832,8 +832,7 @@ export default function MyChallengesPage() {
                       </div>
                     )}
                   </div>
-                  <div className="h-40" /> {/* Spacer para el espacio de la imagen */}
-                  <CardHeader className="pb-3">
+                  <CardHeader className="pb-3 pt-4">
                     <CardTitle className="text-lg line-clamp-2">
                       {challenge.title}
                     </CardTitle>
@@ -849,8 +848,8 @@ export default function MyChallengesPage() {
                       </div>
                     )}
                   </CardHeader>
-                  <CardContent className="flex-1 pb-4">
-                    <div className="flex items-center gap-2 text-sm mb-4">
+                  <CardContent className="pb-4">
+                    <div className="flex items-center gap-2 text-sm mb-3">
                       {challenge.duration_days && (
                         <Badge variant="outline" className="text-xs">
                           <Calendar className="h-3 w-3 mr-1" />
@@ -864,13 +863,13 @@ export default function MyChallengesPage() {
                       )}
                     </div>
                     {challenge.description && (
-                      <p className="text-sm text-muted-foreground line-clamp-3 mb-4">
+                      <p className="text-sm text-muted-foreground line-clamp-2">
                         {stripHtml(challenge.description)}
                       </p>
                     )}
                   </CardContent>
-                  <div className="px-6 pb-6 mt-auto">
-                    {challenge.type === 'created' ? (
+                  {challenge.type === 'created' && (
+                    <div className="px-6 pb-4">
                       <div className="flex gap-2">
                         <Button
                           variant="outline"
@@ -895,8 +894,8 @@ export default function MyChallengesPage() {
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
-                    ) : null}
-                  </div>
+                    </div>
+                  )}
                 </Card>
               ))}
             </div>

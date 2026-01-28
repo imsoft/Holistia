@@ -324,7 +324,7 @@ export function SocialFeedPost({ checkin, onLike, onUnlike }: SocialFeedPostProp
             <Calendar className="h-4 w-4 text-muted-foreground" />
             <span>Día {checkin.day_number}</span>
           </div>
-          {checkin.completion_percentage !== null && (
+          {checkin.completion_percentage != null && (
             <div className="text-muted-foreground">
               {checkin.completion_percentage.toFixed(0)}% completado
             </div>

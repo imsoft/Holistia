@@ -101,39 +101,60 @@ export function ChallengeChat({ challengeId, currentUserId }: ChallengeChatProps
     if (!conversationId) return;
 
     try {
-      const { data: messagesData, error } = await supabase
+      // Obtener mensajes primero
+      const { data: messagesData, error: messagesError } = await supabase
         .from("challenge_messages")
-        .select(`
-          *,
-          sender:profiles(
-            id,
-            first_name,
-            last_name,
-            avatar_url,
-            email
-          )
-        `)
+        .select("*")
         .eq("conversation_id", conversationId)
         .order("created_at", { ascending: true });
 
-      if (error) throw error;
+      if (messagesError) throw messagesError;
 
+      if (!messagesData || messagesData.length === 0) {
+        setMessages([]);
+        return;
+      }
+
+      // Obtener IDs únicos de los remitentes
+      const senderIds = [...new Set(messagesData.map((msg: any) => msg.sender_id))];
+
+      // Obtener perfiles de los remitentes
+      const { data: profilesData, error: profilesError } = await supabase
+        .from("profiles")
+        .select("id, first_name, last_name, avatar_url, email")
+        .in("id", senderIds);
+
+      if (profilesError) {
+        console.error("Error loading profiles:", profilesError);
+        // Continuar sin perfiles si hay error
+      }
+
+      // Crear un mapa de perfiles por ID
+      const profilesMap = new Map();
+      (profilesData || []).forEach((profile: any) => {
+        profilesMap.set(profile.id, profile);
+      });
+
+      // Combinar mensajes con perfiles
       setMessages(
-        (messagesData || []).map((msg: any) => ({
-          id: msg.id,
-          sender_id: msg.sender_id,
-          content: msg.content,
-          created_at: msg.created_at,
-          sender: msg.sender
-            ? {
-                id: msg.sender.id,
-                first_name: msg.sender.first_name,
-                last_name: msg.sender.last_name,
-                avatar_url: msg.sender.avatar_url,
-                email: msg.sender.email,
-              }
-            : undefined,
-        }))
+        messagesData.map((msg: any) => {
+          const senderProfile = profilesMap.get(msg.sender_id);
+          return {
+            id: msg.id,
+            sender_id: msg.sender_id,
+            content: msg.content,
+            created_at: msg.created_at,
+            sender: senderProfile
+              ? {
+                  id: senderProfile.id,
+                  first_name: senderProfile.first_name,
+                  last_name: senderProfile.last_name,
+                  avatar_url: senderProfile.avatar_url,
+                  email: senderProfile.email,
+                }
+              : undefined,
+          };
+        })
       );
     } catch (error) {
       console.error("Error loading messages:", error);

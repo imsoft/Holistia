@@ -281,7 +281,9 @@ export function SocialFeedPost({ checkin, onLike, onUnlike }: SocialFeedPostProp
             </Avatar>
             <div>
               <p className="font-semibold">
-                {checkin.user_first_name} {checkin.user_last_name}
+                {checkin.user_first_name || checkin.user_last_name
+                  ? `${checkin.user_first_name || ''} ${checkin.user_last_name || ''}`.trim()
+                  : 'Usuario'}
               </p>
               <p className="text-sm text-muted-foreground">{timeAgo}</p>
             </div>

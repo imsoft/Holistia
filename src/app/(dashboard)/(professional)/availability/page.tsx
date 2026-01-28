@@ -9,6 +9,7 @@ import { SidebarTrigger } from '@/components/ui/sidebar';
 import { User } from 'lucide-react';
 import { WorkingHoursManager } from '@/components/ui/working-hours-manager';
 import { ProfessionalToleranceSettings } from '@/components/professional-tolerance-settings';
+import AvailabilityBlockManager from '@/components/ui/availability-block-manager';
 
 interface ProfessionalApplication {
   id: string;
@@ -205,6 +206,9 @@ export default function AvailabilityPage() {
 
         {/* Tiempo de Tolerancia */}
         <ProfessionalToleranceSettings professionalId={professional.id} />
+
+        {/* Bloqueos de Disponibilidad */}
+        <AvailabilityBlockManager professionalId={professional.id} userId={user.id} />
       </div>
     </div>
   );

@@ -181,7 +181,7 @@ export function ChallengeChat({ challengeId, currentUserId }: ChallengeChatProps
             .from("profiles")
             .select("id, first_name, last_name, avatar_url, email")
             .eq("id", payload.new.sender_id)
-            .single();
+            .maybeSingle();
 
           const newMessage: ChallengeMessage = {
             id: payload.new.id,

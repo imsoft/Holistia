@@ -12,14 +12,13 @@ export async function GET(request: Request) {
 
     const { searchParams } = new URL(request.url);
     const query = searchParams.get("q");
-    const type = searchParams.get("type") || "all"; // all, users, challenges, teams, posts
+    const type = searchParams.get("type") || "all"; // all, users, challenges, posts
 
     if (!query || query.length < 2) {
       return NextResponse.json({
         data: {
           users: [],
           challenges: [],
-          teams: [],
           posts: [],
         },
       });
@@ -29,7 +28,6 @@ export async function GET(request: Request) {
     const results: any = {
       users: [],
       challenges: [],
-      teams: [],
       posts: [],
     };
 
@@ -54,43 +52,6 @@ export async function GET(request: Request) {
         .limit(5);
 
       results.challenges = challenges || [];
-    }
-
-    // Buscar equipos
-    if (type === "all" || type === "teams") {
-      const { data: teams } = await supabase
-        .from("challenge_teams")
-        .select(`
-          id,
-          team_name,
-          challenge_id,
-          creator_id,
-          max_members,
-          is_full,
-          challenges (
-            title,
-            cover_image
-          )
-        `)
-        .ilike("team_name", `%${searchQuery}%`)
-        .limit(5);
-
-      // Agregar conteo de miembros
-      if (teams) {
-        results.teams = await Promise.all(
-          teams.map(async (team: any) => {
-            const { count } = await supabase
-              .from("challenge_team_members")
-              .select("*", { count: "exact", head: true })
-              .eq("team_id", team.id);
-
-            return {
-              ...team,
-              member_count: count || 0,
-            };
-          })
-        );
-      }
     }
 
     // Buscar publicaciones

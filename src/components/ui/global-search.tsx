@@ -41,16 +41,6 @@ interface SearchResults {
     category: string;
     difficulty: string;
   }>;
-  teams: Array<{
-    id: string;
-    team_name: string;
-    challenge_id: string;
-    member_count: number;
-    is_full: boolean;
-    challenges: {
-      title: string;
-    };
-  }>;
   posts: Array<{
     checkin_id: string;
     user_first_name: string;
@@ -67,7 +57,6 @@ export function GlobalSearch() {
   const [results, setResults] = useState<SearchResults>({
     users: [],
     challenges: [],
-    teams: [],
     posts: [],
   });
   const [loading, setLoading] = useState(false);
@@ -93,7 +82,6 @@ export function GlobalSearch() {
       setResults({
         users: [],
         challenges: [],
-        teams: [],
         posts: [],
       });
     }
@@ -125,13 +113,12 @@ export function GlobalSearch() {
   const totalResults =
     results.users.length +
     results.challenges.length +
-    results.teams.length +
     results.posts.length;
 
   return (
     <CommandDialog open={open} onOpenChange={setOpen}>
       <CommandInput
-        placeholder="Buscar usuarios, retos, equipos o publicaciones..."
+        placeholder="Buscar usuarios, retos o publicaciones..."
         value={query}
         onValueChange={setQuery}
       />
@@ -208,39 +195,6 @@ export function GlobalSearch() {
                     </div>
                   </div>
                   <Target className="h-4 w-4 text-muted-foreground" />
-                </CommandItem>
-              ))}
-            </CommandGroup>
-            <CommandSeparator />
-          </>
-        )}
-
-        {/* Equipos */}
-        {results.teams.length > 0 && (
-          <>
-            <CommandGroup heading="Equipos">
-              {results.teams.map((team) => (
-                <CommandItem
-                  key={team.id}
-                  value={`team-${team.id}`}
-                  onSelect={() => handleSelect(`/teams/${team.id}`)}
-                  className="flex items-center gap-3 py-3"
-                >
-                  <div className="flex-1">
-                    <p className="font-medium">{team.team_name}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {team.challenges?.title}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Badge variant="secondary" className="gap-1">
-                      <Users className="h-3 w-3" />
-                      {team.member_count}
-                    </Badge>
-                    {team.is_full && (
-                      <Badge variant="outline">Lleno</Badge>
-                    )}
-                  </div>
                 </CommandItem>
               ))}
             </CommandGroup>

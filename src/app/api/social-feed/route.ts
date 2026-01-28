@@ -20,13 +20,9 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "No autenticado" }, { status: 401 });
     }
 
-    // Obtener check-ins individuales y de equipos
-    let individualQuery = supabase
+    // Obtener check-ins individuales
+    let feedQuery = supabase
       .from("social_feed_checkins")
-      .select("*");
-
-    let teamQuery = supabase
-      .from("team_feed_checkins")
       .select("*");
 
     // Filtrar según el tipo
@@ -48,37 +44,18 @@ export async function GET(request: Request) {
         });
       }
 
-      individualQuery = individualQuery.in("user_id", followingIds);
-      teamQuery = teamQuery.in("user_id", followingIds);
+      feedQuery = feedQuery.in("user_id", followingIds);
     }
 
-    // Ejecutar ambas queries
-    const [individualResult, teamResult] = await Promise.all([
-      individualQuery,
-      teamQuery,
-    ]);
+    // Ejecutar query
+    const feedResult = await feedQuery;
 
-    if (individualResult.error) {
-      console.error("Error fetching individual feed:", individualResult.error);
+    if (feedResult.error) {
+      console.error("Error fetching feed:", feedResult.error);
     }
 
-    if (teamResult.error) {
-      console.error("Error fetching team feed:", teamResult.error);
-    }
-
-    // Combinar y marcar el tipo
-    const individualCheckins = (individualResult.data || []).map((item: any) => ({
-      ...item,
-      is_team: false,
-    }));
-
-    const teamCheckins = (teamResult.data || []).map((item: any) => ({
-      ...item,
-      is_team: true,
-    }));
-
-    // Combinar ambos arrays
-    let allCheckins = [...individualCheckins, ...teamCheckins];
+    // Obtener check-ins
+    let allCheckins = feedResult.data || [];
 
     // Aplicar filtros avanzados
     if (categoriesParam) {

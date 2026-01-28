@@ -23,8 +23,6 @@ import { Calendar, Target, Loader2, CheckCircle2, Circle, Users, Plus, Edit, Tra
 import { CheckinForm } from "@/components/ui/checkin-form";
 import { ChallengeProgress } from "@/components/ui/challenge-progress";
 import { ChallengeBadges } from "@/components/ui/challenge-badges";
-import { TeamInvitationsList } from "@/components/ui/team-invitations-list";
-import { TeamChat } from "@/components/ui/team-chat";
 import { stripHtml } from "@/lib/text-utils";
 import {
   Dialog,
@@ -114,8 +112,6 @@ export default function MyChallengesPage() {
   const [checkins, setCheckins] = useState<Checkin[]>([]);
   const [isCheckinDialogOpen, setIsCheckinDialogOpen] = useState(false);
   const [nextDayNumber, setNextDayNumber] = useState(1);
-  const [teamId, setTeamId] = useState<string | null>(null);
-  const [teamName, setTeamName] = useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [challengeToDelete, setChallengeToDelete] = useState<CreatedChallenge | null>(null);
   const [deleting, setDeleting] = useState(false);
@@ -135,27 +131,10 @@ export default function MyChallengesPage() {
   // Abrir reto automáticamente si viene de query parameter
   useEffect(() => {
     const challengeId = searchParams.get('challenge');
-    const teamIdParam = searchParams.get('team');
     
     if (challengeId && allChallenges.length > 0 && !selectedChallenge) {
       const challenge = allChallenges.find((c: any) => c.id === challengeId);
       if (challenge) {
-        // Si viene un teamId en los query params, establecerlo primero
-        if (teamIdParam) {
-          setTeamId(teamIdParam);
-          // Obtener nombre del equipo
-          supabase
-            .from("challenge_teams")
-            .select("team_name")
-            .eq("id", teamIdParam)
-            .single()
-            .then(({ data }) => {
-              if (data) {
-                setTeamName(data.team_name || "Equipo sin nombre");
-              }
-            });
-        }
-        
         // Abrir el reto
         handleOpenChallenge(challenge).then(() => {
           // Limpiar query params después de abrir
@@ -443,7 +422,6 @@ export default function MyChallengesPage() {
       };
       setSelectedChallenge(purchaseChallenge);
       await fetchCheckins(challenge.purchaseId);
-      await fetchTeam(challenge.id);
       await fetchResources(challenge.id);
     } else if (challenge.type === 'created') {
       // Si es un reto creado, buscar o crear un purchase automáticamente
@@ -494,7 +472,6 @@ export default function MyChallengesPage() {
         };
         setSelectedChallenge(createdChallenge);
         await fetchCheckins(purchaseId);
-        await fetchTeam(challenge.id);
         await fetchResources(challenge.id);
       } catch (error) {
         console.error('Error al obtener/crear purchase para reto creado:', error);
@@ -514,8 +491,6 @@ export default function MyChallengesPage() {
         };
         setSelectedChallenge(createdChallenge);
         setCheckins([]);
-        setTeamId(null);
-        setTeamName(null);
         await fetchResources(challenge.id);
       }
     }
@@ -568,43 +543,6 @@ export default function MyChallengesPage() {
     return parts.length > 0 ? ` • ${parts.join(' • ')}` : '';
   };
 
-  const fetchTeam = async (challengeId: string) => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      // Obtener equipo del usuario para este reto
-      const { data: membership } = await supabase
-        .from("challenge_team_members")
-        .select(`
-          team:challenge_teams(
-            id,
-            team_name,
-            challenge_id
-          )
-        `)
-        .eq("user_id", user.id)
-        .maybeSingle();
-
-      if (membership?.team) {
-        const teamData = Array.isArray(membership.team) ? membership.team[0] : membership.team;
-        if (teamData && teamData.challenge_id === challengeId) {
-          setTeamId(teamData.id);
-          setTeamName(teamData.team_name || "Equipo sin nombre");
-        } else {
-          setTeamId(null);
-          setTeamName(null);
-        }
-      } else {
-        setTeamId(null);
-        setTeamName(null);
-      }
-    } catch (error) {
-      console.error("Error fetching team:", error);
-      setTeamId(null);
-      setTeamName(null);
-    }
-  };
 
   const handleCheckinComplete = async () => {
     if (selectedChallenge) {
@@ -733,11 +671,6 @@ export default function MyChallengesPage() {
           <Plus className="h-4 w-4 mr-2" />
           Crear Reto Personal
         </Button>
-      </div>
-
-      {/* Invitaciones a equipos */}
-      <div className="mb-6">
-        <TeamInvitationsList />
       </div>
 
       {/* Filtros */}
@@ -887,20 +820,7 @@ export default function MyChallengesPage() {
                     )}
                   </CardContent>
                   <div className="px-6 pb-6 mt-auto">
-                    {challenge.type === 'participating' ? (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="w-full gap-2"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          router.push(`/my-challenges/${challenge.id}/team/create`);
-                        }}
-                      >
-                        <Users className="h-4 w-4" />
-                        Crear/Ver Equipo
-                      </Button>
-                    ) : challenge.type === 'created' ? (
+                    {challenge.type === 'created' ? (
                       <div className="flex gap-2">
                         <Button
                           variant="outline"
@@ -913,71 +833,6 @@ export default function MyChallengesPage() {
                         >
                           <Edit className="h-4 w-4 mr-2" />
                           Editar
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="flex-1"
-                          onClick={async (e) => {
-                            e.stopPropagation();
-                            try {
-                              // Buscar si ya existe un equipo para este reto
-                              const { data: { user } } = await supabase.auth.getUser();
-                              if (!user) {
-                                toast.error("Debes iniciar sesión");
-                                return;
-                              }
-
-                              // Primero buscar si el usuario es creador del reto y tiene un equipo creado
-                              const { data: createdTeam } = await supabase
-                                .from("challenge_teams")
-                                .select("id")
-                                .eq("challenge_id", challenge.id)
-                                .eq("creator_id", user.id)
-                                .maybeSingle();
-
-                              if (createdTeam) {
-                                // Si existe un equipo creado por el usuario, ir a invitación
-                                router.push(`/my-challenges/${challenge.id}/team/invite?teamId=${createdTeam.id}`);
-                                return;
-                              }
-
-                              // Si no es creador, buscar membresía del usuario en equipos
-                              const { data: memberships } = await supabase
-                                .from("challenge_team_members")
-                                .select("team_id")
-                                .eq("user_id", user.id);
-
-                              if (memberships && memberships.length > 0) {
-                                // Obtener los IDs de los equipos
-                                const teamIds = memberships.map((m: any) => m.team_id);
-                                
-                                // Buscar equipos que correspondan a este reto
-                                const { data: teams } = await supabase
-                                  .from("challenge_teams")
-                                  .select("id, challenge_id")
-                                  .in("id", teamIds)
-                                  .eq("challenge_id", challenge.id)
-                                  .maybeSingle();
-
-                                if (teams) {
-                                  // Si existe un equipo para este reto, ir directamente a la página de invitación
-                                  router.push(`/my-challenges/${challenge.id}/team/invite?teamId=${teams.id}`);
-                                  return;
-                                }
-                              }
-
-                              // Si no existe equipo, ir a crear uno primero
-                              router.push(`/my-challenges/${challenge.id}/team/create`);
-                            } catch (error) {
-                              console.error("Error checking team:", error);
-                              // En caso de error, redirigir a crear equipo
-                              router.push(`/my-challenges/${challenge.id}/team/create`);
-                            }
-                          }}
-                        >
-                          <Users className="h-4 w-4 mr-2" />
-                          Invitar
                         </Button>
                         <Button
                           variant="outline"
@@ -1000,18 +855,12 @@ export default function MyChallengesPage() {
           {/* Detalles del reto seleccionado */}
           {selectedChallenge && (
             <div className="lg:col-span-2 space-y-6">
-              <Tabs defaultValue={searchParams.get('team') ? "chat" : "progress"} className="w-full">
-                <TabsList className={`grid w-full ${teamId ? 'grid-cols-5' : 'grid-cols-4'}`}>
+              <Tabs defaultValue="progress" className="w-full">
+                <TabsList className="grid w-full grid-cols-4">
                   <TabsTrigger value="progress">Progreso</TabsTrigger>
                   <TabsTrigger value="checkins">Check-ins</TabsTrigger>
                   <TabsTrigger value="badges">Badges</TabsTrigger>
                   <TabsTrigger value="resources">Recursos</TabsTrigger>
-                  {teamId && (
-                    <TabsTrigger value="chat" className="gap-2">
-                      <Users className="h-4 w-4" />
-                      Chat
-                    </TabsTrigger>
-                  )}
                 </TabsList>
 
                 <TabsContent value="progress" className="space-y-4">
@@ -1207,28 +1056,6 @@ export default function MyChallengesPage() {
                   </Card>
                 </TabsContent>
 
-                {teamId && (
-                  <TabsContent value="chat">
-                    <Card className="py-4">
-                      <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                          <Users className="h-5 w-5" />
-                          Chat de Equipo
-                        </CardTitle>
-                        <p className="text-sm text-muted-foreground">
-                          Comunícate con tu equipo en tiempo real
-                        </p>
-                      </CardHeader>
-                      <CardContent>
-                        <TeamChat
-                          teamId={teamId}
-                          currentUserId={userId || ''}
-                          teamName={teamName || undefined}
-                        />
-                      </CardContent>
-                    </Card>
-                  </TabsContent>
-                )}
               </Tabs>
             </div>
           )}

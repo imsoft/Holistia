@@ -34,7 +34,6 @@ const getNavigation = (hasEvents: boolean = false) => {
     { name: "Citas", href: `/explore/appointments` },
     { name: "Mis Programas", href: `/my-products` },
     { name: "Mis Retos", href: `/my-challenges` },
-    { name: "Mis Equipos", href: `/my-teams` },
   ];
 
   // Agregar "Mis eventos" solo si el usuario tiene eventos asignados

@@ -161,7 +161,6 @@ Holistia es una plataforma que facilita la conexión entre profesionales de bien
 - Perfil personal editable
 - Sistema de mensajería directa con profesionales
 - Crear y participar en retos de bienestar (challenges)
-- Formar equipos para retos
 - Sistema de seguimiento (follows) de usuarios y expertos
 - Feed social con publicaciones de check-ins de retos
 - Sistema de preguntas y respuestas en eventos

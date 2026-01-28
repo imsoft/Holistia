@@ -45,27 +45,21 @@ interface Notification {
 }
 
 const notificationIcons: Record<string, any> = {
-  team_invitation: Users,
   invitation_accepted: Check,
   invitation_rejected: X,
-  team_checkin: Flame,
   new_follower: UserPlus,
   post_like: Heart,
   post_comment: MessageCircle,
-  team_member_joined: Users,
   badge_earned: Trophy,
   direct_message: MessageCircle,
 };
 
 const notificationColors: Record<string, string> = {
-  team_invitation: "text-blue-500 bg-blue-50",
   invitation_accepted: "text-green-500 bg-green-50",
   invitation_rejected: "text-red-500 bg-red-50",
-  team_checkin: "text-orange-500 bg-orange-50",
   new_follower: "text-purple-500 bg-purple-50",
   post_like: "text-pink-500 bg-pink-50",
   post_comment: "text-blue-500 bg-blue-50",
-  team_member_joined: "text-green-500 bg-green-50",
   badge_earned: "text-yellow-500 bg-yellow-50",
   direct_message: "text-indigo-500 bg-indigo-50",
 };

@@ -44,9 +44,6 @@ interface SocialFeedPostProps {
     days_completed: number | null;
     completion_percentage: number | null;
     isLikedByCurrentUser: boolean;
-    is_team?: boolean;
-    team_id?: string;
-    team_name?: string | null;
     userReaction?: ReactionType | null;
     reactions?: Record<string, number>;
     total_reactions?: number;
@@ -312,12 +309,6 @@ export function SocialFeedPost({ checkin, onLike, onUnlike }: SocialFeedPostProp
             </div>
           </div>
           <div className="flex items-center gap-2">
-            {checkin.is_team && (
-              <Badge variant="outline" className="gap-1 bg-blue-50 text-blue-700 border-blue-200">
-                <Users className="h-3 w-3" />
-                {checkin.team_name || "Equipo"}
-              </Badge>
-            )}
             {checkin.current_streak && checkin.current_streak > 0 && (
               <Badge variant="secondary" className="gap-1">
                 <TrendingUp className="h-3 w-3" />

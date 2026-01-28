@@ -246,7 +246,20 @@ export function SocialFeedPost({ checkin, onLike, onUnlike }: SocialFeedPostProp
   const getUserInitials = () => {
     const firstName = checkin.user_first_name || "";
     const lastName = checkin.user_last_name || "";
-    return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase() || "U";
+    if (firstName || lastName) {
+      return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase() || "U";
+    }
+    return "U";
+  };
+
+  const getUserDisplayName = () => {
+    const firstName = checkin.user_first_name || "";
+    const lastName = checkin.user_last_name || "";
+    if (firstName || lastName) {
+      return `${firstName} ${lastName}`.trim();
+    }
+    // Si no hay nombre, intentar usar el user_id como fallback o mostrar "Usuario"
+    return "Usuario";
   };
 
   // Validar fecha antes de formatear
@@ -285,9 +298,7 @@ export function SocialFeedPost({ checkin, onLike, onUnlike }: SocialFeedPostProp
             </Avatar>
             <div>
               <p className="font-semibold">
-                {checkin.user_first_name || checkin.user_last_name
-                  ? `${checkin.user_first_name || ''} ${checkin.user_last_name || ''}`.trim()
-                  : 'Usuario'}
+                {getUserDisplayName()}
               </p>
               <p className="text-sm text-muted-foreground">{timeAgo}</p>
             </div>
@@ -346,7 +357,7 @@ export function SocialFeedPost({ checkin, onLike, onUnlike }: SocialFeedPostProp
         {checkin.evidence_url && checkin.evidence_type === "photo" && (
           <>
             <div 
-              className="relative w-full h-80 rounded-lg overflow-hidden bg-muted cursor-pointer hover:opacity-90 transition-opacity"
+              className="relative w-full aspect-square rounded-lg overflow-hidden bg-muted cursor-pointer hover:opacity-90 transition-opacity"
               onClick={() => setIsImageViewerOpen(true)}
             >
               <Image
@@ -419,20 +430,6 @@ export function SocialFeedPost({ checkin, onLike, onUnlike }: SocialFeedPostProp
               userName={`${checkin.user_first_name} ${checkin.user_last_name}`}
               compact
             />
-
-            {/* Legacy Like button (mantener para compatibilidad) */}
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleToggleLike}
-              disabled={isTogglingLike}
-              className="gap-2 opacity-50 hover:opacity-100"
-            >
-              <Heart
-                className={`h-4 w-4 ${isLiked ? "fill-red-500 text-red-500" : ""}`}
-              />
-              <span className="text-xs">{likesCount}</span>
-            </Button>
           </div>
           {checkin.points_earned > 0 && (
             <Badge variant="secondary" className="gap-1">

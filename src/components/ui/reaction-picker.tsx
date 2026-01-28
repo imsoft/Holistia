@@ -118,7 +118,6 @@ export function ReactionPicker({
         ) : (
           <>
             <ThumbsUp className={cn("h-4 w-4", compact ? "h-3.5 w-3.5" : "")} />
-            {!compact && <span className="text-sm font-medium">Reaccionar</span>}
           </>
         )}
       </button>

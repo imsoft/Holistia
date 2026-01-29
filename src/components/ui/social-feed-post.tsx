@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -70,7 +69,6 @@ const difficultyLabels: Record<string, string> = {
 };
 
 export function SocialFeedPost({ checkin, onLike, onUnlike }: SocialFeedPostProps) {
-  const router = useRouter();
   const [isLiked, setIsLiked] = useState(checkin.isLikedByCurrentUser);
   const [likesCount, setLikesCount] = useState(checkin.likes_count);
   const [showComments, setShowComments] = useState(false);
@@ -292,26 +290,8 @@ export function SocialFeedPost({ checkin, onLike, onUnlike }: SocialFeedPostProp
 
   const timeAgo = getTimeAgo();
 
-  const handleCardClick = (e: React.MouseEvent) => {
-    // No navegar si se hace clic en botones o enlaces
-    const target = e.target as HTMLElement;
-    if (
-      target.closest('button') ||
-      target.closest('a') ||
-      target.closest('[role="button"]') ||
-      target.closest('textarea') ||
-      target.closest('input')
-    ) {
-      return;
-    }
-    router.push(`/feed/post/${checkin.checkin_id}`);
-  };
-
   return (
-    <Card 
-      className="overflow-hidden py-4 cursor-pointer hover:shadow-md transition-shadow"
-      onClick={handleCardClick}
-    >
+    <Card className="overflow-hidden py-4">
       {/* Header con información del usuario */}
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">

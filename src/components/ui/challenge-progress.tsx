@@ -36,82 +36,16 @@ export function ChallengeProgress({
   const fetchProgress = async () => {
     try {
       setLoading(true);
-      
-      // Validar que el challengePurchaseId es válido (no es un challenge.id)
-      if (!challengePurchaseId || challengePurchaseId.length < 36) {
-        console.warn("Invalid challengePurchaseId, using default progress");
-        setProgress({
-          total_points: 0,
-          current_streak: 0,
-          longest_streak: 0,
-          days_completed: 0,
-          completion_percentage: 0,
-          level: 1,
-          status: 'in_progress',
-          last_checkin_date: null,
-        });
-        setLoading(false);
-        return;
-      }
-
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 segundos timeout
-
       const response = await fetch(
-        `/api/challenges/progress?challenge_purchase_id=${challengePurchaseId}`,
-        { signal: controller.signal }
+        `/api/challenges/progress?challenge_purchase_id=${challengePurchaseId}`
       );
-      
-      clearTimeout(timeoutId);
       const data = await response.json();
 
-      if (response.ok) {
-        if (data.progress) {
-          setProgress(data.progress);
-        } else {
-          // Si no hay progreso pero la respuesta es OK, crear uno por defecto
-          setProgress({
-            total_points: 0,
-            current_streak: 0,
-            longest_streak: 0,
-            days_completed: 0,
-            completion_percentage: 0,
-            level: 1,
-            status: 'in_progress',
-            last_checkin_date: null,
-          });
-        }
-      } else {
-        console.error("Error fetching progress:", data.error);
-        // Crear progreso por defecto si hay error pero no bloquear la UI
-        setProgress({
-          total_points: 0,
-          current_streak: 0,
-          longest_streak: 0,
-          days_completed: 0,
-          completion_percentage: 0,
-          level: 1,
-          status: 'in_progress',
-          last_checkin_date: null,
-        });
+      if (response.ok && data.progress) {
+        setProgress(data.progress);
       }
-    } catch (error: any) {
-      if (error.name === 'AbortError') {
-        console.error("Timeout fetching progress");
-      } else {
-        console.error("Error fetching progress:", error);
-      }
-      // Crear progreso por defecto para no bloquear la UI
-      setProgress({
-        total_points: 0,
-        current_streak: 0,
-        longest_streak: 0,
-        days_completed: 0,
-        completion_percentage: 0,
-        level: 1,
-        status: 'in_progress',
-        last_checkin_date: null,
-      });
+    } catch (error) {
+      console.error("Error fetching progress:", error);
     } finally {
       setLoading(false);
     }

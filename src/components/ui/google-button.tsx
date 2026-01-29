@@ -1,9 +1,8 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { createClient } from "@/utils/supabase/client";
+import { signInWithGoogle } from "@/actions/auth/actions";
 import { useState } from "react";
-import { toast } from "sonner";
 
 interface GoogleButtonProps {
   text?: string;
@@ -22,50 +21,15 @@ export function GoogleButton({
 
   const handleGoogleSignIn = async () => {
     setIsLoading(true);
-    
     try {
-      const supabase = createClient();
-      
-      // Obtener la URL base del sitio
-      const siteUrl = window.location.origin;
-      const redirectTo = `${siteUrl}/auth/callback`;
-      
-      console.log("🔐 Iniciando Google OAuth...");
-      console.log("📍 Redirect URL:", redirectTo);
-
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo,
-          queryParams: {
-            access_type: 'offline',
-            prompt: 'consent',
-          },
-        },
-      });
-
-      if (error) {
-        console.error("❌ Error en Google OAuth:", error);
-        toast.error(error.message || "No se pudo iniciar sesión con Google");
-        setIsLoading(false);
+      const result = await signInWithGoogle();
+      if (result?.url) {
+        window.location.assign(result.url);
         return;
       }
-
-      if (!data?.url) {
-        console.error("❌ No se recibió URL de autenticación");
-        toast.error("No se pudo generar la URL de autenticación");
-        setIsLoading(false);
-        return;
-      }
-
-      console.log("✅ Redirigiendo a Google OAuth...");
-      // Supabase maneja la redirección automáticamente cuando se llama desde el cliente
-      // No necesitamos hacer nada más aquí
-      
+      throw new Error(result?.error || "No se pudo iniciar sesión con Google");
     } catch (error) {
-      console.error("❌ Error al iniciar sesión con Google:", error);
-      const errorMessage = error instanceof Error ? error.message : "Error desconocido";
-      toast.error(`Error al iniciar sesión: ${errorMessage}`);
+      console.error("Error al iniciar sesión con Google:", error);
       setIsLoading(false);
     }
   };

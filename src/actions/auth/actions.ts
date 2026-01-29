@@ -151,41 +151,23 @@ export async function signup(formData: FormData) {
 }
 
 export async function signInWithGoogle() {
-  try {
-    const supabase = await createClient();
+  const supabase = await createClient();
 
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.holistia.io';
-    const redirectTo = `${siteUrl}/auth/callback`;
-
-    console.log("🔐 Iniciando Google OAuth con redirectTo:", redirectTo);
-
-    const { data, error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo,
-        queryParams: {
-          access_type: 'offline',
-          prompt: 'consent',
-        },
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/callback`,
+      queryParams: {
+        access_type: 'offline',
+        prompt: 'consent',
       },
-    });
+    },
+  });
 
-    if (error) {
-      console.error("❌ Error en Google OAuth:", error);
-      return { error: error.message || "Error al conectar con Google" };
-    }
-
-    if (!data?.url) {
-      console.error("❌ No se recibió URL de autenticación");
-      return { error: "No se pudo generar la URL de autenticación" };
-    }
-
-    console.log("✅ URL de Google OAuth generada correctamente");
-    return { success: true, url: data.url };
-  } catch (error) {
-    console.error("❌ Error inesperado en signInWithGoogle:", error);
-    return { 
-      error: error instanceof Error ? error.message : "Error inesperado al iniciar sesión con Google" 
-    };
+  if (error) {
+    console.error("Error en Google OAuth:", error.message);
+    return { error: error.message };
   }
+
+  return { success: true, url: data.url };
 }

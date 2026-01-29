@@ -136,14 +136,11 @@ export default function MyChallengesPage() {
   useEffect(() => {
     const challengeId = searchParams.get('challenge');
     
-    if (challengeId && allChallenges.length > 0 && !selectedChallenge && !loading) {
+    if (challengeId && allChallenges.length > 0 && !selectedChallenge) {
       const challenge = allChallenges.find((c: any) => c.id === challengeId);
       if (challenge) {
         // Abrir el reto
-        handleOpenChallenge(challenge).catch((error) => {
-          console.error('Error opening challenge:', error);
-          toast.error('Error al abrir el reto');
-        }).then(() => {
+        handleOpenChallenge(challenge).then(() => {
           // Limpiar query params después de abrir
           setTimeout(() => {
             if (window.history.replaceState) {
@@ -154,54 +151,28 @@ export default function MyChallengesPage() {
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams, allChallenges.length, selectedChallenge, loading]);
+  }, [searchParams, allChallenges.length, selectedChallenge]);
 
   const fetchChallenges = async () => {
-    const timeoutId = setTimeout(() => {
-      console.error('Timeout en fetchChallenges después de 15 segundos');
-      setLoading(false);
-      toast.error("Tiempo de espera agotado. Por favor, recarga la página.");
-    }, 15000); // 15 segundos timeout
-
     try {
       setLoading(true);
       const { data: { user } } = await supabase.auth.getUser();
 
       if (!user) {
-        clearTimeout(timeoutId);
         toast.error("Debes iniciar sesión");
-        setLoading(false);
         return;
       }
 
       // Obtener retos en los que el usuario participa
-      // Hacer query separada para evitar problemas con RLS en joins
-      const { data: purchases, error: purchasesError } = await supabase
+      const { data: purchases, error } = await supabase
         .from('challenge_purchases')
         .select(`
           id,
           challenge_id,
           access_granted,
           started_at,
-          completed_at
-        `)
-        .eq('participant_id', user.id)
-        .eq('access_granted', true)
-        .order('created_at', { ascending: false });
-
-      if (purchasesError) {
-        console.error('Error fetching purchases:', purchasesError);
-        throw purchasesError;
-      }
-
-      // Obtener información de los retos por separado
-      const purchaseChallengeIds = (purchases || []).map((p: any) => p.challenge_id);
-      let challengesData: any[] = [];
-      
-      if (purchaseChallengeIds.length > 0) {
-        const { data: challenges, error: challengesError } = await supabase
-          .from('challenges')
-          .select(`
+          completed_at,
+          challenges(
             id,
             title,
             description,
@@ -214,37 +185,35 @@ export default function MyChallengesPage() {
             created_by_user_id,
             linked_professional_id,
             is_active,
-            is_public
-          `)
-          .in('id', purchaseChallengeIds);
+            is_public,
+            professional_applications:challenges_linked_professional_id_fkey(
+              first_name,
+              last_name,
+              profile_photo,
+              is_verified
+            )
+          )
+        `)
+        .eq('participant_id', user.id)
+        .eq('access_granted', true)
+        .order('created_at', { ascending: false });
 
-        if (challengesError) {
-          console.error('Error fetching challenges:', challengesError);
-          // Continuar sin challenges si hay error, pero loguear
-        } else {
-          challengesData = challenges || [];
-        }
-      }
-
-      // Crear un mapa de challenges por ID para acceso rápido
-      const challengesMap = new Map(challengesData.map((c: any) => [c.id, c]));
+      if (error) throw error;
 
       // Transformar datos de Supabase a formato esperado
       const transformedPurchases = (purchases || []).map((purchase: any) => {
-        const challenge = challengesMap.get(purchase.challenge_id);
+        const challenge = Array.isArray(purchase.challenges) && purchase.challenges.length > 0
+          ? purchase.challenges[0]
+          : purchase.challenges;
         return {
           id: purchase.id,
           challenge_id: purchase.challenge_id,
           access_granted: purchase.access_granted,
           started_at: purchase.started_at,
           completed_at: purchase.completed_at,
-          challenge: challenge ? {
+          challenge: {
             ...challenge,
-            is_active: challenge.is_active ?? true,
-          } : {
-            id: purchase.challenge_id,
-            title: 'Reto no disponible',
-            is_active: false,
+            is_active: challenge?.is_active ?? true,
           },
         };
       });
@@ -267,15 +236,20 @@ export default function MyChallengesPage() {
           linked_professional_id,
           is_active,
           is_public,
-          created_at
+          created_at,
+          professional_applications!challenges_linked_professional_id_fkey(
+            first_name,
+            last_name,
+            profile_photo,
+            is_verified
+          )
         `)
         .eq('created_by_user_id', user.id)
         .order('created_at', { ascending: false });
 
       if (createdError) {
         console.error('Error fetching created challenges:', createdError);
-        // No lanzar error, solo continuar sin retos creados
-        console.warn('Continuando sin retos creados debido a error');
+        throw createdError;
       }
 
       console.log('🔍 Retos creados encontrados:', created?.length || 0, created);
@@ -284,6 +258,9 @@ export default function MyChallengesPage() {
       const transformedCreated = (created || []).map((challenge: any) => ({
         ...challenge,
         is_active: challenge.is_active ?? true,
+        professional_applications: Array.isArray(challenge.professional_applications) && challenge.professional_applications.length > 0
+          ? challenge.professional_applications[0]
+          : undefined,
       }));
 
       setCreatedChallenges(transformedCreated);
@@ -330,9 +307,7 @@ export default function MyChallengesPage() {
       setAllChallenges(combinedChallenges);
       setFilteredChallenges(combinedChallenges);
 
-      clearTimeout(timeoutId);
     } catch (error) {
-      clearTimeout(timeoutId);
       console.error("Error fetching challenges:", error);
       toast.error("Error al cargar retos");
     } finally {
@@ -381,23 +356,9 @@ export default function MyChallengesPage() {
 
   const fetchCheckins = async (challengePurchaseId: string) => {
     try {
-      // Validar que el challengePurchaseId es válido (no es un challenge.id)
-      if (!challengePurchaseId || challengePurchaseId.length < 36) {
-        console.warn("Invalid challengePurchaseId, skipping checkins fetch");
-        setCheckins([]);
-        setNextDayNumber(1);
-        return;
-      }
-
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 segundos timeout
-
       const response = await fetch(
-        `/api/challenges/checkins?challenge_purchase_id=${challengePurchaseId}`,
-        { signal: controller.signal }
+        `/api/challenges/checkins?challenge_purchase_id=${challengePurchaseId}`
       );
-      
-      clearTimeout(timeoutId);
       const data = await response.json();
 
       if (response.ok) {
@@ -407,25 +368,13 @@ export default function MyChallengesPage() {
           ? Math.max(...data.checkins.map((c: Checkin) => c.day_number))
           : 0;
         setNextDayNumber(maxDay + 1);
-      } else {
-        console.error("Error fetching checkins:", data.error);
-        // Establecer valores por defecto para no bloquear la UI
-        setCheckins([]);
-        setNextDayNumber(1);
       }
-    } catch (error: any) {
-      if (error.name === 'AbortError') {
-        console.error("Timeout fetching checkins");
-      } else {
-        console.error("Error fetching checkins:", error);
-      }
-      // Establecer valores por defecto para no bloquear la UI
-      setCheckins([]);
-      setNextDayNumber(1);
+    } catch (error) {
+      console.error("Error fetching checkins:", error);
     }
   };
 
-  const handlePublishCheckin = async (checkinId: string, makePublic: boolean) => {
+  const handlePublishCheckin = async (checkinId: string, isPublic: boolean) => {
     try {
       const response = await fetch('/api/challenges/checkins/publish', {
         method: 'PATCH',
@@ -434,25 +383,25 @@ export default function MyChallengesPage() {
         },
         body: JSON.stringify({
           checkin_id: checkinId,
-          is_public: makePublic,
+          is_public: !isPublic,
         }),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Error al cambiar la visibilidad del check-in');
+        throw new Error(data.error || 'Error al publicar el check-in');
       }
 
-      toast.success(makePublic ? 'Check-in publicado en el feed exitosamente' : 'Check-in ocultado del feed exitosamente');
+      toast.success(isPublic ? 'Check-in ocultado del feed exitosamente' : 'Check-in publicado en el feed exitosamente');
       
       // Actualizar el estado local
       setCheckins(prev => prev.map(c => 
-        c.id === checkinId ? { ...c, is_public: makePublic } : c
+        c.id === checkinId ? { ...c, is_public: !isPublic } : c
       ));
     } catch (error) {
       console.error('Error publishing checkin:', error);
-      toast.error(error instanceof Error ? error.message : 'Error al cambiar la visibilidad del check-in');
+      toast.error(error instanceof Error ? error.message : 'Error al publicar el check-in');
     }
   };
 
@@ -489,7 +438,7 @@ export default function MyChallengesPage() {
         );
         const data = await response.json();
         
-        let purchaseId: string | null = null;
+        let purchaseId: string;
         
         if (response.ok && data.purchase) {
           // Ya existe un purchase
@@ -507,32 +456,10 @@ export default function MyChallengesPage() {
           if (createResponse.ok && createData.purchase) {
             purchaseId = createData.purchase.id;
           } else {
-            console.error('No se pudo crear la participación automática:', createData);
+            // Si falla la creación, usar challenge.id como fallback
+            purchaseId = challenge.id;
             toast.error('No se pudo crear la participación automática');
           }
-        }
-        
-        // Solo continuar si tenemos un purchaseId válido
-        if (!purchaseId) {
-          // Fallback: mostrar solo recursos sin checkins ni progreso
-          const createdChallenge: ChallengePurchase = {
-            id: challenge.id, // Usar challenge.id solo como identificador visual
-            challenge_id: challenge.id,
-            challenge: {
-              ...challenge,
-              type: 'created' as const,
-              is_active: challenge.is_active ?? true,
-              created_by_type: challenge.created_by_type,
-            },
-            access_granted: true,
-            started_at: undefined,
-            completed_at: undefined,
-          };
-          setSelectedChallenge(createdChallenge);
-          setCheckins([]);
-          await fetchResources(challenge.id);
-          await fetchParticipantsCount(challenge.id);
-          return;
         }
         
         const createdChallenge: ChallengePurchase = {
@@ -875,12 +802,12 @@ export default function MyChallengesPage() {
               {filteredChallenges.map((challenge) => (
                 <Card
                   key={`${challenge.type}-${challenge.id}`}
-                  className={`hover:shadow-lg transition-shadow overflow-hidden cursor-pointer gap-0 flex flex-col relative ${
+                  className={`hover:shadow-lg transition-shadow overflow-hidden cursor-pointer gap-0 min-h-[400px] flex flex-col relative ${
                     selectedChallenge?.challenge_id === challenge.id ? 'ring-2 ring-primary' : ''
                   }`}
                   onClick={() => handleOpenChallenge(challenge)}
                 >
-                  <div className="relative h-40 w-full">
+                  <div className="absolute top-0 left-0 right-0 h-40">
                     {challenge.cover_image_url ? (
                       <Image
                         src={challenge.cover_image_url}
@@ -905,7 +832,8 @@ export default function MyChallengesPage() {
                       </div>
                     )}
                   </div>
-                  <CardHeader className="pb-3 pt-4">
+                  <div className="h-40" /> {/* Spacer para el espacio de la imagen */}
+                  <CardHeader className="pb-3">
                     <CardTitle className="text-lg line-clamp-2">
                       {challenge.title}
                     </CardTitle>
@@ -921,8 +849,8 @@ export default function MyChallengesPage() {
                       </div>
                     )}
                   </CardHeader>
-                  <CardContent className="pb-4">
-                    <div className="flex items-center gap-2 text-sm mb-3">
+                  <CardContent className="flex-1 pb-4">
+                    <div className="flex items-center gap-2 text-sm mb-4">
                       {challenge.duration_days && (
                         <Badge variant="outline" className="text-xs">
                           <Calendar className="h-3 w-3 mr-1" />
@@ -936,13 +864,13 @@ export default function MyChallengesPage() {
                       )}
                     </div>
                     {challenge.description && (
-                      <p className="text-sm text-muted-foreground line-clamp-2">
+                      <p className="text-sm text-muted-foreground line-clamp-3 mb-4">
                         {stripHtml(challenge.description)}
                       </p>
                     )}
                   </CardContent>
-                  {challenge.type === 'created' && (
-                    <div className="px-6 pb-4">
+                  <div className="px-6 pb-6 mt-auto">
+                    {challenge.type === 'created' ? (
                       <div className="flex gap-2">
                         <Button
                           variant="outline"
@@ -967,8 +895,8 @@ export default function MyChallengesPage() {
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
-                    </div>
-                  )}
+                    ) : null}
+                  </div>
                 </Card>
               ))}
             </div>
@@ -1002,24 +930,10 @@ export default function MyChallengesPage() {
                 </TabsList>
 
                 <TabsContent value="progress" className="space-y-4">
-                  {selectedChallenge.id !== selectedChallenge.challenge_id ? (
-                    <ChallengeProgress
-                      challengePurchaseId={selectedChallenge.id}
-                      challengeDurationDays={selectedChallenge.challenge.duration_days}
-                    />
-                  ) : (
-                    <Card className="py-4">
-                      <CardContent className="flex flex-col items-center justify-center py-12">
-                        <Target className="h-16 w-16 text-muted-foreground mb-4" />
-                        <h3 className="text-xl font-semibold mb-2">
-                          Progreso no disponible
-                        </h3>
-                        <p className="text-muted-foreground text-center">
-                          Para ver tu progreso, necesitas participar en este reto.
-                        </p>
-                      </CardContent>
-                    </Card>
-                  )}
+                  <ChallengeProgress
+                    challengePurchaseId={selectedChallenge.id}
+                    challengeDurationDays={selectedChallenge.challenge.duration_days}
+                  />
                 </TabsContent>
 
                 <TabsContent value="checkins" className="space-y-4">
@@ -1040,7 +954,7 @@ export default function MyChallengesPage() {
                             )}
                             <Button
                               onClick={() => setIsCheckinDialogOpen(true)}
-                              disabled={!selectedChallenge.access_granted || selectedChallenge.id === selectedChallenge.challenge_id}
+                              disabled={!selectedChallenge.access_granted}
                             >
                               Nuevo Check-in
                             </Button>
@@ -1124,7 +1038,7 @@ export default function MyChallengesPage() {
                                                 variant="outline"
                                                 size="sm"
                                                 className="h-7 text-xs"
-                                                onClick={() => handlePublishCheckin(checkin.id, true)}
+                                                onClick={() => handlePublishCheckin(checkin.id, false)}
                                               >
                                                 Publicar
                                               </Button>
@@ -1144,21 +1058,7 @@ export default function MyChallengesPage() {
                   </TabsContent>
 
                 <TabsContent value="badges">
-                  {selectedChallenge.id !== selectedChallenge.challenge_id ? (
-                    <ChallengeBadges challengePurchaseId={selectedChallenge.id} />
-                  ) : (
-                    <Card className="py-4">
-                      <CardContent className="flex flex-col items-center justify-center py-12">
-                        <Trophy className="h-16 w-16 text-muted-foreground mb-4" />
-                        <h3 className="text-xl font-semibold mb-2">
-                          Badges no disponibles
-                        </h3>
-                        <p className="text-muted-foreground text-center">
-                          Para ver tus badges, necesitas participar en este reto.
-                        </p>
-                      </CardContent>
-                    </Card>
-                  )}
+                  <ChallengeBadges challengePurchaseId={selectedChallenge.id} />
                 </TabsContent>
 
                 <TabsContent value="resources" className="space-y-4">

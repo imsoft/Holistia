@@ -1,152 +1,141 @@
-import { NextResponse, type NextRequest } from 'next/server'
-import { createServerClient } from '@supabase/ssr'
+import { NextResponse } from 'next/server'
+import { createClient } from '@/utils/supabase/server'
 
-function getCookieDomain(): string | undefined {
-  try {
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
-    if (!siteUrl) return undefined;
-    const host = new URL(siteUrl).hostname;
-    if (host === "localhost" || host.endsWith(".localhost")) return undefined;
-    if (host === "holistia.io" || host === "www.holistia.io" || host.endsWith(".holistia.io")) {
-      return ".holistia.io";
-    }
-    return undefined;
-  } catch {
-    return undefined;
+export async function GET(request: Request) {
+  const { searchParams, origin } = new URL(request.url)
+  const code = searchParams.get('code')
+  const type = searchParams.get('type') // Supabase incluye 'type=recovery' para reset de contraseña
+  // if "next" is in param, use it as the redirect URL
+  let next = searchParams.get('next') ?? '/'
+  if (!next.startsWith('/')) {
+    // if "next" is not a relative URL, use the default
+    next = '/'
   }
-}
 
-export async function GET(request: NextRequest) {
-  try {
-    const { searchParams, origin } = new URL(request.url)
-    const code = searchParams.get('code')
-    const type = searchParams.get('type')
-    const errorParam = searchParams.get('error')
-    const errorDescription = searchParams.get('error_description')
+  console.log('🔗 Callback received with params:', {
+    code: code ? 'present' : 'missing',
+    type,
+    next,
+    allParams: Object.fromEntries(searchParams.entries())
+  });
+
+  if (code) {
+    const supabase = await createClient()
+    const { data, error } = await supabase.auth.exchangeCodeForSession(code)
     
-    let next = searchParams.get('next') ?? '/'
-    if (!next.startsWith('/')) {
-      next = '/'
-    }
-
-    console.log('🔗 Callback received with params:', {
-      code: code ? 'present' : 'missing',
-      type,
-      next,
-      errorParam,
-      errorDescription
-    });
-
-    if (errorParam) {
-      console.error('❌ Google OAuth error:', errorParam, errorDescription);
-      return NextResponse.redirect(`${origin}/login?error=${encodeURIComponent(errorDescription || errorParam)}`);
-    }
-
-    if (!code) {
-      console.error('❌ No code parameter found');
-      return NextResponse.redirect(`${origin}/login?error=${encodeURIComponent('Código de autorización no encontrado')}`);
-    }
-
-    // Crear cliente de Supabase con manejo explícito de cookies en la respuesta
-    let supabaseResponse = NextResponse.next({ request });
-    const cookieDomain = getCookieDomain();
-
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
-      {
-        cookies: {
-          getAll() {
-            return request.cookies.getAll();
-          },
-          setAll(cookiesToSet) {
-            cookiesToSet.forEach(({ name, value }) => {
-              request.cookies.set(name, value);
-            });
-            supabaseResponse = NextResponse.next({ request });
-            cookiesToSet.forEach(({ name, value, options }) => {
-              const nextOptions = cookieDomain ? { ...options, domain: cookieDomain } : options;
-              supabaseResponse.cookies.set(name, value, nextOptions);
-            });
-          },
-        },
-      }
-    );
-    
-    // Intercambiar código por sesión
-    console.log('🔄 Exchanging code for session...');
-    const { data, error } = await supabase.auth.exchangeCodeForSession(code);
-    
-    if (error) {
-      console.error('❌ Error exchanging code for session:', error);
-      return NextResponse.redirect(`${origin}/login?error=${encodeURIComponent(error.message || 'Error al iniciar sesión')}`);
-    }
-
-    if (!data?.user) {
-      console.error('❌ No user data after exchange');
-      return NextResponse.redirect(`${origin}/login?error=${encodeURIComponent('No se pudo obtener información del usuario')}`);
-    }
-
-    if (!data?.session) {
-      console.error('❌ No session data after exchange');
-      return NextResponse.redirect(`${origin}/login?error=${encodeURIComponent('No se pudo crear la sesión')}`);
-    }
-
-    console.log('✅ Session created successfully for user:', data.user.id);
-    console.log('🔐 User authenticated successfully:', {
-      userId: data.user.id,
-      email: data.user.email
-    });
-
-    const forwardedHost = request.headers.get('x-forwarded-host');
-    const isLocalEnv = process.env.NODE_ENV === 'development';
-
-    // Detectar si es un flujo de recuperación de contraseña
-    const sessionAny = data.session as any;
-    const amr = sessionAny?.amr as Array<{ method: string }> | undefined;
-    const isRecoveryFromAMR = amr?.some((method) => method.method === 'recovery' || method.method === 'otp') ?? false;
-    const isRecoveryFromType = type === 'recovery';
-    const isRecoveryFlow = isRecoveryFromType || isRecoveryFromAMR;
-
-    // Si hay un parámetro 'next' válido O es un flujo de recovery, redirigir
-    if (next !== '/' || isRecoveryFlow) {
-      const targetUrl = isRecoveryFlow ? '/confirm-password' : next;
-      const finalUrl = isLocalEnv
-        ? `${origin}${targetUrl}`
-        : forwardedHost
-          ? `https://${forwardedHost}${targetUrl}`
-          : `${origin}${targetUrl}`;
-      
-      console.log('🚀 Redirecting to:', finalUrl);
-      return NextResponse.redirect(finalUrl);
-    }
-
-    // Redirigir inmediatamente a /explore
-    // El middleware manejará la redirección según el tipo de usuario
-    const redirectUrl = `/explore`;
-    const finalUrl = isLocalEnv
-      ? `${origin}${redirectUrl}`
-      : forwardedHost
-        ? `https://${forwardedHost}${redirectUrl}`
-        : `${origin}${redirectUrl}`;
-
-    console.log('🚀 Redirecting to explore (middleware will handle user type):', finalUrl);
-    
-    // Usar la respuesta que ya tiene las cookies establecidas y redirigir
-    const redirectResponse = NextResponse.redirect(finalUrl);
-    
-    // Copiar todas las cookies de la respuesta de Supabase a la respuesta de redirección
-    supabaseResponse.cookies.getAll().forEach((cookie) => {
-      redirectResponse.cookies.set(cookie.name, cookie.value, {
-        ...cookie,
-        ...(cookieDomain ? { domain: cookieDomain } : {})
+    if (!error && data.user) {
+      console.log('🔐 User authenticated successfully:', {
+        userId: data.user.id,
+        email: data.user.email
       });
-    });
-    
-    return redirectResponse;
-  } catch (error) {
-    console.error('❌ Error inesperado en callback:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
-    return NextResponse.redirect(`${origin}/login?error=${encodeURIComponent(errorMessage)}`);
+
+      const forwardedHost = request.headers.get('x-forwarded-host') // original origin before load balancer
+      const isLocalEnv = process.env.NODE_ENV === 'development'
+
+      console.log('🌍 Environment check:', {
+        NODE_ENV: process.env.NODE_ENV,
+        isLocalEnv,
+        forwardedHost,
+        origin
+      });
+
+      // Detectar si es un flujo de recuperación de contraseña
+      // Método 1: Verificar el parámetro 'type=recovery' en la URL
+      // Método 2: Verificar el AMR (Authentication Methods Reference) de la sesión
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const sessionAny = data.session as any;
+      const amr = sessionAny?.amr as Array<{ method: string }> | undefined;
+      const isRecoveryFromAMR = amr?.some((method) => method.method === 'recovery' || method.method === 'otp') ?? false;
+      const isRecoveryFromType = type === 'recovery';
+      const isRecoveryFlow = isRecoveryFromType || isRecoveryFromAMR;
+
+      console.log('🔑 Auth flow detection:', {
+        next,
+        type,
+        isRecoveryFromType,
+        isRecoveryFromAMR,
+        isRecoveryFlow,
+        amr
+      });
+
+      // Si hay un parámetro 'next' válido O es un flujo de recovery, redirigir a confirm-password
+      if (next !== '/' || isRecoveryFlow) {
+        const targetUrl = isRecoveryFlow ? '/confirm-password' : next;
+        console.log('🔄 Redirecting to:', targetUrl, isRecoveryFlow ? '(recovery flow detected)' : '(next param)');
+        const finalUrl = isLocalEnv
+          ? `${origin}${targetUrl}`
+          : forwardedHost
+            ? `https://${forwardedHost}${targetUrl}`
+            : `${origin}${targetUrl}`;
+
+        console.log('🚀 Final redirect URL:', finalUrl);
+        return NextResponse.redirect(finalUrl);
+      }
+
+      // Obtener tipo de usuario y estado de cuenta desde profiles
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('type, account_active')
+        .eq('id', data.user.id)
+        .maybeSingle();
+
+      // Verificar si la cuenta está desactivada
+      if (profile && profile.account_active === false) {
+        return NextResponse.redirect(`${origin}/account-deactivated`);
+      }
+
+      const userType = profile?.type;
+
+      // Determinar la URL de redirección según el tipo de usuario
+      let redirectUrl;
+      if (userType === 'admin') {
+        redirectUrl = `/admin/dashboard`;
+        console.log('👑 Admin user detected, redirecting to:', redirectUrl);
+      } else if (userType === 'professional') {
+        redirectUrl = `/dashboard`;
+        console.log('👨‍⚕️ Professional user detected, redirecting to:', redirectUrl);
+      } else {
+        console.log('🔍 Checking professional application for user:', data.user.id);
+        // Verificar si el usuario tiene una aplicación profesional aprobada
+        const { data: application, error: appError } = await supabase
+          .from('professional_applications')
+          .select('id, status')
+          .eq('user_id', data.user.id)
+          .eq('status', 'approved')
+          .maybeSingle();
+
+        console.log('📋 Application check result:', { application, appError });
+
+        if (application) {
+          // Si tiene una aplicación aprobada, redirigir al dashboard de profesionales
+          redirectUrl = `/dashboard`;
+          console.log('✅ Approved professional application found, redirecting to:', redirectUrl);
+        } else {
+          // Por defecto, redirigir al dashboard del paciente
+          redirectUrl = `/explore`;
+          console.log('👤 Default patient redirect to:', redirectUrl);
+        }
+      }
+
+      const finalUrl = isLocalEnv
+        ? `${origin}${redirectUrl}`
+        : forwardedHost
+          ? `https://${forwardedHost}${redirectUrl}`
+          : `${origin}${redirectUrl}`;
+
+      console.log('🚀 Final redirect URL:', finalUrl);
+
+      if (isLocalEnv) {
+        // we can be sure that there is no load balancer in between, so no need to watch for X-Forwarded-Host
+        return NextResponse.redirect(finalUrl)
+      } else if (forwardedHost) {
+        return NextResponse.redirect(finalUrl)
+      } else {
+        return NextResponse.redirect(finalUrl)
+      }
+    }
   }
+
+  // return the user to an error page with instructions
+  return NextResponse.redirect(`${origin}/auth/auth-code-error`)
 }

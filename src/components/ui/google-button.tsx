@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { signInWithGoogle } from "@/actions/auth/actions";
+import { createClient } from "@/utils/supabase/client";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -22,33 +22,48 @@ export function GoogleButton({
 
   const handleGoogleSignIn = async () => {
     setIsLoading(true);
+    
     try {
-      // Agregar timeout para evitar que se quede colgado
-      const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error("Tiempo de espera agotado")), 10000);
+      const supabase = createClient();
+      
+      // Obtener la URL base del sitio
+      const siteUrl = window.location.origin;
+      const redirectTo = `${siteUrl}/auth/callback`;
+      
+      console.log("🔐 Iniciando Google OAuth...");
+      console.log("📍 Redirect URL:", redirectTo);
+
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          },
+        },
       });
 
-      const resultPromise = signInWithGoogle();
-      
-      const result = await Promise.race([resultPromise, timeoutPromise]) as Awaited<ReturnType<typeof signInWithGoogle>>;
-      
-      if (result?.url) {
-        console.log("Redirecting to Google OAuth:", result.url);
-        // Usar window.location.href en lugar de assign para mejor compatibilidad
-        window.location.href = result.url;
-        return;
-      }
-      
-      if (result?.error) {
-        console.error("Error en Google OAuth:", result.error);
-        toast.error(result.error || "No se pudo iniciar sesión con Google");
+      if (error) {
+        console.error("❌ Error en Google OAuth:", error);
+        toast.error(error.message || "No se pudo iniciar sesión con Google");
         setIsLoading(false);
         return;
       }
+
+      if (!data?.url) {
+        console.error("❌ No se recibió URL de autenticación");
+        toast.error("No se pudo generar la URL de autenticación");
+        setIsLoading(false);
+        return;
+      }
+
+      console.log("✅ Redirigiendo a Google OAuth...");
+      // Supabase maneja la redirección automáticamente cuando se llama desde el cliente
+      // No necesitamos hacer nada más aquí
       
-      throw new Error("No se recibió URL de autenticación");
     } catch (error) {
-      console.error("Error al iniciar sesión con Google:", error);
+      console.error("❌ Error al iniciar sesión con Google:", error);
       const errorMessage = error instanceof Error ? error.message : "Error desconocido";
       toast.error(`Error al iniciar sesión: ${errorMessage}`);
       setIsLoading(false);

@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, User } from "lucide-react";
 import { VerifiedBadge } from "@/components/ui/verified-badge";
+import { FavoriteButton } from "@/components/ui/favorite-button";
 
 interface Challenge {
   id: string;
@@ -75,6 +76,13 @@ export function ChallengeCard({ challenge, onJoin, userId }: ChallengeCardProps)
           fill
           className="object-cover"
         />
+        <div className="absolute top-2 right-2 z-10" onClick={(e) => e.stopPropagation()}>
+          <FavoriteButton
+            itemId={challenge.id}
+            favoriteType="challenge"
+            variant="floating"
+          />
+        </div>
         {challenge.difficulty_level && (
           <div className="absolute top-2 left-2">
             <Badge

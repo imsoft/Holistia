@@ -311,7 +311,7 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
         console.log("🔍 [ExploreSection] Loading challenges...");
         const { data: challengesData, error: challengesError } = await supabase
           .from("challenges")
-          .select("id, slug, title, short_description, cover_image_url, duration_days, difficulty_level, price, professional_id")
+          .select("id, slug, title, short_description, cover_image_url, duration_days, difficulty_level, professional_id, linked_professional_id")
           .eq("is_active", true)
           .eq("is_public", true)
           .in("created_by_type", ["professional", "admin"])
@@ -332,7 +332,7 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
           
           // Obtener profesionales por separado si existen
           const professionalIds = challengesData
-            .map(c => c.professional_id)
+            .map(c => c.professional_id || c.linked_professional_id)
             .filter((id): id is string => !!id);
           
           let professionalsMap = new Map();
@@ -353,9 +353,8 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
           
           // Transformar datos para asegurar el formato correcto que espera ChallengeCard
           const transformedChallenges = challengesData.map((challenge: any) => {
-            const professional = challenge.professional_id 
-              ? professionalsMap.get(challenge.professional_id)
-              : null;
+            const profId = challenge.professional_id || challenge.linked_professional_id;
+            const professional = profId ? professionalsMap.get(profId) : null;
             
             return {
               id: challenge.id,
@@ -365,8 +364,6 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
               cover_image_url: challenge.cover_image_url,
               duration_days: challenge.duration_days,
               difficulty_level: challenge.difficulty_level,
-              price: challenge.price,
-              currency: challenge.currency,
               // ChallengeCard espera propiedades planas, no professional_applications
               professional_first_name: professional?.first_name,
               professional_last_name: professional?.last_name,

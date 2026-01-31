@@ -73,46 +73,59 @@ export default function ChallengesPage() {
     try {
       setLoading(true);
 
+      // Obtener retos sin join para evitar problemas de RLS/relación
       const { data: challengesData, error } = await supabase
         .from('challenges')
-        .select(`
-          *,
-          professional_applications(
-            first_name,
-            last_name,
-            profile_photo,
-            profession,
-            is_verified,
-            status,
-            is_active
-          )
-        `)
+        .select('id, slug, title, description, short_description, cover_image_url, duration_days, difficulty_level, category, created_at, professional_id, linked_professional_id')
         .eq('is_active', true)
-        // En exploración solo deben mostrarse retos públicos de profesionales
         .eq('is_public', true)
-        .eq('created_by_type', 'professional')
+        .in('created_by_type', ['professional', 'admin'])
         .order('created_at', { ascending: false });
 
       if (error) {
         console.error("Error fetching challenges:", error);
+        setChallenges([]);
+        setFilteredChallenges([]);
         return;
       }
 
-      // Transformar datos para incluir información del profesional
-      const transformedChallenges = (challengesData || []).map((challenge: any) => ({
-        ...challenge,
-        professional_first_name: challenge.professional_applications?.first_name,
-        professional_last_name: challenge.professional_applications?.last_name,
-        professional_photo: challenge.professional_applications?.profile_photo,
-        professional_profession: challenge.professional_applications?.profession,
-        professional_is_verified: challenge.professional_applications?.is_verified,
-      }));
+      const challengesList = challengesData || [];
+      const professionalIds = challengesList
+        .map((c: { professional_id?: string; linked_professional_id?: string }) => c.professional_id || c.linked_professional_id)
+        .filter((id): id is string => !!id);
+      const uniqueProfessionalIds = [...new Set(professionalIds)];
+
+      let professionalsMap = new Map<string, { first_name: string; last_name: string; profile_photo?: string; profession?: string; is_verified?: boolean }>();
+      if (uniqueProfessionalIds.length > 0) {
+        const { data: prosData } = await supabase
+          .from('professional_applications')
+          .select('id, first_name, last_name, profile_photo, profession, is_verified')
+          .in('id', uniqueProfessionalIds);
+        (prosData || []).forEach((p: { id: string; first_name: string; last_name: string; profile_photo?: string; profession?: string; is_verified?: boolean }) => {
+          professionalsMap.set(p.id, p);
+        });
+      }
+
+      const transformedChallenges = challengesList.map((challenge: any) => {
+        const profId = challenge.professional_id || challenge.linked_professional_id;
+        const professional = profId ? professionalsMap.get(profId) : null;
+        return {
+          ...challenge,
+          professional_first_name: professional?.first_name,
+          professional_last_name: professional?.last_name,
+          professional_photo: professional?.profile_photo,
+          professional_profession: professional?.profession,
+          professional_is_verified: professional?.is_verified,
+        };
+      });
 
       setChallenges(transformedChallenges);
       setFilteredChallenges(transformedChallenges);
 
     } catch (error) {
       console.error("Error fetching challenges:", error);
+      setChallenges([]);
+      setFilteredChallenges([]);
     } finally {
       setLoading(false);
     }
@@ -243,7 +256,7 @@ export default function ChallengesPage() {
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
         ) : filteredChallenges.length === 0 ? (
-          <div className="text-center py-12">
+          <div className="text-center py-12 min-h-[50vh] flex flex-col items-center justify-center">
             <Target className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
             <h3 className="text-xl font-semibold mb-2">
               {searchTerm || selectedDifficulty !== 'all'

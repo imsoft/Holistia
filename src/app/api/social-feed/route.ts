@@ -9,6 +9,7 @@ export async function GET(request: Request) {
     const limit = parseInt(searchParams.get("limit") || "20");
     const offset = parseInt(searchParams.get("offset") || "0");
     const filterType = searchParams.get("filter") || "all"; // "all", "following", "recommended"
+    const checkinId = searchParams.get("checkinId");
     const categoriesParam = searchParams.get("categories");
     const difficultiesParam = searchParams.get("difficulties");
     const searchQuery = searchParams.get("search");
@@ -18,6 +19,46 @@ export async function GET(request: Request) {
 
     if (userError || !user) {
       return NextResponse.json({ error: "No autenticado" }, { status: 401 });
+    }
+
+    // Si se solicita un post individual
+    if (checkinId) {
+      const { data: singleCheckin, error: singleError } = await supabase
+        .from("social_feed_checkins")
+        .select("*")
+        .eq("checkin_id", checkinId)
+        .maybeSingle();
+
+      if (singleError || !singleCheckin) {
+        return NextResponse.json({ error: "Post no encontrado" }, { status: 404 });
+      }
+
+      const [likeData, reactionData] = await Promise.all([
+        supabase
+          .from("challenge_checkin_likes")
+          .select("id")
+          .eq("checkin_id", singleCheckin.checkin_id)
+          .eq("user_id", user.id)
+          .maybeSingle(),
+        supabase
+          .from("post_reactions")
+          .select("reaction_type")
+          .eq("checkin_id", singleCheckin.checkin_id)
+          .eq("user_id", user.id)
+          .maybeSingle()
+      ]);
+
+      const postWithLikeStatus = {
+        ...singleCheckin,
+        isLikedByCurrentUser: !!likeData.data,
+        userReaction: reactionData.data?.reaction_type || null,
+      };
+
+      return NextResponse.json({
+        data: [postWithLikeStatus],
+        count: 1,
+        hasMore: false,
+      });
     }
 
     // Obtener check-ins individuales

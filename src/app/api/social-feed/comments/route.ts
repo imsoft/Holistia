@@ -11,21 +11,10 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "checkinId es requerido" }, { status: 400 });
     }
 
-    // Obtener comentarios con información del usuario
-    const { data, error } = await supabase
+    // Obtener comentarios (sin join a profiles - no hay FK directa)
+    const { data: comments, error } = await supabase
       .from("challenge_checkin_comments")
-      .select(`
-        id,
-        comment_text,
-        created_at,
-        updated_at,
-        user_id,
-        profiles!inner(
-          first_name,
-          last_name,
-          photo_url
-        )
-      `)
+      .select("id, comment_text, created_at, updated_at, user_id")
       .eq("checkin_id", checkinId)
       .order("created_at", { ascending: true });
 
@@ -33,7 +22,34 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    return NextResponse.json({ data: data || [] });
+    // Obtener perfiles por separado
+    const userIds = [...new Set((comments || []).map((c) => c.user_id).filter(Boolean))];
+    let profilesMap = new Map<string, { first_name: string | null; last_name: string | null; photo_url: string | null }>();
+    if (userIds.length > 0) {
+      const { data: profilesData } = await supabase
+        .from("profiles")
+        .select("id, first_name, last_name, photo_url")
+        .in("id", userIds);
+      (profilesData || []).forEach((p) => {
+        profilesMap.set(p.id, {
+          first_name: p.first_name ?? null,
+          last_name: p.last_name ?? null,
+          photo_url: p.photo_url ?? null,
+        });
+      });
+    }
+
+    const dataWithProfiles = (comments || []).map((comment) => {
+      const profile = profilesMap.get(comment.user_id);
+      return {
+        ...comment,
+        profiles: profile
+          ? { first_name: profile.first_name, last_name: profile.last_name, photo_url: profile.photo_url }
+          : { first_name: null, last_name: null, photo_url: null },
+      };
+    });
+
+    return NextResponse.json({ data: dataWithProfiles });
   } catch (error) {
     console.error("Error fetching comments:", error);
     return NextResponse.json({ error: "Error al obtener comentarios" }, { status: 500 });
@@ -81,25 +97,33 @@ export async function POST(request: Request) {
         user_id: user.id,
         comment_text: commentText.trim(),
       })
-      .select(`
-        id,
-        comment_text,
-        created_at,
-        updated_at,
-        user_id,
-        profiles!inner(
-          first_name,
-          last_name,
-          photo_url
-        )
-      `)
+      .select("id, comment_text, created_at, updated_at, user_id")
       .single();
 
     if (commentError) {
       return NextResponse.json({ error: commentError.message }, { status: 500 });
     }
 
-    return NextResponse.json({ data: newComment });
+    // Obtener perfil del autor por separado
+    let profile = { first_name: null as string | null, last_name: null as string | null, photo_url: null as string | null };
+    if (newComment?.user_id) {
+      const { data: profileData } = await supabase
+        .from("profiles")
+        .select("first_name, last_name, photo_url")
+        .eq("id", newComment.user_id)
+        .single();
+      if (profileData) {
+        profile = {
+          first_name: profileData.first_name ?? null,
+          last_name: profileData.last_name ?? null,
+          photo_url: profileData.photo_url ?? null,
+        };
+      }
+    }
+
+    return NextResponse.json({
+      data: { ...newComment, profiles: profile },
+    });
   } catch (error) {
     console.error("Error creating comment:", error);
     return NextResponse.json({ error: "Error al crear comentario" }, { status: 500 });

@@ -2,13 +2,21 @@
 
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
+import Link from "next/link";
 import { createClient } from "@/utils/supabase/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { SocialFeedPost } from "@/components/ui/social-feed-post";
 import { FollowButton } from "@/components/ui/follow-button";
-import { Users, Image as ImageIcon, Heart, TrendingUp } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Users, Image as ImageIcon, UserCheck, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 interface UserProfile {
@@ -17,12 +25,21 @@ interface UserProfile {
   last_name: string;
   avatar_url: string | null;
   type: string;
+  username: string | null;
 }
 
 interface UserStats {
   posts_count: number;
   followers_count: number;
   following_count: number;
+}
+
+interface FollowUser {
+  id: string;
+  first_name: string | null;
+  last_name: string | null;
+  avatar_url: string | null;
+  username: string | null;
 }
 
 export default function UserProfilePage() {
@@ -39,6 +56,10 @@ export default function UserProfilePage() {
   const [checkins, setCheckins] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [checkinsLoading, setCheckinsLoading] = useState(true);
+  const [followsDialogOpen, setFollowsDialogOpen] = useState(false);
+  const [followsDialogType, setFollowsDialogType] = useState<"followers" | "following">("followers");
+  const [followsList, setFollowsList] = useState<FollowUser[]>([]);
+  const [followsListLoading, setFollowsListLoading] = useState(false);
   const supabase = createClient();
 
   useEffect(() => {
@@ -50,10 +71,10 @@ export default function UserProfilePage() {
     try {
       setLoading(true);
 
-      // Obtener perfil del usuario
+      // Obtener perfil del usuario (incluye username si existe)
       const { data: profileData, error: profileError } = await supabase
         .from("profiles")
-        .select("id, first_name, last_name, avatar_url, type")
+        .select("id, first_name, last_name, avatar_url, type, username")
         .eq("id", userId)
         .single();
 
@@ -66,37 +87,22 @@ export default function UserProfilePage() {
       setProfile(profileData);
 
       // Obtener estadísticas
-      // Primero obtener IDs de compras del usuario
-      const { data: purchasesData } = await supabase
-        .from("challenge_purchases")
-        .select("id")
-        .eq("buyer_id", userId);
-
-      const purchaseIds = purchasesData?.map((p) => p.id) || [];
-
-      // Contar posts públicos
+      // Publicaciones: contar desde la misma fuente que la lista (social_feed_checkins por user_id)
       const { count: postsCount } = await supabase
-        .from("challenge_checkins")
-        .select("id", { count: "exact", head: true })
-        .eq("is_public", true)
-        .in("challenge_purchase_id", purchaseIds);
+        .from("social_feed_checkins")
+        .select("checkin_id", { count: "exact", head: true })
+        .eq("user_id", userId);
 
-      // Contar seguidores
-      const { count: followersCount } = await supabase
-        .from("user_follows")
-        .select("id", { count: "exact", head: true })
-        .eq("following_id", userId);
-
-      // Contar siguiendo
-      const { count: followingCount } = await supabase
-        .from("user_follows")
-        .select("id", { count: "exact", head: true })
-        .eq("follower_id", userId);
+      // Seguidores y siguiendo: usar la API para consistencia y evitar problemas de RLS al ver perfiles ajenos
+      const statsResponse = await fetch(`/api/follows/stats?user_id=${userId}`);
+      const statsData = await statsResponse.json();
+      const followersCount = statsData.followers_count ?? 0;
+      const followingCount = statsData.following_count ?? 0;
 
       setStats({
-        posts_count: postsCount || 0,
-        followers_count: followersCount || 0,
-        following_count: followingCount || 0,
+        posts_count: postsCount ?? 0,
+        followers_count: followersCount,
+        following_count: followingCount,
       });
     } catch (error) {
       console.error("Error loading user profile:", error);
@@ -162,6 +168,36 @@ export default function UserProfilePage() {
     return `${profile.first_name.charAt(0)}${profile.last_name.charAt(0)}`.toUpperCase();
   };
 
+  const openFollowsDialog = async (type: "followers" | "following") => {
+    setFollowsDialogType(type);
+    setFollowsDialogOpen(true);
+    setFollowsListLoading(true);
+    setFollowsList([]);
+    try {
+      const res = await fetch(
+        `/api/follows/list?user_id=${userId}&type=${type}`
+      );
+      const data = await res.json();
+      if (res.ok && Array.isArray(data.users)) {
+        setFollowsList(data.users);
+      } else {
+        toast.error("Error al cargar la lista");
+      }
+    } catch {
+      toast.error("Error al cargar la lista");
+    } finally {
+      setFollowsListLoading(false);
+    }
+  };
+
+  const getFollowUserInitials = (u: FollowUser) => {
+    if (u.first_name && u.last_name) {
+      return `${u.first_name[0]}${u.last_name[0]}`.toUpperCase();
+    }
+    if (u.username) return u.username[0].toUpperCase();
+    return "?";
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -199,11 +235,14 @@ export default function UserProfilePage() {
 
             {/* Información del usuario */}
             <div className="flex-1 text-center sm:text-left">
+              {profile.username && (
+                <p className="text-sm text-muted-foreground mb-0.5">@{profile.username}</p>
+              )}
               <h1 className="text-2xl sm:text-3xl font-bold mb-2">
                 {profile.first_name} {profile.last_name}
               </h1>
 
-              {/* Estadísticas */}
+              {/* Estadísticas (Seguidores y Siguiendo son clicables) */}
               <div className="flex items-center justify-center sm:justify-start gap-6 mb-4">
                 <div className="text-center">
                   <p className="text-2xl font-bold">{stats.posts_count}</p>
@@ -211,14 +250,22 @@ export default function UserProfilePage() {
                     Publicaciones
                   </p>
                 </div>
-                <div className="text-center">
+                <button
+                  type="button"
+                  onClick={() => openFollowsDialog("followers")}
+                  className="text-center hover:opacity-80 transition-opacity"
+                >
                   <p className="text-2xl font-bold">{stats.followers_count}</p>
                   <p className="text-sm text-muted-foreground">Seguidores</p>
-                </div>
-                <div className="text-center">
+                </button>
+                <button
+                  type="button"
+                  onClick={() => openFollowsDialog("following")}
+                  className="text-center hover:opacity-80 transition-opacity"
+                >
                   <p className="text-2xl font-bold">{stats.following_count}</p>
                   <p className="text-sm text-muted-foreground">Siguiendo</p>
-                </div>
+                </button>
               </div>
 
               {/* Botón de seguir */}
@@ -276,6 +323,68 @@ export default function UserProfilePage() {
             </div>
           )}
         </div>
+
+        {/* Dialog Seguidores / Siguiendo */}
+        <Dialog open={followsDialogOpen} onOpenChange={setFollowsDialogOpen}>
+          <DialogContent className="max-w-md max-h-[80vh] flex flex-col">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                {followsDialogType === "followers" ? (
+                  <>
+                    <Users className="h-5 w-5" />
+                    Seguidores
+                  </>
+                ) : (
+                  <>
+                    <UserCheck className="h-5 w-5" />
+                    Siguiendo
+                  </>
+                )}
+              </DialogTitle>
+            </DialogHeader>
+            <ScrollArea className="flex-1 pr-4 -mx-2">
+              {followsListLoading ? (
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                </div>
+              ) : followsList.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-8">
+                  {followsDialogType === "followers"
+                    ? "No tiene seguidores aún"
+                    : "No sigue a nadie aún"}
+                </p>
+              ) : (
+                <div className="space-y-1 pb-4">
+                  {followsList.map((user) => (
+                    <Link
+                      key={user.id}
+                      href={`/profile/${user.id}`}
+                      onClick={() => setFollowsDialogOpen(false)}
+                      className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted/60 transition-colors"
+                    >
+                      <Avatar className="h-10 w-10 shrink-0">
+                        <AvatarImage src={user.avatar_url || undefined} />
+                        <AvatarFallback className="text-sm">
+                          {getFollowUserInitials(user)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="min-w-0 flex-1">
+                        <p className="font-medium truncate">
+                          {user.first_name} {user.last_name}
+                        </p>
+                        {user.username ? (
+                          <p className="text-sm text-muted-foreground truncate">
+                            @{user.username}
+                          </p>
+                        ) : null}
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </ScrollArea>
+          </DialogContent>
+        </Dialog>
       </main>
     </div>
   );

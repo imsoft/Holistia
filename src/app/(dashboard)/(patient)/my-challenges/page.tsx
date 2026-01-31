@@ -1203,10 +1203,12 @@ export default function MyChallengesPage() {
                       </p>
                     </CardHeader>
                     <CardContent>
-                      {/* Lista de participantes: mini cards con enlace al perfil */}
-                      {participants.length > 0 && (
+                      {/* Lista de participantes: mini cards con enlace al perfil + CTA invitar (solo si el reto no lo creó un profesional) */}
+                      {(participants.length > 0 || (selectedChallenge.challenge.created_by_type !== "professional" && participantsCount < 5)) && (
                         <div className="mb-4">
-                          <h4 className="text-sm font-medium mb-3">Participantes ({participants.length})</h4>
+                          <h4 className="text-sm font-medium mb-3">
+                            Participantes {participants.length > 0 && `(${participants.length})`}
+                          </h4>
                           <div className="flex flex-wrap gap-3">
                             {participants.map((p) => (
                               <Link
@@ -1234,6 +1236,19 @@ export default function MyChallengesPage() {
                                 </span>
                               </Link>
                             ))}
+                            {/* CTA invitar: solo si el reto no fue creado por un profesional y hay cupo */}
+                            {selectedChallenge.challenge.created_by_type !== "professional" && participantsCount < 5 && (
+                              <button
+                                type="button"
+                                onClick={() => setIsInviteDialogOpen(true)}
+                                className="flex items-center gap-2 p-3 rounded-lg border border-dashed bg-muted/30 hover:bg-muted/60 transition-colors min-w-0 shrink-0 text-muted-foreground hover:text-foreground"
+                              >
+                                <div className="h-10 w-10 rounded-full shrink-0 bg-muted flex items-center justify-center">
+                                  <UserPlus className="h-5 w-5" />
+                                </div>
+                                <span className="text-sm font-medium">Invitar</span>
+                              </button>
+                            )}
                           </div>
                         </div>
                       )}

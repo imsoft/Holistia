@@ -274,10 +274,10 @@ export function ChallengeChat({ challengeId, currentUserId }: ChallengeChatProps
   }
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full min-h-0 rounded-lg border bg-card overflow-hidden">
       {/* Mensajes */}
-      <ScrollArea className="flex-1 pr-4" ref={scrollRef}>
-        <div className="space-y-4 py-4">
+      <ScrollArea className="flex-1 min-h-0 pr-4" ref={scrollRef}>
+        <div className="space-y-4 p-4">
           {messages.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               No hay mensajes aún. ¡Sé el primero en escribir!
@@ -333,8 +333,8 @@ export function ChallengeChat({ challengeId, currentUserId }: ChallengeChatProps
         </div>
       </ScrollArea>
 
-      {/* Input */}
-      <div className="flex gap-2 pt-4 border-t">
+      {/* Input y botón dentro del mismo contenedor */}
+      <div className="shrink-0 flex gap-2 p-3 border-t bg-background">
         <Input
           placeholder="Escribe un mensaje..."
           value={message}
@@ -346,11 +346,13 @@ export function ChallengeChat({ challengeId, currentUserId }: ChallengeChatProps
             }
           }}
           disabled={sending}
+          className="flex-1 min-w-0"
         />
         <Button
           onClick={handleSendMessage}
           disabled={!message.trim() || sending}
           size="icon"
+          className="shrink-0"
         >
           {sending ? (
             <Loader2 className="h-4 w-4 animate-spin" />

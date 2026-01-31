@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
+import Link from "next/link";
 import { useUserId } from "@/stores/user-store";
 import { useUserStoreInit } from "@/hooks/use-user-store-init";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -126,6 +127,7 @@ export default function MyChallengesPage() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [difficultyFilter, setDifficultyFilter] = useState<string>("all");
   const [participantsCount, setParticipantsCount] = useState<number>(0);
+  const [participants, setParticipants] = useState<Array<{ id: string; first_name: string | null; last_name: string | null; avatar_url: string | null }>>([]);
   const [isInviteDialogOpen, setIsInviteDialogOpen] = useState(false);
 
   useEffect(() => {
@@ -233,6 +235,7 @@ export default function MyChallengesPage() {
           difficulty_level,
           category,
           created_by_type,
+          created_by_user_id,
           linked_professional_id,
           is_active,
           is_public,
@@ -428,6 +431,7 @@ export default function MyChallengesPage() {
       await fetchCheckins(challenge.purchaseId);
       await fetchResources(challenge.id);
       await fetchParticipantsCount(challenge.id);
+      await fetchChallengeParticipants(challenge.id, challenge.created_by_type, challenge.created_by_user_id);
     } else if (challenge.type === 'created') {
       // Si es un reto creado, buscar o crear un purchase automáticamente
       // para que el creador pueda ver progreso, check-ins y badges
@@ -479,6 +483,7 @@ export default function MyChallengesPage() {
         await fetchCheckins(purchaseId);
         await fetchResources(challenge.id);
         await fetchParticipantsCount(challenge.id);
+        await fetchChallengeParticipants(challenge.id, challenge.created_by_type, challenge.created_by_user_id);
       } catch (error) {
         console.error('Error al obtener/crear purchase para reto creado:', error);
         // Fallback: mostrar solo recursos
@@ -499,6 +504,7 @@ export default function MyChallengesPage() {
         setCheckins([]);
         await fetchResources(challenge.id);
         await fetchParticipantsCount(challenge.id);
+        await fetchChallengeParticipants(challenge.id, challenge.created_by_type, challenge.created_by_user_id);
       }
     }
   };
@@ -559,6 +565,53 @@ export default function MyChallengesPage() {
       }
     } catch (error) {
       console.error("Error fetching participants count:", error);
+    }
+  };
+
+  const fetchChallengeParticipants = async (
+    challengeId: string,
+    createdByType?: string,
+    createdByUserId?: string
+  ) => {
+    try {
+      const { data: purchases, error } = await supabase
+        .from("challenge_purchases")
+        .select("participant_id")
+        .eq("challenge_id", challengeId)
+        .eq("access_granted", true);
+
+      if (error) throw error;
+
+      const participantIds = [...new Set((purchases || []).map((p: { participant_id: string }) => p.participant_id).filter(Boolean))];
+
+      // Si el reto fue creado por un profesional, incluir al creador si no está en purchases
+      if (createdByType === "professional" && createdByUserId && !participantIds.includes(createdByUserId)) {
+        participantIds.push(createdByUserId);
+      }
+
+      if (participantIds.length === 0) {
+        setParticipants([]);
+        return;
+      }
+
+      const { data: profilesData, error: profilesError } = await supabase
+        .from("profiles")
+        .select("id, first_name, last_name, avatar_url")
+        .in("id", participantIds);
+
+      if (profilesError) throw profilesError;
+
+      setParticipants(
+        (profilesData || []).map((p) => ({
+          id: p.id,
+          first_name: p.first_name ?? null,
+          last_name: p.last_name ?? null,
+          avatar_url: p.avatar_url ?? null,
+        }))
+      );
+    } catch (error) {
+      console.error("Error fetching challenge participants:", error);
+      setParticipants([]);
     }
   };
 
@@ -1142,47 +1195,73 @@ export default function MyChallengesPage() {
                         Participantes del Reto
                       </CardTitle>
                       <p className="text-sm text-muted-foreground">
-                        {participantsCount >= 1
-                          ? `Comunícate con los otros participantes del reto (${participantsCount} participante${participantsCount > 1 ? 's' : ''})`
-                          : "Invita a otros usuarios para chatear y trabajar juntos en el reto"}
+                        {participantsCount >= 2
+                          ? `Comunícate con los otros participantes del reto (${participantsCount} participantes)`
+                          : participantsCount === 1
+                            ? "Invita a alguien más para desbloquear el chat del reto"
+                            : "Invita a otros usuarios para chatear y trabajar juntos en el reto"}
                       </p>
                     </CardHeader>
                     <CardContent>
-                      {/* Mostrar chat si hay al menos 1 participante (el profesional creador cuenta) */}
-                      {participantsCount >= 1 ? (
-                        <div className="space-y-4">
-                          {/* Lista de participantes */}
-                          <div>
-                            <h4 className="text-sm font-medium mb-3">Participantes ({participantsCount})</h4>
-                            <div className="space-y-2">
-                              {/* Aquí podríamos agregar la lista de participantes en el futuro */}
-                            </div>
+                      {/* Lista de participantes: mini cards con enlace al perfil */}
+                      {participants.length > 0 && (
+                        <div className="mb-4">
+                          <h4 className="text-sm font-medium mb-3">Participantes ({participants.length})</h4>
+                          <div className="flex flex-wrap gap-3">
+                            {participants.map((p) => (
+                              <Link
+                                key={p.id}
+                                href={`/profile/${p.id}`}
+                                className="flex items-center gap-2 p-3 rounded-lg border bg-card hover:bg-muted/50 transition-colors min-w-0 shrink-0"
+                              >
+                                <div className="h-10 w-10 rounded-full overflow-hidden shrink-0 bg-muted">
+                                  {p.avatar_url ? (
+                                    <Image
+                                      src={p.avatar_url}
+                                      alt=""
+                                      width={40}
+                                      height={40}
+                                      className="h-10 w-10 object-cover"
+                                    />
+                                  ) : (
+                                    <div className="h-10 w-10 flex items-center justify-center text-sm font-medium text-muted-foreground">
+                                      {p.first_name?.[0]}{p.last_name?.[0] || "?"}
+                                    </div>
+                                  )}
+                                </div>
+                                <span className="text-sm font-medium truncate max-w-[120px]">
+                                  {p.first_name} {p.last_name}
+                                </span>
+                              </Link>
+                            ))}
                           </div>
-                          
-                          {/* Chat */}
-                          <div>
-                            <h4 className="text-sm font-medium mb-3 flex items-center gap-2">
-                              <MessageSquare className="h-4 w-4" />
-                              Chat del Reto
-                            </h4>
-                            <div className="h-[400px] border rounded-lg">
-                              <ChallengeChat
-                                challengeId={selectedChallenge.challenge_id}
-                                currentUserId={userId || ""}
-                              />
-                            </div>
+                        </div>
+                      )}
+
+                      {/* Mostrar chat solo si hay 2 o más participantes */}
+                      {participantsCount >= 2 ? (
+                        <div>
+                          <h4 className="text-sm font-medium mb-3 flex items-center gap-2">
+                            <MessageSquare className="h-4 w-4" />
+                            Chat del Reto
+                          </h4>
+                          <div className="h-[400px] min-h-0 flex flex-col">
+                            <ChallengeChat
+                              challengeId={selectedChallenge.challenge_id}
+                              currentUserId={userId || ""}
+                            />
                           </div>
                         </div>
                       ) : (
-                        <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
+                        <div className="flex flex-col items-center justify-center py-12 px-4 text-center border rounded-lg bg-muted/30">
                           <div className="rounded-full bg-muted p-6 mb-4">
-                            <Users className="h-12 w-12 text-muted-foreground" />
+                            <MessageSquare className="h-12 w-12 text-muted-foreground" />
                           </div>
                           <h3 className="text-lg font-semibold mb-2">
-                            Invita a otros participantes
+                            Invita a alguien para chatear
                           </h3>
                           <p className="text-sm text-muted-foreground mb-6 max-w-md">
-                            Para poder chatear con otros participantes, necesitas invitar al menos a una persona más al reto.
+                            Cuando haya al menos dos participantes en el reto, aquí podrás chatear con ellos.
                             Los retos en equipo son más divertidos y motivadores.
                           </p>
                           <Button
@@ -1217,6 +1296,11 @@ export default function MyChallengesPage() {
           currentParticipants={participantsCount}
           onInviteSuccess={() => {
             fetchParticipantsCount(selectedChallenge.challenge_id);
+            fetchChallengeParticipants(
+              selectedChallenge.challenge_id,
+              selectedChallenge.challenge.created_by_type,
+              (selectedChallenge.challenge as { created_by_user_id?: string }).created_by_user_id
+            );
             fetchChallenges();
           }}
         />

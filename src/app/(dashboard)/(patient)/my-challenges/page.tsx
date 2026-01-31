@@ -127,7 +127,7 @@ export default function MyChallengesPage() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [difficultyFilter, setDifficultyFilter] = useState<string>("all");
   const [participantsCount, setParticipantsCount] = useState<number>(0);
-  const [participants, setParticipants] = useState<Array<{ id: string; first_name: string | null; last_name: string | null; avatar_url: string | null }>>([]);
+  const [participants, setParticipants] = useState<Array<{ id: string; first_name: string | null; last_name: string | null; avatar_url: string | null; type?: string | null }>>([]);
   const [isInviteDialogOpen, setIsInviteDialogOpen] = useState(false);
 
   useEffect(() => {
@@ -596,7 +596,7 @@ export default function MyChallengesPage() {
 
       const { data: profilesData, error: profilesError } = await supabase
         .from("profiles")
-        .select("id, first_name, last_name, avatar_url")
+        .select("id, first_name, last_name, avatar_url, type")
         .in("id", participantIds);
 
       if (profilesError) throw profilesError;
@@ -607,6 +607,7 @@ export default function MyChallengesPage() {
           first_name: p.first_name ?? null,
           last_name: p.last_name ?? null,
           avatar_url: p.avatar_url ?? null,
+          type: p.type ?? null,
         }))
       );
     } catch (error) {
@@ -1231,9 +1232,14 @@ export default function MyChallengesPage() {
                                     </div>
                                   )}
                                 </div>
-                                <span className="text-sm font-medium truncate max-w-[120px]">
-                                  {p.first_name} {p.last_name}
-                                </span>
+                                <div className="min-w-0 flex flex-col">
+                                  <span className="text-sm font-medium truncate max-w-[120px]">
+                                    {p.first_name} {p.last_name}
+                                  </span>
+                                  <span className="text-xs text-muted-foreground">
+                                    {p.type === "professional" ? "Profesional" : p.type === "admin" ? "Administrador" : "Paciente"}
+                                  </span>
+                                </div>
                               </Link>
                             ))}
                             {/* CTA invitar: solo si el reto no fue creado por un profesional y hay cupo */}

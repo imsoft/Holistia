@@ -40,6 +40,7 @@ interface FollowUser {
   last_name: string | null;
   avatar_url: string | null;
   username: string | null;
+  type: string | null;
 }
 
 export default function UserProfilePage() {
@@ -372,11 +373,15 @@ export default function UserProfilePage() {
                         <p className="font-medium truncate">
                           {user.first_name} {user.last_name}
                         </p>
-                        {user.username ? (
-                          <p className="text-sm text-muted-foreground truncate">
-                            @{user.username}
-                          </p>
-                        ) : null}
+                        <p className="text-sm text-muted-foreground truncate">
+                          {user.username ? `@${user.username}` : null}
+                          {user.username && user.type ? " · " : null}
+                          {user.type === "professional"
+                            ? "Profesional"
+                            : user.type === "admin"
+                              ? "Administrador"
+                              : "Paciente"}
+                        </p>
                       </div>
                     </Link>
                   ))}

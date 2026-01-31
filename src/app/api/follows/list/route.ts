@@ -7,6 +7,7 @@ export type FollowUser = {
   last_name: string | null;
   avatar_url: string | null;
   username: string | null;
+  type: string | null;
 };
 
 export async function GET(request: NextRequest) {
@@ -52,7 +53,7 @@ export async function GET(request: NextRequest) {
 
       const { data: profiles, error: profilesError } = await supabase
         .from("profiles")
-        .select("id, first_name, last_name, avatar_url, username")
+        .select("id, first_name, last_name, avatar_url, username, type")
         .in("id", ids);
 
       if (profilesError) {
@@ -69,6 +70,7 @@ export async function GET(request: NextRequest) {
         last_name: p.last_name ?? null,
         avatar_url: p.avatar_url ?? null,
         username: p.username ?? null,
+        type: p.type ?? null,
       }));
 
       return NextResponse.json({ users });
@@ -95,7 +97,7 @@ export async function GET(request: NextRequest) {
 
     const { data: profiles, error: profilesError } = await supabase
       .from("profiles")
-      .select("id, first_name, last_name, avatar_url, username")
+      .select("id, first_name, last_name, avatar_url, username, type")
       .in("id", ids);
 
     if (profilesError) {
@@ -112,6 +114,7 @@ export async function GET(request: NextRequest) {
       last_name: p.last_name ?? null,
       avatar_url: p.avatar_url ?? null,
       username: p.username ?? null,
+      type: p.type ?? null,
     }));
 
     return NextResponse.json({ users });

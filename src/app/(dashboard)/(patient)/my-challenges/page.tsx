@@ -601,12 +601,25 @@ export default function MyChallengesPage() {
 
       if (profilesError) throw profilesError;
 
+      // Para profesionales, usar foto de perfil profesional (professional_applications.profile_photo)
+      const professionalUserIds = (profilesData || []).filter((p) => p.type === "professional").map((p) => p.id);
+      let professionalPhotoMap = new Map<string, string>();
+      if (professionalUserIds.length > 0) {
+        const { data: proApps } = await supabase
+          .from("professional_applications")
+          .select("user_id, profile_photo")
+          .in("user_id", professionalUserIds);
+        (proApps || []).forEach((pa) => {
+          if (pa.profile_photo) professionalPhotoMap.set(pa.user_id, pa.profile_photo);
+        });
+      }
+
       setParticipants(
         (profilesData || []).map((p) => ({
           id: p.id,
           first_name: p.first_name ?? null,
           last_name: p.last_name ?? null,
-          avatar_url: p.avatar_url ?? null,
+          avatar_url: professionalPhotoMap.get(p.id) ?? p.avatar_url ?? null,
           type: p.type ?? null,
         }))
       );

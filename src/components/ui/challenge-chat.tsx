@@ -116,14 +116,14 @@ export function ChallengeChat({ challengeId, currentUserId }: ChallengeChatProps
         return;
       }
 
-      // Obtener perfiles de los remitentes por separado
+      // Obtener perfiles de los remitentes (incl. type para saber si son profesionales)
       const senderIds = [...new Set(messagesList.map((m: { sender_id: string }) => m.sender_id).filter(Boolean))];
-      let profilesMap = new Map<string, { id: string; first_name: string | null; last_name: string | null; avatar_url: string | null; email: string }>();
+      let profilesMap = new Map<string, { id: string; first_name: string | null; last_name: string | null; avatar_url: string | null; email: string; type?: string | null }>();
 
       if (senderIds.length > 0) {
         const { data: profilesData } = await supabase
           .from("profiles")
-          .select("id, first_name, last_name, avatar_url, email")
+          .select("id, first_name, last_name, avatar_url, email, type")
           .in("id", senderIds);
         (profilesData || []).forEach((p) => {
           profilesMap.set(p.id, {
@@ -132,8 +132,24 @@ export function ChallengeChat({ challengeId, currentUserId }: ChallengeChatProps
             last_name: p.last_name ?? null,
             avatar_url: p.avatar_url ?? null,
             email: p.email ?? "",
+            type: p.type ?? null,
           });
         });
+
+        // Para profesionales, usar foto de perfil profesional (professional_applications.profile_photo)
+        const professionalIds = (profilesData || []).filter((p) => p.type === "professional").map((p) => p.id);
+        if (professionalIds.length > 0) {
+          const { data: proApps } = await supabase
+            .from("professional_applications")
+            .select("user_id, profile_photo")
+            .in("user_id", professionalIds);
+          (proApps || []).forEach((pa) => {
+            const existing = profilesMap.get(pa.user_id);
+            if (existing && pa.profile_photo) {
+              profilesMap.set(pa.user_id, { ...existing, avatar_url: pa.profile_photo });
+            }
+          });
+        }
       }
 
       setMessages(
@@ -176,12 +192,22 @@ export function ChallengeChat({ challengeId, currentUserId }: ChallengeChatProps
           filter: `conversation_id=eq.${conversationId}`,
         },
         async (payload) => {
-          // Obtener información del remitente
+          // Obtener información del remitente (incl. type para foto profesional)
           const { data: sender } = await supabase
             .from("profiles")
-            .select("id, first_name, last_name, avatar_url, email")
+            .select("id, first_name, last_name, avatar_url, email, type")
             .eq("id", payload.new.sender_id)
             .single();
+
+          let avatarUrl = sender?.avatar_url ?? null;
+          if (sender?.type === "professional") {
+            const { data: pa } = await supabase
+              .from("professional_applications")
+              .select("profile_photo")
+              .eq("user_id", payload.new.sender_id)
+              .maybeSingle();
+            if (pa?.profile_photo) avatarUrl = pa.profile_photo;
+          }
 
           const newMessage: ChallengeMessage = {
             id: payload.new.id,
@@ -193,7 +219,7 @@ export function ChallengeChat({ challengeId, currentUserId }: ChallengeChatProps
                   id: sender.id,
                   first_name: sender.first_name,
                   last_name: sender.last_name,
-                  avatar_url: sender.avatar_url,
+                  avatar_url: avatarUrl,
                   email: sender.email,
                 }
               : undefined,
@@ -290,9 +316,10 @@ export function ChallengeChat({ challengeId, currentUserId }: ChallengeChatProps
                   key={msg.id}
                   className={`flex gap-3 ${isOwn ? "flex-row-reverse" : ""}`}
                 >
-                  <Avatar className="h-8 w-8 shrink-0">
+                  <Avatar className="h-10 w-10 shrink-0 ring-2 ring-background">
                     <AvatarImage
                       src={msg.sender?.avatar_url || undefined}
+                      alt=""
                     />
                     <AvatarFallback className="text-xs">
                       {getSenderInitials(msg)}

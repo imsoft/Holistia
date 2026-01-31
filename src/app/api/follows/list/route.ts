@@ -64,11 +64,24 @@ export async function GET(request: NextRequest) {
         );
       }
 
+      // Para profesionales, usar foto de perfil profesional (professional_applications.profile_photo)
+      const professionalIds = (profiles || []).filter((p) => p.type === "professional").map((p) => p.id);
+      let professionalPhotoMap = new Map<string, string>();
+      if (professionalIds.length > 0) {
+        const { data: proApps } = await supabase
+          .from("professional_applications")
+          .select("user_id, profile_photo")
+          .in("user_id", professionalIds);
+        (proApps || []).forEach((pa) => {
+          if (pa.profile_photo) professionalPhotoMap.set(pa.user_id, pa.profile_photo);
+        });
+      }
+
       const users: FollowUser[] = (profiles || []).map((p) => ({
         id: p.id,
         first_name: p.first_name ?? null,
         last_name: p.last_name ?? null,
-        avatar_url: p.avatar_url ?? null,
+        avatar_url: professionalPhotoMap.get(p.id) ?? p.avatar_url ?? null,
         username: p.username ?? null,
         type: p.type ?? null,
       }));
@@ -108,11 +121,24 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    // Para profesionales, usar foto de perfil profesional (professional_applications.profile_photo)
+    const professionalIds = (profiles || []).filter((p) => p.type === "professional").map((p) => p.id);
+    let professionalPhotoMap = new Map<string, string>();
+    if (professionalIds.length > 0) {
+      const { data: proApps } = await supabase
+        .from("professional_applications")
+        .select("user_id, profile_photo")
+        .in("user_id", professionalIds);
+      (proApps || []).forEach((pa) => {
+        if (pa.profile_photo) professionalPhotoMap.set(pa.user_id, pa.profile_photo);
+      });
+    }
+
     const users: FollowUser[] = (profiles || []).map((p) => ({
       id: p.id,
       first_name: p.first_name ?? null,
       last_name: p.last_name ?? null,
-      avatar_url: p.avatar_url ?? null,
+      avatar_url: professionalPhotoMap.get(p.id) ?? p.avatar_url ?? null,
       username: p.username ?? null,
       type: p.type ?? null,
     }));

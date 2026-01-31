@@ -22,8 +22,17 @@ import { useUserStore } from '@/stores/user-store';
  * await updateProfile({ phone: '123456789' });
  */
 export function useProfile() {
-  const [profile, setProfile] = useState<Profile | null>(null);
-  const [loading, setLoading] = useState(true);
+  // Inicializar desde caché persistido para evitar parpadeo de "Cargando..." al cambiar de pestaña
+  const [profile, setProfile] = useState<Profile | null>(() => {
+    const cache = useUserStore.getState().profileCache;
+    const isValid = useUserStore.getState().isProfileCacheValid();
+    return cache && isValid ? cache : null;
+  });
+  const [loading, setLoading] = useState(() => {
+    const cache = useUserStore.getState().profileCache;
+    const isValid = useUserStore.getState().isProfileCacheValid();
+    return !(cache && isValid);
+  });
   const [error, setError] = useState<Error | null>(null);
   // Importante: evitar recrear el cliente en cada render.
   const supabase = useMemo(() => createClient(), []);
@@ -181,6 +190,10 @@ export function useProfile() {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
+      // Ignorar TOKEN_REFRESHED e INITIAL_SESSION - no requieren acción ni deben causar parpadeo
+      if (event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION') {
+        return;
+      }
       if (event === 'SIGNED_OUT' || !session) {
         // Si el usuario cerró sesión, limpiar perfil inmediatamente
         loadingRef.current = false;

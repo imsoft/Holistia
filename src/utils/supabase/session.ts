@@ -59,6 +59,7 @@ export async function updateSession(request: NextRequest) {
       '/login',
       '/signup',
       '/forgot-password',
+      '/reset-password', // Página de reset de contraseña con token
       '/confirm-password',
       '/confirm-email',
       '/account-deactivated',

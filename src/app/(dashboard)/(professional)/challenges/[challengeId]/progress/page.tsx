@@ -79,6 +79,8 @@ export default function ChallengeProgressPage() {
   const [selectedParticipant, setSelectedParticipant] = useState<ParticipantProgress | null>(null);
   const [checkins, setCheckins] = useState<any[]>([]);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [isImageDialogOpen, setIsImageDialogOpen] = useState(false);
 
   useEffect(() => {
     fetchChallenge();
@@ -143,7 +145,7 @@ export default function ChallengeProgressPage() {
         // Obtener perfil del usuario
         const { data: profileData } = await supabase
           .from('profiles')
-          .select('id, first_name, last_name, email, photo_url')
+          .select('id, first_name, last_name, email, avatar_url')
           .eq('id', purchase.participant_id)
           .single();
 
@@ -162,9 +164,9 @@ export default function ChallengeProgressPage() {
             earned_at,
             challenge_badges!inner(
               id,
-              name,
-              description,
-              icon,
+              badge_name,
+              badge_description,
+              badge_icon,
               badge_type
             )
           `)
@@ -182,7 +184,7 @@ export default function ChallengeProgressPage() {
           participant_id: purchase.participant_id,
           buyer_name: `${profile?.first_name || ''} ${profile?.last_name || ''}`.trim() || 'Usuario',
           buyer_email: profile?.email || '',
-          buyer_photo: profile?.photo_url || undefined,
+          buyer_photo: profile?.avatar_url || undefined,
           started_at: purchase.started_at,
           progress: progressData ? {
             total_points: progressData.total_points || 0,
@@ -205,9 +207,9 @@ export default function ChallengeProgressPage() {
           checkins_count: checkinsData?.length || 0,
           badges: (badgesData || []).map((b: any) => ({
             id: b.challenge_badges.id,
-            name: b.challenge_badges.name,
-            description: b.challenge_badges.description,
-            icon: b.challenge_badges.icon,
+            name: b.challenge_badges.badge_name,
+            description: b.challenge_badges.badge_description,
+            icon: b.challenge_badges.badge_icon,
             badge_type: b.challenge_badges.badge_type,
             earned_at: b.earned_at,
           })),
@@ -278,21 +280,25 @@ export default function ChallengeProgressPage() {
 
   return (
     <div className="flex flex-col h-screen">
-      <div className="border-b px-6 py-4">
-        <div className="flex items-center gap-4 mb-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => router.push('/challenges')}
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <div>
-            <h1 className="text-2xl font-bold">Avances del Reto</h1>
-            <p className="text-sm text-muted-foreground mt-1">
-              {challenge?.title || <span className="inline-block h-5 w-48 bg-muted rounded animate-pulse" />}
-            </p>
+      <div className="border-b px-6 py-6">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <Target className="h-6 w-6 text-muted-foreground" />
+            <div>
+              <h1 className="text-3xl font-bold">Avances del Reto</h1>
+              <p className="text-sm text-muted-foreground">
+                {challenge?.title || <span className="inline-block h-5 w-48 bg-muted rounded animate-pulse" />}
+              </p>
+            </div>
           </div>
+          <Button
+            variant="outline"
+            onClick={() => router.push('/challenges')}
+            className="gap-2"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Volver
+          </Button>
         </div>
 
         {/* Búsqueda */}
@@ -320,7 +326,7 @@ export default function ChallengeProgressPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredParticipants.map((participant) => (
-              <Card key={participant.purchase_id} className="hover:shadow-lg transition-shadow">
+              <Card key={participant.purchase_id} className="hover:shadow-lg transition-shadow py-4">
                 <CardHeader>
                   <div className="flex items-center gap-3">
                     {participant.buyer_photo ? (
@@ -443,7 +449,7 @@ export default function ChallengeProgressPage() {
             <div className="space-y-6">
               {/* Estadísticas principales */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <Card>
+                <Card className="py-4">
                   <CardContent className="pt-4">
                     <div className="text-center">
                       <p className="text-2xl font-bold text-primary">{selectedParticipant.progress.total_points}</p>
@@ -451,7 +457,7 @@ export default function ChallengeProgressPage() {
                     </div>
                   </CardContent>
                 </Card>
-                <Card>
+                <Card className="py-4">
                   <CardContent className="pt-4">
                     <div className="text-center">
                       <p className="text-2xl font-bold text-orange-500">{selectedParticipant.progress.current_streak}</p>
@@ -459,7 +465,7 @@ export default function ChallengeProgressPage() {
                     </div>
                   </CardContent>
                 </Card>
-                <Card>
+                <Card className="py-4">
                   <CardContent className="pt-4">
                     <div className="text-center">
                       <p className="text-2xl font-bold text-green-500">{selectedParticipant.progress.days_completed}</p>
@@ -467,7 +473,7 @@ export default function ChallengeProgressPage() {
                     </div>
                   </CardContent>
                 </Card>
-                <Card>
+                <Card className="py-4">
                   <CardContent className="pt-4">
                     <div className="text-center">
                       <p className="text-2xl font-bold text-yellow-500">{selectedParticipant.badges.length}</p>
@@ -486,7 +492,7 @@ export default function ChallengeProgressPage() {
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                     {selectedParticipant.badges.map((badge) => (
-                      <Card key={badge.id}>
+                      <Card key={badge.id} className="py-4">
                         <CardContent className="pt-4">
                           <div className="flex items-center gap-3">
                             <div className="text-2xl">{badge.icon || '🏆'}</div>
@@ -518,9 +524,9 @@ export default function ChallengeProgressPage() {
                     </p>
                   ) : (
                     checkins.map((checkin) => (
-                      <Card key={checkin.id}>
+                      <Card key={checkin.id} className="py-4">
                         <CardContent className="pt-4">
-                          <div className="flex items-start justify-between">
+                          <div className="flex items-start justify-between gap-3">
                             <div className="flex-1">
                               <div className="flex items-center gap-2 mb-1">
                                 <Badge variant="outline">Día {checkin.day_number}</Badge>
@@ -529,7 +535,24 @@ export default function ChallengeProgressPage() {
                                 </span>
                               </div>
                               {checkin.notes && (
-                                <p className="text-sm">{checkin.notes}</p>
+                                <p className="text-sm mb-2">{checkin.notes}</p>
+                              )}
+                              {checkin.evidence_url && checkin.evidence_type === 'photo' && (
+                                <div 
+                                  className="mt-2 cursor-pointer"
+                                  onClick={() => {
+                                    setSelectedImage(checkin.evidence_url);
+                                    setIsImageDialogOpen(true);
+                                  }}
+                                >
+                                  <Image
+                                    src={checkin.evidence_url}
+                                    alt="Evidencia"
+                                    width={120}
+                                    height={120}
+                                    className="rounded-lg object-cover hover:opacity-90 transition-opacity"
+                                  />
+                                </div>
                               )}
                               <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
                                 <span>+{checkin.points_earned} puntos</span>
@@ -545,6 +568,25 @@ export default function ChallengeProgressPage() {
                   )}
                 </div>
               </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog para ver imagen de evidencia en grande */}
+      <Dialog open={isImageDialogOpen} onOpenChange={setIsImageDialogOpen}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>Evidencia del Check-in</DialogTitle>
+          </DialogHeader>
+          {selectedImage && (
+            <div className="relative w-full h-[60vh]">
+              <Image
+                src={selectedImage}
+                alt="Evidencia"
+                fill
+                className="object-contain"
+              />
             </div>
           )}
         </DialogContent>

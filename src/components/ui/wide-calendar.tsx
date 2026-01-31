@@ -46,9 +46,9 @@ export function WideCalendar({
     const startOfWeek = new Date(today);
     startOfWeek.setDate(today.getDate() - dayOfWeek);
     console.log('📅 Inicializando calendario desde domingo:', {
-      today: today.toISOString().split('T')[0],
+      today: formatLocalDate(today),
       dayOfWeek,
-      startOfWeek: startOfWeek.toISOString().split('T')[0]
+      startOfWeek: formatLocalDate(startOfWeek)
     });
     return startOfWeek;
   });
@@ -62,7 +62,7 @@ export function WideCalendar({
   const getWeekKey = useCallback((date: Date) => {
     const startOfWeek = new Date(date);
     startOfWeek.setDate(date.getDate() - date.getDay());
-    return startOfWeek.toISOString().split('T')[0];
+    return formatLocalDate(startOfWeek);
   }, []);
 
   // Función para forzar recarga sin caché

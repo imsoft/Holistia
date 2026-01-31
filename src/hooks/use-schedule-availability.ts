@@ -2,7 +2,7 @@
 
 import { useCallback, useRef } from 'react';
 import { createClient } from '@/utils/supabase/client';
-import { parseLocalDate } from '@/lib/date-utils';
+import { parseLocalDate, formatLocalDate } from '@/lib/date-utils';
 import { useBlocksStore } from '@/stores/blocks-store';
 
 interface TimeSlot {
@@ -443,7 +443,7 @@ export function useScheduleAvailability(professionalId: string) {
           const dayName = dayNames[date.getDay()];
           const monthName = monthNames[date.getMonth()];
           const dayNumber = date.getDate();
-          const dateString = date.toISOString().split('T')[0];
+          const dateString = formatLocalDate(date);
           const display = `${dayName} ${dayNumber} ${monthName}`;
           
           console.log('✅ Agregando fecha:', {

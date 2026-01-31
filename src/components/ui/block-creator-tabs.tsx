@@ -11,6 +11,7 @@ import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Calendar } from 'lucide-react';
 import { createClient } from '@/utils/supabase/client';
+import { formatLocalDate } from '@/lib/date-utils';
 import { toast } from 'sonner';
 import type { AvailabilityBlock, AvailabilityBlockFormData } from '@/types/availability';
 import { createBlockInGoogleCalendar, updateBlockInGoogleCalendar } from '@/actions/google-calendar';
@@ -116,8 +117,8 @@ export function BlockCreatorTabs({
       setFormData(prev => ({
         ...prev,
         block_type: blockType,
-        start_date: nextMonday.toISOString().split('T')[0],
-        end_date: nextFriday.toISOString().split('T')[0],
+        start_date: formatLocalDate(nextMonday),
+        end_date: formatLocalDate(nextFriday),
       }));
     } else {
       setFormData(prev => ({
@@ -469,14 +470,14 @@ export function BlockCreatorTabs({
                         if (daysToAdd === 0) daysToAdd = 7; // Si es hoy, usar la próxima semana
                         const targetDate = new Date(today);
                         targetDate.setDate(today.getDate() + daysToAdd);
-                        const newStartDate = targetDate.toISOString().split('T')[0];
+                        const newStartDate = formatLocalDate(targetDate);
                         handleInputChange('start_date', newStartDate);
-                        
+
                         // Si la fecha de fin es anterior a la nueva fecha de inicio, actualizarla
                         if (formData.end_date && new Date(formData.end_date) < new Date(newStartDate)) {
                           const endDate = new Date(targetDate);
                           endDate.setDate(targetDate.getDate() + 4); // Viernes de la misma semana
-                          handleInputChange('end_date', endDate.toISOString().split('T')[0]);
+                          handleInputChange('end_date', formatLocalDate(endDate));
                         }
                       }}
                     >
@@ -508,7 +509,7 @@ export function BlockCreatorTabs({
                               if (daysToMonday === 0) daysToMonday = 7;
                               const nextMonday = new Date(today);
                               nextMonday.setDate(today.getDate() + daysToMonday);
-                              handleInputChange('start_date', nextMonday.toISOString().split('T')[0]);
+                              handleInputChange('start_date', formatLocalDate(nextMonday));
                               return nextMonday;
                             })();
                         const targetDay = dayOfWeek === 0 ? 0 : dayOfWeek;
@@ -518,7 +519,7 @@ export function BlockCreatorTabs({
                         if (daysToAdd === 0 && targetDay === startDay) daysToAdd = 7; // Si es el mismo día, usar la próxima semana
                         const targetDate = new Date(startDate);
                         targetDate.setDate(startDate.getDate() + daysToAdd);
-                        handleInputChange('end_date', targetDate.toISOString().split('T')[0]);
+                        handleInputChange('end_date', formatLocalDate(targetDate));
                       }}
                     >
                       <SelectTrigger className="w-full mt-1">

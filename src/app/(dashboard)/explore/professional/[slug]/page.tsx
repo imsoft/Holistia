@@ -27,6 +27,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import MapboxMap from "@/components/ui/mapbox-map";
 import ProfessionalGallery from "@/components/ui/professional-gallery";
+import { formatLocalDate } from "@/lib/date-utils";
 import { createClient } from "@/utils/supabase/client";
 import { ReviewForm } from "@/components/reviews/review-form";
 import { ReviewsList } from "@/components/reviews/reviews-list";
@@ -798,7 +799,7 @@ export default function ProfessionalProfilePage() {
       
       if (workingDays.includes(dayName)) {
         dates.push({
-          date: date.toISOString().split('T')[0],
+          date: formatLocalDate(date),
           dayName,
           display: `${dayName}, ${date.getDate()} de ${date.toLocaleDateString('es-ES', { month: 'long' })}`
         });

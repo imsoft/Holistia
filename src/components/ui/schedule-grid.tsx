@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { formatLocalDate } from '@/lib/date-utils';
 import { useScheduleAvailability } from '@/hooks/use-schedule-availability';
 
 interface TimeSlot {
@@ -52,7 +53,7 @@ export function ScheduleGrid({
   const getWeekKey = useCallback((date: Date) => {
     const startOfWeek = new Date(date);
     startOfWeek.setDate(date.getDate() - date.getDay());
-    return startOfWeek.toISOString().split('T')[0];
+    return formatLocalDate(startOfWeek);
   }, []);
 
   // Cargar datos de la semana con caché

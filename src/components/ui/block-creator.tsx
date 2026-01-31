@@ -11,6 +11,7 @@ import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Calendar, Clock, AlertCircle, CheckCircle, X, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { formatLocalDate } from '@/lib/date-utils';
 import { createClient } from '@/utils/supabase/client';
 import { toast } from 'sonner';
 import type { AvailabilityBlock, AvailabilityBlockFormData } from '@/types/availability';
@@ -112,10 +113,10 @@ export function BlockCreator({
       const dayName = dayNames[date.getDay()];
       const monthName = monthNames[date.getMonth()];
       const dayNumber = date.getDate();
-      const dateString = date.toISOString().split('T')[0];
-      
+      const dateString = formatLocalDate(date);
+
       // Verificar si es hoy
-      const isToday = dateString === today.toISOString().split('T')[0];
+      const isToday = dateString === formatLocalDate(today);
       // Verificar si es pasado (antes de hoy)
       const isPast = date < today;
       

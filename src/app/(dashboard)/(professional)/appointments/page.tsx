@@ -266,7 +266,8 @@ export default function ProfessionalAppointments() {
     };
 
     fetchAppointments();
-  }, [userId, supabase, refreshKey]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId, refreshKey]);
 
   // Navegación
   const handlePrevious = () => {

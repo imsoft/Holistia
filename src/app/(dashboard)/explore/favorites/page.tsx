@@ -170,7 +170,8 @@ const FavoritesPage = () => {
       setError('ID de usuario no válido.');
       setLoading(false);
     }
-  }, [userId, supabase, refreshKey]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId, refreshKey]);
 
   // Componente de skeleton para las cards de profesionales
   const ProfessionalCardSkeleton = () => (

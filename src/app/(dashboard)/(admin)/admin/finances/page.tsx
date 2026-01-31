@@ -413,7 +413,8 @@ export default function FinancesPage() {
     };
 
     fetchFinancialData();
-  }, [supabase, selectedPeriod, refreshKey]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedPeriod, refreshKey]);
 
   const getPaymentTypeLabel = (type: string | null) => {
     switch (type) {

@@ -198,7 +198,8 @@ export default function BecomeProfessionalPage() {
     };
 
     getUserData();
-  }, [profile, supabase, refreshKey]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profile, refreshKey]);
 
   const handleInputChange = (field: string, value: string | boolean) => {
     // Para campos de texto, guardar el valor sin normalizar

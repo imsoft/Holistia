@@ -269,7 +269,8 @@ export default function AppointmentsPage() {
       setError('ID de usuario no válido.');
       setLoading(false);
     }
-  }, [userId, supabase, router, refreshKey]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId, router, refreshKey]);
 
   const openCancelDialog = (appointment: Appointment) => {
     router.push(`/appointments/${appointment.id}/cancel`);

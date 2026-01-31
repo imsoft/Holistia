@@ -270,7 +270,8 @@ export default function AnalyticsPage() {
     };
 
     fetchAnalytics();
-  }, [adminId, supabase, refreshKey]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [adminId, refreshKey]);
 
   const handleSyncPayments = async () => {
     setSyncing(true);

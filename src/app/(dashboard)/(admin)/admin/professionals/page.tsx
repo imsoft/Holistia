@@ -330,7 +330,8 @@ export default function AdminProfessionals() {
     };
 
     fetchProfessionals();
-  }, [supabase, refreshKey]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [refreshKey]);
 
   const getStatusColor = (status: string) => {
     switch (status) {

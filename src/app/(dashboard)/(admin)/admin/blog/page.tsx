@@ -150,7 +150,7 @@ export default function AdminBlogPage({ params }: { params: Promise<{ id: string
           </div>
           <div className="flex items-center gap-2 sm:gap-3">
             <Button asChild size="sm" className="sm:size-default w-full sm:w-auto">
-              <Link href={`/admin/${id}/blog/new`}>
+              <Link href={`/admin/blog/new`}>
                 <Plus className="w-4 h-4 mr-2" />
                 Nuevo Post
               </Link>
@@ -192,7 +192,7 @@ export default function AdminBlogPage({ params }: { params: Promise<{ id: string
               Comienza creando tu primer post del blog para Holistia
             </p>
             <Button asChild>
-              <Link href={`/admin/${id}/blog/new`}>
+              <Link href={`/admin/blog/new`}>
                 <Plus className="w-4 h-4 mr-2" />
                 Crear Primer Post
               </Link>
@@ -242,7 +242,7 @@ export default function AdminBlogPage({ params }: { params: Promise<{ id: string
                       asChild
                       className="flex-1"
                     >
-                      <Link href={`/admin/${id}/blog/${post.id}`}>
+                      <Link href={`/admin/blog/${post.id}`}>
                         <Edit className="w-4 h-4 mr-1 sm:mr-2" />
                         <span className="text-xs sm:text-sm">Editar</span>
                       </Link>

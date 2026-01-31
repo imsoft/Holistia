@@ -77,7 +77,7 @@ export default function EditHolisticCenterServicePage() {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => router.push(`/admin/${adminId}/holistic-centers`)}
+            onClick={() => router.push(`/admin/holistic-centers`)}
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>

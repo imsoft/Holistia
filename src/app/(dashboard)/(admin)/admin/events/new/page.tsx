@@ -1,7 +1,6 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useUserId } from "@/stores/user-store";
 import { useUserStoreInit } from "@/hooks/use-user-store-init";
 import { useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -14,7 +13,6 @@ import { toast } from "sonner";
 export default function NewEventPage() {
   useUserStoreInit();
   const router = useRouter();
-  const adminId = useUserId();
   const [professionals, setProfessionals] = useState<Professional[]>([]);
   const [loading, setLoading] = useState(true);
   const supabase = createClient();
@@ -75,7 +73,7 @@ export default function NewEventPage() {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => router.push(`/admin/${adminId}/events`)}
+            onClick={() => router.push(`/admin/events`)}
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>

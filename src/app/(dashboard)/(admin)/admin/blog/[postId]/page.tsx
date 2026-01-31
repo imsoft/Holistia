@@ -295,7 +295,7 @@ export default function EditBlogPostPage({
       }
 
       toast.success("Post e imágenes eliminados exitosamente");
-      router.push(`/admin/${id}/blog`);
+      router.push(`/admin/blog`);
     } catch (err) {
       console.error("Error:", err);
       toast.error("Error inesperado al eliminar el post");
@@ -334,7 +334,7 @@ export default function EditBlogPostPage({
         <div className="text-center">
           <h1 className="text-xl sm:text-2xl font-bold mb-4">Post no encontrado</h1>
           <Button asChild className="w-full sm:w-auto">
-            <Link href={`/admin/${id}/blog`}>
+            <Link href={`/admin/blog`}>
               Volver al Blog
             </Link>
           </Button>
@@ -530,7 +530,7 @@ export default function EditBlogPostPage({
           )}
           
           <Button type="button" variant="outline" asChild className="w-full sm:w-auto">
-            <Link href={`/admin/${id}/blog`}>
+            <Link href={`/admin/blog`}>
               Cancelar
             </Link>
           </Button>

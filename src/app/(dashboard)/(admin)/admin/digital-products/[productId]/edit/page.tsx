@@ -56,10 +56,7 @@ export default function EditAdminDigitalProductPage() {
       } catch (error) {
         console.error("Error fetching product:", error);
         toast.error("Error al cargar el programa");
-        const redirectPath = professionalId 
-          ? `/admin/professionals/${professionalId}`
-          : `/admin/professionals`;
-        router.push(redirectPath);
+        router.push(professionalId ? `/admin/professionals/${professionalId}` : `/admin/professionals`);
       } finally {
         setLoading(false);
       }
@@ -81,12 +78,7 @@ export default function EditAdminDigitalProductPage() {
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <p className="text-muted-foreground mb-4">Programa no encontrado</p>
-          <Button onClick={() => {
-            const redirectPath = professionalId 
-              ? `/admin/${adminId}/professionals/${professionalId}`
-              : `/admin/${adminId}/professionals`;
-            router.push(redirectPath);
-          }}>
+          <Button onClick={() => router.push(professionalId ? `/admin/professionals/${professionalId}` : `/admin/professionals`)}>
             Volver
           </Button>
         </div>
@@ -95,8 +87,8 @@ export default function EditAdminDigitalProductPage() {
   }
 
   const redirectPath = professionalId 
-    ? `/admin/${adminId}/professionals/${professionalId}`
-    : `/admin/${adminId}/professionals`;
+    ? `/admin/professionals/${professionalId}`
+    : `/admin/professionals`;
 
   return (
     <div className="min-h-screen bg-background">

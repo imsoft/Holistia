@@ -15,7 +15,6 @@ export default function EditEventPage() {
   useUserStoreInit();
   const params = useParams();
   const router = useRouter();
-  const adminId = useUserId();
   const eventId = params.eventId as string;
   const [professionals, setProfessionals] = useState<Professional[]>([]);
   const [event, setEvent] = useState<EventWorkshop | null>(null);
@@ -59,18 +58,18 @@ export default function EditEventPage() {
     } finally {
       setLoading(false);
     }
-  }, [supabase, eventId, router, adminId]);
+  }, [supabase, eventId, router]);
 
   useEffect(() => {
     fetchData();
   }, [fetchData]);
 
   const handleSuccess = () => {
-    router.push(`/admin/${adminId}/events`);
+    router.push(`/admin/events`);
   };
 
   const handleCancel = () => {
-    router.push(`/admin/${adminId}/events`);
+    router.push(`/admin/events`);
   };
 
   if (loading) {
@@ -102,7 +101,7 @@ export default function EditEventPage() {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => router.push(`/admin/${adminId}/events`)}
+            onClick={() => router.push(`/admin/events`)}
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>

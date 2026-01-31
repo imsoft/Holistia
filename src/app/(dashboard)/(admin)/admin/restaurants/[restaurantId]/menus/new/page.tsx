@@ -21,7 +21,7 @@ export default function NewRestaurantMenuPage() {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => router.push(`/admin/${adminId}/restaurants`)}
+            onClick={() => router.push(`/admin/restaurants`)}
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>

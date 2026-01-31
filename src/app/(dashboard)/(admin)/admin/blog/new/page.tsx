@@ -209,8 +209,8 @@ export default function NewBlogPostPage({ params }: { params: Promise<{ id: stri
         return;
       }
 
-      // Redirect to blog list page
-      router.push(`/admin/${id}/blog`);
+      // Redirigir a la lista de posts del blog
+      router.push(`/admin/blog`);
     } catch (err) {
       console.error("Error:", err);
       setError("Error inesperado al crear el post");
@@ -404,7 +404,7 @@ export default function NewBlogPostPage({ params }: { params: Promise<{ id: stri
           )}
           
           <Button type="button" variant="outline" asChild className="w-full sm:w-auto">
-            <Link href={`/admin/${id}/blog`}>
+            <Link href={`/admin/blog`}>
               Cancelar
             </Link>
           </Button>

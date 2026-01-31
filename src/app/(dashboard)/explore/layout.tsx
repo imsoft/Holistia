@@ -24,6 +24,7 @@ import { NotificationsDropdown } from "@/components/ui/notifications-dropdown";
 import { Navbar } from "@/components/shared/navbar";
 import { Footer } from "@/components/shared/footer";
 import { useUserStore } from "@/stores/user-store";
+import { EmailConfirmationBanner } from "@/components/ui/email-confirmation-banner";
 
 // Función para generar navegación (URLs limpias sin IDs)
 const getNavigation = (hasEvents: boolean = false) => {
@@ -459,6 +460,9 @@ export default function ExploreLayout({
           </div>
         </div>
       </nav>
+
+      {/* Email confirmation banner */}
+      <EmailConfirmationBanner />
 
       {/* Main content */}
       <main className="flex-1">{children}</main>

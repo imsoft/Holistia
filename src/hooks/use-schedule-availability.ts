@@ -130,11 +130,23 @@ export function useScheduleAvailability(professionalId: string) {
         .in('status', ['pending', 'confirmed']);
 
       if (error) throw error;
-      
+
       const appointments = data || [];
+
+      console.log('📅 getExistingAppointments - Citas cargadas:', {
+        startDate,
+        endDate,
+        totalAppointments: appointments.length,
+        appointments: appointments.map(a => ({
+          date: a.appointment_date,
+          time: a.appointment_time,
+          status: a.status
+        }))
+      });
+
       // Guardar en caché
       appointmentCache.current.set(cacheKey, appointments);
-      
+
       return appointments;
     } catch (error) {
       console.error('Error fetching existing appointments:', error);
@@ -182,6 +194,21 @@ export function useScheduleAvailability(professionalId: string) {
         return overlaps;
       });
 
+      console.log('🔍 getAvailabilityBlocks - Bloques filtrados:', {
+        startDate,
+        endDate,
+        totalFiltered: filteredBlocks.length,
+        filteredBlocks: filteredBlocks.map(b => ({
+          id: b.id,
+          title: b.title,
+          block_type: b.block_type,
+          start_date: b.start_date,
+          end_date: b.end_date,
+          day_of_week: b.day_of_week,
+          is_recurring: b.is_recurring
+        }))
+      });
+
       return filteredBlocks;
     } catch (error) {
       console.error('Error fetching availability blocks:', error);
@@ -221,7 +248,8 @@ export function useScheduleAvailability(professionalId: string) {
 
     // Obtener citas para esta fecha
     const dayAppointments = existingAppointments.filter(apt => apt.appointment_date === date);
-    const appointmentTimes = new Set(dayAppointments.map(apt => apt.appointment_time));
+    // Normalizar los tiempos de citas a formato HH:MM para comparación consistente
+    const appointmentTimes = new Set(dayAppointments.map(apt => apt.appointment_time.substring(0, 5)));
 
     // Obtener bloqueos para esta fecha
     const dayBlocks = availabilityBlocks.filter(block => {
@@ -293,6 +321,23 @@ export function useScheduleAvailability(professionalId: string) {
       return false;
     });
 
+    console.log('🗓️ generateTimeSlots - Procesando fecha:', {
+      date,
+      dayOfWeek,
+      totalAppointments: dayAppointments.length,
+      appointmentTimes: Array.from(appointmentTimes),
+      totalDayBlocks: dayBlocks.length,
+      dayBlocks: dayBlocks.map(b => ({
+        id: b.id,
+        title: b.title,
+        block_type: b.block_type,
+        start_time: b.start_time,
+        end_time: b.end_time,
+        day_of_week: b.day_of_week,
+        is_recurring: b.is_recurring
+      }))
+    });
+
     // Verificar si hay bloqueo de día completo
     const hasFullDayBlock = dayBlocks.some(block =>
       block.block_type === 'full_day' || block.block_type === 'weekly_day'
@@ -317,15 +362,25 @@ export function useScheduleAvailability(professionalId: string) {
       // Verificar si está bloqueado por rango de horas (incluyendo eventos de Google Calendar)
       else if (dayBlocks.some(block => {
         if (block.block_type === 'time_range' && block.start_time && block.end_time) {
-          const blockStart = block.start_time;
-          const blockEnd = block.end_time;
+          // Normalizar los tiempos a formato HH:MM para comparación consistente
+          const blockStart = block.start_time.substring(0, 5);
+          const blockEnd = block.end_time.substring(0, 5);
           // Verificar si el horario está dentro del rango bloqueado
           // El bloqueo aplica si timeString >= start_time Y timeString < end_time
-          return timeString >= blockStart && timeString < blockEnd;
+          const isBlocked = timeString >= blockStart && timeString < blockEnd;
+          if (isBlocked) {
+            console.log('🚫 Slot bloqueado por time_range:', { timeString, blockStart, blockEnd, blockTitle: block.title });
+          }
+          return isBlocked;
         } else if (block.block_type === 'weekly_range' && block.start_time && block.end_time) {
-          const blockStart = block.start_time;
-          const blockEnd = block.end_time;
-          return timeString >= blockStart && timeString < blockEnd;
+          // Normalizar los tiempos a formato HH:MM para comparación consistente
+          const blockStart = block.start_time.substring(0, 5);
+          const blockEnd = block.end_time.substring(0, 5);
+          const isBlocked = timeString >= blockStart && timeString < blockEnd;
+          if (isBlocked) {
+            console.log('🚫 Slot bloqueado por weekly_range:', { timeString, blockStart, blockEnd, blockTitle: block.title });
+          }
+          return isBlocked;
         }
         return false;
       })) {

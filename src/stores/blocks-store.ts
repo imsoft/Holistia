@@ -95,6 +95,23 @@ export const useBlocksStore = create<BlocksState>((set, get) => ({
 
       const blocks = (data || []) as AvailabilityBlock[];
 
+      console.log('📦 Blocks Store - Bloques cargados desde DB:', {
+        professionalId,
+        totalBlocks: blocks.length,
+        blocks: blocks.map(b => ({
+          id: b.id,
+          title: b.title,
+          block_type: b.block_type,
+          start_date: b.start_date,
+          end_date: b.end_date,
+          start_time: b.start_time,
+          end_time: b.end_time,
+          day_of_week: b.day_of_week,
+          is_recurring: b.is_recurring,
+          is_external_event: b.is_external_event
+        }))
+      });
+
       // Actualizar cache
       const newCache = new Map(state.blocksCache);
       const newTimestamp = new Map(state.cacheTimestamp);

@@ -126,15 +126,36 @@ export async function signup(formData: FormData) {
       return { error: error.message };
     }
 
-    // Si el registro es exitoso y el usuario está confirmado
-    if (result.user && !result.user.email_confirmed_at) {
-      // Usuario necesita confirmar email
-      revalidatePath("/", "layout");
-      return { success: true, needsConfirmation: true };
-    } else if (result.user) {
-      const redirectInfo = await getRedirectPathForUser(supabase, result.user.id);
-      revalidatePath("/", "layout");
-      return { success: true, redirectTo: redirectInfo.redirectTo };
+    // Si el registro es exitoso, redirigir al usuario
+    // Nota: La confirmación de email se puede hacer después
+    if (result.user) {
+      const needsEmailConfirmation = !result.user.email_confirmed_at;
+
+      // Intentar obtener la ruta de redirección
+      // Si el usuario no está autenticado (Supabase requiere confirmación), redirigir a confirm-email
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+
+        if (session) {
+          // Usuario tiene sesión activa, puede acceder a la app
+          const redirectInfo = await getRedirectPathForUser(supabase, result.user.id);
+          revalidatePath("/", "layout");
+          return {
+            success: true,
+            redirectTo: redirectInfo.redirectTo,
+            needsEmailConfirmation // Indicar si necesita confirmar email (para mostrar banner)
+          };
+        } else {
+          // No hay sesión - Supabase requiere confirmación de email primero
+          // El usuario debe confirmar su email antes de poder iniciar sesión
+          revalidatePath("/", "layout");
+          return { success: true, needsConfirmation: true };
+        }
+      } catch {
+        // Si hay error obteniendo sesión, asumir que necesita confirmación
+        revalidatePath("/", "layout");
+        return { success: true, needsConfirmation: true };
+      }
     }
 
     revalidatePath("/", "layout");

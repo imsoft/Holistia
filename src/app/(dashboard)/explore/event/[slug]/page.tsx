@@ -24,8 +24,6 @@ import {
 import EventPaymentButton from "@/components/ui/event-payment-button";
 import { formatEventDate, formatEventTime } from "@/utils/date-utils";
 import { EventQuestionsSection } from "@/components/events/event-questions-section";
-import { Navbar } from "@/components/shared/navbar";
-import { Footer } from "@/components/shared/footer";
 import { CopyUrlButton } from "@/components/ui/copy-url-button";
 import { EventFreeRegisterButton } from "@/components/events/event-free-register-button";
 
@@ -570,17 +568,6 @@ export default async function EventDetailPage({
     </div>
   );
 
-  // Si no está autenticado, mostramos navbar/footer público como antes.
-  if (!isAuthenticated) {
-    return (
-      <>
-        <Navbar />
-        {pageInner}
-        <Footer />
-      </>
-    );
-  }
-
-  // Si está autenticado, el layout del dashboard se encarga del navbar.
+  // El layout del explore se encarga del navbar/footer para usuarios no autenticados
   return pageInner;
 }

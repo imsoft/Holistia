@@ -27,8 +27,6 @@ import Image from "next/image";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatPhone, formatPhoneForTel } from "@/utils/phone-utils";
-import { Navbar } from "@/components/shared/navbar";
-import { Footer } from "@/components/shared/footer";
 import { formatScheduleForDisplay, parseScheduleFromString } from "@/components/ui/schedule-editor";
 
 interface Shop {
@@ -568,23 +566,6 @@ export default function ShopDetailPage() {
     );
   };
 
-  // Si no está autenticado, mostrar con navbar público
-  if (!isAuthenticated) {
-    return (
-      <>
-        <Navbar />
-        <div className="min-h-screen bg-background">
-          {renderShopContent()}
-        </div>
-        <Footer />
-      </>
-    );
-  }
-
-  // Si está autenticado, mostrar con layout normal (navbar del dashboard)
-  return (
-    <div className="min-h-screen bg-background">
-      {renderShopContent()}
-    </div>
-  );
+  // El layout del explore se encarga del navbar/footer para usuarios no autenticados
+  return renderShopContent();
 }

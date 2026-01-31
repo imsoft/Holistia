@@ -16,8 +16,6 @@ import { formatEventDate, formatEventTime } from "@/utils/date-utils";
 import Image from "next/image";
 import { FavoriteButton } from "@/components/ui/favorite-button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Navbar } from "@/components/shared/navbar";
-import { Footer } from "@/components/shared/footer";
 
 const categories = [
   {
@@ -413,26 +411,20 @@ export default function EventsPage() {
     );
   }
 
-  // Si no está autenticado, mostrar con navbar público
+  // El layout del explore se encarga del navbar/footer para usuarios no autenticados
   if (!isAuthenticated) {
     return (
-      <>
-        <Navbar />
-        <div className="min-h-screen bg-background">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-            <Button
-              variant="ghost"
-              onClick={() => router.push('/')}
-              className="mb-6"
-            >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Volver
-            </Button>
-            {renderEventsContent()}
-          </div>
-        </div>
-        <Footer />
-      </>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+        <Button
+          variant="ghost"
+          onClick={() => router.push('/')}
+          className="mb-6"
+        >
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Volver
+        </Button>
+        {renderEventsContent()}
+      </div>
     );
   }
 

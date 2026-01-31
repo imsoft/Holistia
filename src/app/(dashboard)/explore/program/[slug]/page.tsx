@@ -29,8 +29,6 @@ import { Badge } from "@/components/ui/badge";
 import { createClient } from "@/utils/supabase/client";
 import { VerifiedBadge } from "@/components/ui/verified-badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Navbar } from "@/components/shared/navbar";
-import { Footer } from "@/components/shared/footer";
 
 interface DigitalProduct {
   id: string;
@@ -647,29 +645,22 @@ export default function ProgramDetailPage() {
     );
   }
 
-  // Si no está autenticado, mostrar con navbar público
+  // El layout del explore se encarga del navbar/footer para usuarios no autenticados
   if (!isAuthenticated) {
     return (
-      <>
-        <Navbar />
-        <div className="min-h-screen bg-background">
-          {/* Main Content */}
-          <div className="p-6">
-            <div className="max-w-5xl mx-auto">
-              <Button
-                variant="ghost"
-                onClick={() => router.push('/')}
-                className="mb-6"
-              >
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Volver
-              </Button>
-              {renderProgramContent()}
-            </div>
-          </div>
+      <div className="p-6">
+        <div className="max-w-5xl mx-auto">
+          <Button
+            variant="ghost"
+            onClick={() => router.push('/')}
+            className="mb-6"
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Volver
+          </Button>
+          {renderProgramContent()}
         </div>
-        <Footer />
-      </>
+      </div>
     );
   }
 

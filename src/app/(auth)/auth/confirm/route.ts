@@ -4,6 +4,47 @@ import { type NextRequest } from 'next/server'
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
 
+// Helper para obtener la ruta de redirección según el tipo de usuario
+async function getRedirectPathForUser(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  userId: string
+): Promise<string> {
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("type, account_active")
+    .eq("id", userId)
+    .maybeSingle();
+
+  if (profile?.account_active === false) {
+    return "/account-deactivated";
+  }
+
+  if (profile?.type === "admin") {
+    return "/admin/dashboard";
+  }
+
+  if (profile?.type === "professional") {
+    const { data: professionalApp } = await supabase
+      .from("professional_applications")
+      .select("id")
+      .eq("user_id", userId)
+      .eq("status", "approved")
+      .maybeSingle();
+
+    return professionalApp ? "/dashboard" : "/explore";
+  }
+
+  // Si no es admin/professional, verificar si tiene aplicación aprobada
+  const { data: professionalApp } = await supabase
+    .from("professional_applications")
+    .select("id")
+    .eq("user_id", userId)
+    .eq("status", "approved")
+    .maybeSingle();
+
+  return professionalApp ? "/dashboard" : "/explore";
+}
+
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
   const token_hash = searchParams.get('token_hash')
@@ -27,7 +68,7 @@ export async function GET(request: NextRequest) {
       type,
       token_hash,
     })
-    
+
     if (error) {
       console.error('Error verificando OTP:', error.message)
       redirect(`/error?message=${encodeURIComponent('Error verificando el código de confirmación: ' + error.message)}`)
@@ -36,8 +77,9 @@ export async function GET(request: NextRequest) {
     // Obtener el usuario y redirigir según su tipo
     const { data: { user } } = await supabase.auth.getUser()
     if (user) {
-      // Redirigir a página de éxito primero
-      redirect('/auth/confirm-success')
+      // Redirigir directamente a la página correcta según el tipo de usuario
+      const redirectPath = await getRedirectPathForUser(supabase, user.id)
+      redirect(redirectPath)
     } else {
       redirect('/login')
     }
@@ -47,25 +89,26 @@ export async function GET(request: NextRequest) {
 
     try {
       const { error } = await supabase.auth.exchangeCodeForSession(code)
-      
+
       if (error) {
         console.error('Error intercambiando código por sesión:', error.message)
         console.error('Error completo:', error)
-        
+
         // Si el error es por falta de code_verifier, redirigir a login con mensaje
         if (error.message.includes('code_verifier') || error.message.includes('invalid request')) {
           redirect('/login?message=' + encodeURIComponent('Tu email ha sido confirmado. Por favor inicia sesión.'))
         }
-        
+
         redirect(`/error?message=${encodeURIComponent('Error confirmando el email: ' + error.message)}`)
       }
 
       // Obtener el usuario después del intercambio de código
       const { data: { user } } = await supabase.auth.getUser()
-      
+
       if (user) {
-        // Redirigir a página de éxito primero
-        redirect('/auth/confirm-success')
+        // Redirigir directamente a la página correcta según el tipo de usuario
+        const redirectPath = await getRedirectPathForUser(supabase, user.id)
+        redirect(redirectPath)
       } else {
         redirect('/login')
       }

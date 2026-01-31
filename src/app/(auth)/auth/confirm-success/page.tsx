@@ -10,7 +10,7 @@ export default function ConfirmSuccessPage() {
           <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/20">
             <CheckCircle className="h-10 w-10 text-green-600 dark:text-green-400" />
           </div>
-          
+
           {/* Title */}
           <div>
             <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
@@ -24,10 +24,10 @@ export default function ConfirmSuccessPage() {
           {/* Action */}
           <div className="space-y-4">
             <Link
-              href="/login"
+              href="/explore"
               className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-xs hover:bg-primary/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
             >
-              Iniciar sesión
+              Explorar Holistia
               <ArrowRight className="h-4 w-4 ml-2" />
             </Link>
           </div>

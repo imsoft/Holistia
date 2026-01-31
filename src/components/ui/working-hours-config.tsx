@@ -229,7 +229,7 @@ export function WorkingHoursConfig({ professionalId, onSave }: WorkingHoursConfi
         <CardContent className="p-6">
           <div className="flex items-center justify-center py-12">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-            <span className="ml-3 text-base text-muted-foreground">Cargando horarios...</span>
+            <span className="ml-3 inline-block h-4 w-32 bg-muted rounded animate-pulse" />
           </div>
         </CardContent>
       </Card>

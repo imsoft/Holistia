@@ -103,10 +103,10 @@ export default function PayAppointmentPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary mb-4" />
-          <p className="text-muted-foreground">Cargando detalles de la cita...</p>
+      <div className="min-h-screen bg-background flex items-center justify-center p-6">
+        <div className="animate-pulse space-y-4 w-full max-w-md">
+          <div className="h-8 bg-muted rounded w-48 mx-auto" />
+          <div className="h-24 bg-muted rounded" />
         </div>
       </div>
     );

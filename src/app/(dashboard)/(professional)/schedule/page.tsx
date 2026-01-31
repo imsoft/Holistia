@@ -52,8 +52,9 @@ export default function SchedulePage() {
   if (loading || !professionalAppId) {
     return (
       <div className="container mx-auto py-6">
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="text-muted-foreground">Cargando...</div>
+        <div className="animate-pulse space-y-4 w-full max-w-4xl">
+          <div className="h-12 bg-muted rounded" />
+          <div className="h-96 bg-muted rounded-lg" />
         </div>
       </div>
     );

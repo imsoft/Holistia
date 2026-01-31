@@ -1,6 +1,7 @@
 "use client";
 
 import { z } from "zod";
+import { AuthPageSkeleton } from "@/components/ui/layout-skeleton";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
@@ -259,14 +260,7 @@ const RegisterPageContent = () => {
 
 const RegisterPage = () => {
   return (
-    <Suspense fallback={
-      <div className="flex min-h-screen flex-col justify-center py-4 sm:py-8 px-4 sm:px-6 lg:px-8">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Cargando...</p>
-        </div>
-      </div>
-    }>
+    <Suspense fallback={<AuthPageSkeleton />}>
       <RegisterPageContent />
     </Suspense>
   );

@@ -911,7 +911,7 @@ export function EventForm({ event, professionals, onSuccess, onCancel }: EventFo
               disabled={loadingOwners}
             >
               <SelectTrigger className={errors.owner_id ? "w-full border-red-500" : "w-full"}>
-                <SelectValue placeholder={loadingOwners ? "Cargando usuarios..." : "Selecciona el dueño del evento"} />
+                <SelectValue placeholder={loadingOwners ? "Selecciona..." : "Selecciona el dueño del evento"} />
               </SelectTrigger>
               <SelectContent>
                 {availableOwners

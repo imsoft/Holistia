@@ -121,7 +121,6 @@ export function JoinChallengeButton({ challengeId, challengeSlug, userId, challe
     return (
       <Button disabled className="w-full" size="lg">
         <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-        Cargando...
       </Button>
     );
   }

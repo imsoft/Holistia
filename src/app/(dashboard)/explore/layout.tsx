@@ -25,6 +25,7 @@ import { Navbar } from "@/components/shared/navbar";
 import { Footer } from "@/components/shared/footer";
 import { useUserStore } from "@/stores/user-store";
 import { EmailConfirmationBanner } from "@/components/ui/email-confirmation-banner";
+import { LayoutSkeleton } from "@/components/ui/layout-skeleton";
 
 // Función para generar navegación (URLs limpias sin IDs)
 const getNavigation = (hasEvents: boolean = false) => {
@@ -233,17 +234,10 @@ export default function ExploreLayout({
     );
   }
 
-  // Solo mostrar loading si es la primera carga Y no hay datos en el store
+  // Solo mostrar skeleton si es la primera carga Y no hay datos en el store
   // Si el store ya tiene datos (de una sesión anterior), mostrar contenido inmediatamente
   if (!authChecked && !isAuthenticated && loading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-2 text-sm text-muted-foreground">Cargando...</p>
-        </div>
-      </div>
-    );
+    return <LayoutSkeleton />;
   }
 
   const userName = profile?.first_name && profile?.last_name 

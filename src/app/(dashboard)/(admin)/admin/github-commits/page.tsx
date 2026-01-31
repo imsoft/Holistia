@@ -269,7 +269,7 @@ export default function GitHubCommitsPage() {
             <CardContent className="pt-6">
               <div className="flex items-center justify-center py-8">
                 <RefreshCw className="h-8 w-8 animate-spin text-muted-foreground" />
-                <span className="ml-2 text-muted-foreground">Cargando commits...</span>
+                <span className="ml-2 inline-block h-4 w-32 bg-muted rounded animate-pulse" />
               </div>
             </CardContent>
           </Card>

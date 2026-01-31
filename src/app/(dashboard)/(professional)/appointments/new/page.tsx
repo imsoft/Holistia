@@ -361,7 +361,7 @@ export default function NewAppointmentPage() {
           {isLoading ? (
             <div className="flex items-center justify-center py-12">
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
-              <span className="ml-2 text-sm text-muted-foreground">Cargando datos...</span>
+              <span className="ml-2 inline-block h-4 w-24 bg-muted rounded animate-pulse" />
             </div>
           ) : (
             <form onSubmit={handleSubmit}>

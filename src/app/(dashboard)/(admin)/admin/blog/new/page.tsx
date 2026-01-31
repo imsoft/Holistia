@@ -16,6 +16,7 @@ import { BlogImageUploader } from "@/components/ui/blog-image-uploader";
 import { RichTextEditor } from "@/components/ui/rich-text-editor";
 import { generateUniqueSlug, isValidSlug } from "@/lib/slug-utils";
 import { BlogAuthor } from "@/types/blog";
+import { PageSkeleton } from "@/components/ui/layout-skeleton";
 
 export default function NewBlogPostPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -220,11 +221,7 @@ export default function NewBlogPostPage({ params }: { params: Promise<{ id: stri
   };
 
   if (!user) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <p>Cargando...</p>
-      </div>
-    );
+    return <PageSkeleton cards={3} />;
   }
 
   return (
@@ -331,7 +328,7 @@ export default function NewBlogPostPage({ params }: { params: Promise<{ id: stri
                 disabled={loadingAuthors}
               >
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder={loadingAuthors ? "Cargando autores..." : "Selecciona un autor"} />
+                  <SelectValue placeholder={loadingAuthors ? "Selecciona..." : "Selecciona un autor"} />
                 </SelectTrigger>
                 <SelectContent className="max-h-[300px] w-full">
                   {authors.map((author) => (

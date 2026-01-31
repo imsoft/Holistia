@@ -152,7 +152,7 @@ export default function MapboxMap({
         <div className={`${className} flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 border border-blue-200`}>
           <div className="text-center p-6">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-3"></div>
-            <p className="text-sm font-medium text-blue-900">Cargando mapa...</p>
+            <div className="h-4 w-32 bg-blue-100 rounded animate-pulse mx-auto" />
             <p className="text-xs text-blue-700 mt-1">Mapbox</p>
           </div>
         </div>

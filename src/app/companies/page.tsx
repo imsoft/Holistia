@@ -419,7 +419,10 @@ export default function CompaniesLandingPage() {
             </div>
           ) : (
             <div className="text-center py-12">
-              <p className="text-muted-foreground">Cargando servicios...</p>
+              <div className="animate-pulse space-y-4 w-full">
+                <div className="h-8 bg-muted rounded w-40 mx-auto" />
+                <div className="h-64 bg-muted rounded-lg" />
+              </div>
             </div>
           )}
         </div>

@@ -12,6 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { PageSkeleton } from "@/components/ui/layout-skeleton";
 import {
   Select,
   SelectContent,
@@ -422,16 +423,9 @@ export default function ShopsPage() {
     </div>
   );
 
-  // Si aún estamos verificando autenticación, mostrar loading
+  // Si aún estamos verificando autenticación, mostrar skeleton
   if (isAuthenticated === null) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-2 text-sm text-muted-foreground">Cargando...</p>
-        </div>
-      </div>
-    );
+    return <PageSkeleton cards={6} />;
   }
 
   // El layout del explore se encarga del navbar/footer para usuarios no autenticados

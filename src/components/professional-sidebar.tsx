@@ -204,8 +204,12 @@ export function ProfessionalSidebar() {
           </div>
         </SidebarHeader>
         <SidebarContent>
-          <div className="flex items-center justify-center p-8">
-            <div className="text-muted-foreground">Cargando...</div>
+          <div className="flex flex-col items-center justify-center p-8 gap-4">
+            <div className="animate-pulse flex flex-col gap-3 w-full">
+              {[1, 2, 3, 4, 5, 6].map((i) => (
+                <div key={i} className="h-10 bg-muted rounded-md" />
+              ))}
+            </div>
           </div>
         </SidebarContent>
       </Sidebar>

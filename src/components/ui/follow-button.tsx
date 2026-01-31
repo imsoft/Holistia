@@ -110,7 +110,6 @@ export function FollowButton({
     return (
       <Button variant={variant} size={size} className={className} disabled>
         <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-        Cargando...
       </Button>
     );
   }

@@ -606,7 +606,7 @@ export default function AdminHolisticCenters() {
               <div className="space-y-2">
                 <Label>Imagen principal</Label>
                 <p className="text-xs text-muted-foreground mb-2">
-                  Cargando...
+                  <span className="inline-block h-4 w-20 bg-muted rounded animate-pulse" />
                 </p>
               </div>
             )}

@@ -6,6 +6,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { EventForm } from "@/components/ui/event-form";
+import { PageSkeleton } from "@/components/ui/layout-skeleton";
 import { Professional } from "@/types/event";
 import { createClient } from "@/utils/supabase/client";
 import { toast } from "sonner";
@@ -55,14 +56,7 @@ export default function NewEventPage() {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-2 text-sm text-muted-foreground">Cargando...</p>
-        </div>
-      </div>
-    );
+    return <PageSkeleton cards={3} />;
   }
 
   return (

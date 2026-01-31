@@ -497,10 +497,12 @@ export default function ProfessionalFinancesPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-sm text-muted-foreground">Cargando datos financieros...</p>
+      <div className="min-h-screen bg-background p-6">
+        <div className="animate-pulse space-y-4 w-full max-w-4xl mx-auto">
+          <div className="h-8 bg-muted rounded w-48" />
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            {[1,2,3,4].map(i => <div key={i} className="h-24 bg-muted rounded-lg" />)}
+          </div>
         </div>
       </div>
     );

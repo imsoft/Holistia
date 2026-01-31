@@ -212,7 +212,12 @@ export default function ProfessionalDigitalProducts() {
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-2 text-sm text-muted-foreground">Cargando programas...</p>
+          <div className="animate-pulse space-y-4 mt-4 w-full">
+            <div className="h-8 bg-muted rounded w-32 mx-auto" />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {[1,2,3,4,5,6].map(i => <div key={i} className="h-48 bg-muted rounded-lg" />)}
+            </div>
+          </div>
         </div>
       </div>
     );

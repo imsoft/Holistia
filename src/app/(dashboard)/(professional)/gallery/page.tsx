@@ -188,10 +188,9 @@ export default function ProfessionalGalleryPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center px-4">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-4 text-xs sm:text-sm text-muted-foreground">Cargando galería...</p>
+      <div className="min-h-screen bg-background p-6">
+        <div className="animate-pulse grid grid-cols-2 sm:grid-cols-3 gap-4 w-full max-w-4xl mx-auto">
+          {[1,2,3,4,5,6].map(i => <div key={i} className="h-32 bg-muted rounded-lg aspect-square" />)}
         </div>
       </div>
     );

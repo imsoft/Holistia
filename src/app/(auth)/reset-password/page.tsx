@@ -32,9 +32,13 @@ const formSchema = z.object({
 function LoadingState() {
   return (
     <div className="flex min-h-screen flex-col justify-center py-12 sm:px-6 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md text-center">
-        <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
-        <p className="mt-4 text-muted-foreground">Cargando...</p>
+      <div className="sm:mx-auto sm:w-full sm:max-w-md space-y-6">
+        <div className="animate-pulse space-y-4">
+          <div className="h-12 w-12 rounded-full bg-muted mx-auto" />
+          <div className="h-4 w-32 bg-muted rounded mx-auto" />
+          <div className="h-10 w-full bg-muted rounded" />
+          <div className="h-10 w-full bg-muted rounded" />
+        </div>
       </div>
     </div>
   );

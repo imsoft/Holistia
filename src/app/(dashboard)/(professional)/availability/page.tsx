@@ -76,10 +76,10 @@ export default function AvailabilityPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center px-4">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 sm:h-10 sm:w-10 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-2 text-xs sm:text-sm text-muted-foreground">Cargando...</p>
+      <div className="min-h-screen bg-background p-6">
+        <div className="animate-pulse space-y-4 w-full max-w-4xl mx-auto">
+          <div className="h-8 bg-muted rounded w-32" />
+          <div className="h-64 bg-muted rounded-lg" />
         </div>
       </div>
     );

@@ -290,7 +290,7 @@ export default function ChallengeProgressPage() {
           <div>
             <h1 className="text-2xl font-bold">Avances del Reto</h1>
             <p className="text-sm text-muted-foreground mt-1">
-              {challenge?.title || 'Cargando...'}
+              {challenge?.title || <span className="inline-block h-5 w-48 bg-muted rounded animate-pulse" />}
             </p>
           </div>
         </div>

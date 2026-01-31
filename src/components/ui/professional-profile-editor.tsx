@@ -304,7 +304,7 @@ export default function ProfessionalProfileEditor({
         <CardContent className="pt-6">
           <div className="flex items-center justify-center py-8">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-            <span className="ml-2 text-muted-foreground">Cargando perfil...</span>
+            <span className="ml-2 inline-block h-4 w-28 bg-muted rounded animate-pulse" />
           </div>
         </CardContent>
       </Card>

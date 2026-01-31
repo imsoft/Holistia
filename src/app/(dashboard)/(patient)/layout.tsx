@@ -23,6 +23,7 @@ import { useProfile } from "@/hooks/use-profile";
 import { NotificationsDropdown } from "@/components/ui/notifications-dropdown";
 import { useUserId } from "@/stores/user-store";
 import { useLoadFavorites } from "@/stores/favorites-store";
+import { LayoutSkeleton } from "@/components/ui/layout-skeleton";
 
 // Función para generar navegación (URLs limpias sin IDs)
 const getNavigation = (hasEvents: boolean = false) => {
@@ -172,16 +173,9 @@ export default function UserLayout({
     checkAuth();
   }, [loading, profile, supabase, router]);
 
-  // Mostrar loading mientras se cargan los datos
+  // Mostrar skeleton mientras se cargan los datos
   if (loading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-2 text-sm text-muted-foreground">Cargando...</p>
-        </div>
-      </div>
-    );
+    return <LayoutSkeleton />;
   }
 
   // Si no hay perfil después de cargar, redirigir (no mostrar error para evitar parpadeo)

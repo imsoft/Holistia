@@ -200,7 +200,7 @@ export function RescheduleAppointmentForm({
     return (
       <div className="flex items-center justify-center py-12">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        <span className="ml-2 text-sm text-muted-foreground">Cargando detalles de la cita...</span>
+        <span className="ml-2 inline-block h-4 w-36 bg-muted rounded animate-pulse" />
       </div>
     );
   }

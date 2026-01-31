@@ -262,7 +262,7 @@ El equipo de Holistia`;
             <div className="max-h-80 overflow-y-auto space-y-2">
               {loading ? (
                 <div className="text-center py-4 text-sm text-muted-foreground">
-                  Cargando profesionales...
+                  <span className="inline-block h-4 w-36 bg-muted rounded animate-pulse" />
                 </div>
               ) : filteredProfessionals.length === 0 ? (
                 <div className="text-center py-4 text-sm text-muted-foreground">
@@ -429,7 +429,7 @@ El equipo de Holistia`;
           <CardContent>
             {loadingLogs ? (
               <div className="text-center py-4 text-sm text-muted-foreground">
-                Cargando historial...
+                <span className="inline-block h-4 w-28 bg-muted rounded animate-pulse" />
               </div>
             ) : emailLogs.length === 0 ? (
               <div className="text-center py-8 text-sm text-muted-foreground">

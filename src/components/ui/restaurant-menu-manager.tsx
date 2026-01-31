@@ -126,7 +126,10 @@ export function RestaurantMenuManager({
     return (
       <Card>
         <CardContent className="pt-6">
-          <div className="text-center text-muted-foreground">Cargando menús...</div>
+          <div className="animate-pulse space-y-4 w-full">
+            <div className="h-8 bg-muted rounded w-40 mx-auto" />
+            <div className="h-32 bg-muted rounded-lg" />
+          </div>
         </CardContent>
       </Card>
     );

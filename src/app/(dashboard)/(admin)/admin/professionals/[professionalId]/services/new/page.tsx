@@ -43,10 +43,11 @@ export default function NewAdminServicePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-2 text-sm text-muted-foreground">Cargando...</p>
+      <div className="min-h-screen bg-background p-6">
+        <div className="animate-pulse space-y-4 w-full max-w-2xl mx-auto">
+            <div className="h-10 bg-muted rounded" />
+            <div className="h-10 bg-muted rounded" />
+            <div className="h-24 bg-muted rounded" />
         </div>
       </div>
     );

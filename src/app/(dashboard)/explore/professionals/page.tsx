@@ -11,6 +11,7 @@ import { createClient } from "@/utils/supabase/client";
 import { determineProfessionalModality, transformServicesFromDB } from "@/utils/professional-utils";
 import { sortProfessionalsByRanking, type ProfessionalRankingData } from "@/utils/professional-ranking";
 import { Skeleton } from "@/components/ui/skeleton";
+import { PageSkeleton } from "@/components/ui/layout-skeleton";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
@@ -566,14 +567,7 @@ export default function ProfessionalsPage() {
 
   // Si aún estamos verificando autenticación, mostrar loading
   if (isAuthenticated === null) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-2 text-sm text-muted-foreground">Cargando...</p>
-        </div>
-      </div>
-    );
+    return <PageSkeleton cards={6} />;
   }
 
   // El layout del explore se encarga del navbar/footer para usuarios no autenticados

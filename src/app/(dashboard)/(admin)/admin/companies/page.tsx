@@ -1247,9 +1247,9 @@ export default function AdminCompanies() {
             </div>
 
             {loadingLeads ? (
-              <div className="text-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-                <p className="mt-2 text-sm text-muted-foreground">Cargando solicitudes...</p>
+              <div className="animate-pulse space-y-4 py-8">
+                <div className="h-8 bg-muted rounded w-40 mx-auto" />
+                <div className="h-32 bg-muted rounded-lg" />
               </div>
             ) : leads.length === 0 ? (
               <Card className="py-4">
@@ -1645,9 +1645,9 @@ export default function AdminCompanies() {
 
               <TabsContent value="assigned" className="space-y-4 mt-4">
                 {loadingProfessionals ? (
-                  <div className="text-center py-8">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-                    <p className="mt-2 text-sm text-muted-foreground">Cargando profesionales...</p>
+                  <div className="animate-pulse space-y-4 py-8">
+                    <div className="h-8 bg-muted rounded w-40 mx-auto" />
+                    <div className="h-24 bg-muted rounded-lg" />
                   </div>
                 ) : assignedProfessionals.length === 0 ? (
                   <div className="text-center py-8">

@@ -11,6 +11,7 @@ import {
   CheckCheck,
   Flame,
   Heart,
+  Loader2,
   MessageCircle,
   Trash2,
   Trophy,
@@ -254,9 +255,13 @@ export function NotificationsPage() {
 
         <CardContent className="pt-6">
           {loading ? (
-            <div className="flex flex-col items-center justify-center py-16">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
-              <p className="mt-2 text-sm text-muted-foreground">Cargando...</p>
+            <div className="flex flex-col items-center justify-center py-16 gap-4">
+              <div className="animate-pulse space-y-4 w-full max-w-md">
+                <div className="h-16 bg-muted rounded-lg" />
+                <div className="h-24 bg-muted rounded-lg" />
+                <div className="h-24 bg-muted rounded-lg" />
+                <div className="h-24 bg-muted rounded-lg" />
+              </div>
             </div>
           ) : notifications.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16">
@@ -349,7 +354,12 @@ export function NotificationsPage() {
                     onClick={() => loadNotifications()}
                     disabled={loadingMore}
                   >
-                    {loadingMore ? "Cargando..." : "Cargar más"}
+                    {loadingMore ? (
+                      <span className="flex items-center gap-2">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <span>Cargar más</span>
+                      </span>
+                    ) : "Cargar más"}
                   </Button>
                 </div>
               )}

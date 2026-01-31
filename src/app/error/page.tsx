@@ -60,9 +60,7 @@ export default function ErrorPage() {
           <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/20">
             <AlertCircle className="h-10 w-10 text-red-600 dark:text-red-400" />
           </div>
-          <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-            Cargando...
-          </h1>
+          <div className="h-10 w-48 bg-muted rounded animate-pulse" />
         </div>
       </div>
     }>

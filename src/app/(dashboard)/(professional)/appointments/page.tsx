@@ -1049,7 +1049,10 @@ export default function ProfessionalAppointments() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="text-muted-foreground">Cargando calendario...</div>
+        <div className="animate-pulse space-y-4 w-full max-w-4xl">
+          <div className="h-12 bg-muted rounded" />
+          <div className="h-96 bg-muted rounded-lg" />
+        </div>
       </div>
     );
   }

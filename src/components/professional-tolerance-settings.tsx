@@ -93,7 +93,11 @@ export function ProfessionalToleranceSettings({ professionalId }: ProfessionalTo
         </CardHeader>
         <CardContent>
           <div className="text-center py-4">
-            <p className="text-muted-foreground">Cargando...</p>
+            <div className="animate-pulse space-y-4 w-full max-w-md">
+              <div className="h-10 bg-muted rounded" />
+              <div className="h-10 bg-muted rounded" />
+              <div className="h-10 bg-muted rounded" />
+            </div>
           </div>
         </CardContent>
       </Card>

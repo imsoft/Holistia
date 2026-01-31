@@ -213,8 +213,10 @@ export function AppointmentActionForm({
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
-          <p className="mt-2 text-sm text-muted-foreground">Cargando detalles de la cita...</p>
+          <div className="animate-pulse space-y-4 w-full">
+            <div className="h-8 bg-muted rounded w-40" />
+            <div className="h-24 bg-muted rounded" />
+          </div>
         </div>
       </div>
     );

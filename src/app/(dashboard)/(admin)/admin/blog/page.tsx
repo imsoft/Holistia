@@ -19,6 +19,7 @@ import {
   FileText
 } from "lucide-react";
 import Link from "next/link";
+import { PageSkeleton } from "@/components/ui/layout-skeleton";
 
 export default function AdminBlogPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -127,11 +128,7 @@ export default function AdminBlogPage({ params }: { params: Promise<{ id: string
   };
 
   if (!user) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <p>Cargando...</p>
-      </div>
-    );
+    return <PageSkeleton cards={6} />;
   }
 
   return (

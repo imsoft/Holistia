@@ -1018,7 +1018,7 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
               disabled={loadingProfessionals || isProfessional}
             >
               <SelectTrigger className="w-full">
-                <SelectValue placeholder={loadingProfessionals ? "Cargando..." : isProfessional ? "Este reto está vinculado a ti" : "Selecciona un profesional (opcional)"} />
+                <SelectValue placeholder={loadingProfessionals ? "Selecciona..." : isProfessional ? "Este reto está vinculado a ti" : "Selecciona un profesional (opcional)"} />
               </SelectTrigger>
               <SelectContent className="max-h-[300px]">
                 {!isProfessional && <SelectItem value="none">Ninguno (Reto público)</SelectItem>}
@@ -1238,7 +1238,7 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
                 {loadingPatients ? (
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Loader2 className="h-4 w-4 animate-spin" />
-                    Cargando pacientes...
+                    <span className="inline-block h-4 w-24 bg-muted rounded animate-pulse" />
                   </div>
                 ) : filteredFrequentPatients.length > 0 && (
                   <div className="space-y-1">
@@ -1306,7 +1306,7 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
                   loadingExistingParticipants ? (
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <Loader2 className="h-4 w-4 animate-spin" />
-                      Cargando participantes actuales...
+                      <span className="inline-block h-4 w-36 bg-muted rounded animate-pulse" />
                     </div>
                   ) : existingParticipants.length > 0 && (
                     <div className="space-y-1">

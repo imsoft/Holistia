@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { CreditCard, ExternalLink, CheckCircle, AlertCircle, Clock, Unplug } from "lucide-react";
+import { CreditCard, ExternalLink, CheckCircle, AlertCircle, Clock, Unplug, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import {
   AlertDialog,
@@ -254,7 +254,7 @@ export function StripeConnectButton({ professionalId, initialStatus }: StripeCon
                   variant="default"
                   className="flex-1"
                 >
-                  {loading ? 'Cargando...' : 'Completar configuración'}
+                  {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Completar configuración'}
                 </Button>
               )}
               <Button

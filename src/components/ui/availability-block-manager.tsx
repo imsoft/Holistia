@@ -46,8 +46,12 @@ export default function AvailabilityBlockManager({ professionalId, userId: propU
     return (
       <Card>
         <CardContent className="p-6">
-          <div className="flex items-center justify-center">
-            <div className="text-muted-foreground">Cargando...</div>
+          <div className="flex flex-col items-center justify-center gap-4 p-6">
+            <div className="animate-pulse space-y-3 w-full">
+              <div className="h-12 bg-muted rounded-lg" />
+              <div className="h-24 bg-muted rounded-lg" />
+              <div className="h-24 bg-muted rounded-lg" />
+            </div>
           </div>
         </CardContent>
       </Card>

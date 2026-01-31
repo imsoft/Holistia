@@ -292,7 +292,7 @@ export function MapComponent({ address, serviceName, className = '' }: MapCompon
         <div className="absolute inset-0 flex items-center justify-center bg-gray-100 rounded-lg z-10">
           <div className="flex flex-col items-center gap-3">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-            <p className="text-sm text-gray-600">Cargando mapa...</p>
+            <div className="h-4 w-32 bg-muted rounded animate-pulse mx-auto" />
           </div>
         </div>
       )}

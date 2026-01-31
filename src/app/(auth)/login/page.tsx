@@ -22,6 +22,7 @@ import { login } from "@/actions/auth/actions";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { useRouter, useSearchParams } from "next/navigation";
+import { AuthPageSkeleton } from "@/components/ui/layout-skeleton";
 
 const formSchema = z.object({
   email: z.email("Ingresa un correo electrónico válido"),
@@ -229,14 +230,7 @@ function LoginFormWithMessage() {
 // Componente principal con Suspense
 export default function LoginPage() {
   return (
-    <Suspense fallback={
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-2 text-sm text-muted-foreground">Cargando...</p>
-        </div>
-      </div>
-    }>
+    <Suspense fallback={<AuthPageSkeleton />}>
       <LoginFormWithMessage />
     </Suspense>
   );

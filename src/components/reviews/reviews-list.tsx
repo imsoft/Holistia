@@ -126,7 +126,11 @@ export function ReviewsList({
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-muted-foreground text-center py-8">Cargando reseñas...</p>
+          <div className="animate-pulse space-y-4 py-8 w-full">
+            <div className="h-8 bg-muted rounded w-40 mx-auto" />
+            <div className="h-24 bg-muted rounded-lg" />
+            <div className="h-24 bg-muted rounded-lg" />
+          </div>
         </CardContent>
       </Card>
     );

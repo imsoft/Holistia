@@ -405,7 +405,10 @@ export default function ProfessionalPatients() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 w-full">
           {loading ? (
             <div className="col-span-full text-center py-12">
-              <div className="text-muted-foreground">Cargando pacientes...</div>
+              <div className="animate-pulse space-y-4 w-full">
+                <div className="h-8 bg-muted rounded w-40 mx-auto" />
+                <div className="h-64 bg-muted rounded-lg" />
+              </div>
             </div>
           ) : filteredPatients.length > 0 ? (
             filteredPatients.map((patient) => (

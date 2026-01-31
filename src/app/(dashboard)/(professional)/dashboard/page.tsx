@@ -401,7 +401,11 @@ export default function ProfessionalDashboard() {
                 {professionalData?.is_verified && <VerifiedBadge size={20} />}
               </div>
               <p className="text-xs sm:text-sm text-muted-foreground">
-                {loading || professionalLoading ? 'Cargando...' : `Bienvenido/a${professionalData ? `, ${professionalData.first_name} ${professionalData.last_name}` : ''}`}
+                {loading || professionalLoading ? (
+                  <span className="inline-block h-4 w-32 bg-muted rounded animate-pulse" />
+                ) : (
+                  `Bienvenido/a${professionalData ? `, ${professionalData.first_name} ${professionalData.last_name}` : ''}`
+                )}
               </p>
             </div>
           </div>
@@ -457,7 +461,11 @@ export default function ProfessionalDashboard() {
           <CardContent className="px-4 sm:px-6 pb-4 sm:pb-6">
             <div className="space-y-3 sm:space-y-4">
               {loading ? (
-                <div className="text-center py-8 text-xs sm:text-sm text-muted-foreground">Cargando citas...</div>
+                <div className="space-y-3 py-4">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="h-16 bg-muted rounded-lg animate-pulse" />
+                  ))}
+                </div>
               ) : appointments.length === 0 ? (
                 <div className="text-center py-8 text-xs sm:text-sm text-muted-foreground">No hay citas programadas para hoy</div>
               ) : (

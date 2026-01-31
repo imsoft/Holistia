@@ -18,6 +18,7 @@ import { BlogImageUploader } from "@/components/ui/blog-image-uploader";
 import { RichTextEditor } from "@/components/ui/rich-text-editor";
 import { generateUniqueSlug, isValidSlug } from "@/lib/slug-utils";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { PageSkeleton } from "@/components/ui/layout-skeleton";
 
 export default function EditBlogPostPage({ 
   params 
@@ -305,11 +306,7 @@ export default function EditBlogPostPage({
   };
 
   if (!user) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <p>Cargando...</p>
-      </div>
-    );
+    return <PageSkeleton cards={3} />;
   }
 
   if (fetchLoading) {
@@ -457,7 +454,7 @@ export default function EditBlogPostPage({
                 disabled={loadingAuthors}
               >
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder={loadingAuthors ? "Cargando autores..." : "Selecciona un autor"} />
+                  <SelectValue placeholder={loadingAuthors ? "Selecciona..." : "Selecciona un autor"} />
                 </SelectTrigger>
                 <SelectContent className="max-h-[300px] w-full">
                   {authors.map((author) => (

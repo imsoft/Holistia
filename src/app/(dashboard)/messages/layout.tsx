@@ -21,6 +21,7 @@ import Link from "next/link";
 import { createClient } from "@/utils/supabase/client";
 import { useProfile } from "@/hooks/use-profile";
 import { NotificationsDropdown } from "@/components/ui/notifications-dropdown";
+import { LayoutSkeleton } from "@/components/ui/layout-skeleton";
 
 // Función para generar navegación profesional
 const getProfessionalNavigation = () => {
@@ -166,26 +167,12 @@ export default function MessagesLayout({
   }, [loading, profile, router, pathname]);
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-2 text-sm text-muted-foreground">Cargando...</p>
-        </div>
-      </div>
-    );
+    return <LayoutSkeleton />;
   }
 
   // No renderizar si no hay perfil (se está redirigiendo)
   if (!profile) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-2 text-sm text-muted-foreground">Redirigiendo...</p>
-        </div>
-      </div>
-    );
+    return <LayoutSkeleton />;
   }
 
   const userName = profile.first_name && profile.last_name 

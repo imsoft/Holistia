@@ -185,7 +185,7 @@ export function WideCalendar({
         <CardContent className="p-6">
           <div className="flex items-center justify-center py-12">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-            <span className="ml-3 text-base text-muted-foreground">Cargando horarios...</span>
+            <span className="ml-3 inline-block h-4 w-32 bg-muted rounded animate-pulse" />
           </div>
         </CardContent>
       </Card>
@@ -217,7 +217,7 @@ export function WideCalendar({
             {isLoading && (
               <div className="flex items-center gap-1">
                 <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-primary"></div>
-                <span className="text-xs text-muted-foreground">Cargando...</span>
+                <span className="inline-block h-3 w-20 bg-muted rounded animate-pulse" />
               </div>
             )}
           </div>

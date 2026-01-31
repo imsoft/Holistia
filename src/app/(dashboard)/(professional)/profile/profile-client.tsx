@@ -46,8 +46,8 @@ export function ProfessionalProfileClient({
   };
 
   const handleProfileUpdate = () => {
-    // Recargar datos después de actualizar
-    window.location.reload();
+    // Los datos se han guardado en la BD - la próxima visita mostrará la actualización
+    toast.success("Perfil actualizado correctamente");
   };
 
   return (

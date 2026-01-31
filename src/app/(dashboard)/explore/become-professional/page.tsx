@@ -124,6 +124,7 @@ export default function BecomeProfessionalPage() {
   const [lastLanguageEnterTime, setLastLanguageEnterTime] = useState<number | null>(null);
   const [userProfilePhoto, setUserProfilePhoto] = useState<string | null>(null);
   const [openCountryCombo, setOpenCountryCombo] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
   useUserStoreInit();
   const userId = useUserId();
 
@@ -197,7 +198,7 @@ export default function BecomeProfessionalPage() {
     };
 
     getUserData();
-  }, [profile, supabase]);
+  }, [profile, supabase, refreshKey]);
 
   const handleInputChange = (field: string, value: string | boolean) => {
     // Para campos de texto, guardar el valor sin normalizar
@@ -1490,7 +1491,7 @@ export default function BecomeProfessionalPage() {
                                     }
 
                                     toast.success('Perfil de experto dado de baja exitosamente.');
-                                    window.location.reload();
+                                    setRefreshKey(prev => prev + 1);
                                   } catch (error) {
                                     console.error('Error deleting application:', error);
                                     toast.error('Error al dar de baja el perfil.');
@@ -1558,7 +1559,7 @@ export default function BecomeProfessionalPage() {
                                   if (error) throw error;
 
                                   toast.success('Solicitud eliminada. Ahora puedes crear una nueva.');
-                                  window.location.reload();
+                                  setRefreshKey(prev => prev + 1);
                                 } catch (error) {
                                   console.error('Error deleting application:', error);
                                   toast.error('Error al eliminar la solicitud.');
@@ -1581,9 +1582,9 @@ export default function BecomeProfessionalPage() {
                                 Ver Mi Perfil
                               </Link>
                             </Button>
-                            <Button 
-                              variant="outline" 
-                              onClick={() => window.location.reload()}
+                            <Button
+                              variant="outline"
+                              onClick={() => setRefreshKey(prev => prev + 1)}
                               className="flex-1"
                             >
                               Actualizar Estado
@@ -1604,7 +1605,7 @@ export default function BecomeProfessionalPage() {
                                 if (error) throw error;
 
                                 toast.success('Solicitud cancelada exitosamente.');
-                                window.location.reload();
+                                setRefreshKey(prev => prev + 1);
                               } catch (error) {
                                 console.error('Error deleting application:', error);
                                 toast.error('Error al cancelar la solicitud.');

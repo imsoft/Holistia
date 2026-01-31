@@ -88,6 +88,7 @@ export default function AnalyticsPage() {
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
   const [syncMessage, setSyncMessage] = useState<string | null>(null);
+  const [refreshKey, setRefreshKey] = useState(0);
   const [generalStats, setGeneralStats] = useState<GeneralStats>({
     total_professionals: 0,
     total_patients: 0,
@@ -269,7 +270,7 @@ export default function AnalyticsPage() {
     };
 
     fetchAnalytics();
-  }, [adminId, supabase]);
+  }, [adminId, supabase, refreshKey]);
 
   const handleSyncPayments = async () => {
     setSyncing(true);
@@ -284,8 +285,8 @@ export default function AnalyticsPage() {
 
       if (response.ok) {
         setSyncMessage(`✅ ${data.message}: ${data.updated} pagos actualizados`);
-        // Reload analytics after sync
-        window.location.reload();
+        // Refetch analytics after sync
+        setRefreshKey(prev => prev + 1);
       } else {
         setSyncMessage(`❌ Error: ${data.error}`);
       }

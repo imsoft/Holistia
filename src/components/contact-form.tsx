@@ -18,6 +18,7 @@ export function ContactForm() {
     error,
     updateField,
     submitForm,
+    resetForm,
   } = useContactForm();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -49,8 +50,8 @@ export function ContactForm() {
             <p className="text-muted-foreground mb-4">
               Hemos recibido tu mensaje y nos pondremos en contacto contigo lo antes posible.
             </p>
-            <Button 
-              onClick={() => window.location.reload()} 
+            <Button
+              onClick={resetForm}
               variant="outline"
               className="mt-4"
             >

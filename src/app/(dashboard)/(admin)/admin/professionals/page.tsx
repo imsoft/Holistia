@@ -113,6 +113,7 @@ export default function AdminProfessionals() {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [adminRating, setAdminRating] = useState<{rating: number; improvement_comments?: string | null; id?: string} | null>(null);
   const [ratingRefreshKey, setRatingRefreshKey] = useState(0);
+  const [refreshKey, setRefreshKey] = useState(0);
   const supabase = createClient();
 
   // Opciones de áreas de bienestar
@@ -329,7 +330,7 @@ export default function AdminProfessionals() {
     };
 
     fetchProfessionals();
-  }, [supabase]);
+  }, [supabase, refreshKey]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -492,10 +493,10 @@ export default function AdminProfessionals() {
     }
   };
 
-  // Función para cerrar el diálogo y recargar
+  // Función para cerrar el diálogo y refrescar datos
   const handleCloseSyncResults = () => {
     setSyncResults({ isOpen: false, summary: null, details: [] });
-    window.location.reload();
+    setRefreshKey(prev => prev + 1);
   };
 
   // Función para marcar manualmente el pago como completado

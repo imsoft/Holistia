@@ -57,10 +57,11 @@ const FavoritesPage = () => {
   const [professionals, setProfessionals] = useState<Professional[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [refreshKey, setRefreshKey] = useState(0);
   useUserStoreInit();
   const params = useParams();
   const supabase = createClient();
-  
+
   const userId = useUserId();
 
   // Obtener favoritos del usuario
@@ -169,7 +170,7 @@ const FavoritesPage = () => {
       setError('ID de usuario no válido.');
       setLoading(false);
     }
-  }, [userId, supabase]);
+  }, [userId, supabase, refreshKey]);
 
   // Componente de skeleton para las cards de profesionales
   const ProfessionalCardSkeleton = () => (
@@ -230,8 +231,8 @@ const FavoritesPage = () => {
               </div>
               <h3 className="text-base sm:text-lg font-semibold text-foreground mb-2">Error al cargar los favoritos</h3>
               <p className="text-sm sm:text-base text-muted-foreground mb-4">{error}</p>
-              <Button 
-                onClick={() => window.location.reload()} 
+              <Button
+                onClick={() => setRefreshKey(prev => prev + 1)}
                 variant="outline"
                 className="w-full sm:w-auto"
               >

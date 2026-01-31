@@ -477,9 +477,8 @@ export function ServiceForm({
 
       // Disparar evento para que ServiceManager recargue los servicios
       window.dispatchEvent(new CustomEvent('service-created'));
-      
+
       router.push(redirectPath);
-      router.refresh();
     } catch (error) {
       console.error("Error saving service:", error);
       toast.error("Error al guardar el servicio");

@@ -110,6 +110,7 @@ export default function AppointmentsPage() {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [refreshKey, setRefreshKey] = useState(0);
   useUserStoreInit();
   const params = useParams();
   const router = useRouter();
@@ -268,7 +269,7 @@ export default function AppointmentsPage() {
       setError('ID de usuario no válido.');
       setLoading(false);
     }
-  }, [userId, supabase, router]);
+  }, [userId, supabase, router, refreshKey]);
 
   const openCancelDialog = (appointment: Appointment) => {
     router.push(`/appointments/${appointment.id}/cancel`);
@@ -382,8 +383,8 @@ export default function AppointmentsPage() {
               </div>
               <h3 className="text-base sm:text-lg font-semibold text-foreground mb-2">Error al cargar las citas</h3>
               <p className="text-sm sm:text-base text-muted-foreground mb-4">{error}</p>
-              <Button 
-                onClick={() => window.location.reload()} 
+              <Button
+                onClick={() => setRefreshKey(prev => prev + 1)}
                 variant="outline"
                 className="w-full sm:w-auto"
               >

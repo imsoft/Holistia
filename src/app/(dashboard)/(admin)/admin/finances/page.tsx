@@ -79,6 +79,7 @@ export default function FinancesPage() {
   const [eventAmount, setEventAmount] = useState(500);
   const [registrationAmount, setRegistrationAmount] = useState(888);
   const [syncingPayments, setSyncingPayments] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
   const supabase = createClient();
 
   // Función para obtener el nombre del período actual
@@ -176,8 +177,8 @@ export default function FinancesPage() {
         }
       }
 
-      // Recargar página después de sincronizar
-      window.location.reload();
+      // Refetch data después de sincronizar
+      setRefreshKey(prev => prev + 1);
     } catch (error: any) {
       console.error("Error syncing payments:", error);
       toast.error(error.message || "Error al sincronizar pagos");
@@ -412,7 +413,7 @@ export default function FinancesPage() {
     };
 
     fetchFinancialData();
-  }, [supabase, selectedPeriod]);
+  }, [supabase, selectedPeriod, refreshKey]);
 
   const getPaymentTypeLabel = (type: string | null) => {
     switch (type) {

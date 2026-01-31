@@ -91,6 +91,7 @@ export default function ProfessionalAppointments() {
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [professionalAppId, setProfessionalAppId] = useState<string>("");
+  const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
     if (!userId) return;
@@ -265,7 +266,7 @@ export default function ProfessionalAppointments() {
     };
 
     fetchAppointments();
-  }, [userId, supabase]);
+  }, [userId, supabase, refreshKey]);
 
   // Navegación
   const handlePrevious = () => {
@@ -336,8 +337,8 @@ export default function ProfessionalAppointments() {
       const result = await syncAllAppointmentsToGoogleCalendar(userId);
       if (result.success) {
         toast.success(result.message || 'Calendario sincronizado correctamente');
-        // Recargar la página para actualizar las citas
-        window.location.reload();
+        // Refetch datos para actualizar las citas
+        setRefreshKey(prev => prev + 1);
       } else {
         // Si el error es por cuenta no conectada, redirigir
         if (result.error?.includes('no está conectado') || result.error?.includes('Tokens') || result.error?.includes('Google Calendar')) {

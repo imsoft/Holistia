@@ -589,8 +589,7 @@ export async function POST(request: NextRequest) {
             .from('challenge_purchases')
             .update({
               stripe_payment_intent_id: session.payment_intent as string,
-              stripe_charge_id: session.payment_intent as string,
-              payment_status: 'succeeded',
+              payment_status: 'completed',
               access_granted: true,
             })
             .eq('id', purchase_id);

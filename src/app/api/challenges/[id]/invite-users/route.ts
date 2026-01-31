@@ -126,10 +126,10 @@ export async function POST(
       );
     }
 
-    // Verificar que el reto existe
+    // Verificar que el reto existe (incl. price para retos de pago)
     const { data: challenge, error: challengeError } = await supabase
       .from("challenges")
-      .select("id, title, created_by_user_id")
+      .select("id, title, created_by_user_id, price, currency")
       .eq("id", challengeId)
       .single();
 
@@ -139,6 +139,9 @@ export async function POST(
         { status: 404 }
       );
     }
+
+    const challengePrice = challenge.price != null ? Number(challenge.price) : 0;
+    const hasPrice = challengePrice > 0;
 
     // Verificar que el usuario es participante del reto
     const { data: participation } = await supabase
@@ -205,13 +208,24 @@ export async function POST(
       );
     }
 
-    // Crear participaciones (challenge_purchases)
-    const newPurchases = newUserIds.map((userId) => ({
-      challenge_id: challengeId,
-      participant_id: userId,
-      access_granted: true,
-      started_at: new Date().toISOString(),
-    }));
+    // Crear participaciones (challenge_purchases). Si el reto tiene precio, access_granted = false hasta que paguen.
+    const newPurchases = newUserIds.map((userId) => {
+      const base = {
+        challenge_id: challengeId,
+        participant_id: userId,
+        started_at: hasPrice ? null : new Date().toISOString(),
+      };
+      if (hasPrice) {
+        return {
+          ...base,
+          access_granted: false,
+          amount: challengePrice,
+          currency: challenge.currency || "MXN",
+          payment_status: "pending",
+        };
+      }
+      return { ...base, access_granted: true };
+    });
 
     const { data: createdPurchases, error: purchaseError } = await supabase
       .from("challenge_purchases")
@@ -244,9 +258,19 @@ export async function POST(
       inviterProfile?.email?.split("@")[0] ||
       "Usuario";
 
-    // Enviar emails de invitación
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://holistia.io";
+    // Enviar emails de invitación (si tiene precio, incluir URL de pago)
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.holistia.io";
     const challengeUrl = `${siteUrl}/my-challenges?challenge=${challengeId}`;
+    const paymentUrl = hasPrice
+      ? `${siteUrl}/explore/challenge/${challengeId}/checkout`
+      : undefined;
+    const currency = challenge.currency || "MXN";
+    const challengePriceFormatted = hasPrice
+      ? new Intl.NumberFormat("es-MX", {
+          style: "currency",
+          currency: currency,
+        }).format(challengePrice)
+      : undefined;
 
     await Promise.allSettled(
       usersToInvite
@@ -266,6 +290,8 @@ export async function POST(
             challenge_title: challenge.title || "Reto",
             challenge_url: challengeUrl,
             action: "invited",
+            payment_url: paymentUrl,
+            challenge_price: challengePriceFormatted,
           });
         })
     );

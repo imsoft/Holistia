@@ -766,6 +766,10 @@ interface ChallengeInvitationEmailData {
   challenge_title: string;
   challenge_url: string;
   action: 'invited' | 'added';
+  /** Si el reto tiene precio, URL del checkout Stripe para pagar y participar */
+  payment_url?: string;
+  /** Precio formateado (ej. "$500.00 MXN") para mostrar en el email */
+  challenge_price?: string;
 }
 
 interface ChallengeMessageNotificationData {
@@ -805,6 +809,14 @@ export async function sendChallengeInvitationEmail(data: ChallengeInvitationEmai
       ? 'agregado'
       : 'invitado';
 
+    const hasPayment = Boolean(data.payment_url && data.challenge_price);
+    const challengePriceLine = hasPayment
+      ? `<p class="meta" style="margin-top:8px;font-weight:600;">Costo del reto: ${data.challenge_price}</p><p class="meta" style="margin-top:4px;font-size:13px;">Debes completar el pago para participar en el reto.</p>`
+      : '';
+    const ctaBlock = hasPayment
+      ? `<a href="${data.payment_url}" class="cta-button" style="color:#ffffff !important;">Pagar y participar</a><p class="cta-note" style="margin-top:8px;">Completa el pago con tarjeta para unirte al reto. Si el botón no funciona, copia y pega este enlace en tu navegador:<br />${data.payment_url}</p><p class="cta-note" style="margin-top:12px;">También puedes ver el reto (sin acceso completo hasta pagar):<br /><a href="${data.challenge_url}" style="color:#8B5CF6;">${data.challenge_url}</a></p>`
+      : `<a href="${data.challenge_url}" class="cta-button" style="color:#ffffff !important;">Ver mi reto</a><div class="cta-note">Si el botón no funciona, copia y pega este enlace en tu navegador:<br />${data.challenge_url}</div>`;
+
     const emailContent = emailTemplate
       .replace(/\{\{logo_url\}\}/g, logoUrl)
       .replace(/\{\{recipient_name\}\}/g, data.recipient_name)
@@ -812,7 +824,9 @@ export async function sendChallengeInvitationEmail(data: ChallengeInvitationEmai
       .replace(/\{\{challenge_title\}\}/g, data.challenge_title)
       .replace(/\{\{challenge_url\}\}/g, data.challenge_url)
       .replace(/\{\{action_title\}\}/g, actionTitle)
-      .replace(/\{\{action_verb\}\}/g, actionVerb);
+      .replace(/\{\{action_verb\}\}/g, actionVerb)
+      .replace(/\{\{challenge_price_line\}\}/g, challengePriceLine)
+      .replace(/\{\{cta_block\}\}/g, ctaBlock);
 
     const subject = data.action === 'added'
       ? `🎯 Te agregaron al reto "${data.challenge_title}" | Holistia`

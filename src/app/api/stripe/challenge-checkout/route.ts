@@ -108,46 +108,53 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Verificar si ya está participando
+    // Verificar si ya está participando (o tiene compra pendiente por invitación)
     const { data: existingParticipation } = await supabase
       .from('challenge_purchases')
-      .select('id')
+      .select('id, access_granted')
       .eq('challenge_id', challenge_id)
       .eq('participant_id', user.id)
       .maybeSingle();
 
-    if (existingParticipation) {
+    if (existingParticipation?.access_granted) {
       return NextResponse.json(
         { error: 'Ya estás participando en este reto' },
         { status: 400 }
       );
     }
 
-    // Calcular comisiones (15% para retos)
     const price = typeof challenge.price === 'string' ? parseFloat(challenge.price) : challenge.price;
     const platformFee = calculateCommission(price, 15); // 15% para retos
     const transferAmount = calculateTransferAmount(price, 15); // 15% para retos
 
-    // Crear registro de compra pendiente
-    const { data: purchase, error: purchaseError } = await supabase
-      .from('challenge_purchases')
-      .insert({
-        challenge_id: challenge_id,
-        participant_id: user.id,
-        amount: price,
-        currency: challenge.currency || 'MXN',
-        payment_status: 'pending',
-        access_granted: false,
-      })
-      .select()
-      .single();
+    let purchase: { id: string };
 
-    if (purchaseError || !purchase) {
-      console.error('Error creating challenge purchase:', purchaseError);
-      return NextResponse.json(
-        { error: 'Error al crear el registro de compra' },
-        { status: 500 }
-      );
+    if (existingParticipation && !existingParticipation.access_granted) {
+      // Reusar registro de compra pendiente (invitación con reto de pago)
+      purchase = { id: existingParticipation.id };
+    } else {
+      // Crear registro de compra pendiente
+      const { data: newPurchase, error: purchaseError } = await supabase
+        .from('challenge_purchases')
+        .insert({
+          challenge_id: challenge_id,
+          participant_id: user.id,
+          amount: price,
+          currency: challenge.currency || 'MXN',
+          payment_status: 'pending',
+          access_granted: false,
+        })
+        .select('id')
+        .single();
+
+      if (purchaseError || !newPurchase) {
+        console.error('Error creating challenge purchase:', purchaseError);
+        return NextResponse.json(
+          { error: 'Error al crear el registro de compra' },
+          { status: 500 }
+        );
+      }
+      purchase = newPurchase;
     }
 
     // Crear sesión de Stripe Checkout

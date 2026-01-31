@@ -95,8 +95,8 @@ export const Navbar = () => {
     setIsAuthenticated(false);
     useUserStore.getState().clearUser();
     useUserStore.getState().clearProfileCache();
-    // Luego cerrar sesión en Supabase
-    await supabase.auth.signOut();
+    // Cerrar sesión solo localmente para evitar rate limit de Supabase
+    await supabase.auth.signOut({ scope: 'local' });
     // Finalmente redirigir (usar replace para no agregar al historial)
     router.replace("/login");
   };

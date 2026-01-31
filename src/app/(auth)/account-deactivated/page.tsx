@@ -28,7 +28,7 @@ export default function AccountDeactivatedPage() {
 
   const handleLogout = async () => {
     setIsLoggingOut(true);
-    await supabase.auth.signOut();
+    await supabase.auth.signOut({ scope: 'local' });
     router.push('/login');
   };
 

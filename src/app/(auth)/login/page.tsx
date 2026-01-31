@@ -43,13 +43,18 @@ function LoginFormWithMessage() {
     },
   });
 
-  // Mostrar mensaje de confirmación si viene de la verificación de email
+  // Mostrar mensajes según parámetros de la URL
   useEffect(() => {
     const message = searchParams.get('message');
+    const error = searchParams.get('error');
     const deactivated = searchParams.get('deactivated');
 
     if (message) {
       toast.success(message);
+    }
+
+    if (error) {
+      toast.error(error, { duration: 8000 });
     }
 
     if (deactivated === 'true') {

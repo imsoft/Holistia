@@ -178,7 +178,7 @@ export function ProfessionalSidebar() {
   }, [profile, supabase, router]);
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
+    await supabase.auth.signOut({ scope: 'local' });
     router.push('/login');
   };
 

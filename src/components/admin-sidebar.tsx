@@ -246,7 +246,7 @@ export function AdminSidebar() {
   // Función para cerrar sesión
   const handleSignOut = async () => {
     try {
-      await supabase.auth.signOut();
+      await supabase.auth.signOut({ scope: 'local' });
       router.push('/login');
     } catch (error) {
       console.error('Error signing out:', error);

@@ -23,7 +23,14 @@ export async function GET(request: Request) {
     const supabase = await createClient()
     const { data, error } = await supabase.auth.exchangeCodeForSession(code)
     
-    if (!error && data.user) {
+    // Si hay error (ej: rate limit), redirigir a login con mensaje
+    if (error) {
+      console.error('❌ Error en exchangeCodeForSession:', error);
+      const errorMsg = error.message || 'Error al iniciar sesión';
+      return NextResponse.redirect(`${origin}/login?error=${encodeURIComponent(errorMsg)}`);
+    }
+    
+    if (data?.user) {
       console.log('🔐 User authenticated successfully:', {
         userId: data.user.id,
         email: data.user.email
@@ -136,6 +143,6 @@ export async function GET(request: Request) {
     }
   }
 
-  // return the user to an error page with instructions
-  return NextResponse.redirect(`${origin}/auth/auth-code-error`)
+  // Sin código o error: redirigir a login con mensaje claro
+  return NextResponse.redirect(`${origin}/login?error=${encodeURIComponent('No se recibió el código de autorización. Intenta iniciar sesión de nuevo.')}`)
 }

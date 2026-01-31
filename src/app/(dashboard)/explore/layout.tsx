@@ -167,7 +167,7 @@ export default function ExploreLayout({
   // Función para cerrar sesión
   const handleSignOut = async () => {
     try {
-      const { error } = await supabase.auth.signOut();
+      const { error } = await supabase.auth.signOut({ scope: 'local' });
       if (error) {
         console.error("Error signing out:", error);
         return;

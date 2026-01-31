@@ -63,8 +63,8 @@ export function AccountDeactivation({ userId, userEmail, accountType }: AccountD
 
       toast.success("Cuenta desactivada exitosamente");
 
-      // Cerrar sesión
-      await supabase.auth.signOut();
+      // Cerrar sesión solo localmente para evitar rate limit
+      await supabase.auth.signOut({ scope: 'local' });
 
       // Redirigir al login
       router.push('/login?deactivated=true');

@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
 import { useUserId } from "@/stores/user-store";
 import { useUserStoreInit } from "@/hooks/use-user-store-init";
 import { toast } from "sonner";
@@ -59,7 +58,6 @@ const FavoritesPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
   useUserStoreInit();
-  const params = useParams();
   const supabase = createClient();
 
   const userId = useUserId();
@@ -100,11 +98,15 @@ const FavoritesPage = () => {
         }
 
         console.log('Favorites fetched successfully:', favoritesData);
-        setFavorites(favoritesData || []);
+        // Solo guardar favoritos de profesionales para esta página
+        const professionalFavorites = (favoritesData || []).filter(
+          (fav): fav is Favorite => Boolean(fav.professional_id)
+        );
+        setFavorites(professionalFavorites);
 
-        // Si hay favoritos, obtener los datos de los profesionales
-        if (favoritesData && favoritesData.length > 0) {
-          const professionalIds = favoritesData.map(fav => fav.professional_id);
+        // Si hay favoritos de profesionales, obtener sus datos
+        if (professionalFavorites.length > 0) {
+          const professionalIds = professionalFavorites.map((fav) => fav.professional_id);
           
           const { data: professionalsData, error: professionalsError } = await supabase
             .from('professional_applications')
@@ -164,8 +166,19 @@ const FavoritesPage = () => {
       }
     };
 
-    if (userId) {
+    // Validar userId: debe ser un UUID válido (evitar string "null" u otros valores inválidos)
+    const isValidUserId =
+      userId &&
+      typeof userId === "string" &&
+      userId !== "null" &&
+      userId !== "undefined" &&
+      userId.length > 10;
+
+    if (isValidUserId) {
       getFavorites();
+    } else if (userId === null || userId === undefined) {
+      setError('Debes iniciar sesión para ver tus favoritos.');
+      setLoading(false);
     } else {
       setError('ID de usuario no válido.');
       setLoading(false);
@@ -246,7 +259,7 @@ const FavoritesPage = () => {
             {professionals.map((professional) => (
               <div key={professional.id} className="relative">
                 <ProfessionalCard
-                  userId={params.id as string}
+                  userId={userId ?? ""}
                   showFavoriteButton={false}
                   professional={{
                     id: professional.id,

@@ -29,7 +29,15 @@ export const useFavoritesStore = create<FavoritesState>()(
       isLoading: false,
 
       loadFavorites: async (userId) => {
-        if (!userId) {
+        // Validar: evitar string "null", "undefined" u otros valores inválidos que causan error UUID
+        const isValidUserId =
+          userId &&
+          typeof userId === "string" &&
+          userId !== "null" &&
+          userId !== "undefined" &&
+          userId.length > 10;
+
+        if (!isValidUserId) {
           set({
             favoritesCache: {},
             favoritesTimestamp: null,

@@ -37,9 +37,8 @@ export function useProfile() {
   // Importante: evitar recrear el cliente en cada render.
   const supabase = useMemo(() => createClient(), []);
   
-  // Obtener caché del store de Zustand (solo valores, no funciones para evitar re-renders)
-  const profileCache = useUserStore((state) => state.profileCache);
-  const isProfileCacheValidFn = useUserStore((state) => state.isProfileCacheValid);
+  // NO suscribirse a profileCache aquí - causa re-renders en cascada cuando el store actualiza.
+  // Usar getState() dentro de effects cuando se necesite.
 
   /**
    * Cargar perfil del usuario autenticado
@@ -123,7 +122,8 @@ export function useProfile() {
           console.log('✅ Profile loaded successfully:', newProfile);
           setProfile(newProfile);
           // Actualizar caché (solo si no es el mismo objeto para evitar loops)
-          if (profileCache?.id !== newProfile.id) {
+          const currentCache = useUserStore.getState().profileCache;
+          if (currentCache?.id !== newProfile.id) {
             useUserStore.getState().setProfileCache(newProfile);
           }
         } else {
@@ -190,7 +190,8 @@ export function useProfile() {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
-      // Ignorar TOKEN_REFRESHED e INITIAL_SESSION - no requieren acción ni deben causar parpadeo
+      // Ignorar TOKEN_REFRESHED e INITIAL_SESSION - Supabase los emite al cambiar de pestaña.
+      // Reactuar causaría re-renders innecesarios.
       if (event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION') {
         return;
       }
@@ -200,17 +201,20 @@ export function useProfile() {
         setProfile(null);
         setLoading(false);
         setError(null);
-        // Usar getState() para evitar dependencias inestables
         useUserStore.getState().clearProfileCache();
       } else if (event === 'SIGNED_IN' && session?.user && !loadingRef.current) {
-        // Si el usuario inició sesión, cargar perfil (solo si no está cargando)
+        // SIGNED_IN también puede dispararse al recuperar foco de pestaña (Supabase auth-js).
+        // Si ya tenemos perfil en caché válido para este user, no recargar (evita re-render).
+        const cache = useUserStore.getState().profileCache;
+        const isValid = useUserStore.getState().isProfileCacheValid();
+        if (cache && isValid && cache.id === session.user.id) {
+          return;
+        }
         loadingRef.current = true;
         loadProfile({ silent: false }).finally(() => {
           loadingRef.current = false;
         });
       } else if (event === 'USER_UPDATED' && session?.user && !loadingRef.current) {
-        // Solo refrescar el perfil cuando el usuario cambió (no en TOKEN_REFRESHED),
-        // para evitar "refresh" al cambiar de pestaña/ventana.
         loadingRef.current = true;
         loadProfile({ silent: true }).finally(() => {
           loadingRef.current = false;
@@ -240,6 +244,9 @@ export function useProfile() {
         return;
       }
 
+      // Usar getState() para no suscribirse al store (evita re-renders)
+      const { profileCache, isProfileCacheValid } = useUserStore.getState();
+
       // Si el caché fue limpiado explícitamente (null), no cargar desde caché
       if (profileCache === null) {
         // Cargar desde la base de datos
@@ -251,7 +258,7 @@ export function useProfile() {
       }
 
       // Optimización: Si hay caché válido, usarlo inmediatamente sin hacer fetch
-      const isCacheValid = isProfileCacheValidFn();
+      const isCacheValid = isProfileCacheValid();
       if (profileCache && isCacheValid) {
         // Cargar inmediatamente desde caché (no bloquea, no hace fetch)
         setProfile(profileCache);
@@ -272,7 +279,7 @@ export function useProfile() {
 
     checkAndLoad();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Solo ejecutar una vez al montar, NO cuando cambie profileCache
+  }, []); // Solo ejecutar una vez al montar
 
   return {
     profile,

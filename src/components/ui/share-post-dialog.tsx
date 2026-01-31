@@ -30,10 +30,11 @@ export function SharePostDialog({
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  // Construir URL para compartir
-  const shareUrl = typeof window !== 'undefined'
-    ? `${window.location.origin}/feed/post/${checkinId}`
+  // Usar URL canónica para compartir (evita problemas con Facebook y www vs no-www)
+  const baseUrl = typeof window !== 'undefined'
+    ? (process.env.NEXT_PUBLIC_SITE_URL || window.location.origin).replace(/\/$/, '')
     : '';
+  const shareUrl = baseUrl ? `${baseUrl}/feed/post/${checkinId}` : '';
 
   const shareText = `${userName} completó un día del reto "${challengeTitle}" en Holistia`;
 

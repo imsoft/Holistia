@@ -9,15 +9,17 @@ import { createClient } from '@/utils/supabase/client';
  * Hook para inicializar el store de Zustand con los datos del usuario
  * Debe usarse en un componente cliente al inicio de la app
  * 
- * OPTIMIZACIÓN: Usa el caché del perfil de useProfile() para evitar consultas duplicadas
+ * OPTIMIZACIÓN: Usa getState() para las actions - evita re-renders cuando el store actualiza.
+ * Solo suscribirse a profile y loading de useProfile (datos esenciales).
  */
 export function useUserStoreInit() {
   const { profile, loading } = useProfile();
-  const { setUser, setProfessional, setLoading, professional: cachedProfessional } = useUserStore();
   // Evitar recrear el cliente en cada render (dispara effects innecesarios).
   const supabase = useMemo(() => createClient(), []);
 
   useEffect(() => {
+    const { setUser, setProfessional, setLoading, professional: cachedProfessional } = useUserStore.getState();
+
     if (loading) {
       setLoading(true);
       return;
@@ -44,7 +46,6 @@ export function useUserStoreInit() {
     // Si es profesional, cargar datos adicionales (solo si no están en caché)
     if (profile.type === 'professional') {
       // Solo cargar si no hay datos profesionales en caché
-      // (si ya hay datos, probablemente son del mismo usuario porque solo hay uno activo)
       if (!cachedProfessional) {
         const loadProfessionalData = async () => {
           try {
@@ -55,6 +56,7 @@ export function useUserStoreInit() {
               .eq('status', 'approved')
               .maybeSingle();
 
+            const { setProfessional } = useUserStore.getState();
             if (professionalApp) {
               setProfessional({
                 professional_id: professionalApp.id,
@@ -71,11 +73,10 @@ export function useUserStoreInit() {
 
         loadProfessionalData();
       }
-      // Si ya hay datos en caché, no hacer nada (optimización - evitar consulta duplicada)
     } else {
       setProfessional(null);
     }
 
     setLoading(false);
-  }, [profile, loading, setUser, setProfessional, setLoading, supabase, cachedProfessional]);
+  }, [profile, loading, supabase]);
 }

@@ -17,6 +17,7 @@ import {
   Clock,
   XCircle,
   Calculator,
+  RefreshCw,
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -33,6 +34,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart";
+import { Area, AreaChart, CartesianGrid, XAxis, PieChart, Pie, Cell } from "recharts";
+
+const CHART_COLORS = ["var(--chart-1)", "var(--chart-2)", "var(--chart-3)", "var(--chart-4)", "var(--chart-5)"];
+const MONTH_NAMES = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
 
 // Interfaces
 interface FinancialMetric {
@@ -80,7 +86,17 @@ export default function FinancesPage() {
   const [registrationAmount, setRegistrationAmount] = useState(888);
   const [syncingPayments, setSyncingPayments] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [chartData, setChartData] = useState<{ month: string; income: number; transactions: number }[]>([]);
   const supabase = createClient();
+
+  const chartConfig = {
+    income: { label: "Ingresos", color: "var(--primary)" },
+    transactions: { label: "Transacciones", color: "var(--chart-2)" },
+    mes: { label: "Mes" },
+    Citas: { label: "Citas", color: "var(--chart-1)" },
+    Eventos: { label: "Eventos", color: "var(--chart-2)" },
+    Inscripciones: { label: "Inscripciones", color: "var(--chart-3)" },
+  } satisfies ChartConfig;
 
   // Función para obtener el nombre del período actual
   const getCurrentPeriodName = (period: string) => {
@@ -207,11 +223,19 @@ export default function FinancesPage() {
     };
   };
 
-  // Cargar datos financieros
+  // Cargar datos financieros - primero sincroniza con Stripe para datos actualizados
   useEffect(() => {
     const fetchFinancialData = async () => {
       try {
         setLoading(true);
+
+        // Sincronizar pagos con Stripe para asegurar datos más actualizados
+        try {
+          await fetch("/api/admin/sync-payments-by-session", { method: "POST" });
+          await fetch("/api/admin/sync-payments", { method: "POST" });
+        } catch (syncErr) {
+          console.warn("Sync con Stripe falló, usando datos locales:", syncErr);
+        }
 
         // Calcular rango de fechas según el período seleccionado
         const now = new Date();
@@ -252,6 +276,47 @@ export default function FinancesPage() {
           console.error('Error fetching payments:', paymentsError);
           return;
         }
+
+        // Obtener pagos de los últimos 6 meses para gráficos
+        const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 5, 1);
+        const { data: chartPayments } = await supabase
+          .from('payments')
+          .select('*')
+          .gte('paid_at', sixMonthsAgo.toISOString())
+          .lte('paid_at', now.toISOString())
+          .in('status', ['succeeded', 'processing']);
+
+        // Agrupar por mes para gráfico de tendencia
+        const monthLabels: string[] = [];
+        const chartDataMap: Record<string, { income: number; transactions: number }> = {};
+        for (let i = 5; i >= 0; i--) {
+          const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+          const key = d.toISOString().slice(0, 7);
+          monthLabels.push(key);
+          chartDataMap[key] = { income: 0, transactions: 0 };
+        }
+        (chartPayments || []).forEach((p: { paid_at?: string; amount?: string | number }) => {
+          const dateStr = p.paid_at || (p as { created_at?: string }).created_at;
+          if (dateStr) {
+            const monthKey = dateStr.slice(0, 7);
+            if (chartDataMap[monthKey]) {
+              chartDataMap[monthKey].income += Number(p.amount) || 0;
+              chartDataMap[monthKey].transactions += 1;
+            }
+          }
+        });
+        setChartData(
+          monthLabels.map((month) => {
+            const [year, monthNum] = month.split("-").map(Number);
+            const mes = `${MONTH_NAMES[monthNum - 1]} ${year}`;
+            return {
+              month,
+              mes,
+              income: chartDataMap[month]?.income || 0,
+              transactions: chartDataMap[month]?.transactions || 0,
+            };
+          })
+        );
 
         // Obtener pagos del período anterior para comparación
         const { data: previousPayments } = await supabase
@@ -492,11 +557,11 @@ export default function FinancesPage() {
             <div>
               <h1 className="text-xl sm:text-2xl font-bold text-foreground">Finanzas</h1>
               <p className="text-xs sm:text-sm text-muted-foreground">
-                Gestión financiera de la plataforma
+                Gestión financiera de la plataforma · Datos sincronizados con Stripe al cargar
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
               <SelectTrigger className="w-[220px]">
                 <Calendar className="h-4 w-4 mr-2" />
@@ -508,6 +573,16 @@ export default function FinancesPage() {
                 <SelectItem value="year">{getCurrentPeriodName('year')}</SelectItem>
               </SelectContent>
             </Select>
+            <Button
+              onClick={handleSyncPayments}
+              disabled={syncingPayments}
+              size="sm"
+              variant="outline"
+              className="flex items-center gap-2"
+            >
+              <RefreshCw className={`h-4 w-4 ${syncingPayments ? "animate-spin" : ""}`} />
+              {syncingPayments ? "Sincronizando..." : "Actualizar desde Stripe"}
+            </Button>
           </div>
         </div>
       </div>
@@ -548,6 +623,76 @@ export default function FinancesPage() {
               </CardContent>
             </Card>
           ))}
+        </div>
+
+        {/* Gráficos */}
+        <div className="grid gap-6 lg:grid-cols-2">
+          <Card className="py-4">
+            <CardHeader>
+              <CardTitle>Tendencia de Ingresos</CardTitle>
+              <CardDescription>Ingresos y transacciones de los últimos 6 meses (datos sincronizados con Stripe)</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ChartContainer config={chartConfig} className="h-[250px] w-full">
+                <AreaChart accessibilityLayer data={chartData}>
+                  <CartesianGrid vertical={false} />
+                  <XAxis dataKey="mes" tickLine={false} tickMargin={8} axisLine={false} />
+                  <ChartTooltip content={<ChartTooltipContent />} />
+                  <Area
+                    type="monotone"
+                    dataKey="income"
+                    stroke="var(--color-income)"
+                    fill="var(--color-income)"
+                    fillOpacity={0.3}
+                    strokeWidth={2}
+                  />
+                </AreaChart>
+              </ChartContainer>
+            </CardContent>
+          </Card>
+
+          <Card className="py-4">
+            <CardHeader>
+              <CardTitle>Ingresos por Tipo - {getPeriodLabel()}</CardTitle>
+              <CardDescription>Distribución de ingresos del período seleccionado</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {summary && summary.total_income > 0 ? (
+                <ChartContainer config={chartConfig} className="h-[250px] w-full">
+                  <PieChart>
+                    <ChartTooltip content={<ChartTooltipContent />} />
+                    <Pie
+                      data={[
+                        { name: "Citas", value: summary.appointments_income },
+                        { name: "Eventos", value: summary.events_income },
+                        { name: "Inscripciones", value: summary.registrations_income },
+                      ].filter((d) => d.value > 0)}
+                      dataKey="value"
+                      nameKey="name"
+                      cx="50%"
+                      cy="50%"
+                      outerRadius={80}
+                      label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                    >
+                      {[
+                        { name: "Citas", value: summary.appointments_income },
+                        { name: "Eventos", value: summary.events_income },
+                        { name: "Inscripciones", value: summary.registrations_income },
+                      ]
+                        .filter((d) => d.value > 0)
+                        .map((entry, index) => (
+                          <Cell key={entry.name} fill={CHART_COLORS[index % CHART_COLORS.length]} />
+                        ))}
+                    </Pie>
+                  </PieChart>
+                </ChartContainer>
+              ) : (
+                <div className="flex h-[250px] items-center justify-center text-muted-foreground text-sm">
+                  No hay ingresos en este período para mostrar
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </div>
 
         {/* Desglose Detallado */}

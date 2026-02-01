@@ -411,7 +411,7 @@ export default function ApplicationsPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-background p-6">
-        <div className="animate-pulse space-y-4 w-full max-w-4xl mx-auto">
+        <div className="animate-pulse space-y-4 w-full">
             <div className="h-8 bg-muted rounded w-40" />
             <div className="h-64 bg-muted rounded-lg" />
         </div>
@@ -447,7 +447,7 @@ export default function ApplicationsPage() {
       </div>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+      <main className="w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         {/* Stats Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 sm:mb-8">
           {/* Total Applications */}

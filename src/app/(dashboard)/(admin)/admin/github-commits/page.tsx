@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useUserId } from "@/stores/user-store";
 import { useUserStoreInit } from "@/hooks/use-user-store-init";
 import { SidebarTrigger } from "@/components/ui/sidebar";
@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -17,13 +16,17 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  GitBranch,
   GitCommit,
   Calendar,
   User,
   ExternalLink,
   RefreshCw,
   AlertCircle,
+  Search,
+  TrendingUp,
+  Sparkles,
+  Wrench,
+  Zap,
 } from "lucide-react";
 import { toast } from "sonner";
 import Link from "next/link";
@@ -92,6 +95,8 @@ export default function GitHubCommitsPage() {
   const [perPage, setPerPage] = useState(30);
   const [page, setPage] = useState(1);
   const [selectedPrefix, setSelectedPrefix] = useState<string>("all");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [authorFilter, setAuthorFilter] = useState("all");
 
   const fetchCommits = async () => {
     try {
@@ -153,12 +158,37 @@ export default function GitHubCommitsPage() {
     return match ? match[1].toLowerCase() : null;
   };
 
-  // Filtrar commits por prefijo
-  const filteredCommits = commits.filter((commit) => {
-    if (selectedPrefix === "all") return true;
-    const prefix = extractPrefix(commit.message);
-    return prefix === selectedPrefix;
-  });
+  // Calcular stats
+  const stats = useMemo(() => {
+    const total = commits.length;
+    const featCount = commits.filter(c => extractPrefix(c.message) === 'feat').length;
+    const fixCount = commits.filter(c => extractPrefix(c.message) === 'fix').length;
+    const otherCount = total - featCount - fixCount;
+    return { total, featCount, fixCount, otherCount };
+  }, [commits]);
+
+  // Obtener autores únicos
+  const authors = useMemo(() => {
+    const unique = new Map<string, string>();
+    commits.forEach(c => unique.set(c.author.email, c.author.name));
+    return Array.from(unique.entries()).map(([email, name]) => ({ email, name }));
+  }, [commits]);
+
+  // Filtrar commits por prefijo, búsqueda y autor
+  const filteredCommits = useMemo(() => {
+    return commits.filter((commit) => {
+      if (selectedPrefix !== "all" && extractPrefix(commit.message) !== selectedPrefix) return false;
+      if (authorFilter !== "all" && commit.author.email !== authorFilter) return false;
+      if (searchTerm.trim()) {
+        const term = searchTerm.toLowerCase();
+        const matchesMessage = commit.message.toLowerCase().includes(term);
+        const matchesAuthor = commit.author.name.toLowerCase().includes(term) || 
+          commit.author.email.toLowerCase().includes(term);
+        if (!matchesMessage && !matchesAuthor) return false;
+      }
+      return true;
+    });
+  }, [commits, selectedPrefix, authorFilter, searchTerm]);
 
   // Función para escapar HTML de forma segura (funciona en cliente y servidor)
   const escapeHtml = (text: string): string => {
@@ -244,7 +274,7 @@ export default function GitHubCommitsPage() {
       </div>
 
       {/* Main Content */}
-      <div className="p-4 sm:p-6 space-y-6">
+      <main className="w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6">
 
         {/* Error */}
         {error && (
@@ -261,79 +291,179 @@ export default function GitHubCommitsPage() {
           </Card>
         )}
 
-        {/* Loading */}
+        {/* Loading skeleton */}
         {loading && (
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-center py-8">
-                <RefreshCw className="h-8 w-8 animate-spin text-muted-foreground" />
-                <span className="ml-2 inline-block h-4 w-32 bg-muted rounded animate-pulse" />
-              </div>
-            </CardContent>
-          </Card>
+          <div className="animate-pulse space-y-4 w-full">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {[1, 2, 3, 4].map(i => <div key={i} className="h-24 bg-muted rounded-lg" />)}
+            </div>
+            <div className="flex items-center justify-center py-12">
+              <RefreshCw className="h-8 w-8 animate-spin text-muted-foreground" />
+            </div>
+          </div>
         )}
 
-        {/* Commits List */}
+        {/* Stats Cards + Filters */}
+        {!loading && !error && (
+          <>
+            {/* Stats Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <Card className="border">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm text-muted-foreground">Total Commits</span>
+                    <Badge variant="secondary" className="flex items-center gap-1">
+                      <GitCommit className="h-3 w-3" />
+                      Página {page}
+                    </Badge>
+                  </div>
+                  <div className="text-3xl font-bold">{stats.total}</div>
+                  <div className="flex items-center gap-1 mt-1">
+                    <TrendingUp className="h-4 w-4 text-green-500" />
+                    <span className="text-sm text-muted-foreground">cargados</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {repository ? `${repository.full_name}` : "Repositorio"}
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card className="border">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm text-muted-foreground">feat</span>
+                    <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400">
+                      <Sparkles className="h-3 w-3 mr-1" />
+                      Nuevas funcionalidades
+                    </Badge>
+                  </div>
+                  <div className="text-3xl font-bold">{stats.featCount}</div>
+                  <div className="flex items-center gap-1 mt-1">
+                    <Sparkles className="h-4 w-4 text-blue-500" />
+                    <span className="text-sm text-blue-600 dark:text-blue-400">Features</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {stats.total > 0 ? ((stats.featCount / stats.total) * 100).toFixed(0) : 0}% del total
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card className="border">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm text-muted-foreground">fix</span>
+                    <Badge className="bg-amber-100 text-amber-800 dark:bg-amber-900/20 dark:text-amber-400">
+                      <Wrench className="h-3 w-3 mr-1" />
+                      Correcciones
+                    </Badge>
+                  </div>
+                  <div className="text-3xl font-bold">{stats.fixCount}</div>
+                  <div className="flex items-center gap-1 mt-1">
+                    <Wrench className="h-4 w-4 text-amber-500" />
+                    <span className="text-sm text-amber-600 dark:text-amber-400">Bug fixes</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {stats.total > 0 ? ((stats.fixCount / stats.total) * 100).toFixed(0) : 0}% del total
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card className="border">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm text-muted-foreground">Otros</span>
+                    <Badge className="bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-400">
+                      <Zap className="h-3 w-3 mr-1" />
+                      refactor, chore, docs
+                    </Badge>
+                  </div>
+                  <div className="text-3xl font-bold">{stats.otherCount}</div>
+                  <div className="flex items-center gap-1 mt-1">
+                    <Zap className="h-4 w-4 text-purple-500" />
+                    <span className="text-sm text-purple-600 dark:text-purple-400">Resto</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {rateLimit ? `${rateLimit.remaining} requests API restantes` : "API GitHub"}
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Filters */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Buscar por mensaje o autor..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10 w-full"
+                />
+              </div>
+              <Select
+                value={selectedPrefix}
+                onValueChange={(value) => {
+                  setSelectedPrefix(value);
+                  setPage(1);
+                }}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Tipo de commit" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos los tipos</SelectItem>
+                  {availablePrefixes.map((prefix) => (
+                    <SelectItem key={prefix} value={prefix}>
+                      {prefix}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={authorFilter} onValueChange={setAuthorFilter}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Autor" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos los autores</SelectItem>
+                  {authors.map(({ email, name }) => (
+                    <SelectItem key={email} value={email}>
+                      {name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select
+                value={perPage.toString()}
+                onValueChange={(value) => {
+                  setPerPage(parseInt(value));
+                  setPage(1);
+                }}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Por página" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="10">10 por página</SelectItem>
+                  <SelectItem value="20">20 por página</SelectItem>
+                  <SelectItem value="30">30 por página</SelectItem>
+                  <SelectItem value="50">50 por página</SelectItem>
+                  <SelectItem value="100">100 por página</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </>
+        )}
+
+        {/* Commits List / Content */}
         {!loading && !error && commits.length > 0 && (
           <>
-            <div className="flex items-center justify-between flex-wrap gap-4">
-              <div className="flex items-center gap-4 flex-wrap">
-                <h2 className="text-xl font-semibold">
-                  {filteredCommits.length} {filteredCommits.length === 1 ? 'commit' : 'commits'}
-                  {selectedPrefix !== "all" && (
-                    <span className="text-sm font-normal text-muted-foreground ml-2">
-                      (de {commits.length} total)
-                    </span>
-                  )}
-                </h2>
-                <div className="flex items-center gap-2">
-                  <Label htmlFor="prefixFilter" className="text-sm text-muted-foreground whitespace-nowrap">
-                    Filtrar por:
-                  </Label>
-                  <Select
-                    value={selectedPrefix}
-                    onValueChange={(value) => {
-                      setSelectedPrefix(value);
-                      setPage(1); // Reset a página 1
-                    }}
-                  >
-                    <SelectTrigger className="w-32">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Todos</SelectItem>
-                      {availablePrefixes.map((prefix) => (
-                        <SelectItem key={prefix} value={prefix}>
-                          {prefix}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Label htmlFor="perPage" className="text-sm text-muted-foreground whitespace-nowrap">
-                    Por página:
-                  </Label>
-                  <Select
-                    value={perPage.toString()}
-                    onValueChange={(value) => {
-                      setPerPage(parseInt(value));
-                      setPage(1); // Reset a página 1
-                    }}
-                  >
-                    <SelectTrigger className="w-20">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="10">10</SelectItem>
-                      <SelectItem value="20">20</SelectItem>
-                      <SelectItem value="30">30</SelectItem>
-                      <SelectItem value="50">50</SelectItem>
-                      <SelectItem value="100">100</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
+            <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
+              <span className="text-sm text-muted-foreground">
+                {filteredCommits.length} {filteredCommits.length === 1 ? 'commit' : 'commits'} mostrados
+                {(searchTerm || selectedPrefix !== "all" || authorFilter !== "all") && (
+                  <span className="ml-1">(de {commits.length} en esta página)</span>
+                )}
+              </span>
               <div className="flex items-center gap-2">
                 <Button
                   variant="outline"
@@ -343,20 +473,19 @@ export default function GitHubCommitsPage() {
                 >
                   Anterior
                 </Button>
-                <span className="text-sm text-muted-foreground">
-                  Página {page}
-                </span>
+                <span className="text-sm text-muted-foreground">Página {page}</span>
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => setPage(page + 1)}
-                  disabled={filteredCommits.length < perPage}
+                  disabled={commits.length < perPage}
                 >
                   Siguiente
                 </Button>
               </div>
             </div>
 
+            {filteredCommits.length > 0 ? (
             <div className="space-y-4">
               {filteredCommits.map((commit) => {
                 const commitDate = new Date(commit.author.date);
@@ -438,48 +567,25 @@ export default function GitHubCommitsPage() {
                 );
               })}
             </div>
-
-            {/* Paginación */}
-            <div className="flex items-center justify-center gap-2">
-              <Button
-                variant="outline"
-                onClick={() => setPage(Math.max(1, page - 1))}
-                disabled={page === 1 || loading}
-              >
-                Anterior
-              </Button>
-              <span className="text-sm text-muted-foreground px-4">
-                Página {page}
-              </span>
-              <Button
-                variant="outline"
-                onClick={() => setPage(page + 1)}
-                disabled={filteredCommits.length < perPage || loading}
-              >
-                Siguiente
-              </Button>
-            </div>
+            ) : (
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="text-center py-8">
+                    <GitCommit className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                    <p className="text-lg font-medium text-foreground mb-2">
+                      No hay commits que coincidan con los filtros
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      Prueba con otros filtros o "Todos" para ver los commits
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </>
         )}
 
-        {/* Empty State */}
-        {!loading && !error && filteredCommits.length === 0 && commits.length > 0 && (
-          <Card>
-            <CardContent className="pt-6">
-              <div className="text-center py-8">
-                <GitCommit className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                <p className="text-lg font-medium text-foreground mb-2">
-                  No se encontraron commits con el prefijo "{selectedPrefix}"
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  Intenta seleccionar otro prefijo o "Todos" para ver todos los commits
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Empty State - No commits at all */}
+        {/* Empty State - Sin commits */}
         {!loading && !error && commits.length === 0 && (
           <Card>
             <CardContent className="pt-6">
@@ -495,7 +601,7 @@ export default function GitHubCommitsPage() {
             </CardContent>
           </Card>
         )}
-      </div>
+      </main>
     </div>
   );
 }

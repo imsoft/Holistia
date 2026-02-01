@@ -1,9 +1,14 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 
+interface MonthlyData {
+  month: string;
+  count: number;
+}
+
 /**
  * API endpoint para obtener datos de analíticas con permisos de servicio
- * Esto evita problemas con RLS que impiden al admin ver todos los appointments/payments
+ * Incluye datos de todas las entidades: profesionales, citas, programas, eventos, retos, comercios, centros, restaurantes
  */
 export async function GET() {
   try {
@@ -19,7 +24,6 @@ export async function GET() {
       );
     }
 
-    // Verificar tipo de usuario desde profiles
     const { data: profile } = await supabase
       .from('profiles')
       .select('type')
@@ -33,54 +37,131 @@ export async function GET() {
       );
     }
 
-    console.log('📊 Fetching analytics data for admin:', user.id);
+    // Obtener datos de los últimos 6 meses para gráficos
+    const now = new Date();
+    const monthLabels: string[] = [];
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      monthLabels.push(d.toISOString().slice(0, 7)); // YYYY-MM
+    }
 
-    // Obtener datos con service role (bypassing RLS)
+    // Todas las consultas en paralelo
     const [
-      { count: professionalsCount },
-      { count: activeProfessionalsCount },
-      { data: appointmentsData, error: appointmentsError },
-      { data: paymentsData, error: paymentsError },
-      { data: professionalsData, error: professionalsError },
-      { data: patientsData, error: patientsError },
+      professionalsResult,
+      activeProfessionalsResult,
+      appointmentsResult,
+      paymentsResult,
+      professionalsData,
+      patientsData,
+      // Entidades adicionales
+      digitalProductsResult,
+      activeDigitalProductsResult,
+      eventsResult,
+      activeEventsResult,
+      eventRegistrationsResult,
+      challengesResult,
+      activeChallengesResult,
+      shopsResult,
+      activeShopsResult,
+      holisticCentersResult,
+      activeHolisticCentersResult,
+      restaurantsResult,
+      activeRestaurantsResult,
     ] = await Promise.all([
       supabase.from('professional_applications').select('*', { count: 'exact', head: true }).eq('status', 'approved'),
       supabase.from('professional_applications').select('*', { count: 'exact', head: true }).eq('status', 'approved').eq('is_active', true),
-      supabase.from('appointments').select('*'),
+      supabase.from('appointments').select('id, patient_id, professional_id, status, appointment_type, appointment_date, created_at'),
       supabase.from('payments').select('*').eq('status', 'succeeded'),
-      supabase.from('professional_applications').select('id, first_name, last_name, profile_photo, profession').eq('status', 'approved'),
+      supabase.from('professional_applications').select('id, first_name, last_name, profile_photo, profession, reviewed_at, created_at').eq('status', 'approved'),
       supabase.from('profiles').select('id, first_name, last_name, email, avatar_url').eq('type', 'patient').eq('account_active', true),
+      supabase.from('digital_products').select('id, created_at, is_active'),
+      supabase.from('digital_products').select('id', { count: 'exact', head: true }).eq('is_active', true),
+      supabase.from('events_workshops').select('id, created_at, is_active'),
+      supabase.from('events_workshops').select('id', { count: 'exact', head: true }).eq('is_active', true),
+      supabase.from('event_registrations').select('id, event_id, created_at'),
+      supabase.from('challenges').select('id, created_at, is_active'),
+      supabase.from('challenges').select('id', { count: 'exact', head: true }).eq('is_active', true),
+      supabase.from('shops').select('id, created_at, is_active'),
+      supabase.from('shops').select('id', { count: 'exact', head: true }).eq('is_active', true),
+      supabase.from('holistic_centers').select('id, created_at, is_active'),
+      supabase.from('holistic_centers').select('id', { count: 'exact', head: true }).eq('is_active', true),
+      supabase.from('restaurants').select('id, created_at, is_active'),
+      supabase.from('restaurants').select('id', { count: 'exact', head: true }).eq('is_active', true),
     ]);
 
-    if (appointmentsError) {
-      console.error('❌ Error fetching appointments:', appointmentsError);
-    }
+    // Helper para agrupar por mes (usa created_at o dateField)
+    const groupByMonth = (items: { created_at?: string; [key: string]: unknown }[] | null, dateField = 'created_at'): MonthlyData[] => {
+      const counts: Record<string, number> = {};
+      monthLabels.forEach(m => { counts[m] = 0; });
+      (items || []).forEach(item => {
+        const dateStr = (item[dateField] || item.created_at) as string | undefined;
+        if (dateStr) {
+          const month = dateStr.slice(0, 7);
+          if (counts[month] !== undefined) counts[month]++;
+        }
+      });
+      return monthLabels.map(month => ({ month, count: counts[month] || 0 }));
+    };
 
-    if (paymentsError) {
-      console.error('❌ Error fetching payments:', paymentsError);
-    }
+    const appointmentsData = appointmentsResult.data || [];
+    const paymentsData = paymentsResult.data || [];
+    const eventRegistrationsData = eventRegistrationsResult.data || [];
 
-    if (professionalsError) {
-      console.error('❌ Error fetching professionals:', professionalsError);
-    }
+    // Agrupar registros de eventos por mes
+    const eventRegistrationsByMonth = groupByMonth(eventRegistrationsData, 'created_at');
 
-    if (patientsError) {
-      console.error('❌ Error fetching patients:', patientsError);
-    }
+    // Agrupar citas por mes
+    const appointmentsByMonth = groupByMonth(appointmentsData, 'created_at');
 
-    console.log('✅ Data fetched:');
-    console.log('- Appointments:', appointmentsData?.length || 0);
-    console.log('- Payments:', paymentsData?.length || 0);
-    console.log('- Professionals:', professionalsCount);
-    console.log('- Patients:', patientsData?.length || 0);
+    // Datos mensuales por entidad (professionals usa reviewed_at si existe)
+    const professionalsByMonth = groupByMonth(
+      (professionalsData?.data || []).map((p: { reviewed_at?: string; created_at?: string }) => ({
+        created_at: p.reviewed_at || p.created_at
+      })),
+      'created_at'
+    );
+    const digitalProductsByMonth = groupByMonth(digitalProductsResult.data || [], 'created_at');
+    const eventsByMonth = groupByMonth(eventsResult.data || [], 'created_at');
+    const challengesByMonth = groupByMonth(challengesResult.data || [], 'created_at');
+    const shopsByMonth = groupByMonth(shopsResult.data || [], 'created_at');
+    const holisticCentersByMonth = groupByMonth(holisticCentersResult.data || [], 'created_at');
+    const restaurantsByMonth = groupByMonth(restaurantsResult.data || [], 'created_at');
+
+    const totalRevenue = paymentsData.reduce((sum: number, p: { amount?: string | number }) => {
+      const amount = typeof p.amount === 'string' ? parseFloat(p.amount) : (p.amount || 0);
+      return sum + amount;
+    }, 0);
 
     return NextResponse.json({
-      professionals_count: professionalsCount || 0,
-      active_professionals_count: activeProfessionalsCount || 0,
-      appointments: appointmentsData || [],
-      payments: paymentsData || [],
-      professionals: professionalsData || [],
-      patients: patientsData || [],
+      // Datos existentes
+      professionals_count: professionalsResult.count || 0,
+      active_professionals_count: activeProfessionalsResult.count || 0,
+      appointments: appointmentsData,
+      payments: paymentsData,
+      professionals: professionalsData.data || [],
+      patients: patientsData.data || [],
+      total_revenue: totalRevenue,
+      // Nuevas entidades - counts
+      digital_products: { total: digitalProductsResult.data?.length || 0, active: activeDigitalProductsResult.count || 0 },
+      events: { total: eventsResult.data?.length || 0, active: activeEventsResult.count || 0 },
+      event_registrations_count: eventRegistrationsData.length,
+      challenges: { total: challengesResult.data?.length || 0, active: activeChallengesResult.count || 0 },
+      shops: { total: shopsResult.data?.length || 0, active: activeShopsResult.count || 0 },
+      holistic_centers: { total: holisticCentersResult.data?.length || 0, active: activeHolisticCentersResult.count || 0 },
+      restaurants: { total: restaurantsResult.data?.length || 0, active: activeRestaurantsResult.count || 0 },
+      // Datos para gráficos - tendencias mensuales
+      charts: {
+        appointments: appointmentsByMonth,
+        professionals: professionalsByMonth,
+        digital_products: digitalProductsByMonth,
+        events: eventsByMonth,
+        event_registrations: eventRegistrationsByMonth,
+        challenges: challengesByMonth,
+        shops: shopsByMonth,
+        holistic_centers: holisticCentersByMonth,
+        restaurants: restaurantsByMonth,
+        month_labels: monthLabels,
+      },
     });
 
   } catch (error) {

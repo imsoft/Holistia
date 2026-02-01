@@ -156,7 +156,7 @@ export default function AIAgentPage() {
       </div>
 
       {/* Main Content */}
-      <div className="container mx-auto px-6 py-6 max-w-7xl">
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-6">
         <div className="flex flex-col lg:flex-row gap-6">
           {/* Chat Panel */}
           <Card className="h-[calc(100vh-12rem)] py-4 flex flex-col flex-1 lg:flex-[2]">

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useUserId } from "@/stores/user-store";
 import { useUserStoreInit } from "@/hooks/use-user-store-init";
 import { createClient } from "@/utils/supabase/client";
+import { formatPrice } from "@/lib/price-utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -167,7 +168,7 @@ export default function MyEventsPage() {
                           {event.is_active ? "Activo" : "Inactivo"}
                         </Badge>
                         <Badge variant="outline">
-                          {event.is_free ? "Gratis" : `$${event.price} MXN`}
+                          {event.is_free ? "Gratis" : formatPrice(event.price, "MXN")}
                         </Badge>
                       </div>
                     </div>

@@ -55,7 +55,7 @@ export function ChallengeCard({ challenge, onJoin, userId }: ChallengeCardProps)
 
   return (
     <Card
-      className="group overflow-hidden hover:shadow-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer py-4"
+      className="group overflow-hidden hover:shadow-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer pt-0 pb-4"
       onClick={() => router.push(detailHref)}
       role="link"
       tabIndex={0}

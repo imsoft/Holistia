@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { Service } from "@/types/service";
 import { createClient } from "@/utils/supabase/client";
+import { formatPrice } from "@/lib/price-utils";
 import { toast } from "sonner";
 import { MapModal } from "@/components/ui/map-modal";
 
@@ -318,7 +319,7 @@ export function ServiceManager({ professionalId, userId, isAdminContext = false 
                     <div className="space-y-2">
                       <div className="flex items-center gap-1 text-sm">
                         <DollarSign className="w-4 h-4" />
-                        <span>Costo: ${typeof service.cost === 'number' ? service.cost : (service.cost?.presencial || service.cost?.online || 0)}</span>
+                        <span className="whitespace-nowrap">Costo: {formatPrice(typeof service.cost === 'number' ? service.cost : (service.cost?.presencial || service.cost?.online || 0), "MXN")}</span>
                       </div>
                       {service.address && (
                         <div className="flex items-center justify-between">

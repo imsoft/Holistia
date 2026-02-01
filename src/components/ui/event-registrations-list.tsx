@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Loader2, Users, DollarSign, Calendar, CheckCircle, XCircle, Clock } from "lucide-react";
 import { toast } from "sonner";
 import { formatPhone } from "@/utils/phone-utils";
+import { formatPrice } from "@/lib/price-utils";
 
 interface EventRegistration {
   id: string;
@@ -213,7 +214,7 @@ export function EventRegistrationsList({ eventId }: EventRegistrationsListProps)
             <div className="flex items-center gap-2">
               <DollarSign className="h-4 w-4 text-muted-foreground" />
               <div>
-                <p className="text-2xl font-bold">${stats.totalRevenue.toFixed(2)}</p>
+                <p className="text-2xl font-bold">{formatPrice(stats.totalRevenue, "MXN")}</p>
                 <p className="text-xs text-muted-foreground">Ingresos</p>
               </div>
             </div>

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { createClient } from "@/utils/supabase/client";
+import { formatPrice } from "@/lib/price-utils";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -506,7 +507,7 @@ export default function EventRegistrationsPage() {
                       {registration.payment ? (
                         <div className="space-y-1">
                           <div className="font-medium">
-                            ${registration.payment.amount.toFixed(2)} MXN
+                            {formatPrice(registration.payment.amount, "MXN")}
                           </div>
                           <div className="text-xs text-muted-foreground">
                             {registration.payment.paid_at ? 

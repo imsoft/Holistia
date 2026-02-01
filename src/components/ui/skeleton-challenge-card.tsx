@@ -2,7 +2,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export function SkeletonChallengeCard() {
   return (
-    <div className="bg-card rounded-lg border border-border overflow-hidden">
+    <div className="bg-card rounded-lg border border-border overflow-hidden py-4">
       {/* Cover Image */}
       <Skeleton className="h-48 w-full" />
 

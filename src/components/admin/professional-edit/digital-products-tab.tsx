@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { createClient } from "@/utils/supabase/client";
+import { formatPrice } from "@/lib/price-utils";
 import Image from "next/image";
 import { DeleteConfirmation } from "@/components/ui/confirmation-dialog";
 
@@ -145,7 +146,7 @@ export function DigitalProductsTab({ professionalId }: DigitalProductsTabProps) 
                     </p>
                     <div className="flex items-center justify-between mt-4">
                       <span className="font-semibold">
-                        ${product.price} {product.currency}
+                        {formatPrice(product.price, product.currency || "MXN")}
                       </span>
                       <span className="text-sm text-muted-foreground">
                         {product.sales_count} ventas

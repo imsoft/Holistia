@@ -27,6 +27,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { createClient } from "@/utils/supabase/client";
+import { formatPrice } from "@/lib/price-utils";
 import { VerifiedBadge } from "@/components/ui/verified-badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PageSkeleton } from "@/components/ui/layout-skeleton";
@@ -435,13 +436,6 @@ export default function ProgramDetailPage() {
                         )}
                       </div>
                     )}
-                    <Link
-                      href={`/explore/professional/${product.professional_applications.slug || product.professional_id}`}
-                      className="inline-flex items-center gap-1 text-sm text-primary hover:text-primary/80 font-medium mt-3 group"
-                    >
-                      Ver perfil completo
-                      <span className="group-hover:translate-x-1 transition-transform">→</span>
-                    </Link>
                   </div>
                 </div>
               </div>
@@ -492,7 +486,6 @@ export default function ProgramDetailPage() {
         {/* Details */}
         <Card>
           <CardContent className="p-6 space-y-4">
-            <h3 className="font-semibold text-lg">Detalles del Programa</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {product.duration_minutes && (
                 <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
@@ -527,13 +520,13 @@ export default function ProgramDetailPage() {
       </div>
 
       {/* Right Column - Purchase Card */}
-      <div className="lg:col-span-1">
+      <div className="lg:col-span-1 lg:self-start">
         <Card className="sticky top-6">
           <CardContent className="p-6 space-y-6">
             {/* Price */}
             <div>
               <p className="text-3xl font-bold text-primary">
-                ${product.price.toLocaleString('es-MX')}
+                {formatPrice(product.price, product.currency || "MXN")}
               </p>
               <p className="text-sm text-muted-foreground">{product.currency}</p>
             </div>

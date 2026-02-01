@@ -8,6 +8,7 @@ import { Calendar, Package, MapPin, Monitor, ExternalLink, CreditCard } from "lu
 import Image from "next/image";
 import Link from "next/link";
 import { Service } from "@/types/service";
+import { formatPrice } from "@/lib/price-utils";
 import { cn } from "@/lib/utils";
 import { QuotePaymentDialog } from "@/components/ui/quote-payment-dialog";
 
@@ -67,17 +68,17 @@ export function ServiceMessageCard({
       return "Cotización";
     }
     if (typeof cost === "number") {
-      return `$${cost.toFixed(2)}`;
+      return formatPrice(cost, "MXN");
     }
     if (cost && typeof cost === "object") {
       if (cost.presencial && cost.online) {
-        return `Presencial: $${cost.presencial.toFixed(2)} | En línea: $${cost.online.toFixed(2)}`;
+        return `Presencial: ${formatPrice(cost.presencial, "MXN")} | En línea: ${formatPrice(cost.online, "MXN")}`;
       }
       if (cost.presencial) {
-        return `$${cost.presencial.toFixed(2)} (Presencial)`;
+        return `${formatPrice(cost.presencial, "MXN")} (Presencial)`;
       }
       if (cost.online) {
-        return `$${cost.online.toFixed(2)} (En línea)`;
+        return `${formatPrice(cost.online, "MXN")} (En línea)`;
       }
     }
     return "Precio no disponible";

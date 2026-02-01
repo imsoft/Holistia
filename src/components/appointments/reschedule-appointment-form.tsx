@@ -11,6 +11,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
 import { createClient } from "@/utils/supabase/client";
+import { formatPrice } from "@/lib/price-utils";
 
 interface RescheduleAppointmentFormProps {
   appointmentId: string;
@@ -298,7 +299,7 @@ export function RescheduleAppointmentForm({
             <div className="bg-green-50 p-3 rounded-lg border border-green-200">
               <p className="text-sm text-green-800">
                 <strong>Nota:</strong> No se realizarán cargos adicionales. El
-                pago de ${appointmentDetails.cost} MXN sigue siendo válido para
+                pago de {formatPrice(appointmentDetails.cost, "MXN")} sigue siendo válido para
                 la nueva fecha.
               </p>
             </div>

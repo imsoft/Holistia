@@ -28,6 +28,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import MapboxMap from "@/components/ui/mapbox-map";
 import ProfessionalGallery from "@/components/ui/professional-gallery";
 import { formatLocalDate } from "@/lib/date-utils";
+import { formatPrice } from "@/lib/price-utils";
 import { createClient } from "@/utils/supabase/client";
 import { ReviewForm } from "@/components/reviews/review-form";
 import { ReviewsList } from "@/components/reviews/reviews-list";
@@ -700,13 +701,6 @@ export default function ProfessionalProfilePage() {
   // Función para formatear el horario de trabajo
   const formatWorkingHours = (startTime: string, endTime: string) => {
     return `${startTime} - ${endTime}`;
-  };
-
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat("es-MX", {
-      style: "currency",
-      currency: "MXN",
-    }).format(price);
   };
 
   const getServiceTypeIcon = () => {
@@ -2018,7 +2012,7 @@ export default function ProfessionalProfilePage() {
                     💰 Costo:
                   </span>
                   <span className="text-foreground font-bold text-lg">
-                    ${paymentData.cost.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    {formatPrice(paymentData.cost, "MXN")}
                   </span>
                 </div>
               </div>

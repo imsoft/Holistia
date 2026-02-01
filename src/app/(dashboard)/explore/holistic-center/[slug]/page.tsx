@@ -27,6 +27,7 @@ import { Separator } from "@/components/ui/separator";
 import { FavoriteButton } from "@/components/ui/favorite-button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatPhone, formatPhoneForTel } from "@/utils/phone-utils";
+import { formatScheduleForDisplay, parseScheduleFromString } from "@/components/ui/schedule-editor";
 
 interface HolisticCenter {
   id: string;
@@ -74,37 +75,6 @@ export default function HolisticCenterDetailPage() {
     } catch (error) {
       console.error("Error copying to clipboard:", error);
       toast.error("No se pudo copiar el enlace");
-    }
-  };
-
-  const formatOpeningHours = (hours: any) => {
-    if (!hours || typeof hours !== 'object') return null;
-    
-    try {
-      const days = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
-      const formatted: string[] = [];
-      
-      if (Array.isArray(hours)) {
-        // Si viene como array
-        hours.forEach((dayHours: any, index: number) => {
-          if (dayHours && dayHours.open) {
-            formatted.push(`${days[index]}: ${dayHours.open} - ${dayHours.close || 'Cerrado'}`);
-          }
-        });
-      } else {
-        // Si viene como objeto
-        Object.keys(hours).forEach((day, index) => {
-          const dayHours = hours[day];
-          if (dayHours && dayHours.open) {
-            formatted.push(`${day}: ${dayHours.open} - ${dayHours.close || 'Cerrado'}`);
-          }
-        });
-      }
-      
-      return formatted.length > 0 ? formatted : null;
-    } catch (error) {
-      console.error('Error formatting opening hours:', error);
-      return null;
     }
   };
 
@@ -206,7 +176,9 @@ export default function HolisticCenterDetailPage() {
 
   // Función para renderizar el contenido del centro holístico
   const renderCenterContent = () => {
-    const formattedHours = center.opening_hours ? formatOpeningHours(center.opening_hours) : null;
+    const schedule = parseScheduleFromString(center.opening_hours as any);
+    const formattedHours = formatScheduleForDisplay(schedule);
+    const hasOpeningHours = formattedHours && formattedHours !== "No hay horarios configurados";
     
     return (
     <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
@@ -341,7 +313,7 @@ export default function HolisticCenterDetailPage() {
             </div>
 
             {/* Horario de apertura */}
-            {formattedHours && formattedHours.length > 0 && (
+            {hasOpeningHours && (
               <>
                 <Separator className="my-6" />
                 <div>
@@ -349,13 +321,9 @@ export default function HolisticCenterDetailPage() {
                     <Clock className="h-5 w-5" />
                     Horario de Atención
                   </h3>
-                  <div className="space-y-1">
-                    {formattedHours.map((hour, index) => (
-                      <p key={index} className="text-sm text-muted-foreground">
-                        {hour}
-                      </p>
-                    ))}
-                  </div>
+                  <p className="text-sm text-muted-foreground whitespace-pre-line">
+                    {formattedHours}
+                  </p>
                 </div>
               </>
             )}

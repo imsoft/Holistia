@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { EventWorkshop, Professional } from "@/types/event";
 import { createClient } from "@/utils/supabase/client";
+import { formatPrice } from "@/lib/price-utils";
 import { toast } from "sonner";
 import { formatEventDate, formatEventTime } from "@/utils/date-utils";
 import Image from "next/image";
@@ -336,7 +337,7 @@ const EventsAdminPage = () => {
                           {getCategoryLabel(event.category)}
                         </Badge>
                         <Badge variant={event.is_free ? "default" : "outline"}>
-                          {event.is_free ? "Gratuito" : `$${event.price}`}
+                          {event.is_free ? "Gratuito" : formatPrice(event.price, "MXN")}
                         </Badge>
                         {!event.is_active && (
                           <Badge variant="destructive">Inactivo</Badge>

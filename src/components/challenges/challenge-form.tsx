@@ -21,6 +21,7 @@ import { WellnessAreasSelector } from "@/components/ui/wellness-areas-selector";
 import { Upload, X, Loader2, Plus, Trash2, BookOpen, Headphones, Video, FileText, ExternalLink, File, UserPlus, Users, Eye, EyeOff, Calendar, Clock, Copy, CheckCircle2, Edit } from "lucide-react";
 import { toast } from "sonner";
 import { createClient } from "@/utils/supabase/client";
+import { formatPrice } from "@/lib/price-utils";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -1138,7 +1139,7 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
               </p>
               {formData.price && (
                 <p className="text-xs text-green-600">
-                  Precio actual: {formData.price} {formData.currency}
+                  Precio actual: {formatPrice(Number(formData.price) || 0, formData.currency || "MXN")}
                 </p>
               )}
             </div>

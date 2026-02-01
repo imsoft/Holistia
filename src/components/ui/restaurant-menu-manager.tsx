@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
+import { formatPrice } from "@/lib/price-utils";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -223,7 +224,7 @@ export function RestaurantMenuManager({
                         )}
                         {menu.price && (
                           <p className="text-lg font-bold text-primary mt-2">
-                            ${menu.price.toFixed(2)}
+                            {formatPrice(menu.price, "MXN")}
                           </p>
                         )}
                       </div>

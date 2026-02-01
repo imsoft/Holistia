@@ -18,6 +18,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { FavoriteButton } from "@/components/ui/favorite-button";
+import { formatPrice } from "@/lib/price-utils";
 
 interface DigitalProductCardProps {
   product: {
@@ -182,7 +183,7 @@ export function DigitalProductCard({
           <div className="flex items-center justify-between pt-3 border-t mt-auto shrink-0">
             <div>
               <p className="text-xl sm:text-2xl font-bold text-primary">
-                ${product.price.toLocaleString('es-MX')}
+                {formatPrice(product.price, product.currency || "MXN")}
               </p>
               <p className="text-xs text-muted-foreground">{product.currency}</p>
             </div>

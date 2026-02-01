@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { EventWorkshop } from "@/types/event";
 import { formatEventDate, formatEventTime } from "@/utils/date-utils";
+import { formatPrice } from "@/lib/price-utils";
 import Image from "next/image";
 import { FavoriteButton } from "@/components/ui/favorite-button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -297,7 +298,7 @@ export default function EventsPage() {
                               {getCategoryLabel(event.category)}
                             </Badge>
                             <Badge variant={event.is_free ? "default" : "outline"}>
-                              {event.is_free ? "Gratuito" : `$${event.price}`}
+                              {event.is_free ? "Gratuito" : formatPrice(event.price, "MXN")}
                             </Badge>
                           </div>
                         </CardHeader>

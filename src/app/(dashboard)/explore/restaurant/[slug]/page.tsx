@@ -25,6 +25,7 @@ import Image from "next/image";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatPhone, formatPhoneForTel } from "@/utils/phone-utils";
+import { formatPrice } from "@/lib/price-utils";
 
 interface Restaurant {
   id: string;
@@ -404,7 +405,7 @@ export default function RestaurantDetailPage() {
                     )}
                     {menu.price && (
                       <p className="text-lg font-bold text-primary">
-                        ${menu.price.toFixed(2)}
+                        {formatPrice(menu.price, "MXN")}
                       </p>
                     )}
                   </CardContent>

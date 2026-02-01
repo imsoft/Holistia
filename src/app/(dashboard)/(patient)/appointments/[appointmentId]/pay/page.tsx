@@ -11,6 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import PaymentButton from "@/components/ui/payment-button";
+import { formatPrice } from "@/lib/price-utils";
 
 export default function PayAppointmentPage() {
   useUserStoreInit();
@@ -240,7 +241,7 @@ export default function PayAppointmentPage() {
                   <h3 className="font-semibold text-lg">Total a Pagar</h3>
                 </div>
                 <p className="text-2xl font-bold text-primary">
-                  ${appointment.cost.toFixed(2)} MXN
+                  {formatPrice(appointment.cost, "MXN")}
                 </p>
               </div>
 

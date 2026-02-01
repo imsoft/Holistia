@@ -28,6 +28,7 @@ import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatPhone, formatPhoneForTel } from "@/utils/phone-utils";
 import { formatScheduleForDisplay, parseScheduleFromString } from "@/components/ui/schedule-editor";
+import { formatPrice } from "@/lib/price-utils";
 
 interface Shop {
   id: string;
@@ -538,16 +539,16 @@ export default function ShopDetailPage() {
                     <div className="flex items-center justify-between">
                       {product.discount_price ? (
                         <div className="flex flex-col">
-                          <span className="text-lg font-bold text-primary">
-                            ${product.discount_price.toFixed(2)}
+                          <span className="text-lg font-bold text-primary whitespace-nowrap">
+                            {formatPrice(product.discount_price, "MXN")}
                           </span>
-                          <span className="text-sm text-muted-foreground line-through">
-                            ${product.price?.toFixed(2)}
+                          <span className="text-sm text-muted-foreground line-through whitespace-nowrap">
+                            {formatPrice(product.price ?? 0, "MXN")}
                           </span>
                         </div>
                       ) : product.price ? (
-                        <span className="text-lg font-bold text-primary">
-                          ${product.price.toFixed(2)}
+                        <span className="text-lg font-bold text-primary whitespace-nowrap">
+                          {formatPrice(product.price, "MXN")}
                         </span>
                       ) : null}
                       {product.stock > 0 && (

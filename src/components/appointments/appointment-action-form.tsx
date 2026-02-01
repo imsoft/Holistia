@@ -10,6 +10,7 @@ import { AlertCircle, Ban, UserX, Loader2 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
 import { createClient } from "@/utils/supabase/client";
+import { formatPrice } from "@/lib/price-utils";
 
 interface AppointmentActionFormProps {
   appointmentId: string;
@@ -185,8 +186,8 @@ export function AppointmentActionForm({
         inputLabel: isPatient ? "Razón de la cancelación (requerido)" : "Razón de la cancelación (opcional)",
         inputPlaceholder: "Comparte el motivo de tu cancelación...",
         warningMessage: isPatient
-          ? "Recibirás un crédito de $" + (appointmentDetails?.cost || 0) + " MXN para usar en tu próxima cita con este profesional."
-          : "El paciente recibirá un crédito de $" + (appointmentDetails?.cost || 0) + " MXN para usar en su próxima cita contigo.",
+          ? `Recibirás un crédito de ${formatPrice(appointmentDetails?.cost || 0, "MXN")} para usar en tu próxima cita con este profesional.`
+          : `El paciente recibirá un crédito de ${formatPrice(appointmentDetails?.cost || 0, "MXN")} para usar en su próxima cita contigo.`,
         confirmText: "Cancelar cita",
         confirmVariant: "destructive" as const
       };
@@ -202,7 +203,7 @@ export function AppointmentActionForm({
         inputPlaceholder: "Describe qué sucedió...",
         warningMessage: isPatientNoShow
           ? "Se notificará al paciente sobre este reporte."
-          : "Recibirás un crédito de $" + (appointmentDetails?.cost || 0) + " MXN como compensación.",
+          : `Recibirás un crédito de ${formatPrice(appointmentDetails?.cost || 0, "MXN")} como compensación.`,
         confirmText: "Confirmar inasistencia",
         confirmVariant: "default" as const
       };
@@ -257,7 +258,7 @@ export function AppointmentActionForm({
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Monto:</span>
-                <span className="font-medium">${appointmentDetails.cost} MXN</span>
+                <span className="font-medium whitespace-nowrap">{formatPrice(appointmentDetails.cost, "MXN")}</span>
               </div>
             </div>
 

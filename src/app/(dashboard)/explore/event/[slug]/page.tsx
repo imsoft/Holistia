@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 
 import EventPaymentButton from "@/components/ui/event-payment-button";
+import { formatPrice } from "@/lib/price-utils";
 import { formatEventDate, formatEventTime } from "@/utils/date-utils";
 import { EventQuestionsSection } from "@/components/events/event-questions-section";
 import { CopyUrlButton } from "@/components/ui/copy-url-button";
@@ -260,7 +261,7 @@ export default async function EventDetailPage({
                     {getCategoryLabel(event.category)}
                   </Badge>
                   <Badge variant={event.is_free ? "default" : "outline"} className="text-xs sm:text-sm">
-                    {event.is_free ? "Gratuito" : `$${event.price}`}
+                    {event.is_free ? "Gratuito" : formatPrice(event.price ?? 0, "MXN")}
                   </Badge>
                   <Badge variant="outline" className="text-xs sm:text-sm">
                     {event.session_type === 'unique' ? 'Evento único' : 'Evento recurrente'}
@@ -493,7 +494,7 @@ export default async function EventDetailPage({
                   <>
                     <div className="text-center">
                       <p className="text-xl sm:text-2xl font-bold text-primary">
-                        {event.is_free ? "Gratuito" : `$${event.price}`}
+                        {event.is_free ? "Gratuito" : formatPrice(event.price ?? 0, "MXN")}
                       </p>
                       <p className="text-xs sm:text-sm text-muted-foreground">
                         {event.is_free ? "Evento sin costo" : "Costo por persona"}
@@ -528,7 +529,7 @@ export default async function EventDetailPage({
                   <>
                     <div className="text-center">
                       <p className="text-xl sm:text-2xl font-bold text-primary">
-                        {event.is_free ? "Gratuito" : `$${event.price}`}
+                        {event.is_free ? "Gratuito" : formatPrice(event.price ?? 0, "MXN")}
                       </p>
                       <p className="text-xs sm:text-sm text-muted-foreground">
                         {event.is_free ? "Evento sin costo" : "Costo por persona"}

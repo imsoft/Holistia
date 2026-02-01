@@ -16,13 +16,6 @@ interface ProfessionalCardProps {
 }
 
 export const ProfessionalCard = ({ professional, userId, showFavoriteButton = true }: ProfessionalCardProps) => {
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('es-MX', {
-      style: 'currency',
-      currency: 'MXN'
-    }).format(price);
-  };
-
   const getServiceTypeIcon = () => {
     // Si ya está definido el serviceType, usarlo
     if (professional.serviceType) {
@@ -117,7 +110,7 @@ export const ProfessionalCard = ({ professional, userId, showFavoriteButton = tr
 
   return (
     <Link href={professionalRoute}>
-      <Card className="group overflow-hidden hover:shadow-xl hover:-translate-y-2 transition-all duration-300 border-border cursor-pointer h-[480px] flex flex-col">
+      <Card className="group overflow-hidden hover:shadow-xl hover:-translate-y-2 transition-all duration-300 border-border cursor-pointer h-[480px] flex flex-col py-4">
       <div className="relative w-full h-64 overflow-hidden bg-gray-100 shrink-0">
         <div className="absolute inset-0 overflow-hidden">
           <Image

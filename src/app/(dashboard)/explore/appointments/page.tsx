@@ -24,6 +24,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { createClient } from "@/utils/supabase/client";
+import { formatPrice } from "@/lib/price-utils";
 
 interface Professional {
   id: string;
@@ -289,13 +290,6 @@ export default function AppointmentsPage() {
     router.push(`/patient/${userId}/explore`);
   };
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat("es-MX", {
-      style: "currency",
-      currency: "MXN",
-    }).format(price);
-  };
-
   const formatDate = (dateString: string) => {
     // Crear la fecha usando componentes individuales para evitar problemas de zona horaria
     const [year, month, day] = dateString.split('-').map(Number);
@@ -455,7 +449,7 @@ export default function AppointmentsPage() {
                               {typeConfig[appointment.appointment_type as keyof typeof typeConfig].label}
                             </p>
                             <p className="text-xs text-muted-foreground">
-                              {formatPrice(appointment.cost)}
+                              {formatPrice(appointment.cost, "MXN")}
                             </p>
                           </div>
                         </div>
@@ -583,7 +577,7 @@ export default function AppointmentsPage() {
                                 </div>
                                 <div className="flex items-center gap-1">
                                   <Clock className="h-3 w-3" />
-                                  {formatPrice(appointment.cost)}
+                                  {formatPrice(appointment.cost, "MXN")}
                                 </div>
                               </div>
                             </div>

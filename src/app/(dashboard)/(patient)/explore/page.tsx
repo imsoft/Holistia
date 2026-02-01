@@ -12,6 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { EventWorkshop } from "@/types/event";
 import { formatEventDate, formatEventTime } from "@/utils/date-utils";
+import { formatPrice } from "@/lib/price-utils";
 import { determineProfessionalModality, transformServicesFromDB } from "@/utils/professional-utils";
 import { sortProfessionalsByRanking } from "@/utils/professional-ranking";
 import { FavoriteButton } from "@/components/ui/favorite-button";
@@ -222,7 +223,7 @@ const HomeUserPage = () => {
   // Componentes de skeleton
   const ProfessionalCardSkeleton = () => (
     <div className="shrink-0 w-96">
-      <Card className="h-[480px] flex flex-col">
+      <Card className="h-[480px] flex flex-col py-4">
         <Skeleton className="w-full h-64 shrink-0 rounded-t-lg" />
         <CardContent className="px-4 pt-3 pb-4 flex flex-col grow">
           <Skeleton className="h-5 w-3/4 mb-2" />
@@ -241,7 +242,7 @@ const HomeUserPage = () => {
 
   const CardSkeleton = () => (
     <div className="shrink-0 w-96">
-      <Card className="h-[480px] flex flex-col">
+      <Card className="h-[480px] flex flex-col py-4">
         <Skeleton className="w-full h-64 shrink-0 rounded-t-lg" />
         <CardHeader className="pb-1.5 px-4 pt-3 shrink-0">
           <Skeleton className="h-6 w-3/4 mb-2" />
@@ -1172,7 +1173,7 @@ const HomeUserPage = () => {
                         href={`/explore/program/${product.slug || product.id}`}
                         className="shrink-0 w-96"
                       >
-                        <Card className="group overflow-hidden hover:shadow-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer h-[480px] flex flex-col">
+                        <Card className="group overflow-hidden hover:shadow-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer h-[480px] flex flex-col py-4">
                           <div className="relative h-64 w-full shrink-0">
                             <div className="absolute inset-0 overflow-hidden">
                               {product.cover_image_url ? (
@@ -1219,7 +1220,7 @@ const HomeUserPage = () => {
                             <div className="flex items-center justify-between">
                               <Badge variant="secondary">{product.category}</Badge>
                               <span className="text-lg font-bold text-primary">
-                                ${product.price.toFixed(2)} {product.currency}
+                                {formatPrice(product.price, product.currency || "MXN")}
                               </span>
                             </div>
                           </CardContent>
@@ -1328,7 +1329,7 @@ const HomeUserPage = () => {
                         href={`/explore/event/${event.slug || event.id}`}
                         className="shrink-0 w-96"
                       >
-                        <Card className="group hover:shadow-lg hover:-translate-y-2 transition-all duration-300 overflow-hidden cursor-pointer h-[480px] flex flex-col">
+                        <Card className="group hover:shadow-lg hover:-translate-y-2 transition-all duration-300 overflow-hidden cursor-pointer h-[480px] flex flex-col py-4">
                           <div className="relative w-full h-64 bg-gray-100 shrink-0">
                             <div className="absolute inset-0 overflow-hidden">
                               <Image
@@ -1358,7 +1359,7 @@ const HomeUserPage = () => {
                                 {getCategoryLabel(event.category)}
                               </Badge>
                               <Badge variant={event.is_free ? "default" : "outline"}>
-                                {event.is_free ? "Gratuito" : `$${event.price}`}
+                                {event.is_free ? "Gratuito" : formatPrice(event.price, "MXN")}
                               </Badge>
                             </div>
                           </CardHeader>
@@ -1578,7 +1579,7 @@ const HomeUserPage = () => {
                       onClick={() => {
                       }}
                     >
-                      <Card className="group hover:shadow-lg hover:-translate-y-2 transition-all duration-300 overflow-hidden cursor-pointer h-[480px] flex flex-col">
+                      <Card className="group hover:shadow-lg hover:-translate-y-2 transition-all duration-300 overflow-hidden cursor-pointer h-[480px] flex flex-col py-4">
                         <div className="relative w-full h-64 bg-gray-100 shrink-0">
                           <div className="absolute inset-0 overflow-hidden">
                             {restaurant.image_url ? (
@@ -1693,7 +1694,7 @@ const HomeUserPage = () => {
                       onClick={() => {
                       }}
                     >
-                      <Card className="group hover:shadow-lg hover:-translate-y-2 transition-all duration-300 overflow-hidden cursor-pointer h-[480px] flex flex-col">
+                      <Card className="group hover:shadow-lg hover:-translate-y-2 transition-all duration-300 overflow-hidden cursor-pointer h-[480px] flex flex-col py-4">
                         <div className="relative w-full h-64 bg-gray-100 shrink-0">
                           <div className="absolute inset-0 overflow-hidden">
                             {shop.image_url ? (
@@ -1818,7 +1819,7 @@ const HomeUserPage = () => {
                       onClick={() => {
                       }}
                     >
-                      <Card className="group hover:shadow-lg hover:-translate-y-2 transition-all duration-300 overflow-hidden cursor-pointer h-[480px] flex flex-col">
+                      <Card className="group hover:shadow-lg hover:-translate-y-2 transition-all duration-300 overflow-hidden cursor-pointer h-[480px] flex flex-col py-4">
                         <div className="relative w-full h-64 bg-gray-100 shrink-0">
                           <div className="absolute inset-0 overflow-hidden">
                             {center.image_url ? (

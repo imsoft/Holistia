@@ -17,6 +17,7 @@ import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
 import { cn } from "@/lib/utils";
+import { formatPrice } from "@/lib/price-utils";
 import Image from "next/image";
 import { createClient } from "@/utils/supabase/client";
 import { Service } from "@/types/service";
@@ -849,7 +850,7 @@ export function DirectMessageChat({
                                   )}
                                   {program.price !== null && program.price > 0 && (
                                     <p className="text-sm font-semibold text-primary mt-1">
-                                      ${program.price} {program.currency || 'MXN'}
+                                      {formatPrice(program.price, program.currency || "MXN")}
                                     </p>
                                   )}
                                 </div>
@@ -905,7 +906,7 @@ export function DirectMessageChat({
                                     )}
                                     {challenge.price !== null && challenge.price > 0 && (
                                       <Badge variant="secondary">
-                                        ${challenge.price} {challenge.currency || 'MXN'}
+                                        {formatPrice(challenge.price, challenge.currency || "MXN")}
                                       </Badge>
                                     )}
                                   </div>
@@ -1172,7 +1173,7 @@ export function DirectMessageChat({
                                   {service.pricing_type === "quote"
                                     ? "Cotización"
                                     : typeof service.cost === "number"
-                                    ? `$${service.cost.toFixed(2)}`
+                                    ? formatPrice(service.cost, "MXN")
                                     : "Precio no disponible"}
                                 </Badge>
                               )}
@@ -1334,7 +1335,7 @@ export function DirectMessageChat({
                             )}
                             {program.price !== null && program.price > 0 && (
                               <div className="text-sm font-semibold text-primary">
-                                ${program.price} {program.currency || 'MXN'}
+                                {formatPrice(program.price, program.currency || "MXN")}
                               </div>
                             )}
                           </div>
@@ -1394,7 +1395,7 @@ export function DirectMessageChat({
                               )}
                               {challenge.price !== null && challenge.price > 0 && (
                                 <Badge variant="secondary">
-                                  ${challenge.price} {challenge.currency || 'MXN'}
+                                  {formatPrice(challenge.price, challenge.currency || "MXN")}
                                 </Badge>
                               )}
                             </div>

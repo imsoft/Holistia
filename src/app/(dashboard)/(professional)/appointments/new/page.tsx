@@ -21,6 +21,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
 import { createClient } from "@/utils/supabase/client";
+import { formatPrice } from "@/lib/price-utils";
 
 interface Patient {
   patient_id: string;
@@ -443,7 +444,7 @@ export default function NewAppointmentPage() {
                             <div className="flex flex-col">
                               <span>{service.name} - {service.modality === 'online' ? 'Online' : 'Presencial'}</span>
                               <span className="text-xs text-muted-foreground">
-                                {service.duration} min - ${service.cost} MXN
+                                {service.duration} min - {formatPrice(service.cost, "MXN")}
                               </span>
                             </div>
                           </SelectItem>
@@ -461,7 +462,7 @@ export default function NewAppointmentPage() {
                         )}
                         <div className="flex items-center gap-4 mt-2 text-xs">
                           <span>⏱️ {selectedService.duration} minutos</span>
-                          <span>💰 ${selectedService.cost} MXN</span>
+                          <span className="whitespace-nowrap">💰 {formatPrice(selectedService.cost, "MXN")}</span>
                           <span>📍 {selectedService.modality === 'online' ? 'Online' : 'Presencial'}</span>
                         </div>
                       </div>

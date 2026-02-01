@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2, ArrowLeft, CreditCard } from "lucide-react";
 import Image from "next/image";
 import { useUserId } from "@/stores/user-store";
+import { formatPrice } from "@/lib/price-utils";
 import { useUserStoreInit } from "@/hooks/use-user-store-init";
 
 export default function ChallengeCheckoutPage() {
@@ -226,7 +227,7 @@ export default function ChallengeCheckoutPage() {
                   <div className="flex justify-between text-lg font-bold pt-2 border-t">
                     <span>Total</span>
                     <span>
-                      ${challenge.price} {challenge.currency || 'MXN'}
+                      {formatPrice(challenge.price ?? 0, challenge.currency || "MXN")}
                     </span>
                   </div>
                 </div>

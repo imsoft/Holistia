@@ -21,6 +21,7 @@ import {
   Building2,
 } from "lucide-react";
 import { stripHtml } from "@/lib/text-utils";
+import { formatPrice } from "@/lib/price-utils";
 import { VerifiedBadge } from "@/components/ui/verified-badge";
 import { FavoriteButton } from "@/components/ui/favorite-button";
 import { ProfessionalCard } from "@/components/ui/professional-card";
@@ -688,7 +689,7 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
                           </div>
                           <div className="flex items-center justify-between mb-2">
                             <span className="text-lg font-bold text-primary">
-                              ${product.price.toFixed(2)} {product.currency}
+                              {formatPrice(product.price, product.currency || "MXN")}
                             </span>
                           </div>
                         </CardContent>
@@ -802,7 +803,7 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
                             )}
                             {event.price !== null && (
                               <Badge variant="outline" className="text-xs">
-                                {event.price === 0 ? 'Gratis' : `$${event.price}`}
+                                {event.price === 0 ? 'Gratis' : formatPrice(event.price, "MXN")}
                               </Badge>
                             )}
                           </div>

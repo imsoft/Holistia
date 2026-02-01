@@ -832,7 +832,6 @@ export default function AdminProfessionals() {
           </div>
           <div className="flex items-center gap-2 sm:gap-3">
             <Button
-              variant="outline"
               size="sm"
               className="sm:size-default w-full sm:w-auto"
               onClick={handleSyncAll}

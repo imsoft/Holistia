@@ -376,7 +376,7 @@ export default function AnalyticsPage() {
               <p className="text-xs text-muted-foreground sm:text-sm">Estadísticas y métricas del sistema</p>
             </div>
           </div>
-          <Button onClick={handleSyncPayments} disabled={syncing} variant="outline" size="sm" className="w-full sm:w-auto sm:size-default">
+          <Button onClick={handleSyncPayments} disabled={syncing} size="sm" className="w-full sm:w-auto sm:size-default">
             <RefreshCw className={`mr-2 h-4 w-4 ${syncing ? "animate-spin" : ""}`} />
             {syncing ? "Sincronizando..." : "Sincronizar pagos"}
           </Button>

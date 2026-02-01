@@ -577,7 +577,6 @@ export default function FinancesPage() {
               onClick={handleSyncPayments}
               disabled={syncingPayments}
               size="sm"
-              variant="outline"
               className="flex items-center gap-2"
             >
               <RefreshCw className={`h-4 w-4 ${syncingPayments ? "animate-spin" : ""}`} />

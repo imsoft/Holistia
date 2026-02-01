@@ -182,20 +182,24 @@ export default function SyncToolsPage() {
   };
 
   return (
-    <div className="flex flex-col w-full min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-white px-6 shadow-sm">
-        <SidebarTrigger />
-        <div className="flex items-center gap-2">
-          <Calendar className="h-6 w-6 text-primary" />
-          <h1 className="text-xl font-semibold text-gray-800">
-            Herramientas de Sincronización Google Calendar
-          </h1>
+      <div className="border-b border-border bg-card">
+        <div className="flex h-16 flex-col gap-4 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-4">
+            <SidebarTrigger />
+            <div>
+              <h1 className="text-2xl font-bold text-foreground">Herramientas de Sincronización</h1>
+              <p className="text-sm text-muted-foreground">
+                Diagnóstico y sincronización de Google Calendar
+              </p>
+            </div>
+          </div>
         </div>
-      </header>
+      </div>
 
       {/* Main Content */}
-      <main className="flex-1 p-6 space-y-6">
+      <div className="p-6 space-y-6">
         {/* Input Card */}
         <Card className="py-4">
           <CardHeader>
@@ -477,7 +481,7 @@ export default function SyncToolsPage() {
             </CardContent>
           </Card>
         )}
-      </main>
+      </div>
     </div>
   );
 }

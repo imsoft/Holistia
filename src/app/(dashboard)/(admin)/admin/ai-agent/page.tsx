@@ -150,7 +150,7 @@ export default function AIAgentPage() {
               Chat general con contexto
             </Badge>
             {messages.length > 0 && (
-              <Button variant="outline" size="sm" onClick={handleClearChat}>
+              <Button size="sm" onClick={handleClearChat}>
                 <Trash2 className="w-4 h-4 mr-2" />
                 Limpiar chat
               </Button>

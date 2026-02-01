@@ -18,6 +18,7 @@ import {
   FileCheck,
   Search,
   User,
+  Plus,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -224,10 +225,9 @@ export default function AdminDigitalProductsPage() {
           </div>
           <div className="flex gap-2">
             <Button
-              variant="outline"
               onClick={() => router.push("/admin/professionals")}
             >
-              <User className="h-4 w-4 mr-2" />
+              <Plus className="h-4 w-4 mr-2" />
               Crear desde Profesional
             </Button>
           </div>

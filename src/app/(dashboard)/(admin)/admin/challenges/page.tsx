@@ -23,6 +23,7 @@ import {
   File,
   Image as ImageIcon,
 } from "lucide-react";
+import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -519,14 +520,18 @@ export default function AdminChallengesPage() {
   };
 
   return (
-    <div className="flex flex-col h-screen">
-      <div className="border-b px-6 py-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold">Todos los Retos</h1>
-            <p className="text-sm text-muted-foreground mt-1">
-              Gestiona y visualiza todos los retos de la plataforma
-            </p>
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <div className="border-b border-border bg-card">
+        <div className="flex h-16 flex-col gap-4 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-4">
+            <SidebarTrigger />
+            <div>
+              <h1 className="text-2xl font-bold text-foreground">Todos los Retos</h1>
+              <p className="text-sm text-muted-foreground">
+                Gestiona y visualiza todos los retos de la plataforma
+              </p>
+            </div>
           </div>
           <Button onClick={() => router.push(`/admin/challenges/new`)}>
             <Plus className="h-4 w-4 mr-2" />
@@ -535,7 +540,8 @@ export default function AdminChallengesPage() {
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-6">
+      {/* Main Content */}
+      <div className="p-6 space-y-6">
         {/* Estadísticas */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
           <Card className="py-4">

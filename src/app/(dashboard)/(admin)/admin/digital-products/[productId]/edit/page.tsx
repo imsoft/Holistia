@@ -34,6 +34,7 @@ export default function EditAdminDigitalProductPage() {
   const adminId = useUserId();
   const productId = params.productId as string;
   const professionalId = searchParams.get('professional_id');
+  const fromList = searchParams.get('from') === 'list';
 
   const [product, setProduct] = useState<DigitalProduct | null>(null);
   const [loading, setLoading] = useState(true);
@@ -86,9 +87,9 @@ export default function EditAdminDigitalProductPage() {
     );
   }
 
-  const redirectPath = professionalId 
-    ? `/admin/professionals/${professionalId}`
-    : `/admin/professionals`;
+  const redirectPath = fromList 
+    ? `/admin/digital-products`
+    : (professionalId ? `/admin/professionals/${professionalId}` : `/admin/professionals`);
 
   return (
     <div className="min-h-screen bg-background">

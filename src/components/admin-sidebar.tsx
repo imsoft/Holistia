@@ -26,6 +26,7 @@ import {
   Briefcase,
   Target,
   GitBranch as GitBranchIcon,
+  Package,
 } from "lucide-react";
 import {
   Sidebar,
@@ -176,6 +177,11 @@ export function AdminSidebar() {
       title: "Retos",
       url: `/admin/${userId}/challenges`,
       icon: Target,
+    },
+    {
+      title: "Programas",
+      url: `/admin/${userId}/digital-products`,
+      icon: Package,
     },
     {
       title: "Centros Holísticos",

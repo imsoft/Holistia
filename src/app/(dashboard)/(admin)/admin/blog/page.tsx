@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, use } from "react";
+import Image from "next/image";
 import { useAuth } from "@/hooks/use-auth";
 import { createClient } from "@/utils/supabase/client";
 import { toast } from "sonner";
@@ -10,21 +11,25 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
-import { 
-  Plus, 
-  Edit, 
-  Trash2, 
+import {
+  Plus,
+  Edit,
+  Trash2,
   Calendar,
   User,
-  FileText
+  FileText,
 } from "lucide-react";
 import Link from "next/link";
 import { PageSkeleton } from "@/components/ui/layout-skeleton";
 
+interface PostWithAuthor extends BlogPost {
+  authorName?: string;
+}
+
 export default function AdminBlogPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const { user } = useAuth();
-  const [posts, setPosts] = useState<BlogPost[]>([]);
+  const [posts, setPosts] = useState<PostWithAuthor[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
@@ -54,7 +59,48 @@ export default function AdminBlogPage({ params }: { params: Promise<{ id: string
         return;
       }
 
-      setPosts(data || []);
+      const postsData = data || [];
+      const authorIds = [...new Set(postsData.map((p) => p.author_id).filter(Boolean))];
+      const authorNamesMap: Record<string, string> = {};
+
+      if (authorIds.length > 0) {
+        // Primero intentar obtener nombres de profesionales
+        const { data: profs } = await supabase
+          .from("professional_applications")
+          .select("user_id, first_name, last_name")
+          .in("user_id", authorIds)
+          .eq("status", "approved");
+
+        if (profs) {
+          profs.forEach((p) => {
+            const name = `${p.first_name || ""} ${p.last_name || ""}`.trim();
+            if (name) authorNamesMap[p.user_id] = name;
+          });
+        }
+
+        // Completar con perfiles (para admins u otros autores)
+        const missingIds = authorIds.filter((id) => !authorNamesMap[id]);
+        if (missingIds.length > 0) {
+          const { data: profiles } = await supabase
+            .from("profiles")
+            .select("id, first_name, last_name")
+            .in("id", missingIds);
+
+          if (profiles) {
+            profiles.forEach((p) => {
+              const name = `${p.first_name || ""} ${p.last_name || ""}`.trim();
+              authorNamesMap[p.id] = name || "Sin nombre";
+            });
+          }
+        }
+      }
+
+      const postsWithAuthors: PostWithAuthor[] = postsData.map((post) => ({
+        ...post,
+        authorName: post.author_id ? authorNamesMap[post.author_id] || "Sin asignar" : "Sin asignar",
+      }));
+
+      setPosts(postsWithAuthors);
     } catch (err) {
       console.error("Error:", err);
       setError("Error inesperado al cargar los posts");
@@ -199,29 +245,53 @@ export default function AdminBlogPage({ params }: { params: Promise<{ id: string
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {posts.map((post) => (
-            <Card key={post.id} className="hover:shadow-lg transition-shadow p-3 sm:p-4">
-              <CardHeader>
-                <div className="flex items-start justify-between">
-                  <CardTitle className="text-lg line-clamp-2">
+            <Card key={post.id} className="hover:shadow-lg transition-shadow overflow-hidden pt-0 pb-4">
+              {post.featured_image && (
+                <div className="relative w-full h-40 sm:h-48 overflow-hidden bg-muted">
+                  <Image
+                    src={post.featured_image}
+                    alt={post.title}
+                    fill
+                    className="object-cover"
+                    unoptimized={
+                      post.featured_image.includes("supabase") ||
+                      post.featured_image.includes("supabase.in")
+                    }
+                  />
+                  <div className="absolute top-3 right-3">
+                    <Badge
+                      variant={post.status === "published" ? "default" : "secondary"}
+                    >
+                      {post.status === "published" ? "Publicado" : "Borrador"}
+                    </Badge>
+                  </div>
+                </div>
+              )}
+              <CardHeader className={post.featured_image ? "px-4 sm:px-6 pt-4" : "p-3 sm:p-4"}>
+                <div className="flex items-start justify-between gap-2">
+                  <CardTitle className="text-lg line-clamp-2 flex-1 min-w-0">
                     {post.title}
                   </CardTitle>
-                  <Badge 
-                    variant={post.status === "published" ? "default" : "secondary"}
-                  >
-                    {post.status === "published" ? "Publicado" : "Borrador"}
-                  </Badge>
+                  {!post.featured_image && (
+                    <Badge
+                      variant={post.status === "published" ? "default" : "secondary"}
+                      className="shrink-0"
+                    >
+                      {post.status === "published" ? "Publicado" : "Borrador"}
+                    </Badge>
+                  )}
                 </div>
                 {post.excerpt && (
-                  <p className="text-sm text-muted-foreground line-clamp-3">
+                  <p className="text-sm text-muted-foreground line-clamp-3 mt-1">
                     {post.excerpt}
                   </p>
                 )}
               </CardHeader>
-              <CardContent>
+              <CardContent className="px-4 sm:px-6">
                 <div className="space-y-3">
                   <div className="flex items-center text-sm text-muted-foreground">
-                    <User className="w-4 h-4 mr-2" />
-                    <span>Autor: {post.author_id}</span>
+                    <User className="w-4 h-4 mr-2 shrink-0" />
+                    <span>Autor: {post.authorName}</span>
                   </div>
                   <div className="flex items-center text-sm text-muted-foreground">
                     <Calendar className="w-4 h-4 mr-2" />

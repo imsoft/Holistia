@@ -37,7 +37,7 @@ export function AdminRedirect() {
         idMatch[1] !== 'digital-products' && idMatch[1] !== 'event-registrations' &&
         idMatch[1] !== 'certifications' && idMatch[1] !== 'services-costs' &&
         idMatch[1] !== 'holistic-services' && idMatch[1] !== 'my-events' &&
-        idMatch[1] !== 'sync-tools' && idMatch[1] !== 'ui-playground' &&
+        idMatch[1] !== 'sync-tools' &&
         idMatch[1] !== 'github-commits' && idMatch[1] !== 'ai-agent') {
       // Es un ID de usuario, redirigir a la ruta limpia
       const newPath = `/admin${idMatch[2] || '/dashboard'}`;

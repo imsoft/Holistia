@@ -639,14 +639,18 @@ export default function AdminChallengesPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredChallenges.map((challenge) => (
-              <Card key={challenge.id} className="overflow-hidden hover:shadow-lg transition-shadow py-4">
-                <div className="relative h-48">
+              <Card key={challenge.id} className="overflow-hidden hover:shadow-lg transition-shadow pt-0 pb-4">
+                <div className="relative h-48 w-full overflow-hidden">
                   {challenge.cover_image_url ? (
                     <Image
                       src={challenge.cover_image_url}
                       alt={challenge.title}
                       fill
                       className="object-cover"
+                      unoptimized={
+                        challenge.cover_image_url.includes("supabase") ||
+                        challenge.cover_image_url.includes("supabase.in")
+                      }
                     />
                   ) : (
                     <div className="w-full h-full bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center">

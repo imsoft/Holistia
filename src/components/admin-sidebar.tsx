@@ -22,7 +22,6 @@ import {
   Ticket,
   Wrench,
   RefreshCw,
-  Palette,
   Briefcase,
   Target,
   GitBranch as GitBranchIcon,
@@ -227,11 +226,6 @@ export function AdminSidebar() {
       title: "Agente IA (Alpha)",
       url: `/admin/${userId}/ai-agent`,
       icon: Sparkles,
-    },
-    {
-      title: "UI Playground",
-      url: `/admin/${userId}/ui-playground`,
-      icon: Palette,
     },
     {
       title: "Commits de GitHub",

@@ -121,7 +121,7 @@ export async function updateSession(request: NextRequest) {
         'applications', 'analytics', 'finances', 'tickets', 'companies', 'shops',
         'restaurants', 'holistic-centers', 'digital-products', 'event-registrations',
         'certifications', 'services-costs', 'holistic-services', 'my-events',
-        'sync-tools', 'ui-playground', 'github-commits', 'ai-agent'
+        'sync-tools', 'github-commits', 'ai-agent'
       ];
       
       // Solo redirigir si el primer segmento NO es una ruta válida (es decir, es un ID)

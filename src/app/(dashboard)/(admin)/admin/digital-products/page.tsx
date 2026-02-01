@@ -345,11 +345,13 @@ export default function AdminDigitalProductsPage() {
                   </CardHeader>
 
                   <CardContent className="px-6 pb-6 flex flex-col flex-1 min-h-0">
-                    <p className="text-sm text-muted-foreground line-clamp-4 mb-3">
-                      {product.description || "Sin descripción"}
-                    </p>
+                    <div className="mb-3 overflow-y-auto min-h-0 flex-1 max-h-40 pr-1">
+                      <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                        {product.description || "Sin descripción"}
+                      </p>
+                    </div>
 
-                    <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center justify-between mb-3 shrink-0">
                       <span className="text-lg font-bold text-primary">
                         {formatPrice(product.price, product.currency || "MXN")}
                       </span>
@@ -358,7 +360,7 @@ export default function AdminDigitalProductsPage() {
                       </span>
                     </div>
 
-                    <div className="flex gap-2 mt-auto pt-2">
+                    <div className="flex gap-2 mt-auto pt-2 shrink-0">
                       <Button
                         variant="outline"
                         size="sm"

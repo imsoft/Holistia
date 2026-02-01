@@ -385,7 +385,7 @@ export default function AdminDigitalProductsPage() {
                         <Trash2 className="h-4 w-4" />
                       </Button>
                       <Button
-                        variant="ghost"
+                        variant="outline"
                         size="sm"
                         onClick={() =>
                           router.push(`/admin/professionals/${product.professional_id}`)

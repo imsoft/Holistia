@@ -255,7 +255,42 @@ export function AdminSidebar() {
 
   const isActive = (href: string) => {
     if (!currentPathname) return false;
-    return currentPathname === href || currentPathname.startsWith(href);
+    
+    // Extraer la parte de la ruta sin el userId
+    // href: /admin/uuid/dashboard -> dashboard
+    // currentPathname: /admin/dashboard -> dashboard
+    const hrefParts = href.split('/').filter(Boolean);
+    const pathParts = currentPathname.split('/').filter(Boolean);
+    
+    // Para admin, las rutas son /admin/[userId]/[page] o /admin/[page]
+    // Extraer el nombre de la página de ambas
+    let hrefPage = '';
+    let currentPage = '';
+    
+    if (hrefParts[0] === 'admin' && hrefParts.length >= 3) {
+      // /admin/uuid/dashboard -> dashboard
+      hrefPage = hrefParts.slice(2).join('/');
+    }
+    
+    if (pathParts[0] === 'admin' && pathParts.length >= 2) {
+      // /admin/dashboard -> dashboard
+      // /admin/uuid/dashboard -> Si el segundo elemento es un UUID, usar el tercero
+      const secondPart = pathParts[1];
+      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(secondPart);
+      
+      if (isUuid && pathParts.length >= 3) {
+        currentPage = pathParts.slice(2).join('/');
+      } else {
+        currentPage = pathParts.slice(1).join('/');
+      }
+    }
+    
+    // Comparar las páginas
+    if (hrefPage && currentPage) {
+      return currentPage === hrefPage || currentPage.startsWith(hrefPage + '/');
+    }
+    
+    return false;
   };
 
   if (loading) {

@@ -186,7 +186,25 @@ export function ProfessionalSidebar() {
 
   const isActive = (href: string) => {
     if (!currentPathname) return false;
-    return currentPathname === href || currentPathname.startsWith(href);
+    
+    // href: /dashboard, /services, etc.
+    // currentPathname: /dashboard, /professional/uuid/dashboard, etc.
+    const pathParts = currentPathname.split('/').filter(Boolean);
+    const hrefParts = href.split('/').filter(Boolean);
+    
+    // Obtener la página actual del pathname
+    let currentPage = '';
+    
+    // Si la ruta tiene professional/uuid/... extraer la parte después del uuid
+    if (pathParts[0] === 'professional' && pathParts.length >= 3) {
+      currentPage = '/' + pathParts.slice(2).join('/');
+    } else {
+      // Ruta directa: /dashboard, /services, etc.
+      currentPage = currentPathname;
+    }
+    
+    // Comparar
+    return currentPage === href || currentPage.startsWith(href + '/');
   };
 
   if (loading || !userData) {

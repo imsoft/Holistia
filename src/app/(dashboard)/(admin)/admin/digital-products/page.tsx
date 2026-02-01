@@ -6,11 +6,9 @@ import Image from "next/image";
 import { toast } from "sonner";
 import { getFullErrorMessage } from "@/lib/error-messages";
 import {
-  Plus,
   Edit,
   Trash2,
   Eye,
-  DollarSign,
   ShoppingBag,
   Tag,
   FileText,
@@ -185,8 +183,8 @@ export default function AdminDigitalProductsPage() {
           </div>
         </div>
         <div className="p-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-            {[1, 2, 3, 4].map((i) => (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
+            {[1, 2].map((i) => (
               <Card key={i}>
                 <CardContent className="p-6">
                   <div className="h-8 animate-pulse rounded bg-muted" />
@@ -232,10 +230,6 @@ export default function AdminDigitalProductsPage() {
               <User className="h-4 w-4 mr-2" />
               Crear desde Profesional
             </Button>
-            <Button onClick={() => router.push("/admin/digital-products/new")}>
-              <Plus className="h-4 w-4 mr-2" />
-              Nuevo Programa
-            </Button>
           </div>
         </div>
       </div>
@@ -254,7 +248,7 @@ export default function AdminDigitalProductsPage() {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-6 pt-6">
               <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -279,30 +273,6 @@ export default function AdminDigitalProductsPage() {
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-6 pt-6">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Ventas Totales
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="px-6 pb-6">
-              <div className="text-2xl font-bold text-foreground">{stats.totalSales}</div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-6 pt-6">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Ingresos Totales
-              </CardTitle>
-              <DollarSign className="h-4 w-4 text-yellow-600" />
-            </CardHeader>
-            <CardContent className="px-6 pb-6">
-              <div className="text-2xl font-bold text-foreground">
-                {formatPrice(stats.totalRevenue, "MXN")}
-              </div>
-            </CardContent>
-          </Card>
         </div>
 
         {/* Products Grid */}
@@ -334,9 +304,9 @@ export default function AdminDigitalProductsPage() {
               return (
                 <Card
                   key={product.id}
-                  className="hover:shadow-lg transition-shadow overflow-hidden pt-0 pb-4"
+                  className="hover:shadow-lg transition-shadow overflow-hidden pt-0 pb-4 flex flex-col h-[480px]"
                 >
-                  <div className="relative h-48 w-full overflow-hidden bg-gradient-to-br from-primary/10 to-primary/5">
+                  <div className="relative h-48 w-full shrink-0 overflow-hidden bg-gradient-to-br from-primary/10 to-primary/5">
                     {product.cover_image_url ? (
                       <Image
                         src={product.cover_image_url}
@@ -360,9 +330,9 @@ export default function AdminDigitalProductsPage() {
                     </div>
                   </div>
 
-                  <CardHeader className="px-6 pt-6">
+                  <CardHeader className="px-6 pt-6 shrink-0">
                     <CardTitle className="text-lg line-clamp-2">{product.title}</CardTitle>
-                    <div className="flex flex-wrap gap-1 mt-2">
+                    <div className="flex flex-wrap gap-1 mt-2 min-h-[28px]">
                       <Badge variant="outline" className="text-xs">
                         <CategoryIcon className="h-3 w-3 mr-1" />
                         {getCategoryLabel(product.category)}
@@ -374,12 +344,12 @@ export default function AdminDigitalProductsPage() {
                     </div>
                   </CardHeader>
 
-                  <CardContent className="px-6 pb-6 space-y-3">
-                    <p className="text-sm text-muted-foreground line-clamp-2">
-                      {product.description}
+                  <CardContent className="px-6 pb-6 flex flex-col flex-1 min-h-0">
+                    <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
+                      {product.description || "Sin descripción"}
                     </p>
 
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between mb-3">
                       <span className="text-lg font-bold text-primary">
                         {formatPrice(product.price, product.currency || "MXN")}
                       </span>
@@ -388,7 +358,7 @@ export default function AdminDigitalProductsPage() {
                       </span>
                     </div>
 
-                    <div className="flex gap-2 pt-2">
+                    <div className="flex gap-2 mt-auto pt-2">
                       <Button
                         variant="outline"
                         size="sm"

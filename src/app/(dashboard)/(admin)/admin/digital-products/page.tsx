@@ -334,9 +334,9 @@ export default function AdminDigitalProductsPage() {
               return (
                 <Card
                   key={product.id}
-                  className="hover:shadow-lg transition-shadow overflow-hidden py-4"
+                  className="hover:shadow-lg transition-shadow overflow-hidden pt-0 pb-4"
                 >
-                  <div className="relative h-48 bg-gradient-to-br from-primary/10 to-primary/5">
+                  <div className="relative h-48 w-full overflow-hidden bg-gradient-to-br from-primary/10 to-primary/5">
                     {product.cover_image_url ? (
                       <Image
                         src={product.cover_image_url}

@@ -6,7 +6,6 @@ import { useUserId } from "@/stores/user-store";
 import { useUserStoreInit } from "@/hooks/use-user-store-init";
 import { Calendar, MapPin, Users, Brain, Sparkles, Activity, Apple, ArrowLeft } from "lucide-react";
 import Link from "next/link";
-import { Filters } from "@/components/ui/filters";
 import { createClient } from "@/utils/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -80,11 +79,6 @@ export default function EventsPage() {
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-  const [eventFilters, setEventFilters] = useState({
-    category: "all",
-    price: "all",
-    date: "all"
-  });
   const supabase = createClient();
 
   // Verificar autenticación
@@ -153,7 +147,6 @@ export default function EventsPage() {
     if (categoriesToUse.length > 0) {
       filtered = filtered.filter(event => {
         return categoriesToUse.some(categoryId => {
-          // Mapear categorías de bienestar a categorías de eventos
           const categoryMap: Record<string, string> = {
             "salud_mental": "salud_mental",
             "espiritualidad": "espiritualidad",
@@ -167,55 +160,16 @@ export default function EventsPage() {
       });
     }
 
-    // Filtrar por categoría del sidebar (si no hay categorías de bienestar seleccionadas)
-    if (categoriesToUse.length === 0 && eventFilters.category !== "all") {
-      filtered = filtered.filter(event => event.category === eventFilters.category);
-    }
-
-    if (eventFilters.price !== "all") {
-      filtered = filtered.filter(event => {
-        if (eventFilters.price === "free") return event.is_free;
-        if (eventFilters.price === "paid") return !event.is_free;
-        return true;
-      });
-    }
-
-    if (eventFilters.date !== "all") {
-      const today = new Date();
-      const tomorrow = new Date(today);
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      const nextWeek = new Date(today);
-      nextWeek.setDate(nextWeek.getDate() + 7);
-      const nextMonth = new Date(today);
-      nextMonth.setMonth(nextMonth.getMonth() + 1);
-
-      filtered = filtered.filter(event => {
-        const eventDate = new Date(event.event_date);
-        switch (eventFilters.date) {
-          case "today":
-            return eventDate.toDateString() === today.toDateString();
-          case "tomorrow":
-            return eventDate.toDateString() === tomorrow.toDateString();
-          case "week":
-            return eventDate >= today && eventDate <= nextWeek;
-          case "month":
-            return eventDate >= today && eventDate <= nextMonth;
-          default:
-            return true;
-        }
-      });
-    }
-
     setFilteredEvents(filtered);
   };
 
   useEffect(() => {
     applyEventFilters();
-  }, [eventFilters, events, selectedCategories]);
+  }, [events, selectedCategories]);
 
   const renderEventsContent = () => (
     <div className="min-h-screen bg-background">
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+      <main className="w-full max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         <div className="mb-8 text-center">
           <h1 className="text-3xl sm:text-4xl font-bold text-foreground mb-2">
             Eventos y Talleres
@@ -264,20 +218,9 @@ export default function EventsPage() {
           </div>
         </div>
 
-        <div className="lg:grid lg:grid-cols-3 lg:gap-x-8">
-          {/* Sidebar with filters */}
-          <aside className="lg:col-span-1 mb-6 lg:mb-0">
-            <Filters 
-              onFilterChange={() => {}} 
-              eventFilters={eventFilters}
-              onEventFilterChange={(filterType, value) => setEventFilters(prev => ({ ...prev, [filterType]: value }))}
-            />
-          </aside>
-
-          {/* Main content with horizontal scroll */}
-          <div className="lg:col-span-2">
-            {loading ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div>
+          {loading ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {Array.from({ length: 6 }).map((_, i) => (
                   <Card key={`event-skeleton-${i}`} className="h-[480px] flex flex-col">
                     <Skeleton className="w-full h-64 shrink-0 rounded-t-lg" />
@@ -312,7 +255,7 @@ export default function EventsPage() {
                 </p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {filteredEvents.map((event) => (
                   <Link
                     key={event.id}
@@ -394,7 +337,6 @@ export default function EventsPage() {
                   ))}
               </div>
             )}
-          </div>
         </div>
       </main>
     </div>
@@ -408,7 +350,7 @@ export default function EventsPage() {
   // El layout del explore se encarga del navbar/footer para usuarios no autenticados
   if (!isAuthenticated) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+      <div className="w-full max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         <Button
           variant="ghost"
           onClick={() => router.push('/')}

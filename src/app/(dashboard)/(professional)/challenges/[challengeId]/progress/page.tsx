@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import { useUserId } from "@/stores/user-store";
 import { useUserStoreInit } from "@/hooks/use-user-store-init";
 import Image from "next/image";
@@ -21,11 +21,11 @@ import {
   Circle, 
   Loader2, 
   User,
-  ArrowLeft,
   Trophy,
   Star,
   Target
 } from "lucide-react";
+import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Progress } from "@/components/ui/progress";
 import {
   Dialog,
@@ -66,7 +66,6 @@ interface ParticipantProgress {
 export default function ChallengeProgressPage() {
   useUserStoreInit();
   const params = useParams();
-  const router = useRouter();
   const professionalId = useUserId();
   const challengeId = params.challengeId as string;
   const supabase = createClient();
@@ -80,6 +79,7 @@ export default function ChallengeProgressPage() {
   const [checkins, setCheckins] = useState<any[]>([]);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [selectedMediaType, setSelectedMediaType] = useState<string | null>(null);
   const [isImageDialogOpen, setIsImageDialogOpen] = useState(false);
 
   useEffect(() => {
@@ -279,31 +279,30 @@ export default function ChallengeProgressPage() {
   }
 
   return (
-    <div className="flex flex-col h-screen">
-      <div className="border-b px-6 py-6">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-3">
-            <Target className="h-6 w-6 text-muted-foreground" />
+    <div className="flex flex-col min-h-screen bg-background w-full">
+      {/* Header - mismo estilo que el resto del dashboard */}
+      <div className="border-b border-border bg-card w-full">
+        <div className="flex flex-col sm:flex-row sm:h-16 sm:items-center px-4 sm:px-6 py-4 sm:py-0 gap-3 sm:gap-0 w-full">
+          <div className="flex items-center gap-3 sm:gap-4">
+            <SidebarTrigger />
             <div>
-              <h1 className="text-3xl font-bold">Avances del Reto</h1>
-              <p className="text-sm text-muted-foreground">
-                {challenge?.title || <span className="inline-block h-5 w-48 bg-muted rounded animate-pulse" />}
+              <h1 className="text-xl sm:text-2xl font-bold text-foreground flex items-center gap-2">
+                <Target className="h-5 w-5 sm:h-6 sm:w-6 text-muted-foreground" />
+                Avances del Reto
+              </h1>
+              <p className="text-xs sm:text-sm text-muted-foreground">
+                {challenge?.title || <span className="inline-block h-4 w-48 bg-muted rounded animate-pulse" />}
               </p>
             </div>
           </div>
-          <Button
-            variant="outline"
-            onClick={() => router.push('/challenges')}
-            className="gap-2"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Volver
-          </Button>
         </div>
+      </div>
 
-        {/* Búsqueda */}
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+      {/* Contenido principal */}
+      <div className="flex-1 p-4 sm:p-6 space-y-4 w-full">
+        {/* Buscador fuera del header */}
+        <div className="relative max-w-sm">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Buscar participantes..."
             value={searchTerm}
@@ -311,9 +310,8 @@ export default function ChallengeProgressPage() {
             className="pl-10"
           />
         </div>
-      </div>
 
-      <div className="flex-1 overflow-y-auto p-6">
+
         {filteredParticipants.length === 0 ? (
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-12">
@@ -483,12 +481,50 @@ export default function ChallengeProgressPage() {
                 </Card>
               </div>
 
+              {/* Sistema de Puntos - Explicación */}
+              <Card className="bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
+                <CardHeader>
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <TrendingUp className="h-5 w-5 text-primary" />
+                    ¿Cómo funciona el sistema de puntos?
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <p className="text-sm font-semibold mb-2">Puntos por Check-in:</p>
+                    <ul className="text-sm space-y-1 text-muted-foreground">
+                      <li>• <span className="font-medium">Base:</span> 10 puntos por cada check-in</li>
+                      <li>• <span className="font-medium">+ Texto:</span> 5 puntos extra</li>
+                      <li>• <span className="font-medium">+ Foto:</span> 10 puntos extra</li>
+                      <li>• <span className="font-medium">+ Video:</span> 15 puntos extra</li>
+                    </ul>
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold mb-2">Bonus por Racha Consecutiva:</p>
+                    <ul className="text-sm space-y-1 text-muted-foreground">
+                      <li>• <span className="font-medium">3-6 días:</span> +10 puntos</li>
+                      <li>• <span className="font-medium">7-13 días:</span> +20 puntos</li>
+                      <li>• <span className="font-medium">14-29 días:</span> +30 puntos</li>
+                      <li>• <span className="font-medium">30+ días:</span> +50 puntos</li>
+                    </ul>
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold mb-2">Medallas y Niveles:</p>
+                    <ul className="text-sm space-y-1 text-muted-foreground">
+                      <li>• Cada medalla otorga puntos adicionales (20-500)</li>
+                      <li>• Cada 100 puntos = 1 nivel nuevo</li>
+                      <li>• Las medallas se desbloquean automáticamente al cumplir requisitos</li>
+                    </ul>
+                  </div>
+                </CardContent>
+              </Card>
+
               {/* Medallas */}
               {selectedParticipant.badges.length > 0 && (
                 <div>
                   <h3 className="font-semibold mb-3 flex items-center gap-2">
                     <Trophy className="h-5 w-5 text-yellow-500" />
-                    Medallas Desbloqueadas
+                    Medallas Desbloqueadas ({selectedParticipant.badges.length})
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                     {selectedParticipant.badges.map((badge) => (
@@ -537,21 +573,37 @@ export default function ChallengeProgressPage() {
                               {checkin.notes && (
                                 <p className="text-sm mb-2">{checkin.notes}</p>
                               )}
-                              {checkin.evidence_url && checkin.evidence_type === 'photo' && (
+                              {checkin.evidence_url && (checkin.evidence_type === 'photo' || checkin.evidence_type === 'video') && (
                                 <div 
                                   className="mt-2 cursor-pointer"
                                   onClick={() => {
                                     setSelectedImage(checkin.evidence_url);
+                                    setSelectedMediaType(checkin.evidence_type);
                                     setIsImageDialogOpen(true);
                                   }}
                                 >
-                                  <Image
-                                    src={checkin.evidence_url}
-                                    alt="Evidencia"
-                                    width={120}
-                                    height={120}
-                                    className="rounded-lg object-cover hover:opacity-90 transition-opacity"
-                                  />
+                                  {checkin.evidence_type === 'video' ? (
+                                    <div className="relative w-[120px] h-[120px] rounded-lg overflow-hidden border bg-muted flex items-center justify-center hover:opacity-90 transition-opacity">
+                                      <video
+                                        src={checkin.evidence_url}
+                                        className="w-full h-full object-cover"
+                                        muted
+                                      />
+                                      <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                                        <div className="w-10 h-10 rounded-full bg-white/90 flex items-center justify-center">
+                                          <div className="w-0 h-0 border-t-[8px] border-t-transparent border-l-[12px] border-l-primary border-b-[8px] border-b-transparent ml-1" />
+                                        </div>
+                                      </div>
+                                    </div>
+                                  ) : (
+                                    <Image
+                                      src={checkin.evidence_url}
+                                      alt="Evidencia"
+                                      width={120}
+                                      height={120}
+                                      className="rounded-lg object-cover hover:opacity-90 transition-opacity"
+                                    />
+                                  )}
                                 </div>
                               )}
                               <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
@@ -573,7 +625,7 @@ export default function ChallengeProgressPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Dialog para ver imagen de evidencia en grande */}
+      {/* Dialog para ver evidencia (foto o video) en grande */}
       <Dialog open={isImageDialogOpen} onOpenChange={setIsImageDialogOpen}>
         <DialogContent className="max-w-3xl">
           <DialogHeader>
@@ -581,12 +633,21 @@ export default function ChallengeProgressPage() {
           </DialogHeader>
           {selectedImage && (
             <div className="relative w-full h-[60vh]">
-              <Image
-                src={selectedImage}
-                alt="Evidencia"
-                fill
-                className="object-contain"
-              />
+              {selectedMediaType === 'video' ? (
+                <video
+                  src={selectedImage}
+                  controls
+                  autoPlay
+                  className="w-full h-full object-contain"
+                />
+              ) : (
+                <Image
+                  src={selectedImage}
+                  alt="Evidencia"
+                  fill
+                  className="object-contain"
+                />
+              )}
             </div>
           )}
         </DialogContent>

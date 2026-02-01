@@ -5,10 +5,15 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Upload, Image as ImageIcon, Loader2, X, Globe, Lock } from "lucide-react";
+import { Image as ImageIcon, Loader2, X, Globe, Lock, Info } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 import { toast } from "sonner";
 import Image from "next/image";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface CheckinFormProps {
   challengePurchaseId: string;
@@ -25,36 +30,75 @@ export function CheckinForm({
 }: CheckinFormProps) {
   const [notes, setNotes] = useState("");
   const [evidenceUrl, setEvidenceUrl] = useState<string | null>(null);
+  const [evidenceType, setEvidenceType] = useState<'photo' | 'video' | null>(null);
   const [uploading, setUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [isPublic, setIsPublic] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const supabase = createClient();
 
+  const getVideoDuration = (file: File): Promise<number> => {
+    return new Promise((resolve, reject) => {
+      const video = document.createElement("video");
+      video.preload = "metadata";
+      video.onloadedmetadata = () => {
+        window.URL.revokeObjectURL(video.src);
+        resolve(video.duration);
+      };
+      video.onerror = () => {
+        window.URL.revokeObjectURL(video.src);
+        reject(new Error("No se pudo cargar el video"));
+      };
+      video.src = URL.createObjectURL(file);
+    });
+  };
+
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validar que sea una imagen
-    if (!file.type.startsWith('image/')) {
-      toast.error("Por favor selecciona una imagen válida");
+    // Determinar si es imagen o video
+    const isImage = file.type.startsWith('image/');
+    const isVideo = file.type.startsWith('video/');
+
+    if (!isImage && !isVideo) {
+      toast.error("Por favor selecciona una imagen o video válido");
       return;
     }
+
+    const fileType: 'photo' | 'video' = isImage ? 'photo' : 'video';
 
     try {
       setUploading(true);
 
-      // Validar tamaño (máximo 10MB)
-      if (file.size > 10 * 1024 * 1024) {
-        toast.error("El archivo es demasiado grande. Máximo 10MB");
+      // Validar tamaño según tipo (fotos: 10MB, videos: 25MB)
+      const maxSize = isVideo ? 25 * 1024 * 1024 : 10 * 1024 * 1024;
+      const maxSizeLabel = isVideo ? "25MB" : "10MB";
+
+      if (file.size > maxSize) {
+        toast.error(`El archivo es demasiado grande. Máximo ${maxSizeLabel}`);
         return;
+      }
+
+      // Validar duración del video (máx 1 minuto)
+      if (isVideo) {
+        try {
+          const duration = await getVideoDuration(file);
+          if (duration > 60) {
+            toast.error("El video no puede durar más de 1 minuto");
+            return;
+          }
+        } catch {
+          toast.error("No se pudo verificar la duración del video");
+          return;
+        }
       }
 
       // Crear FormData
       const formData = new FormData();
       formData.append('file', file);
       formData.append('challenge_purchase_id', challengePurchaseId);
-      formData.append('evidence_type', 'photo');
+      formData.append('evidence_type', fileType);
 
       // Subir archivo
       const response = await fetch('/api/challenges/checkins/upload', {
@@ -69,11 +113,12 @@ export function CheckinForm({
       }
 
       setEvidenceUrl(data.url);
-      toast.success("Imagen subida exitosamente");
+      setEvidenceType(fileType);
+      toast.success(isVideo ? "Video subido exitosamente" : "Imagen subida exitosamente");
 
     } catch (error) {
       console.error('Error uploading file:', error);
-      toast.error(error instanceof Error ? error.message : 'Error al subir la imagen');
+      toast.error(error instanceof Error ? error.message : 'Error al subir el archivo');
     } finally {
       setUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
@@ -82,6 +127,7 @@ export function CheckinForm({
 
   const handleRemoveEvidence = () => {
     setEvidenceUrl(null);
+    setEvidenceType(null);
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
@@ -105,7 +151,7 @@ export function CheckinForm({
         body: JSON.stringify({
           challenge_purchase_id: challengePurchaseId,
           day_number: dayNumber,
-          evidence_type: evidenceUrl ? 'photo' : 'text',
+          evidence_type: evidenceUrl && evidenceType ? evidenceType : 'text',
           evidence_url: evidenceUrl,
           notes: notes || null,
           is_public: isPublic,
@@ -132,6 +178,7 @@ export function CheckinForm({
       // Reset form
       setNotes("");
       setEvidenceUrl(null);
+      setEvidenceType(null);
       setIsPublic(false);
 
       if (onCheckinComplete) {
@@ -162,24 +209,68 @@ export function CheckinForm({
         />
       </div>
 
-      {/* Subir imagen (opcional) */}
+      {/* Subir foto o video (opcional) */}
       <div>
-        <Label className="mb-2 block">Imagen (opcional)</Label>
+        <div className="flex items-center gap-1.5 mb-2">
+          <Label>Foto o Video (opcional)</Label>
+          <Tooltip>
+            <TooltipTrigger asChild>
+                <button
+                  type="button"
+                  className="inline-flex text-muted-foreground hover:text-foreground transition-colors"
+                  tabIndex={-1}
+                >
+                  <Info className="h-4 w-4" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="right" className="max-w-[260px] p-3">
+                <div className="space-y-2 text-sm text-background">
+                  <p className="font-semibold">Requisitos de la evidencia:</p>
+                  <div>
+                    <p className="font-medium">Foto:</p>
+                    <ul className="list-disc list-inside opacity-90 mt-1 space-y-0.5">
+                      <li>Formatos: JPG, PNG, WEBP, GIF</li>
+                      <li>Tamaño máximo: 10MB</li>
+                    </ul>
+                  </div>
+                  <div>
+                    <p className="font-medium">Video:</p>
+                    <ul className="list-disc list-inside opacity-90 mt-1 space-y-0.5">
+                      <li>Formatos: MP4, WEBM, MOV</li>
+                      <li>Tamaño máximo: 25MB</li>
+                      <li>Duración máxima: 1 minuto</li>
+                    </ul>
+                  </div>
+                </div>
+              </TooltipContent>
+            </Tooltip>
+        </div>
+        <p className="text-xs text-muted-foreground mb-2">
+          Fotos: máx 10MB • Videos: máx 25MB, 1 min (MP4, WEBM, MOV)
+        </p>
         <div className="space-y-2">
           {evidenceUrl ? (
             <div className="relative">
               <div className="relative h-48 w-full rounded-lg overflow-hidden border">
-                <Image
-                  src={evidenceUrl}
-                  alt="Imagen del check-in"
-                  fill
-                  className="object-cover"
-                />
+                {evidenceType === 'video' ? (
+                  <video
+                    src={evidenceUrl}
+                    controls
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <Image
+                    src={evidenceUrl}
+                    alt="Imagen del check-in"
+                    fill
+                    className="object-cover"
+                  />
+                )}
                 <Button
                   type="button"
                   variant="destructive"
                   size="icon"
-                  className="absolute top-2 right-2"
+                  className="absolute top-2 right-2 z-10"
                   onClick={handleRemoveEvidence}
                 >
                   <X className="h-4 w-4" />
@@ -191,7 +282,7 @@ export function CheckinForm({
               <input
                 ref={fileInputRef}
                 type="file"
-                accept="image/*"
+                accept="image/*,video/mp4,video/webm,video/quicktime,video/mov"
                 onChange={handleFileSelect}
                 className="hidden"
               />
@@ -210,7 +301,7 @@ export function CheckinForm({
                 ) : (
                   <>
                     <ImageIcon className="h-4 w-4 mr-2" />
-                    Subir imagen
+                    Subir foto o video
                   </>
                 )}
               </Button>

@@ -14,13 +14,6 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PageSkeleton } from "@/components/ui/layout-skeleton";
 import { FavoriteButton } from "@/components/ui/favorite-button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
 interface HolisticCenter {
   id: string;
@@ -173,22 +166,15 @@ export default function HolisticCentersPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+        <main className="w-full max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
           <div className="mb-8 text-center">
             <Skeleton className="h-10 w-64 mx-auto mb-2" />
             <Skeleton className="h-5 w-96 mx-auto" />
           </div>
-          <div className="lg:grid lg:grid-cols-3 lg:gap-x-8">
-            <aside className="lg:col-span-1 mb-6 lg:mb-0">
-              <Skeleton className="h-96 w-full" />
-            </aside>
-            <div className="lg:col-span-2">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {Array.from({ length: 6 }).map((_, i) => (
-                  <CenterCardSkeleton key={`center-skeleton-${i}`} />
-                ))}
-              </div>
-            </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <CenterCardSkeleton key={`center-skeleton-${i}`} />
+            ))}
           </div>
         </main>
       </div>
@@ -197,7 +183,7 @@ export default function HolisticCentersPage() {
 
   const renderCentersContent = () => (
     <div className="min-h-screen bg-background">
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+      <main className="w-full max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         {/* Header */}
         <div className="mb-8 text-center">
           <h1 className="text-3xl sm:text-4xl font-bold text-foreground mb-2">
@@ -246,26 +232,7 @@ export default function HolisticCentersPage() {
           </div>
         </div>
 
-        <div className="lg:grid lg:grid-cols-3 lg:gap-x-8">
-          {/* Sidebar con filtros - Por ahora vacío, se puede agregar filtros adicionales después */}
-          <aside className="lg:col-span-1 mb-6 lg:mb-0">
-            <div className="hidden lg:block">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-lg font-medium text-foreground">Filtros</h2>
-              </div>
-              <form className="divide-y divide-border">
-                {/* Aquí se pueden agregar filtros adicionales en el futuro */}
-                <div className="py-8">
-                  <p className="text-sm text-muted-foreground">
-                    Filtros adicionales próximamente
-                  </p>
-                </div>
-              </form>
-            </div>
-          </aside>
-
-          {/* Contenido principal */}
-          <div className="lg:col-span-2">
+        <div>
             {filteredCenters.length === 0 ? (
               <div className="text-center py-12">
                 <Building2 className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
@@ -279,7 +246,7 @@ export default function HolisticCentersPage() {
                 </p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {filteredCenters.map((center) => (
                   <Link
                     key={center.id}
@@ -342,7 +309,6 @@ export default function HolisticCentersPage() {
                 ))}
               </div>
             )}
-          </div>
         </div>
       </main>
     </div>
@@ -356,7 +322,7 @@ export default function HolisticCentersPage() {
   // El layout del explore se encarga del navbar/footer para usuarios no autenticados
   if (!isAuthenticated) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+      <div className="w-full max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         <Button
           variant="ghost"
           onClick={() => router.push('/')}

@@ -13,13 +13,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PageSkeleton } from "@/components/ui/layout-skeleton";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
 interface Shop {
   id: string;
@@ -38,20 +31,6 @@ interface Shop {
   is_active: boolean;
   created_at: string;
 }
-
-const SHOP_CATEGORIES = [
-  "Ropa",
-  "Joyería",
-  "Decoración",
-  "Artesanías",
-  "Libros",
-  "Cosmética Natural",
-  "Bienestar",
-  "Productos Orgánicos",
-  "Accesorios",
-  "Arte",
-  "Otros",
-];
 
 const categories = [
   {
@@ -103,7 +82,6 @@ export default function ShopsPage() {
   const [filteredShops, setFilteredShops] = useState<Shop[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
-  const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const supabase = createClient();
 
@@ -168,15 +146,8 @@ export default function ShopsPage() {
       });
     }
 
-    // Filtrar por categoría
-    if (selectedCategory !== "all") {
-      filtered = filtered.filter(
-        (shop) => shop.category === selectedCategory
-      );
-    }
-
     setFilteredShops(filtered);
-  }, [selectedCategories, selectedCategory, shops]);
+  }, [selectedCategories, shops]);
 
   // Componente de skeleton
   const ShopCardSkeleton = () => (
@@ -200,22 +171,15 @@ export default function ShopsPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+        <main className="w-full max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
           <div className="mb-8 text-center">
             <Skeleton className="h-10 w-64 mx-auto mb-2" />
             <Skeleton className="h-5 w-96 mx-auto" />
           </div>
-          <div className="lg:grid lg:grid-cols-3 lg:gap-x-8">
-            <aside className="lg:col-span-1 mb-6 lg:mb-0">
-              <Skeleton className="h-96 w-full" />
-            </aside>
-            <div className="lg:col-span-2">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {Array.from({ length: 6 }).map((_, i) => (
-                  <ShopCardSkeleton key={`shop-skeleton-${i}`} />
-                ))}
-              </div>
-            </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <ShopCardSkeleton key={`shop-skeleton-${i}`} />
+            ))}
           </div>
         </main>
       </div>
@@ -224,7 +188,7 @@ export default function ShopsPage() {
 
   const renderShopsContent = () => (
     <div className="min-h-screen bg-background">
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+      <main className="w-full max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         {/* Header */}
         <div className="mb-8 text-center">
           <h1 className="text-3xl sm:text-4xl font-bold text-foreground mb-2">
@@ -273,84 +237,7 @@ export default function ShopsPage() {
           </div>
         </div>
 
-        <div className="lg:grid lg:grid-cols-3 lg:gap-x-8">
-          {/* Sidebar con filtros */}
-          <aside className="lg:col-span-1 mb-6 lg:mb-0">
-            <div className="hidden lg:block">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-lg font-medium text-foreground">Filtros</h2>
-              </div>
-              <form className="divide-y divide-border">
-
-                {/* Categoría */}
-                <div className="py-8 first:pt-0 last:pb-0">
-                  <fieldset>
-                    <legend className="block text-sm font-medium text-foreground mb-6">
-                      Categoría
-                    </legend>
-                    <div className="space-y-4">
-                      {[
-                        { value: "all", label: "Todas las categorías" },
-                        ...SHOP_CATEGORIES.map((category) => ({ value: category, label: category }))
-                      ].map((option, optionIdx) => (
-                        <div key={option.value} className="flex gap-3">
-                          <div className="flex h-5 shrink-0 items-center">
-                            <div className="group grid size-4 grid-cols-1">
-                              <input
-                                checked={selectedCategory === option.value}
-                                onChange={() => setSelectedCategory(option.value)}
-                                id={`category-${optionIdx}`}
-                                name="category"
-                                type="radio"
-                                className="col-start-1 row-start-1 appearance-none rounded-sm border border-border bg-background checked:border-primary checked:bg-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:border-border disabled:bg-muted disabled:checked:bg-muted"
-                              />
-                              <svg
-                                fill="none"
-                                viewBox="0 0 14 14"
-                                className="pointer-events-none col-start-1 row-start-1 size-3.5 self-center justify-self-center stroke-primary-foreground group-has-disabled:stroke-muted-foreground"
-                              >
-                                <circle
-                                  cx="7"
-                                  cy="7"
-                                  r="3"
-                                  className="opacity-0 group-has-checked:opacity-100"
-                                />
-                              </svg>
-                            </div>
-                          </div>
-                          <label htmlFor={`category-${optionIdx}`} className="text-sm text-muted-foreground cursor-pointer">
-                            {option.label}
-                          </label>
-                        </div>
-                      ))}
-                    </div>
-                  </fieldset>
-                </div>
-              </form>
-            </div>
-
-            {/* Mobile filters */}
-            <div className="lg:hidden mb-6">
-              <div className="space-y-4">
-                <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Categoría" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todas las categorías</SelectItem>
-                    {SHOP_CATEGORIES.map((category) => (
-                      <SelectItem key={category} value={category}>
-                        {category}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </aside>
-
-          {/* Contenido principal */}
-          <div className="lg:col-span-2">
+        <div>
             {filteredShops.length === 0 ? (
           <div className="text-center py-12">
             <Store className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
@@ -362,7 +249,7 @@ export default function ShopsPage() {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {filteredShops.map((shop) => (
               <Link
                 key={shop.id}
@@ -417,7 +304,6 @@ export default function ShopsPage() {
             ))}
           </div>
         )}
-          </div>
         </div>
       </main>
     </div>
@@ -431,7 +317,7 @@ export default function ShopsPage() {
   // El layout del explore se encarga del navbar/footer para usuarios no autenticados
   if (!isAuthenticated) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+      <div className="w-full max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         <Button
           variant="ghost"
           onClick={() => router.push('/')}

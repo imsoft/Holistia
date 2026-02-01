@@ -55,27 +55,39 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validar tipo de archivo según evidence_type
+    // Validar tipo de archivo según evidence_type (solo foto y video, audio no permitido)
     const validTypes: Record<string, string[]> = {
       photo: ['image/jpeg', 'image/png', 'image/webp', 'image/gif'],
-      video: ['video/mp4', 'video/webm', 'video/quicktime'],
-      audio: ['audio/mpeg', 'audio/wav', 'audio/ogg', 'audio/mp3'],
+      video: ['video/mp4', 'video/webm', 'video/quicktime', 'video/mov'],
     };
+
+    // No permitir audios
+    if (evidence_type === 'audio') {
+      return NextResponse.json(
+        { error: 'La subida de audios no está permitida. Por favor sube una foto o video.' },
+        { status: 400 }
+      );
+    }
 
     if (evidence_type !== 'text' && validTypes[evidence_type]) {
       if (!validTypes[evidence_type].includes(file.type)) {
         return NextResponse.json(
-          { error: `Tipo de archivo no válido para ${evidence_type}` },
+          { error: `Tipo de archivo no válido para ${evidence_type}. Formatos permitidos: ${evidence_type === 'photo' ? 'JPG, PNG, WEBP, GIF' : 'MP4, WEBM, MOV'}` },
           { status: 400 }
         );
       }
     }
 
-    // Validar tamaño (máximo 10MB)
-    const maxSize = 10 * 1024 * 1024; // 10MB
+    // Validar tamaño según tipo de archivo
+    // Fotos: máximo 10MB, Videos: máximo 25MB
+    const maxSizePhoto = 10 * 1024 * 1024; // 10MB
+    const maxSizeVideo = 25 * 1024 * 1024; // 25MB
+    const maxSize = evidence_type === 'video' ? maxSizeVideo : maxSizePhoto;
+    const maxSizeLabel = evidence_type === 'video' ? '25MB' : '10MB';
+    
     if (file.size > maxSize) {
       return NextResponse.json(
-        { error: 'El archivo es demasiado grande. Máximo 10MB' },
+        { error: `El archivo es demasiado grande. Máximo ${maxSizeLabel}` },
         { status: 400 }
       );
     }

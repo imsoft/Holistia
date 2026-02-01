@@ -72,21 +72,6 @@ const categories = [
   },
 ];
 
-const CATEGORY_TYPE_OPTIONS = [
-  { value: "meditation", label: "Meditación" },
-  { value: "ebook", label: "Workbook" },
-  { value: "manual", label: "Manual" },
-  { value: "guide", label: "Guía" },
-  { value: "audio", label: "Audio" },
-  { value: "video", label: "Video" },
-  { value: "other", label: "Otro" },
-];
-
-const PRICE_OPTIONS = [
-  { value: "free", label: "Gratis" },
-  { value: "paid", label: "De pago" },
-];
-
 // Mapeo de categorías de bienestar
 const categoryToWellnessAreas: Record<string, string[]> = {
   professionals: ["Salud mental"],
@@ -105,8 +90,6 @@ export default function ProgramsPage() {
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-  const [selectedCategoryTypes, setSelectedCategoryTypes] = useState<string[]>([]);
-  const [selectedPriceOptions, setSelectedPriceOptions] = useState<string[]>([]);
   const supabase = createClient();
 
   // Verificar autenticación
@@ -174,26 +157,6 @@ export default function ProgramsPage() {
     });
   };
 
-  const handleCategoryTypeToggle = (categoryType: string) => {
-    setSelectedCategoryTypes((prev) => {
-      if (prev.includes(categoryType)) {
-        return prev.filter(type => type !== categoryType);
-      } else {
-        return [...prev, categoryType];
-      }
-    });
-  };
-
-  const handlePriceToggle = (priceOption: string) => {
-    setSelectedPriceOptions((prev) => {
-      if (prev.includes(priceOption)) {
-        return prev.filter(option => option !== priceOption);
-      } else {
-        return [...prev, priceOption];
-      }
-    });
-  };
-
   useEffect(() => {
     let filtered = [...products];
 
@@ -226,31 +189,12 @@ export default function ProgramsPage() {
       });
     }
 
-    // Filtrar por tipo de categoría (meditation, workbook, etc.)
-    if (selectedCategoryTypes.length > 0) {
-      filtered = filtered.filter((product) => selectedCategoryTypes.includes(product.category));
-    }
-
-    // Filtrar por precio
-    if (selectedPriceOptions.length > 0) {
-      filtered = filtered.filter((product) => {
-        if (selectedPriceOptions.includes("free") && selectedPriceOptions.includes("paid")) {
-          return true; // Mostrar todos
-        } else if (selectedPriceOptions.includes("free")) {
-          return product.price === 0;
-        } else if (selectedPriceOptions.includes("paid")) {
-          return product.price > 0;
-        }
-        return true;
-      });
-    }
-
     setFilteredProducts(filtered);
-  }, [selectedCategories, selectedCategoryTypes, selectedPriceOptions, products]);
+  }, [selectedCategories, products]);
 
   const renderProgramsContent = () => (
     <div className="min-h-screen bg-background">
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+      <main className="w-full max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         <div className="mb-8 text-center">
           <h1 className="text-3xl sm:text-4xl font-bold text-foreground mb-2">
             Programas Digitales
@@ -298,106 +242,10 @@ export default function ProgramsPage() {
           </div>
         </div>
 
-        <div className="lg:grid lg:grid-cols-3 lg:gap-x-8">
-          {/* Sidebar with filters */}
-          <aside className="lg:col-span-1 mb-6 lg:mb-0">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-lg font-medium text-foreground">Filtros</h2>
-            </div>
-            <form className="divide-y divide-border space-y-6">
-              {/* Tipo de categoría */}
-              <div className="py-6">
-                <fieldset>
-                  <legend className="block text-sm font-medium text-foreground mb-6">
-                    Tipo de programa
-                  </legend>
-                  <div className="space-y-4">
-                    {CATEGORY_TYPE_OPTIONS.map((option, optionIdx) => (
-                      <div key={option.value} className="flex gap-3">
-                        <div className="flex h-5 shrink-0 items-center">
-                          <div className="group grid size-4 grid-cols-1">
-                            <input
-                              checked={selectedCategoryTypes.includes(option.value)}
-                              onChange={(e) => handleCategoryTypeToggle(option.value)}
-                              id={`category-type-${optionIdx}`}
-                              name="category-type[]"
-                              type="checkbox"
-                              className="col-start-1 row-start-1 appearance-none rounded-sm border border-border bg-background checked:border-primary checked:bg-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:border-border disabled:bg-muted disabled:checked:bg-muted"
-                            />
-                            <svg
-                              fill="none"
-                              viewBox="0 0 14 14"
-                              className="pointer-events-none col-start-1 row-start-1 size-3.5 self-center justify-self-center stroke-primary-foreground group-has-disabled:stroke-muted-foreground"
-                            >
-                              <path
-                                d="M3 8L6 11L11 3.5"
-                                strokeWidth={2}
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                className="opacity-0 group-has-checked:opacity-100"
-                              />
-                            </svg>
-                          </div>
-                        </div>
-                        <label htmlFor={`category-type-${optionIdx}`} className="text-sm text-muted-foreground cursor-pointer">
-                          {option.label}
-                        </label>
-                      </div>
-                    ))}
-                  </div>
-                </fieldset>
-              </div>
-
-              {/* Precio */}
-              <div className="py-6">
-                <fieldset>
-                  <legend className="block text-sm font-medium text-foreground mb-6">
-                    Precio
-                  </legend>
-                  <div className="space-y-4">
-                    {PRICE_OPTIONS.map((option, optionIdx) => (
-                      <div key={option.value} className="flex gap-3">
-                        <div className="flex h-5 shrink-0 items-center">
-                          <div className="group grid size-4 grid-cols-1">
-                            <input
-                              checked={selectedPriceOptions.includes(option.value)}
-                              onChange={(e) => handlePriceToggle(option.value)}
-                              id={`price-${optionIdx}`}
-                              name="price[]"
-                              type="checkbox"
-                              className="col-start-1 row-start-1 appearance-none rounded-sm border border-border bg-background checked:border-primary checked:bg-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:border-border disabled:bg-muted disabled:checked:bg-muted"
-                            />
-                            <svg
-                              fill="none"
-                              viewBox="0 0 14 14"
-                              className="pointer-events-none col-start-1 row-start-1 size-3.5 self-center justify-self-center stroke-primary-foreground group-has-disabled:stroke-muted-foreground"
-                            >
-                              <path
-                                d="M3 8L6 11L11 3.5"
-                                strokeWidth={2}
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                className="opacity-0 group-has-checked:opacity-100"
-                              />
-                            </svg>
-                          </div>
-                        </div>
-                        <label htmlFor={`price-${optionIdx}`} className="text-sm text-muted-foreground cursor-pointer">
-                          {option.label}
-                        </label>
-                      </div>
-                    ))}
-                  </div>
-                </fieldset>
-              </div>
-            </form>
-          </aside>
-
-          {/* Main content */}
-          <div className="lg:col-span-2">
+        <div>
             {/* Lista de productos */}
         {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {Array.from({ length: 6 }).map((_, i) => (
               <Card key={`program-skeleton-${i}`} className="h-[480px] flex flex-col">
                 <Skeleton className="w-full h-48 shrink-0 rounded-t-lg" />
@@ -432,7 +280,7 @@ export default function ProgramsPage() {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
             {filteredProducts.map((product) => (
               <DigitalProductCard
                 key={product.id}
@@ -457,7 +305,6 @@ export default function ProgramsPage() {
             ))}
           </div>
         )}
-          </div>
         </div>
       </main>
     </div>
@@ -471,7 +318,7 @@ export default function ProgramsPage() {
   // El layout del explore se encarga del navbar/footer para usuarios no autenticados
   if (!isAuthenticated) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+      <div className="w-full max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         <Button
           variant="ghost"
           onClick={() => router.push('/')}

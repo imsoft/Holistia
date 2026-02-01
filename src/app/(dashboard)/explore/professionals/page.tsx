@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { useUserId } from "@/stores/user-store";
 import { useUserStoreInit } from "@/hooks/use-user-store-init";
 import { Brain, Sparkles, Activity, Users, Apple, ArrowLeft } from "lucide-react";
-import { Filters } from "@/components/ui/filters";
 import { ProfessionalCard } from "@/components/ui/professional-card";
 import { createClient } from "@/utils/supabase/client";
 import { determineProfessionalModality, transformServicesFromDB } from "@/utils/professional-utils";
@@ -278,122 +277,9 @@ export default function ProfessionalsPage() {
     setFilteredProfessionals(filtered);
   };
 
-  const handleFilterChange = (filters: Record<string, string[]>) => {
-    let filtered = [...professionals];
-
-    if (selectedCategories.length > 0) {
-      filtered = filtered.filter((professional) => {
-        return selectedCategories.some((categoryId) => {
-          const categoryMap: Record<string, string[]> = {
-            professionals: ["Salud mental"],
-            spirituality: ["Espiritualidad"],
-            "physical-activity": ["Actividad física"],
-            social: ["Social"],
-            nutrition: ["Alimentación"],
-          };
-
-          const mappedAreas = categoryMap[categoryId] || [];
-          return (
-            mappedAreas.length > 0 &&
-            professional.wellness_areas &&
-            professional.wellness_areas.some((area) => mappedAreas.includes(area))
-          );
-        });
-      });
-    }
-
-    if (filters.specialty && filters.specialty.length > 0 && !filters.specialty.includes("all")) {
-      filtered = filtered.filter((professional) =>
-        professional.specializations.some((spec) => {
-          const specialtyMap: Record<string, string> = {
-            cognitive: "Terapia Cognitivo-Conductual",
-            psychiatric: "Medicina Psiquiátrica",
-            child: "Psicología Infantil",
-            sports: "Psicología del Deporte",
-            couple: "Terapia de Pareja",
-            neuropsychology: "Neuropsicología",
-            anxiety: "Terapia de Ansiedad",
-            depression: "Terapia de Depresión",
-            family: "Terapia Familiar",
-            ludic: "Terapia Lúdica",
-          };
-
-          return filters.specialty.some((filterValue) => {
-            const mappedSpecialty = specialtyMap[filterValue];
-            return mappedSpecialty ? spec.includes(mappedSpecialty) : false;
-          });
-        })
-      );
-    }
-
-    if (filters["service-type"] && filters["service-type"].length > 0 && !filters["service-type"].includes("any")) {
-      filtered = filtered.filter((professional) => {
-        const hasPresencial = professional.services.some(
-          (s) => s.presencialCost && s.presencialCost !== "" && parseInt(s.presencialCost) > 0
-        );
-        const hasOnline = professional.services.some(
-          (s) => s.onlineCost && s.onlineCost !== "" && parseInt(s.onlineCost) > 0
-        );
-
-        return filters["service-type"].some((type) => {
-          if (type === "presencial") return hasPresencial;
-          if (type === "online") return hasOnline;
-          if (type === "ambos") return hasPresencial && hasOnline;
-          return false;
-        });
-      });
-    }
-
-    if (filters.location && filters.location.length > 0 && !filters.location.includes("any")) {
-      filtered = filtered.filter((professional) => {
-        return filters.location.some((loc) => {
-          const cityLower = professional.city?.toLowerCase() || "";
-          const stateLower = professional.state?.toLowerCase() || "";
-
-          const locationMap: Record<string, string[]> = {
-            cdmx: ["ciudad de méxico", "mexico city", "cdmx", "distrito federal"],
-            guadalajara: ["guadalajara"],
-            monterrey: ["monterrey"],
-            puebla: ["puebla"],
-            tijuana: ["tijuana"],
-            cancun: ["cancún", "cancun"],
-          };
-
-          const mappedLocations = locationMap[loc] || [loc];
-          return mappedLocations.some(
-            (mappedLoc) =>
-              cityLower.includes(mappedLoc.toLowerCase()) ||
-              stateLower.includes(mappedLoc.toLowerCase())
-          );
-        });
-      });
-    }
-
-    if (filters.price && filters.price.length > 0 && !filters.price.includes("any")) {
-      filtered = filtered.filter((professional) => {
-        return filters.price.some((priceRange) => {
-          const minPrice = professional.services.reduce((min, service) => {
-            const presencialPrice = parseInt(service.presencialCost) || 0;
-            const onlinePrice = parseInt(service.onlineCost) || 0;
-            const validPrices = [presencialPrice, onlinePrice].filter(price => price > 0);
-            return validPrices.length > 0 ? Math.min(...validPrices) : Infinity;
-          }, Infinity);
-
-          if (priceRange === "budget") return minPrice < 1500;
-          if (priceRange === "mid-range") return minPrice >= 1500 && minPrice <= 2000;
-          if (priceRange === "premium") return minPrice > 2000;
-          return false;
-        });
-      });
-    }
-
-    setFilteredProfessionals(filtered);
-  };
-
-
   const renderProfessionalsContent = () => (
     <div className="min-h-screen bg-background">
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+      <main className="w-full max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         <div className="mb-8 text-center">
           <h1 className="text-3xl sm:text-4xl font-bold text-foreground mb-2">
             Expertos
@@ -442,19 +328,9 @@ export default function ProfessionalsPage() {
           </div>
         </div>
 
-        <div className="lg:grid lg:grid-cols-3 lg:gap-x-8">
-          {/* Sidebar with filters */}
-          <aside className="lg:col-span-1 mb-6 lg:mb-0">
-            <Filters 
-              onFilterChange={handleFilterChange} 
-              hideFilters={['category', 'location', 'eventFilters']}
-            />
-          </aside>
-
-          {/* Main content with horizontal scroll */}
-          <div className="lg:col-span-2">
-            {loading ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div>
+          {loading ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {Array.from({ length: 6 }).map((_, i) => (
                   <Card key={`professional-skeleton-${i}`} className="h-[480px] flex flex-col">
                     <Skeleton className="w-full h-64 shrink-0 rounded-t-lg" />
@@ -487,7 +363,7 @@ export default function ProfessionalsPage() {
                 </p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 justify-items-center">
+              <div className="grid grid-cols-1 gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 justify-items-center">
                 {filteredProfessionals.map((professional) => (
                   <div key={professional.id} className="w-full max-w-md">
                     <ProfessionalCard
@@ -559,7 +435,6 @@ export default function ProfessionalsPage() {
                 ))}
               </div>
             )}
-          </div>
         </div>
       </main>
     </div>
@@ -573,7 +448,7 @@ export default function ProfessionalsPage() {
   // El layout del explore se encarga del navbar/footer para usuarios no autenticados
   if (!isAuthenticated) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+      <div className="w-full max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         <Button
           variant="ghost"
           onClick={() => router.push('/')}

@@ -304,9 +304,9 @@ export default function AdminDigitalProductsPage() {
               return (
                 <Card
                   key={product.id}
-                  className="hover:shadow-lg transition-shadow overflow-hidden pt-0 pb-4 flex flex-col h-[480px]"
+                  className="hover:shadow-lg transition-shadow overflow-hidden pt-0 pb-4 flex flex-col h-[520px]"
                 >
-                  <div className="relative h-48 w-full shrink-0 overflow-hidden bg-gradient-to-br from-primary/10 to-primary/5">
+                  <div className="relative h-44 w-full shrink-0 overflow-hidden bg-gradient-to-br from-primary/10 to-primary/5">
                     {product.cover_image_url ? (
                       <Image
                         src={product.cover_image_url}
@@ -330,9 +330,9 @@ export default function AdminDigitalProductsPage() {
                     </div>
                   </div>
 
-                  <CardHeader className="px-6 pt-6 shrink-0">
+                  <CardHeader className="px-6 pt-4 shrink-0">
                     <CardTitle className="text-lg line-clamp-2">{product.title}</CardTitle>
-                    <div className="flex flex-wrap gap-1 mt-2 min-h-[28px]">
+                    <div className="flex flex-wrap gap-1 mt-1 min-h-[24px]">
                       <Badge variant="outline" className="text-xs">
                         <CategoryIcon className="h-3 w-3 mr-1" />
                         {getCategoryLabel(product.category)}
@@ -344,14 +344,14 @@ export default function AdminDigitalProductsPage() {
                     </div>
                   </CardHeader>
 
-                  <CardContent className="px-6 pb-6 flex flex-col flex-1 min-h-0">
-                    <div className="mb-3 overflow-y-auto min-h-0 flex-1 max-h-40 pr-1">
+                  <CardContent className="px-6 pb-4 flex flex-col flex-1 min-h-0">
+                    <div className="mb-2 overflow-y-auto min-h-0 flex-1 max-h-48 pr-1">
                       <p className="text-sm text-muted-foreground whitespace-pre-wrap">
                         {product.description || "Sin descripción"}
                       </p>
                     </div>
 
-                    <div className="flex items-center justify-between mb-3 shrink-0">
+                    <div className="flex items-center justify-between mb-2 shrink-0">
                       <span className="text-lg font-bold text-primary">
                         {formatPrice(product.price, product.currency || "MXN")}
                       </span>

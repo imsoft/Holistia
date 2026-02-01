@@ -33,6 +33,7 @@ import {
   SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
+  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
@@ -120,128 +121,57 @@ export function AdminSidebar() {
     setCurrentPathname(pathname);
   }, [pathname]);
 
-  // Generar items de navegación dinámicamente
-  const navItems: AdminNavItem[] = [
+  // Categorías de navegación (similar a Platform / Projects en la referencia)
+  const navCategories: { label: string; items: AdminNavItem[] }[] = [
     {
-      title: "Dashboard",
-      url: `/admin/${userId}/dashboard`,
-      icon: Home,
+      label: "Plataforma",
+      items: [
+        { title: "Dashboard", url: `/admin/${userId}/dashboard`, icon: Home },
+        { title: "Analíticas", url: `/admin/${userId}/analytics`, icon: BarChart3 },
+        { title: "Finanzas", url: `/admin/${userId}/finances`, icon: DollarSign },
+        { title: "Blog", url: `/admin/${userId}/blog`, icon: FileText },
+      ],
     },
     {
-      title: "Analíticas",
-      url: `/admin/${userId}/analytics`,
-      icon: BarChart3,
+      label: "Usuarios y Profesionales",
+      items: [
+        { title: "Profesionales", url: `/admin/${userId}/professionals`, icon: UserCheck },
+        { title: "Usuarios", url: `/admin/${userId}/users`, icon: Users },
+        { title: "Solicitudes", url: `/admin/${userId}/applications`, icon: UserPlus },
+        { title: "Certificaciones", url: `/admin/${userId}/certifications`, icon: Award },
+      ],
     },
     {
-      title: "Finanzas",
-      url: `/admin/${userId}/finances`,
-      icon: DollarSign,
+      label: "Contenido y Eventos",
+      items: [
+        { title: "Eventos", url: `/admin/${userId}/events`, icon: Calendar },
+        { title: "Registros de Eventos", url: `/admin/${userId}/event-registrations`, icon: ClipboardList },
+        { title: "Retos", url: `/admin/${userId}/challenges`, icon: Target },
+        { title: "Programas", url: `/admin/${userId}/digital-products`, icon: Package },
+        ...(hasEvents ? [{ title: "Mis eventos", url: `/admin/${userId}/my-events`, icon: CalendarCheck }] : []),
+      ],
     },
     {
-      title: "Blog",
-      url: `/admin/${userId}/blog`,
-      icon: FileText,
+      label: "Lugares y Empresas",
+      items: [
+        { title: "Centros Holísticos", url: `/admin/${userId}/holistic-centers`, icon: Building2 },
+        { title: "Restaurantes", url: `/admin/${userId}/restaurants`, icon: UtensilsCrossed },
+        { title: "Comercios", url: `/admin/${userId}/shops`, icon: Store },
+        { title: "Holistia para Empresas", url: `/admin/${userId}/companies`, icon: Briefcase },
+      ],
     },
     {
-      title: "Eventos",
-      url: `/admin/${userId}/events`,
-      icon: Calendar,
-    },
-    {
-      title: "Registros de Eventos",
-      url: `/admin/${userId}/event-registrations`,
-      icon: ClipboardList,
-    },
-    {
-      title: "Profesionales",
-      url: `/admin/${userId}/professionals`,
-      icon: UserCheck,
-    },
-    {
-      title: "Usuarios",
-      url: `/admin/${userId}/users`,
-      icon: Users,
-    },
-    {
-      title: "Solicitudes",
-      url: `/admin/${userId}/applications`,
-      icon: UserPlus,
-    },
-    {
-      title: "Certificaciones",
-      url: `/admin/${userId}/certifications`,
-      icon: Award,
-    },
-    {
-      title: "Retos",
-      url: `/admin/${userId}/challenges`,
-      icon: Target,
-    },
-    {
-      title: "Programas",
-      url: `/admin/${userId}/digital-products`,
-      icon: Package,
-    },
-    {
-      title: "Centros Holísticos",
-      url: `/admin/${userId}/holistic-centers`,
-      icon: Building2,
-    },
-    {
-      title: "Restaurantes",
-      url: `/admin/${userId}/restaurants`,
-      icon: UtensilsCrossed,
-    },
-    {
-      title: "Comercios",
-      url: `/admin/${userId}/shops`,
-      icon: Store,
-    },
-    {
-      title: "Holistia para Empresas",
-      url: `/admin/${userId}/companies`,
-      icon: Briefcase,
-    },
-    {
-      title: "Servicios Holísticos",
-      url: `/admin/${userId}/holistic-services`,
-      icon: Sparkles,
-    },
-    {
-      title: "Tickets de Soporte",
-      url: `/admin/${userId}/tickets`,
-      icon: Ticket,
-    },
-    {
-      title: "Servicios y Costos",
-      url: `/admin/${userId}/services-costs`,
-      icon: Wrench,
-    },
-    {
-      title: "Sincronización Google Calendar",
-      url: `/admin/${userId}/sync-tools`,
-      icon: RefreshCw,
-    },
-    {
-      title: "Agente IA (Alpha)",
-      url: `/admin/${userId}/ai-agent`,
-      icon: Sparkles,
-    },
-    {
-      title: "Commits de GitHub",
-      url: `/admin/${userId}/github-commits`,
-      icon: GitBranchIcon,
+      label: "Sistema y Herramientas",
+      items: [
+        { title: "Servicios Holísticos", url: `/admin/${userId}/holistic-services`, icon: Sparkles },
+        { title: "Tickets de Soporte", url: `/admin/${userId}/tickets`, icon: Ticket },
+        { title: "Servicios y Costos", url: `/admin/${userId}/services-costs`, icon: Wrench },
+        { title: "Sincronización Google Calendar", url: `/admin/${userId}/sync-tools`, icon: RefreshCw },
+        { title: "Agente IA (Alpha)", url: `/admin/${userId}/ai-agent`, icon: Sparkles },
+        { title: "Commits de GitHub", url: `/admin/${userId}/github-commits`, icon: GitBranchIcon },
+      ],
     },
   ];
-
-  // Agregar "Mis eventos" solo si el admin tiene eventos asignados
-  if (hasEvents) {
-    navItems.push({
-      title: "Mis eventos",
-      url: `/admin/${userId}/my-events`,
-      icon: CalendarCheck,
-    });
-  }
 
   // Función para cerrar sesión
   const handleSignOut = async () => {
@@ -365,23 +295,27 @@ export function AdminSidebar() {
       </div>
 
       <SidebarContent>
-        {/* Navegación principal */}
-        <SidebarGroup>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {navItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild isActive={isActive(item.url)}>
-                    <Link href={item.url}>
-                      <item.icon />
-                      <span>{item.title}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        {navCategories.map((category) => (
+          <SidebarGroup key={category.label}>
+            <SidebarGroupLabel className="text-muted-foreground text-xs font-medium uppercase tracking-wider group-data-[collapsible=icon]:hidden">
+              {category.label}
+            </SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {category.items.map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton asChild isActive={isActive(item.url)}>
+                      <Link href={item.url}>
+                        <item.icon />
+                        <span>{item.title}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        ))}
       </SidebarContent>
 
       <SidebarFooter className="border-t border-border p-4 group-data-[collapsible=icon]:hidden">

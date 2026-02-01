@@ -23,7 +23,6 @@ import {
   User,
   ExternalLink,
   RefreshCw,
-  Github,
   AlertCircle,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -176,8 +175,11 @@ export default function GitHubCommitsPage() {
   const formatCommitMessage = (message: string): string => {
     if (!message) return '';
     
-    // Dividir el mensaje en líneas
-    const lines = message.split('\n');
+    // Dividir el mensaje en líneas y filtrar Co-authored-by
+    const lines = message.split('\n').filter(line => 
+      !line.trim().toLowerCase().startsWith('co-authored-by:')
+    );
+    if (lines.length === 0) return '';
     const firstLine = lines[0];
     const restLines = lines.slice(1);
     
@@ -219,16 +221,13 @@ export default function GitHubCommitsPage() {
         <div className="flex flex-col sm:flex-row sm:h-16 sm:items-center justify-between px-4 sm:px-6 py-4 sm:py-0 gap-4 sm:gap-0">
           <div className="flex items-center gap-3 sm:gap-4">
             <SidebarTrigger />
-            <div className="flex items-center gap-2">
-              <Github className="h-5 w-5 text-foreground" />
-              <div>
-                <h1 className="text-xl sm:text-2xl font-bold text-foreground">
-                  Commits de GitHub
-                </h1>
-                <p className="text-xs sm:text-sm text-muted-foreground">
-                  Historial de commits del repositorio
-                </p>
-              </div>
+            <div>
+              <h1 className="text-xl sm:text-2xl font-bold text-foreground">
+                Commits de GitHub
+              </h1>
+              <p className="text-xs sm:text-sm text-muted-foreground">
+                Historial de commits del repositorio
+              </p>
             </div>
           </div>
           <div className="flex items-center gap-2">

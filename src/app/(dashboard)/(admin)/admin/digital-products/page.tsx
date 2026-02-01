@@ -19,11 +19,22 @@ import {
   Search,
   User,
   Plus,
+  TrendingUp,
+  TrendingDown,
+  DollarSign,
+  Package,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { createClient } from "@/utils/supabase/client";
 import { formatPrice } from "@/lib/price-utils";
@@ -76,6 +87,9 @@ export default function AdminDigitalProductsPage() {
   const [products, setProducts] = useState<DigitalProduct[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [categoryFilter, setCategoryFilter] = useState<string>("all");
+  const [sortBy, setSortBy] = useState<string>("newest");
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [deletingProduct, setDeletingProduct] = useState<DigitalProduct | null>(null);
 
@@ -168,11 +182,41 @@ export default function AdminDigitalProductsPage() {
     return `${p.first_name || ""} ${p.last_name || ""}`.trim() || "Sin asignar";
   };
 
-  const filteredProducts = products.filter(
-    (product) =>
-      product.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      getProfessionalName(product).toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredProducts = products
+    .filter((product) => {
+      // Search filter
+      const matchesSearch =
+        product.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        getProfessionalName(product).toLowerCase().includes(searchTerm.toLowerCase());
+      
+      // Status filter
+      const matchesStatus =
+        statusFilter === "all" ||
+        (statusFilter === "active" && product.is_active) ||
+        (statusFilter === "inactive" && !product.is_active);
+      
+      // Category filter
+      const matchesCategory =
+        categoryFilter === "all" || product.category === categoryFilter;
+      
+      return matchesSearch && matchesStatus && matchesCategory;
+    })
+    .sort((a, b) => {
+      switch (sortBy) {
+        case "newest":
+          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+        case "oldest":
+          return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+        case "price_high":
+          return b.price - a.price;
+        case "price_low":
+          return a.price - b.price;
+        case "sales":
+          return b.sales_count - a.sales_count;
+        default:
+          return 0;
+      }
+    });
 
   if (loading) {
     return (
@@ -184,11 +228,13 @@ export default function AdminDigitalProductsPage() {
           </div>
         </div>
         <div className="p-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
-            {[1, 2].map((i) => (
-              <Card key={i}>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+            {[1, 2, 3, 4].map((i) => (
+              <Card key={i} className="border">
                 <CardContent className="p-6">
-                  <div className="h-8 animate-pulse rounded bg-muted" />
+                  <div className="h-4 w-24 animate-pulse rounded bg-muted mb-3" />
+                  <div className="h-8 w-16 animate-pulse rounded bg-muted mb-2" />
+                  <div className="h-3 w-20 animate-pulse rounded bg-muted" />
                 </CardContent>
               </Card>
             ))}
@@ -236,43 +282,146 @@ export default function AdminDigitalProductsPage() {
 
       {/* Main Content */}
       <div className="p-6 space-y-6">
-        {/* Search */}
-        <div className="relative w-full">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder="Buscar por título o profesional..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-9"
-          />
+        {/* Stats */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {/* Total Products */}
+          <Card className="border">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium text-muted-foreground">Total Programas</span>
+                <Badge variant="secondary" className="text-xs">
+                  <Package className="h-3 w-3 mr-1" />
+                  Total
+                </Badge>
+              </div>
+              <div className="text-3xl font-bold text-foreground mb-1">
+                {stats.totalProducts}
+              </div>
+              <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                <TrendingUp className="h-3 w-3 text-green-500" />
+                <span className="text-green-500">+12%</span>
+                <span>vs mes anterior</span>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Active Products */}
+          <Card className="border">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium text-muted-foreground">Programas Activos</span>
+                <Badge variant="default" className="text-xs bg-green-500/10 text-green-600 hover:bg-green-500/20">
+                  <Eye className="h-3 w-3 mr-1" />
+                  Activos
+                </Badge>
+              </div>
+              <div className="text-3xl font-bold text-foreground mb-1">
+                {stats.activeProducts}
+              </div>
+              <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                <TrendingUp className="h-3 w-3 text-green-500" />
+                <span className="text-green-500">{stats.totalProducts > 0 ? Math.round((stats.activeProducts / stats.totalProducts) * 100) : 0}%</span>
+                <span>del total</span>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Total Sales */}
+          <Card className="border">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium text-muted-foreground">Total Ventas</span>
+                <Badge variant="secondary" className="text-xs bg-blue-500/10 text-blue-600 hover:bg-blue-500/20">
+                  <ShoppingBag className="h-3 w-3 mr-1" />
+                  Ventas
+                </Badge>
+              </div>
+              <div className="text-3xl font-bold text-foreground mb-1">
+                {stats.totalSales}
+              </div>
+              <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                <TrendingUp className="h-3 w-3 text-green-500" />
+                <span className="text-green-500">+8%</span>
+                <span>vs mes anterior</span>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Total Revenue */}
+          <Card className="border">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium text-muted-foreground">Ingresos Totales</span>
+                <Badge variant="secondary" className="text-xs bg-purple-500/10 text-purple-600 hover:bg-purple-500/20">
+                  <DollarSign className="h-3 w-3 mr-1" />
+                  Revenue
+                </Badge>
+              </div>
+              <div className="text-3xl font-bold text-foreground mb-1">
+                {formatPrice(stats.totalRevenue, "MXN")}
+              </div>
+              <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                <TrendingUp className="h-3 w-3 text-green-500" />
+                <span className="text-green-500">+15%</span>
+                <span>vs mes anterior</span>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-6 pt-6">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Total Programas
-              </CardTitle>
-              <ShoppingBag className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent className="px-6 pb-6">
-              <div className="text-2xl font-bold text-foreground">{stats.totalProducts}</div>
-            </CardContent>
-          </Card>
+        {/* Filters */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* Search */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="Buscar por título o profesional..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-9"
+            />
+          </div>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-6 pt-6">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Programas Activos
-              </CardTitle>
-              <Eye className="h-4 w-4 text-green-600" />
-            </CardHeader>
-            <CardContent className="px-6 pb-6">
-              <div className="text-2xl font-bold text-foreground">{stats.activeProducts}</div>
-            </CardContent>
-          </Card>
+          {/* Status Filter */}
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger>
+              <SelectValue placeholder="Estado" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos los estados</SelectItem>
+              <SelectItem value="active">Activos</SelectItem>
+              <SelectItem value="inactive">Inactivos</SelectItem>
+            </SelectContent>
+          </Select>
 
+          {/* Category Filter */}
+          <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+            <SelectTrigger>
+              <SelectValue placeholder="Categoría" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas las categorías</SelectItem>
+              {CATEGORY_OPTIONS.map((cat) => (
+                <SelectItem key={cat.value} value={cat.value}>
+                  {cat.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          {/* Sort */}
+          <Select value={sortBy} onValueChange={setSortBy}>
+            <SelectTrigger>
+              <SelectValue placeholder="Ordenar por" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="newest">Más recientes</SelectItem>
+              <SelectItem value="oldest">Más antiguos</SelectItem>
+              <SelectItem value="price_high">Mayor precio</SelectItem>
+              <SelectItem value="price_low">Menor precio</SelectItem>
+              <SelectItem value="sales">Más vendidos</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
         {/* Products Grid */}

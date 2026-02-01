@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 // import { useParams } from "next/navigation";
 import { toast } from "sonner";
 import {
@@ -16,6 +16,10 @@ import {
   Search,
   Download,
   Instagram,
+  TrendingUp,
+  TrendingDown,
+  Clock,
+  Users,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -81,7 +85,40 @@ export default function ApplicationsPage() {
   const [userId, setUserId] = useState<string>("");
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [dateRangeFilter, setDateRangeFilter] = useState("all");
+  const [professionFilter, setProfessionFilter] = useState("all");
   const supabase = createClient();
+
+  // Calculate stats
+  const stats = useMemo(() => {
+    const total = applications.length;
+    const pending = applications.filter(app => app.status === 'pending' || app.status === 'under_review').length;
+    const approved = applications.filter(app => app.status === 'approved').length;
+    const rejected = applications.filter(app => app.status === 'rejected').length;
+    
+    // Calculate recent trends (last 7 days vs previous 7 days)
+    const now = new Date();
+    const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const fourteenDaysAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
+    
+    const recentApplications = applications.filter(app => new Date(app.submitted_at) >= sevenDaysAgo);
+    const previousApplications = applications.filter(app => {
+      const date = new Date(app.submitted_at);
+      return date >= fourteenDaysAgo && date < sevenDaysAgo;
+    });
+    
+    const recentCount = recentApplications.length;
+    const previousCount = previousApplications.length;
+    const trend = previousCount > 0 ? ((recentCount - previousCount) / previousCount * 100).toFixed(0) : recentCount > 0 ? 100 : 0;
+    
+    return { total, pending, approved, rejected, recentCount, trend: Number(trend) };
+  }, [applications]);
+
+  // Get unique professions for filter
+  const professions = useMemo(() => {
+    const uniqueProfessions = [...new Set(applications.map(app => app.profession))];
+    return uniqueProfessions.sort();
+  }, [applications]);
 
   const getStatusBadge = (status: string) => {
     let statusText, color;
@@ -341,7 +378,34 @@ export default function ApplicationsPage() {
     
     const matchesStatus = statusFilter === "all" || application.status === statusFilter;
     
-    return matchesSearch && matchesStatus;
+    const matchesProfession = professionFilter === "all" || application.profession === professionFilter;
+    
+    // Date range filter
+    let matchesDateRange = true;
+    if (dateRangeFilter !== "all") {
+      const submittedDate = new Date(application.submitted_at);
+      const now = new Date();
+      
+      switch (dateRangeFilter) {
+        case "today":
+          matchesDateRange = submittedDate.toDateString() === now.toDateString();
+          break;
+        case "week":
+          const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+          matchesDateRange = submittedDate >= weekAgo;
+          break;
+        case "month":
+          const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+          matchesDateRange = submittedDate >= monthAgo;
+          break;
+        case "quarter":
+          const quarterAgo = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
+          matchesDateRange = submittedDate >= quarterAgo;
+          break;
+      }
+    }
+    
+    return matchesSearch && matchesStatus && matchesProfession && matchesDateRange;
   });
 
   if (loading) {
@@ -366,17 +430,11 @@ export default function ApplicationsPage() {
               <h1 className="text-xl sm:text-2xl font-bold text-foreground">Solicitudes de Profesionales</h1>
               <p className="text-xs sm:text-sm text-muted-foreground">
                 Revisa y gestiona las solicitudes
-                {filteredApplications.length > 0 && (
-                  <span className="ml-2 text-primary font-medium">
-                    ({filteredApplications.length})
-                  </span>
-                )}
               </p>
             </div>
           </div>
           <div className="flex items-center gap-2 sm:gap-3">
             <Button 
-              variant="outline"
               size="sm"
               onClick={handleExportApplications}
               className="flex items-center gap-2 w-full sm:w-auto sm:size-default"
@@ -390,42 +448,149 @@ export default function ApplicationsPage() {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-          {/* Filtros y búsqueda */}
-          <Card className="mb-6 sm:mb-8">
-            <CardContent className="p-4 sm:p-6">
-              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 w-full">
-                <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Buscar por nombre, email o profesión..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10 w-full"
-                  />
-                </div>
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="w-full sm:w-[280px]">
-                    <SelectValue placeholder="Filtrar por estado" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todos los estados</SelectItem>
-                    <SelectItem value="pending">Pendientes</SelectItem>
-                    <SelectItem value="under_review">En Revisión</SelectItem>
-                    <SelectItem value="approved">Aprobadas</SelectItem>
-                    <SelectItem value="rejected">Rechazadas</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Button
-                  variant="outline"
-                  className="w-full sm:w-auto sm:min-w-[180px]"
-                  onClick={handleExportApplications}
-                >
-                  <Download className="h-4 w-4 mr-2" />
-                  Exportar Lista
-                </Button>
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 sm:mb-8">
+          {/* Total Applications */}
+          <Card className="border">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm text-muted-foreground">Total Solicitudes</span>
+                <Badge variant="secondary" className="flex items-center gap-1">
+                  <Users className="h-3 w-3" />
+                  Todas
+                </Badge>
               </div>
+              <div className="text-3xl font-bold">{stats.total}</div>
+              <div className="flex items-center gap-1 mt-1">
+                {stats.trend >= 0 ? (
+                  <TrendingUp className="h-4 w-4 text-green-500" />
+                ) : (
+                  <TrendingDown className="h-4 w-4 text-red-500" />
+                )}
+                <span className={`text-sm ${stats.trend >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                  {stats.trend >= 0 ? '+' : ''}{stats.trend}%
+                </span>
+                <span className="text-sm text-muted-foreground">vs semana anterior</span>
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                {stats.recentCount} nuevas esta semana
+              </p>
             </CardContent>
           </Card>
+
+          {/* Pending Applications */}
+          <Card className="border">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm text-muted-foreground">Pendientes</span>
+                <Badge className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400">
+                  <Clock className="h-3 w-3 mr-1" />
+                  Por revisar
+                </Badge>
+              </div>
+              <div className="text-3xl font-bold">{stats.pending}</div>
+              <div className="flex items-center gap-1 mt-1">
+                <Clock className="h-4 w-4 text-yellow-500" />
+                <span className="text-sm text-yellow-600 dark:text-yellow-400">Requieren atención</span>
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                {stats.total > 0 ? ((stats.pending / stats.total) * 100).toFixed(0) : 0}% del total
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* Approved Applications */}
+          <Card className="border">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm text-muted-foreground">Aprobadas</span>
+                <Badge className="bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400">
+                  <CheckCircle className="h-3 w-3 mr-1" />
+                  Activas
+                </Badge>
+              </div>
+              <div className="text-3xl font-bold">{stats.approved}</div>
+              <div className="flex items-center gap-1 mt-1">
+                <TrendingUp className="h-4 w-4 text-green-500" />
+                <span className="text-sm text-green-600 dark:text-green-400">Profesionales activos</span>
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                {stats.total > 0 ? ((stats.approved / stats.total) * 100).toFixed(0) : 0}% tasa de aprobación
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* Rejected Applications */}
+          <Card className="border">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm text-muted-foreground">Rechazadas</span>
+                <Badge className="bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400">
+                  <XCircle className="h-3 w-3 mr-1" />
+                  Denegadas
+                </Badge>
+              </div>
+              <div className="text-3xl font-bold">{stats.rejected}</div>
+              <div className="flex items-center gap-1 mt-1">
+                <XCircle className="h-4 w-4 text-red-500" />
+                <span className="text-sm text-red-600 dark:text-red-400">No aprobadas</span>
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                {stats.total > 0 ? ((stats.rejected / stats.total) * 100).toFixed(0) : 0}% del total
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Filters */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 sm:mb-8">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Buscar por nombre, email o profesión..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 w-full"
+            />
+          </div>
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Estado" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos los estados</SelectItem>
+              <SelectItem value="pending">Pendientes</SelectItem>
+              <SelectItem value="under_review">En Revisión</SelectItem>
+              <SelectItem value="approved">Aprobadas</SelectItem>
+              <SelectItem value="rejected">Rechazadas</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={dateRangeFilter} onValueChange={setDateRangeFilter}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Período" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todo el tiempo</SelectItem>
+              <SelectItem value="today">Hoy</SelectItem>
+              <SelectItem value="week">Última semana</SelectItem>
+              <SelectItem value="month">Último mes</SelectItem>
+              <SelectItem value="quarter">Últimos 3 meses</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={professionFilter} onValueChange={setProfessionFilter}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Profesión" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas las profesiones</SelectItem>
+              {professions.map((profession) => (
+                <SelectItem key={profession} value={profession}>
+                  {profession}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
 
         <div className="grid gap-4 sm:gap-6">
           {filteredApplications.length === 0 ? (

@@ -6,9 +6,6 @@ import {
   UserCheck,
   UserPlus,
   TrendingUp,
-  AlertCircle,
-  CheckCircle,
-  Clock,
   Target,
   Package,
   Calendar,
@@ -20,8 +17,7 @@ import {
   FileText,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import Link from "next/link";
 import { createClient } from "@/utils/supabase/client";
@@ -35,37 +31,14 @@ interface DashboardStats {
   icon: React.ComponentType<{ className?: string }>;
   color: string;
   bgColor: string;
+  hoverBgColor: string;
   href?: string;
-}
-
-interface ProfessionalApplication {
-  id: string;
-  user_id: string;
-  first_name: string;
-  last_name: string;
-  email: string;
-  phone?: string;
-  profession: string;
-  specializations: string[];
-  status: 'pending' | 'under_review' | 'approved' | 'rejected';
-  submitted_at: string;
-  profile_photo?: string;
-}
-
-interface RecentActivity {
-  id: string;
-  action: string;
-  user: string;
-  time: string;
-  type: 'success' | 'error' | 'info';
 }
 
 export default function AdminDashboard() {
   const [coreStats, setCoreStats] = useState<DashboardStats[]>([]);
   const [contentStats, setContentStats] = useState<DashboardStats[]>([]);
   const [businessStats, setBusinessStats] = useState<DashboardStats[]>([]);
-  const [recentApplications, setRecentApplications] = useState<ProfessionalApplication[]>([]);
-  const [recentActivities, setRecentActivities] = useState<RecentActivity[]>([]);
   const [loading, setLoading] = useState(true);
   const { profile, loading: profileLoading } = useProfile();
   const supabase = createClient();
@@ -193,6 +166,7 @@ export default function AdminDashboard() {
             icon: Users,
             color: "text-blue-600",
             bgColor: "bg-blue-50",
+            hoverBgColor: "hover:bg-blue-50",
             href: "/admin/users",
           },
           {
@@ -202,6 +176,7 @@ export default function AdminDashboard() {
             icon: UserCheck,
             color: "text-green-600",
             bgColor: "bg-green-50",
+            hoverBgColor: "hover:bg-green-50",
             href: "/admin/professionals",
           },
           {
@@ -211,6 +186,7 @@ export default function AdminDashboard() {
             icon: UserPlus,
             color: "text-orange-600",
             bgColor: "bg-orange-50",
+            hoverBgColor: "hover:bg-orange-50",
             href: "/admin/applications",
           },
           {
@@ -220,6 +196,7 @@ export default function AdminDashboard() {
             icon: TrendingUp,
             color: "text-purple-600",
             bgColor: "bg-purple-50",
+            hoverBgColor: "hover:bg-purple-50",
           },
         ];
 
@@ -232,6 +209,7 @@ export default function AdminDashboard() {
             icon: Target,
             color: "text-red-600",
             bgColor: "bg-red-50",
+            hoverBgColor: "hover:bg-red-50",
             href: "/admin/challenges",
           },
           {
@@ -241,6 +219,7 @@ export default function AdminDashboard() {
             icon: Package,
             color: "text-indigo-600",
             bgColor: "bg-indigo-50",
+            hoverBgColor: "hover:bg-indigo-50",
             href: "/admin/digital-products",
           },
           {
@@ -250,6 +229,7 @@ export default function AdminDashboard() {
             icon: Calendar,
             color: "text-pink-600",
             bgColor: "bg-pink-50",
+            hoverBgColor: "hover:bg-pink-50",
             href: "/admin/events",
           },
           {
@@ -259,6 +239,7 @@ export default function AdminDashboard() {
             icon: FileText,
             color: "text-cyan-600",
             bgColor: "bg-cyan-50",
+            hoverBgColor: "hover:bg-cyan-50",
             href: "/admin/blog",
           },
         ];
@@ -272,6 +253,7 @@ export default function AdminDashboard() {
             icon: Building2,
             color: "text-emerald-600",
             bgColor: "bg-emerald-50",
+            hoverBgColor: "hover:bg-emerald-50",
             href: "/admin/holistic-centers",
           },
           {
@@ -281,6 +263,7 @@ export default function AdminDashboard() {
             icon: UtensilsCrossed,
             color: "text-amber-600",
             bgColor: "bg-amber-50",
+            hoverBgColor: "hover:bg-amber-50",
             href: "/admin/restaurants",
           },
           {
@@ -290,6 +273,7 @@ export default function AdminDashboard() {
             icon: Store,
             color: "text-violet-600",
             bgColor: "bg-violet-50",
+            hoverBgColor: "hover:bg-violet-50",
             href: "/admin/shops",
           },
           {
@@ -299,6 +283,7 @@ export default function AdminDashboard() {
             icon: Briefcase,
             color: "text-slate-600",
             bgColor: "bg-slate-50",
+            hoverBgColor: "hover:bg-slate-50",
             href: "/admin/companies",
           },
         ];
@@ -306,37 +291,6 @@ export default function AdminDashboard() {
         setCoreStats(coreStatsData);
         setContentStats(contentStatsData);
         setBusinessStats(businessStatsData);
-
-        // Obtener solicitudes recientes (últimas 5)
-        const { data: applications, error: applicationsError } = await supabase
-          .from('professional_applications')
-          .select('*')
-          .order('submitted_at', { ascending: false })
-          .limit(5);
-
-        if (!applicationsError && applications) {
-          setRecentApplications(applications);
-        }
-
-        // Crear actividades recientes basadas en datos reales
-        const activities: RecentActivity[] = [];
-        
-        // Agregar actividad por cada solicitud reciente
-        applications?.slice(0, 3).forEach((app) => {
-          const timeAgo = getTimeAgo(app.submitted_at);
-          activities.push({
-            id: `app-${app.id}`,
-            action: app.status === 'pending' ? 'Nueva solicitud de profesional' : 
-                   app.status === 'approved' ? 'Profesional aprobado' : 
-                   app.status === 'rejected' ? 'Solicitud rechazada' : 'Solicitud en revisión',
-            user: `${app.first_name} ${app.last_name}`,
-            time: timeAgo,
-            type: app.status === 'approved' ? 'success' : 
-                  app.status === 'rejected' ? 'error' : 'info'
-          });
-        });
-
-        setRecentActivities(activities);
 
       } catch (error) {
         console.error('Error fetching dashboard data:', error);
@@ -348,65 +302,10 @@ export default function AdminDashboard() {
     fetchDashboardData();
   }, [supabase, profileLoading, profile]);
 
-  // Función para calcular tiempo transcurrido
-  const getTimeAgo = (dateString: string): string => {
-    const now = new Date();
-    const date = new Date(dateString);
-    const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
-    
-    if (diffInHours < 1) return 'Hace menos de 1 hora';
-    if (diffInHours < 24) return `Hace ${diffInHours} horas`;
-    const diffInDays = Math.floor(diffInHours / 24);
-    return `Hace ${diffInDays} días`;
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "approved":
-        return "bg-green-100 text-green-800";
-      case "pending":
-        return "bg-yellow-100 text-yellow-800";
-      case "rejected":
-        return "bg-red-100 text-red-800";
-      case "under_review":
-        return "bg-blue-100 text-blue-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
-  };
-
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case "approved":
-        return "Aprobada";
-      case "pending":
-        return "Pendiente";
-      case "rejected":
-        return "Rechazada";
-      case "under_review":
-        return "En Revisión";
-      default:
-        return status;
-    }
-  };
-
-  const getActivityIcon = (type: string) => {
-    switch (type) {
-      case "success":
-        return <CheckCircle className="h-4 w-4 text-green-600" />;
-      case "error":
-        return <AlertCircle className="h-4 w-4 text-red-600" />;
-      case "info":
-        return <Clock className="h-4 w-4 text-blue-600" />;
-      default:
-        return <Clock className="h-4 w-4 text-gray-600" />;
-    }
-  };
-
   // Componente para renderizar una tarjeta de estadística
   const StatCard = ({ stat }: { stat: DashboardStats }) => {
     const content = (
-      <Card className="hover:shadow-md transition-shadow cursor-pointer">
+      <Card className={`cursor-pointer transition-all duration-200 hover:shadow-lg hover:scale-[1.02] ${stat.hoverBgColor}`}>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-4 sm:px-6 pt-4 sm:pt-6">
           <CardTitle className="text-sm font-medium text-muted-foreground">
             {stat.title}
@@ -513,108 +412,6 @@ export default function AdminDashboard() {
               <StatCard key={stat.title} stat={stat} />
             ))}
           </div>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-          {/* Solicitudes Recientes */}
-          <Card>
-            <CardHeader className="px-4 sm:px-6 pt-4 sm:pt-6">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                <div>
-                  <CardTitle>Solicitudes Recientes</CardTitle>
-                  <CardDescription>
-                    Últimas solicitudes de profesionales
-                  </CardDescription>
-                </div>
-                <Button variant="outline" size="sm" asChild className="w-full sm:w-auto">
-                  <Link href="/admin/applications">
-                    Ver todas
-                  </Link>
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent className="px-4 sm:px-6 pb-4 sm:pb-6">
-              <div className="space-y-3 sm:space-y-4">
-                {recentApplications.length === 0 ? (
-                  <p className="text-sm text-muted-foreground text-center py-4">
-                    No hay solicitudes recientes
-                  </p>
-                ) : (
-                  recentApplications.map((application) => (
-                    <div
-                      key={application.id}
-                      className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-lg border border-border hover:bg-accent/50 transition-colors gap-3"
-                    >
-                      <div className="flex-1">
-                        <h4 className="font-medium text-foreground">
-                          {application.first_name} {application.last_name}
-                        </h4>
-                        <p className="text-sm text-muted-foreground">
-                          {application.profession}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {application.email}
-                        </p>
-                      </div>
-                      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3">
-                        <Badge className={getStatusColor(application.status)}>
-                          {getStatusText(application.status)}
-                        </Badge>
-                        <Button variant="ghost" size="sm" asChild className="w-full sm:w-auto">
-                          <Link href="/admin/applications">
-                            Revisar
-                          </Link>
-                        </Button>
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Actividad Reciente */}
-          <Card>
-            <CardHeader className="px-4 sm:px-6 pt-4 sm:pt-6">
-              <div>
-                <CardTitle>Actividad Reciente</CardTitle>
-                <CardDescription>
-                  Últimas acciones del sistema
-                </CardDescription>
-              </div>
-            </CardHeader>
-            <CardContent className="px-4 sm:px-6 pb-4 sm:pb-6">
-              <div className="space-y-3 sm:space-y-4">
-                {recentActivities.length === 0 ? (
-                  <p className="text-sm text-muted-foreground text-center py-4">
-                    No hay actividad reciente
-                  </p>
-                ) : (
-                  recentActivities.map((activity) => (
-                    <div
-                      key={activity.id}
-                      className="flex items-start gap-3 p-3 rounded-lg border border-border"
-                    >
-                      <div className="mt-0.5">
-                        {getActivityIcon(activity.type)}
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-sm font-medium text-foreground">
-                          {activity.action}
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          {activity.user}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {activity.time}
-                        </p>
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
-            </CardContent>
-          </Card>
         </div>
       </div>
     </div>

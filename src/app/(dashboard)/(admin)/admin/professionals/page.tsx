@@ -8,7 +8,6 @@ import { toast } from "sonner";
 import {
   UserCheck,
   Search,
-  Filter,
   Eye,
   Phone,
   Mail,
@@ -24,6 +23,8 @@ import {
   XCircle,
   Clock,
   AlertCircle,
+  TrendingUp,
+  TrendingDown,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -846,186 +847,151 @@ export default function AdminProfessionals() {
 
       {/* Main Content */}
       <div className="p-6 space-y-6">
-        {/* Stats */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-6 pt-6">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Total Profesionales
-              </CardTitle>
-              <UserCheck className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent className="px-6 pb-6">
-              <div className="text-2xl font-bold text-foreground">
-                {professionals.length}
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* Total Professionals */}
+          <Card className="border">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm text-muted-foreground">Total Profesionales</span>
+                <Badge variant="secondary" className="text-xs">
+                  {professionals.length > 0 ? Math.round((professionals.filter(p => p.status === "active").length / professionals.length) * 100) : 0}% activos
+                </Badge>
               </div>
-              <p className="text-xs text-muted-foreground">
-                {calculatePercentageChange(statsData.totalThisMonth, statsData.lastMonth)} vs mes anterior
-              </p>
+              <div className="text-3xl font-bold mb-1">{professionals.length}</div>
+              <div className="flex items-center gap-1 text-sm">
+                {statsData.totalThisMonth >= statsData.lastMonth ? (
+                  <TrendingUp className="h-4 w-4 text-green-600" />
+                ) : (
+                  <TrendingDown className="h-4 w-4 text-red-600" />
+                )}
+                <span className={statsData.totalThisMonth >= statsData.lastMonth ? "text-green-600" : "text-red-600"}>
+                  {calculatePercentageChange(statsData.totalThisMonth, statsData.lastMonth)}
+                </span>
+                <span className="text-muted-foreground">vs mes anterior</span>
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">Profesionales registrados en la plataforma</p>
             </CardContent>
           </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-6 pt-6">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Activos
-              </CardTitle>
-              <ShieldCheck className="h-4 w-4 text-green-600" />
-            </CardHeader>
-            <CardContent className="px-6 pb-6">
-              <div className="text-2xl font-bold text-foreground">
-                {professionals.filter(p => p.status === "active").length}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                {professionals.length > 0 ? Math.round((professionals.filter(p => p.status === "active").length / professionals.length) * 100) : 0}% del total
-              </p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-6 pt-6">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Verificados
-              </CardTitle>
-              <Shield className="h-4 w-4 text-blue-600" />
-            </CardHeader>
-            <CardContent className="px-6 pb-6">
-              <div className="text-2xl font-bold text-foreground">
-                {professionals.filter(p => p.reviewed_at).length}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                {professionals.length > 0 ? Math.round((professionals.filter(p => p.reviewed_at).length / professionals.length) * 100) : 0}% del total
-              </p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-6 pt-6">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Total Pacientes
-              </CardTitle>
-              <UserCheck className="h-4 w-4 text-blue-600" />
-            </CardHeader>
-            <CardContent className="px-6 pb-6">
-              <div className="text-2xl font-bold text-foreground">
-                {statsData.totalPatients}
-              </div>
-              <p className="text-xs text-muted-foreground">En toda la plataforma</p>
-            </CardContent>
-          </Card>
-        </div>
 
-        {/* Payment Stats */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          <Card className="border-green-200 bg-green-50">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-6 pt-6">
-              <CardTitle className="text-sm font-medium text-green-900">
-                ✅ Inscripciones Pagadas
-              </CardTitle>
-              <ShieldCheck className="h-4 w-4 text-green-600" />
-            </CardHeader>
-            <CardContent className="px-6 pb-6">
-              <div className="text-2xl font-bold text-green-900">
-                {statsData.totalPaid}
+          {/* Verified Professionals */}
+          <Card className="border">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm text-muted-foreground">Verificados</span>
+                <Badge variant="secondary" className="text-xs bg-green-100 text-green-800">
+                  {professionals.length > 0 ? Math.round((professionals.filter(p => p.reviewed_at).length / professionals.length) * 100) : 0}%
+                </Badge>
               </div>
-              <p className="text-xs text-green-700">
-                {professionals.length > 0 ? Math.round((statsData.totalPaid / professionals.length) * 100) : 0}% del total
-              </p>
+              <div className="text-3xl font-bold mb-1">{professionals.filter(p => p.reviewed_at).length}</div>
+              <div className="flex items-center gap-1 text-sm">
+                <TrendingUp className="h-4 w-4 text-green-600" />
+                <span className="text-green-600">Completo</span>
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">Profesionales con verificación aprobada</p>
             </CardContent>
           </Card>
-          <Card className="border-red-200 bg-red-50">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-6 pt-6">
-              <CardTitle className="text-sm font-medium text-red-900">
-                ❌ Sin Pagar / Expirados
-              </CardTitle>
-              <Shield className="h-4 w-4 text-red-600" />
-            </CardHeader>
-            <CardContent className="px-6 pb-6">
-              <div className="text-2xl font-bold text-red-900">
-                {statsData.totalUnpaid}
+
+          {/* Pending Verification */}
+          <Card className="border">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm text-muted-foreground">Pendientes de Verificación</span>
+                <Badge variant="secondary" className="text-xs bg-yellow-100 text-yellow-800">
+                  {professionals.length > 0 ? Math.round((professionals.filter(p => !p.reviewed_at).length / professionals.length) * 100) : 0}%
+                </Badge>
               </div>
-              <p className="text-xs text-red-700">
-                {professionals.length > 0 ? Math.round((statsData.totalUnpaid / professionals.length) * 100) : 0}% del total
-              </p>
+              <div className="text-3xl font-bold mb-1">{professionals.filter(p => !p.reviewed_at).length}</div>
+              <div className="flex items-center gap-1 text-sm">
+                {professionals.filter(p => !p.reviewed_at).length > 0 ? (
+                  <>
+                    <Clock className="h-4 w-4 text-yellow-600" />
+                    <span className="text-yellow-600">Requieren atención</span>
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle2 className="h-4 w-4 text-green-600" />
+                    <span className="text-green-600">Todo al día</span>
+                  </>
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">Esperando revisión de documentos</p>
             </CardContent>
           </Card>
-          <Card className="border-yellow-200 bg-yellow-50">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-6 pt-6">
-              <CardTitle className="text-sm font-medium text-yellow-900">
-                ⚠️ Expiran Pronto (30 días)
-              </CardTitle>
-              <Calendar className="h-4 w-4 text-yellow-600" />
-            </CardHeader>
-            <CardContent className="px-6 pb-6">
-              <div className="text-2xl font-bold text-yellow-900">
-                {statsData.totalExpiringSoon}
+
+          {/* This Month Growth */}
+          <Card className="border">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm text-muted-foreground">Crecimiento Este Mes</span>
+                <Badge variant="secondary" className={`text-xs ${statsData.totalThisMonth >= statsData.lastMonth ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                  {calculatePercentageChange(statsData.totalThisMonth, statsData.lastMonth)}
+                </Badge>
               </div>
-              <p className="text-xs text-yellow-700">
-                Requieren renovación pronto
-              </p>
+              <div className="text-3xl font-bold mb-1">+{statsData.totalThisMonth}</div>
+              <div className="flex items-center gap-1 text-sm">
+                {statsData.totalThisMonth >= statsData.lastMonth ? (
+                  <>
+                    <TrendingUp className="h-4 w-4 text-green-600" />
+                    <span className="text-green-600">Creciendo</span>
+                  </>
+                ) : (
+                  <>
+                    <TrendingDown className="h-4 w-4 text-red-600" />
+                    <span className="text-red-600">Decreciendo</span>
+                  </>
+                )}
+                <span className="text-muted-foreground">vs {statsData.lastMonth} el mes pasado</span>
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">Nuevos profesionales este mes</p>
             </CardContent>
           </Card>
         </div>
 
         {/* Filters */}
-        <Card>
-          <CardHeader className="px-6 pt-6">
-            <CardTitle className="flex items-center gap-2">
-              <Filter className="h-5 w-5" />
-              Filtros
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="px-6 pb-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Buscar profesional..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 w-full"
-                />
-              </div>
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Estado" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos los estados</SelectItem>
-                  <SelectItem value="active">Activo</SelectItem>
-                  <SelectItem value="inactive">Inactivo</SelectItem>
-                  <SelectItem value="suspended">Suspendido</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select value={verificationFilter} onValueChange={setVerificationFilter}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Verificación" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos</SelectItem>
-                  <SelectItem value="verified">Verificados</SelectItem>
-                  <SelectItem value="unverified">No verificados</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select value={paymentFilter} onValueChange={setPaymentFilter}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Estado de Pago" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos los pagos</SelectItem>
-                  <SelectItem value="paid">✅ Pagado y Vigente</SelectItem>
-                  <SelectItem value="unpaid">❌ Sin Pagar / Expirado</SelectItem>
-                  <SelectItem value="expiring_soon">⚠️ Expira Pronto</SelectItem>
-                </SelectContent>
-              </Select>
-              <Button 
-                variant="outline" 
-                className="w-full"
-                onClick={handleExportProfessionals}
-              >
-                <Calendar className="h-4 w-4 mr-2" />
-                Exportar Lista
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Buscar profesional..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 w-full"
+            />
+          </div>
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Estado" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos los estados</SelectItem>
+              <SelectItem value="active">Activo</SelectItem>
+              <SelectItem value="inactive">Inactivo</SelectItem>
+              <SelectItem value="suspended">Suspendido</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={verificationFilter} onValueChange={setVerificationFilter}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Verificación" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas las verificaciones</SelectItem>
+              <SelectItem value="verified">Verificados</SelectItem>
+              <SelectItem value="unverified">No verificados</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={paymentFilter} onValueChange={setPaymentFilter}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Estado de Pago" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos los pagos</SelectItem>
+              <SelectItem value="paid">Pagado y Vigente</SelectItem>
+              <SelectItem value="unpaid">Sin Pagar / Expirado</SelectItem>
+              <SelectItem value="expiring_soon">Expira Pronto</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
 
         {/* Professionals List */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">

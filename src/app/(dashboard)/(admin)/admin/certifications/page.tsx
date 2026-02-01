@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useUserId } from "@/stores/user-store";
 import { useUserStoreInit } from "@/hooks/use-user-store-init";
 import {
@@ -8,10 +8,11 @@ import {
   Search,
   Send,
   CheckCircle,
-  AlertCircle,
+  XCircle,
   User,
-  FileText,
-  Calendar,
+  Clock,
+  TrendingUp,
+  TrendingDown,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -81,6 +82,43 @@ export default function CertificationsPage() {
   const [emailSent, setEmailSent] = useState(false);
   const [emailLogs, setEmailLogs] = useState<EmailLog[]>([]);
   const [loadingLogs, setLoadingLogs] = useState(true);
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [professionFilter, setProfessionFilter] = useState("all");
+  const [dateRangeFilter, setDateRangeFilter] = useState("all");
+
+  // Calculate stats
+  const stats = useMemo(() => {
+    const totalProfessionals = professionals.length;
+    const sentEmails = emailLogs.filter(log => log.status === 'sent').length;
+    const failedEmails = emailLogs.filter(log => log.status !== 'sent').length;
+    
+    // Professionals who received certification email
+    const professionalsWithEmail = new Set(emailLogs.map(log => log.recipient_email));
+    const pendingProfessionals = professionals.filter(p => !professionalsWithEmail.has(p.email)).length;
+    
+    // Calculate recent trends (last 7 days vs previous 7 days)
+    const now = new Date();
+    const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const fourteenDaysAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
+    
+    const recentEmails = emailLogs.filter(log => new Date(log.sent_at) >= sevenDaysAgo);
+    const previousEmails = emailLogs.filter(log => {
+      const date = new Date(log.sent_at);
+      return date >= fourteenDaysAgo && date < sevenDaysAgo;
+    });
+    
+    const recentCount = recentEmails.length;
+    const previousCount = previousEmails.length;
+    const trend = previousCount > 0 ? ((recentCount - previousCount) / previousCount * 100).toFixed(0) : recentCount > 0 ? 100 : 0;
+    
+    return { totalProfessionals, sentEmails, pendingProfessionals, failedEmails, recentCount, trend: Number(trend) };
+  }, [professionals, emailLogs]);
+
+  // Get unique professions for filter
+  const professions = useMemo(() => {
+    const uniqueProfessions = [...new Set(professionals.map(p => p.profession))];
+    return uniqueProfessions.sort();
+  }, [professionals]);
 
   // Cargar profesionales aprobados
   useEffect(() => {
@@ -140,12 +178,56 @@ export default function CertificationsPage() {
     fetchEmailLogs();
   }, [supabase]);
 
-  // Filtrar profesionales por término de búsqueda
-  const filteredProfessionals = professionals.filter(prof => 
-    prof.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    `${prof.first_name} ${prof.last_name}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    prof.profession.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Set of professionals who received email
+  const professionalsWithEmail = useMemo(() => {
+    return new Set(emailLogs.map(log => log.recipient_email));
+  }, [emailLogs]);
+
+  // Filtrar profesionales por término de búsqueda y filtros
+  const filteredProfessionals = professionals.filter(prof => {
+    // Search filter
+    const matchesSearch = 
+      prof.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      `${prof.first_name} ${prof.last_name}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      prof.profession.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    // Status filter
+    const hasReceivedEmail = professionalsWithEmail.has(prof.email);
+    const matchesStatus = 
+      statusFilter === "all" ||
+      (statusFilter === "sent" && hasReceivedEmail) ||
+      (statusFilter === "pending" && !hasReceivedEmail);
+    
+    // Profession filter
+    const matchesProfession = professionFilter === "all" || prof.profession === professionFilter;
+    
+    // Date range filter
+    let matchesDateRange = true;
+    if (dateRangeFilter !== "all") {
+      const createdDate = new Date(prof.created_at);
+      const now = new Date();
+      
+      switch (dateRangeFilter) {
+        case "today":
+          matchesDateRange = createdDate.toDateString() === now.toDateString();
+          break;
+        case "week":
+          const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+          matchesDateRange = createdDate >= weekAgo;
+          break;
+        case "month":
+          const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+          matchesDateRange = createdDate >= monthAgo;
+          break;
+        case "quarter":
+          const quarterAgo = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
+          matchesDateRange = createdDate >= quarterAgo;
+          break;
+      }
+    }
+    
+    return matchesSearch && matchesStatus && matchesProfession && matchesDateRange;
+  });
 
   // Mensaje por defecto
   const defaultMessage = `Estimado/a ${selectedProfessional?.first_name || '[Nombre]'},
@@ -234,9 +316,151 @@ El equipo de Holistia`;
       </div>
 
       {/* Main Content */}
-      <div className="p-4 sm:p-6 space-y-6">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 sm:mb-8">
+          {/* Total Profesionales */}
+          <Card className="border">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm text-muted-foreground">Total Profesionales</span>
+                <Badge variant="secondary" className="flex items-center gap-1">
+                  <User className="h-3 w-3" />
+                  Aprobados
+                </Badge>
+              </div>
+              <div className="text-3xl font-bold">{stats.totalProfessionals}</div>
+              <div className="flex items-center gap-1 mt-1">
+                <TrendingUp className="h-4 w-4 text-green-500" />
+                <span className="text-sm text-green-600 dark:text-green-400">Profesionales activos</span>
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Disponibles para certificación
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* Certificaciones Enviadas */}
+          <Card className="border">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm text-muted-foreground">Enviadas</span>
+                <Badge className="bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400">
+                  <CheckCircle className="h-3 w-3 mr-1" />
+                  Completadas
+                </Badge>
+              </div>
+              <div className="text-3xl font-bold">{stats.sentEmails}</div>
+              <div className="flex items-center gap-1 mt-1">
+                {stats.trend >= 0 ? (
+                  <TrendingUp className="h-4 w-4 text-green-500" />
+                ) : (
+                  <TrendingDown className="h-4 w-4 text-red-500" />
+                )}
+                <span className={`text-sm ${stats.trend >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                  {stats.trend >= 0 ? '+' : ''}{stats.trend}%
+                </span>
+                <span className="text-sm text-muted-foreground">vs semana anterior</span>
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                {stats.recentCount} enviadas esta semana
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* Pendientes */}
+          <Card className="border">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm text-muted-foreground">Pendientes</span>
+                <Badge className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400">
+                  <Clock className="h-3 w-3 mr-1" />
+                  Por enviar
+                </Badge>
+              </div>
+              <div className="text-3xl font-bold">{stats.pendingProfessionals}</div>
+              <div className="flex items-center gap-1 mt-1">
+                <Clock className="h-4 w-4 text-yellow-500" />
+                <span className="text-sm text-yellow-600 dark:text-yellow-400">Requieren atención</span>
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                {stats.totalProfessionals > 0 ? ((stats.pendingProfessionals / stats.totalProfessionals) * 100).toFixed(0) : 0}% del total
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* Fallidas */}
+          <Card className="border">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm text-muted-foreground">Fallidas</span>
+                <Badge className="bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400">
+                  <XCircle className="h-3 w-3 mr-1" />
+                  Error
+                </Badge>
+              </div>
+              <div className="text-3xl font-bold">{stats.failedEmails}</div>
+              <div className="flex items-center gap-1 mt-1">
+                <XCircle className="h-4 w-4 text-red-500" />
+                <span className="text-sm text-red-600 dark:text-red-400">No enviadas</span>
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                {stats.sentEmails > 0 ? ((stats.failedEmails / (stats.sentEmails + stats.failedEmails)) * 100).toFixed(0) : 0}% tasa de error
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Filters */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 sm:mb-8">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Buscar por nombre, email o profesión..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 w-full"
+            />
+          </div>
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Estado" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos los estados</SelectItem>
+              <SelectItem value="sent">Certificación enviada</SelectItem>
+              <SelectItem value="pending">Pendiente de envío</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={dateRangeFilter} onValueChange={setDateRangeFilter}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Período" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todo el tiempo</SelectItem>
+              <SelectItem value="today">Hoy</SelectItem>
+              <SelectItem value="week">Última semana</SelectItem>
+              <SelectItem value="month">Último mes</SelectItem>
+              <SelectItem value="quarter">Últimos 3 meses</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={professionFilter} onValueChange={setProfessionFilter}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Profesión" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas las profesiones</SelectItem>
+              {professions.map((profession) => (
+                <SelectItem key={profession} value={profession}>
+                  {profession}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
         {/* Selección de Profesional */}
-        <Card className="py-4">
+        <Card className="py-4 mb-6">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <User className="h-5 w-5" />
@@ -244,20 +468,14 @@ El equipo de Holistia`;
             </CardTitle>
             <CardDescription>
               Busca y selecciona el profesional al que deseas enviar la confirmación
+              {filteredProfessionals.length > 0 && (
+                <span className="ml-2 text-primary font-medium">
+                  ({filteredProfessionals.length})
+                </span>
+              )}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            {/* Búsqueda */}
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-              <Input
-                placeholder="Buscar por nombre, email o profesión..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-
             {/* Lista de Profesionales */}
             <div className="max-h-80 overflow-y-auto space-y-2">
               {loading ? (
@@ -294,6 +512,17 @@ El equipo de Holistia`;
                           <Badge variant="outline" className="text-xs">
                             {new Date(professional.created_at).toLocaleDateString('es-ES')}
                           </Badge>
+                          {professionalsWithEmail.has(professional.email) ? (
+                            <Badge className="bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400 text-xs">
+                              <CheckCircle className="h-3 w-3 mr-1" />
+                              Enviada
+                            </Badge>
+                          ) : (
+                            <Badge className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400 text-xs">
+                              <Clock className="h-3 w-3 mr-1" />
+                              Pendiente
+                            </Badge>
+                          )}
                         </div>
                       </div>
                       {selectedProfessional?.id === professional.id && (
@@ -309,7 +538,7 @@ El equipo de Holistia`;
 
         {/* Formulario de Email */}
         {selectedProfessional && (
-          <Card className="py-4">
+          <Card className="py-4 mb-6">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Mail className="h-5 w-5" />
@@ -487,7 +716,7 @@ El equipo de Holistia`;
             )}
           </CardContent>
         </Card>
-      </div>
+      </main>
     </div>
   );
 }

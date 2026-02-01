@@ -7,7 +7,6 @@ import {
   User,
   Loader2,
   Trash2,
-  Sparkles,
   DollarSign,
   Zap,
   MessageSquare,
@@ -134,14 +133,11 @@ export default function AIAgentPage() {
         <div className="flex h-16 items-center justify-between px-6">
           <div className="flex items-center gap-4">
             <SidebarTrigger />
-            <div className="flex items-center gap-2">
-              <Sparkles className="w-6 h-6 text-primary" />
-              <div>
-                <h1 className="text-2xl font-bold text-foreground">Asistente IA de Holistia</h1>
-                <p className="text-sm text-muted-foreground">
-                  Chat conversacional con acceso a datos en tiempo real
-                </p>
-              </div>
+            <div>
+              <h1 className="text-2xl font-bold text-foreground">Asistente IA de Holistia</h1>
+              <p className="text-sm text-muted-foreground">
+                Chat conversacional con acceso a datos en tiempo real
+              </p>
             </div>
           </div>
             <div className="flex items-center gap-2">

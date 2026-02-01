@@ -53,6 +53,8 @@ import {
   FileImage,
   FileVideo,
   Trash2,
+  TrendingUp,
+  TrendingDown,
 } from "lucide-react";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
@@ -123,6 +125,7 @@ export default function TicketsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [priorityFilter, setPriorityFilter] = useState<string>("all");
+  const [sortOrder, setSortOrder] = useState<string>("newest");
   const [selectedTicket, setSelectedTicket] = useState<SupportTicket | null>(null);
   const [ticketComments, setTicketComments] = useState<TicketComment[]>([]);
   const [ticketAttachments, setTicketAttachments] = useState<TicketAttachment[]>([]);
@@ -154,7 +157,7 @@ export default function TicketsPage() {
 
   useEffect(() => {
     filterTickets();
-  }, [tickets, searchTerm, statusFilter, priorityFilter]);
+  }, [tickets, searchTerm, statusFilter, priorityFilter, sortOrder]);
 
   const loadTickets = async () => {
     try {
@@ -225,7 +228,46 @@ export default function TicketsPage() {
       filtered = filtered.filter((ticket) => ticket.priority === priorityFilter);
     }
 
+    // Ordenar
+    filtered.sort((a, b) => {
+      switch (sortOrder) {
+        case "newest":
+          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+        case "oldest":
+          return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+        case "priority_high":
+          const priorityOrder = { urgent: 0, high: 1, medium: 2, low: 3 };
+          return priorityOrder[a.priority] - priorityOrder[b.priority];
+        case "priority_low":
+          const priorityOrderLow = { low: 0, medium: 1, high: 2, urgent: 3 };
+          return priorityOrderLow[a.priority] - priorityOrderLow[b.priority];
+        default:
+          return 0;
+      }
+    });
+
     setFilteredTickets(filtered);
+  };
+
+  // Calculate stats for cards
+  const getThisWeekTickets = () => {
+    const oneWeekAgo = new Date();
+    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+    return tickets.filter((ticket) => new Date(ticket.created_at) >= oneWeekAgo).length;
+  };
+
+  const getTotalTickets = () => tickets.length;
+
+  const getOpenTickets = () => {
+    return tickets.filter((ticket) => 
+      ticket.status === "open" || ticket.status === "in_progress" || ticket.status === "waiting_response"
+    ).length;
+  };
+
+  const getClosedTickets = () => {
+    return tickets.filter((ticket) => 
+      ticket.status === "closed" || ticket.status === "resolved"
+    ).length;
   };
 
   const loadTicketComments = async (ticketId: string) => {
@@ -689,91 +731,142 @@ export default function TicketsPage() {
       {/* Main Content */}
       <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
         {/* Stats Cards */}
-        {stats && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <Card className="py-4">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Tickets Abiertos</CardTitle>
-                <AlertCircle className="h-4 w-4 text-blue-600" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{stats.open_tickets}</div>
-              </CardContent>
-            </Card>
-            <Card className="py-4">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">En Progreso</CardTitle>
-                <Clock className="h-4 w-4 text-yellow-600" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{stats.in_progress_tickets}</div>
-              </CardContent>
-            </Card>
-            <Card className="py-4">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Resueltos</CardTitle>
-                <CheckCircle className="h-4 w-4 text-green-600" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{stats.resolved_tickets}</div>
-              </CardContent>
-            </Card>
-            <Card className="py-4">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Urgentes</CardTitle>
-                <AlertCircle className="h-4 w-4 text-red-600" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{stats.urgent_tickets}</div>
-              </CardContent>
-            </Card>
-          </div>
-        )}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <Card className="border">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium text-muted-foreground">Total Tickets</span>
+                <Badge variant="secondary" className="bg-blue-100 text-blue-700">
+                  <Ticket className="h-3 w-3 mr-1" />
+                  Total
+                </Badge>
+              </div>
+              <div className="text-3xl font-bold">{getTotalTickets()}</div>
+              <div className="flex items-center gap-1 mt-2 text-sm text-muted-foreground">
+                <TrendingUp className="h-4 w-4 text-green-500" />
+                <span>Todos los tickets registrados</span>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium text-muted-foreground">Abiertos</span>
+                <Badge variant="secondary" className="bg-yellow-100 text-yellow-700">
+                  <AlertCircle className="h-3 w-3 mr-1" />
+                  Pendientes
+                </Badge>
+              </div>
+              <div className="text-3xl font-bold">{getOpenTickets()}</div>
+              <div className="flex items-center gap-1 mt-2 text-sm text-muted-foreground">
+                {getOpenTickets() > 5 ? (
+                  <>
+                    <TrendingUp className="h-4 w-4 text-red-500" />
+                    <span>Requieren atención</span>
+                  </>
+                ) : (
+                  <>
+                    <TrendingDown className="h-4 w-4 text-green-500" />
+                    <span>Bajo control</span>
+                  </>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium text-muted-foreground">Cerrados</span>
+                <Badge variant="secondary" className="bg-green-100 text-green-700">
+                  <CheckCircle className="h-3 w-3 mr-1" />
+                  Resueltos
+                </Badge>
+              </div>
+              <div className="text-3xl font-bold">{getClosedTickets()}</div>
+              <div className="flex items-center gap-1 mt-2 text-sm text-muted-foreground">
+                <TrendingUp className="h-4 w-4 text-green-500" />
+                <span>Tickets completados</span>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium text-muted-foreground">Esta Semana</span>
+                <Badge variant="secondary" className="bg-purple-100 text-purple-700">
+                  <Calendar className="h-3 w-3 mr-1" />
+                  Recientes
+                </Badge>
+              </div>
+              <div className="text-3xl font-bold">{getThisWeekTickets()}</div>
+              <div className="flex items-center gap-1 mt-2 text-sm text-muted-foreground">
+                {getThisWeekTickets() > 10 ? (
+                  <>
+                    <TrendingUp className="h-4 w-4 text-yellow-500" />
+                    <span>Alta actividad</span>
+                  </>
+                ) : (
+                  <>
+                    <TrendingDown className="h-4 w-4 text-green-500" />
+                    <span>Actividad normal</span>
+                  </>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
 
         {/* Filters */}
-        <Card className="py-4">
-          <CardHeader>
-            <CardTitle>Filtros</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Buscar tickets..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Filtrar por estado" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos los estados</SelectItem>
-                  <SelectItem value="open">Abierto</SelectItem>
-                  <SelectItem value="in_progress">En Progreso</SelectItem>
-                  <SelectItem value="waiting_response">Esperando Respuesta</SelectItem>
-                  <SelectItem value="resolved">Resuelto</SelectItem>
-                  <SelectItem value="closed">Cerrado</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select value={priorityFilter} onValueChange={setPriorityFilter}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Filtrar por prioridad" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todas las prioridades</SelectItem>
-                  <SelectItem value="low">Baja</SelectItem>
-                  <SelectItem value="medium">Media</SelectItem>
-                  <SelectItem value="high">Alta</SelectItem>
-                  <SelectItem value="urgent">Urgente</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </CardContent>
-        </Card>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Buscar tickets..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Estado" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos los estados</SelectItem>
+              <SelectItem value="open">Abierto</SelectItem>
+              <SelectItem value="in_progress">En Progreso</SelectItem>
+              <SelectItem value="waiting_response">Esperando Respuesta</SelectItem>
+              <SelectItem value="resolved">Resuelto</SelectItem>
+              <SelectItem value="closed">Cerrado</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={priorityFilter} onValueChange={setPriorityFilter}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Prioridad" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas las prioridades</SelectItem>
+              <SelectItem value="low">Baja</SelectItem>
+              <SelectItem value="medium">Media</SelectItem>
+              <SelectItem value="high">Alta</SelectItem>
+              <SelectItem value="urgent">Urgente</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={sortOrder} onValueChange={setSortOrder}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Ordenar por" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="newest">Más recientes</SelectItem>
+              <SelectItem value="oldest">Más antiguos</SelectItem>
+              <SelectItem value="priority_high">Mayor prioridad</SelectItem>
+              <SelectItem value="priority_low">Menor prioridad</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
 
         {/* Tickets Table */}
         <Card className="py-4">

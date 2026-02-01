@@ -15,6 +15,8 @@ import {
   Globe,
   Clock,
   Star,
+  TrendingUp,
+  TrendingDown,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -133,6 +135,9 @@ export default function AdminRestaurants() {
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [cityFilter, setCityFilter] = useState("all");
+  const [sortBy, setSortBy] = useState("recent");
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isViewOpen, setIsViewOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
@@ -403,11 +408,73 @@ export default function AdminRestaurants() {
     }
   };
 
-  const filteredRestaurants = restaurants.filter((restaurant) =>
-    restaurant.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    restaurant.cuisine_type?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    restaurant.address?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Calculate stats
+  const totalRestaurants = restaurants.length;
+  const activeRestaurants = restaurants.filter(r => r.is_active).length;
+  const inactiveRestaurants = restaurants.filter(r => !r.is_active).length;
+  
+  // Calculate growth this month
+  const now = new Date();
+  const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+  const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+  const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
+  
+  const thisMonthRestaurants = restaurants.filter(r => new Date(r.created_at) >= currentMonthStart).length;
+  const lastMonthRestaurants = restaurants.filter(r => {
+    const createdAt = new Date(r.created_at);
+    return createdAt >= lastMonthStart && createdAt <= lastMonthEnd;
+  }).length;
+
+  // Function to calculate percentage change
+  const calculatePercentageChange = (current: number, previous: number): string => {
+    if (previous === 0) return current > 0 ? "+100%" : "0%";
+    const change = ((current - previous) / previous) * 100;
+    const sign = change >= 0 ? "+" : "";
+    return `${sign}${Math.round(change)}%`;
+  };
+
+  // Extract unique cities from addresses for filter
+  const uniqueCities = Array.from(new Set(
+    restaurants
+      .map(r => r.address)
+      .filter(Boolean)
+      .map(addr => {
+        // Extract city from address (assuming format like "Street, City, State")
+        const parts = addr!.split(',').map(p => p.trim());
+        return parts.length >= 2 ? parts[parts.length - 2] : parts[0];
+      })
+      .filter(city => city && city.length > 0)
+  )).sort();
+
+  const filteredRestaurants = restaurants
+    .filter((restaurant) => {
+      const matchesSearch = 
+        restaurant.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        restaurant.cuisine_type?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        restaurant.address?.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      const matchesStatus = 
+        statusFilter === "all" || 
+        (statusFilter === "active" && restaurant.is_active) ||
+        (statusFilter === "inactive" && !restaurant.is_active);
+      
+      const matchesCity = 
+        cityFilter === "all" || 
+        restaurant.address?.toLowerCase().includes(cityFilter.toLowerCase());
+
+      return matchesSearch && matchesStatus && matchesCity;
+    })
+    .sort((a, b) => {
+      switch (sortBy) {
+        case "name":
+          return a.name.localeCompare(b.name);
+        case "oldest":
+          return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+        case "recent":
+        default:
+          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      }
+    });
 
   return (
     <div className="min-h-screen bg-background">
@@ -431,18 +498,139 @@ export default function AdminRestaurants() {
       </div>
 
       {/* Main Content */}
-      <div className="container mx-auto px-6 py-8">
-        {/* Search */}
-        <div className="mb-6">
+      <div className="p-6 space-y-6">
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {/* Total Restaurantes */}
+          <Card className="border">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm text-muted-foreground">Total Restaurantes</span>
+                <Badge 
+                  variant={thisMonthRestaurants >= lastMonthRestaurants ? "default" : "secondary"}
+                  className={thisMonthRestaurants >= lastMonthRestaurants ? "bg-green-100 text-green-800 hover:bg-green-100" : "bg-red-100 text-red-800 hover:bg-red-100"}
+                >
+                  {calculatePercentageChange(thisMonthRestaurants, lastMonthRestaurants)}
+                </Badge>
+              </div>
+              <div className="text-3xl font-bold mb-2">{totalRestaurants}</div>
+              <div className="flex items-center gap-1 text-sm">
+                {thisMonthRestaurants >= lastMonthRestaurants ? (
+                  <TrendingUp className="h-4 w-4 text-green-600" />
+                ) : (
+                  <TrendingDown className="h-4 w-4 text-red-600" />
+                )}
+                <span className={thisMonthRestaurants >= lastMonthRestaurants ? "text-green-600" : "text-red-600"}>
+                  {thisMonthRestaurants} nuevos este mes
+                </span>
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">vs {lastMonthRestaurants} el mes anterior</p>
+            </CardContent>
+          </Card>
+
+          {/* Restaurantes Activos */}
+          <Card className="border">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm text-muted-foreground">Activos</span>
+                <Badge className="bg-green-100 text-green-800 hover:bg-green-100">
+                  {totalRestaurants > 0 ? Math.round((activeRestaurants / totalRestaurants) * 100) : 0}%
+                </Badge>
+              </div>
+              <div className="text-3xl font-bold mb-2">{activeRestaurants}</div>
+              <div className="flex items-center gap-1 text-sm">
+                <TrendingUp className="h-4 w-4 text-green-600" />
+                <span className="text-green-600">Restaurantes visibles</span>
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">Del total de {totalRestaurants} restaurantes</p>
+            </CardContent>
+          </Card>
+
+          {/* Restaurantes Inactivos */}
+          <Card className="border">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm text-muted-foreground">Inactivos</span>
+                <Badge className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100">
+                  {totalRestaurants > 0 ? Math.round((inactiveRestaurants / totalRestaurants) * 100) : 0}%
+                </Badge>
+              </div>
+              <div className="text-3xl font-bold mb-2">{inactiveRestaurants}</div>
+              <div className="flex items-center gap-1 text-sm">
+                <TrendingDown className="h-4 w-4 text-yellow-600" />
+                <span className="text-yellow-600">Restaurantes ocultos</span>
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">No visibles en la plataforma</p>
+            </CardContent>
+          </Card>
+
+          {/* Crecimiento este mes */}
+          <Card className="border">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm text-muted-foreground">Crecimiento este mes</span>
+                <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100">
+                  Mensual
+                </Badge>
+              </div>
+              <div className="text-3xl font-bold mb-2">{thisMonthRestaurants}</div>
+              <div className="flex items-center gap-1 text-sm">
+                {thisMonthRestaurants >= lastMonthRestaurants ? (
+                  <TrendingUp className="h-4 w-4 text-blue-600" />
+                ) : (
+                  <TrendingDown className="h-4 w-4 text-blue-600" />
+                )}
+                <span className="text-blue-600">Nuevos restaurantes</span>
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">Agregados este mes</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Filters */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Buscar restaurantes..."
+              placeholder="Buscar restaurante..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
+              className="pl-10 w-full"
             />
           </div>
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Estado" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos los estados</SelectItem>
+              <SelectItem value="active">Activo</SelectItem>
+              <SelectItem value="inactive">Inactivo</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={cityFilter} onValueChange={setCityFilter}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Ciudad" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas las ciudades</SelectItem>
+              {uniqueCities.map((city) => (
+                <SelectItem key={city} value={city}>
+                  {city}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={sortBy} onValueChange={setSortBy}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Ordenar por" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="recent">Más recientes</SelectItem>
+              <SelectItem value="oldest">Más antiguos</SelectItem>
+              <SelectItem value="name">Nombre A-Z</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
         {/* Restaurants Grid */}

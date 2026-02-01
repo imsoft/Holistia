@@ -14,6 +14,8 @@ import {
   Globe,
   Clock,
   Package,
+  TrendingUp,
+  TrendingDown,
 } from "lucide-react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
@@ -124,6 +126,13 @@ export default function AdminShops() {
   const [shops, setShops] = useState<Shop[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [cityFilter, setCityFilter] = useState("all");
+  const [sortOrder, setSortOrder] = useState("newest");
+  const [statsData, setStatsData] = useState({
+    totalThisMonth: 0,
+    lastMonth: 0,
+  });
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isViewOpen, setIsViewOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
@@ -162,13 +171,41 @@ export default function AdminShops() {
   const fetchShops = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from("shops")
-        .select("*")
-        .order("created_at", { ascending: false });
+      
+      // Fechas para comparaciones
+      const now = new Date();
+      const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+      const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+      const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
+
+      const [
+        { data, error },
+        { data: lastMonthShops }
+      ] = await Promise.all([
+        supabase
+          .from("shops")
+          .select("*")
+          .order("created_at", { ascending: false }),
+        supabase
+          .from("shops")
+          .select("*")
+          .gte("created_at", lastMonthStart.toISOString())
+          .lte("created_at", lastMonthEnd.toISOString())
+      ]);
 
       if (error) throw error;
       setShops(data || []);
+
+      // Calcular estadísticas
+      const thisMonthShops = (data || []).filter(shop => {
+        const createdAt = new Date(shop.created_at);
+        return createdAt >= currentMonthStart;
+      }).length;
+
+      setStatsData({
+        totalThisMonth: thisMonthShops,
+        lastMonth: lastMonthShops?.length || 0,
+      });
     } catch (error) {
       console.error("Error fetching shops:", error);
       toast.error("Error al cargar los comercios");
@@ -374,12 +411,46 @@ export default function AdminShops() {
     }
   };
 
-  const filteredShops = shops.filter((shop) =>
-    shop.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    shop.address?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    shop.city?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    shop.category?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Obtener ciudades únicas para el filtro
+  const uniqueCities = Array.from(new Set(shops.filter(s => s.city).map(s => s.city))).sort();
+
+  // Función para calcular porcentaje de cambio
+  const calculatePercentageChange = (current: number, previous: number): string => {
+    if (previous === 0) return current > 0 ? "+100%" : "0%";
+    const change = ((current - previous) / previous) * 100;
+    const sign = change >= 0 ? "+" : "";
+    return `${sign}${Math.round(change)}%`;
+  };
+
+  const filteredShops = shops
+    .filter((shop) => {
+      const matchesSearch = shop.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        shop.address?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        shop.city?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        shop.category?.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      const matchesStatus = statusFilter === "all" || 
+        (statusFilter === "active" && shop.is_active) ||
+        (statusFilter === "inactive" && !shop.is_active);
+      
+      const matchesCity = cityFilter === "all" || shop.city === cityFilter;
+
+      return matchesSearch && matchesStatus && matchesCity;
+    })
+    .sort((a, b) => {
+      switch (sortOrder) {
+        case "newest":
+          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+        case "oldest":
+          return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+        case "name_asc":
+          return a.name.localeCompare(b.name);
+        case "name_desc":
+          return b.name.localeCompare(a.name);
+        default:
+          return 0;
+      }
+    });
 
   const getCategoryLabel = (category?: string) => {
     return CATEGORIES.find(c => c.value === category)?.label || category;
@@ -407,18 +478,153 @@ export default function AdminShops() {
       </div>
 
       {/* Main Content */}
-      <div className="container mx-auto px-6 py-8">
-        {/* Search */}
-        <div className="mb-6">
+      <div className="p-6 space-y-6">
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* Total Shops */}
+          <Card className="border">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm text-muted-foreground">Total Comercios</span>
+                <Badge variant="secondary" className="text-xs">
+                  {shops.length > 0 ? Math.round((shops.filter(s => s.is_active).length / shops.length) * 100) : 0}% activos
+                </Badge>
+              </div>
+              <div className="text-3xl font-bold mb-1">{shops.length}</div>
+              <div className="flex items-center gap-1 text-sm">
+                {statsData.totalThisMonth >= statsData.lastMonth ? (
+                  <TrendingUp className="h-4 w-4 text-green-600" />
+                ) : (
+                  <TrendingDown className="h-4 w-4 text-red-600" />
+                )}
+                <span className={statsData.totalThisMonth >= statsData.lastMonth ? "text-green-600" : "text-red-600"}>
+                  {calculatePercentageChange(statsData.totalThisMonth, statsData.lastMonth)}
+                </span>
+                <span className="text-muted-foreground">vs mes anterior</span>
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">Comercios registrados en la plataforma</p>
+            </CardContent>
+          </Card>
+
+          {/* Active Shops */}
+          <Card className="border">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm text-muted-foreground">Activos</span>
+                <Badge variant="secondary" className="text-xs bg-green-100 text-green-800">
+                  {shops.length > 0 ? Math.round((shops.filter(s => s.is_active).length / shops.length) * 100) : 0}%
+                </Badge>
+              </div>
+              <div className="text-3xl font-bold mb-1">{shops.filter(s => s.is_active).length}</div>
+              <div className="flex items-center gap-1 text-sm">
+                <TrendingUp className="h-4 w-4 text-green-600" />
+                <span className="text-green-600">Visibles</span>
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">Comercios visibles en la plataforma</p>
+            </CardContent>
+          </Card>
+
+          {/* Inactive Shops */}
+          <Card className="border">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm text-muted-foreground">Inactivos</span>
+                <Badge variant="secondary" className="text-xs bg-yellow-100 text-yellow-800">
+                  {shops.length > 0 ? Math.round((shops.filter(s => !s.is_active).length / shops.length) * 100) : 0}%
+                </Badge>
+              </div>
+              <div className="text-3xl font-bold mb-1">{shops.filter(s => !s.is_active).length}</div>
+              <div className="flex items-center gap-1 text-sm">
+                {shops.filter(s => !s.is_active).length > 0 ? (
+                  <>
+                    <Clock className="h-4 w-4 text-yellow-600" />
+                    <span className="text-yellow-600">Ocultos</span>
+                  </>
+                ) : (
+                  <>
+                    <TrendingUp className="h-4 w-4 text-green-600" />
+                    <span className="text-green-600">Todo activo</span>
+                  </>
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">Comercios ocultos de la plataforma</p>
+            </CardContent>
+          </Card>
+
+          {/* Growth This Month */}
+          <Card className="border">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm text-muted-foreground">Crecimiento Este Mes</span>
+                <Badge variant="secondary" className={`text-xs ${statsData.totalThisMonth >= statsData.lastMonth ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                  {calculatePercentageChange(statsData.totalThisMonth, statsData.lastMonth)}
+                </Badge>
+              </div>
+              <div className="text-3xl font-bold mb-1">+{statsData.totalThisMonth}</div>
+              <div className="flex items-center gap-1 text-sm">
+                {statsData.totalThisMonth >= statsData.lastMonth ? (
+                  <>
+                    <TrendingUp className="h-4 w-4 text-green-600" />
+                    <span className="text-green-600">Creciendo</span>
+                  </>
+                ) : (
+                  <>
+                    <TrendingDown className="h-4 w-4 text-red-600" />
+                    <span className="text-red-600">Decreciendo</span>
+                  </>
+                )}
+                <span className="text-muted-foreground">vs {statsData.lastMonth} el mes pasado</span>
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">Nuevos comercios este mes</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Filters */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Buscar comercios..."
+              placeholder="Buscar comercio..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
+              className="pl-10 w-full"
             />
           </div>
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Estado" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos los estados</SelectItem>
+              <SelectItem value="active">Activo</SelectItem>
+              <SelectItem value="inactive">Inactivo</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={cityFilter} onValueChange={setCityFilter}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Ciudad" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas las ciudades</SelectItem>
+              {uniqueCities.map((city) => (
+                <SelectItem key={city} value={city || ""}>
+                  {city}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={sortOrder} onValueChange={setSortOrder}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Ordenar por" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="newest">Más recientes</SelectItem>
+              <SelectItem value="oldest">Más antiguos</SelectItem>
+              <SelectItem value="name_asc">Nombre A-Z</SelectItem>
+              <SelectItem value="name_desc">Nombre Z-A</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
         {/* Shops Grid */}

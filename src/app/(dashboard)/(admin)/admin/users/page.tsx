@@ -5,7 +5,6 @@ import { useState, useEffect } from "react";
 import {
   Users,
   Search,
-  Filter,
   Eye,
   Phone,
   Mail,
@@ -14,6 +13,8 @@ import {
   UserCheck,
   UserX,
   Shield,
+  TrendingUp,
+  TrendingDown,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -465,140 +466,135 @@ export default function AdminUsers() {
 
       {/* Main Content */}
       <div className="p-6 space-y-6">
-        {/* Stats */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-6 pt-6">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Total Usuarios
-              </CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent className="px-6 pb-6">
-              <div className="text-2xl font-bold text-foreground">
-                {users.length}
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {/* Total Usuarios */}
+          <Card className="border">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm text-muted-foreground">Total Usuarios</span>
+                <Badge 
+                  variant={statsData.totalThisMonth >= statsData.lastMonth ? "default" : "secondary"}
+                  className={statsData.totalThisMonth >= statsData.lastMonth ? "bg-green-100 text-green-800 hover:bg-green-100" : "bg-red-100 text-red-800 hover:bg-red-100"}
+                >
+                  {calculatePercentageChange(statsData.totalThisMonth, statsData.lastMonth)}
+                </Badge>
               </div>
-              <p className="text-xs text-muted-foreground">
-                {calculatePercentageChange(statsData.totalThisMonth, statsData.lastMonth)} vs mes anterior
-              </p>
+              <div className="text-3xl font-bold mb-2">{users.length}</div>
+              <div className="flex items-center gap-1 text-sm">
+                {statsData.totalThisMonth >= statsData.lastMonth ? (
+                  <TrendingUp className="h-4 w-4 text-green-600" />
+                ) : (
+                  <TrendingDown className="h-4 w-4 text-red-600" />
+                )}
+                <span className={statsData.totalThisMonth >= statsData.lastMonth ? "text-green-600" : "text-red-600"}>
+                  {statsData.totalThisMonth} nuevos este mes
+                </span>
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">vs {statsData.lastMonth} el mes anterior</p>
             </CardContent>
           </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-6 pt-6">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Activos
-              </CardTitle>
-              <UserCheck className="h-4 w-4 text-green-600" />
-            </CardHeader>
-            <CardContent className="px-6 pb-6">
-              <div className="text-2xl font-bold text-foreground">
-                {users.filter(u => u.status === "active").length}
+
+          {/* Usuarios Activos */}
+          <Card className="border">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm text-muted-foreground">Usuarios Activos</span>
+                <Badge className="bg-green-100 text-green-800 hover:bg-green-100">
+                  {users.length > 0 ? Math.round((users.filter(u => u.status === "active").length / users.length) * 100) : 0}%
+                </Badge>
               </div>
-              <p className="text-xs text-muted-foreground">
-                {users.length > 0 ? Math.round((users.filter(u => u.status === "active").length / users.length) * 100) : 0}% del total
-              </p>
+              <div className="text-3xl font-bold mb-2">{users.filter(u => u.status === "active").length}</div>
+              <div className="flex items-center gap-1 text-sm">
+                <TrendingUp className="h-4 w-4 text-green-600" />
+                <span className="text-green-600">Usuarios con cuenta activa</span>
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">Del total de {users.length} usuarios</p>
             </CardContent>
           </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-6 pt-6">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Inactivos
-              </CardTitle>
-              <UserX className="h-4 w-4 text-red-600" />
-            </CardHeader>
-            <CardContent className="px-6 pb-6">
-              <div className="text-2xl font-bold text-foreground">
-                {users.filter(u => u.status === "inactive").length}
+
+          {/* Usuarios Suspendidos */}
+          <Card className="border">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm text-muted-foreground">Suspendidos</span>
+                <Badge className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100">
+                  {users.length > 0 ? Math.round((users.filter(u => u.status === "suspended").length / users.length) * 100) : 0}%
+                </Badge>
               </div>
-              <p className="text-xs text-muted-foreground">
-                {users.length > 0 ? Math.round((users.filter(u => u.status === "inactive").length / users.length) * 100) : 0}% del total
-              </p>
+              <div className="text-3xl font-bold mb-2">{users.filter(u => u.status === "suspended").length}</div>
+              <div className="flex items-center gap-1 text-sm">
+                <Shield className="h-4 w-4 text-yellow-600" />
+                <span className="text-yellow-600">Cuentas restringidas</span>
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">Requieren revisión administrativa</p>
             </CardContent>
           </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-6 pt-6">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Suspendidos
-              </CardTitle>
-              <Shield className="h-4 w-4 text-yellow-600" />
-            </CardHeader>
-            <CardContent className="px-6 pb-6">
-              <div className="text-2xl font-bold text-foreground">
-                {users.filter(u => u.status === "suspended").length}
+
+          {/* Total Citas */}
+          <Card className="border">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm text-muted-foreground">Total Citas</span>
+                <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100">
+                  Plataforma
+                </Badge>
               </div>
-              <p className="text-xs text-muted-foreground">
-                {users.length > 0 ? Math.round((users.filter(u => u.status === "suspended").length / users.length) * 100) : 0}% del total
-              </p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-6 pt-6">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Total Citas
-              </CardTitle>
-              <Calendar className="h-4 w-4 text-blue-600" />
-            </CardHeader>
-            <CardContent className="px-6 pb-6">
-              <div className="text-2xl font-bold text-foreground">
-                {statsData.totalAppointments}
+              <div className="text-3xl font-bold mb-2">{statsData.totalAppointments}</div>
+              <div className="flex items-center gap-1 text-sm">
+                <Calendar className="h-4 w-4 text-blue-600" />
+                <span className="text-blue-600">Citas registradas</span>
               </div>
-              <p className="text-xs text-muted-foreground">En toda la plataforma</p>
+              <p className="text-xs text-muted-foreground mt-1">En toda la plataforma</p>
             </CardContent>
           </Card>
         </div>
 
         {/* Filters */}
-        <Card>
-          <CardHeader className="px-6 pt-6">
-            <CardTitle className="flex items-center gap-2">
-              <Filter className="h-5 w-5" />
-              Filtros
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="px-6 pb-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Buscar usuario..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 w-full"
-                />
-              </div>
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Estado" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos los estados</SelectItem>
-                  <SelectItem value="active">Activo</SelectItem>
-                  <SelectItem value="inactive">Inactivo</SelectItem>
-                  <SelectItem value="suspended">Suspendido</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select value={typeFilter} onValueChange={setTypeFilter}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Tipo" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos los tipos</SelectItem>
-                  <SelectItem value="patient">Usuario</SelectItem>
-                  <SelectItem value="professional">Profesional</SelectItem>
-                  <SelectItem value="admin">Administrador</SelectItem>
-                </SelectContent>
-              </Select>
-              <Button 
-                variant="outline" 
-                className="w-full"
-                onClick={handleExportUsers}
-              >
-                <Calendar className="h-4 w-4 mr-2" />
-                Exportar Lista
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Buscar usuario..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 w-full"
+            />
+          </div>
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Estado" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos los estados</SelectItem>
+              <SelectItem value="active">Activo</SelectItem>
+              <SelectItem value="inactive">Inactivo</SelectItem>
+              <SelectItem value="suspended">Suspendido</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={typeFilter} onValueChange={setTypeFilter}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Tipo" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos los tipos</SelectItem>
+              <SelectItem value="patient">Usuario</SelectItem>
+              <SelectItem value="professional">Profesional</SelectItem>
+              <SelectItem value="admin">Administrador</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select defaultValue="all">
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Ordenar por" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Más recientes</SelectItem>
+              <SelectItem value="oldest">Más antiguos</SelectItem>
+              <SelectItem value="name">Nombre A-Z</SelectItem>
+              <SelectItem value="appointments">Más citas</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
 
         {/* Users List */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">

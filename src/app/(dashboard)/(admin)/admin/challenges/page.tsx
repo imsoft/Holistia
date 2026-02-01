@@ -22,6 +22,8 @@ import {
   X,
   File,
   Image as ImageIcon,
+  TrendingUp,
+  TrendingDown,
 } from "lucide-react";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
@@ -94,11 +96,14 @@ export default function AdminChallengesPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [difficultyFilter, setDifficultyFilter] = useState<string>("all");
+  const [creatorTypeFilter, setCreatorTypeFilter] = useState<string>("all");
 
   const [stats, setStats] = useState({
     totalChallenges: 0,
     activeChallenges: 0,
     totalParticipants: 0,
+    growthThisMonth: 0,
+    previousMonthChallenges: 0,
   });
 
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -174,7 +179,7 @@ export default function AdminChallengesPage() {
 
   useEffect(() => {
     applyFilters();
-  }, [searchTerm, statusFilter, difficultyFilter, challenges]);
+  }, [searchTerm, statusFilter, difficultyFilter, creatorTypeFilter, challenges]);
 
   const fetchChallenges = async () => {
     try {
@@ -239,10 +244,29 @@ export default function AdminChallengesPage() {
         .from('challenge_purchases')
         .select('*', { count: 'exact', head: true });
 
+      // Calcular crecimiento este mes
+      const now = new Date();
+      const startOfThisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+      
+      const challengesThisMonth = formattedChallenges.filter(
+        (c) => new Date(c.created_at) >= startOfThisMonth
+      ).length;
+      
+      const challengesLastMonth = formattedChallenges.filter(
+        (c) => new Date(c.created_at) >= startOfLastMonth && new Date(c.created_at) < startOfThisMonth
+      ).length;
+
+      const growthPercentage = challengesLastMonth > 0 
+        ? Math.round(((challengesThisMonth - challengesLastMonth) / challengesLastMonth) * 100)
+        : challengesThisMonth > 0 ? 100 : 0;
+
       setStats({
         totalChallenges: formattedChallenges.length,
         activeChallenges: formattedChallenges.filter((c) => c.is_active).length,
         totalParticipants: participantsCount || 0,
+        growthThisMonth: growthPercentage,
+        previousMonthChallenges: challengesLastMonth,
       });
 
     } catch (error: any) {
@@ -278,6 +302,11 @@ export default function AdminChallengesPage() {
     // Filtrar por dificultad
     if (difficultyFilter !== "all") {
       filtered = filtered.filter((c) => c.difficulty_level === difficultyFilter);
+    }
+
+    // Filtrar por tipo de creador
+    if (creatorTypeFilter !== "all") {
+      filtered = filtered.filter((c) => c.created_by_type === creatorTypeFilter);
     }
 
     setFilteredChallenges(filtered);
@@ -543,44 +572,109 @@ export default function AdminChallengesPage() {
       {/* Main Content */}
       <div className="p-6 space-y-6">
         {/* Estadísticas */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <Card className="py-4">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                <Target className="h-4 w-4" />
-                Total Retos
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="py-4">
-              <div className="text-2xl font-bold">{stats.totalChallenges}</div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          <Card className="border">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium text-muted-foreground">Total Retos</span>
+                <Badge variant="secondary" className="gap-1">
+                  <Target className="h-3 w-3" />
+                </Badge>
+              </div>
+              <div className="text-3xl font-bold">{stats.totalChallenges}</div>
+              <div className="flex items-center gap-1 mt-2">
+                <TrendingUp className="h-3 w-3 text-green-500" />
+                <span className="text-xs text-green-500 font-medium">Plataforma</span>
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">Retos en la plataforma</p>
             </CardContent>
           </Card>
-          <Card className="py-4">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                <Award className="h-4 w-4" />
-                Retos Activos
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="py-4">
-              <div className="text-2xl font-bold text-green-600">{stats.activeChallenges}</div>
+
+          <Card className="border">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium text-muted-foreground">Retos Activos</span>
+                <Badge variant="secondary" className="gap-1 bg-green-100 text-green-700">
+                  <Award className="h-3 w-3" />
+                </Badge>
+              </div>
+              <div className="text-3xl font-bold text-green-600">{stats.activeChallenges}</div>
+              <div className="flex items-center gap-1 mt-2">
+                {stats.activeChallenges > 0 ? (
+                  <>
+                    <TrendingUp className="h-3 w-3 text-green-500" />
+                    <span className="text-xs text-green-500 font-medium">
+                      {Math.round((stats.activeChallenges / stats.totalChallenges) * 100) || 0}% del total
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <TrendingDown className="h-3 w-3 text-muted-foreground" />
+                    <span className="text-xs text-muted-foreground font-medium">Sin activos</span>
+                  </>
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">Disponibles para usuarios</p>
             </CardContent>
           </Card>
-          <Card className="py-4">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                <Users className="h-4 w-4" />
-                Total Participantes
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="py-4">
-              <div className="text-2xl font-bold">{stats.totalParticipants}</div>
+
+          <Card className="border">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium text-muted-foreground">Participantes</span>
+                <Badge variant="secondary" className="gap-1 bg-blue-100 text-blue-700">
+                  <Users className="h-3 w-3" />
+                </Badge>
+              </div>
+              <div className="text-3xl font-bold">{stats.totalParticipants}</div>
+              <div className="flex items-center gap-1 mt-2">
+                {stats.totalParticipants > 0 ? (
+                  <>
+                    <TrendingUp className="h-3 w-3 text-blue-500" />
+                    <span className="text-xs text-blue-500 font-medium">Usuarios activos</span>
+                  </>
+                ) : (
+                  <>
+                    <TrendingDown className="h-3 w-3 text-muted-foreground" />
+                    <span className="text-xs text-muted-foreground font-medium">Sin participantes</span>
+                  </>
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">Total de inscripciones</p>
+            </CardContent>
+          </Card>
+
+          <Card className="border">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium text-muted-foreground">Crecimiento</span>
+                <Badge variant="secondary" className={`gap-1 ${stats.growthThisMonth >= 0 ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}>
+                  {stats.growthThisMonth >= 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
+                </Badge>
+              </div>
+              <div className={`text-3xl font-bold ${stats.growthThisMonth >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+                {stats.growthThisMonth >= 0 ? '+' : ''}{stats.growthThisMonth}%
+              </div>
+              <div className="flex items-center gap-1 mt-2">
+                {stats.growthThisMonth >= 0 ? (
+                  <>
+                    <TrendingUp className="h-3 w-3 text-emerald-500" />
+                    <span className="text-xs text-emerald-500 font-medium">Este mes</span>
+                  </>
+                ) : (
+                  <>
+                    <TrendingDown className="h-3 w-3 text-red-500" />
+                    <span className="text-xs text-red-500 font-medium">Este mes</span>
+                  </>
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">vs. mes anterior ({stats.previousMonthChallenges} retos)</p>
             </CardContent>
           </Card>
         </div>
 
         {/* Filtros */}
-        <div className="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="mb-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
@@ -612,6 +706,17 @@ export default function AdminChallengesPage() {
               ))}
             </SelectContent>
           </Select>
+          <Select value={creatorTypeFilter} onValueChange={setCreatorTypeFilter}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Tipo de creador" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos los creadores</SelectItem>
+              <SelectItem value="admin">Administrador</SelectItem>
+              <SelectItem value="professional">Profesional</SelectItem>
+              <SelectItem value="patient">Paciente</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
         {/* Lista de retos */}
@@ -628,13 +733,14 @@ export default function AdminChallengesPage() {
                   ? "No hay retos en la plataforma"
                   : "No se encontraron retos con los filtros aplicados"}
               </p>
-              {(searchTerm || statusFilter !== "all" || difficultyFilter !== "all") && (
+              {(searchTerm || statusFilter !== "all" || difficultyFilter !== "all" || creatorTypeFilter !== "all") && (
                 <Button
                   variant="outline"
                   onClick={() => {
                     setSearchTerm("");
                     setStatusFilter("all");
                     setDifficultyFilter("all");
+                    setCreatorTypeFilter("all");
                   }}
                 >
                   Limpiar filtros

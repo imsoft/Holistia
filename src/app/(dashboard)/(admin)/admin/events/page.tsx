@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useUserId } from "@/stores/user-store";
 import { useUserStoreInit } from "@/hooks/use-user-store-init";
@@ -25,7 +25,9 @@ import {
   Clock,
   Edit,
   Trash2,
-  Image as ImageIcon
+  Image as ImageIcon,
+  TrendingUp,
+  TrendingDown
 } from "lucide-react";
 import {
   Select,
@@ -165,6 +167,8 @@ const EventsAdminPage = () => {
     router.push(`/admin/events/${event.id}/edit`);
   };
 
+  const [dateFilter, setDateFilter] = useState<string>("all");
+
   const filteredEvents = events.filter((event) => {
     const matchesSearch = event.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          event.location.toLowerCase().includes(searchTerm.toLowerCase());
@@ -173,8 +177,74 @@ const EventsAdminPage = () => {
                          (statusFilter === "active" && event.is_active) ||
                          (statusFilter === "inactive" && !event.is_active);
     
-    return matchesSearch && matchesCategory && matchesStatus;
+    // Date filter logic
+    let matchesDate = true;
+    if (dateFilter !== "all") {
+      const eventDate = new Date(event.event_date);
+      const now = new Date();
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      
+      if (dateFilter === "upcoming") {
+        matchesDate = eventDate >= today;
+      } else if (dateFilter === "past") {
+        matchesDate = eventDate < today;
+      } else if (dateFilter === "this_month") {
+        matchesDate = eventDate.getMonth() === now.getMonth() && eventDate.getFullYear() === now.getFullYear();
+      } else if (dateFilter === "next_month") {
+        const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+        matchesDate = eventDate.getMonth() === nextMonth.getMonth() && eventDate.getFullYear() === nextMonth.getFullYear();
+      }
+    }
+    
+    return matchesSearch && matchesCategory && matchesStatus && matchesDate;
   });
+
+  // Calculate stats
+  const stats = useMemo(() => {
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const thisMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
+    
+    const totalEvents = events.length;
+    const activeEvents = events.filter(e => e.is_active).length;
+    const upcomingEvents = events.filter(e => new Date(e.event_date) >= today).length;
+    
+    const thisMonthEvents = events.filter(e => {
+      const eventDate = new Date(e.event_date);
+      return eventDate >= thisMonthStart && eventDate <= now;
+    }).length;
+    
+    const lastMonthEvents = events.filter(e => {
+      const eventDate = new Date(e.event_date);
+      return eventDate >= lastMonthStart && eventDate <= lastMonthEnd;
+    }).length;
+    
+    const freeEvents = events.filter(e => e.is_free).length;
+    const paidEvents = totalEvents - freeEvents;
+    
+    // Calculate percentage changes
+    const eventsChange = lastMonthEvents > 0 
+      ? Math.round(((thisMonthEvents - lastMonthEvents) / lastMonthEvents) * 100)
+      : thisMonthEvents > 0 ? 100 : 0;
+    
+    const activePercentage = totalEvents > 0 ? Math.round((activeEvents / totalEvents) * 100) : 0;
+    const freePercentage = totalEvents > 0 ? Math.round((freeEvents / totalEvents) * 100) : 0;
+    
+    return {
+      totalEvents,
+      activeEvents,
+      upcomingEvents,
+      thisMonthEvents,
+      lastMonthEvents,
+      eventsChange,
+      activePercentage,
+      freeEvents,
+      paidEvents,
+      freePercentage
+    };
+  }, [events]);
 
   const getCategoryLabel = (category: string) => {
     const categories = {
@@ -246,44 +316,135 @@ const EventsAdminPage = () => {
 
       {/* Main Content */}
       <div className="container mx-auto p-6">
-        {/* Filters */}
-        <div className="mb-6 space-y-4">
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                <Input
-                  placeholder="Buscar por nombre o ubicación..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
+        {/* Stats Cards */}
+        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 mb-6">
+          {/* Total Events */}
+          <Card className="border">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm text-muted-foreground">Total Eventos</span>
+                <Badge variant={stats.eventsChange >= 0 ? "default" : "secondary"} className="text-xs">
+                  {stats.eventsChange >= 0 ? "+" : ""}{stats.eventsChange}%
+                </Badge>
               </div>
-            </div>
-            <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-              <SelectTrigger className="w-full sm:w-48">
-                <SelectValue placeholder="Categoría" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todas las categorías</SelectItem>
-                <SelectItem value="espiritualidad">Espiritualidad</SelectItem>
-                <SelectItem value="salud_mental">Salud Mental</SelectItem>
-                <SelectItem value="salud_fisica">Salud Física</SelectItem>
-                <SelectItem value="alimentacion">Alimentación</SelectItem>
-                <SelectItem value="social">Social</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-full sm:w-48">
-                <SelectValue placeholder="Estado" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos los estados</SelectItem>
-                <SelectItem value="active">Activos</SelectItem>
-                <SelectItem value="inactive">Inactivos</SelectItem>
-              </SelectContent>
-            </Select>
+              <div className="text-3xl font-bold">{stats.totalEvents}</div>
+              <div className="flex items-center gap-1 mt-1">
+                {stats.eventsChange >= 0 ? (
+                  <TrendingUp className="h-3 w-3 text-green-500" />
+                ) : (
+                  <TrendingDown className="h-3 w-3 text-red-500" />
+                )}
+                <span className="text-xs text-muted-foreground">
+                  {stats.thisMonthEvents} este mes vs {stats.lastMonthEvents} mes anterior
+                </span>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Active Events */}
+          <Card className="border">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm text-muted-foreground">Eventos Activos</span>
+                <Badge variant="outline" className="text-xs">
+                  {stats.activePercentage}%
+                </Badge>
+              </div>
+              <div className="text-3xl font-bold">{stats.activeEvents}</div>
+              <div className="flex items-center gap-1 mt-1">
+                <TrendingUp className="h-3 w-3 text-green-500" />
+                <span className="text-xs text-muted-foreground">
+                  De {stats.totalEvents} eventos totales
+                </span>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Upcoming Events */}
+          <Card className="border">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm text-muted-foreground">Próximos Eventos</span>
+                <Badge variant="secondary" className="text-xs">
+                  Programados
+                </Badge>
+              </div>
+              <div className="text-3xl font-bold">{stats.upcomingEvents}</div>
+              <div className="flex items-center gap-1 mt-1">
+                <Calendar className="h-3 w-3 text-muted-foreground" />
+                <span className="text-xs text-muted-foreground">
+                  Eventos por realizarse
+                </span>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Free vs Paid */}
+          <Card className="border">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm text-muted-foreground">Gratuitos</span>
+                <Badge variant="outline" className="text-xs">
+                  {stats.freePercentage}%
+                </Badge>
+              </div>
+              <div className="text-3xl font-bold">{stats.freeEvents}</div>
+              <div className="flex items-center gap-1 mt-1">
+                <Users className="h-3 w-3 text-muted-foreground" />
+                <span className="text-xs text-muted-foreground">
+                  {stats.paidEvents} eventos de pago
+                </span>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Filters */}
+        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 mb-6">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+            <Input
+              placeholder="Buscar por nombre o ubicación..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
           </div>
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Estado" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos los estados</SelectItem>
+              <SelectItem value="active">Activos</SelectItem>
+              <SelectItem value="inactive">Inactivos</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={dateFilter} onValueChange={setDateFilter}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Fecha" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas las fechas</SelectItem>
+              <SelectItem value="upcoming">Próximos</SelectItem>
+              <SelectItem value="past">Pasados</SelectItem>
+              <SelectItem value="this_month">Este mes</SelectItem>
+              <SelectItem value="next_month">Próximo mes</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Categoría" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas las categorías</SelectItem>
+              <SelectItem value="espiritualidad">Espiritualidad</SelectItem>
+              <SelectItem value="salud_mental">Salud Mental</SelectItem>
+              <SelectItem value="salud_fisica">Salud Física</SelectItem>
+              <SelectItem value="alimentacion">Alimentación</SelectItem>
+              <SelectItem value="social">Social</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
         {/* Events Grid */}

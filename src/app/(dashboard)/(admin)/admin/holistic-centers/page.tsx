@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Image from "next/image";
 import {
   Building2,
@@ -15,6 +15,8 @@ import {
   Globe,
   Clock,
   Settings,
+  TrendingUp,
+  TrendingDown,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -22,6 +24,13 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { RichTextEditor } from "@/components/ui/rich-text-editor";
 import {
   Dialog,
@@ -85,6 +94,13 @@ export default function AdminHolisticCenters() {
   const [centers, setCenters] = useState<HolisticCenter[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [cityFilter, setCityFilter] = useState("all");
+  const [sortBy, setSortBy] = useState("recent");
+  const [statsData, setStatsData] = useState({
+    totalThisMonth: 0,
+    lastMonth: 0,
+  });
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isViewOpen, setIsViewOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
@@ -119,13 +135,41 @@ export default function AdminHolisticCenters() {
   const fetchCenters = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from("holistic_centers")
-        .select("*")
-        .order("created_at", { ascending: false });
+      
+      // Fechas para comparaciones
+      const now = new Date();
+      const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+      const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+      const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
+      
+      const [
+        { data, error },
+        { data: lastMonthCenters }
+      ] = await Promise.all([
+        supabase
+          .from("holistic_centers")
+          .select("*")
+          .order("created_at", { ascending: false }),
+        supabase
+          .from("holistic_centers")
+          .select("id")
+          .gte("created_at", lastMonthStart.toISOString())
+          .lte("created_at", lastMonthEnd.toISOString())
+      ]);
 
       if (error) throw error;
       setCenters(data || []);
+      
+      // Calcular estadísticas
+      const thisMonthCenters = data?.filter(center => {
+        const createdAt = new Date(center.created_at);
+        return createdAt >= currentMonthStart;
+      }).length || 0;
+      
+      setStatsData({
+        totalThisMonth: thisMonthCenters,
+        lastMonth: lastMonthCenters?.length || 0,
+      });
     } catch (error) {
       console.error("Error fetching centers:", error);
       toast.error("Error al cargar los centros holísticos");
@@ -314,11 +358,61 @@ export default function AdminHolisticCenters() {
     }
   };
 
-  const filteredCenters = centers.filter((center) =>
-    center.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    center.address?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    center.city?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Función para calcular porcentaje de cambio
+  const calculatePercentageChange = (current: number, previous: number): string => {
+    if (previous === 0) return current > 0 ? "+100%" : "0%";
+    const change = ((current - previous) / previous) * 100;
+    const sign = change >= 0 ? "+" : "";
+    return `${sign}${Math.round(change)}%`;
+  };
+
+  // Obtener lista única de ciudades para el filtro
+  const uniqueCities = useMemo(() => {
+    const cities = centers
+      .map(center => center.city)
+      .filter((city): city is string => !!city);
+    return [...new Set(cities)].sort();
+  }, [centers]);
+
+  // Estadísticas derivadas
+  const activeCenters = centers.filter(c => c.is_active).length;
+  const inactiveCenters = centers.filter(c => !c.is_active).length;
+
+  const filteredCenters = useMemo(() => {
+    let filtered = centers.filter((center) => {
+      const matchesSearch = center.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        center.address?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        center.city?.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      const matchesStatus = statusFilter === "all" || 
+        (statusFilter === "active" && center.is_active) ||
+        (statusFilter === "inactive" && !center.is_active);
+      
+      const matchesCity = cityFilter === "all" || center.city === cityFilter;
+      
+      return matchesSearch && matchesStatus && matchesCity;
+    });
+
+    // Ordenar
+    switch (sortBy) {
+      case "oldest":
+        filtered = [...filtered].sort((a, b) => 
+          new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+        );
+        break;
+      case "name":
+        filtered = [...filtered].sort((a, b) => a.name.localeCompare(b.name));
+        break;
+      case "recent":
+      default:
+        filtered = [...filtered].sort((a, b) => 
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        );
+        break;
+    }
+
+    return filtered;
+  }, [centers, searchTerm, statusFilter, cityFilter, sortBy]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -342,18 +436,139 @@ export default function AdminHolisticCenters() {
       </div>
 
       {/* Main Content */}
-      <div className="container mx-auto px-6 py-8">
-        {/* Search */}
-        <div className="mb-6">
+      <div className="p-6 space-y-6">
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {/* Total Centros */}
+          <Card className="border">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm text-muted-foreground">Total Centros</span>
+                <Badge 
+                  variant={statsData.totalThisMonth >= statsData.lastMonth ? "default" : "secondary"}
+                  className={statsData.totalThisMonth >= statsData.lastMonth ? "bg-green-100 text-green-800 hover:bg-green-100" : "bg-red-100 text-red-800 hover:bg-red-100"}
+                >
+                  {calculatePercentageChange(statsData.totalThisMonth, statsData.lastMonth)}
+                </Badge>
+              </div>
+              <div className="text-3xl font-bold mb-2">{centers.length}</div>
+              <div className="flex items-center gap-1 text-sm">
+                {statsData.totalThisMonth >= statsData.lastMonth ? (
+                  <TrendingUp className="h-4 w-4 text-green-600" />
+                ) : (
+                  <TrendingDown className="h-4 w-4 text-red-600" />
+                )}
+                <span className={statsData.totalThisMonth >= statsData.lastMonth ? "text-green-600" : "text-red-600"}>
+                  {statsData.totalThisMonth} nuevos este mes
+                </span>
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">vs {statsData.lastMonth} el mes anterior</p>
+            </CardContent>
+          </Card>
+
+          {/* Centros Activos */}
+          <Card className="border">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm text-muted-foreground">Centros Activos</span>
+                <Badge className="bg-green-100 text-green-800 hover:bg-green-100">
+                  {centers.length > 0 ? Math.round((activeCenters / centers.length) * 100) : 0}%
+                </Badge>
+              </div>
+              <div className="text-3xl font-bold mb-2">{activeCenters}</div>
+              <div className="flex items-center gap-1 text-sm">
+                <TrendingUp className="h-4 w-4 text-green-600" />
+                <span className="text-green-600">Centros operando</span>
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">Del total de {centers.length} centros</p>
+            </CardContent>
+          </Card>
+
+          {/* Centros Inactivos */}
+          <Card className="border">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm text-muted-foreground">Centros Inactivos</span>
+                <Badge className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100">
+                  {centers.length > 0 ? Math.round((inactiveCenters / centers.length) * 100) : 0}%
+                </Badge>
+              </div>
+              <div className="text-3xl font-bold mb-2">{inactiveCenters}</div>
+              <div className="flex items-center gap-1 text-sm">
+                <Building2 className="h-4 w-4 text-yellow-600" />
+                <span className="text-yellow-600">Centros desactivados</span>
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">Requieren activación</p>
+            </CardContent>
+          </Card>
+
+          {/* Crecimiento del Mes */}
+          <Card className="border">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm text-muted-foreground">Crecimiento Mensual</span>
+                <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100">
+                  Este mes
+                </Badge>
+              </div>
+              <div className="text-3xl font-bold mb-2">{statsData.totalThisMonth}</div>
+              <div className="flex items-center gap-1 text-sm">
+                {statsData.totalThisMonth >= statsData.lastMonth ? (
+                  <TrendingUp className="h-4 w-4 text-blue-600" />
+                ) : (
+                  <TrendingDown className="h-4 w-4 text-blue-600" />
+                )}
+                <span className="text-blue-600">Nuevos centros agregados</span>
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">Comparado con {statsData.lastMonth} del mes anterior</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Filters */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Buscar centros..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
+              className="pl-10 w-full"
             />
           </div>
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Estado" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos los estados</SelectItem>
+              <SelectItem value="active">Activo</SelectItem>
+              <SelectItem value="inactive">Inactivo</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={cityFilter} onValueChange={setCityFilter}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Ciudad" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas las ciudades</SelectItem>
+              {uniqueCities.map((city) => (
+                <SelectItem key={city} value={city}>
+                  {city}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={sortBy} onValueChange={setSortBy}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Ordenar por" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="recent">Más recientes</SelectItem>
+              <SelectItem value="oldest">Más antiguos</SelectItem>
+              <SelectItem value="name">Nombre A-Z</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
         {/* Centers Grid */}
@@ -388,7 +603,7 @@ export default function AdminHolisticCenters() {
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {filteredCenters.map((center) => (
-              <Card key={center.id} className="hover:shadow-lg transition-shadow overflow-hidden">
+              <Card key={center.id} className="hover:shadow-md transition-shadow overflow-hidden flex flex-col h-full">
                 {center.image_url && (
                   <div className="relative w-full h-48 bg-muted">
                     <Image
@@ -410,7 +625,7 @@ export default function AdminHolisticCenters() {
                     </div>
                   </div>
                 </CardHeader>
-                <CardContent className="space-y-3 py-4">
+                <CardContent className="space-y-3 py-4 flex-grow flex flex-col">
                   {center.city && (
                     <div className="flex items-start gap-2 text-sm">
                       <MapPin className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
@@ -443,7 +658,7 @@ export default function AdminHolisticCenters() {
                     </div>
                   )}
 
-                  <div className="flex gap-2 pt-3 border-t">
+                  <div className="flex gap-2 pt-3 border-t mt-auto">
                     <Button
                       variant="outline"
                       size="sm"

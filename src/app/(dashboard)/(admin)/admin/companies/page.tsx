@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Image from "next/image";
 import {
   Briefcase,
@@ -24,6 +24,9 @@ import {
   Send,
   Calendar,
   Clock,
+  TrendingUp,
+  TrendingDown,
+  PhoneCall,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -177,6 +180,8 @@ export default function AdminCompanies() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [industryFilter, setIndustryFilter] = useState<string>("all");
+  const [sortBy, setSortBy] = useState<string>("newest");
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isViewOpen, setIsViewOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
@@ -224,6 +229,57 @@ export default function AdminCompanies() {
   const [quoteNotes, setQuoteNotes] = useState("");
 
   const supabase = createClient();
+
+  // Calculate stats for companies and leads
+  const stats = useMemo(() => {
+    const totalCompanies = companies.length;
+    const totalLeads = leads.length;
+    const total = totalCompanies + totalLeads;
+    
+    const contacted = leads.filter(lead => lead.status === 'contacted' || lead.status === 'quoted' || lead.status === 'converted').length;
+    const pending = leads.filter(lead => lead.status === 'pending').length + companies.filter(c => c.status === 'pending').length;
+    
+    // Calculate growth this month
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0);
+    
+    const thisMonthLeads = leads.filter(lead => new Date(lead.created_at) >= startOfMonth).length;
+    const thisMonthCompanies = companies.filter(c => new Date(c.created_at) >= startOfMonth).length;
+    const thisMonthTotal = thisMonthLeads + thisMonthCompanies;
+    
+    const lastMonthLeads = leads.filter(lead => {
+      const date = new Date(lead.created_at);
+      return date >= startOfLastMonth && date <= endOfLastMonth;
+    }).length;
+    const lastMonthCompanies = companies.filter(c => {
+      const date = new Date(c.created_at);
+      return date >= startOfLastMonth && date <= endOfLastMonth;
+    }).length;
+    const lastMonthTotal = lastMonthLeads + lastMonthCompanies;
+    
+    const growthPercentage = lastMonthTotal > 0 
+      ? ((thisMonthTotal - lastMonthTotal) / lastMonthTotal * 100).toFixed(0) 
+      : thisMonthTotal > 0 ? 100 : 0;
+    
+    return {
+      total,
+      totalCompanies,
+      totalLeads,
+      contacted,
+      pending,
+      thisMonthTotal,
+      growthPercentage: Number(growthPercentage),
+    };
+  }, [companies, leads]);
+
+  // Get unique industries for filter
+  const industries = useMemo(() => {
+    const companiesIndustries = companies.map(c => c.industry).filter(Boolean);
+    const leadsIndustries = leads.map(l => l.industry).filter(Boolean);
+    return [...new Set([...companiesIndustries, ...leadsIndustries])].sort() as string[];
+  }, [companies, leads]);
 
   useEffect(() => {
     fetchCompanies();
@@ -1004,16 +1060,38 @@ export default function AdminCompanies() {
     }
   };
 
-  const filteredCompanies = companies.filter((company) => {
-    const matchesSearch =
-      company.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      company.contact_email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      company.city?.toLowerCase().includes(searchTerm.toLowerCase());
+  const filteredCompanies = useMemo(() => {
+    let filtered = companies.filter((company) => {
+      const matchesSearch =
+        company.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        company.contact_email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        company.city?.toLowerCase().includes(searchTerm.toLowerCase());
 
-    const matchesStatus = statusFilter === "all" || company.status === statusFilter;
+      const matchesStatus = statusFilter === "all" || company.status === statusFilter;
+      
+      const matchesIndustry = industryFilter === "all" || company.industry === industryFilter;
 
-    return matchesSearch && matchesStatus;
-  });
+      return matchesSearch && matchesStatus && matchesIndustry;
+    });
+
+    // Apply sorting
+    switch (sortBy) {
+      case "newest":
+        filtered.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+        break;
+      case "oldest":
+        filtered.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+        break;
+      case "name_asc":
+        filtered.sort((a, b) => a.name.localeCompare(b.name));
+        break;
+      case "name_desc":
+        filtered.sort((a, b) => b.name.localeCompare(a.name));
+        break;
+    }
+
+    return filtered;
+  }, [companies, searchTerm, statusFilter, industryFilter, sortBy]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -1050,20 +1128,120 @@ export default function AdminCompanies() {
 
           {/* Tab: Empresas Activas */}
           <TabsContent value="companies" className="space-y-6">
+            {/* Stats Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {/* Total Companies/Leads */}
+              <Card className="border">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm text-muted-foreground">Total Empresas/Leads</span>
+                    <Badge variant="secondary" className="flex items-center gap-1">
+                      <Building className="h-3 w-3" />
+                      Todas
+                    </Badge>
+                  </div>
+                  <div className="text-3xl font-bold">{stats.total}</div>
+                  <div className="flex items-center gap-1 mt-1">
+                    {stats.growthPercentage >= 0 ? (
+                      <TrendingUp className="h-4 w-4 text-green-500" />
+                    ) : (
+                      <TrendingDown className="h-4 w-4 text-red-500" />
+                    )}
+                    <span className={`text-sm ${stats.growthPercentage >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                      {stats.growthPercentage >= 0 ? '+' : ''}{stats.growthPercentage}%
+                    </span>
+                    <span className="text-sm text-muted-foreground">vs mes anterior</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {stats.totalCompanies} empresas, {stats.totalLeads} leads
+                  </p>
+                </CardContent>
+              </Card>
+
+              {/* Contacted */}
+              <Card className="border">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm text-muted-foreground">Contactados</span>
+                    <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400">
+                      <PhoneCall className="h-3 w-3 mr-1" />
+                      En proceso
+                    </Badge>
+                  </div>
+                  <div className="text-3xl font-bold">{stats.contacted}</div>
+                  <div className="flex items-center gap-1 mt-1">
+                    <PhoneCall className="h-4 w-4 text-blue-500" />
+                    <span className="text-sm text-blue-600 dark:text-blue-400">Leads contactados</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {stats.totalLeads > 0 ? ((stats.contacted / stats.totalLeads) * 100).toFixed(0) : 0}% de leads
+                  </p>
+                </CardContent>
+              </Card>
+
+              {/* Pending */}
+              <Card className="border">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm text-muted-foreground">Pendientes</span>
+                    <Badge className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400">
+                      <Clock className="h-3 w-3 mr-1" />
+                      Por atender
+                    </Badge>
+                  </div>
+                  <div className="text-3xl font-bold">{stats.pending}</div>
+                  <div className="flex items-center gap-1 mt-1">
+                    <Clock className="h-4 w-4 text-yellow-500" />
+                    <span className="text-sm text-yellow-600 dark:text-yellow-400">Requieren atención</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {stats.total > 0 ? ((stats.pending / stats.total) * 100).toFixed(0) : 0}% del total
+                  </p>
+                </CardContent>
+              </Card>
+
+              {/* Growth This Month */}
+              <Card className="border">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm text-muted-foreground">Este Mes</span>
+                    <Badge className="bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400">
+                      <TrendingUp className="h-3 w-3 mr-1" />
+                      Crecimiento
+                    </Badge>
+                  </div>
+                  <div className="text-3xl font-bold">{stats.thisMonthTotal}</div>
+                  <div className="flex items-center gap-1 mt-1">
+                    {stats.growthPercentage >= 0 ? (
+                      <TrendingUp className="h-4 w-4 text-green-500" />
+                    ) : (
+                      <TrendingDown className="h-4 w-4 text-red-500" />
+                    )}
+                    <span className={`text-sm ${stats.growthPercentage >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                      {stats.growthPercentage >= 0 ? '+' : ''}{stats.growthPercentage}% vs mes anterior
+                    </span>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Nuevos registros este mes
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+
             {/* Filters */}
-            <div className="flex flex-col sm:flex-row gap-4">
-              <div className="flex-1 relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   placeholder="Buscar empresas..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
+                  className="pl-10 w-full"
                 />
               </div>
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-full sm:w-[200px]">
-                  <SelectValue placeholder="Filtrar por estado" />
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Estado" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todos los estados</SelectItem>
@@ -1072,42 +1250,31 @@ export default function AdminCompanies() {
                   <SelectItem value="inactive">Inactivas</SelectItem>
                 </SelectContent>
               </Select>
+              <Select value={industryFilter} onValueChange={setIndustryFilter}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Industria" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas las industrias</SelectItem>
+                  {industries.map((industry) => (
+                    <SelectItem key={industry} value={industry}>
+                      {industry}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={sortBy} onValueChange={setSortBy}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Ordenar por" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="newest">Más recientes</SelectItem>
+                  <SelectItem value="oldest">Más antiguos</SelectItem>
+                  <SelectItem value="name_asc">Nombre A-Z</SelectItem>
+                  <SelectItem value="name_desc">Nombre Z-A</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-
-            {/* Stats Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <Card className="py-4">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 py-4">
-              <CardTitle className="text-sm font-medium">Total de Empresas</CardTitle>
-              <Briefcase className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent className="py-4">
-              <div className="text-2xl font-bold">{companies.length}</div>
-            </CardContent>
-          </Card>
-          <Card className="py-4">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 py-4">
-              <CardTitle className="text-sm font-medium">Empresas Activas</CardTitle>
-              <Building className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent className="py-4">
-              <div className="text-2xl font-bold">
-                {companies.filter((c) => c.status === "active").length}
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="py-4">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 py-4">
-              <CardTitle className="text-sm font-medium">Pendientes</CardTitle>
-              <FileText className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent className="py-4">
-              <div className="text-2xl font-bold">
-                {companies.filter((c) => c.status === "pending").length}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
 
         {/* Companies Grid */}
         {loading ? (

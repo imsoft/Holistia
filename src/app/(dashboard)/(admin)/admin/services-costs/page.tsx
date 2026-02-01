@@ -21,6 +21,9 @@ import {
   XCircle,
   Clock,
   AlertCircle,
+  TrendingUp,
+  TrendingDown,
+  RefreshCw,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -132,6 +135,8 @@ export default function AdminPlatformTools() {
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [billingFilter, setBillingFilter] = useState("all");
+  const [updatesThisMonth, setUpdatesThisMonth] = useState(0);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isViewOpen, setIsViewOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
@@ -172,6 +177,15 @@ export default function AdminPlatformTools() {
 
       if (error) throw error;
       setTools(data || []);
+
+      // Calculate updates this month
+      const now = new Date();
+      const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+      const updatesCount = (data || []).filter((tool) => {
+        const updatedAt = new Date(tool.updated_at);
+        return updatedAt >= currentMonthStart;
+      }).length;
+      setUpdatesThisMonth(updatesCount);
     } catch (error) {
       console.error("Error fetching tools:", error);
       toast.error("Error al cargar las herramientas");
@@ -322,7 +336,8 @@ export default function AdminPlatformTools() {
       tool.provider.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = categoryFilter === "all" || tool.category === categoryFilter;
     const matchesStatus = statusFilter === "all" || tool.status === statusFilter;
-    return matchesSearch && matchesCategory && matchesStatus;
+    const matchesBilling = billingFilter === "all" || tool.billing_period === billingFilter;
+    return matchesSearch && matchesCategory && matchesStatus && matchesBilling;
   });
 
   // Calcular totales (convertir USD a MXN para el cálculo, usando tipo de cambio aproximado de 17)
@@ -392,91 +407,140 @@ export default function AdminPlatformTools() {
 
       {/* Main Content */}
       <div className="p-4 sm:p-6 space-y-6">
-        {/* Resumen de Costos */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <Card className="py-4">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Mensual</CardTitle>
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {/* Total Servicios y Costos */}
+          <Card className="border">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm text-muted-foreground">Costo Mensual Total</span>
+                <Badge className="bg-green-100 text-green-800 hover:bg-green-100">
+                  MXN
+                </Badge>
+              </div>
+              <div className="text-3xl font-bold mb-2">
                 ${totalMonthly.toLocaleString("es-MX", { minimumFractionDigits: 2 })}
               </div>
-              <p className="text-xs text-muted-foreground">Solo servicios activos</p>
-            </CardContent>
-          </Card>
-          <Card className="py-4">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Anual</CardTitle>
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                ${totalAnnual.toLocaleString("es-MX", { minimumFractionDigits: 2 })}
+              <div className="flex items-center gap-1 text-sm">
+                <DollarSign className="h-4 w-4 text-green-600" />
+                <span className="text-green-600">{tools.length} servicios registrados</span>
               </div>
-              <p className="text-xs text-muted-foreground">Proyección anual</p>
+              <p className="text-xs text-muted-foreground mt-1">Solo servicios activos</p>
             </CardContent>
           </Card>
-          <Card className="py-4">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Herramientas</CardTitle>
-              <Wrench className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{tools.length}</div>
-              <p className="text-xs text-muted-foreground">
-                {tools.filter((t) => t.status === "active").length} activas
-              </p>
+
+          {/* Servicios Activos */}
+          <Card className="border">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm text-muted-foreground">Servicios Activos</span>
+                <Badge className="bg-green-100 text-green-800 hover:bg-green-100">
+                  {tools.length > 0 ? Math.round((tools.filter(t => t.status === "active").length / tools.length) * 100) : 0}%
+                </Badge>
+              </div>
+              <div className="text-3xl font-bold mb-2">
+                {tools.filter(t => t.status === "active").length}
+              </div>
+              <div className="flex items-center gap-1 text-sm">
+                <TrendingUp className="h-4 w-4 text-green-600" />
+                <span className="text-green-600">Servicios operativos</span>
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">De {tools.length} total registrados</p>
+            </CardContent>
+          </Card>
+
+          {/* Precio Promedio */}
+          <Card className="border">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm text-muted-foreground">Precio Promedio</span>
+                <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100">
+                  Mensual
+                </Badge>
+              </div>
+              <div className="text-3xl font-bold mb-2">
+                ${tools.filter(t => t.status === "active" && t.billing_period !== "free").length > 0
+                  ? (totalMonthly / tools.filter(t => t.status === "active" && t.billing_period !== "free").length).toLocaleString("es-MX", { minimumFractionDigits: 2 })
+                  : "0.00"}
+              </div>
+              <div className="flex items-center gap-1 text-sm">
+                <BarChart3 className="h-4 w-4 text-blue-600" />
+                <span className="text-blue-600">Por servicio de pago</span>
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">Excluyendo servicios gratuitos</p>
+            </CardContent>
+          </Card>
+
+          {/* Actualizaciones este mes */}
+          <Card className="border">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm text-muted-foreground">Actualizaciones</span>
+                <Badge className="bg-purple-100 text-purple-800 hover:bg-purple-100">
+                  Este mes
+                </Badge>
+              </div>
+              <div className="text-3xl font-bold mb-2">{updatesThisMonth}</div>
+              <div className="flex items-center gap-1 text-sm">
+                <RefreshCw className="h-4 w-4 text-purple-600" />
+                <span className="text-purple-600">Servicios modificados</span>
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">Cambios registrados este mes</p>
             </CardContent>
           </Card>
         </div>
 
-        {/* Filtros */}
-        <Card className="py-4">
-          <CardHeader>
-            <CardTitle>Filtros</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Buscar herramienta..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-              <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Categoría" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todas las categorías</SelectItem>
-                  {CATEGORIES.map((cat) => (
-                    <SelectItem key={cat.value} value={cat.value}>
-                      {cat.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Estado" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos los estados</SelectItem>
-                  {STATUS_OPTIONS.map((status) => (
-                    <SelectItem key={status.value} value={status.value}>
-                      {status.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </CardContent>
-        </Card>
+        {/* Filters */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Buscar servicio..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 w-full"
+            />
+          </div>
+          <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Categoría" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas las categorías</SelectItem>
+              {CATEGORIES.map((cat) => (
+                <SelectItem key={cat.value} value={cat.value}>
+                  {cat.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Estado" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos los estados</SelectItem>
+              {STATUS_OPTIONS.map((status) => (
+                <SelectItem key={status.value} value={status.value}>
+                  {status.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={billingFilter} onValueChange={setBillingFilter}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Facturación" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos los períodos</SelectItem>
+              {BILLING_PERIODS.map((period) => (
+                <SelectItem key={period.value} value={period.value}>
+                  {period.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
 
         {/* Lista de Herramientas */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

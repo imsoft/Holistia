@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { createClient } from "@/utils/supabase/client";
 import { formatPrice } from "@/lib/price-utils";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,13 +12,16 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { 
   Search, 
   Download, 
-  Filter, 
   User, 
   CheckCircle, 
   Clock, 
   XCircle,
   Eye,
-  Mail
+  Mail,
+  TrendingUp,
+  TrendingDown,
+  Ticket,
+  DollarSign
 } from "lucide-react";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { toast } from "sonner";
@@ -64,8 +67,49 @@ export default function EventRegistrationsPage() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [paymentStatusFilter, setPaymentStatusFilter] = useState<string>("all");
   const [eventFilter, setEventFilter] = useState<string>("all");
   const [events, setEvents] = useState<Array<{id: string, name: string}>>([]);
+
+  // Calculate stats
+  const stats = useMemo(() => {
+    const total = registrations.length;
+    const confirmed = registrations.filter(r => r.status === 'confirmed').length;
+    const pending = registrations.filter(r => r.status === 'pending').length;
+    const totalRevenue = registrations.reduce((acc, r) => acc + (r.payment?.amount || 0), 0);
+    const paidCount = registrations.filter(r => r.payment?.status === 'succeeded').length;
+    
+    // Calculate recent trends (last 7 days vs previous 7 days)
+    const now = new Date();
+    const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const fourteenDaysAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
+    
+    const recentRegistrations = registrations.filter(r => new Date(r.registration_date) >= sevenDaysAgo);
+    const previousRegistrations = registrations.filter(r => {
+      const date = new Date(r.registration_date);
+      return date >= fourteenDaysAgo && date < sevenDaysAgo;
+    });
+    
+    const recentCount = recentRegistrations.length;
+    const previousCount = previousRegistrations.length;
+    const trend = previousCount > 0 ? ((recentCount - previousCount) / previousCount * 100).toFixed(0) : recentCount > 0 ? 100 : 0;
+    
+    // Revenue trend
+    const recentRevenue = recentRegistrations.reduce((acc, r) => acc + (r.payment?.amount || 0), 0);
+    const previousRevenue = previousRegistrations.reduce((acc, r) => acc + (r.payment?.amount || 0), 0);
+    const revenueTrend = previousRevenue > 0 ? ((recentRevenue - previousRevenue) / previousRevenue * 100).toFixed(0) : recentRevenue > 0 ? 100 : 0;
+    
+    return { 
+      total, 
+      confirmed, 
+      pending, 
+      totalRevenue, 
+      paidCount,
+      recentCount, 
+      trend: Number(trend),
+      revenueTrend: Number(revenueTrend)
+    };
+  }, [registrations]);
 
   // Fetch registrations data
   useEffect(() => {
@@ -210,13 +254,24 @@ export default function EventRegistrationsPage() {
       filtered = filtered.filter(reg => reg.status === statusFilter);
     }
 
+    // Payment status filter
+    if (paymentStatusFilter !== "all") {
+      if (paymentStatusFilter === "paid") {
+        filtered = filtered.filter(reg => reg.payment?.status === 'succeeded');
+      } else if (paymentStatusFilter === "pending") {
+        filtered = filtered.filter(reg => !reg.payment && !reg.events_workshops.is_free);
+      } else if (paymentStatusFilter === "free") {
+        filtered = filtered.filter(reg => reg.events_workshops.is_free);
+      }
+    }
+
     // Event filter
     if (eventFilter !== "all") {
       filtered = filtered.filter(reg => reg.event_id === eventFilter);
     }
 
     setFilteredRegistrations(filtered);
-  }, [registrations, searchTerm, statusFilter, eventFilter]);
+  }, [registrations, searchTerm, statusFilter, paymentStatusFilter, eventFilter]);
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
@@ -332,106 +387,153 @@ export default function EventRegistrationsPage() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="py-6">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Registros</CardTitle>
-            <User className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{registrations.length}</div>
+        {/* Total Registrations */}
+        <Card className="border">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm text-muted-foreground">Total Registros</span>
+              <Badge variant="secondary" className="flex items-center gap-1">
+                <Ticket className="h-3 w-3" />
+                Todos
+              </Badge>
+            </div>
+            <div className="text-3xl font-bold">{stats.total}</div>
+            <div className="flex items-center gap-1 mt-1">
+              {stats.trend >= 0 ? (
+                <TrendingUp className="h-4 w-4 text-green-500" />
+              ) : (
+                <TrendingDown className="h-4 w-4 text-red-500" />
+              )}
+              <span className={`text-sm ${stats.trend >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                {stats.trend >= 0 ? '+' : ''}{stats.trend}%
+              </span>
+              <span className="text-sm text-muted-foreground">vs semana anterior</span>
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              {stats.recentCount} nuevos esta semana
+            </p>
           </CardContent>
         </Card>
-        <Card className="py-6">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Confirmados</CardTitle>
-            <CheckCircle className="h-4 w-4 text-green-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">
-              {registrations.filter(r => r.status === 'confirmed').length}
+
+        {/* Confirmed */}
+        <Card className="border">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm text-muted-foreground">Confirmados</span>
+              <Badge className="bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400">
+                <CheckCircle className="h-3 w-3 mr-1" />
+                Activos
+              </Badge>
             </div>
+            <div className="text-3xl font-bold">{stats.confirmed}</div>
+            <div className="flex items-center gap-1 mt-1">
+              <TrendingUp className="h-4 w-4 text-green-500" />
+              <span className="text-sm text-green-600 dark:text-green-400">Asistentes confirmados</span>
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              {stats.total > 0 ? ((stats.confirmed / stats.total) * 100).toFixed(0) : 0}% del total
+            </p>
           </CardContent>
         </Card>
-        <Card className="py-6">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pendientes</CardTitle>
-            <Clock className="h-4 w-4 text-yellow-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-yellow-600">
-              {registrations.filter(r => r.status === 'pending').length}
+
+        {/* Pending */}
+        <Card className="border">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm text-muted-foreground">Pendientes</span>
+              <Badge className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400">
+                <Clock className="h-3 w-3 mr-1" />
+                Por confirmar
+              </Badge>
             </div>
+            <div className="text-3xl font-bold">{stats.pending}</div>
+            <div className="flex items-center gap-1 mt-1">
+              <Clock className="h-4 w-4 text-yellow-500" />
+              <span className="text-sm text-yellow-600 dark:text-yellow-400">Requieren atención</span>
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              {stats.total > 0 ? ((stats.pending / stats.total) * 100).toFixed(0) : 0}% del total
+            </p>
           </CardContent>
         </Card>
-        <Card className="py-6">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Cancelados</CardTitle>
-            <XCircle className="h-4 w-4 text-red-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-red-600">
-              {registrations.filter(r => r.status === 'cancelled').length}
+
+        {/* Revenue */}
+        <Card className="border">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm text-muted-foreground">Ingresos</span>
+              <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400">
+                <DollarSign className="h-3 w-3 mr-1" />
+                Pagados
+              </Badge>
             </div>
+            <div className="text-3xl font-bold">{formatPrice(stats.totalRevenue, "MXN")}</div>
+            <div className="flex items-center gap-1 mt-1">
+              {stats.revenueTrend >= 0 ? (
+                <TrendingUp className="h-4 w-4 text-green-500" />
+              ) : (
+                <TrendingDown className="h-4 w-4 text-red-500" />
+              )}
+              <span className={`text-sm ${stats.revenueTrend >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                {stats.revenueTrend >= 0 ? '+' : ''}{stats.revenueTrend}%
+              </span>
+              <span className="text-sm text-muted-foreground">vs semana anterior</span>
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              {stats.paidCount} registros pagados
+            </p>
           </CardContent>
         </Card>
       </div>
 
       {/* Filters */}
-      <Card className="py-6">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Filter className="h-5 w-5" />
-            Filtros
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            <div className="space-y-2 lg:col-span-1">
-              <label className="text-sm font-medium">Buscar</label>
-              <div className="relative">
-                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Buscar por usuario, evento o código..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-            </div>
-            <div className="space-y-2 lg:col-span-1">
-              <label className="text-sm font-medium">Estado</label>
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Todos los estados" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos los estados</SelectItem>
-                  <SelectItem value="pending">Pendiente</SelectItem>
-                  <SelectItem value="confirmed">Confirmado</SelectItem>
-                  <SelectItem value="cancelled">Cancelado</SelectItem>
-                  <SelectItem value="completed">Completado</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2 lg:col-span-1">
-              <label className="text-sm font-medium">Evento</label>
-              <Select value={eventFilter} onValueChange={setEventFilter}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Todos los eventos" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos los eventos</SelectItem>
-                  {events.map((event) => (
-                    <SelectItem key={event.id} value={event.id}>
-                      {event.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Buscar por usuario, evento o código..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10 w-full"
+          />
+        </div>
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Estado" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos los estados</SelectItem>
+            <SelectItem value="pending">Pendiente</SelectItem>
+            <SelectItem value="confirmed">Confirmado</SelectItem>
+            <SelectItem value="cancelled">Cancelado</SelectItem>
+            <SelectItem value="completed">Completado</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select value={paymentStatusFilter} onValueChange={setPaymentStatusFilter}>
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Estado de pago" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos los pagos</SelectItem>
+            <SelectItem value="paid">Pagado</SelectItem>
+            <SelectItem value="pending">Pago pendiente</SelectItem>
+            <SelectItem value="free">Gratuito</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select value={eventFilter} onValueChange={setEventFilter}>
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Evento" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos los eventos</SelectItem>
+            {events.map((event) => (
+              <SelectItem key={event.id} value={event.id}>
+                {event.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
 
       {/* Registrations Table */}
       <Card className="py-6">

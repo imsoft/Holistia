@@ -466,7 +466,7 @@ const EventsAdminPage = () => {
             </CardContent>
           </Card>
         ) : (
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {filteredEvents.map((event) => (
               <Card key={event.id} className={`${!event.is_active ? "opacity-60" : ""} overflow-hidden flex flex-col h-full`}>
                 {/* Event Image */}

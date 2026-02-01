@@ -486,7 +486,7 @@ export default function AdminHolisticServices() {
           </div>
 
           <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger>
+            <SelectTrigger className="w-full">
               <SelectValue placeholder="Estado" />
             </SelectTrigger>
             <SelectContent>
@@ -497,7 +497,7 @@ export default function AdminHolisticServices() {
           </Select>
 
           <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-            <SelectTrigger>
+            <SelectTrigger className="w-full">
               <SelectValue placeholder="Categoría" />
             </SelectTrigger>
             <SelectContent>
@@ -508,7 +508,7 @@ export default function AdminHolisticServices() {
           </Select>
 
           <Select value={sortBy} onValueChange={setSortBy}>
-            <SelectTrigger>
+            <SelectTrigger className="w-full">
               <SelectValue placeholder="Ordenar por" />
             </SelectTrigger>
             <SelectContent>

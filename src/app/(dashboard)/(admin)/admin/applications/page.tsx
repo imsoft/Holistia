@@ -592,9 +592,9 @@ export default function ApplicationsPage() {
           </Select>
         </div>
 
-        <div className="grid gap-4 sm:gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredApplications.length === 0 ? (
-          <Card>
+          <Card className="sm:col-span-2 lg:col-span-3">
               <CardContent className="flex flex-col items-center justify-center py-12">
                 <FileText className="h-12 w-12 text-muted-foreground mb-4" />
                 <h3 className="text-lg font-semibold text-foreground mb-2">
@@ -610,110 +610,73 @@ export default function ApplicationsPage() {
           </Card>
           ) : (
             filteredApplications.map((application) => (
-              <Card key={application.id} className="hover:shadow-md transition-shadow p-4 sm:p-6">
-                <CardHeader className="pb-4 sm:pb-6 px-0 pt-0">
-                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-                    <div className="flex items-center space-x-3 sm:space-x-4">
+              <Card key={application.id} className="hover:shadow-lg transition-shadow flex flex-col h-full overflow-hidden">
+                <CardContent className="px-6 py-6 flex flex-col h-full">
+                  <div className="flex items-start gap-4 mb-4">
+                    <div className="relative flex-shrink-0">
                       {application.profile_photo && application.profile_photo.trim() !== '' ? (
-                        <Image 
-                          src={application.profile_photo} 
+                        <Image
+                          src={application.profile_photo}
                           alt={`${application.first_name} ${application.last_name}`}
-                          width={48}
-                          height={48}
-                          className="w-12 h-12 aspect-square rounded-full object-cover border-2 border-border"
+                          width={56}
+                          height={56}
+                          className="w-14 h-14 aspect-square rounded-full object-cover border-2 border-border"
                           onError={(e) => {
-                            // Si la imagen falla al cargar, ocultar y mostrar el placeholder
                             const target = e.target as HTMLImageElement;
                             target.style.display = 'none';
                             const parent = target.parentElement;
                             if (parent) {
                               const placeholder = parent.querySelector('.profile-placeholder') as HTMLElement;
-                              if (placeholder) {
-                                placeholder.style.display = 'flex';
-                              }
+                              if (placeholder) placeholder.style.display = 'flex';
                             }
                           }}
                         />
                       ) : null}
-                      <div 
-                        className={`w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center ${application.profile_photo && application.profile_photo.trim() !== '' ? 'profile-placeholder hidden' : 'profile-placeholder'}`}
+                      <div
+                        className={`w-14 h-14 bg-primary/10 rounded-full flex items-center justify-center ${application.profile_photo?.trim() ? 'profile-placeholder hidden' : 'profile-placeholder'}`}
                       >
-                        <User className="h-6 w-6 text-primary" />
+                        <User className="h-7 w-7 text-primary" />
                       </div>
-                      <div>
-                        <CardTitle className="text-lg sm:text-xl">
-                          {`${application.first_name} ${application.last_name}`}
-                        </CardTitle>
-                        <CardDescription className="flex flex-col sm:flex-row sm:items-center space-y-1 sm:space-y-0 sm:space-x-4 mt-1">
-                          <span className="flex items-center">
-                            <Mail className="h-4 w-4 mr-1" />
-                            {application.email}
-                          </span>
-                          {application.phone && (
-                            <span className="flex items-center">
-                              <Phone className="h-4 w-4 mr-1" />
-                              {formatPhone(application.phone)}
-                            </span>
-                          )}
-                          {application.instagram && (
-                            <span className="flex items-center">
-                              <Instagram className="h-4 w-4 mr-1 text-gray-600" />
-                              <a 
-                                href={`https://instagram.com/${application.instagram.replace('@', '')}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-blue-600 hover:text-blue-700 underline text-sm"
-                              >
-                                @{application.instagram.replace('@', '')}
-                              </a>
-                            </span>
-                          )}
-                        </CardDescription>
-              </div>
-              </div>
-                    <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-                      {getStatusBadge(application.status)}
-                      <span className="text-xs sm:text-sm text-muted-foreground flex items-center">
-                        <Calendar className="h-4 w-4 mr-1" />
-                        <span className="hidden sm:inline">{formatDate(application.submitted_at)}</span>
-                        <span className="sm:hidden">{new Date(application.submitted_at).toLocaleDateString('es-ES')}</span>
-                      </span>
-              </div>
-        </div>
-          </CardHeader>
-                <CardContent className="pt-4 sm:pt-6 px-0 pb-0">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-4 sm:mb-6">
-                    <div>
-                      <Label className="text-sm font-medium text-muted-foreground">Profesión</Label>
-                      <p className="text-sm text-foreground mt-1">{application.profession}</p>
                     </div>
-                    <div>
-                      <Label className="text-sm font-medium text-muted-foreground">Especializaciones</Label>
-                      <p className="text-sm text-foreground mt-1">
-                        {application.specializations?.join(', ') || 'No especificadas'}
-                      </p>
-                    </div>
-                    <div>
-                      <Label className="text-sm font-medium text-muted-foreground">Ubicación</Label>
-                      <p className="text-sm text-foreground flex items-center mt-1">
-                        <MapPin className="h-5 w-5 mr-2" />
-                        {application.city && application.state 
-                          ? `${application.city}, ${application.state}` 
-                          : application.address || 'No especificada'}
-                      </p>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-base font-semibold text-foreground line-clamp-1">
+                        {application.first_name} {application.last_name}
+                      </h3>
+                      <div className="mt-1">{getStatusBadge(application.status)}</div>
+                      <p className="text-sm text-muted-foreground mt-1">{application.profession}</p>
                     </div>
                   </div>
-                      
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0 pt-4 sm:pt-6 border-t">
-                    <div className="flex items-center space-x-2">
-                      <Dialog>
-                        <DialogTrigger asChild>
-                          <Button variant="outline" size="sm">
-                            <Eye className="h-4 w-4 mr-2" />
-                            Ver Detalles
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
+
+                  <div className="space-y-2 mb-4 flex-grow">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Mail className="h-4 w-4 flex-shrink-0" />
+                      <span className="truncate">{application.email}</span>
+                    </div>
+                    {(application.city || application.state || application.address) && (
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <MapPin className="h-4 w-4 flex-shrink-0" />
+                        <span className="truncate">
+                          {application.city && application.state
+                            ? `${application.city}, ${application.state}`
+                            : application.address || 'No especificada'}
+                        </span>
+                      </div>
+                    )}
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Calendar className="h-4 w-4 flex-shrink-0" />
+                      <span>{formatDate(application.submitted_at)}</span>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col gap-2 mt-auto">
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button variant="outline" size="sm" className="w-full">
+                          <Eye className="h-4 w-4 mr-2" />
+                          Ver Detalles
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
                           <DialogHeader className="pb-6">
                             <DialogTitle className="text-2xl font-bold">Detalles de la Solicitud</DialogTitle>
                             <div className="flex items-center space-x-3 pt-2">
@@ -857,18 +820,16 @@ export default function ApplicationsPage() {
                                 </p>
                               </div>
                             </div>
-                      </div>
+                          </div>
                         </DialogContent>
-                      </Dialog>
-                  </div>
-                  
+                    </Dialog>
                     {(application.status === 'pending' || application.status === 'under_review') && (
-                      <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                      <div className="flex gap-2">
                         <Button 
                           size="sm" 
                           onClick={() => handleStatusUpdate(application.id, 'approved')}
                           disabled={updating}
-                          className="bg-green-600 hover:bg-green-700 w-full sm:w-auto"
+                          className="bg-green-600 hover:bg-green-700 flex-1"
                         >
                           <CheckCircle className="h-4 w-4 mr-2" />
                           Aprobar
@@ -878,7 +839,7 @@ export default function ApplicationsPage() {
                           variant="destructive"
                           onClick={() => handleStatusUpdate(application.id, 'rejected')}
                           disabled={updating}
-                          className="w-full sm:w-auto"
+                          className="flex-1"
                         >
                           <XCircle className="h-4 w-4 mr-2" />
                           Rechazar

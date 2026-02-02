@@ -11,7 +11,6 @@ import { Button } from "@/components/ui/button";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { toast } from "sonner";
 import {
-  ArrowLeft,
   Calendar,
   MapPin,
   Users,
@@ -270,14 +269,6 @@ export default function EventRegistrationsDetailPage() {
         <div className="flex flex-col sm:flex-row sm:h-16 sm:items-center justify-between px-4 sm:px-6 py-4 sm:py-0 gap-4 sm:gap-0">
           <div className="flex items-center gap-3 sm:gap-4">
             <SidebarTrigger />
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => router.push(`/admin/${adminId}/events`)}
-              className="flex items-center gap-2"
-            >
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
             <div>
               <h1 className="text-xl sm:text-2xl font-bold text-foreground">Registrados del Evento</h1>
               <p className="text-xs sm:text-sm text-muted-foreground">
@@ -408,7 +399,7 @@ export default function EventRegistrationsDetailPage() {
                               {registration.confirmation_code && (
                                 <div className="flex items-center gap-2">
                                   <FileText className="h-3 w-3" />
-                                  <span>Código: {registration.confirmation_code}</span>
+                                  <span>Código de confirmación: {registration.confirmation_code}</span>
                                 </div>
                               )}
                               {registration.emergency_contact_name && (

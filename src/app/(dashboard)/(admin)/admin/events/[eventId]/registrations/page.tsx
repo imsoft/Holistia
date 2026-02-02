@@ -229,6 +229,17 @@ export default function EventRegistrationsDetailPage() {
     return <Badge variant="destructive">No asistió</Badge>;
   };
 
+  const getPaymentStatusLabel = (status: string) => {
+    const labels: Record<string, string> = {
+      succeeded: 'Pagado',
+      cancelled: 'Cancelado',
+      pending: 'Pendiente',
+      failed: 'Fallido',
+      refunded: 'Reembolsado',
+    };
+    return labels[status] || status;
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -287,12 +298,12 @@ export default function EventRegistrationsDetailPage() {
           <CardContent>
             <div className="grid gap-4 md:grid-cols-2">
               {event.gallery_images && event.gallery_images.length > 0 && (
-                <div className="relative w-full h-64 rounded-lg overflow-hidden">
+                <div className="relative w-full min-h-64 rounded-lg overflow-hidden bg-muted/30 flex items-center justify-center">
                   <Image
                     src={event.gallery_images[0]}
                     alt={event.name}
                     fill
-                    className="object-cover"
+                    className="object-contain"
                     unoptimized={event.gallery_images[0].includes('supabase.co') || event.gallery_images[0].includes('supabase.in')}
                   />
                 </div>
@@ -412,9 +423,9 @@ export default function EventRegistrationsDetailPage() {
                                 <div className="flex items-center gap-2">
                                   <DollarSign className="h-3 w-3" />
                                   <span>
-                                    Pago: {formatPrice(registration.payment.amount, 'MXN')} - 
-                                    <Badge variant={registration.payment.status === 'succeeded' ? 'default' : 'secondary'} className="ml-1">
-                                      {registration.payment.status === 'succeeded' ? 'Pagado' : registration.payment.status}
+                                    Pago: {formatPrice(registration.payment.amount, 'MXN')} –{' '}
+                                    <Badge variant={registration.payment.status === 'succeeded' ? 'default' : registration.payment.status === 'cancelled' ? 'destructive' : 'secondary'} className="ml-1">
+                                      {getPaymentStatusLabel(registration.payment.status)}
                                     </Badge>
                                   </span>
                                 </div>
@@ -433,37 +444,39 @@ export default function EventRegistrationsDetailPage() {
                           </div>
                         </div>
 
-                        {/* Botones de acción */}
-                        <div className="flex flex-col sm:flex-row gap-2">
-                          <Button
-                            variant={registration.attended === true ? "default" : "outline"}
-                            size="sm"
-                            onClick={() => handleMarkAttendance(registration.id, true)}
-                            disabled={updating === registration.id}
-                            className="flex items-center gap-2"
-                          >
-                            {updating === registration.id ? (
-                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current"></div>
-                            ) : (
-                              <CheckCircle2 className="h-4 w-4" />
-                            )}
-                            Asistió
-                          </Button>
-                          <Button
-                            variant={registration.attended === false ? "destructive" : "outline"}
-                            size="sm"
-                            onClick={() => handleMarkAttendance(registration.id, false)}
-                            disabled={updating === registration.id}
-                            className="flex items-center gap-2"
-                          >
-                            {updating === registration.id ? (
-                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current"></div>
-                            ) : (
-                              <XCircle className="h-4 w-4" />
-                            )}
-                            No asistió
-                          </Button>
-                        </div>
+                        {/* Botones de acción (solo si el registro no está cancelado) */}
+                        {registration.status !== 'cancelled' && (
+                          <div className="flex flex-col sm:flex-row gap-2">
+                            <Button
+                              variant={registration.attended === true ? "default" : "outline"}
+                              size="sm"
+                              onClick={() => handleMarkAttendance(registration.id, true)}
+                              disabled={updating === registration.id}
+                              className="flex items-center gap-2 text-green-600 hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-950/30 data-[state=open]:text-green-700 data-[state=open]:bg-green-50 dark:data-[state=open]:bg-green-950/30"
+                            >
+                              {updating === registration.id ? (
+                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current"></div>
+                              ) : (
+                                <CheckCircle2 className="h-4 w-4 text-green-600" />
+                              )}
+                              Asistió
+                            </Button>
+                            <Button
+                              variant={registration.attended === false ? "destructive" : "outline"}
+                              size="sm"
+                              onClick={() => handleMarkAttendance(registration.id, false)}
+                              disabled={updating === registration.id}
+                              className="flex items-center gap-2 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/30 border-red-200 dark:border-red-800 data-[state=open]:text-red-700 data-[state=open]:bg-red-50 dark:data-[state=open]:bg-red-950/30"
+                            >
+                              {updating === registration.id ? (
+                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current"></div>
+                              ) : (
+                                <XCircle className="h-4 w-4 text-red-600" />
+                              )}
+                              No asistió
+                            </Button>
+                          </div>
+                        )}
                       </div>
                     </CardContent>
                   </Card>

@@ -144,10 +144,9 @@ export default function MessagesLayout({
     }
   };
 
-  // Generar navegación según el tipo de usuario
-  const navigation = isProfessional 
-    ? getProfessionalNavigation() 
-    : getPatientNavigation(hasEvents);
+  // Generar navegación de PACIENTE/USUARIO NORMAL (no profesional)
+  // La página /messages es parte de la experiencia de usuario normal, no profesional
+  const navigation = getPatientNavigation(hasEvents);
   const userNavigation = profile ? getUserNavigation(isProfessional) : [];
 
   // Función para determinar si un item está activo
@@ -188,7 +187,7 @@ export default function MessagesLayout({
             <div className="flex">
               <div className="flex shrink-0 items-center">
                 <Link
-                  href={isProfessional ? "/dashboard" : "/explore"}
+                  href="/explore"
                   className="flex items-center space-x-2"
                 >
                   <Image
@@ -198,11 +197,6 @@ export default function MessagesLayout({
                     height={32}
                     className="h-auto w-auto"
                   />
-                  {isProfessional && (
-                    <span className="hidden sm:inline-block ml-2 text-xs font-semibold text-muted-foreground bg-primary/10 px-2 py-1 rounded">
-                      Profesional
-                    </span>
-                  )}
                 </Link>
               </div>
               <div className="hidden sm:ml-6 sm:flex sm:space-x-8">

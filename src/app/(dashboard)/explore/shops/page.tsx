@@ -1,16 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import { useUserId } from "@/stores/user-store";
 import { useUserStoreInit } from "@/hooks/use-user-store-init";
 import Link from "next/link";
 import Image from "next/image";
-import { Store, MapPin, Brain, Sparkles, Activity, Apple, Users, ArrowLeft } from "lucide-react";
+import { Store, MapPin, Brain, Sparkles, Activity, Apple, Users } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PageSkeleton } from "@/components/ui/layout-skeleton";
 
@@ -76,7 +74,6 @@ const categoryToWellnessAreas: Record<string, string[]> = {
 
 export default function ShopsPage() {
   useUserStoreInit();
-  const router = useRouter();
   const userId = useUserId();
   const [shops, setShops] = useState<Shop[]>([]);
   const [filteredShops, setFilteredShops] = useState<Shop[]>([]);
@@ -318,14 +315,6 @@ export default function ShopsPage() {
   if (!isAuthenticated) {
     return (
       <div className="w-full max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-        <Button
-          variant="ghost"
-          onClick={() => router.push('/')}
-          className="mb-6"
-        >
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Volver
-        </Button>
         {renderShopsContent()}
       </div>
     );

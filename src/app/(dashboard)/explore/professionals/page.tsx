@@ -1,10 +1,9 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import { useUserId } from "@/stores/user-store";
 import { useUserStoreInit } from "@/hooks/use-user-store-init";
-import { Brain, Sparkles, Activity, Users, Apple, ArrowLeft } from "lucide-react";
+import { Brain, Sparkles, Activity, Users, Apple } from "lucide-react";
 import { ProfessionalCard } from "@/components/ui/professional-card";
 import { createClient } from "@/utils/supabase/client";
 import { determineProfessionalModality, transformServicesFromDB } from "@/utils/professional-utils";
@@ -12,7 +11,6 @@ import { sortProfessionalsByRanking, type ProfessionalRankingData } from "@/util
 import { Skeleton } from "@/components/ui/skeleton";
 import { PageSkeleton } from "@/components/ui/layout-skeleton";
 import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 
 interface Professional {
   id: string;
@@ -84,7 +82,6 @@ const categories = [
 
 export default function ProfessionalsPage() {
   useUserStoreInit();
-  const router = useRouter();
   const userId = useUserId();
   const [professionals, setProfessionals] = useState<Professional[]>([]);
   const [filteredProfessionals, setFilteredProfessionals] = useState<Professional[]>([]);
@@ -449,14 +446,6 @@ export default function ProfessionalsPage() {
   if (!isAuthenticated) {
     return (
       <div className="w-full max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-        <Button
-          variant="ghost"
-          onClick={() => router.push('/')}
-          className="mb-6"
-        >
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Volver
-        </Button>
         {renderProfessionalsContent()}
       </div>
     );

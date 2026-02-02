@@ -1,15 +1,13 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import { useUserId } from "@/stores/user-store";
 import { useUserStoreInit } from "@/hooks/use-user-store-init";
-import { Calendar, MapPin, Users, Brain, Sparkles, Activity, Apple, ArrowLeft } from "lucide-react";
+import { Calendar, MapPin, Users, Brain, Sparkles, Activity, Apple } from "lucide-react";
 import Link from "next/link";
 import { createClient } from "@/utils/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { EventWorkshop } from "@/types/event";
 import { formatEventDate, formatEventTime } from "@/utils/date-utils";
 import { formatPrice } from "@/lib/price-utils";
@@ -73,7 +71,6 @@ const generateEventSlug = (eventName: string, eventId: string) => {
 
 export default function EventsPage() {
   useUserStoreInit();
-  const router = useRouter();
   const userId = useUserId();
   const [events, setEvents] = useState<EventWorkshop[]>([]);
   const [filteredEvents, setFilteredEvents] = useState<EventWorkshop[]>([]);
@@ -352,14 +349,6 @@ export default function EventsPage() {
   if (!isAuthenticated) {
     return (
       <div className="w-full max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-        <Button
-          variant="ghost"
-          onClick={() => router.push('/')}
-          className="mb-6"
-        >
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Volver
-        </Button>
         {renderEventsContent()}
       </div>
     );

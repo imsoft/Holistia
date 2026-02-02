@@ -576,58 +576,62 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
         {/* 1. Programas */}
         {(!loading && digitalProducts.length > 0) || loading ? (
           <div className="mb-16">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-2xl font-bold">
+            <div className="mb-6">
+              <Link
+                href="/explore/programs"
+                className="inline-flex items-center gap-1 text-2xl font-bold hover:text-primary transition-colors"
+              >
                 Programas
-              </h3>
+                <ChevronRight className="w-6 h-6" />
+              </Link>
+            </div>
+            <div className="relative">
               {!loading && digitalProducts.length > 0 && (
-                <div className="flex items-center gap-2">
+                <>
                   <Button
                     variant="outline"
                     size="icon"
                     onClick={() => scroll(digitalProductsRef, 'left')}
+                    className="absolute left-0 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full bg-background/90 backdrop-blur-sm shadow-md hover:bg-background border"
+                    aria-label="Scroll left"
                   >
-                    <ChevronLeft className="w-4 h-4" />
+                    <ChevronLeft className="w-5 h-5" />
                   </Button>
                   <Button
                     variant="outline"
                     size="icon"
                     onClick={() => scroll(digitalProductsRef, 'right')}
+                    className="absolute right-0 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full bg-background/90 backdrop-blur-sm shadow-md hover:bg-background border"
+                    aria-label="Scroll right"
                   >
-                    <ChevronRight className="w-4 h-4" />
+                    <ChevronRight className="w-5 h-5" />
                   </Button>
-                  <Button variant="outline" size="sm" asChild className="ml-2">
-                    <Link href="/explore/programs">
-                      Ver más <ArrowRight className="w-4 h-4 ml-2" />
-                    </Link>
-                  </Button>
-                </div>
+                </>
               )}
-            </div>
-            {loading ? (
-              <div
-                ref={digitalProductsRef}
-                className="flex gap-6 overflow-x-auto pb-4"
-                style={{
-                  scrollbarWidth: 'none',
-                  msOverflowStyle: 'none',
-                  WebkitOverflowScrolling: 'touch'
-                }}
-              >
-                {Array.from({ length: 6 }).map((_, i) => (
-                  <CardSkeleton key={`program-skeleton-${i}`} />
-                ))}
-              </div>
-            ) : digitalProducts.length > 0 ? (
-              <div
-                ref={digitalProductsRef}
-                className="flex gap-6 overflow-x-auto pb-4"
-                style={{
-                  scrollbarWidth: 'none',
-                  msOverflowStyle: 'none',
-                  WebkitOverflowScrolling: 'touch'
-                }}
-              >
+              {loading ? (
+                <div
+                  ref={digitalProductsRef}
+                  className="flex gap-6 overflow-x-auto pb-4 px-12"
+                  style={{
+                    scrollbarWidth: 'none',
+                    msOverflowStyle: 'none',
+                    WebkitOverflowScrolling: 'touch'
+                  }}
+                >
+                  {Array.from({ length: 6 }).map((_, i) => (
+                    <CardSkeleton key={`program-skeleton-${i}`} />
+                  ))}
+                </div>
+              ) : digitalProducts.length > 0 ? (
+                <div
+                  ref={digitalProductsRef}
+                  className="flex gap-6 overflow-x-auto pb-4 px-12"
+                  style={{
+                    scrollbarWidth: 'none',
+                    msOverflowStyle: 'none',
+                    WebkitOverflowScrolling: 'touch'
+                  }}
+                >
                 {digitalProducts.map((product) => {
                   const cleanDescription = product.description ? stripHtml(product.description) : null;
                   return (
@@ -697,64 +701,69 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
                 })}
               </div>
             ) : null}
+            </div>
           </div>
         ) : null}
 
         {/* 2. Eventos y Talleres */}
         {(!loading && events.length > 0) || loading ? (
           <div className="mb-16">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-2xl font-bold">
+            <div className="mb-6">
+              <Link
+                href="/explore/events"
+                className="inline-flex items-center gap-1 text-2xl font-bold hover:text-primary transition-colors"
+              >
                 Eventos y Talleres
-              </h3>
+                <ChevronRight className="w-6 h-6" />
+              </Link>
+            </div>
+            <div className="relative">
               {!loading && events.length > 0 && (
-                <div className="flex items-center gap-2">
+                <>
                   <Button
                     variant="outline"
                     size="icon"
                     onClick={() => scroll(eventsRef, 'left')}
+                    className="absolute left-0 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full bg-background/90 backdrop-blur-sm shadow-md hover:bg-background border"
+                    aria-label="Scroll left"
                   >
-                    <ChevronLeft className="w-4 h-4" />
+                    <ChevronLeft className="w-5 h-5" />
                   </Button>
                   <Button
                     variant="outline"
                     size="icon"
                     onClick={() => scroll(eventsRef, 'right')}
+                    className="absolute right-0 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full bg-background/90 backdrop-blur-sm shadow-md hover:bg-background border"
+                    aria-label="Scroll right"
                   >
-                    <ChevronRight className="w-4 h-4" />
+                    <ChevronRight className="w-5 h-5" />
                   </Button>
-                  <Button variant="outline" size="sm" asChild className="ml-2">
-                    <Link href="/explore/events">
-                      Ver más <ArrowRight className="w-4 h-4 ml-2" />
-                    </Link>
-                  </Button>
-                </div>
+                </>
               )}
-            </div>
-            {loading ? (
-              <div
-                ref={eventsRef}
-                className="flex gap-6 overflow-x-auto pb-4"
-                style={{
-                  scrollbarWidth: 'none',
-                  msOverflowStyle: 'none',
-                  WebkitOverflowScrolling: 'touch'
-                }}
-              >
-                {Array.from({ length: 6 }).map((_, i) => (
-                  <CardSkeleton key={`event-skeleton-${i}`} />
-                ))}
-              </div>
-            ) : events.length > 0 ? (
-              <div
-                ref={eventsRef}
-                className="flex gap-6 overflow-x-auto pb-4"
-                style={{
-                  scrollbarWidth: 'none',
-                  msOverflowStyle: 'none',
-                  WebkitOverflowScrolling: 'touch'
-                }}
-              >
+              {loading ? (
+                <div
+                  ref={eventsRef}
+                  className="flex gap-6 overflow-x-auto pb-4 px-12"
+                  style={{
+                    scrollbarWidth: 'none',
+                    msOverflowStyle: 'none',
+                    WebkitOverflowScrolling: 'touch'
+                  }}
+                >
+                  {Array.from({ length: 6 }).map((_, i) => (
+                    <CardSkeleton key={`event-skeleton-${i}`} />
+                  ))}
+                </div>
+              ) : events.length > 0 ? (
+                <div
+                  ref={eventsRef}
+                  className="flex gap-6 overflow-x-auto pb-4 px-12"
+                  style={{
+                    scrollbarWidth: 'none',
+                    msOverflowStyle: 'none',
+                    WebkitOverflowScrolling: 'touch'
+                  }}
+                >
                 {events.map((event) => {
                   return (
                     <Link
@@ -823,64 +832,69 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
                 })}
               </div>
             ) : null}
+            </div>
           </div>
         ) : null}
 
         {/* 3. Retos */}
         {(!loading && challenges.length > 0) || loading ? (
           <div className="mb-16">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-2xl font-bold">
+            <div className="mb-6">
+              <Link
+                href="/explore/challenges"
+                className="inline-flex items-center gap-1 text-2xl font-bold hover:text-primary transition-colors"
+              >
                 Retos
-              </h3>
+                <ChevronRight className="w-6 h-6" />
+              </Link>
+            </div>
+            <div className="relative">
               {!loading && challenges.length > 0 && (
-                <div className="flex items-center gap-2">
+                <>
                   <Button
                     variant="outline"
                     size="icon"
                     onClick={() => scroll(challengesRef, 'left')}
+                    className="absolute left-0 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full bg-background/90 backdrop-blur-sm shadow-md hover:bg-background border"
+                    aria-label="Scroll left"
                   >
-                    <ChevronLeft className="w-4 h-4" />
+                    <ChevronLeft className="w-5 h-5" />
                   </Button>
                   <Button
                     variant="outline"
                     size="icon"
                     onClick={() => scroll(challengesRef, 'right')}
+                    className="absolute right-0 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full bg-background/90 backdrop-blur-sm shadow-md hover:bg-background border"
+                    aria-label="Scroll right"
                   >
-                    <ChevronRight className="w-4 h-4" />
+                    <ChevronRight className="w-5 h-5" />
                   </Button>
-                  <Button variant="outline" size="sm" asChild className="ml-2">
-                    <Link href="/explore/challenges">
-                      Ver más <ArrowRight className="w-4 h-4 ml-2" />
-                    </Link>
-                  </Button>
-                </div>
+                </>
               )}
-            </div>
-            {loading ? (
-              <div
-                ref={challengesRef}
-                className="flex gap-6 overflow-x-auto pb-4"
-                style={{
-                  scrollbarWidth: 'none',
-                  msOverflowStyle: 'none',
-                  WebkitOverflowScrolling: 'touch'
-                }}
-              >
-                {Array.from({ length: 6 }).map((_, i) => (
-                  <CardSkeleton key={`challenge-skeleton-${i}`} />
-                ))}
-              </div>
-            ) : challenges.length > 0 ? (
-              <div
-                ref={challengesRef}
-                className="flex gap-6 overflow-x-auto pb-4"
-                style={{
-                  scrollbarWidth: 'none',
-                  msOverflowStyle: 'none',
-                  WebkitOverflowScrolling: 'touch'
-                }}
-              >
+              {loading ? (
+                <div
+                  ref={challengesRef}
+                  className="flex gap-6 overflow-x-auto pb-4 px-12"
+                  style={{
+                    scrollbarWidth: 'none',
+                    msOverflowStyle: 'none',
+                    WebkitOverflowScrolling: 'touch'
+                  }}
+                >
+                  {Array.from({ length: 6 }).map((_, i) => (
+                    <CardSkeleton key={`challenge-skeleton-${i}`} />
+                  ))}
+                </div>
+              ) : challenges.length > 0 ? (
+                <div
+                  ref={challengesRef}
+                  className="flex gap-6 overflow-x-auto pb-4 px-12"
+                  style={{
+                    scrollbarWidth: 'none',
+                    msOverflowStyle: 'none',
+                    WebkitOverflowScrolling: 'touch'
+                  }}
+                >
                 {challenges.map((challenge) => (
                   <div key={challenge.id} className="shrink-0 w-[280px] sm:w-[320px]">
                     <ChallengeCard challenge={challenge as any} userId={currentUserId} />
@@ -888,64 +902,69 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
                 ))}
               </div>
             ) : null}
+            </div>
           </div>
         ) : null}
 
         {/* 4. Expertos */}
         {(!loading && professionals.length > 0) || loading ? (
           <div className="mb-16">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-2xl font-bold">
+            <div className="mb-6">
+              <Link
+                href="/explore/professionals"
+                className="inline-flex items-center gap-1 text-2xl font-bold hover:text-primary transition-colors"
+              >
                 Expertos
-              </h3>
+                <ChevronRight className="w-6 h-6" />
+              </Link>
+            </div>
+            <div className="relative">
               {!loading && professionals.length > 0 && (
-                <div className="flex items-center gap-2">
+                <>
                   <Button
                     variant="outline"
                     size="icon"
                     onClick={() => scroll(professionalsRef, 'left')}
+                    className="absolute left-0 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full bg-background/90 backdrop-blur-sm shadow-md hover:bg-background border"
+                    aria-label="Scroll left"
                   >
-                    <ChevronLeft className="w-4 h-4" />
+                    <ChevronLeft className="w-5 h-5" />
                   </Button>
                   <Button
                     variant="outline"
                     size="icon"
                     onClick={() => scroll(professionalsRef, 'right')}
+                    className="absolute right-0 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full bg-background/90 backdrop-blur-sm shadow-md hover:bg-background border"
+                    aria-label="Scroll right"
                   >
-                    <ChevronRight className="w-4 h-4" />
+                    <ChevronRight className="w-5 h-5" />
                   </Button>
-                  <Button variant="outline" size="sm" asChild className="ml-2">
-                    <Link href="/explore/professionals">
-                      Ver más <ArrowRight className="w-4 h-4 ml-2" />
-                    </Link>
-                  </Button>
-                </div>
+                </>
               )}
-            </div>
-            {loading ? (
-              <div
-                ref={professionalsRef}
-                className="flex gap-6 overflow-x-auto pb-4"
-                style={{
-                  scrollbarWidth: 'none',
-                  msOverflowStyle: 'none',
-                  WebkitOverflowScrolling: 'touch'
-                }}
-              >
-                {Array.from({ length: 6 }).map((_, i) => (
-                  <ProfessionalCardSkeleton key={`professional-skeleton-${i}`} />
-                ))}
-              </div>
-            ) : professionals.length > 0 ? (
-              <div
-                ref={professionalsRef}
-                className="flex gap-6 overflow-x-auto pb-4"
-                style={{
-                  scrollbarWidth: 'none',
-                  msOverflowStyle: 'none',
-                  WebkitOverflowScrolling: 'touch'
-                }}
-              >
+              {loading ? (
+                <div
+                  ref={professionalsRef}
+                  className="flex gap-6 overflow-x-auto pb-4 px-12"
+                  style={{
+                    scrollbarWidth: 'none',
+                    msOverflowStyle: 'none',
+                    WebkitOverflowScrolling: 'touch'
+                  }}
+                >
+                  {Array.from({ length: 6 }).map((_, i) => (
+                    <ProfessionalCardSkeleton key={`professional-skeleton-${i}`} />
+                  ))}
+                </div>
+              ) : professionals.length > 0 ? (
+                <div
+                  ref={professionalsRef}
+                  className="flex gap-6 overflow-x-auto pb-4 px-12"
+                  style={{
+                    scrollbarWidth: 'none',
+                    msOverflowStyle: 'none',
+                    WebkitOverflowScrolling: 'touch'
+                  }}
+                >
                 {professionals.map((prof) => {
                   return (
                     <div key={prof.id} className="shrink-0 w-[280px] sm:w-[320px]">
@@ -975,66 +994,69 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
                 })}
               </div>
             ) : null}
+            </div>
           </div>
         ) : null}
 
         {/* 4. Comercios */}
         {(!loading && shops.length > 0) || loading ? (
           <div className="mb-16">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-2">
-              <div>
-                <h3 className="text-2xl font-bold">
-                  Comercios
-                </h3>
-              </div>
+            <div className="mb-6">
+              <Link
+                href="/explore/shops"
+                className="inline-flex items-center gap-1 text-2xl font-bold hover:text-primary transition-colors"
+              >
+                Comercios
+                <ChevronRight className="w-6 h-6" />
+              </Link>
+            </div>
+            <div className="relative">
               {!loading && shops.length > 0 && (
-                <div className="flex items-center gap-2">
+                <>
                   <Button
                     variant="outline"
                     size="icon"
                     onClick={() => scroll(shopsRef, 'left')}
+                    className="absolute left-0 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full bg-background/90 backdrop-blur-sm shadow-md hover:bg-background border"
+                    aria-label="Scroll left"
                   >
-                    <ChevronLeft className="w-4 h-4" />
+                    <ChevronLeft className="w-5 h-5" />
                   </Button>
                   <Button
                     variant="outline"
                     size="icon"
                     onClick={() => scroll(shopsRef, 'right')}
+                    className="absolute right-0 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full bg-background/90 backdrop-blur-sm shadow-md hover:bg-background border"
+                    aria-label="Scroll right"
                   >
-                    <ChevronRight className="w-4 h-4" />
+                    <ChevronRight className="w-5 h-5" />
                   </Button>
-                  <Button variant="outline" size="sm" asChild className="ml-2">
-                    <Link href="/explore/shops">
-                      Ver más <ArrowRight className="w-4 h-4 ml-2" />
-                    </Link>
-                  </Button>
-                </div>
+                </>
               )}
-            </div>
-            {loading ? (
-              <div
-                ref={shopsRef}
-                className="flex gap-6 overflow-x-auto pb-4"
-                style={{
-                  scrollbarWidth: 'none',
-                  msOverflowStyle: 'none',
-                  WebkitOverflowScrolling: 'touch'
-                }}
-              >
-                {Array.from({ length: 6 }).map((_, i) => (
-                  <CardSkeleton key={`shop-skeleton-${i}`} />
-                ))}
-              </div>
-            ) : shops.length > 0 ? (
-              <div
-                ref={shopsRef}
-                className="flex gap-6 overflow-x-auto pb-4"
-                style={{
-                  scrollbarWidth: 'none',
-                  msOverflowStyle: 'none',
-                  WebkitOverflowScrolling: 'touch'
-                }}
-              >
+              {loading ? (
+                <div
+                  ref={shopsRef}
+                  className="flex gap-6 overflow-x-auto pb-4 px-12"
+                  style={{
+                    scrollbarWidth: 'none',
+                    msOverflowStyle: 'none',
+                    WebkitOverflowScrolling: 'touch'
+                  }}
+                >
+                  {Array.from({ length: 6 }).map((_, i) => (
+                    <CardSkeleton key={`shop-skeleton-${i}`} />
+                  ))}
+                </div>
+              ) : shops.length > 0 ? (
+                <div
+                  ref={shopsRef}
+                  className="flex gap-6 overflow-x-auto pb-4 px-12"
+                  style={{
+                    scrollbarWidth: 'none',
+                    msOverflowStyle: 'none',
+                    WebkitOverflowScrolling: 'touch'
+                  }}
+                >
                 {shops.map((shop) => {
                   // Obtener la imagen principal: primero image_url, luego gallery[0], luego null
                   // Verificar si gallery es un array o string
@@ -1124,66 +1146,69 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
                 })}
               </div>
             ) : null}
+            </div>
           </div>
         ) : null}
 
         {/* 5. Centros Holísticos */}
         {(!loading && holisticCenters.length > 0) || loading ? (
           <div className="mb-16">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-2">
-              <div>
-                <h3 className="text-2xl font-bold">
-                  Centros Holísticos
-                </h3>
-              </div>
+            <div className="mb-6">
+              <Link
+                href="/explore/holistic-centers"
+                className="inline-flex items-center gap-1 text-2xl font-bold hover:text-primary transition-colors"
+              >
+                Centros Holísticos
+                <ChevronRight className="w-6 h-6" />
+              </Link>
+            </div>
+            <div className="relative">
               {!loading && holisticCenters.length > 0 && (
-                <div className="flex items-center gap-2">
+                <>
                   <Button
                     variant="outline"
                     size="icon"
                     onClick={() => scroll(holisticCentersRef, 'left')}
+                    className="absolute left-0 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full bg-background/90 backdrop-blur-sm shadow-md hover:bg-background border"
+                    aria-label="Scroll left"
                   >
-                    <ChevronLeft className="w-4 h-4" />
+                    <ChevronLeft className="w-5 h-5" />
                   </Button>
                   <Button
                     variant="outline"
                     size="icon"
                     onClick={() => scroll(holisticCentersRef, 'right')}
+                    className="absolute right-0 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full bg-background/90 backdrop-blur-sm shadow-md hover:bg-background border"
+                    aria-label="Scroll right"
                   >
-                    <ChevronRight className="w-4 h-4" />
+                    <ChevronRight className="w-5 h-5" />
                   </Button>
-                  <Button variant="outline" size="sm" asChild className="ml-2">
-                    <Link href="/explore/holistic-centers">
-                      Ver más <ArrowRight className="w-4 h-4 ml-2" />
-                    </Link>
-                  </Button>
-                </div>
+                </>
               )}
-            </div>
-            {loading ? (
-              <div
-                ref={holisticCentersRef}
-                className="flex gap-6 overflow-x-auto pb-4"
-                style={{
-                  scrollbarWidth: 'none',
-                  msOverflowStyle: 'none',
-                  WebkitOverflowScrolling: 'touch'
-                }}
-              >
-                {Array.from({ length: 6 }).map((_, i) => (
-                  <CardSkeleton key={`holistic-center-skeleton-${i}`} />
-                ))}
-              </div>
-            ) : holisticCenters.length > 0 ? (
-              <div
-                ref={holisticCentersRef}
-                className="flex gap-6 overflow-x-auto pb-4"
-                style={{
-                  scrollbarWidth: 'none',
-                  msOverflowStyle: 'none',
-                  WebkitOverflowScrolling: 'touch'
-                }}
-              >
+              {loading ? (
+                <div
+                  ref={holisticCentersRef}
+                  className="flex gap-6 overflow-x-auto pb-4 px-12"
+                  style={{
+                    scrollbarWidth: 'none',
+                    msOverflowStyle: 'none',
+                    WebkitOverflowScrolling: 'touch'
+                  }}
+                >
+                  {Array.from({ length: 6 }).map((_, i) => (
+                    <CardSkeleton key={`holistic-center-skeleton-${i}`} />
+                  ))}
+                </div>
+              ) : holisticCenters.length > 0 ? (
+                <div
+                  ref={holisticCentersRef}
+                  className="flex gap-6 overflow-x-auto pb-4 px-12"
+                  style={{
+                    scrollbarWidth: 'none',
+                    msOverflowStyle: 'none',
+                    WebkitOverflowScrolling: 'touch'
+                  }}
+                >
                 {holisticCenters.map((center) => {
                   const cleanDescription = center.description ? stripHtml(center.description) : null;
                   
@@ -1253,64 +1278,69 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
                 })}
               </div>
             ) : null}
+            </div>
           </div>
         ) : null}
 
         {/* 6. Restaurantes */}
         {(!loading && restaurants.length > 0) || loading ? (
           <div className="mb-16">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-2xl font-bold">
+            <div className="mb-6">
+              <Link
+                href="/explore/restaurants"
+                className="inline-flex items-center gap-1 text-2xl font-bold hover:text-primary transition-colors"
+              >
                 Restaurantes
-              </h3>
+                <ChevronRight className="w-6 h-6" />
+              </Link>
+            </div>
+            <div className="relative">
               {!loading && restaurants.length > 0 && (
-                <div className="flex items-center gap-2">
+                <>
                   <Button
                     variant="outline"
                     size="icon"
                     onClick={() => scroll(restaurantsRef, 'left')}
+                    className="absolute left-0 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full bg-background/90 backdrop-blur-sm shadow-md hover:bg-background border"
+                    aria-label="Scroll left"
                   >
-                    <ChevronLeft className="w-4 h-4" />
+                    <ChevronLeft className="w-5 h-5" />
                   </Button>
                   <Button
                     variant="outline"
                     size="icon"
                     onClick={() => scroll(restaurantsRef, 'right')}
+                    className="absolute right-0 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full bg-background/90 backdrop-blur-sm shadow-md hover:bg-background border"
+                    aria-label="Scroll right"
                   >
-                    <ChevronRight className="w-4 h-4" />
+                    <ChevronRight className="w-5 h-5" />
                   </Button>
-                  <Button variant="outline" size="sm" asChild className="ml-2">
-                    <Link href="/explore/restaurants">
-                      Ver más <ArrowRight className="w-4 h-4 ml-2" />
-                    </Link>
-                  </Button>
-                </div>
+                </>
               )}
-            </div>
-            {loading ? (
-              <div
-                ref={restaurantsRef}
-                className="flex gap-6 overflow-x-auto pb-4"
-                style={{
-                  scrollbarWidth: 'none',
-                  msOverflowStyle: 'none',
-                  WebkitOverflowScrolling: 'touch'
-                }}
-              >
-                {Array.from({ length: 6 }).map((_, i) => (
-                  <CardSkeleton key={`restaurant-skeleton-${i}`} />
-                ))}
-              </div>
-            ) : restaurants.length > 0 ? (
-              <div
-                ref={restaurantsRef}
-                className="flex gap-6 overflow-x-auto pb-4"
-                style={{
-                  scrollbarWidth: 'none',
-                  msOverflowStyle: 'none',
-                  WebkitOverflowScrolling: 'touch'
-                }}
-              >
+              {loading ? (
+                <div
+                  ref={restaurantsRef}
+                  className="flex gap-6 overflow-x-auto pb-4 px-12"
+                  style={{
+                    scrollbarWidth: 'none',
+                    msOverflowStyle: 'none',
+                    WebkitOverflowScrolling: 'touch'
+                  }}
+                >
+                  {Array.from({ length: 6 }).map((_, i) => (
+                    <CardSkeleton key={`restaurant-skeleton-${i}`} />
+                  ))}
+                </div>
+              ) : restaurants.length > 0 ? (
+                <div
+                  ref={restaurantsRef}
+                  className="flex gap-6 overflow-x-auto pb-4 px-12"
+                  style={{
+                    scrollbarWidth: 'none',
+                    msOverflowStyle: 'none',
+                    WebkitOverflowScrolling: 'touch'
+                  }}
+                >
                 {restaurants.map((restaurant) => (
                   <Link
                     key={restaurant.id}
@@ -1370,6 +1400,7 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
                 ))}
               </div>
             ) : null}
+            </div>
           </div>
         ) : null}
 

@@ -12,7 +12,6 @@ import {
   ShieldCheck,
   Ticket,
   BarChart3,
-  Heart,
   CheckCircle2,
 } from "lucide-react";
 import { SidebarTrigger } from "@/components/ui/sidebar";
@@ -69,7 +68,7 @@ export default function MyEventsPage() {
       </div>
 
       {/* Main Content */}
-      <div className="w-full py-8 px-4 sm:px-6 space-y-8 sm:space-y-12 max-w-4xl mx-auto">
+      <div className="w-full py-8 px-4 sm:px-6 space-y-8 sm:space-y-12">
         {/* CTA principal */}
         <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10">
           <CardContent className="py-8 sm:py-10 px-6 sm:px-8 text-center">
@@ -98,8 +97,7 @@ export default function MyEventsPage() {
 
         {/* Beneficios */}
         <section>
-          <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
-            <Heart className="h-5 w-5 text-primary" />
+          <h3 className="text-lg font-semibold text-foreground mb-4">
             Beneficios de crear eventos en Holistia
           </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

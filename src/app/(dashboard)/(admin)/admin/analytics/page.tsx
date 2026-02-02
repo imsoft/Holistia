@@ -21,6 +21,7 @@ import {
   BarChart,
   CartesianGrid,
   XAxis,
+  YAxis,
   PieChart,
   Pie,
   Cell,
@@ -394,11 +395,11 @@ export default function AnalyticsPage() {
           </div>
         )}
 
-        <Tabs defaultValue="general" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2 gap-2 sm:grid-cols-3 lg:w-auto lg:inline-grid">
-            <TabsTrigger value="general">General</TabsTrigger>
-            <TabsTrigger value="entidades">Entidades</TabsTrigger>
-            <TabsTrigger value="ranking">Rankings</TabsTrigger>
+        <Tabs defaultValue="general" className="space-y-6 w-full">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="general" className="w-full">General</TabsTrigger>
+            <TabsTrigger value="entidades" className="w-full">Entidades</TabsTrigger>
+            <TabsTrigger value="ranking" className="w-full">Rankings</TabsTrigger>
           </TabsList>
 
           <TabsContent value="general" className="space-y-6">
@@ -453,13 +454,12 @@ export default function AnalyticsPage() {
               </Card>
             </div>
 
-            <ChartSection
-              title="Citas por mes"
-              data={chartData.appointments}
-              description="Tendencia de citas agendadas en los últimos 6 meses"
-            />
-
             <div className="grid gap-6 md:grid-cols-2">
+              <ChartSection
+                title="Citas por mes"
+                data={chartData.appointments}
+                description="Tendencia de citas agendadas en los últimos 6 meses"
+              />
               <ChartSection title="Profesionales aprobados" data={chartData.professionals} description="Nuevos profesionales por mes" />
               <ChartSection title="Programas digitales" data={chartData.digital_products} description="Productos creados por mes" />
               <ChartSection title="Eventos y talleres" data={chartData.events} description="Eventos creados por mes" />
@@ -587,6 +587,53 @@ export default function AnalyticsPage() {
                 </CardContent>
               </Card>
             </div>
+
+            {/* Gráfico de entidades - distribución por tipo */}
+            {(() => {
+              const entityChartData = [
+                { entidad: "Programas", cantidad: digitalProducts.total },
+                { entidad: "Eventos", cantidad: events.total },
+                { entidad: "Retos", cantidad: challenges.total },
+                { entidad: "Expertos", cantidad: generalStats.total_professionals },
+                { entidad: "Comercios", cantidad: shops.total },
+                { entidad: "Centros holísticos", cantidad: holisticCenters.total },
+                { entidad: "Restaurantes", cantidad: restaurants.total },
+              ];
+              return (
+                <Card className="py-4 w-full">
+                  <CardHeader>
+                    <CardTitle className="text-base">Distribución de entidades</CardTitle>
+                    <CardDescription>Cantidad total por tipo de entidad en la plataforma</CardDescription>
+                  </CardHeader>
+                  <CardContent className="w-full">
+                    <ChartContainer
+                      config={{
+                        ...chartConfig,
+                        entidad: { label: "Entidad" },
+                        cantidad: { label: "Cantidad", color: "var(--primary)" },
+                      }}
+                      className="w-full h-[320px]"
+                    >
+                      <BarChart
+                        data={entityChartData}
+                        layout="vertical"
+                        margin={{ left: 0, right: 12, top: 0, bottom: 0 }}
+                      >
+                        <CartesianGrid horizontal={false} strokeDasharray="3 3" />
+                        <XAxis type="number" tickLine={false} axisLine={false} />
+                        <YAxis type="category" dataKey="entidad" width={140} tickLine={false} axisLine={false} />
+                        <ChartTooltip content={<ChartTooltipContent />} />
+                        <Bar dataKey="cantidad" radius={[0, 4, 4, 0]}>
+                          {entityChartData.map((_, index) => (
+                            <Cell key={index} fill={COLORS[index % COLORS.length]} />
+                          ))}
+                        </Bar>
+                      </BarChart>
+                    </ChartContainer>
+                  </CardContent>
+                </Card>
+              );
+            })()}
           </TabsContent>
 
           <TabsContent value="ranking" className="space-y-6">

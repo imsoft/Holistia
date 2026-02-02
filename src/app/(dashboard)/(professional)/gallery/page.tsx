@@ -189,7 +189,7 @@ export default function ProfessionalGalleryPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-background p-6">
-        <div className="animate-pulse grid grid-cols-2 sm:grid-cols-3 gap-4 w-full max-w-4xl mx-auto">
+        <div className="animate-pulse grid grid-cols-2 sm:grid-cols-3 gap-4 w-full w-full">
           {[1,2,3,4,5,6].map(i => <div key={i} className="h-32 bg-muted rounded-lg aspect-square" />)}
         </div>
       </div>
@@ -266,7 +266,7 @@ export default function ProfessionalGalleryPage() {
       </div>
 
       {/* Main Content */}
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
 
         {/* Mensajes de estado */}
         {error && (
@@ -280,52 +280,6 @@ export default function ProfessionalGalleryPage() {
             <p className="text-sm sm:text-base text-green-600">{success}</p>
           </div>
         )}
-
-        {/* Información del profesional */}
-        <Card className="mb-6 sm:mb-8 p-3 sm:p-4">
-          <CardHeader className="pb-3 sm:pb-4">
-            <CardTitle className="text-lg sm:text-xl">Información del Profesional</CardTitle>
-            <CardDescription className="text-xs sm:text-sm">
-              Datos básicos de tu perfil profesional
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="pt-2">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-              <div className="space-y-1 sm:space-y-2">
-                <p className="text-xs sm:text-sm font-medium text-muted-foreground">Nombre</p>
-                <p className="text-base sm:text-lg font-semibold">
-                  {professional.first_name} {professional.last_name}
-                </p>
-              </div>
-              <div className="space-y-1 sm:space-y-2">
-                <p className="text-xs sm:text-sm font-medium text-muted-foreground">Profesión</p>
-                <p className="text-base sm:text-lg font-semibold">{professional.profession}</p>
-              </div>
-              <div className="space-y-1 sm:space-y-2">
-                <p className="text-xs sm:text-sm font-medium text-muted-foreground">Estado</p>
-                <span className={`inline-flex items-center px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm font-medium ${
-                  professional.status === 'approved' 
-                    ? 'bg-green-100 text-green-800' 
-                    : professional.status === 'pending'
-                    ? 'bg-yellow-100 text-yellow-800'
-                    : professional.status === 'under_review'
-                    ? 'bg-blue-100 text-blue-800'
-                    : 'bg-red-100 text-red-800'
-                }`}>
-                  {professional.status === 'approved' ? 'Aprobado' : 
-                   professional.status === 'pending' ? 'Pendiente' : 
-                   professional.status === 'under_review' ? 'En revisión' : 'Rechazado'}
-                </span>
-              </div>
-              <div className="space-y-1 sm:space-y-2">
-                <p className="text-xs sm:text-sm font-medium text-muted-foreground">Ubicación</p>
-                <p className="text-base sm:text-lg font-semibold">
-                  {professional.city}, {professional.state}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
 
         {/* Gestión de galería */}
         <Card className="mb-6 sm:mb-8 p-3 sm:p-4">

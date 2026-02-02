@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { toast } from "sonner";
@@ -22,8 +22,10 @@ import {
   Sparkles,
   Image as ImageIcon,
   Upload,
+  Search,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { AdminStatCard } from "@/components/ui/admin-stat-card";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -98,6 +100,11 @@ export default function ProfessionalDigitalProducts() {
   const [loading, setLoading] = useState(true);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [deletingProduct, setDeletingProduct] = useState<DigitalProduct | null>(null);
+
+  const [searchTerm, setSearchTerm] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState<"all" | "active" | "inactive">("all");
+  const [sortBy, setSortBy] = useState<"recent" | "name" | "sales">("recent");
 
   const [stats, setStats] = useState({
     totalProducts: 0,
@@ -207,6 +214,25 @@ export default function ProfessionalDigitalProducts() {
     return option ? option.label : category;
   };
 
+  const filteredProducts = useMemo(() => {
+    let list = [...products];
+    const term = searchTerm.trim().toLowerCase();
+    if (term) {
+      list = list.filter(
+        (p) =>
+          p.title?.toLowerCase().includes(term) ||
+          (p.description && p.description.toLowerCase().includes(term))
+      );
+    }
+    if (categoryFilter !== "all") list = list.filter((p) => p.category === categoryFilter);
+    if (statusFilter === "active") list = list.filter((p) => p.is_active);
+    if (statusFilter === "inactive") list = list.filter((p) => !p.is_active);
+    if (sortBy === "name") list.sort((a, b) => (a.title || "").localeCompare(b.title || ""));
+    else if (sortBy === "sales") list.sort((a, b) => (b.sales_count ?? 0) - (a.sales_count ?? 0));
+    else list.sort((a, b) => (b.created_at || "").localeCompare(a.created_at || ""));
+    return list;
+  }, [products, searchTerm, categoryFilter, statusFilter, sortBy]);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -246,57 +272,86 @@ export default function ProfessionalDigitalProducts() {
 
       {/* Main Content */}
       <div className="p-6 space-y-6">
-        {/* Stats */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-6 pt-6">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Total Programas
-              </CardTitle>
-              <ShoppingBag className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent className="px-6 pb-6">
-              <div className="text-2xl font-bold text-foreground">{stats.totalProducts}</div>
-            </CardContent>
-          </Card>
+        {/* Filtros (máximo 4) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Buscar programa..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 w-full"
+            />
+          </div>
+          <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Categoría" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas las categorías</SelectItem>
+              {CATEGORY_OPTIONS.map((opt) => (
+                <SelectItem key={opt.value} value={opt.value}>
+                  {opt.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as "all" | "active" | "inactive")}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Estado" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos</SelectItem>
+              <SelectItem value="active">Activos</SelectItem>
+              <SelectItem value="inactive">Inactivos</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={sortBy} onValueChange={(v) => setSortBy(v as "recent" | "name" | "sales")}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Ordenar" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="recent">Más recientes</SelectItem>
+              <SelectItem value="name">Por nombre</SelectItem>
+              <SelectItem value="sales">Por ventas</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-6 pt-6">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Programas Activos
-              </CardTitle>
-              <Eye className="h-4 w-4 text-green-600" />
-            </CardHeader>
-            <CardContent className="px-6 pb-6">
-              <div className="text-2xl font-bold text-foreground">{stats.activeProducts}</div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-6 pt-6">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Ventas Totales
-              </CardTitle>
-              <Download className="h-4 w-4 text-blue-600" />
-            </CardHeader>
-            <CardContent className="px-6 pb-6">
-              <div className="text-2xl font-bold text-foreground">{stats.totalSales}</div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-6 pt-6">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Ingresos Totales
-              </CardTitle>
-              <DollarSign className="h-4 w-4 text-yellow-600" />
-            </CardHeader>
-            <CardContent className="px-6 pb-6">
-              <div className="text-2xl font-bold text-foreground">
-                ${stats.totalRevenue.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
-              </div>
-            </CardContent>
-          </Card>
+        {/* Cards de información (AdminStatCard) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+          <AdminStatCard
+            title="Total Programas"
+            value={String(stats.totalProducts)}
+            secondaryText="Programas publicados"
+            tertiaryText="Meditaciones, workbooks, guías"
+          />
+          <AdminStatCard
+            title="Programas Activos"
+            value={String(stats.activeProducts)}
+            trend={
+              stats.totalProducts > 0
+                ? {
+                    value: `${Math.round((stats.activeProducts / stats.totalProducts) * 100)}%`,
+                    positive: stats.activeProducts > 0,
+                  }
+                : undefined
+            }
+            secondaryText={stats.activeProducts > 0 ? "Visibles para compra" : "Ninguno activo"}
+            tertiaryText="Del total"
+          />
+          <AdminStatCard
+            title="Ventas Totales"
+            value={String(stats.totalSales)}
+            secondaryText="Unidades vendidas"
+            tertiaryText="Total de ventas"
+          />
+          <AdminStatCard
+            title="Ingresos Totales"
+            value={`$${stats.totalRevenue.toLocaleString("es-MX", { minimumFractionDigits: 2 })}`}
+            secondaryText="Ingresos por programas"
+            tertiaryText="MXN"
+          />
         </div>
 
         {/* Products Grid */}
@@ -314,9 +369,19 @@ export default function ProfessionalDigitalProducts() {
               </Button>
             </CardContent>
           </Card>
+        ) : filteredProducts.length === 0 ? (
+          <Card>
+            <CardContent className="flex flex-col items-center justify-center py-12">
+              <ShoppingBag className="h-12 w-12 text-muted-foreground mb-4" />
+              <h3 className="text-lg font-semibold mb-2">Sin resultados</h3>
+              <p className="text-muted-foreground text-center mb-4">
+                No hay programas que coincidan con los filtros seleccionados.
+              </p>
+            </CardContent>
+          </Card>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {products.map((product) => {
+            {filteredProducts.map((product) => {
               const CategoryIcon = getCategoryIcon(product.category);
               return (
                 <Card key={product.id} className="hover:shadow-lg transition-shadow overflow-hidden py-4">

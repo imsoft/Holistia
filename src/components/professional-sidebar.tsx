@@ -24,6 +24,7 @@ import {
   SidebarContent,
   SidebarFooter,
   SidebarGroup,
+  SidebarGroupLabel,
   SidebarGroupContent,
   SidebarHeader,
   SidebarMenu,
@@ -50,73 +51,39 @@ interface UserData {
   profession: string;
 }
 
-// Función para generar URLs (sin prefijo /professional/[id])
-const getNavItems = (): { mainNavItems: ProfessionalNavItem[] } => {
-  const navItems = [
-    {
-      title: "Dashboard",
-      url: `/dashboard`,
-      icon: Home,
-    },
-    {
-      title: "Servicios",
-      url: `/services`,
-      icon: Package,
-    },
-    {
-      title: "Horarios",
-      url: `/availability`,
-      icon: Clock,
-    },
-    {
-      title: "Citas",
-      url: `/appointments`,
-      icon: Calendar,
-    },
-    {
-      title: "Pacientes",
-      url: `/patients`,
-      icon: Users,
-    },
-    {
-      title: "Consultas",
-      url: `/consultations`,
-      icon: MessageSquare,
-    },
-    {
-      title: "Galería",
-      url: `/gallery`,
-      icon: ImageIcon,
-    },
-    {
-      title: "Finanzas",
-      url: `/finances`,
-      icon: DollarSign,
-    },
-    {
-      title: "Programas",
-      url: `/digital-products`,
-      icon: ShoppingBag,
-    },
-    {
-      title: "Retos",
-      url: `/challenges`,
-      icon: Target,
-    },
-    {
-      title: "Mis eventos",
-      url: `/my-events`,
-      icon: CalendarCheck,
-    },
-    {
-      title: "Mi perfil",
-      url: `/profile`,
-      icon: User,
-    },
-  ];
-
-  return { mainNavItems: navItems };
-};
+// Categorías de navegación con títulos coherentes
+const getNavCategories = (): { label: string; items: ProfessionalNavItem[] }[] => [
+  {
+    label: "Inicio",
+    items: [{ title: "Dashboard", url: `/dashboard`, icon: Home }],
+  },
+  {
+    label: "Servicios y citas",
+    items: [
+      { title: "Servicios", url: `/services`, icon: Package },
+      { title: "Horarios", url: `/availability`, icon: Clock },
+      { title: "Citas", url: `/appointments`, icon: Calendar },
+      { title: "Pacientes", url: `/patients`, icon: Users },
+      { title: "Consultas", url: `/consultations`, icon: MessageSquare },
+    ],
+  },
+  {
+    label: "Contenido",
+    items: [
+      { title: "Galería", url: `/gallery`, icon: ImageIcon },
+      { title: "Programas", url: `/digital-products`, icon: ShoppingBag },
+      { title: "Retos", url: `/challenges`, icon: Target },
+      { title: "Mis eventos", url: `/my-events`, icon: CalendarCheck },
+    ],
+  },
+  {
+    label: "Cuenta",
+    items: [
+      { title: "Finanzas", url: `/finances`, icon: DollarSign },
+      { title: "Mi perfil", url: `/profile`, icon: User },
+    ],
+  },
+];
 
 export function ProfessionalSidebar() {
   const { profile } = useProfile();
@@ -182,7 +149,7 @@ export function ProfessionalSidebar() {
     router.push('/login');
   };
 
-  const navItems = getNavItems();
+  const navCategories = getNavCategories();
 
   const isActive = (href: string) => {
     if (!currentPathname) return false;
@@ -249,23 +216,27 @@ export function ProfessionalSidebar() {
       </SidebarHeader>
 
       <SidebarContent>
-        {/* Navegación principal */}
-        <SidebarGroup>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {navItems.mainNavItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild isActive={isActive(item.url)}>
-                    <Link href={item.url}>
-                      <item.icon />
-                      <span>{item.title}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        {navCategories.map((category) => (
+          <SidebarGroup key={category.label}>
+            <SidebarGroupLabel className="text-muted-foreground text-xs font-medium tracking-wider group-data-[collapsible=icon]:hidden">
+              {category.label}
+            </SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {category.items.map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton asChild isActive={isActive(item.url)}>
+                      <Link href={item.url}>
+                        <item.icon />
+                        <span>{item.title}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        ))}
       </SidebarContent>
 
       <SidebarFooter className="border-t border-border p-4 group-data-[collapsible=icon]:hidden">

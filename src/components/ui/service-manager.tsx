@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
@@ -26,13 +26,33 @@ import { formatPrice } from "@/lib/price-utils";
 import { toast } from "sonner";
 import { MapModal } from "@/components/ui/map-modal";
 
+export type ServiceManagerStatusFilter = "all" | "active" | "inactive";
+export type ServiceManagerTypeFilter = "all" | "session" | "program";
+export type ServiceManagerSortBy = "recent" | "name";
+
 interface ServiceManagerProps {
   professionalId: string;
   userId: string;
   isAdminContext?: boolean;
+  /** Filtro por búsqueda en nombre/descripción */
+  searchTerm?: string;
+  /** Filtro por estado: todos, activos, inactivos */
+  statusFilter?: ServiceManagerStatusFilter;
+  /** Filtro por tipo: todos, sesión, programa */
+  typeFilter?: ServiceManagerTypeFilter;
+  /** Orden: más recientes o por nombre */
+  sortBy?: ServiceManagerSortBy;
 }
 
-export function ServiceManager({ professionalId, userId, isAdminContext = false }: ServiceManagerProps) {
+export function ServiceManager({
+  professionalId,
+  userId,
+  isAdminContext = false,
+  searchTerm = "",
+  statusFilter = "all",
+  typeFilter = "all",
+  sortBy = "recent",
+}: ServiceManagerProps) {
   const router = useRouter();
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
@@ -192,6 +212,25 @@ export function ServiceManager({ professionalId, userId, isAdminContext = false 
     }
   };
 
+  const filteredServices = useMemo(() => {
+    let list = [...services];
+    const term = searchTerm.trim().toLowerCase();
+    if (term) {
+      list = list.filter(
+        (s) =>
+          s.name?.toLowerCase().includes(term) ||
+          (s.description && String(s.description).toLowerCase().replace(/<[^>]*>/g, "").includes(term))
+      );
+    }
+    if (statusFilter === "active") list = list.filter((s) => s.isactive);
+    if (statusFilter === "inactive") list = list.filter((s) => !s.isactive);
+    if (typeFilter === "session") list = list.filter((s) => s.type === "session");
+    if (typeFilter === "program") list = list.filter((s) => s.type === "program");
+    if (sortBy === "name") list.sort((a, b) => (a.name || "").localeCompare(b.name || ""));
+    else list.sort((a, b) => (b.created_at || "").localeCompare(a.created_at || ""));
+    return list;
+  }, [services, searchTerm, statusFilter, typeFilter, sortBy]);
+
   if (loading) {
     return (
       <div className="space-y-4">
@@ -207,20 +246,15 @@ export function ServiceManager({ professionalId, userId, isAdminContext = false 
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h2 className="text-2xl font-bold text-foreground">Mis Servicios</h2>
-          <p className="text-muted-foreground">
-            Gestiona los servicios que ofreces a tus pacientes
-          </p>
+      {isAdminContext && (
+        <div className="flex justify-end">
+          <Button onClick={() => router.push(getServicePath("new"))}>
+            <Plus className="w-4 h-4 mr-2" />
+            Agregar Servicio
+          </Button>
         </div>
-        <Button onClick={() => router.push(getServicePath('new'))}>
-          <Plus className="w-4 h-4 mr-2" />
-          Agregar Servicio
-        </Button>
-      </div>
-
-      {services.length === 0 ? (
+      )}
+      {filteredServices.length === 0 ? (
         <Card className="p-4">
           <CardContent className="flex flex-col items-center justify-center py-12">
             <Package className="w-12 h-12 text-muted-foreground mb-4" />
@@ -236,7 +270,7 @@ export function ServiceManager({ professionalId, userId, isAdminContext = false 
         </Card>
       ) : (
         <div className="grid gap-6">
-          {services.map((service) => (
+          {filteredServices.map((service) => (
             <Card key={service.id} className={!service.isactive ? "opacity-60" : ""}>
               <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] gap-4">
                 {/* Imagen del servicio */}

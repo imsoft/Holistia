@@ -26,7 +26,7 @@ export default function MyEventsPage() {
       </div>
 
       {/* Main Content */}
-      <div className="container mx-auto py-8 px-4 max-w-4xl">
+      <div className="w-full py-8 px-4 sm:px-6">
         <Card>
           <CardContent className="py-12 text-center">
             <Mail className="h-12 w-12 mx-auto text-muted-foreground mb-4" />

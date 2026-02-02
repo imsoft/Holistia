@@ -4,15 +4,26 @@ import { useState, useEffect } from "react";
 import { useUserId } from "@/stores/user-store";
 import { useUserStoreInit } from "@/hooks/use-user-store-init";
 import { ServiceManager } from "@/components/ui/service-manager";
+import { AdminStatCard } from "@/components/ui/admin-stat-card";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { createClient } from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
 import {
   Package,
   ArrowLeft,
+  Plus,
+  Search,
 } from "lucide-react";
 
 interface Professional {
@@ -28,6 +39,11 @@ export default function ProfessionalServicesPage() {
   const [professional, setProfessional] = useState<Professional | null>(null);
   const [currentUser, setCurrentUser] = useState<{ id: string } | null>(null);
   const [loading, setLoading] = useState(true);
+  const [serviceStats, setServiceStats] = useState({ total: 0, active: 0 });
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState<"all" | "active" | "inactive">("all");
+  const [typeFilter, setTypeFilter] = useState<"all" | "session" | "program">("all");
+  const [sortBy, setSortBy] = useState<"recent" | "name">("recent");
   const userId = useUserId();
   const router = useRouter();
   const supabase = createClient();
@@ -79,6 +95,15 @@ export default function ProfessionalServicesPage() {
         }
 
         setProfessional(professionalData);
+
+        // Estadísticas de servicios del profesional
+        const { data: servicesData } = await supabase
+          .from("professional_services")
+          .select("id, isactive")
+          .eq("professional_id", professionalData.id);
+        const total = servicesData?.length ?? 0;
+        const active = servicesData?.filter((s) => s.isactive).length ?? 0;
+        setServiceStats({ total, active });
       } catch (error) {
         console.error("Error:", error);
         router.push("/");
@@ -170,20 +195,100 @@ export default function ProfessionalServicesPage() {
               </p>
             </div>
           </div>
+          {professional.status === "approved" && (
+            <Button onClick={() => router.push("/services/new")} className="w-full sm:w-auto shrink-0">
+              <Plus className="w-4 h-4 mr-2" />
+              Agregar Servicio
+            </Button>
+          )}
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-8">
-      <div className="space-y-4 sm:space-y-6">
+      <div className="w-full px-4 sm:px-6 py-6 sm:py-8">
+        <div className="space-y-6">
+          {professional.status === "approved" && (
+            <>
+              {/* Filtros (máximo 4) */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Buscar servicio..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10 w-full"
+                  />
+                </div>
+                <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as "all" | "active" | "inactive")}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Estado" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos los estados</SelectItem>
+                    <SelectItem value="active">Activos</SelectItem>
+                    <SelectItem value="inactive">Inactivos</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select value={typeFilter} onValueChange={(v) => setTypeFilter(v as "all" | "session" | "program")}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Tipo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos los tipos</SelectItem>
+                    <SelectItem value="session">Sesión</SelectItem>
+                    <SelectItem value="program">Programa</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select value={sortBy} onValueChange={(v) => setSortBy(v as "recent" | "name")}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Ordenar" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="recent">Más recientes</SelectItem>
+                    <SelectItem value="name">Por nombre</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
-        {/* Services Management */}
-        {professional.status === "approved" ? (
-          <ServiceManager
-            professionalId={professional.id}
-            userId={currentUser.id}
-          />
-        ) : (
+              {/* Cards de información (AdminStatCard) */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+                <AdminStatCard
+                  title="Total Servicios"
+                  value={String(serviceStats.total)}
+                  trend={serviceStats.total > 0 ? { value: `${serviceStats.active} activos`, positive: true } : undefined}
+                  secondaryText={serviceStats.total > 0 ? "Servicios publicados" : "Sin servicios aún"}
+                  tertiaryText="Servicios que ofreces"
+                />
+                <AdminStatCard
+                  title="Servicios Activos"
+                  value={String(serviceStats.active)}
+                  trend={
+                    serviceStats.total > 0
+                      ? {
+                          value: `${Math.round((serviceStats.active / serviceStats.total) * 100)}%`,
+                          positive: serviceStats.active > 0,
+                        }
+                      : undefined
+                  }
+                  secondaryText={serviceStats.active > 0 ? "Visibles para pacientes" : "Ninguno activo"}
+                  tertiaryText="Del total de servicios"
+                />
+              </div>
+            </>
+          )}
+
+          {/* Services Management */}
+          {professional.status === "approved" ? (
+            <ServiceManager
+              professionalId={professional.id}
+              userId={currentUser.id}
+              searchTerm={searchTerm}
+              statusFilter={statusFilter}
+              typeFilter={typeFilter}
+              sortBy={sortBy}
+            />
+          ) : (
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-12 px-4">
               <Package className="w-10 h-10 sm:w-12 sm:h-12 text-muted-foreground mb-4" />
@@ -203,7 +308,7 @@ export default function ProfessionalServicesPage() {
             </CardContent>
           </Card>
         )}
-      </div>
+        </div>
       </div>
     </div>
   );

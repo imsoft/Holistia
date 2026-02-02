@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useUserId } from "@/stores/user-store";
 import { useUserStoreInit } from "@/hooks/use-user-store-init";
@@ -18,10 +18,20 @@ import {
   Target,
   BookOpen,
   Video,
+  Search,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { AdminStatCard } from "@/components/ui/admin-stat-card";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { createClient } from "@/utils/supabase/client";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { SidebarTrigger } from "@/components/ui/sidebar";
@@ -58,6 +68,11 @@ export default function ProfessionalChallenges() {
   const [loading, setLoading] = useState(true);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [deletingChallenge, setDeletingChallenge] = useState<Challenge | null>(null);
+
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState<"all" | "active" | "inactive">("all");
+  const [difficultyFilter, setDifficultyFilter] = useState<string>("all");
+  const [sortBy, setSortBy] = useState<"recent" | "name" | "duration">("recent");
 
   const [stats, setStats] = useState({
     totalChallenges: 0,
@@ -161,6 +176,25 @@ export default function ProfessionalChallenges() {
     }
   };
 
+  const filteredChallenges = useMemo(() => {
+    let list = [...challenges];
+    const term = searchTerm.trim().toLowerCase();
+    if (term) {
+      list = list.filter(
+        (c) =>
+          c.title?.toLowerCase().includes(term) ||
+          (c.description && c.description.toLowerCase().includes(term))
+      );
+    }
+    if (statusFilter === "active") list = list.filter((c) => c.is_active);
+    if (statusFilter === "inactive") list = list.filter((c) => !c.is_active);
+    if (difficultyFilter !== "all") list = list.filter((c) => c.difficulty_level === difficultyFilter);
+    if (sortBy === "name") list.sort((a, b) => (a.title || "").localeCompare(b.title || ""));
+    else if (sortBy === "duration") list.sort((a, b) => (b.duration_days ?? 0) - (a.duration_days ?? 0));
+    else list.sort((a, b) => (b.created_at || "").localeCompare(a.created_at || ""));
+    return list;
+  }, [challenges, searchTerm, statusFilter, difficultyFilter, sortBy]);
+
   const handleDelete = async () => {
     if (!deletingChallenge) return;
 
@@ -219,29 +253,74 @@ export default function ProfessionalChallenges() {
       </div>
 
       {/* Main Content */}
-      <div className="container mx-auto px-4 py-8 max-w-7xl">
-        {/* Estadísticas */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-          <Card className="py-4">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Total Retos
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="pt-0 pb-4">
-              <div className="text-2xl font-bold">{stats.totalChallenges}</div>
-            </CardContent>
-          </Card>
-          <Card className="py-4">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Retos Activos
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="pt-0 pb-4">
-              <div className="text-2xl font-bold">{stats.activeChallenges}</div>
-            </CardContent>
-          </Card>
+      <div className="w-full px-4 sm:px-6 py-8">
+        {/* Filtros (máximo 4) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Buscar reto..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 w-full"
+            />
+          </div>
+          <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as "all" | "active" | "inactive")}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Estado" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos</SelectItem>
+              <SelectItem value="active">Activos</SelectItem>
+              <SelectItem value="inactive">Inactivos</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={difficultyFilter} onValueChange={setDifficultyFilter}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Dificultad" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas</SelectItem>
+              <SelectItem value="beginner">Principiante</SelectItem>
+              <SelectItem value="intermediate">Intermedio</SelectItem>
+              <SelectItem value="advanced">Avanzado</SelectItem>
+              <SelectItem value="expert">Experto</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={sortBy} onValueChange={(v) => setSortBy(v as "recent" | "name" | "duration")}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Ordenar" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="recent">Más recientes</SelectItem>
+              <SelectItem value="name">Por nombre</SelectItem>
+              <SelectItem value="duration">Por duración</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Cards de información (AdminStatCard) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6">
+          <AdminStatCard
+            title="Total Retos"
+            value={String(stats.totalChallenges)}
+            secondaryText="Retos creados"
+            tertiaryText="Por ti"
+          />
+          <AdminStatCard
+            title="Retos Activos"
+            value={String(stats.activeChallenges)}
+            trend={
+              stats.totalChallenges > 0
+                ? {
+                    value: `${Math.round((stats.activeChallenges / stats.totalChallenges) * 100)}%`,
+                    positive: stats.activeChallenges > 0,
+                  }
+                : undefined
+            }
+            secondaryText={stats.totalChallenges > 0 ? "Visibles para participantes" : "Ninguno activo"}
+            tertiaryText="Del total"
+          />
         </div>
 
         {/* Lista de retos */}
@@ -259,9 +338,15 @@ export default function ProfessionalChallenges() {
               </Button>
             </CardContent>
           </Card>
+        ) : filteredChallenges.length === 0 ? (
+          <Card>
+            <CardContent className="flex flex-col items-center justify-center py-12">
+              <p className="text-muted-foreground mb-4">No hay retos que coincidan con los filtros.</p>
+            </CardContent>
+          </Card>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {challenges.map((challenge) => (
+            {filteredChallenges.map((challenge) => (
               <Card key={challenge.id} className="overflow-hidden py-4">
                 <div className="relative h-48">
                   {challenge.cover_image_url ? (

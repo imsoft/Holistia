@@ -127,7 +127,7 @@ function ConsultationsPageContent() {
 
   if (loading) {
     return (
-      <div className="container mx-auto px-4 py-8 max-w-7xl">
+      <div className="w-full px-4 sm:px-6 py-8">
         <div className="mb-8">
           <Skeleton className="h-10 w-48 mb-2" />
           <Skeleton className="h-4 w-64" />
@@ -187,7 +187,7 @@ function ConsultationsPageContent() {
       </div>
 
       {/* Main Content */}
-      <div className="container mx-auto px-4 py-8 max-w-7xl">
+      <div className="w-full px-4 sm:px-6 py-8">
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[calc(100vh-200px)]">
         <div className={`lg:col-span-1 ${selectedConversation ? 'hidden lg:block' : ''}`}>
@@ -307,7 +307,7 @@ function ConsultationsPageContent() {
 export default function ConsultationsPage() {
   return (
     <Suspense fallback={
-      <div className="container mx-auto px-4 py-8 max-w-7xl">
+      <div className="w-full px-4 sm:px-6 py-8">
         <div className="mb-8">
           <Skeleton className="h-10 w-48 mb-2" />
           <Skeleton className="h-4 w-64" />

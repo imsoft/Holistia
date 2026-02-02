@@ -6,7 +6,6 @@ import { useUserStoreInit } from "@/hooks/use-user-store-init";
 import {
   Users,
   Search,
-  Filter,
   Eye,
   Calendar,
   Phone,
@@ -18,6 +17,7 @@ import {
   Activity,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { AdminStatCard } from "@/components/ui/admin-stat-card";
 import {
   Card,
   CardContent,
@@ -292,114 +292,84 @@ export default function ProfessionalPatients() {
 
       {/* Main Content */}
       <div className="p-4 sm:p-6 space-y-6 sm:space-y-8 w-full">
-        {/* Stats */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 w-full">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-6 pt-6">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Total Pacientes
-              </CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent className="px-6 pb-6">
-              <div className="text-2xl font-bold text-foreground">
-                {loading ? '...' : stats.total}
-              </div>
-              <p className="text-xs text-muted-foreground">Total de pacientes</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-6 pt-6">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Pacientes Activos
-              </CardTitle>
-              <User className="h-4 w-4 text-green-600" />
-            </CardHeader>
-            <CardContent className="px-6 pb-6">
-              <div className="text-2xl font-bold text-foreground">
-                {loading ? '...' : stats.active}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                {stats.total > 0 ? `${Math.round((stats.active / stats.total) * 100)}% del total` : '0% del total'}
-              </p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-6 pt-6">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Sesiones Este Mes
-              </CardTitle>
-              <Calendar className="h-4 w-4 text-blue-600" />
-            </CardHeader>
-            <CardContent className="px-6 pb-6">
-              <div className="text-2xl font-bold text-foreground">
-                {loading ? '...' : stats.sessionsThisMonth}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Sesiones completadas
-              </p>
-            </CardContent>
-          </Card>
+        {/* Filtros (máximo 4) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 w-full">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Buscar paciente..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 w-full"
+            />
+          </div>
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Estado" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos los estados</SelectItem>
+              <SelectItem value="active">Activo</SelectItem>
+              <SelectItem value="inactive">Inactivo</SelectItem>
+              <SelectItem value="suspended">Pausado</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={therapyFilter} onValueChange={setTherapyFilter}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Tipo de terapia" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos los tipos</SelectItem>
+              <SelectItem value="Terapia Individual">
+                Terapia Individual
+              </SelectItem>
+              <SelectItem value="Terapia de Pareja">
+                Terapia de Pareja
+              </SelectItem>
+              <SelectItem value="Terapia Familiar">
+                Terapia Familiar
+              </SelectItem>
+            </SelectContent>
+          </Select>
+          <Button 
+            variant="outline" 
+            className="w-full"
+            onClick={handleViewAllPatients}
+          >
+            <Users className="h-4 w-4 mr-2" />
+            Ver Todos
+          </Button>
         </div>
 
-        {/* Filters */}
-        <Card className="w-full">
-          <CardHeader className="px-6 pt-6">
-            <CardTitle className="flex items-center gap-2">
-              <Filter className="h-5 w-5" />
-              Filtros
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="px-6 pb-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Buscar paciente..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 w-full"
-                />
-              </div>
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Estado" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos los estados</SelectItem>
-                  <SelectItem value="active">Activo</SelectItem>
-                  <SelectItem value="inactive">Inactivo</SelectItem>
-                  <SelectItem value="suspended">Pausado</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select value={therapyFilter} onValueChange={setTherapyFilter}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Tipo de terapia" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos los tipos</SelectItem>
-                  <SelectItem value="Terapia Individual">
-                    Terapia Individual
-                  </SelectItem>
-                  <SelectItem value="Terapia de Pareja">
-                    Terapia de Pareja
-                  </SelectItem>
-                  <SelectItem value="Terapia Familiar">
-                    Terapia Familiar
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-              <Button 
-                variant="outline" 
-                className="w-full"
-                onClick={handleViewAllPatients}
-              >
-                <Users className="h-4 w-4 mr-2" />
-                Ver Todos
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+        {/* Cards de información (AdminStatCard) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 w-full">
+          <AdminStatCard
+            title="Total Pacientes"
+            value={loading ? "..." : String(stats.total)}
+            secondaryText="Total de pacientes"
+            tertiaryText="Con al menos una cita"
+          />
+          <AdminStatCard
+            title="Pacientes Activos"
+            value={loading ? "..." : String(stats.active)}
+            trend={
+              stats.total > 0
+                ? {
+                    value: `${Math.round((stats.active / stats.total) * 100)}%`,
+                    positive: stats.active > 0,
+                  }
+                : undefined
+            }
+            secondaryText={stats.total > 0 ? `${Math.round((stats.active / stats.total) * 100)}% del total` : "0% del total"}
+            tertiaryText="Con próxima sesión programada"
+          />
+          <AdminStatCard
+            title="Sesiones Este Mes"
+            value={loading ? "..." : String(stats.sessionsThisMonth)}
+            secondaryText="Sesiones completadas"
+            tertiaryText="En el mes actual"
+          />
+        </div>
 
         {/* Patients List */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 w-full">

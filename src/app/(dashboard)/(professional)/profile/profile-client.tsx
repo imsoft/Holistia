@@ -72,7 +72,7 @@ export function ProfessionalProfileClient({
       </div>
 
       {/* Main Content */}
-      <div className="container mx-auto py-6 sm:py-8 px-4 sm:px-6 max-w-6xl">
+      <div className="w-full py-6 sm:py-8 px-4 sm:px-6">
         <div className="space-y-6 sm:space-y-8">
           {/* Foto de Perfil */}
           <div>

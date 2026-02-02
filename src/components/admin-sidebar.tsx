@@ -10,7 +10,6 @@ import {
   Home,
   FileText,
   Calendar,
-  ClipboardList,
   CalendarCheck,
   BarChart3,
   DollarSign,
@@ -145,7 +144,6 @@ export function AdminSidebar() {
       label: "Contenido y Eventos",
       items: [
         { title: "Eventos", url: `/admin/${userId}/events`, icon: Calendar },
-        { title: "Registros de Eventos", url: `/admin/${userId}/event-registrations`, icon: ClipboardList },
         { title: "Retos", url: `/admin/${userId}/challenges`, icon: Target },
         { title: "Programas", url: `/admin/${userId}/digital-products`, icon: Package },
         ...(hasEvents ? [{ title: "Mis eventos", url: `/admin/${userId}/my-events`, icon: CalendarCheck }] : []),

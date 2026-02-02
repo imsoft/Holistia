@@ -34,7 +34,7 @@ export function AdminRedirect() {
         idMatch[1] !== 'finances' && idMatch[1] !== 'tickets' &&
         idMatch[1] !== 'companies' && idMatch[1] !== 'shops' &&
         idMatch[1] !== 'restaurants' && idMatch[1] !== 'holistic-centers' &&
-        idMatch[1] !== 'digital-products' && idMatch[1] !== 'event-registrations' &&
+        idMatch[1] !== 'digital-products' &&
         idMatch[1] !== 'certifications' && idMatch[1] !== 'services-costs' &&
         idMatch[1] !== 'holistic-services' && idMatch[1] !== 'my-events' &&
         idMatch[1] !== 'sync-tools' &&

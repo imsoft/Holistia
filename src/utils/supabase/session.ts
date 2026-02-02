@@ -119,7 +119,7 @@ export async function updateSession(request: NextRequest) {
       const validAdminRoutes = [
         'dashboard', 'professionals', 'events', 'challenges', 'blog', 'users',
         'applications', 'analytics', 'finances', 'tickets', 'companies', 'shops',
-        'restaurants', 'holistic-centers', 'digital-products', 'event-registrations',
+        'restaurants', 'holistic-centers', 'digital-products',
         'certifications', 'services-costs', 'holistic-services', 'my-events',
         'sync-tools', 'github-commits', 'ai-agent'
       ];

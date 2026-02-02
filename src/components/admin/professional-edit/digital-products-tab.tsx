@@ -163,7 +163,7 @@ export function DigitalProductsTab({ professionalId }: DigitalProductsTabProps) 
                         Editar
                       </Button>
                       <Button 
-                        variant="outline" 
+                        variant="destructive" 
                         size="sm"
                         onClick={() => handleDeleteClick(product)}
                       >

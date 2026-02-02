@@ -523,10 +523,10 @@ const EventsAdminPage = () => {
                         </span>
                       </Button>
                       <Button
-                        variant="outline"
+                        variant="destructive"
                         size="sm"
                         onClick={() => handleDeleteEvent(event.id!)}
-                        className="flex items-center justify-center gap-1 text-destructive hover:text-destructive"
+                        className="flex items-center justify-center gap-1"
                       >
                         <Trash2 className="w-4 h-4" />
                         <span className="hidden sm:inline text-xs">Eliminar</span>

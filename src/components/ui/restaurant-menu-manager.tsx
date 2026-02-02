@@ -239,14 +239,14 @@ export function RestaurantMenuManager({
                         </Button>
                         <Button
                           type="button"
-                          variant="outline"
+                          variant="destructive"
                           size="sm"
                           onClick={() => {
                             setDeletingMenu(menu);
                             setIsDeleteOpen(true);
                           }}
                         >
-                          <Trash2 className="h-4 w-4 text-red-500" />
+                          <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
                     </div>

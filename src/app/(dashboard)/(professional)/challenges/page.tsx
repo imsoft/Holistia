@@ -440,7 +440,7 @@ export default function ProfessionalChallenges() {
                         Editar
                       </Button>
                       <Button
-                        variant="outline"
+                        variant="destructive"
                         size="sm"
                         className="flex-1"
                         onClick={() => {

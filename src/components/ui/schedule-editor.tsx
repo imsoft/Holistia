@@ -175,10 +175,9 @@ export function ScheduleEditor({ schedule, onChange }: ScheduleEditorProps) {
 
                       <Button
                         type="button"
-                        variant="ghost"
+                        variant="destructive"
                         size="sm"
                         onClick={() => handleRemoveTimeSlot(dayIndex, slotIndex)}
-                        className="text-destructive hover:text-destructive"
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>

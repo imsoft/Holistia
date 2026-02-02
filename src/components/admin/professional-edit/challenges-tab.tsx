@@ -167,7 +167,7 @@ export function ChallengesTab({ professionalId }: ChallengesTabProps) {
                       <Edit className="h-4 w-4" />
                     </Button>
                     <Button 
-                      variant="outline" 
+                      variant="destructive" 
                       size="sm"
                       onClick={() => handleDeleteClick(challenge)}
                     >

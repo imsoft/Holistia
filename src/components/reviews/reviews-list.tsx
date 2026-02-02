@@ -208,10 +208,10 @@ export function ReviewsList({
                     </Button>
                     <Button
                       size="sm"
-                      variant="ghost"
+                      variant="destructive"
                       onClick={() => handleDelete(review.id)}
                       disabled={deletingId === review.id}
-                      className="h-8 w-8 p-0 hover:text-destructive"
+                      className="h-8 w-8 p-0"
                     >
                       <Trash2 className="w-4 h-4" />
                     </Button>

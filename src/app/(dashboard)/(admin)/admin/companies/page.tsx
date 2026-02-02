@@ -1390,14 +1390,14 @@ export default function AdminCompanies() {
                       <Edit className="w-4 h-4" />
                     </Button>
                     <Button
-                      variant="outline"
+                      variant="destructive"
                       size="sm"
                       onClick={() => {
                         setDeletingId(company.id);
                         setIsDeleteOpen(true);
                       }}
                     >
-                      <Trash2 className="w-4 h-4 text-destructive" />
+                      <Trash2 className="w-4 h-4" />
                     </Button>
                   </div>
                 </CardContent>

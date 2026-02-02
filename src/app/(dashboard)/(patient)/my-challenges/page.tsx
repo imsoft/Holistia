@@ -952,7 +952,7 @@ export default function MyChallengesPage() {
                           Editar
                         </Button>
                         <Button
-                          variant="outline"
+                          variant="destructive"
                           size="sm"
                           onClick={(e) => {
                             e.stopPropagation();

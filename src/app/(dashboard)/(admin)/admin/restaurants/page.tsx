@@ -740,14 +740,14 @@ export default function AdminRestaurants() {
                       <Edit className="w-4 h-4" />
                     </Button>
                     <Button
-                      variant="outline"
+                      variant="destructive"
                       size="sm"
                       onClick={() => {
                         setDeletingId(restaurant.id);
                         setIsDeleteOpen(true);
                       }}
                     >
-                      <Trash2 className="w-4 h-4 text-destructive" />
+                      <Trash2 className="w-4 h-4" />
                     </Button>
                   </div>
                 </CardContent>

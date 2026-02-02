@@ -278,7 +278,7 @@ export function NotificationsDropdown() {
 
                       {/* Botón eliminar */}
                       <Button
-                        variant="ghost"
+                        variant="destructive"
                         size="icon"
                         className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity absolute top-2 right-2"
                         onClick={(e) => deleteNotification(notification.id, e)}

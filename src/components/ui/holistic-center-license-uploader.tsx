@@ -242,11 +242,11 @@ export function HolisticCenterLicenseUploader({
                     <Download className="w-4 h-4" />
                   </Button>
                   <Button
-                    variant="ghost"
+                    variant="destructive"
                     size="sm"
                     onClick={() => handleDelete(license)}
                   >
-                    <Trash2 className="w-4 h-4 text-destructive" />
+                    <Trash2 className="w-4 h-4" />
                   </Button>
                 </div>
               </div>

@@ -607,7 +607,7 @@ export default function AdminPlatformTools() {
                         <Edit className="h-4 w-4" />
                       </Button>
                       <Button
-                        variant="outline"
+                        variant="destructive"
                         size="sm"
                         onClick={() => {
                           setDeletingId(tool.id);
@@ -1075,6 +1075,8 @@ export default function AdminPlatformTools() {
         onConfirm={handleDelete}
         title="Eliminar Herramienta"
         description={`¿Estás seguro de que quieres eliminar "${tools.find((t) => t.id === deletingId)?.name}"? Esta acción no se puede deshacer.`}
+        confirmText="Eliminar"
+        variant="destructive"
       />
     </div>
   );

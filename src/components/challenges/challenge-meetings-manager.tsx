@@ -701,7 +701,7 @@ export function ChallengeMeetingsManager({
                                 Editar
                               </Button>
                               <Button
-                                variant="outline"
+                                variant="destructive"
                                 size="sm"
                                 onClick={() => handleDeleteClick(meeting.id)}
                               >

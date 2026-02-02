@@ -1344,11 +1344,11 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
                             <div className="flex items-center gap-2">
                               <Button
                                 type="button"
-                                variant="ghost"
+                                variant="destructive"
                                 size="icon"
                                 onClick={() => openRemoveParticipantDialog(participant.id)}
                                 disabled={removingParticipant}
-                                className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                                className="h-8 w-8"
                               >
                                 <Trash2 className="h-4 w-4" />
                               </Button>
@@ -1512,7 +1512,7 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
                       </div>
                       <Button
                         type="button"
-                        variant="ghost"
+                        variant="destructive"
                         size="icon"
                         onClick={() => {
                           setResources(resources.filter((_, i) => i !== index));
@@ -1523,7 +1523,7 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
                           }
                         }}
                       >
-                        <Trash2 className="h-4 w-4 text-destructive" />
+                        <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
 

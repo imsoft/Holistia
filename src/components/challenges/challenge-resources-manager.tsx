@@ -405,7 +405,7 @@ export function ChallengeResourcesManager({
                             <Edit className="h-4 w-4" />
                           </Button>
                           <Button
-                            variant="ghost"
+                            variant="destructive"
                             size="icon"
                             onClick={() => handleDeleteClick(resource.id)}
                           >
@@ -434,7 +434,7 @@ export function ChallengeResourcesManager({
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteConfirm}>
+            <AlertDialogAction onClick={handleDeleteConfirm} className="bg-destructive text-white hover:bg-destructive/90">
               Eliminar
             </AlertDialogAction>
           </AlertDialogFooter>

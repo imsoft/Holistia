@@ -834,7 +834,7 @@ export default function AdminChallengesPage() {
                       </Button>
                     </Link>
                     <Button
-                      variant="outline"
+                      variant="destructive"
                       size="sm"
                       onClick={() => handleDeleteClick(challenge)}
                     >

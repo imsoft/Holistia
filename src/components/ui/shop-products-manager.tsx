@@ -302,11 +302,11 @@ export function ShopProductsManager({
                       <Edit className="w-4 h-4" />
                     </Button>
                     <Button
-                      variant="ghost"
+                      variant="destructive"
                       size="sm"
                       onClick={() => handleDelete(product.id)}
                     >
-                      <Trash2 className="w-4 h-4 text-destructive" />
+                      <Trash2 className="w-4 h-4" />
                     </Button>
                   </div>
                 </div>

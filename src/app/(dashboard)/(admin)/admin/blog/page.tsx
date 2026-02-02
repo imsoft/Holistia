@@ -512,10 +512,10 @@ export default function AdminBlogPage({ params }: { params: Promise<{ id: string
                         </Link>
                       </Button>
                       <Button
-                        variant="outline"
+                        variant="destructive"
                         size="sm"
                         onClick={() => handleDeletePost(post.id)}
-                        className="text-destructive hover:text-destructive px-2 sm:px-3"
+                        className="px-2 sm:px-3"
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>

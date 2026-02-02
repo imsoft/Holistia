@@ -334,7 +334,7 @@ export function ServiceManager({
                           <Edit className="w-4 h-4" />
                         </Button>
                         <Button
-                          variant="ghost"
+                          variant="destructive"
                           size="sm"
                           onClick={() => handleDelete(service.id!)}
                         >

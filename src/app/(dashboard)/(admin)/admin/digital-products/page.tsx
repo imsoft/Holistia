@@ -466,7 +466,7 @@ export default function AdminDigitalProductsPage() {
                         Editar
                       </Button>
                       <Button
-                        variant="outline"
+                        variant="destructive"
                         size="sm"
                         onClick={() => {
                           setDeletingProduct(product);

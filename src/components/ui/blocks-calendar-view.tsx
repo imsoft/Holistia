@@ -302,7 +302,7 @@ export function BlocksCalendarView({
                       <Edit className="w-4 h-4" />
                     </Button>
                     <Button
-                      variant="outline"
+                      variant="destructive"
                       size="sm"
                       onClick={() => handleDeleteBlock(block.id!)}
                     >

@@ -472,7 +472,7 @@ export function DigitalProductForm({ professionalId, product, redirectPath, isAd
             </div>
             <Button
               type="button"
-              variant="outline"
+              variant="destructive"
               size="sm"
               onClick={handleRemoveCoverImage}
               className="w-full"

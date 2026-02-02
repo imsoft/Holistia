@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import Link from "next/link";
 import {
-  User,
   Store,
   UtensilsCrossed,
   MapPin,
@@ -578,8 +577,7 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
         {(!loading && digitalProducts.length > 0) || loading ? (
           <div className="mb-16">
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-2xl font-bold flex items-center gap-2">
-                <Sparkles className="w-6 h-6 text-primary" />
+              <h3 className="text-2xl font-bold">
                 Programas
               </h3>
               {!loading && digitalProducts.length > 0 && (
@@ -638,8 +636,8 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
                       href={`/explore/program/${product.slug || product.id}`}
                       className="shrink-0 w-[280px] sm:w-[320px]"
                     >
-                      <Card className="group relative h-[480px] flex flex-col hover:shadow-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer">
-                        <div className="relative w-full h-48 bg-gray-100 shrink-0">
+                      <Card className="group relative h-[480px] flex flex-col pt-0 pb-4 hover:shadow-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer overflow-hidden">
+                        <div className="relative w-full h-48 bg-gray-100 shrink-0 rounded-t-xl overflow-hidden">
                           <div className="absolute inset-0 overflow-hidden">
                             {product.cover_image_url ? (
                               <Image
@@ -706,8 +704,7 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
         {(!loading && events.length > 0) || loading ? (
           <div className="mb-16">
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-2xl font-bold flex items-center gap-2">
-                <Calendar className="w-6 h-6 text-primary" />
+              <h3 className="text-2xl font-bold">
                 Eventos y Talleres
               </h3>
               {!loading && events.length > 0 && (
@@ -765,8 +762,8 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
                       href={`/explore/event/${event.slug || event.id}`}
                       className="shrink-0 w-[280px] sm:w-[320px]"
                     >
-                      <Card className="group relative min-h-[400px] flex flex-col hover:shadow-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer">
-                        <div className="relative w-full h-48 bg-gray-100 shrink-0">
+                      <Card className="group relative min-h-[400px] flex flex-col pt-0 pb-4 hover:shadow-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer overflow-hidden">
+                        <div className="relative w-full h-48 bg-gray-100 shrink-0 rounded-t-xl overflow-hidden">
                           <div className="absolute inset-0 overflow-hidden">
                             {event.image_url ? (
                               <Image
@@ -833,8 +830,7 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
         {(!loading && challenges.length > 0) || loading ? (
           <div className="mb-16">
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-2xl font-bold flex items-center gap-2">
-                <Sparkles className="w-6 h-6 text-primary" />
+              <h3 className="text-2xl font-bold">
                 Retos
               </h3>
               {!loading && challenges.length > 0 && (
@@ -899,8 +895,7 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
         {(!loading && professionals.length > 0) || loading ? (
           <div className="mb-16">
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-2xl font-bold flex items-center gap-2">
-                <User className="w-6 h-6 text-primary" />
+              <h3 className="text-2xl font-bold">
                 Expertos
               </h3>
               {!loading && professionals.length > 0 && (
@@ -988,8 +983,7 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
           <div className="mb-16">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-2">
               <div>
-                <h3 className="text-2xl font-bold flex items-center gap-2">
-                  <Store className="w-6 h-6 text-primary" />
+                <h3 className="text-2xl font-bold">
                   Comercios
                 </h3>
               </div>
@@ -1067,8 +1061,8 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
                       href={`/explore/shop/${shop.slug || shop.id}`}
                       className="shrink-0 w-[280px] sm:w-[320px]"
                     >
-                      <Card className="group relative min-h-[400px] flex flex-col hover:shadow-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer">
-                        <div className="relative w-full h-48 bg-gray-100 shrink-0">
+                      <Card className="group relative min-h-[400px] flex flex-col pt-0 pb-4 hover:shadow-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer overflow-hidden">
+                        <div className="relative w-full h-48 bg-gray-100 shrink-0 rounded-t-xl overflow-hidden">
                           <div className="absolute inset-0 overflow-hidden">
                             {mainImage ? (
                               <Image
@@ -1138,8 +1132,7 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
           <div className="mb-16">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-2">
               <div>
-                <h3 className="text-2xl font-bold flex items-center gap-2">
-                  <Building2 className="w-6 h-6 text-primary" />
+                <h3 className="text-2xl font-bold">
                   Centros Holísticos
                 </h3>
               </div>
@@ -1200,8 +1193,8 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
                       href={`/explore/holistic-center/${center.slug || center.id}`}
                       className="shrink-0 w-[280px] sm:w-[320px]"
                     >
-                      <Card className="group relative flex flex-col hover:shadow-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer">
-                        <div className="relative w-full h-48 bg-gray-100 shrink-0">
+                      <Card className="group relative flex flex-col pt-0 pb-4 hover:shadow-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer overflow-hidden">
+                        <div className="relative w-full h-48 bg-gray-100 shrink-0 rounded-t-xl overflow-hidden">
                           <div className="absolute inset-0 overflow-hidden">
                             {center.image_url ? (
                               <Image
@@ -1267,8 +1260,7 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
         {(!loading && restaurants.length > 0) || loading ? (
           <div className="mb-16">
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-2xl font-bold flex items-center gap-2">
-                <UtensilsCrossed className="w-6 h-6 text-primary" />
+              <h3 className="text-2xl font-bold">
                 Restaurantes
               </h3>
               {!loading && restaurants.length > 0 && (
@@ -1325,8 +1317,8 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
                     href={`/explore/restaurant/${restaurant.slug || restaurant.id}`}
                     className="shrink-0 w-[280px] sm:w-[320px]"
                   >
-                    <Card className="group relative flex flex-col hover:shadow-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer">
-                      <div className="relative w-full h-48 bg-gray-100 shrink-0">
+                    <Card className="group relative flex flex-col pt-0 pb-4 hover:shadow-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer overflow-hidden">
+                      <div className="relative w-full h-48 bg-gray-100 shrink-0 rounded-t-xl overflow-hidden">
                         <div className="absolute inset-0 overflow-hidden">
                           {restaurant.image_url ? (
                             <Image

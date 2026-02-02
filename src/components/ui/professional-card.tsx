@@ -110,15 +110,15 @@ export const ProfessionalCard = ({ professional, userId, showFavoriteButton = tr
 
   return (
     <Link href={professionalRoute}>
-      <Card className="group overflow-hidden hover:shadow-xl hover:-translate-y-2 transition-all duration-300 border-border cursor-pointer h-[480px] flex flex-col py-4">
-      <div className="relative w-full h-64 overflow-hidden bg-gray-100 shrink-0">
-        <div className="absolute inset-0 overflow-hidden">
+      <Card className="group overflow-hidden hover:shadow-xl hover:-translate-y-2 transition-all duration-300 border-border cursor-pointer h-[480px] flex flex-col !pt-0 pb-4">
+      <div className="relative w-full h-64 min-h-[16rem] overflow-hidden bg-gray-100 shrink-0 rounded-t-xl flex-none">
+        <div className="absolute inset-0 overflow-hidden rounded-t-xl">
           <Image
             src={professional.profile_photo || professional.profilePhoto || professional.avatar || "/logos/holistia-black.png"}
             alt={professional.name || `${professional.first_name || ''} ${professional.last_name || ''}`.trim()}
             fill
             className="object-cover"
-            style={{ objectPosition: professional.imagePosition || "center 20%" }}
+            style={{ objectPosition: professional.imagePosition || "center center" }}
             unoptimized
             onError={(e) => {
               const target = e.target as HTMLImageElement;

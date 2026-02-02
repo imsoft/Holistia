@@ -1173,8 +1173,8 @@ const HomeUserPage = () => {
                         href={`/explore/program/${product.slug || product.id}`}
                         className="shrink-0 w-96"
                       >
-                        <Card className="group overflow-hidden hover:shadow-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer h-[480px] flex flex-col py-4">
-                          <div className="relative h-64 w-full shrink-0">
+                        <Card className="group overflow-hidden hover:shadow-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer h-[480px] flex flex-col pt-0 pb-4">
+                          <div className="relative h-64 w-full shrink-0 rounded-t-xl overflow-hidden">
                             <div className="absolute inset-0 overflow-hidden">
                               {product.cover_image_url ? (
                                 <Image
@@ -1329,8 +1329,8 @@ const HomeUserPage = () => {
                         href={`/explore/event/${event.slug || event.id}`}
                         className="shrink-0 w-96"
                       >
-                        <Card className="group hover:shadow-lg hover:-translate-y-2 transition-all duration-300 overflow-hidden cursor-pointer h-[480px] flex flex-col py-4">
-                          <div className="relative w-full h-64 bg-gray-100 shrink-0">
+                        <Card className="group hover:shadow-lg hover:-translate-y-2 transition-all duration-300 overflow-hidden cursor-pointer h-[480px] flex flex-col pt-0 pb-4">
+                          <div className="relative w-full h-64 bg-gray-100 shrink-0 rounded-t-xl overflow-hidden">
                             <div className="absolute inset-0 overflow-hidden">
                               <Image
                                 src={(event.gallery_images && event.gallery_images.length > 0 && event.gallery_images[0]) || event.image_url || "/logos/holistia-black.png"}
@@ -1579,8 +1579,8 @@ const HomeUserPage = () => {
                       onClick={() => {
                       }}
                     >
-                      <Card className="group hover:shadow-lg hover:-translate-y-2 transition-all duration-300 overflow-hidden cursor-pointer h-[480px] flex flex-col py-4">
-                        <div className="relative w-full h-64 bg-gray-100 shrink-0">
+                      <Card className="group hover:shadow-lg hover:-translate-y-2 transition-all duration-300 overflow-hidden cursor-pointer h-[480px] flex flex-col pt-0 pb-4">
+                        <div className="relative w-full h-64 bg-gray-100 shrink-0 rounded-t-xl overflow-hidden">
                           <div className="absolute inset-0 overflow-hidden">
                             {restaurant.image_url ? (
                               <Image
@@ -1819,8 +1819,8 @@ const HomeUserPage = () => {
                       onClick={() => {
                       }}
                     >
-                      <Card className="group hover:shadow-lg hover:-translate-y-2 transition-all duration-300 overflow-hidden cursor-pointer h-[480px] flex flex-col py-4">
-                        <div className="relative w-full h-64 bg-gray-100 shrink-0">
+                      <Card className="group hover:shadow-lg hover:-translate-y-2 transition-all duration-300 overflow-hidden cursor-pointer h-[480px] flex flex-col pt-0 pb-4">
+                        <div className="relative w-full h-64 bg-gray-100 shrink-0 rounded-t-xl overflow-hidden">
                           <div className="absolute inset-0 overflow-hidden">
                             {center.image_url ? (
                               <Image

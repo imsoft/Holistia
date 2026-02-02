@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useUserId } from "@/stores/user-store";
 import { useUserStoreInit } from "@/hooks/use-user-store-init";
 import { useProfessionalData } from "@/hooks/use-professional-data";
+import Link from "next/link";
 import {
   Calendar,
   Users,
@@ -15,6 +16,10 @@ import {
   CreditCard,
   AlertCircle,
   CheckCircle2,
+  Package,
+  Target,
+  ShoppingBag,
+  CalendarDays,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -305,6 +310,18 @@ export default function ProfessionalDashboard() {
             return sum + (amount * PROFESSIONAL_SHARE);
           }, 0);
 
+          // Estadísticas de servicios, retos, programas y eventos
+          const [servicesRes, challengesRes, digitalRes, eventsRes] = await Promise.all([
+            supabase.from("professional_services").select("id", { count: "exact", head: true }).eq("professional_id", professionalData.id),
+            supabase.from("challenges").select("id", { count: "exact", head: true }).eq("created_by_user_id", professionalData.user_id).eq("created_by_type", "professional"),
+            supabase.from("digital_products").select("id", { count: "exact", head: true }).eq("professional_id", professionalData.id),
+            supabase.from("events_workshops").select("id", { count: "exact", head: true }).or(`professional_id.eq.${professionalData.id},and(owner_id.eq.${professionalData.user_id},owner_type.eq.professional)`),
+          ]);
+          const servicesCount = servicesRes.count ?? 0;
+          const challengesCount = challengesRes.count ?? 0;
+          const digitalProductsCount = digitalRes.count ?? 0;
+          const eventsCount = eventsRes.count ?? 0;
+
           setStats([
             {
               title: "Citas Próximas",
@@ -329,6 +346,42 @@ export default function ProfessionalDashboard() {
               icon: DollarSign,
               color: "text-purple-600",
               bgColor: "bg-purple-50",
+            },
+            {
+              title: "Servicios",
+              value: String(servicesCount ?? 0),
+              change: "Gestionar servicios",
+              icon: Package,
+              color: "text-amber-600",
+              bgColor: "bg-amber-50",
+              href: "/services",
+            },
+            {
+              title: "Retos",
+              value: String(challengesCount ?? 0),
+              change: "Gestionar retos",
+              icon: Target,
+              color: "text-orange-600",
+              bgColor: "bg-orange-50",
+              href: "/challenges",
+            },
+            {
+              title: "Programas",
+              value: String(digitalProductsCount ?? 0),
+              change: "Gestionar programas",
+              icon: ShoppingBag,
+              color: "text-cyan-600",
+              bgColor: "bg-cyan-50",
+              href: "/digital-products",
+            },
+            {
+              title: "Eventos",
+              value: String(eventsCount ?? 0),
+              change: "Mis eventos",
+              icon: CalendarDays,
+              color: "text-indigo-600",
+              bgColor: "bg-indigo-50",
+              href: "/my-events",
             },
           ]);
       } catch (error) {
@@ -416,25 +469,40 @@ export default function ProfessionalDashboard() {
       <div className="p-4 sm:p-6 space-y-4 sm:space-y-6 w-full">
         {/* Stats Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 w-full">
-          {stats.map((stat) => (
-            <Card key={stat.title}>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-4 sm:px-6 pt-4 sm:pt-6">
-                <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">
-                  {stat.title}
-                </CardTitle>
-                <div className={`p-1.5 sm:p-2 rounded-full ${stat.bgColor}`}>
-                  <stat.icon className={`h-3.5 w-3.5 sm:h-4 sm:w-4 ${stat.color}`} />
-                </div>
-              </CardHeader>
-              <CardContent className="px-4 sm:px-6 pb-4 sm:pb-6">
-                <div className="text-xl sm:text-2xl font-bold text-foreground">{stat.value}</div>
-                <p className="text-[10px] sm:text-xs text-muted-foreground flex items-center gap-1">
-                  <TrendingUp className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
-                  {stat.change}
-                </p>
-              </CardContent>
-            </Card>
-          ))}
+          {stats.map((stat) => {
+            const cardContent = (
+              <Card className={stat.href ? "cursor-pointer transition-colors hover:shadow-md hover:border-primary/30" : undefined}>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-4 sm:px-6 pt-4 sm:pt-6">
+                  <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">
+                    {stat.title}
+                  </CardTitle>
+                  <div className={`p-1.5 sm:p-2 rounded-full ${stat.bgColor}`}>
+                    <stat.icon className={`h-3.5 w-3.5 sm:h-4 sm:w-4 ${stat.color}`} />
+                  </div>
+                </CardHeader>
+                <CardContent className="px-4 sm:px-6 pb-4 sm:pb-6">
+                  <div className="text-xl sm:text-2xl font-bold text-foreground">{stat.value}</div>
+                  <p className="text-[10px] sm:text-xs text-muted-foreground flex items-center gap-1">
+                    {stat.href ? (
+                      <span className="text-primary font-medium">{stat.change} →</span>
+                    ) : (
+                      <>
+                        <TrendingUp className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
+                        {stat.change}
+                      </>
+                    )}
+                  </p>
+                </CardContent>
+              </Card>
+            );
+            return stat.href ? (
+              <Link key={stat.title} href={stat.href}>
+                {cardContent}
+              </Link>
+            ) : (
+              <div key={stat.title}>{cardContent}</div>
+            );
+          })}
         </div>
 
         {/* Próximas Citas */}

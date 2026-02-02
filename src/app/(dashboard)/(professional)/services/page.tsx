@@ -39,7 +39,7 @@ export default function ProfessionalServicesPage() {
   const [professional, setProfessional] = useState<Professional | null>(null);
   const [currentUser, setCurrentUser] = useState<{ id: string } | null>(null);
   const [loading, setLoading] = useState(true);
-  const [serviceStats, setServiceStats] = useState({ total: 0, active: 0 });
+  const [serviceStats, setServiceStats] = useState({ total: 0, active: 0, session: 0, program: 0 });
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "inactive">("all");
   const [typeFilter, setTypeFilter] = useState<"all" | "session" | "program">("all");
@@ -99,11 +99,13 @@ export default function ProfessionalServicesPage() {
         // Estadísticas de servicios del profesional
         const { data: servicesData } = await supabase
           .from("professional_services")
-          .select("id, isactive")
+          .select("id, isactive, type")
           .eq("professional_id", professionalData.id);
         const total = servicesData?.length ?? 0;
         const active = servicesData?.filter((s) => s.isactive).length ?? 0;
-        setServiceStats({ total, active });
+        const session = servicesData?.filter((s) => s.type === "session").length ?? 0;
+        const program = servicesData?.filter((s) => s.type === "program").length ?? 0;
+        setServiceStats({ total, active, session, program });
       } catch (error) {
         console.error("Error:", error);
         router.push("/");
@@ -209,6 +211,43 @@ export default function ProfessionalServicesPage() {
         <div className="space-y-6">
           {professional.status === "approved" && (
             <>
+              {/* Cards de estadísticas (4 cards) */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+                <AdminStatCard
+                  title="Total Servicios"
+                  value={String(serviceStats.total)}
+                  trend={serviceStats.total > 0 ? { value: `${serviceStats.active} activos`, positive: true } : undefined}
+                  secondaryText={serviceStats.total > 0 ? "Servicios publicados" : "Sin servicios aún"}
+                  tertiaryText="Servicios que ofreces"
+                />
+                <AdminStatCard
+                  title="Servicios Activos"
+                  value={String(serviceStats.active)}
+                  trend={
+                    serviceStats.total > 0
+                      ? {
+                          value: `${Math.round((serviceStats.active / serviceStats.total) * 100)}%`,
+                          positive: serviceStats.active > 0,
+                        }
+                      : undefined
+                  }
+                  secondaryText={serviceStats.active > 0 ? "Visibles para pacientes" : "Ninguno activo"}
+                  tertiaryText="Del total de servicios"
+                />
+                <AdminStatCard
+                  title="Sesiones"
+                  value={String(serviceStats.session)}
+                  secondaryText="Servicios tipo sesión"
+                  tertiaryText="Sesiones individuales"
+                />
+                <AdminStatCard
+                  title="Programas"
+                  value={String(serviceStats.program)}
+                  secondaryText="Servicios tipo programa"
+                  tertiaryText="Programas de atención"
+                />
+              </div>
+
               {/* Filtros (máximo 4) */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                 <div className="relative">
@@ -249,31 +288,6 @@ export default function ProfessionalServicesPage() {
                     <SelectItem value="name">Por nombre</SelectItem>
                   </SelectContent>
                 </Select>
-              </div>
-
-              {/* Cards de información (AdminStatCard) */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-                <AdminStatCard
-                  title="Total Servicios"
-                  value={String(serviceStats.total)}
-                  trend={serviceStats.total > 0 ? { value: `${serviceStats.active} activos`, positive: true } : undefined}
-                  secondaryText={serviceStats.total > 0 ? "Servicios publicados" : "Sin servicios aún"}
-                  tertiaryText="Servicios que ofreces"
-                />
-                <AdminStatCard
-                  title="Servicios Activos"
-                  value={String(serviceStats.active)}
-                  trend={
-                    serviceStats.total > 0
-                      ? {
-                          value: `${Math.round((serviceStats.active / serviceStats.total) * 100)}%`,
-                          positive: serviceStats.active > 0,
-                        }
-                      : undefined
-                  }
-                  secondaryText={serviceStats.active > 0 ? "Visibles para pacientes" : "Ninguno activo"}
-                  tertiaryText="Del total de servicios"
-                />
               </div>
             </>
           )}

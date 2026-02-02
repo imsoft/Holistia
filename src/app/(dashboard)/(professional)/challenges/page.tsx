@@ -77,8 +77,8 @@ export default function ProfessionalChallenges() {
   const [stats, setStats] = useState({
     totalChallenges: 0,
     activeChallenges: 0,
-    totalSales: 0,
-    totalRevenue: 0,
+    totalResources: 0,
+    totalMeetings: 0,
   });
 
   useEffect(() => {
@@ -160,12 +160,14 @@ export default function ProfessionalChallenges() {
 
       setChallenges(challengesWithCounts);
 
-      // Calcular estadísticas (sin ventas)
+      // Calcular estadísticas (4 cards)
+      const totalResources = challengesWithCounts.reduce((s, c) => s + (c.resources_count ?? 0), 0);
+      const totalMeetings = challengesWithCounts.reduce((s, c) => s + (c.meetings_count ?? 0), 0);
       setStats({
         totalChallenges: challengesData?.length || 0,
         activeChallenges: challengesData?.filter((c: Challenge) => c.is_active).length || 0,
-        totalSales: 0,
-        totalRevenue: 0,
+        totalResources,
+        totalMeetings,
       });
 
     } catch (error) {
@@ -254,6 +256,42 @@ export default function ProfessionalChallenges() {
 
       {/* Main Content */}
       <div className="w-full px-4 sm:px-6 py-8">
+        {/* Cards de estadísticas (4 cards) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6">
+          <AdminStatCard
+            title="Total Retos"
+            value={String(stats.totalChallenges)}
+            secondaryText="Retos creados"
+            tertiaryText="Por ti"
+          />
+          <AdminStatCard
+            title="Retos Activos"
+            value={String(stats.activeChallenges)}
+            trend={
+              stats.totalChallenges > 0
+                ? {
+                    value: `${Math.round((stats.activeChallenges / stats.totalChallenges) * 100)}%`,
+                    positive: stats.activeChallenges > 0,
+                  }
+                : undefined
+            }
+            secondaryText={stats.totalChallenges > 0 ? "Visibles para participantes" : "Ninguno activo"}
+            tertiaryText="Del total"
+          />
+          <AdminStatCard
+            title="Total Recursos"
+            value={String(stats.totalResources)}
+            secondaryText="Recursos en retos"
+            tertiaryText="Materiales y contenidos"
+          />
+          <AdminStatCard
+            title="Total Reuniones"
+            value={String(stats.totalMeetings)}
+            secondaryText="Reuniones programadas"
+            tertiaryText="En tus retos"
+          />
+        </div>
+
         {/* Filtros (máximo 4) */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
           <div className="relative">
@@ -297,30 +335,6 @@ export default function ProfessionalChallenges() {
               <SelectItem value="duration">Por duración</SelectItem>
             </SelectContent>
           </Select>
-        </div>
-
-        {/* Cards de información (AdminStatCard) */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6">
-          <AdminStatCard
-            title="Total Retos"
-            value={String(stats.totalChallenges)}
-            secondaryText="Retos creados"
-            tertiaryText="Por ti"
-          />
-          <AdminStatCard
-            title="Retos Activos"
-            value={String(stats.activeChallenges)}
-            trend={
-              stats.totalChallenges > 0
-                ? {
-                    value: `${Math.round((stats.activeChallenges / stats.totalChallenges) * 100)}%`,
-                    positive: stats.activeChallenges > 0,
-                  }
-                : undefined
-            }
-            secondaryText={stats.totalChallenges > 0 ? "Visibles para participantes" : "Ninguno activo"}
-            tertiaryText="Del total"
-          />
         </div>
 
         {/* Lista de retos */}

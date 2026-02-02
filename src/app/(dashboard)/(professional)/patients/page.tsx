@@ -59,6 +59,7 @@ export default function ProfessionalPatients() {
   const [stats, setStats] = useState({
     total: 0,
     active: 0,
+    inactive: 0,
     sessionsThisMonth: 0
   });
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
@@ -215,6 +216,7 @@ export default function ProfessionalPatients() {
         setStats({
           total: patientsData.length,
           active: activePatientsCount,
+          inactive: patientsData.length - activePatientsCount,
           sessionsThisMonth
         });
 
@@ -292,6 +294,42 @@ export default function ProfessionalPatients() {
 
       {/* Main Content */}
       <div className="p-4 sm:p-6 space-y-6 sm:space-y-8 w-full">
+        {/* Cards de estadísticas (4 cards) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 w-full">
+          <AdminStatCard
+            title="Total Pacientes"
+            value={loading ? "..." : String(stats.total)}
+            secondaryText="Total de pacientes"
+            tertiaryText="Con al menos una cita"
+          />
+          <AdminStatCard
+            title="Pacientes Activos"
+            value={loading ? "..." : String(stats.active)}
+            trend={
+              stats.total > 0
+                ? {
+                    value: `${Math.round((stats.active / stats.total) * 100)}%`,
+                    positive: stats.active > 0,
+                  }
+                : undefined
+            }
+            secondaryText={stats.total > 0 ? `${Math.round((stats.active / stats.total) * 100)}% del total` : "0% del total"}
+            tertiaryText="Con próxima sesión programada"
+          />
+          <AdminStatCard
+            title="Pacientes Inactivos"
+            value={loading ? "..." : String(stats.inactive)}
+            secondaryText="Sin próxima sesión"
+            tertiaryText="Pacientes sin cita programada"
+          />
+          <AdminStatCard
+            title="Sesiones Este Mes"
+            value={loading ? "..." : String(stats.sessionsThisMonth)}
+            secondaryText="Sesiones completadas"
+            tertiaryText="En el mes actual"
+          />
+        </div>
+
         {/* Filtros (máximo 4) */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 w-full">
           <div className="relative">
@@ -339,36 +377,6 @@ export default function ProfessionalPatients() {
             <Users className="h-4 w-4 mr-2" />
             Ver Todos
           </Button>
-        </div>
-
-        {/* Cards de información (AdminStatCard) */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 w-full">
-          <AdminStatCard
-            title="Total Pacientes"
-            value={loading ? "..." : String(stats.total)}
-            secondaryText="Total de pacientes"
-            tertiaryText="Con al menos una cita"
-          />
-          <AdminStatCard
-            title="Pacientes Activos"
-            value={loading ? "..." : String(stats.active)}
-            trend={
-              stats.total > 0
-                ? {
-                    value: `${Math.round((stats.active / stats.total) * 100)}%`,
-                    positive: stats.active > 0,
-                  }
-                : undefined
-            }
-            secondaryText={stats.total > 0 ? `${Math.round((stats.active / stats.total) * 100)}% del total` : "0% del total"}
-            tertiaryText="Con próxima sesión programada"
-          />
-          <AdminStatCard
-            title="Sesiones Este Mes"
-            value={loading ? "..." : String(stats.sessionsThisMonth)}
-            secondaryText="Sesiones completadas"
-            tertiaryText="En el mes actual"
-          />
         </div>
 
         {/* Patients List */}

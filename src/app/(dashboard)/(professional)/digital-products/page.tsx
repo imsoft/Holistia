@@ -272,6 +272,42 @@ export default function ProfessionalDigitalProducts() {
 
       {/* Main Content */}
       <div className="p-6 space-y-6">
+        {/* Cards de estadísticas */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+          <AdminStatCard
+            title="Total Programas"
+            value={String(stats.totalProducts)}
+            secondaryText="Programas publicados"
+            tertiaryText="Meditaciones, workbooks, guías"
+          />
+          <AdminStatCard
+            title="Programas Activos"
+            value={String(stats.activeProducts)}
+            trend={
+              stats.totalProducts > 0
+                ? {
+                    value: `${Math.round((stats.activeProducts / stats.totalProducts) * 100)}%`,
+                    positive: stats.activeProducts > 0,
+                  }
+                : undefined
+            }
+            secondaryText={stats.activeProducts > 0 ? "Visibles para compra" : "Ninguno activo"}
+            tertiaryText="Del total"
+          />
+          <AdminStatCard
+            title="Ventas Totales"
+            value={String(stats.totalSales)}
+            secondaryText="Unidades vendidas"
+            tertiaryText="Total de ventas"
+          />
+          <AdminStatCard
+            title="Ingresos Totales"
+            value={`$${stats.totalRevenue.toLocaleString("es-MX", { minimumFractionDigits: 2 })}`}
+            secondaryText="Ingresos por programas"
+            tertiaryText="MXN"
+          />
+        </div>
+
         {/* Filtros (máximo 4) */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           <div className="relative">
@@ -316,42 +352,6 @@ export default function ProfessionalDigitalProducts() {
               <SelectItem value="sales">Por ventas</SelectItem>
             </SelectContent>
           </Select>
-        </div>
-
-        {/* Cards de información (AdminStatCard) */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-          <AdminStatCard
-            title="Total Programas"
-            value={String(stats.totalProducts)}
-            secondaryText="Programas publicados"
-            tertiaryText="Meditaciones, workbooks, guías"
-          />
-          <AdminStatCard
-            title="Programas Activos"
-            value={String(stats.activeProducts)}
-            trend={
-              stats.totalProducts > 0
-                ? {
-                    value: `${Math.round((stats.activeProducts / stats.totalProducts) * 100)}%`,
-                    positive: stats.activeProducts > 0,
-                  }
-                : undefined
-            }
-            secondaryText={stats.activeProducts > 0 ? "Visibles para compra" : "Ninguno activo"}
-            tertiaryText="Del total"
-          />
-          <AdminStatCard
-            title="Ventas Totales"
-            value={String(stats.totalSales)}
-            secondaryText="Unidades vendidas"
-            tertiaryText="Total de ventas"
-          />
-          <AdminStatCard
-            title="Ingresos Totales"
-            value={`$${stats.totalRevenue.toLocaleString("es-MX", { minimumFractionDigits: 2 })}`}
-            secondaryText="Ingresos por programas"
-            tertiaryText="MXN"
-          />
         </div>
 
         {/* Products Grid */}

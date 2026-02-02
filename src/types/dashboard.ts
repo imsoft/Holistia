@@ -5,6 +5,8 @@ export interface DashboardStats {
   icon: React.ComponentType<{ className?: string }>;
   color: string;
   bgColor: string;
+  /** Si está definido, la card es clicable y navega a esta ruta */
+  href?: string;
 }
 
 export interface RecentActivity {

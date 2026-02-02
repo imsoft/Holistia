@@ -168,66 +168,7 @@ export default function ImageGalleryManager({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <h3 className="text-lg font-semibold">Galería de Imágenes</h3>
-          <p className="text-sm text-muted-foreground">
-            {currentImages.length}/{maxImages} imágenes • Máximo {maxSizeMB}MB por imagen
-          </p>
-        </div>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button 
-              variant="outline" 
-              size="sm"
-              disabled={!canAddMore}
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Agregar Imagen
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-md">
-            <DialogHeader>
-              <DialogTitle>Subir Nueva Imagen</DialogTitle>
-              <DialogDescription>
-                Selecciona una imagen para agregar a tu galería profesional.
-              </DialogDescription>
-            </DialogHeader>
-            
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="gallery-image">Imagen</Label>
-                <Input
-                  id="gallery-image"
-                  type="file"
-                  accept="image/*"
-                  onChange={handleFileSelect}
-                  ref={fileInputRef}
-                  disabled={isUploading}
-                />
-                <p className="text-xs text-muted-foreground">
-                  Formatos: JPG, PNG, GIF • Máximo {maxSizeMB}MB
-                </p>
-              </div>
-
-              {uploadError && (
-                <div className="p-3 bg-red-50 border border-red-200 rounded-md">
-                  <p className="text-sm text-red-600">{uploadError}</p>
-                </div>
-              )}
-
-              {isUploading && (
-                <div className="flex items-center gap-2 p-3 bg-blue-50 border border-blue-200 rounded-md">
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-                  <p className="text-sm text-blue-600">Subiendo imagen...</p>
-                </div>
-              )}
-            </div>
-          </DialogContent>
-        </Dialog>
-      </div>
-
-      {/* Grid de imágenes */}
+      {/* Grid de imágenes: fotos primero, botón agregar siempre al final */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
         {currentImages.map((imageUrl, index) => (
           <Card key={index} className="relative group">
@@ -255,19 +196,55 @@ export default function ImageGalleryManager({
           </Card>
         ))}
 
-        {/* Placeholder para agregar más imágenes */}
+        {/* Botón/card de agregar imagen siempre al final de la galería */}
         {canAddMore && (
           <Card className="border-dashed border-2 border-muted-foreground/25 hover:border-muted-foreground/50 transition-colors">
             <CardContent className="p-2">
-              <div 
-                className="aspect-square rounded-lg border-2 border-dashed border-muted-foreground/25 flex items-center justify-center cursor-pointer hover:border-muted-foreground/50 transition-colors"
-                onClick={() => setIsDialogOpen(true)}
-              >
-                <div className="text-center">
-                  <Plus className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
-                  <p className="text-xs text-muted-foreground">Agregar</p>
-                </div>
-              </div>
+              <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                <DialogTrigger asChild>
+                  <button
+                    type="button"
+                    className="w-full aspect-square rounded-lg border-2 border-dashed border-muted-foreground/25 flex items-center justify-center cursor-pointer hover:border-muted-foreground/50 transition-colors bg-transparent"
+                  >
+                    <span className="text-center">
+                      <Plus className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+                      <p className="text-xs text-muted-foreground">Agregar imagen</p>
+                    </span>
+                  </button>
+                </DialogTrigger>
+                <DialogContent className="max-w-md">
+                  <DialogHeader>
+                    <DialogTitle>Subir Nueva Imagen</DialogTitle>
+                    <DialogDescription>
+                      Selecciona una imagen para agregar a tu galería (máx. {maxSizeMB}MB).
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="gallery-image">Imagen</Label>
+                      <Input
+                        id="gallery-image"
+                        type="file"
+                        accept="image/*"
+                        onChange={handleFileSelect}
+                        ref={fileInputRef}
+                        disabled={isUploading}
+                      />
+                    </div>
+                    {uploadError && (
+                      <div className="p-3 bg-red-50 border border-red-200 rounded-md">
+                        <p className="text-sm text-red-600">{uploadError}</p>
+                      </div>
+                    )}
+                    {isUploading && (
+                      <div className="flex items-center gap-2 p-3 bg-blue-50 border border-blue-200 rounded-md">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600" />
+                        <p className="text-sm text-blue-600">Subiendo imagen...</p>
+                      </div>
+                    )}
+                  </div>
+                </DialogContent>
+              </Dialog>
             </CardContent>
           </Card>
         )}

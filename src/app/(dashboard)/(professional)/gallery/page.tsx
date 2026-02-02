@@ -283,13 +283,7 @@ export default function ProfessionalGalleryPage() {
 
         {/* Gestión de galería */}
         <Card className="mb-6 sm:mb-8 p-3 sm:p-4">
-          <CardHeader className="pb-3 sm:pb-4">
-            <CardTitle className="text-lg sm:text-xl">Galería de Imágenes</CardTitle>
-            <CardDescription className="text-xs sm:text-sm">
-              Sube hasta 4 imágenes de tu espacio de trabajo. Cada imagen debe ser menor a 2MB.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="pt-2">
+          <CardContent className="pt-4">
             <ImageGalleryManager
               professionalId={professional.user_id}
               currentImages={galleryImages}

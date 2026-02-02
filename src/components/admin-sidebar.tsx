@@ -295,7 +295,7 @@ export function AdminSidebar() {
       <SidebarContent>
         {navCategories.map((category) => (
           <SidebarGroup key={category.label}>
-            <SidebarGroupLabel className="text-muted-foreground text-xs font-medium uppercase tracking-wider group-data-[collapsible=icon]:hidden">
+            <SidebarGroupLabel className="text-muted-foreground text-xs font-medium tracking-wider group-data-[collapsible=icon]:hidden">
               {category.label}
             </SidebarGroupLabel>
             <SidebarGroupContent>

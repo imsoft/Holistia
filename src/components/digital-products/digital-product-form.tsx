@@ -69,6 +69,8 @@ export function DigitalProductForm({ professionalId, product, redirectPath, isAd
   const router = useRouter();
   const [saving, setSaving] = useState(false);
   const [uploadingCover, setUploadingCover] = useState(false);
+  /** ID del producto creado al subir imagen de portada (evita duplicado al hacer submit) */
+  const [createdProductId, setCreatedProductId] = useState<string | null>(null);
   const coverFileInputRef = useRef<HTMLInputElement>(null);
   const supabase = createClient();
 
@@ -186,6 +188,7 @@ export function DigitalProductForm({ professionalId, product, redirectPath, isAd
         }
 
         productId = tempProduct.id;
+        setCreatedProductId(tempProduct.id);
       }
 
       // Generar nombre único para la imagen
@@ -350,14 +353,16 @@ export function DigitalProductForm({ professionalId, product, redirectPath, isAd
         wellness_areas: formData.wellness_areas && formData.wellness_areas.length > 0 ? formData.wellness_areas : [],
       };
 
-      if (product) {
+      const productIdToUse = product?.id ?? createdProductId;
+
+      if (productIdToUse) {
         const { error } = await supabase
           .from("digital_products")
           .update(productData)
-          .eq("id", product.id);
+          .eq("id", productIdToUse);
 
         if (error) throw error;
-        toast.success("Programa actualizado exitosamente");
+        toast.success(product ? "Programa actualizado exitosamente" : "Programa creado exitosamente");
       } else {
         const { error } = await supabase
           .from("digital_products")

@@ -171,27 +171,39 @@ export function ServiceForm({
   };
 
   /**
-   * Sanitiza el nombre de archivo removiendo caracteres especiales problemáticos
-   * pero manteniendo caracteres válidos como acentos y espacios
+   * Sanitiza el nombre de archivo para que sea válido en Supabase Storage.
+   * Storage no acepta acentos ni caracteres no-ASCII en la clave (InvalidKey).
+   * Normalizamos a ASCII: quitamos acentos y caracteres problemáticos.
    */
   const sanitizeFileName = (fileName: string): string => {
-    // Obtener la extensión
     const lastDotIndex = fileName.lastIndexOf('.');
     const nameWithoutExt = lastDotIndex > 0 ? fileName.substring(0, lastDotIndex) : fileName;
-    const extension = lastDotIndex > 0 ? fileName.substring(lastDotIndex) : '';
-    
-    // Reemplazar caracteres problemáticos pero mantener acentos y caracteres válidos
-    // Remover solo caracteres que pueden causar problemas en URLs/paths
-    let sanitized = nameWithoutExt
-      .replace(/[<>:"|?*\x00-\x1F]/g, '') // Remover caracteres de control y caracteres problemáticos
-      .replace(/\s+/g, '-') // Reemplazar espacios múltiples con un guión
-      .replace(/^-+|-+$/g, ''); // Remover guiones al inicio y final
-    
-    // Si después de sanitizar queda vacío, usar un nombre por defecto
+    const extension = lastDotIndex > 0 ? fileName.substring(lastDotIndex).toLowerCase() : '';
+
+    // Normalizar acentos a ASCII (evita InvalidKey en Supabase Storage)
+    const accentMap: Record<string, string> = {
+      'á': 'a', 'é': 'e', 'í': 'i', 'ó': 'o', 'ú': 'u', 'ñ': 'n',
+      'Á': 'A', 'É': 'E', 'Í': 'I', 'Ó': 'O', 'Ú': 'U', 'Ñ': 'N',
+      'à': 'a', 'è': 'e', 'ì': 'i', 'ò': 'o', 'ù': 'u',
+      'â': 'a', 'ê': 'e', 'î': 'i', 'ô': 'o', 'û': 'u',
+      'ä': 'a', 'ë': 'e', 'ï': 'i', 'ö': 'o', 'ü': 'u',
+    };
+    let normalized = nameWithoutExt
+      .split('')
+      .map((char) => accentMap[char] ?? char)
+      .join('');
+
+    let sanitized = normalized
+      .replace(/[<>:"|?*\x00-\x1F]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/[^a-zA-Z0-9._-]/g, '-')
+      .replace(/-+/g, '-')
+      .replace(/^-+|-+$/g, '');
+
     if (!sanitized || sanitized.trim().length === 0) {
       sanitized = 'imagen';
     }
-    
+
     return `${sanitized}${extension}`;
   };
 
@@ -254,6 +266,8 @@ export function ServiceForm({
           errorMessage = 'Tipo de archivo no válido. Solo se permiten imágenes: JPG, PNG, GIF, WEBP';
         } else if (uploadError.message.includes('permission') || uploadError.message.includes('policy')) {
           errorMessage = 'No tienes permiso para subir imágenes. Por favor, contacta al soporte';
+        } else if (uploadError.message.includes('InvalidKey') || uploadError.message.includes('Invalid key')) {
+          errorMessage = 'El nombre del archivo contiene caracteres no permitidos (p. ej. acentos). Se ha aplicado corrección; si persiste, usa un nombre sin acentos.';
         } else if (uploadError.message.includes('character') || uploadError.message.includes('name')) {
           errorMessage = 'El nombre del archivo contiene caracteres no permitidos. Por favor, renombra el archivo';
         } else {

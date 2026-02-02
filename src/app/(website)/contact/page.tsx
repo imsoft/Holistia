@@ -86,10 +86,10 @@ export default function ContactPage() {
   });
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-white">
       <StructuredData data={structuredData} />
       {/* Hero Section */}
-      <div className="relative bg-gradient-to-b from-primary/5 to-background">
+      <div className="relative bg-white">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 py-12 sm:py-16 lg:py-20 lg:px-8">
           <div className="mx-auto max-w-3xl text-center">
             <h1 className="text-3xl sm:text-4xl lg:text-6xl font-bold tracking-tight text-foreground">
@@ -104,7 +104,7 @@ export default function ContactPage() {
       </div>
 
       {/* Contact Methods + Contact Form: 2 columnas */}
-      <div className="py-12 sm:py-16 lg:py-24 bg-muted/30">
+      <div className="py-12 sm:py-16 lg:py-24 bg-white">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
             {/* Columna izquierda: Formas de Contacto */}
@@ -163,7 +163,7 @@ export default function ContactPage() {
       </div>
 
       {/* FAQ Section */}
-      <div className="py-12 sm:py-16 lg:py-24">
+      <div className="py-12 sm:py-16 lg:py-24 bg-white">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-3xl text-center mb-10 sm:mb-16">
             <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-foreground">
@@ -190,7 +190,7 @@ export default function ContactPage() {
       </div>
 
       {/* Office Info */}
-      <div className="py-12 sm:py-16 lg:py-24 bg-primary/5">
+      <div className="py-12 sm:py-16 lg:py-24 bg-white">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-3xl text-center">
             <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-foreground">

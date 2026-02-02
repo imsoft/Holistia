@@ -77,10 +77,10 @@ const INDUSTRIES = [
 ];
 
 const CATEGORIES = [
-  { name: "Mindfulness", href: "#servicios", imageSrc: "/hero/5.jpg" },
-  { name: "Yoga", href: "#servicios", imageSrc: "/hero/12.jpg" },
+  { name: "Mindfulness", href: "#servicios", imageSrc: "/hero/6.jpg" },
+  { name: "Yoga", href: "#servicios", imageSrc: "/hero/11.jpg" },
   { name: "Terapia", href: "#servicios", imageSrc: "/hero/18.jpg" },
-  { name: "Talleres", href: "#servicios", imageSrc: "/hero/22.jpg" },
+  { name: "Talleres", href: "#servicios", imageSrc: "/hero/23.jpg" },
   { name: "Bienestar emocional", href: "#servicios", imageSrc: "/hero/28.jpg" },
 ];
 
@@ -88,7 +88,7 @@ const COLLECTIONS = [
   {
     name: "Programas a medida",
     href: "#contacto",
-    imageSrc: "/hero/8.jpg",
+    imageSrc: "/hero/7.jpg",
     imageAlt: "Equipo en sesión de bienestar.",
     description:
       "Diseñamos programas de bienestar corporativo adaptados al tamaño, industria y objetivos de tu empresa.",
@@ -96,7 +96,7 @@ const COLLECTIONS = [
   {
     name: "Sesiones en tu empresa",
     href: "#contacto",
-    imageSrc: "/hero/15.jpg",
+    imageSrc: "/hero/14.jpg",
     imageAlt: "Sesión grupal de mindfulness.",
     description:
       "Llevamos yoga, mindfulness, terapia y talleres a tus instalaciones para facilitar la participación de tu equipo.",
@@ -104,7 +104,7 @@ const COLLECTIONS = [
   {
     name: "Profesionales certificados",
     href: "#servicios",
-    imageSrc: "/hero/33.jpg",
+    imageSrc: "/hero/31.jpg",
     imageAlt: "Experto en bienestar holístico.",
     description:
       "Todos nuestros expertos están verificados por Holistia y especializados en bienestar corporativo.",
@@ -379,7 +379,7 @@ export default function CompaniesLandingPage() {
             <div className="absolute inset-0">
               <Image
                 alt=""
-                src="/hero/10.jpg"
+                src="/hero/13.jpg"
                 fill
                 className="object-cover"
                 sizes="(max-width: 1280px) 100vw, 1280px"
@@ -430,7 +430,7 @@ export default function CompaniesLandingPage() {
           </div>
 
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            <Card className="border-2 hover:border-primary/50 transition-colors">
+            <Card className="py-4 border-2 hover:border-primary/50 transition-colors">
               <CardHeader>
                 <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-2">
                   <TrendingUp className="h-6 w-6 text-primary" />
@@ -444,7 +444,7 @@ export default function CompaniesLandingPage() {
               </CardContent>
             </Card>
 
-            <Card className="border-2 hover:border-primary/50 transition-colors">
+            <Card className="py-4 border-2 hover:border-primary/50 transition-colors">
               <CardHeader>
                 <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-2">
                   <Users className="h-6 w-6 text-primary" />
@@ -459,7 +459,7 @@ export default function CompaniesLandingPage() {
               </CardContent>
             </Card>
 
-            <Card className="border-2 hover:border-primary/50 transition-colors">
+            <Card className="py-4 border-2 hover:border-primary/50 transition-colors">
               <CardHeader>
                 <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-2">
                   <Heart className="h-6 w-6 text-primary" />
@@ -473,7 +473,7 @@ export default function CompaniesLandingPage() {
               </CardContent>
             </Card>
 
-            <Card className="border-2 hover:border-primary/50 transition-colors">
+            <Card className="py-4 border-2 hover:border-primary/50 transition-colors">
               <CardHeader>
                 <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-2">
                   <Briefcase className="h-6 w-6 text-primary" />
@@ -598,7 +598,7 @@ export default function CompaniesLandingPage() {
                 return (
                   <Card
                     key={service.id}
-                    className="overflow-hidden transition-shadow hover:shadow-lg"
+                    className="py-4 overflow-hidden transition-shadow hover:shadow-lg"
                   >
                     {firstImage && (
                       <div className="relative w-full h-48">
@@ -724,7 +724,7 @@ export default function CompaniesLandingPage() {
               </p>
             </div>
 
-            <Card>
+            <Card className="py-4">
               <CardHeader>
                 <CardTitle>Información de tu empresa</CardTitle>
                 <CardDescription>

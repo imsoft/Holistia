@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useUserId } from "@/stores/user-store";
 import { useUserStoreInit } from "@/hooks/use-user-store-init";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { AdminStatCard } from "@/components/ui/admin-stat-card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { SidebarTrigger } from "@/components/ui/sidebar";
@@ -29,18 +30,10 @@ import {
 import {
   TrendingUp,
   Users,
-  Briefcase,
-  Calendar,
-  DollarSign,
   Award,
   Clock,
   BarChart3,
   RefreshCw,
-  Package,
-  Target,
-  Store,
-  Building2,
-  UtensilsCrossed,
 } from "lucide-react";
 import Image from "next/image";
 
@@ -404,54 +397,26 @@ export default function AnalyticsPage() {
 
           <TabsContent value="general" className="space-y-6">
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              <Card className="py-4">
-                <CardHeader className="pb-2">
-                  <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                    <Briefcase className="h-4 w-4" />
-                    Profesionales
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{generalStats.total_professionals}</div>
-                  <p className="mt-1 text-xs text-muted-foreground">{generalStats.active_professionals} activos</p>
-                </CardContent>
-              </Card>
-              <Card className="py-4">
-                <CardHeader className="pb-2">
-                  <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                    <Users className="h-4 w-4" />
-                    Pacientes
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{generalStats.total_patients}</div>
-                  <p className="mt-1 text-xs text-muted-foreground">Usuarios únicos</p>
-                </CardContent>
-              </Card>
-              <Card className="py-4">
-                <CardHeader className="pb-2">
-                  <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                    <Calendar className="h-4 w-4" />
-                    Citas Totales
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{generalStats.total_appointments}</div>
-                  <p className="mt-1 text-xs text-muted-foreground">{generalStats.completed_appointments} completadas</p>
-                </CardContent>
-              </Card>
-              <Card className="py-4">
-                <CardHeader className="pb-2">
-                  <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                    <DollarSign className="h-4 w-4" />
-                    Ingresos
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">${generalStats.total_revenue?.toLocaleString("es-MX", { minimumFractionDigits: 0 })}</div>
-                  <p className="mt-1 text-xs text-muted-foreground">Tasa completadas {generalStats.total_appointments > 0 ? ((generalStats.completed_appointments / generalStats.total_appointments) * 100).toFixed(1) : 0}%</p>
-                </CardContent>
-              </Card>
+              <AdminStatCard
+                title="Profesionales"
+                value={generalStats.total_professionals.toString()}
+                tertiaryText={`${generalStats.active_professionals} activos`}
+              />
+              <AdminStatCard
+                title="Pacientes"
+                value={generalStats.total_patients.toString()}
+                tertiaryText="Usuarios únicos"
+              />
+              <AdminStatCard
+                title="Citas Totales"
+                value={generalStats.total_appointments.toString()}
+                tertiaryText={`${generalStats.completed_appointments} completadas`}
+              />
+              <AdminStatCard
+                title="Ingresos"
+                value={`$${generalStats.total_revenue?.toLocaleString("es-MX", { minimumFractionDigits: 0 })}`}
+                tertiaryText={`Tasa completadas ${generalStats.total_appointments > 0 ? ((generalStats.completed_appointments / generalStats.total_appointments) * 100).toFixed(1) : 0}%`}
+              />
             </div>
 
             <div className="grid gap-6 md:grid-cols-2">
@@ -502,90 +467,13 @@ export default function AnalyticsPage() {
 
           <TabsContent value="entidades" className="space-y-6">
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              <Card className="py-4">
-                <CardHeader className="pb-2">
-                  <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                    <Package className="h-4 w-4" />
-                    Programas
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{digitalProducts.total}</div>
-                  <p className="mt-1 text-xs text-muted-foreground">{digitalProducts.active} activos</p>
-                </CardContent>
-              </Card>
-              <Card className="py-4">
-                <CardHeader className="pb-2">
-                  <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                    <Calendar className="h-4 w-4" />
-                    Eventos y Talleres
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{events.total}</div>
-                  <p className="mt-1 text-xs text-muted-foreground">{events.active} activos · {eventRegistrations} inscripciones</p>
-                </CardContent>
-              </Card>
-              <Card className="py-4">
-                <CardHeader className="pb-2">
-                  <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                    <Target className="h-4 w-4" />
-                    Retos
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{challenges.total}</div>
-                  <p className="mt-1 text-xs text-muted-foreground">{challenges.active} activos</p>
-                </CardContent>
-              </Card>
-              <Card className="py-4">
-                <CardHeader className="pb-2">
-                  <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                    <Briefcase className="h-4 w-4" />
-                    Expertos
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{generalStats.total_professionals}</div>
-                  <p className="mt-1 text-xs text-muted-foreground">{generalStats.active_professionals} activos</p>
-                </CardContent>
-              </Card>
-              <Card className="py-4">
-                <CardHeader className="pb-2">
-                  <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                    <Store className="h-4 w-4" />
-                    Comercios
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{shops.total}</div>
-                  <p className="mt-1 text-xs text-muted-foreground">{shops.active} activos</p>
-                </CardContent>
-              </Card>
-              <Card className="py-4">
-                <CardHeader className="pb-2">
-                  <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                    <Building2 className="h-4 w-4" />
-                    Centros Holísticos
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{holisticCenters.total}</div>
-                  <p className="mt-1 text-xs text-muted-foreground">{holisticCenters.active} activos</p>
-                </CardContent>
-              </Card>
-              <Card className="py-4">
-                <CardHeader className="pb-2">
-                  <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                    <UtensilsCrossed className="h-4 w-4" />
-                    Restaurantes
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{restaurants.total}</div>
-                  <p className="mt-1 text-xs text-muted-foreground">{restaurants.active} activos</p>
-                </CardContent>
-              </Card>
+              <AdminStatCard title="Programas" value={digitalProducts.total.toString()} tertiaryText={`${digitalProducts.active} activos`} />
+              <AdminStatCard title="Eventos y Talleres" value={events.total.toString()} tertiaryText={`${events.active} activos · ${eventRegistrations} inscripciones`} />
+              <AdminStatCard title="Retos" value={challenges.total.toString()} tertiaryText={`${challenges.active} activos`} />
+              <AdminStatCard title="Expertos" value={generalStats.total_professionals.toString()} tertiaryText={`${generalStats.active_professionals} activos`} />
+              <AdminStatCard title="Comercios" value={shops.total.toString()} tertiaryText={`${shops.active} activos`} />
+              <AdminStatCard title="Centros Holísticos" value={holisticCenters.total.toString()} tertiaryText={`${holisticCenters.active} activos`} />
+              <AdminStatCard title="Restaurantes" value={restaurants.total.toString()} tertiaryText={`${restaurants.active} activos`} />
             </div>
 
             {/* Gráfico de entidades - distribución por tipo */}

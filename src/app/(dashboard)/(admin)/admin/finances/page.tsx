@@ -22,6 +22,7 @@ import {
   Target,
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { AdminStatCard } from "@/components/ui/admin-stat-card";
 import { Badge } from "@/components/ui/badge";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { createClient } from "@/utils/supabase/client";
@@ -690,36 +691,14 @@ export default function FinancesPage() {
         {/* Métricas Principales */}
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {metrics.map((metric, index) => (
-            <Card key={index} className="py-4">
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  {metric.title}
-                </CardTitle>
-                <div className={`${metric.bgColor} p-2 rounded-lg`}>
-                  <metric.icon className={`h-4 w-4 ${metric.color}`} />
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{metric.value}</div>
-                <div className="flex items-center gap-1 mt-1">
-                  {metric.isPositive ? (
-                    <ArrowUpRight className="h-4 w-4 text-green-600" />
-                  ) : (
-                    <ArrowDownRight className="h-4 w-4 text-red-600" />
-                  )}
-                  <span
-                    className={`text-xs font-medium ${
-                      metric.isPositive ? 'text-green-600' : 'text-red-600'
-                    }`}
-                  >
-                    {metric.change}
-                  </span>
-                  <span className="text-xs text-muted-foreground ml-1">
-                    vs período anterior
-                  </span>
-                </div>
-              </CardContent>
-            </Card>
+            <AdminStatCard
+              key={index}
+              title={metric.title}
+              value={metric.value}
+              trend={metric.change !== "Después de costos" ? { value: metric.change, positive: metric.isPositive } : undefined}
+              secondaryText={metric.change !== "Después de costos" ? "vs período anterior" : undefined}
+              tertiaryText={metric.change === "Después de costos" ? "Después de costos" : undefined}
+            />
           ))}
         </div>
 

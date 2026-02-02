@@ -26,6 +26,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { AdminStatCard } from "@/components/ui/admin-stat-card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import {
@@ -284,89 +285,30 @@ export default function AdminDigitalProductsPage() {
       <div className="p-6 space-y-6">
         {/* Stats */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {/* Total Products */}
-          <Card className="border">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-muted-foreground">Total Programas</span>
-                <Badge variant="secondary" className="text-xs">
-                  <Package className="h-3 w-3 mr-1" />
-                  Total
-                </Badge>
-              </div>
-              <div className="text-3xl font-bold text-foreground mb-1">
-                {stats.totalProducts}
-              </div>
-              <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                <TrendingUp className="h-3 w-3 text-green-500" />
-                <span className="text-green-500">+12%</span>
-                <span>vs mes anterior</span>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Active Products */}
-          <Card className="border">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-muted-foreground">Programas Activos</span>
-                <Badge variant="default" className="text-xs bg-green-500/10 text-green-600 hover:bg-green-500/20">
-                  <Eye className="h-3 w-3 mr-1" />
-                  Activos
-                </Badge>
-              </div>
-              <div className="text-3xl font-bold text-foreground mb-1">
-                {stats.activeProducts}
-              </div>
-              <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                <TrendingUp className="h-3 w-3 text-green-500" />
-                <span className="text-green-500">{stats.totalProducts > 0 ? Math.round((stats.activeProducts / stats.totalProducts) * 100) : 0}%</span>
-                <span>del total</span>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Total Sales */}
-          <Card className="border">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-muted-foreground">Total Ventas</span>
-                <Badge variant="secondary" className="text-xs bg-blue-500/10 text-blue-600 hover:bg-blue-500/20">
-                  <ShoppingBag className="h-3 w-3 mr-1" />
-                  Ventas
-                </Badge>
-              </div>
-              <div className="text-3xl font-bold text-foreground mb-1">
-                {stats.totalSales}
-              </div>
-              <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                <TrendingUp className="h-3 w-3 text-green-500" />
-                <span className="text-green-500">+8%</span>
-                <span>vs mes anterior</span>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Total Revenue */}
-          <Card className="border">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-muted-foreground">Ingresos Totales</span>
-                <Badge variant="secondary" className="text-xs bg-purple-500/10 text-purple-600 hover:bg-purple-500/20">
-                  <DollarSign className="h-3 w-3 mr-1" />
-                  Revenue
-                </Badge>
-              </div>
-              <div className="text-3xl font-bold text-foreground mb-1">
-                {formatPrice(stats.totalRevenue, "MXN")}
-              </div>
-              <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                <TrendingUp className="h-3 w-3 text-green-500" />
-                <span className="text-green-500">+15%</span>
-                <span>vs mes anterior</span>
-              </div>
-            </CardContent>
-          </Card>
+          <AdminStatCard
+            title="Total Programas"
+            value={stats.totalProducts.toString()}
+            trend={{ value: "+12%", positive: true }}
+            secondaryText="vs mes anterior"
+          />
+          <AdminStatCard
+            title="Programas Activos"
+            value={stats.activeProducts.toString()}
+            trend={{ value: `${stats.totalProducts > 0 ? Math.round((stats.activeProducts / stats.totalProducts) * 100) : 0}%`, positive: true }}
+            tertiaryText="del total"
+          />
+          <AdminStatCard
+            title="Total Ventas"
+            value={stats.totalSales.toString()}
+            trend={{ value: "+8%", positive: true }}
+            secondaryText="vs mes anterior"
+          />
+          <AdminStatCard
+            title="Ingresos Totales"
+            value={formatPrice(stats.totalRevenue, "MXN")}
+            trend={{ value: "+15%", positive: true }}
+            secondaryText="vs mes anterior"
+          />
         </div>
 
         {/* Filters */}

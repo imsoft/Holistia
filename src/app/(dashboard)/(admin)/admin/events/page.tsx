@@ -6,6 +6,7 @@ import { useUserId } from "@/stores/user-store";
 import { useUserStoreInit } from "@/hooks/use-user-store-init";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { AdminStatCard } from "@/components/ui/admin-stat-card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { SidebarTrigger } from "@/components/ui/sidebar";
@@ -319,85 +320,30 @@ const EventsAdminPage = () => {
       <div className="container mx-auto p-6">
         {/* Stats Cards */}
         <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 mb-6">
-          {/* Total Events */}
-          <Card className="border">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm text-muted-foreground">Total Eventos</span>
-                <Badge variant={stats.eventsChange >= 0 ? "default" : "secondary"} className="text-xs">
-                  {stats.eventsChange >= 0 ? "+" : ""}{stats.eventsChange}%
-                </Badge>
-              </div>
-              <div className="text-3xl font-bold">{stats.totalEvents}</div>
-              <div className="flex items-center gap-1 mt-1">
-                {stats.eventsChange >= 0 ? (
-                  <TrendingUp className="h-3 w-3 text-green-500" />
-                ) : (
-                  <TrendingDown className="h-3 w-3 text-red-500" />
-                )}
-                <span className="text-xs text-muted-foreground">
-                  {stats.thisMonthEvents} este mes vs {stats.lastMonthEvents} mes anterior
-                </span>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Active Events */}
-          <Card className="border">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm text-muted-foreground">Eventos Activos</span>
-                <Badge variant="outline" className="text-xs">
-                  {stats.activePercentage}%
-                </Badge>
-              </div>
-              <div className="text-3xl font-bold">{stats.activeEvents}</div>
-              <div className="flex items-center gap-1 mt-1">
-                <TrendingUp className="h-3 w-3 text-green-500" />
-                <span className="text-xs text-muted-foreground">
-                  De {stats.totalEvents} eventos totales
-                </span>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Upcoming Events */}
-          <Card className="border">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm text-muted-foreground">Próximos Eventos</span>
-                <Badge variant="secondary" className="text-xs">
-                  Programados
-                </Badge>
-              </div>
-              <div className="text-3xl font-bold">{stats.upcomingEvents}</div>
-              <div className="flex items-center gap-1 mt-1">
-                <Calendar className="h-3 w-3 text-muted-foreground" />
-                <span className="text-xs text-muted-foreground">
-                  Eventos por realizarse
-                </span>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Free vs Paid */}
-          <Card className="border">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm text-muted-foreground">Gratuitos</span>
-                <Badge variant="outline" className="text-xs">
-                  {stats.freePercentage}%
-                </Badge>
-              </div>
-              <div className="text-3xl font-bold">{stats.freeEvents}</div>
-              <div className="flex items-center gap-1 mt-1">
-                <Users className="h-3 w-3 text-muted-foreground" />
-                <span className="text-xs text-muted-foreground">
-                  {stats.paidEvents} eventos de pago
-                </span>
-              </div>
-            </CardContent>
-          </Card>
+          <AdminStatCard
+            title="Total Eventos"
+            value={stats.totalEvents.toString()}
+            trend={{ value: `${stats.eventsChange >= 0 ? "+" : ""}${stats.eventsChange}%`, positive: stats.eventsChange >= 0 }}
+            secondaryText="vs mes anterior"
+            tertiaryText={`${stats.thisMonthEvents} este mes · ${stats.lastMonthEvents} mes anterior`}
+          />
+          <AdminStatCard
+            title="Eventos Activos"
+            value={stats.activeEvents.toString()}
+            trend={{ value: `${stats.activePercentage}%`, positive: true }}
+            tertiaryText={`De ${stats.totalEvents} eventos totales`}
+          />
+          <AdminStatCard
+            title="Próximos Eventos"
+            value={stats.upcomingEvents.toString()}
+            tertiaryText="Eventos por realizarse"
+          />
+          <AdminStatCard
+            title="Gratuitos"
+            value={stats.freeEvents.toString()}
+            trend={{ value: `${stats.freePercentage}%`, positive: true }}
+            tertiaryText={`${stats.paidEvents} eventos de pago`}
+          />
         </div>
 
         {/* Filters */}

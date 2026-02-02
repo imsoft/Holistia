@@ -1,37 +1,22 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import {
-  Users,
-  UserCheck,
-  UserPlus,
-  TrendingUp,
-  Target,
-  Package,
-  Calendar,
-  Building2,
-  UtensilsCrossed,
-  Store,
-  Briefcase,
-  ShoppingBag,
-  FileText,
-} from "lucide-react";
+import { Users, UserPlus, Building2, ShoppingBag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { AdminStatCard } from "@/components/ui/admin-stat-card";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import Link from "next/link";
 import { createClient } from "@/utils/supabase/client";
 import { useProfile } from "@/hooks/use-profile";
 
-// Interfaces para los datos dinámicos
+// Interfaces para los datos dinámicos (compatible con AdminStatCard)
 interface DashboardStats {
   title: string;
   value: string;
-  subtitle: string;
-  icon: React.ComponentType<{ className?: string }>;
-  color: string;
-  bgColor: string;
-  hoverBgColor: string;
+  tertiaryText?: string;
+  trend?: { value: string; positive: boolean };
+  secondaryText?: string;
   href?: string;
 }
 
@@ -158,45 +143,35 @@ export default function AdminDashboard() {
         };
 
         // Core Stats - Usuarios y Profesionales
+        const profChange = calculatePercentageChange(activeProfessionals, lastMonthProfessionals);
+        const appointmentsChange = calculatePercentageChange(monthlyAppointments, lastMonthAppointments);
         const coreStatsData: DashboardStats[] = [
           {
             title: "Usuarios Registrados",
             value: totalUsers.toString(),
-            subtitle: "Pacientes en la plataforma",
-            icon: Users,
-            color: "text-blue-600",
-            bgColor: "bg-blue-50",
-            hoverBgColor: "hover:bg-blue-50",
+            tertiaryText: "Pacientes en la plataforma",
             href: "/admin/users",
           },
           {
             title: "Profesionales Activos",
             value: activeProfessionals.toString(),
-            subtitle: `${calculatePercentageChange(activeProfessionals, lastMonthProfessionals)} vs mes anterior`,
-            icon: UserCheck,
-            color: "text-green-600",
-            bgColor: "bg-green-50",
-            hoverBgColor: "hover:bg-green-50",
+            trend: { value: profChange, positive: !profChange.startsWith("-") },
+            secondaryText: "vs mes anterior",
+            tertiaryText: "Profesionales aprobados",
             href: "/admin/professionals",
           },
           {
             title: "Solicitudes Pendientes",
             value: pendingApplications.toString(),
-            subtitle: pendingApplications > 0 ? "Requieren revisión" : "Sin pendientes",
-            icon: UserPlus,
-            color: "text-orange-600",
-            bgColor: "bg-orange-50",
-            hoverBgColor: "hover:bg-orange-50",
+            tertiaryText: pendingApplications > 0 ? "Requieren revisión" : "Sin pendientes",
             href: "/admin/applications",
           },
           {
             title: "Citas del Mes",
             value: monthlyAppointments.toString(),
-            subtitle: `${calculatePercentageChange(monthlyAppointments, lastMonthAppointments)} vs mes anterior`,
-            icon: TrendingUp,
-            color: "text-purple-600",
-            bgColor: "bg-purple-50",
-            hoverBgColor: "hover:bg-purple-50",
+            trend: { value: appointmentsChange, positive: !appointmentsChange.startsWith("-") },
+            secondaryText: "vs mes anterior",
+            tertiaryText: "Citas agendadas este mes",
           },
         ];
 
@@ -205,41 +180,25 @@ export default function AdminDashboard() {
           {
             title: "Retos",
             value: totalChallenges.toString(),
-            subtitle: `${activeChallenges} activos`,
-            icon: Target,
-            color: "text-red-600",
-            bgColor: "bg-red-50",
-            hoverBgColor: "hover:bg-red-50",
+            tertiaryText: `${activeChallenges} activos`,
             href: "/admin/challenges",
           },
           {
             title: "Programas Digitales",
             value: totalProducts.toString(),
-            subtitle: `${activeProducts} activos`,
-            icon: Package,
-            color: "text-indigo-600",
-            bgColor: "bg-indigo-50",
-            hoverBgColor: "hover:bg-indigo-50",
+            tertiaryText: `${activeProducts} activos`,
             href: "/admin/digital-products",
           },
           {
             title: "Eventos",
             value: totalEvents.toString(),
-            subtitle: `${activeEvents} activos`,
-            icon: Calendar,
-            color: "text-pink-600",
-            bgColor: "bg-pink-50",
-            hoverBgColor: "hover:bg-pink-50",
+            tertiaryText: `${activeEvents} activos`,
             href: "/admin/events",
           },
           {
             title: "Blog Posts",
             value: totalPosts.toString(),
-            subtitle: `${publishedPosts} publicados`,
-            icon: FileText,
-            color: "text-cyan-600",
-            bgColor: "bg-cyan-50",
-            hoverBgColor: "hover:bg-cyan-50",
+            tertiaryText: `${publishedPosts} publicados`,
             href: "/admin/blog",
           },
         ];
@@ -249,41 +208,25 @@ export default function AdminDashboard() {
           {
             title: "Centros Holísticos",
             value: totalCenters.toString(),
-            subtitle: `${activeCenters} activos`,
-            icon: Building2,
-            color: "text-emerald-600",
-            bgColor: "bg-emerald-50",
-            hoverBgColor: "hover:bg-emerald-50",
+            tertiaryText: `${activeCenters} activos`,
             href: "/admin/holistic-centers",
           },
           {
             title: "Restaurantes",
             value: totalRestaurants.toString(),
-            subtitle: `${activeRestaurants} activos`,
-            icon: UtensilsCrossed,
-            color: "text-amber-600",
-            bgColor: "bg-amber-50",
-            hoverBgColor: "hover:bg-amber-50",
+            tertiaryText: `${activeRestaurants} activos`,
             href: "/admin/restaurants",
           },
           {
             title: "Comercios",
             value: totalShops.toString(),
-            subtitle: `${activeShops} activos`,
-            icon: Store,
-            color: "text-violet-600",
-            bgColor: "bg-violet-50",
-            hoverBgColor: "hover:bg-violet-50",
+            tertiaryText: `${activeShops} activos`,
             href: "/admin/shops",
           },
           {
             title: "Empresas (Leads)",
             value: totalCompanies.toString(),
-            subtitle: "Contactos B2B",
-            icon: Briefcase,
-            color: "text-slate-600",
-            bgColor: "bg-slate-50",
-            hoverBgColor: "hover:bg-slate-50",
+            tertiaryText: "Contactos B2B",
             href: "/admin/companies",
           },
         ];
@@ -301,33 +244,6 @@ export default function AdminDashboard() {
 
     fetchDashboardData();
   }, [supabase, profileLoading, profile]);
-
-  // Componente para renderizar una tarjeta de estadística
-  const StatCard = ({ stat }: { stat: DashboardStats }) => {
-    const content = (
-      <Card className={`cursor-pointer transition-all duration-200 hover:shadow-lg hover:scale-[1.02] ${stat.hoverBgColor}`}>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-4 sm:px-6 pt-4 sm:pt-6">
-          <CardTitle className="text-sm font-medium text-muted-foreground">
-            {stat.title}
-          </CardTitle>
-          <div className={`p-2 rounded-full ${stat.bgColor}`}>
-            <stat.icon className={`h-4 w-4 ${stat.color}`} />
-          </div>
-        </CardHeader>
-        <CardContent className="px-4 sm:px-6 pb-4 sm:pb-6">
-          <div className="text-2xl font-bold text-foreground">{stat.value}</div>
-          <p className="text-xs text-muted-foreground">
-            {stat.subtitle}
-          </p>
-        </CardContent>
-      </Card>
-    );
-
-    if (stat.href) {
-      return <Link href={stat.href}>{content}</Link>;
-    }
-    return content;
-  };
 
   if (loading) {
     return (
@@ -383,7 +299,15 @@ export default function AdminDashboard() {
           </h2>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             {coreStats.map((stat) => (
-              <StatCard key={stat.title} stat={stat} />
+              <AdminStatCard
+                key={stat.title}
+                title={stat.title}
+                value={stat.value}
+                tertiaryText={stat.tertiaryText}
+                trend={stat.trend}
+                secondaryText={stat.secondaryText}
+                href={stat.href}
+              />
             ))}
           </div>
         </div>
@@ -396,7 +320,13 @@ export default function AdminDashboard() {
           </h2>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             {contentStats.map((stat) => (
-              <StatCard key={stat.title} stat={stat} />
+              <AdminStatCard
+                key={stat.title}
+                title={stat.title}
+                value={stat.value}
+                tertiaryText={stat.tertiaryText}
+                href={stat.href}
+              />
             ))}
           </div>
         </div>
@@ -409,7 +339,13 @@ export default function AdminDashboard() {
           </h2>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             {businessStats.map((stat) => (
-              <StatCard key={stat.title} stat={stat} />
+              <AdminStatCard
+                key={stat.title}
+                title={stat.title}
+                value={stat.value}
+                tertiaryText={stat.tertiaryText}
+                href={stat.href}
+              />
             ))}
           </div>
         </div>

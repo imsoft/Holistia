@@ -103,56 +103,61 @@ export default function ContactPage() {
         </div>
       </div>
 
-      {/* Contact Methods */}
-      <div className="py-8 sm:py-12 lg:py-16">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="mx-auto max-w-3xl text-center mb-8 sm:mb-12">
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-foreground">
-              Formas de Contacto
-            </h2>
-            <p className="mt-4 sm:mt-6 text-base sm:text-lg leading-7 sm:leading-8 text-muted-foreground">
-              Elige la forma más conveniente para ti de ponerte en contacto con nuestro equipo.
-            </p>
-          </div>
-          
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-            {contactMethods.map((method, index) => (
-              <Card key={index} className="py-4 text-center hover:shadow-lg transition-shadow">
-                <CardHeader className="px-4 sm:px-6">
-                  <div className="mx-auto w-10 h-10 sm:w-12 sm:h-12 bg-primary/10 rounded-full flex items-center justify-center mb-3 sm:mb-4">
-                    <method.icon className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
-                  </div>
-                  <CardTitle className="text-lg sm:text-xl">{method.title}</CardTitle>
-                  <p className="text-sm sm:text-base text-muted-foreground">{method.description}</p>
-                </CardHeader>
-                <CardContent className="px-4 sm:px-6">
-                  <p className="text-sm sm:text-base font-semibold text-foreground mb-3 sm:mb-4">{method.contact}</p>
-                  <Button asChild className="w-full">
-                    <a href={method.href} target="_blank" rel="noopener noreferrer">
-                      {method.action}
-                    </a>
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Contact Form */}
+      {/* Contact Methods + Contact Form: 2 columnas */}
       <div className="py-12 sm:py-16 lg:py-24 bg-muted/30">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="mx-auto max-w-2xl">
-            <div className="text-center mb-8 sm:mb-12">
-              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-foreground">
-                Envíanos un Mensaje
-              </h2>
-              <p className="mt-4 sm:mt-6 text-base sm:text-lg leading-7 sm:leading-8 text-muted-foreground">
-                Completa el formulario y nos pondremos en contacto contigo lo antes posible.
-              </p>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
+            {/* Columna izquierda: Formas de Contacto */}
+            <div>
+              <div className="mb-8 sm:mb-10">
+                <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
+                  Formas de Contacto
+                </h2>
+                <p className="mt-3 sm:mt-4 text-base text-muted-foreground">
+                  Elige la forma más conveniente para ti de ponerte en contacto con nuestro equipo.
+                </p>
+              </div>
+
+              <div className="space-y-6">
+                {contactMethods.map((method, index) => (
+                  <Card key={index} className="py-4 hover:shadow-lg transition-shadow">
+                    <CardHeader className="px-4 sm:px-6">
+                      <div className="flex items-start gap-4">
+                        <div className="w-10 h-10 sm:w-12 sm:h-12 bg-primary/10 rounded-full flex items-center justify-center shrink-0">
+                          <method.icon className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
+                        </div>
+                        <div className="flex-1">
+                          <CardTitle className="text-lg sm:text-xl">{method.title}</CardTitle>
+                          <p className="text-sm text-muted-foreground mt-1">{method.description}</p>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="px-4 sm:px-6">
+                      <p className="text-sm sm:text-base font-semibold text-foreground mb-3">{method.contact}</p>
+                      <Button asChild className="w-full">
+                        <a href={method.href} target="_blank" rel="noopener noreferrer">
+                          {method.action}
+                        </a>
+                      </Button>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
             </div>
-            
-            <ContactForm />
+
+            {/* Columna derecha: Formulario */}
+            <div>
+              <div className="mb-8 sm:mb-10">
+                <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
+                  Envíanos un Mensaje
+                </h2>
+                <p className="mt-3 sm:mt-4 text-base text-muted-foreground">
+                  Completa el formulario y nos pondremos en contacto contigo lo antes posible.
+                </p>
+              </div>
+
+              <ContactForm />
+            </div>
           </div>
         </div>
       </div>

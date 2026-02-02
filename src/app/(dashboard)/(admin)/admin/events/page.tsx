@@ -27,7 +27,8 @@ import {
   Trash2,
   Image as ImageIcon,
   TrendingUp,
-  TrendingDown
+  TrendingDown,
+  UserCheck
 } from "lucide-react";
 import {
   Select,
@@ -544,7 +545,16 @@ const EventsAdminPage = () => {
 
                   {/* Botones de acción con mejor espaciado */}
                   <div className="pt-4 border-t border-border/50 mt-auto">
-                    <div className="grid grid-cols-3 gap-2">
+                    <div className="grid grid-cols-2 gap-2 mb-2">
+                      <Button
+                        variant="default"
+                        size="sm"
+                        onClick={() => router.push(`/admin/${adminId}/events/${event.id}/registrations`)}
+                        className="flex items-center justify-center gap-1 w-full"
+                      >
+                        <UserCheck className="w-4 h-4" />
+                        <span className="text-xs">Registrados</span>
+                      </Button>
                       <Button
                         variant="outline"
                         size="sm"
@@ -554,6 +564,8 @@ const EventsAdminPage = () => {
                         <Edit className="w-4 h-4" />
                         <span className="hidden sm:inline text-xs">Editar</span>
                       </Button>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
                       <Button
                         variant="outline"
                         size="sm"

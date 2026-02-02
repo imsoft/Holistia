@@ -158,12 +158,12 @@ export function AdminSidebar() {
         { title: "Restaurantes", url: `/admin/${userId}/restaurants`, icon: UtensilsCrossed },
         { title: "Comercios", url: `/admin/${userId}/shops`, icon: Store },
         { title: "Holistia para Empresas", url: `/admin/${userId}/companies`, icon: Briefcase },
+        { title: "Servicios Holísticos", url: `/admin/${userId}/holistic-services`, icon: Sparkles },
       ],
     },
     {
       label: "Sistema y Herramientas",
       items: [
-        { title: "Servicios Holísticos", url: `/admin/${userId}/holistic-services`, icon: Sparkles },
         { title: "Tickets de Soporte", url: `/admin/${userId}/tickets`, icon: Ticket },
         { title: "Servicios y Costos", url: `/admin/${userId}/services-costs`, icon: Wrench },
         { title: "Sincronización Google Calendar", url: `/admin/${userId}/sync-tools`, icon: RefreshCw },

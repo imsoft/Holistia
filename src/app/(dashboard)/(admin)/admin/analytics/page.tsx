@@ -338,7 +338,7 @@ export default function AnalyticsPage() {
     if (chartDataFormatted.every((d) => d.count === 0)) return null;
 
     return (
-      <Card>
+      <Card className="py-4">
         <CardHeader>
           <CardTitle className="text-base">{title}</CardTitle>
           <CardDescription>{description}</CardDescription>
@@ -395,10 +395,9 @@ export default function AnalyticsPage() {
         )}
 
         <Tabs defaultValue="general" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2 gap-2 sm:grid-cols-4 lg:w-auto lg:inline-grid">
+          <TabsList className="grid w-full grid-cols-2 gap-2 sm:grid-cols-3 lg:w-auto lg:inline-grid">
             <TabsTrigger value="general">General</TabsTrigger>
             <TabsTrigger value="entidades">Entidades</TabsTrigger>
-            <TabsTrigger value="graficos">Gráficos</TabsTrigger>
             <TabsTrigger value="ranking">Rankings</TabsTrigger>
           </TabsList>
 
@@ -459,6 +458,46 @@ export default function AnalyticsPage() {
               data={chartData.appointments}
               description="Tendencia de citas agendadas en los últimos 6 meses"
             />
+
+            <div className="grid gap-6 md:grid-cols-2">
+              <ChartSection title="Profesionales aprobados" data={chartData.professionals} description="Nuevos profesionales por mes" />
+              <ChartSection title="Programas digitales" data={chartData.digital_products} description="Productos creados por mes" />
+              <ChartSection title="Eventos y talleres" data={chartData.events} description="Eventos creados por mes" />
+              <ChartSection title="Inscripciones a eventos" data={chartData.event_registrations} description="Registros por mes" />
+              <ChartSection title="Retos" data={chartData.challenges} description="Retos creados por mes" />
+              <ChartSection title="Comercios" data={chartData.shops} description="Comercios registrados por mes" />
+              <ChartSection title="Centros holísticos" data={chartData.holistic_centers} description="Centros por mes" />
+              <ChartSection title="Restaurantes" data={chartData.restaurants} description="Restaurantes por mes" />
+            </div>
+
+            {serviceStats.length > 0 && (
+              <Card className="py-4">
+                <CardHeader>
+                  <CardTitle className="text-base">Servicios por tipo</CardTitle>
+                  <CardDescription>Distribución de citas presencial vs en línea</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ChartContainer config={chartConfig} className="mx-auto h-[250px] w-full max-w-md">
+                    <PieChart>
+                      <ChartTooltip content={<ChartTooltipContent />} />
+                      <Pie
+                        data={serviceStats.map((s) => ({ name: s.service_type, value: s.count }))}
+                        dataKey="value"
+                        nameKey="name"
+                        cx="50%"
+                        cy="50%"
+                        outerRadius={80}
+                        label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                      >
+                        {serviceStats.map((_, index) => (
+                          <Cell key={index} fill={COLORS[index % COLORS.length]} />
+                        ))}
+                      </Pie>
+                    </PieChart>
+                  </ChartContainer>
+                </CardContent>
+              </Card>
+            )}
           </TabsContent>
 
           <TabsContent value="entidades" className="space-y-6">
@@ -548,48 +587,6 @@ export default function AnalyticsPage() {
                 </CardContent>
               </Card>
             </div>
-          </TabsContent>
-
-          <TabsContent value="graficos" className="space-y-6">
-            <div className="grid gap-6 md:grid-cols-2">
-              <ChartSection title="Profesionales aprobados" data={chartData.professionals} description="Nuevos profesionales por mes" />
-              <ChartSection title="Programas digitales" data={chartData.digital_products} description="Productos creados por mes" />
-              <ChartSection title="Eventos y talleres" data={chartData.events} description="Eventos creados por mes" />
-              <ChartSection title="Inscripciones a eventos" data={chartData.event_registrations} description="Registros por mes" />
-              <ChartSection title="Retos" data={chartData.challenges} description="Retos creados por mes" />
-              <ChartSection title="Comercios" data={chartData.shops} description="Comercios registrados por mes" />
-              <ChartSection title="Centros holísticos" data={chartData.holistic_centers} description="Centros por mes" />
-              <ChartSection title="Restaurantes" data={chartData.restaurants} description="Restaurantes por mes" />
-            </div>
-
-            {serviceStats.length > 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-base">Servicios por tipo</CardTitle>
-                  <CardDescription>Distribución de citas presencial vs en línea</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <ChartContainer config={chartConfig} className="mx-auto h-[250px] w-full max-w-md">
-                    <PieChart>
-                      <ChartTooltip content={<ChartTooltipContent />} />
-                      <Pie
-                        data={serviceStats.map((s) => ({ name: s.service_type, value: s.count }))}
-                        dataKey="value"
-                        nameKey="name"
-                        cx="50%"
-                        cy="50%"
-                        outerRadius={80}
-                        label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                      >
-                        {serviceStats.map((_, index) => (
-                          <Cell key={index} fill={COLORS[index % COLORS.length]} />
-                        ))}
-                      </Pie>
-                    </PieChart>
-                  </ChartContainer>
-                </CardContent>
-              </Card>
-            )}
           </TabsContent>
 
           <TabsContent value="ranking" className="space-y-6">

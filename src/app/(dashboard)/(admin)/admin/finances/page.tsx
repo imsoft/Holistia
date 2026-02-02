@@ -18,6 +18,8 @@ import {
   XCircle,
   Calculator,
   RefreshCw,
+  Package,
+  Target,
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -73,6 +75,8 @@ interface FinancialSummary {
   appointments_income: number;
   events_income: number;
   registrations_income: number;
+  digital_products_income: number;
+  challenges_income: number;
 }
 
 export default function FinancesPage() {
@@ -96,6 +100,8 @@ export default function FinancesPage() {
     Citas: { label: "Citas", color: "var(--chart-1)" },
     Eventos: { label: "Eventos", color: "var(--chart-2)" },
     Inscripciones: { label: "Inscripciones", color: "var(--chart-3)" },
+    Programas: { label: "Programas", color: "var(--chart-4)" },
+    Retos: { label: "Retos", color: "var(--chart-5)" },
   } satisfies ChartConfig;
 
   // Función para obtener el nombre del período actual
@@ -277,6 +283,22 @@ export default function FinancesPage() {
           return;
         }
 
+        // Obtener compras de productos digitales del período actual
+        const { data: digitalProductPurchases } = await supabase
+          .from('digital_product_purchases')
+          .select('amount, purchased_at')
+          .eq('payment_status', 'succeeded')
+          .gte('purchased_at', startDate.toISOString())
+          .lte('purchased_at', now.toISOString());
+
+        // Obtener compras de retos del período actual
+        const { data: challengePurchases } = await supabase
+          .from('challenge_purchases')
+          .select('amount, purchased_at')
+          .eq('payment_status', 'completed')
+          .gte('purchased_at', startDate.toISOString())
+          .lte('purchased_at', now.toISOString());
+
         // Obtener pagos de los últimos 6 meses para gráficos
         const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 5, 1);
         const { data: chartPayments } = await supabase
@@ -285,6 +307,22 @@ export default function FinancesPage() {
           .gte('paid_at', sixMonthsAgo.toISOString())
           .lte('paid_at', now.toISOString())
           .in('status', ['succeeded', 'processing']);
+
+        // Obtener compras de productos digitales de los últimos 6 meses
+        const { data: chartDigitalProducts } = await supabase
+          .from('digital_product_purchases')
+          .select('amount, purchased_at')
+          .eq('payment_status', 'succeeded')
+          .gte('purchased_at', sixMonthsAgo.toISOString())
+          .lte('purchased_at', now.toISOString());
+
+        // Obtener compras de retos de los últimos 6 meses
+        const { data: chartChallenges } = await supabase
+          .from('challenge_purchases')
+          .select('amount, purchased_at')
+          .eq('payment_status', 'completed')
+          .gte('purchased_at', sixMonthsAgo.toISOString())
+          .lte('purchased_at', now.toISOString());
 
         // Agrupar por mes para gráfico de tendencia
         const monthLabels: string[] = [];
@@ -295,10 +333,31 @@ export default function FinancesPage() {
           monthLabels.push(key);
           chartDataMap[key] = { income: 0, transactions: 0 };
         }
+        // Agregar pagos de appointments/events/registrations
         (chartPayments || []).forEach((p: { paid_at?: string; amount?: string | number }) => {
           const dateStr = p.paid_at || (p as { created_at?: string }).created_at;
           if (dateStr) {
             const monthKey = dateStr.slice(0, 7);
+            if (chartDataMap[monthKey]) {
+              chartDataMap[monthKey].income += Number(p.amount) || 0;
+              chartDataMap[monthKey].transactions += 1;
+            }
+          }
+        });
+        // Agregar productos digitales
+        (chartDigitalProducts || []).forEach((p: { purchased_at?: string; amount?: string | number }) => {
+          if (p.purchased_at) {
+            const monthKey = p.purchased_at.slice(0, 7);
+            if (chartDataMap[monthKey]) {
+              chartDataMap[monthKey].income += Number(p.amount) || 0;
+              chartDataMap[monthKey].transactions += 1;
+            }
+          }
+        });
+        // Agregar retos
+        (chartChallenges || []).forEach((p: { purchased_at?: string; amount?: string | number }) => {
+          if (p.purchased_at) {
+            const monthKey = p.purchased_at.slice(0, 7);
             if (chartDataMap[monthKey]) {
               chartDataMap[monthKey].income += Number(p.amount) || 0;
               chartDataMap[monthKey].transactions += 1;
@@ -326,22 +385,56 @@ export default function FinancesPage() {
           .lte('paid_at', previousEndDate.toISOString())
           .in('status', ['succeeded', 'processing']);
 
-        // Calcular métricas del período actual
-        const totalIncome = currentPayments?.reduce((sum, p) => sum + Number(p.amount), 0) || 0;
+        // Obtener compras de productos digitales del período anterior
+        const { data: previousDigitalProducts } = await supabase
+          .from('digital_product_purchases')
+          .select('amount')
+          .eq('payment_status', 'succeeded')
+          .gte('purchased_at', previousStartDate.toISOString())
+          .lte('purchased_at', previousEndDate.toISOString());
+
+        // Obtener compras de retos del período anterior
+        const { data: previousChallenges } = await supabase
+          .from('challenge_purchases')
+          .select('amount')
+          .eq('payment_status', 'completed')
+          .gte('purchased_at', previousStartDate.toISOString())
+          .lte('purchased_at', previousEndDate.toISOString());
+
+        // Calcular ingresos de productos digitales y retos
+        const digitalProductsIncome = digitalProductPurchases?.reduce((sum, p) => sum + Number(p.amount), 0) || 0;
+        const challengesIncome = challengePurchases?.reduce((sum, p) => sum + Number(p.amount), 0) || 0;
+
+        // Calcular métricas del período actual (incluyendo productos digitales y retos)
+        const totalIncome = (currentPayments?.reduce((sum, p) => sum + Number(p.amount), 0) || 0) 
+          + digitalProductsIncome 
+          + challengesIncome;
         // Calcular comisiones de plataforma (15% del monto total)
         // Si platform_fee está en la BD lo usa, si no, calcula el 15%
-        const platformFees = currentPayments?.reduce((sum, p) => {
+        // Para productos digitales y retos también aplicamos 15% de comisión
+        const platformFees = (currentPayments?.reduce((sum, p) => {
           const fee = p.platform_fee && Number(p.platform_fee) > 0 
             ? Number(p.platform_fee) 
             : Number(p.amount) * 0.15;
           return sum + fee;
-        }, 0) || 0;
+        }, 0) || 0) 
+        + (digitalProductsIncome * 0.15) 
+        + (challengesIncome * 0.15);
         
         // Calcular comisiones de Stripe (3.6% + $3 MXN por transacción)
-        const stripeFees = currentPayments?.reduce((sum, p) => {
+        // Incluir transacciones de productos digitales y retos
+        const stripeFees = (currentPayments?.reduce((sum, p) => {
           const transactionFee = (Number(p.amount) * 0.036) + 3;
           return sum + transactionFee;
-        }, 0) || 0;
+        }, 0) || 0)
+        + (digitalProductPurchases?.reduce((sum, p) => {
+          const amount = Number(p.amount) || 0;
+          return sum + (amount * 0.036) + 3;
+        }, 0) || 0)
+        + (challengePurchases?.reduce((sum, p) => {
+          const amount = Number(p.amount) || 0;
+          return sum + (amount * 0.036) + 3;
+        }, 0) || 0);
 
         // IVA solo sobre comisiones de Stripe (16%)
         const taxes = stripeFees * 0.16;
@@ -371,16 +464,20 @@ export default function FinancesPage() {
           stripe_fees: stripeFees,
           taxes: taxes,
           net_income: netIncome,
-          total_transactions: currentPayments?.length || 0,
+          total_transactions: (currentPayments?.length || 0) + (digitalProductPurchases?.length || 0) + (challengePurchases?.length || 0),
           appointments_income: appointmentsIncome,
           events_income: eventsIncome,
           registrations_income: registrationsIncome,
+          digital_products_income: digitalProductsIncome,
+          challenges_income: challengesIncome,
         };
 
         setSummary(financialSummary);
 
         // Calcular cambios comparando con período anterior
-        const previousTotalIncome = previousPayments?.reduce((sum, p) => sum + Number(p.amount), 0) || 0;
+        const previousTotalIncome = (previousPayments?.reduce((sum, p) => sum + Number(p.amount), 0) || 0)
+          + (previousDigitalProducts?.reduce((sum, p) => sum + Number(p.amount), 0) || 0)
+          + (previousChallenges?.reduce((sum, p) => sum + Number(p.amount), 0) || 0);
         const previousPlatformFees = previousPayments?.reduce((sum, p) => {
           const fee = p.platform_fee && Number(p.platform_fee) > 0 
             ? Number(p.platform_fee) 
@@ -661,10 +758,12 @@ export default function FinancesPage() {
                   <PieChart>
                     <ChartTooltip content={<ChartTooltipContent />} />
                     <Pie
-                      data={[
+                      data=                      {[
                         { name: "Citas", value: summary.appointments_income },
                         { name: "Eventos", value: summary.events_income },
                         { name: "Inscripciones", value: summary.registrations_income },
+                        { name: "Programas", value: summary.digital_products_income },
+                        { name: "Retos", value: summary.challenges_income },
                       ].filter((d) => d.value > 0)}
                       dataKey="value"
                       nameKey="name"
@@ -677,6 +776,8 @@ export default function FinancesPage() {
                         { name: "Citas", value: summary.appointments_income },
                         { name: "Eventos", value: summary.events_income },
                         { name: "Inscripciones", value: summary.registrations_income },
+                        { name: "Programas", value: summary.digital_products_income },
+                        { name: "Retos", value: summary.challenges_income },
                       ]
                         .filter((d) => d.value > 0)
                         .map((entry, index) => (
@@ -746,6 +847,36 @@ export default function FinancesPage() {
                   </div>
                   <p className="text-sm font-bold text-green-600">
                     ${summary?.registrations_income.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
+                  </p>
+                </div>
+
+                <div className="flex items-center justify-between p-3 bg-indigo-50 dark:bg-indigo-950/20 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <div className="bg-indigo-100 dark:bg-indigo-900 p-2 rounded-lg">
+                      <Package className="h-4 w-4 text-indigo-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium">Programas</p>
+                      <p className="text-xs text-muted-foreground">Productos digitales</p>
+                    </div>
+                  </div>
+                  <p className="text-sm font-bold text-indigo-600">
+                    ${summary?.digital_products_income.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
+                  </p>
+                </div>
+
+                <div className="flex items-center justify-between p-3 bg-amber-50 dark:bg-amber-950/20 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <div className="bg-amber-100 dark:bg-amber-900 p-2 rounded-lg">
+                      <Target className="h-4 w-4 text-amber-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium">Retos</p>
+                      <p className="text-xs text-muted-foreground">Retos de bienestar</p>
+                    </div>
+                  </div>
+                  <p className="text-sm font-bold text-amber-600">
+                    ${summary?.challenges_income.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
                   </p>
                 </div>
               </div>

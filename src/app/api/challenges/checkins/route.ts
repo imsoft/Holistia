@@ -88,24 +88,24 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const {
       challenge_purchase_id,
-      day_number,
+      day_number: bodyDayNumber,
+      checkin_date: bodyCheckinDate,
       evidence_type = 'none',
       evidence_url,
       notes,
     } = body;
 
-    // Validar campos requeridos
-    if (!challenge_purchase_id || !day_number) {
+    if (!challenge_purchase_id) {
       return NextResponse.json(
-        { error: 'Faltan campos requeridos' },
+        { error: 'Falta el ID de la compra del reto' },
         { status: 400 }
       );
     }
 
-    // Verificar que el usuario es el dueño de la compra y tiene acceso
+    // Verificar que el usuario es el dueño de la compra y tiene acceso; traer started_at para calcular día por calendario
     const { data: purchase, error: purchaseError } = await supabase
       .from('challenge_purchases')
-      .select('participant_id, access_granted, challenge_id, challenges(duration_days)')
+      .select('participant_id, access_granted, challenge_id, started_at, created_at, challenges(duration_days)')
       .eq('id', challenge_purchase_id)
       .single();
 
@@ -130,13 +130,34 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Verificar que el día no exceda la duración del reto
     const challenge = Array.isArray(purchase.challenges) && purchase.challenges.length > 0
       ? purchase.challenges[0]
       : (purchase.challenges as any);
-    
     const durationDays = challenge?.duration_days;
-    if (durationDays && day_number > durationDays) {
+
+    // Calcular day_number por calendario: día 1 = fecha de inicio del reto para el usuario
+    const startRef = purchase.started_at || purchase.created_at;
+    const startDate = new Date(startRef);
+    const checkinDate = bodyCheckinDate
+      ? new Date(String(bodyCheckinDate).trim().slice(0, 10) + 'T12:00:00Z')
+      : new Date();
+
+    const toDateOnly = (d: Date) => ({ y: d.getUTCFullYear(), m: d.getUTCMonth(), day: d.getUTCDate() });
+    const startOnly = toDateOnly(startDate);
+    const checkinOnly = toDateOnly(checkinDate);
+    const startMs = Date.UTC(startOnly.y, startOnly.m, startOnly.day);
+    const checkinMs = Date.UTC(checkinOnly.y, checkinOnly.m, checkinOnly.day);
+    const diffDays = Math.floor((checkinMs - startMs) / (24 * 60 * 60 * 1000));
+    const day_number = diffDays + 1;
+
+    if (day_number < 1) {
+      return NextResponse.json(
+        { error: 'La fecha del check-in no puede ser anterior al inicio del reto' },
+        { status: 400 }
+      );
+    }
+
+    if (durationDays != null && day_number > durationDays) {
       return NextResponse.json(
         { error: 'El día excede la duración del reto' },
         { status: 400 }
@@ -158,12 +179,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // checkin_date en formato DATE para la BD (YYYY-MM-DD)
+    const checkinDateStr = checkinOnly.y + '-' + String(checkinOnly.m + 1).padStart(2, '0') + '-' + String(checkinOnly.day).padStart(2, '0');
+
     // Crear el check-in (el trigger calculará los puntos automáticamente)
     const { data: checkin, error: checkinError } = await supabase
       .from('challenge_checkins')
       .insert({
         challenge_purchase_id,
-        day_number: parseInt(day_number),
+        day_number,
+        checkin_date: checkinDateStr,
         evidence_type: evidence_type || 'none',
         evidence_url: evidence_url || null,
         notes: notes || null,

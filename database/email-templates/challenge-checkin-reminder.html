@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recordatorio de check-in - Holistia</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f4f4f4;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f4f4f4; padding: 20px;">
+        <tr>
+            <td align="center">
+                <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                    <!-- Header -->
+                    <tr>
+                        <td style="background: linear-gradient(135deg, #8B5CF6 0%, #6366f1 100%); padding: 40px 30px; text-align: center;">
+                            <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: bold;">
+                                🌟 ¡No te quedes atrás en tu reto!
+                            </h1>
+                        </td>
+                    </tr>
+                    
+                    <!-- Content -->
+                    <tr>
+                        <td style="padding: 40px 30px;">
+                            <p style="color: #333333; font-size: 16px; line-height: 1.6; margin: 0 0 20px 0;">
+                                Hola <strong>{{participant_name}}</strong>,
+                            </p>
+                            
+                            <p style="color: #333333; font-size: 16px; line-height: 1.6; margin: 0 0 20px 0;">
+                                Hoy corresponde el <strong>Día {{day_number}}</strong> de tu reto <strong>{{challenge_title}}</strong> y aún no hemos visto tu check-in.
+                            </p>
+                            
+                            <p style="color: #333333; font-size: 16px; line-height: 1.6; margin: 0 0 20px 0;">
+                                {{motivational_message}}
+                            </p>
+                            
+                            <!-- Info Box -->
+                            <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f5f3ff; border-radius: 8px; border-left: 4px solid #8B5CF6; margin: 30px 0;">
+                                <tr>
+                                    <td style="padding: 20px;">
+                                        <p style="color: #4c1d95; font-size: 14px; margin: 0 0 8px 0;">
+                                            <strong>Reto:</strong> {{challenge_title}}
+                                        </p>
+                                        <p style="color: #333333; font-size: 16px; margin: 0 0 8px 0;">
+                                            <strong>Día actual:</strong> {{day_number}} de {{duration_days}}
+                                        </p>
+                                        <p style="color: #666666; font-size: 14px; margin: 0;">
+                                            Sube tu evidencia o escribe cómo te fue y suma puntos.
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+                            
+                            <p style="color: #333333; font-size: 16px; line-height: 1.6; margin: 0 0 20px 0;">
+                                Cada día que completes te acerca más a tus objetivos. ¡Tú puedes!
+                            </p>
+                            
+                            <!-- CTA Button -->
+                            <table width="100%" cellpadding="0" cellspacing="0" style="margin: 30px 0;">
+                                <tr>
+                                    <td align="center">
+                                        <a href="{{my_challenges_url}}" style="display: inline-block; background: linear-gradient(135deg, #8B5CF6 0%, #6366f1 100%); color: #ffffff; text-decoration: none; padding: 15px 40px; border-radius: 6px; font-size: 16px; font-weight: bold; box-shadow: 0 4px 6px rgba(139, 92, 246, 0.3);">
+                                            Hacer mi check-in ahora
+                                        </a>
+                                    </td>
+                                </tr>
+                            </table>
+                            
+                            <p style="color: #666666; font-size: 14px; line-height: 1.6; margin: 30px 0 0 0;">
+                                Si ya hiciste tu check-in hoy, ignora este correo. ¡Sigue así!
+                            </p>
+                            
+                            <p style="color: #333333; font-size: 16px; line-height: 1.6; margin: 20px 0 0 0;">
+                                Gracias por ser parte de <strong>Holistia</strong> 💜
+                            </p>
+                        </td>
+                    </tr>
+                    
+                    <!-- Footer -->
+                    <tr>
+                        <td style="background-color: #f8f9fa; padding: 30px; text-align: center; border-top: 1px solid #e0e0e0;">
+                            <p style="color: #999999; font-size: 12px; line-height: 1.5; margin: 0 0 10px 0;">
+                                Este es un correo automático de recordatorio.<br>
+                                No respondas directamente a este email.
+                            </p>
+                            <p style="color: #999999; font-size: 12px; margin: 0;">
+                                © 2026 Holistia. Todos los derechos reservados.
+                            </p>
+                            <p style="margin: 15px 0 0 0;">
+                                <a href="https://www.holistia.io" style="color: #8B5CF6; text-decoration: none; font-size: 12px;">www.holistia.io</a>
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>

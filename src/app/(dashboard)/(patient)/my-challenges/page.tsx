@@ -65,6 +65,7 @@ interface ChallengePurchase {
   access_granted: boolean;
   started_at?: string;
   completed_at?: string;
+  created_at?: string;
 }
 
 interface Checkin {
@@ -174,6 +175,7 @@ export default function MyChallengesPage() {
           access_granted,
           started_at,
           completed_at,
+          created_at,
           challenges(
             id,
             title,
@@ -213,6 +215,7 @@ export default function MyChallengesPage() {
           access_granted: purchase.access_granted,
           started_at: purchase.started_at,
           completed_at: purchase.completed_at,
+          created_at: purchase.created_at,
           challenge: {
             ...challenge,
             is_active: challenge?.is_active ?? true,
@@ -276,6 +279,7 @@ export default function MyChallengesPage() {
         access_granted: p.access_granted,
         started_at: p.started_at,
         completed_at: p.completed_at,
+        created_at: p.created_at,
       }));
 
       // Marcar retos creados por el usuario
@@ -366,16 +370,30 @@ export default function MyChallengesPage() {
 
       if (response.ok) {
         setCheckins(data.checkins || []);
-        // Calcular siguiente día
-        const maxDay = data.checkins?.length > 0
-          ? Math.max(...data.checkins.map((c: Checkin) => c.day_number))
-          : 0;
-        setNextDayNumber(maxDay + 1);
+        // El siguiente día se calcula por calendario en el useEffect (desde started_at)
       }
     } catch (error) {
       console.error("Error fetching checkins:", error);
     }
   };
+
+  // Calcular siguiente día por calendario: día 1 = inicio del reto; los días sin check-in cuentan como "tardíos"
+  useEffect(() => {
+    if (!selectedChallenge) return;
+    const startRef = selectedChallenge.started_at || selectedChallenge.created_at;
+    if (!startRef) {
+      setNextDayNumber(1);
+      return;
+    }
+    const start = new Date(startRef);
+    const today = new Date();
+    start.setHours(0, 0, 0, 0);
+    today.setHours(0, 0, 0, 0);
+    const diffDays = Math.floor((today.getTime() - start.getTime()) / (24 * 60 * 60 * 1000));
+    const day = diffDays + 1;
+    const maxDay = selectedChallenge.challenge.duration_days ?? 999;
+    setNextDayNumber(Math.min(Math.max(day, 1), maxDay));
+  }, [selectedChallenge]);
 
   const handlePublishCheckin = async (checkinId: string, isPublic: boolean) => {
     try {
@@ -426,6 +444,7 @@ export default function MyChallengesPage() {
         access_granted: challenge.access_granted,
         started_at: challenge.started_at,
         completed_at: challenge.completed_at,
+        created_at: challenge.created_at,
       };
       setSelectedChallenge(purchaseChallenge);
       await fetchCheckins(challenge.purchaseId);
@@ -476,8 +495,9 @@ export default function MyChallengesPage() {
             created_by_type: challenge.created_by_type,
           },
           access_granted: true, // Los creadores siempre tienen acceso
-          started_at: undefined,
-          completed_at: undefined,
+          started_at: data.purchase?.started_at ?? undefined,
+          completed_at: data.purchase?.completed_at ?? undefined,
+          created_at: data.purchase?.created_at ?? undefined,
         };
         setSelectedChallenge(createdChallenge);
         await fetchCheckins(purchaseId);
@@ -499,6 +519,7 @@ export default function MyChallengesPage() {
           access_granted: true,
           started_at: undefined,
           completed_at: undefined,
+          created_at: undefined,
         };
         setSelectedChallenge(createdChallenge);
         setCheckins([]);
@@ -1043,11 +1064,20 @@ export default function MyChallengesPage() {
                           <div className="space-y-4">
                             {Array.from({ length: selectedChallenge.challenge.duration_days || 30 }, (_, i) => i + 1).map((day) => {
                               const checkin = checkins.find(c => c.day_number === day);
+                              const startRef = selectedChallenge.started_at || selectedChallenge.created_at;
+                              const startDate = startRef ? new Date(startRef) : new Date();
+                              const dayDate = new Date(startDate);
+                              dayDate.setHours(0, 0, 0, 0);
+                              dayDate.setDate(dayDate.getDate() + (day - 1));
+                              const today = new Date();
+                              today.setHours(0, 0, 0, 0);
+                              const isPastDay = dayDate < today;
+                              const isLateDay = !checkin && isPastDay;
                               return (
                                 <div
                                   key={day}
                                   className={`flex items-center gap-4 p-4 border rounded-lg ${
-                                    checkin ? 'bg-green-50 border-green-200' : 'bg-muted/30'
+                                    checkin ? 'bg-green-50 border-green-200' : isLateDay ? 'bg-amber-50/80 border-amber-200' : 'bg-muted/30'
                                   }`}
                                 >
                                   <div className="shrink-0">
@@ -1060,6 +1090,11 @@ export default function MyChallengesPage() {
                                   <div className="flex-1">
                                     <div className="flex items-center gap-2 mb-1">
                                       <span className="font-semibold">Día {day}</span>
+                                      {isLateDay && (
+                                        <Badge variant="outline" className="text-amber-700 border-amber-300 bg-amber-100/80 text-xs">
+                                          Día tardío
+                                        </Badge>
+                                      )}
                                       {checkin && (
                                         <>
                                           <Badge variant="secondary" className="text-xs">

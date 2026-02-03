@@ -2,6 +2,12 @@
   "buildCommand": "pnpm build",
   "installCommand": "pnpm install --frozen-lockfile",
   "framework": "nextjs",
+  "crons": [
+    {
+      "path": "/api/cron/challenge-checkin-reminders",
+      "schedule": "0 16 * * *"
+    }
+  ],
   "build": {
     "env": {
       "NEXT_TELEMETRY_DISABLED": "1"

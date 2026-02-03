@@ -71,9 +71,9 @@ export function CheckinForm({
     try {
       setUploading(true);
 
-      // Validar tamaño según tipo (fotos: 10MB, videos: 20MB recomendado para ≤30s y espacio 8GB)
-      const maxSize = isVideo ? 20 * 1024 * 1024 : 10 * 1024 * 1024;
-      const maxSizeLabel = isVideo ? "20MB" : "10MB";
+      // Validar tamaño según tipo (fotos: 10MB, videos: 100MB, duración máx 30s)
+      const maxSize = isVideo ? 100 * 1024 * 1024 : 10 * 1024 * 1024;
+      const maxSizeLabel = isVideo ? "100MB" : "10MB";
 
       if (file.size > maxSize) {
         toast.error(`El archivo es demasiado grande. Máximo ${maxSizeLabel}`);
@@ -143,6 +143,9 @@ export function CheckinForm({
     try {
       setSubmitting(true);
 
+      const now = new Date();
+      const checkinDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+
       const response = await fetch('/api/challenges/checkins', {
         method: 'POST',
         headers: {
@@ -150,7 +153,7 @@ export function CheckinForm({
         },
         body: JSON.stringify({
           challenge_purchase_id: challengePurchaseId,
-          day_number: dayNumber,
+          checkin_date: checkinDate,
           evidence_type: evidenceUrl && evidenceType ? evidenceType : 'text',
           evidence_url: evidenceUrl,
           notes: notes || null,
@@ -237,7 +240,7 @@ export function CheckinForm({
                     <p className="font-medium">Video:</p>
                     <ul className="list-disc list-inside opacity-90 mt-1 space-y-0.5">
                       <li>Formatos: MP4, WEBM, MOV</li>
-                      <li>Tamaño máximo: 20MB (recomendado para ≤30 s)</li>
+                      <li>Tamaño máximo: 100MB</li>
                       <li>Duración máxima: 30 segundos</li>
                     </ul>
                   </div>

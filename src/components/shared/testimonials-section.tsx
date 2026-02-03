@@ -29,8 +29,8 @@ const testimonials = [
 
 export const TestimonialsSection = () => {
   return (
-    <div className="bg-background py-24 sm:py-32">
-      <div className="mx-auto max-w-7xl px-6 lg:px-8">
+    <div className="bg-white py-24 sm:py-32">
+      <div className="mx-auto max-w-[1600px] px-6 lg:px-10">
         <div className="mx-auto max-w-4xl text-center">
           <h2 className="text-base/7 font-semibold text-primary">
             Testimonios
@@ -39,12 +39,12 @@ export const TestimonialsSection = () => {
             Miles de personas han transformado su bienestar con Holistia
           </p>
         </div>
-        <div className="mx-auto mt-16 max-w-6xl sm:mt-20">
+        <div className="mx-auto mt-16 max-w-[1400px] sm:mt-20">
           <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 lg:gap-6">
             {testimonials.map((testimonial) => (
               <div key={testimonial.author.handle}>
-                <figure className="rounded-2xl bg-card p-8 text-sm/6 h-full flex flex-col">
-                  <blockquote className="text-card-foreground flex-grow">
+                <figure className="rounded-2xl bg-white border border-gray-200 p-8 text-sm/6 h-full flex flex-col shadow-sm">
+                  <blockquote className="text-foreground flex-grow">
                     <p>{`"${testimonial.body}"`}</p>
                   </blockquote>
                   <figcaption className="mt-6 flex items-center gap-x-4">

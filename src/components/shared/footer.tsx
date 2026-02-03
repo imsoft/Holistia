@@ -84,8 +84,8 @@ const navigation = {
 
 export const Footer = () => {
   return (
-    <footer className="bg-background">
-      <div className="mx-auto max-w-7xl px-6 py-16 sm:py-24 lg:px-8 lg:py-32">
+    <footer className="bg-white border-t border-gray-200">
+      <div className="mx-auto max-w-[1600px] px-6 py-16 sm:py-24 lg:px-10 lg:py-32">
         <div className="mx-auto max-w-4xl text-center">
           <hgroup>
             <h2 className="text-base/7 font-semibold text-primary">

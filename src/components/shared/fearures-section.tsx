@@ -48,8 +48,8 @@ const features = [
 
 export const FeaturesSection = () => {
   return (
-    <div className="relative bg-background py-24 sm:py-32 lg:py-40">
-      <div className="mx-auto max-w-md px-6 text-center sm:max-w-3xl lg:max-w-7xl lg:px-8">
+    <div className="relative bg-white py-24 sm:py-32 lg:py-40">
+      <div className="mx-auto max-w-[1600px] px-6 text-center lg:px-10">
         <h2 className="text-lg font-semibold text-primary">
           No hay mejor tratamiento que el tiempo que te dedicas
         </h2>
@@ -66,7 +66,7 @@ export const FeaturesSection = () => {
           <div className="grid grid-cols-1 gap-12 sm:grid-cols-2 lg:grid-cols-3">
             {features.map((feature) => (
               <div key={feature.name} className="pt-6 h-full">
-                <div className="rounded-lg bg-card px-6 pb-8 h-full flex flex-col">
+                <div className="rounded-lg bg-white border border-gray-200 px-6 pb-8 h-full flex flex-col shadow-sm">
                   <div className="-mt-6 flex flex-col h-full">
                     <div>
                       <span className="inline-flex items-center justify-center rounded-xl bg-primary p-3 shadow-lg">
@@ -76,7 +76,7 @@ export const FeaturesSection = () => {
                         />
                       </span>
                     </div>
-                    <h3 className="mt-8 text-lg/8 font-semibold tracking-tight text-card-foreground">
+                    <h3 className="mt-8 text-lg/8 font-semibold tracking-tight text-foreground">
                       {feature.name}
                     </h3>
                     <p className="mt-5 text-base/7 text-muted-foreground flex-grow">

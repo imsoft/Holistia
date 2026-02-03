@@ -5,7 +5,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import {
   Brain,
-  Heart,
+  Apple,
   Sparkles,
   Users,
   Flower2,
@@ -23,8 +23,8 @@ interface Specialty {
 const SPECIALTY_ICONS: Record<string, React.ElementType> = {
   "Psicología": Brain,
   "Psicólogo": Brain,
-  "Nutrición": Heart,
-  "Nutriólogo": Heart,
+  "Nutrición": Apple,
+  "Nutriólogo": Apple,
   "Coaching": Sparkles,
   "Coach": Sparkles,
   "Terapia": Users,
@@ -47,7 +47,7 @@ function getIconForSpecialty(profession: string): React.ElementType {
     profession.toLowerCase().includes(k.toLowerCase())
   );
 
-  return key ? SPECIALTY_ICONS[key] : Heart;
+  return key ? SPECIALTY_ICONS[key] : Sparkles;
 }
 
 // Función para generar slug

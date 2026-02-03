@@ -53,11 +53,26 @@ export function CheckinForm({
     });
   };
 
+  const sanitizeFileName = (fileName: string): string => {
+    const lastDotIndex = fileName.lastIndexOf('.');
+    const nameWithoutExt = lastDotIndex > 0 ? fileName.substring(0, lastDotIndex) : fileName;
+    const extension = lastDotIndex > 0 ? fileName.substring(lastDotIndex) : '';
+    let sanitized = nameWithoutExt
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[<>:"|?*\x00-\x1F]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/[^a-zA-Z0-9\-_]/g, '')
+      .replace(/^-+|-+$/g, '')
+      .toLowerCase();
+    if (!sanitized || sanitized.trim().length === 0) sanitized = 'imagen';
+    return `${sanitized}${extension}`;
+  };
+
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Determinar si es imagen o video
     const isImage = file.type.startsWith('image/');
     const isVideo = file.type.startsWith('video/');
 
@@ -71,16 +86,13 @@ export function CheckinForm({
     try {
       setUploading(true);
 
-      // Validar tamaño según tipo (fotos: 10MB, videos: 100MB, duración máx 30s)
       const maxSize = isVideo ? 100 * 1024 * 1024 : 10 * 1024 * 1024;
       const maxSizeLabel = isVideo ? "100MB" : "10MB";
-
       if (file.size > maxSize) {
         toast.error(`El archivo es demasiado grande. Máximo ${maxSizeLabel}`);
         return;
       }
 
-      // Validar duración del video (máx 30 segundos)
       if (isVideo) {
         try {
           const duration = await getVideoDuration(file);
@@ -94,28 +106,27 @@ export function CheckinForm({
         }
       }
 
-      // Crear FormData
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('challenge_purchase_id', challengePurchaseId);
-      formData.append('evidence_type', fileType);
+      // Subida directa a Supabase Storage para evitar límite de payload de Vercel (~4.5 MB)
+      const sanitizedFileName = sanitizeFileName(file.name);
+      const fileName = `${Date.now()}-${sanitizedFileName}`;
+      const filePath = `${challengePurchaseId}/evidence/${fileName}`;
 
-      // Subir archivo
-      const response = await fetch('/api/challenges/checkins/upload', {
-        method: 'POST',
-        body: formData,
-      });
+      const { error: uploadError } = await supabase.storage
+        .from('challenges')
+        .upload(filePath, file, { cacheControl: '3600', upsert: false });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Error al subir el archivo');
+      if (uploadError) {
+        const msg = uploadError.message || 'Error al subir el archivo';
+        if (msg.includes('policy') || msg.includes('403') || msg.includes('permission')) {
+          throw new Error('No tienes permiso para subir a este reto. Verifica que seas participante.');
+        }
+        throw new Error(msg);
       }
 
-      setEvidenceUrl(data.url);
+      const { data: { publicUrl } } = supabase.storage.from('challenges').getPublicUrl(filePath);
+      setEvidenceUrl(publicUrl);
       setEvidenceType(fileType);
       toast.success(isVideo ? "Video subido exitosamente" : "Imagen subida exitosamente");
-
     } catch (error) {
       console.error('Error uploading file:', error);
       toast.error(error instanceof Error ? error.message : 'Error al subir el archivo');

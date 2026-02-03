@@ -9,8 +9,13 @@ import { PhoneInput } from '@/components/ui/phone-input';
 import { Send, CheckCircle, AlertCircle } from 'lucide-react';
 import { useContactForm } from '@/hooks/use-contact-form';
 import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
 
-export function ContactForm() {
+interface ContactFormProps {
+  className?: string;
+}
+
+export function ContactForm({ className }: ContactFormProps) {
   const {
     formData,
     loading,
@@ -37,8 +42,8 @@ export function ContactForm() {
   }
 
   return (
-    <Card>
-      <CardContent className="p-4 sm:p-6 lg:p-8">
+    <Card className={cn("flex flex-col min-h-0", className)}>
+      <CardContent className="flex flex-1 flex-col min-h-0 p-4 sm:p-6 lg:p-8">
         {success ? (
           <div className="text-center py-8">
             <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100 mb-4">

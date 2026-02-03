@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import { Heart, Users, Shield, Lightbulb } from "lucide-react";
+import { Sparkles, Users, Shield, Lightbulb, Award } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "Nuestra Historia - Holistia",
@@ -11,7 +11,7 @@ export default function HistoryPage() {
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
       <div className="relative bg-gradient-to-b from-primary/5 via-primary/3 to-background">
-        <div className="mx-auto max-w-4xl px-4 sm:px-6 pt-16 sm:pt-24 lg:pt-32 lg:px-8 pb-8 sm:pb-12">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 pt-16 sm:pt-24 lg:pt-32 lg:px-8 pb-8 sm:pb-12">
           <div className="text-center">
             <h1 className="text-3xl sm:text-5xl lg:text-7xl font-bold tracking-tight text-foreground">
               Nuestra Historia
@@ -26,12 +26,12 @@ export default function HistoryPage() {
 
       {/* Story Section */}
       <div className="py-8 sm:py-12 lg:py-16">
-        <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
           <div className="space-y-10 sm:space-y-16">
             
             {/* The Beginning */}
             <div className="prose prose-lg max-w-none">
-              <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-6 sm:mb-8 text-center">
+              <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-6 sm:mb-8">
                 El Comienzo de una Visión
               </h2>
               <div className="text-base sm:text-lg leading-7 sm:leading-8 text-muted-foreground space-y-4 sm:space-y-6">
@@ -51,13 +51,13 @@ export default function HistoryPage() {
 
             {/* The Vision */}
             <div className="bg-muted/30 rounded-2xl sm:rounded-3xl p-6 sm:p-8 lg:p-12">
-              <div className="text-center mb-6 sm:mb-8">
-                <Heart className="w-12 h-12 sm:w-16 sm:h-16 text-primary mx-auto mb-4 sm:mb-6" />
+              <div className="mb-6 sm:mb-8">
+                <Sparkles className="w-12 h-12 sm:w-16 sm:h-16 text-primary mb-4 sm:mb-6" />
                 <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-3 sm:mb-4">
                   Una Visión Integral
                 </h2>
               </div>
-              <div className="text-base sm:text-lg leading-7 sm:leading-8 text-muted-foreground space-y-4 sm:space-y-6 max-w-3xl mx-auto">
+              <div className="text-base sm:text-lg leading-7 sm:leading-8 text-muted-foreground space-y-4 sm:space-y-6">
                 <p>
                   Creemos firmemente que la salud no se trata solo de tratar enfermedades, sino de 
                   promover el bienestar integral. Por eso, desde el primer día, nos enfocamos en 
@@ -74,7 +74,7 @@ export default function HistoryPage() {
 
             {/* The Journey */}
             <div className="prose prose-lg max-w-none">
-              <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-6 sm:mb-8 text-center">
+              <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-6 sm:mb-8">
                 El Camino Recorrido
               </h2>
               <div className="text-base sm:text-lg leading-7 sm:leading-8 text-muted-foreground space-y-4 sm:space-y-6">
@@ -144,7 +144,7 @@ export default function HistoryPage() {
                 
                 <div className="flex items-start space-x-3 sm:space-x-4">
                   <div className="flex-shrink-0">
-                    <Heart className="w-6 h-6 sm:w-8 sm:h-8 text-primary mt-1" />
+                    <Award className="w-6 h-6 sm:w-8 sm:h-8 text-primary mt-1" />
                   </div>
                   <div>
                     <h3 className="text-lg sm:text-xl font-semibold text-foreground mb-2">Compromiso</h3>
@@ -158,11 +158,11 @@ export default function HistoryPage() {
             </div>
 
             {/* Future Vision */}
-            <div className="bg-gradient-to-r from-primary/5 to-primary/10 rounded-2xl sm:rounded-3xl p-6 sm:p-8 lg:p-12 text-center">
+            <div className="bg-white rounded-2xl sm:rounded-3xl p-6 sm:p-8 lg:p-12 border border-border shadow-sm">
               <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-4 sm:mb-6">
                 Mirando hacia el Futuro
               </h2>
-              <div className="text-base sm:text-lg leading-7 sm:leading-8 text-muted-foreground max-w-3xl mx-auto space-y-4">
+              <div className="text-base sm:text-lg leading-7 sm:leading-8 text-muted-foreground space-y-4">
                 <p>
                   Hoy, Holistia continúa evolucionando. Estamos implementando tecnologías 
                   avanzadas como inteligencia artificial para mejorar las recomendaciones 

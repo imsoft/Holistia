@@ -5,13 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { generateStaticMetadata } from "@/lib/seo";
 import { StructuredData } from "@/components/seo/structured-data";
 import { generateStructuredData } from "@/lib/seo";
-import { 
-  Mail, 
-  Phone, 
-  MapPin, 
-  Clock,
-  MessageCircle
-} from "lucide-react";
+import { Mail, Phone, MessageCircle } from "lucide-react";
 
 export const metadata: Metadata = generateStaticMetadata({
   title: 'Contáctanos - Holistia | Soporte y Atención al Cliente',
@@ -90,7 +84,7 @@ export default function ContactPage() {
       <StructuredData data={structuredData} />
       {/* Hero Section */}
       <div className="relative bg-white">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 py-12 sm:py-16 lg:py-20 lg:px-8">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 py-8 sm:py-10 lg:py-12 lg:px-8">
           <div className="mx-auto max-w-3xl text-center">
             <h1 className="text-3xl sm:text-4xl lg:text-6xl font-bold tracking-tight text-foreground">
               Contáctanos
@@ -104,17 +98,17 @@ export default function ContactPage() {
       </div>
 
       {/* Contact Methods + Contact Form: 2 columnas */}
-      <div className="py-12 sm:py-16 lg:py-24 bg-white">
+      <div className="py-8 sm:py-10 lg:py-12 bg-white">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-stretch">
             {/* Columna izquierda: Formas de Contacto */}
-            <div>
-              <div className="mb-8 sm:mb-10">
+            <div className="flex flex-col">
+              <div className="mb-6 sm:mb-8">
                 <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
                   Formas de Contacto
                 </h2>
-                <p className="mt-3 sm:mt-4 text-base text-muted-foreground">
-                  Elige la forma más conveniente para ti de ponerte en contacto con nuestro equipo.
+                <p className="mt-2 sm:mt-3 text-base text-muted-foreground">
+                  Elige la forma más conveniente de ponerte en contacto con nuestro equipo.
                 </p>
               </div>
 
@@ -145,27 +139,29 @@ export default function ContactPage() {
               </div>
             </div>
 
-            {/* Columna derecha: Formulario */}
-            <div>
-              <div className="mb-8 sm:mb-10">
+            {/* Columna derecha: Formulario (misma altura que las 3 cards) */}
+            <div className="flex flex-col">
+              <div className="mb-6 sm:mb-8">
                 <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
                   Envíanos un Mensaje
                 </h2>
-                <p className="mt-3 sm:mt-4 text-base text-muted-foreground">
+                <p className="mt-2 sm:mt-3 text-base text-muted-foreground">
                   Completa el formulario y nos pondremos en contacto contigo lo antes posible.
                 </p>
               </div>
 
-              <ContactForm />
+              <div className="flex-1 min-h-0 flex flex-col">
+                <ContactForm className="h-full" />
+              </div>
             </div>
           </div>
         </div>
       </div>
 
       {/* FAQ Section */}
-      <div className="py-12 sm:py-16 lg:py-24 bg-white">
+      <div className="py-8 sm:py-10 lg:py-12 bg-white">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="mx-auto max-w-3xl text-center mb-10 sm:mb-16">
+          <div className="mx-auto max-w-3xl text-center mb-6 sm:mb-10">
             <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-foreground">
               Preguntas Frecuentes
             </h2>
@@ -185,37 +181,6 @@ export default function ContactPage() {
                 </CardContent>
               </Card>
             ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Office Info */}
-      <div className="py-12 sm:py-16 lg:py-24 bg-white">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="mx-auto max-w-3xl text-center">
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-foreground">
-              Información de Oficina
-            </h2>
-            <div className="mt-8 sm:mt-12 grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-8">
-              <div className="flex items-center justify-center">
-                <div className="flex items-center space-x-3">
-                  <MapPin className="w-5 h-5 sm:w-6 sm:h-6 text-primary flex-shrink-0" />
-                  <div className="text-left">
-                    <p className="text-sm sm:text-base font-semibold text-foreground">Ubicación</p>
-                    <p className="text-xs sm:text-sm text-muted-foreground">Guadalajara, Jalisco, México</p>
-                  </div>
-                </div>
-              </div>
-              <div className="flex items-center justify-center">
-                <div className="flex items-center space-x-3">
-                  <Clock className="w-5 h-5 sm:w-6 sm:h-6 text-primary flex-shrink-0" />
-                  <div className="text-left">
-                    <p className="text-sm sm:text-base font-semibold text-foreground">Horario de Atención</p>
-                    <p className="text-xs sm:text-sm text-muted-foreground">Lunes a Viernes 9:00 - 18:00</p>
-                  </div>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
       </div>

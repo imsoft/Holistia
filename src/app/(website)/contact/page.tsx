@@ -97,49 +97,42 @@ export default function ContactPage() {
         </div>
       </div>
 
-      {/* Contact Methods + Contact Form: 2 columnas */}
+      {/* Contact Methods + Contact Form: 2 columnas, misma altura */}
       <div className="py-8 sm:py-10 lg:py-12 bg-white">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-stretch">
-            {/* Columna izquierda: Formas de Contacto */}
-            <div className="flex min-h-0 flex-col lg:h-full">
-              <div className="mb-6 shrink-0 sm:mb-8">
-                <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
-                  Formas de Contacto
-                </h2>
-                <p className="mt-2 sm:mt-3 text-base text-muted-foreground">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 lg:items-stretch lg:[&>*]:min-h-0">
+            {/* Columna izquierda: una Card que ocupa toda la altura */}
+            <Card className="flex flex-col overflow-hidden lg:h-full">
+              <CardHeader className="shrink-0 px-4 sm:px-6 pt-6 pb-2">
+                <CardTitle className="text-2xl sm:text-3xl">Formas de Contacto</CardTitle>
+                <p className="mt-2 text-base text-muted-foreground font-normal">
                   Elige la forma más conveniente de ponerte en contacto con nuestro equipo.
                 </p>
-              </div>
-
-              <div className="min-h-0 flex-1 space-y-6">
+              </CardHeader>
+              <CardContent className="flex flex-1 flex-col gap-6 px-4 sm:px-6 pb-6 pt-0">
                 {contactMethods.map((method, index) => (
-                  <Card key={index} className="py-4 hover:shadow-lg transition-shadow">
-                    <CardHeader className="px-4 sm:px-6">
-                      <div className="flex items-start gap-4">
-                        <div className="w-10 h-10 sm:w-12 sm:h-12 bg-primary/10 rounded-full flex items-center justify-center shrink-0">
-                          <method.icon className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
-                        </div>
-                        <div className="flex-1">
-                          <CardTitle className="text-lg sm:text-xl">{method.title}</CardTitle>
-                          <p className="text-sm text-muted-foreground mt-1">{method.description}</p>
-                        </div>
+                  <div key={index} className="rounded-lg border bg-card p-4 sm:p-5 hover:shadow-md transition-shadow">
+                    <div className="flex items-start gap-4">
+                      <div className="w-10 h-10 sm:w-12 sm:h-12 bg-primary/10 rounded-full flex items-center justify-center shrink-0">
+                        <method.icon className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
                       </div>
-                    </CardHeader>
-                    <CardContent className="px-4 sm:px-6">
-                      <p className="text-sm sm:text-base font-semibold text-foreground mb-3">{method.contact}</p>
-                      <Button asChild className="w-full">
-                        <a href={method.href} target="_blank" rel="noopener noreferrer">
-                          {method.action}
-                        </a>
-                      </Button>
-                    </CardContent>
-                  </Card>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-lg sm:text-xl font-semibold text-foreground">{method.title}</h3>
+                        <p className="text-sm text-muted-foreground mt-1">{method.description}</p>
+                        <p className="text-sm sm:text-base font-semibold text-foreground mt-3">{method.contact}</p>
+                        <Button asChild className="mt-3 w-full">
+                          <a href={method.href} target="_blank" rel="noopener noreferrer">
+                            {method.action}
+                          </a>
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
                 ))}
-              </div>
-            </div>
+              </CardContent>
+            </Card>
 
-            {/* Columna derecha: Formulario (misma altura que las 3 cards) */}
+            {/* Columna derecha: título + formulario en Card de misma altura */}
             <div className="flex min-h-0 flex-col lg:h-full">
               <div className="mb-6 shrink-0 sm:mb-8">
                 <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
@@ -149,9 +142,8 @@ export default function ContactPage() {
                   Completa el formulario y nos pondremos en contacto contigo lo antes posible.
                 </p>
               </div>
-
               <div className="flex min-h-0 flex-1 flex-col">
-                <ContactForm className="h-full max-h-full" />
+                <ContactForm className="h-full min-h-0" />
               </div>
             </div>
           </div>

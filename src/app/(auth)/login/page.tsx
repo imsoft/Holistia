@@ -44,6 +44,11 @@ function LoginFormWithMessage() {
     },
   });
 
+  // Mensajes amigables según el parámetro message de la URL
+  const messageLabels: Record<string, string> = {
+    password_updated: "Contraseña actualizada. Ya puedes iniciar sesión con tu nueva contraseña.",
+  };
+
   // Mostrar mensajes según parámetros de la URL
   useEffect(() => {
     const message = searchParams.get('message');
@@ -51,7 +56,7 @@ function LoginFormWithMessage() {
     const deactivated = searchParams.get('deactivated');
 
     if (message) {
-      toast.success(message);
+      toast.success(messageLabels[message] ?? message);
     }
 
     if (error) {

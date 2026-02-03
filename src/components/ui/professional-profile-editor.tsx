@@ -370,7 +370,7 @@ export default function ProfessionalProfileEditor({
                 />
               ) : (
                 <div 
-                  className="p-2 border border-transparent hover:border-border rounded cursor-pointer"
+                  className="p-2 border border-border rounded-md cursor-pointer hover:bg-muted/30 transition-colors"
                   onClick={() => startEditing('personal')}
                 >
                   {professionalData.first_name}
@@ -390,7 +390,7 @@ export default function ProfessionalProfileEditor({
                 />
               ) : (
                 <div 
-                  className="p-2 border border-transparent hover:border-border rounded cursor-pointer"
+                  className="p-2 border border-border rounded-md cursor-pointer hover:bg-muted/30 transition-colors"
                   onClick={() => startEditing('personal')}
                 >
                   {professionalData.last_name}
@@ -411,7 +411,7 @@ export default function ProfessionalProfileEditor({
                 />
               ) : (
                 <div 
-                  className="p-2 border border-transparent hover:border-border rounded cursor-pointer flex items-center gap-2"
+                  className="p-2 border border-border rounded-md cursor-pointer hover:bg-muted/30 transition-colors flex items-center gap-2"
                   onClick={() => startEditing('contact')}
                 >
                   <Mail className="h-4 w-4 text-muted-foreground" />
@@ -433,7 +433,7 @@ export default function ProfessionalProfileEditor({
                 />
               ) : (
                 <div 
-                  className="p-2 border border-transparent hover:border-border rounded cursor-pointer flex items-center gap-2"
+                  className="p-2 border border-border rounded-md cursor-pointer hover:bg-muted/30 transition-colors flex items-center gap-2"
                   onClick={() => startEditing('contact')}
                 >
                   <Phone className="h-4 w-4 text-muted-foreground" />
@@ -458,7 +458,7 @@ export default function ProfessionalProfileEditor({
                 </div>
               ) : (
                 <div 
-                  className="p-2 border border-transparent hover:border-border rounded cursor-pointer flex items-center gap-2"
+                  className="p-2 border border-border rounded-md cursor-pointer hover:bg-muted/30 transition-colors flex items-center gap-2"
                   onClick={() => startEditing('contact')}
                 >
                   <Instagram className="h-4 w-4 text-muted-foreground" />
@@ -489,7 +489,7 @@ export default function ProfessionalProfileEditor({
               />
             ) : (
               <div 
-                className="p-2 border border-transparent hover:border-border rounded cursor-pointer"
+                className="p-2 border border-border rounded-md cursor-pointer hover:bg-muted/30 transition-colors"
                 onClick={() => startEditing('profession')}
               >
                 {professionalData.profession}
@@ -509,7 +509,7 @@ export default function ProfessionalProfileEditor({
               />
             ) : (
               <div 
-                className="p-2 border border-transparent hover:border-border rounded cursor-pointer"
+                className="p-2 border border-border rounded-md cursor-pointer hover:bg-muted/30 transition-colors"
                 onClick={() => startEditing('profession')}
               >
                 {professionalData.experience}
@@ -558,7 +558,7 @@ export default function ProfessionalProfileEditor({
               </div>
             ) : (
               <div 
-                className="p-2 border border-transparent hover:border-border rounded cursor-pointer"
+                className="p-2 border border-border rounded-md cursor-pointer hover:bg-muted/30 transition-colors"
                 onClick={() => startEditing('specializations')}
               >
                 <div className="flex flex-wrap gap-1">
@@ -620,7 +620,7 @@ export default function ProfessionalProfileEditor({
               </div>
             ) : (
               <div
-                className="p-2 border border-transparent hover:border-border rounded cursor-pointer"
+                className="p-2 border border-border rounded-md cursor-pointer hover:bg-muted/30 transition-colors"
                 onClick={() => startEditing('languages')}
               >
                 <div className="flex flex-wrap gap-1">
@@ -713,7 +713,7 @@ export default function ProfessionalProfileEditor({
               />
             ) : (
               <div 
-                className="p-3 border border-transparent hover:border-border rounded cursor-pointer min-h-[100px] prose prose-sm max-w-none"
+                className="p-3 border border-border rounded-md cursor-pointer hover:bg-muted/30 transition-colors min-h-[100px] prose prose-sm max-w-none"
                 onClick={() => startEditing('biography')}
                 dangerouslySetInnerHTML={{ 
                   __html: professionalData.biography || '<p class="text-muted-foreground">Haz clic para agregar una biografía...</p>' 
@@ -743,7 +743,7 @@ export default function ProfessionalProfileEditor({
                 />
               ) : (
                 <div 
-                  className="p-2 border border-transparent hover:border-border rounded cursor-pointer"
+                  className="p-2 border border-border rounded-md cursor-pointer hover:bg-muted/30 transition-colors"
                   onClick={() => startEditing('location')}
                 >
                   {professionalData.address}
@@ -762,7 +762,7 @@ export default function ProfessionalProfileEditor({
                 />
               ) : (
                 <div 
-                  className="p-2 border border-transparent hover:border-border rounded cursor-pointer"
+                  className="p-2 border border-border rounded-md cursor-pointer hover:bg-muted/30 transition-colors"
                   onClick={() => startEditing('location')}
                 >
                   {professionalData.city}
@@ -781,7 +781,7 @@ export default function ProfessionalProfileEditor({
                 />
               ) : (
                 <div 
-                  className="p-2 border border-transparent hover:border-border rounded cursor-pointer"
+                  className="p-2 border border-border rounded-md cursor-pointer hover:bg-muted/30 transition-colors"
                   onClick={() => startEditing('location')}
                 >
                   {professionalData.state}
@@ -800,7 +800,7 @@ export default function ProfessionalProfileEditor({
                 />
               ) : (
                 <div 
-                  className="p-2 border border-transparent hover:border-border rounded cursor-pointer"
+                  className="p-2 border border-border rounded-md cursor-pointer hover:bg-muted/30 transition-colors"
                   onClick={() => startEditing('location')}
                 >
                   {professionalData.country}

@@ -38,6 +38,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -221,6 +222,30 @@ export function AdminSidebar() {
     return false;
   };
 
+  const sidebarSkeleton = (
+    <SidebarContent>
+      {[1, 2, 3, 4].map((group) => (
+        <SidebarGroup key={group}>
+          <SidebarGroupLabel className="group-data-[collapsible=icon]:hidden">
+            <Skeleton className="h-3 w-20" />
+          </SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {[1, 2, 3].map((item) => (
+                <SidebarMenuItem key={item}>
+                  <div className="flex items-center gap-2 px-2 py-2 rounded-md group-data-[collapsible=icon]:hidden">
+                    <Skeleton className="h-4 w-4 shrink-0 rounded" />
+                    <Skeleton className="h-4 flex-1 max-w-[140px]" />
+                  </div>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      ))}
+    </SidebarContent>
+  );
+
   if (loading) {
     return (
       <Sidebar collapsible="icon" className="border-r border-border">
@@ -229,17 +254,13 @@ export function AdminSidebar() {
             <Image
               src="/logos/holistia-black.png"
               alt="Holistia"
-                width={32}
-                height={32}
-                className="h-6 w-6"
+              width={32}
+              height={32}
+              className="h-6 w-6"
             />
           </div>
         </SidebarHeader>
-        <SidebarContent>
-          <div className="flex items-center justify-center p-4">
-            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
-          </div>
-        </SidebarContent>
+        {sidebarSkeleton}
       </Sidebar>
     );
   }
@@ -252,17 +273,13 @@ export function AdminSidebar() {
             <Image
               src="/logos/holistia-black.png"
               alt="Holistia"
-                width={32}
-                height={32}
-                className="h-6 w-auto"
+              width={32}
+              height={32}
+              className="h-6 w-auto"
             />
           </div>
         </SidebarHeader>
-        <SidebarContent>
-          <div className="flex items-center justify-center p-4">
-            <p className="text-sm text-muted-foreground">Error cargando datos</p>
-          </div>
-        </SidebarContent>
+        {sidebarSkeleton}
       </Sidebar>
     );
   }

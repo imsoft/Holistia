@@ -133,8 +133,8 @@ export const useUserStore = create<UserState>()(
         if (!state.profileCache || !state.profileCacheTimestamp) {
           return false;
         }
-        // Cache válido por 5 minutos (300000 ms)
-        const CACHE_DURATION = 5 * 60 * 1000;
+        // Cache válido por 15 minutos; reduce refetch al volver a la pestaña
+        const CACHE_DURATION = 15 * 60 * 1000;
         return Date.now() - state.profileCacheTimestamp < CACHE_DURATION;
       },
       
@@ -143,8 +143,8 @@ export const useUserStore = create<UserState>()(
         if (!state.professionalCache || !state.professionalCacheTimestamp) {
           return false;
         }
-        // Cache válido por 5 minutos (300000 ms)
-        const CACHE_DURATION = 5 * 60 * 1000;
+        // Cache válido por 15 minutos
+        const CACHE_DURATION = 15 * 60 * 1000;
         return Date.now() - state.professionalCacheTimestamp < CACHE_DURATION;
       },
 

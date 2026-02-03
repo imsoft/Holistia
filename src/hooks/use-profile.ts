@@ -204,10 +204,17 @@ export function useProfile() {
         useUserStore.getState().clearProfileCache();
       } else if (event === 'SIGNED_IN' && session?.user && !loadingRef.current) {
         // SIGNED_IN también puede dispararse al recuperar foco de pestaña (Supabase auth-js).
-        // Si ya tenemos perfil en caché válido para este user, no recargar (evita re-render).
+        // Si ya tenemos perfil en caché de este usuario (válido o expirado), no mostrar loading:
+        // pintar caché de inmediato y refrescar en background para evitar sensación de recarga.
         const cache = useUserStore.getState().profileCache;
-        const isValid = useUserStore.getState().isProfileCacheValid();
-        if (cache && isValid && cache.id === session.user.id) {
+        const sameUser = cache?.id === session.user.id;
+        if (cache && sameUser) {
+          setProfile(cache);
+          setLoading(false);
+          loadingRef.current = true;
+          loadProfile({ silent: true }).finally(() => {
+            loadingRef.current = false;
+          });
           return;
         }
         loadingRef.current = true;
@@ -264,7 +271,7 @@ export function useProfile() {
         setProfile(profileCache);
         setLoading(false);
         setError(null);
-        // NO hacer fetch en background - el caché es válido por 5 minutos
+        // NO hacer fetch en background - el caché es válido por 15 minutos
         return;
       }
       

@@ -1042,7 +1042,15 @@ export default function MyChallengesPage() {
                             )}
                             <Button
                               onClick={() => setIsCheckinDialogOpen(true)}
-                              disabled={!selectedChallenge.access_granted}
+                              disabled={
+                                !selectedChallenge.access_granted ||
+                                checkins.some((c) => c.day_number === nextDayNumber)
+                              }
+                              title={
+                                checkins.some((c) => c.day_number === nextDayNumber)
+                                  ? "Ya completaste el check-in del día"
+                                  : undefined
+                              }
                             >
                               Nuevo Check-in
                             </Button>

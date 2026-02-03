@@ -89,6 +89,8 @@ export function SocialFeedPost({ checkin, onLike, onUnlike }: SocialFeedPostProp
   
   // Estado para el modal de imagen
   const [isImageViewerOpen, setIsImageViewerOpen] = useState(false);
+  // Vídeo no reproducible (p. ej. .mov en Chrome): mostrar fallback con descarga
+  const [videoError, setVideoError] = useState(false);
 
   // Manejar reacción
   const handleReactionSelect = async (reactionType: ReactionType) => {
@@ -388,13 +390,31 @@ export function SocialFeedPost({ checkin, onLike, onUnlike }: SocialFeedPostProp
         )}
 
         {checkin.evidence_url && checkin.evidence_type === "video" && (
-          <video
-            src={checkin.evidence_url}
-            controls
-            playsInline
-            preload="metadata"
-            className="w-full rounded-lg aspect-video bg-muted object-contain"
-          />
+          <div className="w-full rounded-lg aspect-video bg-muted overflow-hidden">
+            {videoError ? (
+              <div className="w-full h-full flex flex-col items-center justify-center gap-2 p-4 text-center text-sm text-muted-foreground">
+                <p>Este vídeo no se puede reproducir en el navegador (p. ej. formato .mov en Chrome).</p>
+                <a
+                  href={checkin.evidence_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary underline font-medium"
+                >
+                  Abrir o descargar vídeo
+                </a>
+              </div>
+            ) : (
+              <video
+                key={checkin.evidence_url}
+                src={checkin.evidence_url}
+                controls
+                playsInline
+                preload="metadata"
+                className="w-full h-full object-contain"
+                onError={() => setVideoError(true)}
+              />
+            )}
+          </div>
         )}
 
         {checkin.evidence_url && checkin.evidence_type === "audio" && (

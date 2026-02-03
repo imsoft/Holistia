@@ -9,6 +9,7 @@ import { Image as ImageIcon, Loader2, X, Globe, Lock, Info } from "lucide-react"
 import { createClient } from "@/utils/supabase/client";
 import { toast } from "sonner";
 import Image from "next/image";
+import { convertMovToMp4, isMovFile } from "@/lib/mov-to-mp4";
 import {
   Tooltip,
   TooltipContent,
@@ -107,14 +108,27 @@ export function CheckinForm({
         }
       }
 
+      // Convertir .mov a MP4 en el navegador para que se reproduzca en todos los dispositivos (Chrome, etc.)
+      let fileToUpload = file;
+      if (isVideo && isMovFile(file)) {
+        try {
+          toast.info("Convirtiendo a MP4 para compatibilidad…");
+          fileToUpload = await convertMovToMp4(file);
+        } catch (err) {
+          console.error("Error converting MOV to MP4:", err);
+          toast.error("No se pudo convertir el vídeo. Prueba subiendo un MP4.");
+          return;
+        }
+      }
+
       // Subida directa a Supabase Storage para evitar límite de payload de Vercel (~4.5 MB)
-      const sanitizedFileName = sanitizeFileName(file.name);
+      const sanitizedFileName = sanitizeFileName(fileToUpload.name);
       const fileName = `${Date.now()}-${sanitizedFileName}`;
       const filePath = `${challengePurchaseId}/evidence/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
         .from('challenges')
-        .upload(filePath, file, { cacheControl: '3600', upsert: false });
+        .upload(filePath, fileToUpload, { cacheControl: '3600', upsert: false });
 
       if (uploadError) {
         const msg = uploadError.message || 'Error al subir el archivo';
@@ -251,7 +265,7 @@ export function CheckinForm({
                   <div>
                     <p className="font-medium">Video:</p>
                     <ul className="list-disc list-inside opacity-90 mt-1 space-y-0.5">
-                      <li>Formatos: MP4, WEBM, MOV</li>
+                      <li>Formatos: MP4, WEBM, MOV (los .mov se convierten a MP4 automáticamente)</li>
                       <li>Tamaño máximo: 50MB</li>
                       <li>Duración máxima: 30 segundos</li>
                     </ul>

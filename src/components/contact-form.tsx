@@ -64,8 +64,8 @@ export function ContactForm({ className }: ContactFormProps) {
             </Button>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+          <form onSubmit={handleSubmit} className="flex flex-1 flex-col min-h-0 gap-4 sm:gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 shrink-0">
               <div>
                 <Label htmlFor="firstName">Nombre *</Label>
                 <Input
@@ -96,7 +96,7 @@ export function ContactForm({ className }: ContactFormProps) {
               </div>
             </div>
             
-            <div>
+            <div className="shrink-0">
               <Label htmlFor="email">Email *</Label>
               <Input
                 id="email"
@@ -111,7 +111,7 @@ export function ContactForm({ className }: ContactFormProps) {
               />
             </div>
             
-            <div>
+            <div className="shrink-0">
               <Label htmlFor="phone">Teléfono (opcional)</Label>
               <PhoneInput
                 id="phone"
@@ -125,7 +125,7 @@ export function ContactForm({ className }: ContactFormProps) {
               />
             </div>
             
-            <div>
+            <div className="shrink-0">
               <Label htmlFor="subject">Asunto *</Label>
               <Input
                 id="subject"
@@ -140,14 +140,13 @@ export function ContactForm({ className }: ContactFormProps) {
               />
             </div>
             
-            <div>
+            <div className="flex flex-1 flex-col min-h-[140px]">
               <Label htmlFor="message">Mensaje *</Label>
               <Textarea
                 id="message"
                 name="message"
-                rows={6}
                 required
-                className="mt-2"
+                className="mt-2 flex-1 min-h-[140px] resize-y"
                 placeholder="Cuéntanos más detalles sobre tu consulta..."
                 value={formData.message}
                 onChange={(e) => updateField('message', e.target.value)}
@@ -156,7 +155,7 @@ export function ContactForm({ className }: ContactFormProps) {
             </div>
             
             {error && (
-              <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-lg">
+              <div className="flex shrink-0 items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-lg">
                 <AlertCircle className="h-4 w-4 text-red-600 flex-shrink-0" />
                 <p className="text-sm text-red-600">{error}</p>
               </div>
@@ -164,7 +163,7 @@ export function ContactForm({ className }: ContactFormProps) {
             
             <Button 
               type="submit" 
-              className="w-full" 
+              className="w-full shrink-0" 
               size="lg"
               disabled={loading}
             >

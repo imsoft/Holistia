@@ -1,5 +1,4 @@
 import { Metadata } from "next";
-import { Sparkles, Users, Shield, Lightbulb, Award } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "Nuestra Historia - Holistia",
@@ -51,12 +50,9 @@ export default function HistoryPage() {
 
             {/* The Vision */}
             <div className="bg-muted/30 rounded-2xl sm:rounded-3xl p-6 sm:p-8 lg:p-12">
-              <div className="mb-6 sm:mb-8">
-                <Sparkles className="w-12 h-12 sm:w-16 sm:h-16 text-primary mb-4 sm:mb-6" />
-                <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-3 sm:mb-4">
-                  Una Visión Integral
-                </h2>
-              </div>
+              <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-6 sm:mb-8">
+                Una Visión Integral
+              </h2>
               <div className="text-base sm:text-lg leading-7 sm:leading-8 text-muted-foreground space-y-4 sm:space-y-6">
                 <p>
                   Creemos firmemente que la salud no se trata solo de tratar enfermedades, sino de 
@@ -101,58 +97,35 @@ export default function HistoryPage() {
             {/* Values Section */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 mt-10 sm:mt-16">
               <div className="space-y-6 sm:space-y-8">
-                <div className="flex items-start space-x-3 sm:space-x-4">
-                  <div className="flex-shrink-0">
-                    <Users className="w-6 h-6 sm:w-8 sm:h-8 text-primary mt-1" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg sm:text-xl font-semibold text-foreground mb-2">Accesibilidad</h3>
-                    <p className="text-sm sm:text-base text-muted-foreground">
-                      Creemos que todos merecen acceso a servicios de salud de calidad, 
-                      independientemente de su ubicación o situación económica.
-                    </p>
-                  </div>
+                <div>
+                  <h3 className="text-lg sm:text-xl font-semibold text-foreground mb-2">Accesibilidad</h3>
+                  <p className="text-sm sm:text-base text-muted-foreground">
+                    Creemos que todos merecen acceso a servicios de salud de calidad, 
+                    independientemente de su ubicación o situación económica.
+                  </p>
                 </div>
-                
-                <div className="flex items-start space-x-3 sm:space-x-4">
-                  <div className="flex-shrink-0">
-                    <Shield className="w-6 h-6 sm:w-8 sm:h-8 text-primary mt-1" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg sm:text-xl font-semibold text-foreground mb-2">Calidad</h3>
-                    <p className="text-sm sm:text-base text-muted-foreground">
-                      Trabajamos únicamente con profesionales certificados y verificados 
-                      para garantizar la mejor atención posible.
-                    </p>
-                  </div>
+                <div>
+                  <h3 className="text-lg sm:text-xl font-semibold text-foreground mb-2">Calidad</h3>
+                  <p className="text-sm sm:text-base text-muted-foreground">
+                    Trabajamos únicamente con profesionales certificados y verificados 
+                    para garantizar la mejor atención posible.
+                  </p>
                 </div>
               </div>
-              
               <div className="space-y-6 sm:space-y-8">
-                <div className="flex items-start space-x-3 sm:space-x-4">
-                  <div className="flex-shrink-0">
-                    <Lightbulb className="w-6 h-6 sm:w-8 sm:h-8 text-primary mt-1" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg sm:text-xl font-semibold text-foreground mb-2">Innovación</h3>
-                    <p className="text-sm sm:text-base text-muted-foreground">
-                      Utilizamos tecnología de vanguardia para mejorar continuamente 
-                      la experiencia de nuestros usuarios.
-                    </p>
-                  </div>
+                <div>
+                  <h3 className="text-lg sm:text-xl font-semibold text-foreground mb-2">Innovación</h3>
+                  <p className="text-sm sm:text-base text-muted-foreground">
+                    Utilizamos tecnología de vanguardia para mejorar continuamente 
+                    la experiencia de nuestros usuarios.
+                  </p>
                 </div>
-                
-                <div className="flex items-start space-x-3 sm:space-x-4">
-                  <div className="flex-shrink-0">
-                    <Award className="w-6 h-6 sm:w-8 sm:h-8 text-primary mt-1" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg sm:text-xl font-semibold text-foreground mb-2">Compromiso</h3>
-                    <p className="text-sm sm:text-base text-muted-foreground">
-                      Estamos comprometidos con el bienestar integral de nuestros usuarios, 
-                      no solo con tratar síntomas.
-                    </p>
-                  </div>
+                <div>
+                  <h3 className="text-lg sm:text-xl font-semibold text-foreground mb-2">Compromiso</h3>
+                  <p className="text-sm sm:text-base text-muted-foreground">
+                    Estamos comprometidos con el bienestar integral de nuestros usuarios, 
+                    no solo con tratar síntomas.
+                  </p>
                 </div>
               </div>
             </div>

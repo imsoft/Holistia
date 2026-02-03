@@ -1117,8 +1117,11 @@ export default function MyChallengesPage() {
                                           <div className="mt-2">
                                             {checkin.evidence_type === 'video' ? (
                                               <video
+                                                key={checkin.evidence_url}
                                                 src={checkin.evidence_url}
                                                 controls
+                                                preload="metadata"
+                                                playsInline
                                                 className="rounded-lg w-full max-w-[200px] h-[120px] object-cover"
                                               />
                                             ) : checkin.evidence_type === 'photo' ? (

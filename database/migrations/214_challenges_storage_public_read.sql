@@ -1,0 +1,26 @@
+-- ============================================================================
+-- MIGRACIÓN 214: Permitir lectura pública de archivos del bucket challenges
+-- ============================================================================
+-- IMPORTANTE: No se puede ejecutar este SQL desde el Editor SQL del proyecto
+-- (error: must be owner of relation objects). Las políticas de Storage se
+-- crean desde el Dashboard.
+--
+-- CÓMO APLICAR (Supabase Dashboard):
+-- 1. Ve a Storage → Policies (o al bucket "challenges" → Policies).
+-- 2. "New policy" → "For full customization" o "Get started quickly".
+-- 3. Policy name: Public can view challenges files
+-- 4. Allowed operation: SELECT (Read)
+-- 5. Target roles: public (o anon + authenticated)
+-- 6. USING expression: bucket_id = 'challenges'
+-- 7. Guardar.
+--
+-- Alternativa con "Get started quickly": elegir template "Allow public read"
+-- y restringir a bucket_id = 'challenges' si el editor lo permite.
+--
+-- Sin esta política, los vídeos/imágenes de check-ins devuelven 403 y no se ven.
+-- ============================================================================
+
+-- Referencia SQL (solo documentación; ejecutar desde Dashboard):
+-- CREATE POLICY "Public can view challenges files"
+-- ON storage.objects FOR SELECT TO public
+-- USING (bucket_id = 'challenges');

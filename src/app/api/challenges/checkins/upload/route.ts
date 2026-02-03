@@ -78,7 +78,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Validar tamaño: fotos 10MB, videos 50MB (Supabase Storage Free = 50MB por archivo)
+    // Validar tamaño: fotos 10MB, videos 50MB (Supabase Free = 50MB, ver Storage Settings)
     const maxSizePhoto = 10 * 1024 * 1024; // 10MB
     const maxSizeVideo = 50 * 1024 * 1024; // 50MB
     const maxSize = evidence_type === 'video' ? maxSizeVideo : maxSizePhoto;

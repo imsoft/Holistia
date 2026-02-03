@@ -86,7 +86,7 @@ export function CheckinForm({
     try {
       setUploading(true);
 
-      // Límite 50MB: Supabase Storage Free tiene máx 50MB por archivo
+      // Límite 50MB: según docs Supabase Free = 50MB (Storage Settings → Global file size limit)
       const maxSize = isVideo ? 50 * 1024 * 1024 : 10 * 1024 * 1024;
       const maxSizeLabel = isVideo ? "50MB" : "10MB";
       if (file.size > maxSize) {
@@ -269,9 +269,13 @@ export function CheckinForm({
               <div className="relative h-48 w-full rounded-lg overflow-hidden border">
                 {evidenceType === 'video' ? (
                   <video
+                    key={evidenceUrl}
                     src={evidenceUrl}
                     controls
+                    preload="metadata"
+                    playsInline
                     className="w-full h-full object-cover"
+                    onError={() => toast.error("No se pudo cargar el vídeo. Comprueba la conexión o permisos del bucket.")}
                   />
                 ) : (
                   <Image

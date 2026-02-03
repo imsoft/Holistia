@@ -72,18 +72,18 @@ export async function POST(request: NextRequest) {
     if (evidence_type !== 'text' && validTypes[evidence_type]) {
       if (!validTypes[evidence_type].includes(file.type)) {
         return NextResponse.json(
-          { error: `Tipo de archivo no válido para ${evidence_type}. Formatos permitidos: ${evidence_type === 'photo' ? 'JPG, PNG, WEBP, GIF' : 'MP4, WEBM, MOV'}` },
+          { error: `Tipo de archivo no válido para ${evidence_type}. Formatos permitidos: ${evidence_type === 'photo' ? 'JPG, PNG, WEBP, GIF' : 'MP4, WEBM, MOV (máx 30 s, 20MB)'}` },
           { status: 400 }
         );
       }
     }
 
     // Validar tamaño según tipo de archivo
-    // Fotos: máximo 10MB, Videos: máximo 25MB
+    // Fotos: máximo 10MB. Videos: máximo 20MB (recomendado para ≤30s; espacio total ~8GB)
     const maxSizePhoto = 10 * 1024 * 1024; // 10MB
-    const maxSizeVideo = 25 * 1024 * 1024; // 25MB
+    const maxSizeVideo = 20 * 1024 * 1024; // 20MB — ~30s, compatible con espacio 8GB
     const maxSize = evidence_type === 'video' ? maxSizeVideo : maxSizePhoto;
-    const maxSizeLabel = evidence_type === 'video' ? '25MB' : '10MB';
+    const maxSizeLabel = evidence_type === 'video' ? '20MB' : '10MB';
     
     if (file.size > maxSize) {
       return NextResponse.json(

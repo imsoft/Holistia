@@ -391,7 +391,9 @@ export function SocialFeedPost({ checkin, onLike, onUnlike }: SocialFeedPostProp
           <video
             src={checkin.evidence_url}
             controls
-            className="w-full rounded-lg"
+            playsInline
+            preload="metadata"
+            className="w-full rounded-lg aspect-video bg-muted object-contain"
           />
         )}
 

@@ -6,7 +6,8 @@ import { Analytics } from '@vercel/analytics/next';
 import { GoogleAnalytics, GoogleSearchConsole } from '@/components/seo/google-analytics';
 import { Toaster } from 'sonner';
 import { FaviconManager } from '@/components/layout/FaviconManager';
-import { SpeedInsights } from "@vercel/speed-insights/next"
+import { SpeedInsights } from "@vercel/speed-insights/next";
+import { BASE_URL, getGlobalStructuredData } from '@/lib/seo';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -19,7 +20,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://holistia.io'),
+  metadataBase: new URL(BASE_URL),
   title: {
     template: '%s | Holistia',
     default: 'Holistia - Plataforma de Salud Integral y Bienestar en México',
@@ -73,7 +74,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "es_MX",
-    url: "https://holistia.io",
+    url: BASE_URL,
     title: "Holistia - Plataforma de Salud Integral y Bienestar en México",
     description: "Plataforma líder de salud integral en México. Conecta con psicólogos certificados, terapeutas, coaches y nutriólogos. Consultas presenciales y online.",
     siteName: "Holistia",
@@ -123,7 +124,7 @@ export const metadata: Metadata = {
     google: process.env.NEXT_PUBLIC_GOOGLE_VERIFICATION,
   },
   alternates: {
-    canonical: "https://holistia.io",
+    canonical: BASE_URL,
   },
 };
 
@@ -136,6 +137,10 @@ export default function RootLayout({
     <html lang="es">
       <head>
         <GoogleSearchConsole />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: getGlobalStructuredData() }}
+        />
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}

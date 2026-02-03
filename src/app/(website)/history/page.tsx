@@ -1,9 +1,19 @@
 import { Metadata } from "next";
+import { generateStaticMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = generateStaticMetadata({
   title: "Nuestra Historia - Holistia",
-  description: "Conoce la historia de Holistia, cómo nació nuestra plataforma de salud integral y nuestra misión de conectar pacientes con expertos.",
-};
+  description: "Conoce la historia de Holistia, cómo nació nuestra plataforma de salud integral y nuestra misión de conectar pacientes con expertos en México.",
+  keywords: [
+    "historia Holistia",
+    "plataforma salud integral",
+    "bienestar México",
+    "misión Holistia",
+    "salud mental",
+    "conectar pacientes expertos",
+  ],
+  path: "/history",
+});
 
 export default function HistoryPage() {
   return (

@@ -71,21 +71,21 @@ export function CheckinForm({
     try {
       setUploading(true);
 
-      // Validar tamaño según tipo (fotos: 10MB, videos: 25MB)
-      const maxSize = isVideo ? 25 * 1024 * 1024 : 10 * 1024 * 1024;
-      const maxSizeLabel = isVideo ? "25MB" : "10MB";
+      // Validar tamaño según tipo (fotos: 10MB, videos: 20MB recomendado para ≤30s y espacio 8GB)
+      const maxSize = isVideo ? 20 * 1024 * 1024 : 10 * 1024 * 1024;
+      const maxSizeLabel = isVideo ? "20MB" : "10MB";
 
       if (file.size > maxSize) {
         toast.error(`El archivo es demasiado grande. Máximo ${maxSizeLabel}`);
         return;
       }
 
-      // Validar duración del video (máx 1 minuto)
+      // Validar duración del video (máx 30 segundos)
       if (isVideo) {
         try {
           const duration = await getVideoDuration(file);
-          if (duration > 60) {
-            toast.error("El video no puede durar más de 1 minuto");
+          if (duration > 30) {
+            toast.error("El video no puede durar más de 30 segundos");
             return;
           }
         } catch {
@@ -237,8 +237,8 @@ export function CheckinForm({
                     <p className="font-medium">Video:</p>
                     <ul className="list-disc list-inside opacity-90 mt-1 space-y-0.5">
                       <li>Formatos: MP4, WEBM, MOV</li>
-                      <li>Tamaño máximo: 25MB</li>
-                      <li>Duración máxima: 1 minuto</li>
+                      <li>Tamaño máximo: 20MB (recomendado para ≤30 s)</li>
+                      <li>Duración máxima: 30 segundos</li>
                     </ul>
                   </div>
                 </div>
@@ -246,7 +246,7 @@ export function CheckinForm({
             </Tooltip>
         </div>
         <p className="text-xs text-muted-foreground mb-2">
-          Fotos: máx 10MB • Videos: máx 25MB, 1 min (MP4, WEBM, MOV)
+          Fotos: máx 10MB • Videos: máx 20MB, 30 s (MP4, WEBM, MOV)
         </p>
         <div className="space-y-2">
           {evidenceUrl ? (

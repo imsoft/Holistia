@@ -137,6 +137,60 @@ export const DEFAULT_SEO: Metadata = {
   },
 };
 
+/**
+ * JSON-LD global para buscadores e IA: Organization + WebSite con SearchAction.
+ * Incluir en el layout raíz para mejorar resultados en Google y asistentes IA.
+ */
+export function getGlobalStructuredData(): string {
+  const organization = {
+    '@type': 'Organization',
+    '@id': `${BASE_URL}/#organization`,
+    name: 'Holistia',
+    url: BASE_URL,
+    logo: {
+      '@type': 'ImageObject',
+      url: `${BASE_URL}/logos/holistia-black.png`,
+      width: 512,
+      height: 512,
+    },
+    description: 'Plataforma de salud integral que conecta usuarios con psicólogos, terapeutas, coaches y nutriólogos certificados en México. Consultas presenciales y online.',
+    foundingDate: '2024',
+    areaServed: { '@type': 'Country', name: 'México' },
+    sameAs: [
+      'https://facebook.com/holistia',
+      'https://instagram.com/holistia_mx',
+      'https://twitter.com/holistia_mx',
+    ],
+    contactPoint: {
+      '@type': 'ContactPoint',
+      telephone: '+52-33-3173-3702',
+      contactType: 'customer service',
+      email: 'hola@holistia.io',
+      availableLanguage: ['Spanish', 'Español'],
+      areaServed: 'MX',
+      url: `${BASE_URL}/contact`,
+    },
+  };
+  const website = {
+    '@type': 'WebSite',
+    '@id': `${BASE_URL}/#website`,
+    url: BASE_URL,
+    name: 'Holistia - Plataforma de Salud Integral',
+    description: 'Conecta con psicólogos, terapeutas, coaches y nutriólogos certificados. Consultas presenciales y online en México.',
+    publisher: { '@id': `${BASE_URL}/#organization` },
+    inLanguage: 'es-MX',
+    potentialAction: {
+      '@type': 'SearchAction',
+      target: {
+        '@type': 'EntryPoint',
+        urlTemplate: `${BASE_URL}/explore?search={search_term_string}`,
+      },
+      'query-input': 'required name=search_term_string',
+    },
+  };
+  return JSON.stringify({ '@context': 'https://schema.org', '@graph': [organization, website] });
+}
+
 // Función para generar metadata de páginas estáticas
 export function generateStaticMetadata({
   title,

@@ -2,9 +2,8 @@ import { Metadata } from "next";
 import { ContactForm } from "@/components/contact-form";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { generateStaticMetadata } from "@/lib/seo";
+import { generateStaticMetadata, generateStructuredData, generateFAQSchema } from "@/lib/seo";
 import { StructuredData } from "@/components/seo/structured-data";
-import { generateStructuredData } from "@/lib/seo";
 import { Mail, Phone, MessageCircle } from "lucide-react";
 
 export const metadata: Metadata = generateStaticMetadata({
@@ -75,13 +74,15 @@ export default function ContactPage() {
     description: 'Información de contacto y soporte al cliente de Holistia',
     contactInfo: {
       email: 'hola@holistia.io',
-      phone: '+52-55-1234-5678',
+      phone: '+52-33-3173-3702',
     }
   });
+  const faqSchema = generateFAQSchema(faqs);
 
   return (
     <div className="min-h-screen bg-white">
       <StructuredData data={structuredData} />
+      <StructuredData data={faqSchema} />
       {/* Hero Section */}
       <div className="relative bg-white">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 py-8 sm:py-10 lg:py-12 lg:px-8">

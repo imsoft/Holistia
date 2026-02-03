@@ -1080,7 +1080,13 @@ export default function MyChallengesPage() {
                                         )}
                                         {checkin.evidence_url && (
                                           <div className="mt-2">
-                                            {checkin.evidence_type === 'photo' && (
+                                            {checkin.evidence_type === 'video' ? (
+                                              <video
+                                                src={checkin.evidence_url}
+                                                controls
+                                                className="rounded-lg w-full max-w-[200px] h-[120px] object-cover"
+                                              />
+                                            ) : checkin.evidence_type === 'photo' ? (
                                               <Image
                                                 src={checkin.evidence_url}
                                                 alt="Evidencia"
@@ -1088,7 +1094,7 @@ export default function MyChallengesPage() {
                                                 height={100}
                                                 className="rounded-lg object-cover"
                                               />
-                                            )}
+                                            ) : null}
                                           </div>
                                         )}
                                         <div className="flex items-center justify-between mt-2">

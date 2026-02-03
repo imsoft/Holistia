@@ -190,7 +190,11 @@ export function CheckinForm({
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Error al crear el check-in');
+        const msg = data.error || 'Error al crear el check-in';
+        if (msg === 'Ya has hecho check-in para este día' && onCheckinComplete) {
+          onCheckinComplete();
+        }
+        throw new Error(msg);
       }
 
       // Mostrar badges desbloqueados si hay

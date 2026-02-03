@@ -567,7 +567,7 @@ export default function ChallengeProgressPage() {
                               <div className="flex items-center gap-2 mb-1">
                                 <Badge variant="outline">Día {checkin.day_number}</Badge>
                                 <span className="text-xs text-muted-foreground">
-                                  {new Date(checkin.checkin_date).toLocaleDateString('es-MX')}
+                                  {(() => { const [y, m, d] = checkin.checkin_date.split('-').map(Number); return new Date(y, m - 1, d).toLocaleDateString('es-MX'); })()}
                                 </span>
                               </div>
                               {checkin.notes && (

@@ -494,11 +494,7 @@ export default function ChallengeParticipantsPage() {
                                 <div>
                                   <p className="font-semibold">Día {checkin.day_number}</p>
                                   <p className="text-xs text-muted-foreground">
-                                    {new Date(checkin.checkin_date).toLocaleDateString('es-ES', {
-                                      year: 'numeric',
-                                      month: 'long',
-                                      day: 'numeric'
-                                    })}
+                                    {(() => { const [y, m, d] = checkin.checkin_date.split('-').map(Number); return new Date(y, m - 1, d).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' }); })()}
                                   </p>
                                 </div>
                                 <div className="flex items-center gap-2">

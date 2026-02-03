@@ -1145,7 +1145,10 @@ export default function MyChallengesPage() {
                                         )}
                                         <div className="flex items-center justify-between mt-2">
                                           <p className="text-xs">
-                                            {new Date(checkin.checkin_date).toLocaleDateString('es-ES')}
+                                            {(() => {
+                                              const [y, m, d] = checkin.checkin_date.split('-').map(Number);
+                                              return new Date(y, m - 1, d).toLocaleDateString('es-ES');
+                                            })()}
                                           </p>
                                           {isChallengeActive && (
                                             checkin.is_public ? (

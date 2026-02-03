@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { createClient } from "@/utils/supabase/server";
 import { sendPasswordResetEmail } from "@/lib/email-sender";
 import crypto from "crypto";
@@ -206,10 +207,11 @@ export async function updatePasswordWithToken(formData: FormData) {
 
     console.log("✅ Password updated successfully for:", tokenData.email);
 
-    // Redirigir al login
+    // Redirigir al login (redirect() lanza; no debe capturarse como error)
     revalidatePath("/", "layout");
     redirect("/login?message=password_updated");
   } catch (error) {
+    if (isRedirectError(error)) throw error;
     console.error("❌ Unexpected error in updatePasswordWithToken:", error);
     return { error: "Ocurrió un error inesperado." };
   }

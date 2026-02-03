@@ -102,8 +102,8 @@ export default function ContactPage() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-stretch">
             {/* Columna izquierda: Formas de Contacto */}
-            <div className="flex flex-col">
-              <div className="mb-6 sm:mb-8">
+            <div className="flex min-h-0 flex-col lg:h-full">
+              <div className="mb-6 shrink-0 sm:mb-8">
                 <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
                   Formas de Contacto
                 </h2>
@@ -112,7 +112,7 @@ export default function ContactPage() {
                 </p>
               </div>
 
-              <div className="space-y-6">
+              <div className="min-h-0 flex-1 space-y-6">
                 {contactMethods.map((method, index) => (
                   <Card key={index} className="py-4 hover:shadow-lg transition-shadow">
                     <CardHeader className="px-4 sm:px-6">
@@ -140,8 +140,8 @@ export default function ContactPage() {
             </div>
 
             {/* Columna derecha: Formulario (misma altura que las 3 cards) */}
-            <div className="flex flex-col">
-              <div className="mb-6 sm:mb-8">
+            <div className="flex min-h-0 flex-col lg:h-full">
+              <div className="mb-6 shrink-0 sm:mb-8">
                 <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
                   Envíanos un Mensaje
                 </h2>
@@ -150,8 +150,8 @@ export default function ContactPage() {
                 </p>
               </div>
 
-              <div className="flex-1 min-h-0 flex flex-col">
-                <ContactForm className="h-full" />
+              <div className="flex min-h-0 flex-1 flex-col">
+                <ContactForm className="h-full max-h-full" />
               </div>
             </div>
           </div>

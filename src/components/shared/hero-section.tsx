@@ -29,12 +29,12 @@ export function HeroSection() {
   };
 
   return (
-    <div className="relative min-h-screen bg-white overflow-hidden">
+    <div className="relative min-h-screen bg-background overflow-hidden">
       <Navbar />
 
       {/* Contenido principal */}
       <div className="relative z-10 flex flex-col items-center justify-center px-4 pt-20 pb-16 sm:pt-24 sm:pb-20 lg:pt-32 lg:pb-28">
-        <div className="mx-auto max-w-5xl text-center">
+        <div className="mx-auto max-w-4xl text-center">
           {/* Badge */}
           <div className="mb-6 inline-flex items-center rounded-full bg-primary/10 px-4 py-1.5 text-sm font-medium text-primary">
             Tu ecosistema del bienestar

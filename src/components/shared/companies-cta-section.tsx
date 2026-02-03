@@ -1,11 +1,14 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Briefcase, Users, Smile, TrendingUp, ArrowRight, ThumbsUp } from "lucide-react";
+import { Briefcase, Users, Heart, TrendingUp, ArrowRight } from "lucide-react";
 
 export function CompaniesCtaSection() {
   return (
-    <section className="relative py-24 overflow-hidden bg-white">
-      <div className="relative mx-auto max-w-[1600px] px-6 lg:px-10">
+    <section className="relative py-24 overflow-hidden">
+      {/* Background gradient */}
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-purple-500/5 to-pink-500/5" />
+
+      <div className="container relative mx-auto px-6 lg:px-8">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           {/* Left side - Content */}
           <div className="space-y-6">
@@ -56,7 +59,7 @@ export function CompaniesCtaSection() {
               <div className="flex items-start gap-3">
                 <div className="flex-shrink-0 mt-1">
                   <div className="rounded-lg bg-primary/10 p-2">
-                    <Smile className="w-5 h-5 text-primary" />
+                    <Heart className="w-5 h-5 text-primary" />
                   </div>
                 </div>
                 <div>
@@ -100,10 +103,10 @@ export function CompaniesCtaSection() {
 
           {/* Right side - Image/Stats */}
           <div className="relative">
-            <div className="relative rounded-2xl bg-gray-50 border border-gray-200 p-8 lg:p-12">
+            <div className="relative rounded-2xl bg-gradient-to-br from-primary/10 to-purple-500/10 p-8 lg:p-12">
               {/* Stats Cards */}
               <div className="space-y-6">
-                <div className="rounded-xl bg-white p-6 shadow-sm border border-gray-200">
+                <div className="rounded-xl bg-white/80 backdrop-blur-sm p-6 shadow-lg border border-white/20">
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-muted-foreground">
@@ -112,7 +115,7 @@ export function CompaniesCtaSection() {
                       <p className="text-3xl font-bold text-foreground mt-1">98%</p>
                     </div>
                     <div className="rounded-full bg-green-100 p-3">
-                      <ThumbsUp className="w-6 h-6 text-green-600" />
+                      <Heart className="w-6 h-6 text-green-600" />
                     </div>
                   </div>
                   <p className="text-xs text-muted-foreground mt-2">
@@ -120,7 +123,7 @@ export function CompaniesCtaSection() {
                   </p>
                 </div>
 
-                <div className="rounded-xl bg-white p-6 shadow-sm border border-gray-200">
+                <div className="rounded-xl bg-white/80 backdrop-blur-sm p-6 shadow-lg border border-white/20">
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-muted-foreground">
@@ -137,7 +140,7 @@ export function CompaniesCtaSection() {
                   </p>
                 </div>
 
-                <div className="rounded-xl bg-white p-6 shadow-sm border border-gray-200">
+                <div className="rounded-xl bg-white/80 backdrop-blur-sm p-6 shadow-lg border border-white/20">
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-muted-foreground">
@@ -156,6 +159,9 @@ export function CompaniesCtaSection() {
               </div>
             </div>
 
+            {/* Decorative elements */}
+            <div className="absolute -top-4 -right-4 w-24 h-24 bg-primary/20 rounded-full blur-3xl" />
+            <div className="absolute -bottom-4 -left-4 w-32 h-32 bg-purple-500/20 rounded-full blur-3xl" />
           </div>
         </div>
       </div>

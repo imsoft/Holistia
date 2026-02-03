@@ -559,8 +559,8 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
   );
 
   return (
-    <section className="py-16 bg-white">
-      <div className="mx-auto max-w-[1600px] px-6 lg:px-10">
+    <section className="py-16 bg-background">
+      <div className="container mx-auto px-4">
         {/* Header */}
         {!hideHeader && (
           <div className="text-center mb-12">
@@ -592,7 +592,7 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
                     variant="outline"
                     size="icon"
                     onClick={() => scroll(digitalProductsRef, 'left')}
-                    className="absolute left-0 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full bg-white/95 backdrop-blur-sm shadow-md hover:bg-white border border-gray-200"
+                    className="absolute left-0 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full bg-background/90 backdrop-blur-sm shadow-md hover:bg-background border"
                     aria-label="Scroll left"
                   >
                     <ChevronLeft className="w-5 h-5" />
@@ -601,7 +601,7 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
                     variant="outline"
                     size="icon"
                     onClick={() => scroll(digitalProductsRef, 'right')}
-                    className="absolute right-0 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full bg-white/95 backdrop-blur-sm shadow-md hover:bg-white border border-gray-200"
+                    className="absolute right-0 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full bg-background/90 backdrop-blur-sm shadow-md hover:bg-background border"
                     aria-label="Scroll right"
                   >
                     <ChevronRight className="w-5 h-5" />
@@ -724,7 +724,7 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
                     variant="outline"
                     size="icon"
                     onClick={() => scroll(eventsRef, 'left')}
-                    className="absolute left-0 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full bg-white/95 backdrop-blur-sm shadow-md hover:bg-white border border-gray-200"
+                    className="absolute left-0 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full bg-background/90 backdrop-blur-sm shadow-md hover:bg-background border"
                     aria-label="Scroll left"
                   >
                     <ChevronLeft className="w-5 h-5" />
@@ -733,7 +733,7 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
                     variant="outline"
                     size="icon"
                     onClick={() => scroll(eventsRef, 'right')}
-                    className="absolute right-0 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full bg-white/95 backdrop-blur-sm shadow-md hover:bg-white border border-gray-200"
+                    className="absolute right-0 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full bg-background/90 backdrop-blur-sm shadow-md hover:bg-background border"
                     aria-label="Scroll right"
                   >
                     <ChevronRight className="w-5 h-5" />
@@ -855,7 +855,7 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
                     variant="outline"
                     size="icon"
                     onClick={() => scroll(challengesRef, 'left')}
-                    className="absolute left-0 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full bg-white/95 backdrop-blur-sm shadow-md hover:bg-white border border-gray-200"
+                    className="absolute left-0 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full bg-background/90 backdrop-blur-sm shadow-md hover:bg-background border"
                     aria-label="Scroll left"
                   >
                     <ChevronLeft className="w-5 h-5" />
@@ -864,7 +864,7 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
                     variant="outline"
                     size="icon"
                     onClick={() => scroll(challengesRef, 'right')}
-                    className="absolute right-0 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full bg-white/95 backdrop-blur-sm shadow-md hover:bg-white border border-gray-200"
+                    className="absolute right-0 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full bg-background/90 backdrop-blur-sm shadow-md hover:bg-background border"
                     aria-label="Scroll right"
                   >
                     <ChevronRight className="w-5 h-5" />
@@ -925,7 +925,7 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
                     variant="outline"
                     size="icon"
                     onClick={() => scroll(professionalsRef, 'left')}
-                    className="absolute left-0 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full bg-white/95 backdrop-blur-sm shadow-md hover:bg-white border border-gray-200"
+                    className="absolute left-0 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full bg-background/90 backdrop-blur-sm shadow-md hover:bg-background border"
                     aria-label="Scroll left"
                   >
                     <ChevronLeft className="w-5 h-5" />
@@ -934,7 +934,7 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
                     variant="outline"
                     size="icon"
                     onClick={() => scroll(professionalsRef, 'right')}
-                    className="absolute right-0 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full bg-white/95 backdrop-blur-sm shadow-md hover:bg-white border border-gray-200"
+                    className="absolute right-0 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full bg-background/90 backdrop-blur-sm shadow-md hover:bg-background border"
                     aria-label="Scroll right"
                   >
                     <ChevronRight className="w-5 h-5" />
@@ -1017,7 +1017,7 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
                     variant="outline"
                     size="icon"
                     onClick={() => scroll(shopsRef, 'left')}
-                    className="absolute left-0 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full bg-white/95 backdrop-blur-sm shadow-md hover:bg-white border border-gray-200"
+                    className="absolute left-0 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full bg-background/90 backdrop-blur-sm shadow-md hover:bg-background border"
                     aria-label="Scroll left"
                   >
                     <ChevronLeft className="w-5 h-5" />
@@ -1026,7 +1026,7 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
                     variant="outline"
                     size="icon"
                     onClick={() => scroll(shopsRef, 'right')}
-                    className="absolute right-0 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full bg-white/95 backdrop-blur-sm shadow-md hover:bg-white border border-gray-200"
+                    className="absolute right-0 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full bg-background/90 backdrop-blur-sm shadow-md hover:bg-background border"
                     aria-label="Scroll right"
                   >
                     <ChevronRight className="w-5 h-5" />
@@ -1169,7 +1169,7 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
                     variant="outline"
                     size="icon"
                     onClick={() => scroll(holisticCentersRef, 'left')}
-                    className="absolute left-0 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full bg-white/95 backdrop-blur-sm shadow-md hover:bg-white border border-gray-200"
+                    className="absolute left-0 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full bg-background/90 backdrop-blur-sm shadow-md hover:bg-background border"
                     aria-label="Scroll left"
                   >
                     <ChevronLeft className="w-5 h-5" />
@@ -1178,7 +1178,7 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
                     variant="outline"
                     size="icon"
                     onClick={() => scroll(holisticCentersRef, 'right')}
-                    className="absolute right-0 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full bg-white/95 backdrop-blur-sm shadow-md hover:bg-white border border-gray-200"
+                    className="absolute right-0 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full bg-background/90 backdrop-blur-sm shadow-md hover:bg-background border"
                     aria-label="Scroll right"
                   >
                     <ChevronRight className="w-5 h-5" />
@@ -1301,7 +1301,7 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
                     variant="outline"
                     size="icon"
                     onClick={() => scroll(restaurantsRef, 'left')}
-                    className="absolute left-0 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full bg-white/95 backdrop-blur-sm shadow-md hover:bg-white border border-gray-200"
+                    className="absolute left-0 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full bg-background/90 backdrop-blur-sm shadow-md hover:bg-background border"
                     aria-label="Scroll left"
                   >
                     <ChevronLeft className="w-5 h-5" />
@@ -1310,7 +1310,7 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
                     variant="outline"
                     size="icon"
                     onClick={() => scroll(restaurantsRef, 'right')}
-                    className="absolute right-0 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full bg-white/95 backdrop-blur-sm shadow-md hover:bg-white border border-gray-200"
+                    className="absolute right-0 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full bg-background/90 backdrop-blur-sm shadow-md hover:bg-background border"
                     aria-label="Scroll right"
                   >
                     <ChevronRight className="w-5 h-5" />
@@ -1406,7 +1406,7 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
 
         {/* Call to action */}
         <div className="mt-12 text-center">
-          <Card className="bg-white border border-gray-200 max-w-2xl mx-auto py-4 shadow-sm">
+          <Card className="bg-primary/5 border-primary/20 max-w-2xl mx-auto py-4">
             <CardContent className="pt-6">
               <h3 className="text-2xl font-bold mb-2">
                 ¿Quieres ver más?

@@ -1092,7 +1092,7 @@ export default function MyChallengesPage() {
                                       <span className="font-semibold">Día {day}</span>
                                       {isLateDay && (
                                         <Badge variant="outline" className="text-amber-700 border-amber-300 bg-amber-100/80 text-xs">
-                                          Día tardío
+                                          Día de reto no cumplido
                                         </Badge>
                                       )}
                                       {checkin && (

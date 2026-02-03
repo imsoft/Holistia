@@ -86,8 +86,9 @@ export function CheckinForm({
     try {
       setUploading(true);
 
-      const maxSize = isVideo ? 100 * 1024 * 1024 : 10 * 1024 * 1024;
-      const maxSizeLabel = isVideo ? "100MB" : "10MB";
+      // Límite 50MB: Supabase Storage Free tiene máx 50MB por archivo
+      const maxSize = isVideo ? 50 * 1024 * 1024 : 10 * 1024 * 1024;
+      const maxSizeLabel = isVideo ? "50MB" : "10MB";
       if (file.size > maxSize) {
         toast.error(`El archivo es demasiado grande. Máximo ${maxSizeLabel}`);
         return;
@@ -251,7 +252,7 @@ export function CheckinForm({
                     <p className="font-medium">Video:</p>
                     <ul className="list-disc list-inside opacity-90 mt-1 space-y-0.5">
                       <li>Formatos: MP4, WEBM, MOV</li>
-                      <li>Tamaño máximo: 100MB</li>
+                      <li>Tamaño máximo: 50MB</li>
                       <li>Duración máxima: 30 segundos</li>
                     </ul>
                   </div>
@@ -260,7 +261,7 @@ export function CheckinForm({
             </Tooltip>
         </div>
         <p className="text-xs text-muted-foreground mb-2">
-          Fotos: máx 10MB • Videos: máx 100MB, 30 s (MP4, WEBM, MOV)
+          Fotos: máx 10MB • Videos: máx 50MB, 30 s (MP4, WEBM, MOV)
         </p>
         <div className="space-y-2">
           {evidenceUrl ? (

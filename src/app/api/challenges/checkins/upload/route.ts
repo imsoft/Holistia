@@ -72,17 +72,17 @@ export async function POST(request: NextRequest) {
     if (evidence_type !== 'text' && validTypes[evidence_type]) {
       if (!validTypes[evidence_type].includes(file.type)) {
         return NextResponse.json(
-          { error: `Tipo de archivo no válido para ${evidence_type}. Formatos permitidos: ${evidence_type === 'photo' ? 'JPG, PNG, WEBP, GIF' : 'MP4, WEBM, MOV (máx 30 s, 100MB)'}` },
+          { error: `Tipo de archivo no válido para ${evidence_type}. Formatos permitidos: ${evidence_type === 'photo' ? 'JPG, PNG, WEBP, GIF' : 'MP4, WEBM, MOV (máx 30 s, 50MB)'}` },
           { status: 400 }
         );
       }
     }
 
-    // Validar tamaño según tipo de archivo: fotos 10MB, videos 100MB (duración máx 30s)
+    // Validar tamaño: fotos 10MB, videos 50MB (Supabase Storage Free = 50MB por archivo)
     const maxSizePhoto = 10 * 1024 * 1024; // 10MB
-    const maxSizeVideo = 100 * 1024 * 1024; // 100MB
+    const maxSizeVideo = 50 * 1024 * 1024; // 50MB
     const maxSize = evidence_type === 'video' ? maxSizeVideo : maxSizePhoto;
-    const maxSizeLabel = evidence_type === 'video' ? '100MB' : '10MB';
+    const maxSizeLabel = evidence_type === 'video' ? '50MB' : '10MB';
     
     if (file.size > maxSize) {
       return NextResponse.json(

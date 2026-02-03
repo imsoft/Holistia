@@ -33,6 +33,8 @@ interface ChallengeCardProps {
   challenge: Challenge;
   onJoin?: () => void;
   userId?: string;
+  /** Mostrar botón de favoritos. En la landing (/) no se muestra. Por defecto true. */
+  showFavoriteButton?: boolean;
 }
 
 const difficultyLabels = {
@@ -49,7 +51,7 @@ const difficultyColors = {
   expert: 'bg-red-100 text-red-800',
 };
 
-export function ChallengeCard({ challenge, onJoin, userId }: ChallengeCardProps) {
+export function ChallengeCard({ challenge, onJoin, userId, showFavoriteButton = true }: ChallengeCardProps) {
   const router = useRouter();
   const detailHref = `/explore/challenge/${challenge.slug || challenge.id}`;
 
@@ -76,13 +78,15 @@ export function ChallengeCard({ challenge, onJoin, userId }: ChallengeCardProps)
           fill
           className="object-cover"
         />
-        <div className="absolute top-2 right-2 z-10" onClick={(e) => e.stopPropagation()}>
-          <FavoriteButton
-            itemId={challenge.id}
-            favoriteType="challenge"
-            variant="floating"
-          />
-        </div>
+        {showFavoriteButton && (
+          <div className="absolute top-2 right-2 z-10" onClick={(e) => e.stopPropagation()}>
+            <FavoriteButton
+              itemId={challenge.id}
+              favoriteType="challenge"
+              variant="floating"
+            />
+          </div>
+        )}
         {challenge.difficulty_level && (
           <div className="absolute top-2 left-2">
             <Badge

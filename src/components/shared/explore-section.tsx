@@ -897,7 +897,7 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
                 >
                 {challenges.map((challenge) => (
                   <div key={challenge.id} className="shrink-0 w-[280px] sm:w-[320px]">
-                    <ChallengeCard challenge={challenge as any} userId={currentUserId} />
+                    <ChallengeCard challenge={challenge as any} userId={currentUserId} showFavoriteButton={false} />
                   </div>
                 ))}
               </div>

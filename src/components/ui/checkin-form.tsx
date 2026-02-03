@@ -249,7 +249,7 @@ export function CheckinForm({
             </Tooltip>
         </div>
         <p className="text-xs text-muted-foreground mb-2">
-          Fotos: máx 10MB • Videos: máx 20MB, 30 s (MP4, WEBM, MOV)
+          Fotos: máx 10MB • Videos: máx 100MB, 30 s (MP4, WEBM, MOV)
         </p>
         <div className="space-y-2">
           {evidenceUrl ? (

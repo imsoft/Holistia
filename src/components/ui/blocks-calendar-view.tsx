@@ -84,8 +84,8 @@ export function BlocksCalendarView({
     return () => window.removeEventListener('reload-calendar', handleReload);
   }, [fetchBlocks]);
 
-  // Sincronizar bloqueos con Google Calendar
-  const handleSyncWithGoogleCalendar = async () => {
+  // Sincronización bidireccional: importar desde Google y luego enviar bloqueos a Google
+  const handleSyncWithGoogle = async () => {
     if (!userId) {
       toast.error('No se pudo identificar el usuario');
       return;
@@ -93,47 +93,28 @@ export function BlocksCalendarView({
 
     setSyncing(true);
     try {
-      const result = await syncAllBlocksToGoogleCalendar(userId);
+      const importResult = await syncGoogleCalendarEvents(userId);
+      if (importResult.success) {
+        fetchBlocks();
+      }
 
-      if (result.success) {
-        if (result.syncedCount && result.syncedCount > 0) {
-          toast.success(`${result.syncedCount} bloqueo(s) sincronizado(s) con Google Calendar`);
+      const syncResult = await syncAllBlocksToGoogleCalendar(userId);
+      if (syncResult.success) {
+        if (syncResult.syncedCount && syncResult.syncedCount > 0) {
+          toast.success(`Sincronizado con Google Calendar (${syncResult.syncedCount} bloqueo(s) enviados)`);
           fetchBlocks();
+        } else if (importResult.success) {
+          toast.success(importResult.message || 'Sincronización con Google completada');
         } else {
-          toast.info('No hay bloqueos pendientes de sincronizar');
+          toast.info('No hay cambios pendientes de sincronizar');
         }
       } else {
-        const errorMsg = 'error' in result ? result.error : 'Error desconocido';
-        toast.error(`Error: ${errorMsg}`);
+        const errorMsg = 'error' in syncResult ? syncResult.error : 'Error desconocido';
+        toast.error(`Error al sincronizar: ${errorMsg}`);
       }
     } catch (error) {
-      console.error('Error syncing blocks:', error);
+      console.error('Error syncing with Google:', error);
       toast.error('Error al sincronizar con Google Calendar');
-    } finally {
-      setSyncing(false);
-    }
-  };
-
-  // Importar eventos externos desde Google Calendar
-  const handleImportFromGoogleCalendar = async () => {
-    if (!userId) {
-      toast.error('No se pudo identificar el usuario');
-      return;
-    }
-
-    setSyncing(true);
-    try {
-      const result = await syncGoogleCalendarEvents(userId);
-
-      if (result.success) {
-        toast.success(result.message || 'Eventos de Google Calendar importados correctamente');
-        fetchBlocks();
-      } else {
-        toast.error(result.error || 'Error al importar eventos de Google Calendar');
-      }
-    } catch (error) {
-      console.error('Error importing Google Calendar events:', error);
-      toast.error('Error al importar eventos de Google Calendar');
     } finally {
       setSyncing(false);
     }
@@ -200,38 +181,28 @@ export function BlocksCalendarView({
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-end gap-2">
-        {userId && (
-          <>
-            <Button
-              variant="outline"
-              onClick={handleImportFromGoogleCalendar}
-              disabled={syncing}
-            >
-              <RefreshCw className={`w-4 h-4 mr-2 ${syncing ? 'animate-spin' : ''}`} />
-              {syncing ? 'Actualizando...' : 'Importar desde Google'}
-            </Button>
-            <Button
-              variant="outline"
-              onClick={handleSyncWithGoogleCalendar}
-              disabled={syncing}
-            >
-              <RefreshCw className={`w-4 h-4 mr-2 ${syncing ? 'animate-spin' : ''}`} />
-              {syncing ? 'Sincronizando...' : 'Enviar bloqueos a Google'}
-            </Button>
-          </>
-        )}
-        <Button onClick={onCreateBlock}>
-          <Plus className="w-4 h-4 mr-2" />
-          Nuevo Bloqueo
-        </Button>
-      </div>
-
       {/* Blocks List */}
       <Card>
         <CardHeader className="py-4">
-          <CardTitle>Todos los Bloqueos</CardTitle>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <CardTitle>Todos los Bloqueos</CardTitle>
+            <div className="flex flex-wrap items-center gap-2">
+              {userId && (
+                <Button
+                  variant="outline"
+                  onClick={handleSyncWithGoogle}
+                  disabled={syncing}
+                >
+                  <RefreshCw className={`w-4 h-4 mr-2 ${syncing ? 'animate-spin' : ''}`} />
+                  {syncing ? 'Sincronizando...' : 'Sincronizar con Google'}
+                </Button>
+              )}
+              <Button onClick={onCreateBlock}>
+                <Plus className="w-4 h-4 mr-2" />
+                Nuevo Bloqueo
+              </Button>
+            </div>
+          </div>
         </CardHeader>
         <CardContent className="py-4">
           {blocks.length === 0 ? (

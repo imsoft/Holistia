@@ -40,16 +40,19 @@ export function VideoPlayer({ url, className = "", fill = true, controls = true,
   const [error, setError] = useState(false);
   const [playUrl, setPlayUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [triedSigned, setTriedSigned] = useState(false);
 
   useEffect(() => {
     if (!url) {
       setPlayUrl(null);
       setLoading(false);
+      setTriedSigned(false);
       return;
     }
     if (url.startsWith("blob:")) {
       setPlayUrl(url);
       setLoading(false);
+      setTriedSigned(false);
       return;
     }
     const path = getStoragePathFromPublicUrl(url);
@@ -62,27 +65,75 @@ export function VideoPlayer({ url, className = "", fill = true, controls = true,
         .then(({ data, error: err }) => {
           if (!err && data?.signedUrl) {
             setPlayUrl(data.signedUrl);
+            setTriedSigned(true);
           } else {
             console.warn("No se pudo crear URL firmada, usando URL pública:", err?.message);
             setPlayUrl(url);
+            setTriedSigned(false);
           }
         })
         .catch((err) => {
           console.warn("Error al crear URL firmada, usando URL pública:", err);
           setPlayUrl(url);
+          setTriedSigned(false);
         })
         .finally(() => setLoading(false));
     } else {
       setPlayUrl(url);
       setLoading(false);
+      setTriedSigned(false);
     }
   }, [url]);
 
   const handleError = useCallback((e: React.SyntheticEvent<HTMLVideoElement, Event>) => {
-    console.error("Error al cargar vídeo:", e);
+    const videoElement = e.currentTarget;
+    const errorCode = videoElement.error;
+    let errorMsg = "Error desconocido";
+    if (errorCode) {
+      switch (errorCode.code) {
+        case 1: errorMsg = "MEDIA_ERR_ABORTED - La carga fue abortada"; break;
+        case 2: errorMsg = "MEDIA_ERR_NETWORK - Error de red"; break;
+        case 3: errorMsg = "MEDIA_ERR_DECODE - Error al decodificar"; break;
+        case 4: errorMsg = "MEDIA_ERR_SRC_NOT_SUPPORTED - Formato no soportado"; break;
+      }
+    }
+    console.error("Error al cargar vídeo:", {
+      error: errorMsg,
+      code: errorCode?.code,
+      url: playUrl || url,
+      triedSigned,
+      videoSrc: videoElement.src,
+    });
+    
+    if (!triedSigned && playUrl === url) {
+      const path = getStoragePathFromPublicUrl(url);
+      if (path) {
+        console.log("Intentando con URL firmada como fallback...");
+        const supabase = createClient();
+        supabase.storage
+          .from("challenges")
+          .createSignedUrl(path, 3600)
+          .then(({ data, error: err }) => {
+            if (!err && data?.signedUrl) {
+              setPlayUrl(data.signedUrl);
+              setTriedSigned(true);
+              setError(false);
+            } else {
+              setError(true);
+              onError?.();
+            }
+          })
+          .catch(() => {
+            setError(true);
+            onError?.();
+          });
+        return;
+      }
+    }
+    
     setError(true);
     onError?.();
-  }, [onError]);
+  }, [onError, playUrl, url, triedSigned]);
 
   const handleLoadedData = useCallback(() => {
     setError(false);
@@ -130,7 +181,6 @@ export function VideoPlayer({ url, className = "", fill = true, controls = true,
         className="w-full h-full object-contain"
         onError={handleError}
         onLoadedData={handleLoadedData}
-        crossOrigin="anonymous"
       />
     </div>
   );

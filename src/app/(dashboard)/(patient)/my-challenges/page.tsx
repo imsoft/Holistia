@@ -994,7 +994,7 @@ export default function MyChallengesPage() {
                     )}
                   </div>
                   <div className="h-40" /> {/* Spacer para el espacio de la imagen */}
-                  <CardHeader className="pb-3">
+                  <CardHeader className="pt-4 pb-2">
                     <CardTitle className="text-lg line-clamp-2">
                       {challenge.title}
                     </CardTitle>
@@ -1010,8 +1010,8 @@ export default function MyChallengesPage() {
                       </div>
                     )}
                   </CardHeader>
-                  <CardContent className="flex-1 pb-4">
-                    <div className="flex flex-wrap items-center gap-2 text-sm mb-4">
+                  <CardContent className="flex-1 pb-2">
+                    <div className="flex flex-wrap items-center gap-2 text-sm mb-3">
                       {challenge.duration_days && (
                         <Badge variant="outline" className="text-xs">
                           <Calendar className="h-3 w-3 mr-1" />
@@ -1031,12 +1031,12 @@ export default function MyChallengesPage() {
                       )}
                     </div>
                     {challenge.description && (
-                      <p className="text-sm text-muted-foreground line-clamp-3 mb-4">
+                      <p className="text-sm text-muted-foreground line-clamp-3 mb-3">
                         {stripHtml(challenge.description)}
                       </p>
                     )}
                   </CardContent>
-                  <div className="px-6 pb-6 mt-auto">
+                  <div className="px-6 pb-4 mt-auto">
                     {challenge.type === 'created' ? (
                       <div className="flex gap-2">
                         <Button

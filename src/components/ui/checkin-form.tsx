@@ -31,6 +31,8 @@ export function CheckinForm({
 }: CheckinFormProps) {
   const [notes, setNotes] = useState("");
   const [evidenceUrl, setEvidenceUrl] = useState<string | null>(null);
+  /** URL para mostrar el vídeo en la vista previa (signed; la pública puede fallar por CORS/cache). */
+  const [evidenceVideoPreviewUrl, setEvidenceVideoPreviewUrl] = useState<string | null>(null);
   const [evidenceType, setEvidenceType] = useState<'photo' | 'video' | null>(null);
   const [uploading, setUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -128,7 +130,11 @@ export function CheckinForm({
 
       const { error: uploadError } = await supabase.storage
         .from('challenges')
-        .upload(filePath, fileToUpload, { cacheControl: '3600', upsert: false });
+        .upload(filePath, fileToUpload, {
+          cacheControl: '3600',
+          upsert: false,
+          contentType: fileToUpload.type || (isVideo ? 'video/mp4' : 'image/jpeg'),
+        });
 
       if (uploadError) {
         const msg = uploadError.message || 'Error al subir el archivo';
@@ -147,6 +153,14 @@ export function CheckinForm({
       const { data: { publicUrl } } = supabase.storage.from('challenges').getPublicUrl(filePath);
       setEvidenceUrl(publicUrl);
       setEvidenceType(fileType);
+      if (isVideo) {
+        const { data: signedData } = await supabase.storage
+          .from('challenges')
+          .createSignedUrl(filePath, 3600);
+        setEvidenceVideoPreviewUrl(signedData?.signedUrl ?? publicUrl);
+      } else {
+        setEvidenceVideoPreviewUrl(null);
+      }
       toast.success(isVideo ? "Video subido exitosamente" : "Imagen subida exitosamente");
     } catch (error) {
       console.error('Error uploading file:', error);
@@ -159,6 +173,7 @@ export function CheckinForm({
 
   const handleRemoveEvidence = () => {
     setEvidenceUrl(null);
+    setEvidenceVideoPreviewUrl(null);
     setEvidenceType(null);
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
@@ -213,6 +228,7 @@ export function CheckinForm({
       // Reset form
       setNotes("");
       setEvidenceUrl(null);
+      setEvidenceVideoPreviewUrl(null);
       setEvidenceType(null);
       setIsPublic(false);
 
@@ -293,13 +309,13 @@ export function CheckinForm({
               <div className="relative h-48 w-full rounded-lg overflow-hidden border">
                 {evidenceType === 'video' ? (
                   <video
-                    key={evidenceUrl}
-                    src={evidenceUrl}
+                    key={evidenceVideoPreviewUrl ?? evidenceUrl}
+                    src={evidenceVideoPreviewUrl ?? evidenceUrl ?? ''}
                     controls
                     preload="metadata"
                     playsInline
                     className="w-full h-full object-cover"
-                    onError={() => toast.error("No se pudo cargar el vídeo. Comprueba la conexión o permisos del bucket.")}
+                    onError={() => toast.error("No se pudo reproducir la vista previa. El vídeo se subió correctamente y se guardará con el check-in.")}
                   />
                 ) : (
                   <Image

@@ -38,15 +38,17 @@ export function CheckinForm({
   const [submitting, setSubmitting] = useState(false);
   const [isPublic, setIsPublic] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const blobUrlRef = useRef<string | null>(null);
   const supabase = createClient();
 
   useEffect(() => {
     return () => {
-      if (evidenceVideoPreviewUrl?.startsWith("blob:")) {
-        URL.revokeObjectURL(evidenceVideoPreviewUrl);
+      if (blobUrlRef.current) {
+        URL.revokeObjectURL(blobUrlRef.current);
+        blobUrlRef.current = null;
       }
     };
-  }, [evidenceVideoPreviewUrl]);
+  }, []);
 
   const getVideoDuration = (file: File): Promise<number> => {
     return new Promise((resolve, reject) => {
@@ -162,8 +164,17 @@ export function CheckinForm({
       setEvidenceUrl(publicUrl);
       setEvidenceType(fileType);
       if (isVideo) {
-        setEvidenceVideoPreviewUrl(URL.createObjectURL(fileToUpload));
+        if (blobUrlRef.current) {
+          URL.revokeObjectURL(blobUrlRef.current);
+        }
+        const blobUrl = URL.createObjectURL(fileToUpload);
+        blobUrlRef.current = blobUrl;
+        setEvidenceVideoPreviewUrl(blobUrl);
       } else {
+        if (blobUrlRef.current) {
+          URL.revokeObjectURL(blobUrlRef.current);
+          blobUrlRef.current = null;
+        }
         setEvidenceVideoPreviewUrl(null);
       }
       toast.success(isVideo ? "Video subido exitosamente" : "Imagen subida exitosamente");
@@ -177,8 +188,9 @@ export function CheckinForm({
   };
 
   const handleRemoveEvidence = () => {
-    if (evidenceVideoPreviewUrl?.startsWith('blob:')) {
-      URL.revokeObjectURL(evidenceVideoPreviewUrl);
+    if (blobUrlRef.current) {
+      URL.revokeObjectURL(blobUrlRef.current);
+      blobUrlRef.current = null;
     }
     setEvidenceUrl(null);
     setEvidenceVideoPreviewUrl(null);
@@ -233,9 +245,9 @@ export function CheckinForm({
 
       toast.success(`Check-in del día ${dayNumber} completado! +${data.checkin.points_earned} puntos`);
       
-      // Reset form (revocar blob URL si era vídeo para liberar memoria)
-      if (evidenceVideoPreviewUrl?.startsWith('blob:')) {
-        URL.revokeObjectURL(evidenceVideoPreviewUrl);
+      if (blobUrlRef.current) {
+        URL.revokeObjectURL(blobUrlRef.current);
+        blobUrlRef.current = null;
       }
       setNotes("");
       setEvidenceUrl(null);

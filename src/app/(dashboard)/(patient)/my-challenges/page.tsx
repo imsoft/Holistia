@@ -392,7 +392,7 @@ export default function MyChallengesPage() {
     }
   };
 
-  // Calcular siguiente día por calendario (misma lógica que el API: fechas en UTC para coincidir con day_number del servidor)
+  // Calcular el día del reto que corresponde a "hoy" (fecha local del usuario) para que el título del diálogo coincida con el check-in que se guarda. Usamos la misma fecha que enviará el formulario (hoy en local) y la misma lógica que el API (comparar por día calendario) para que el número mostrado sea el que se guardará.
   useEffect(() => {
     if (!selectedChallenge) return;
     const startRef = selectedChallenge.started_at || selectedChallenge.created_at;
@@ -402,8 +402,11 @@ export default function MyChallengesPage() {
     }
     const start = new Date(startRef);
     const now = new Date();
+    // Misma fecha "hoy" que envía CheckinForm (local) para alinearnos con lo que guardará el API
+    const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+    const todayParsed = new Date(todayStr + "T12:00:00Z");
     const startOnly = { y: start.getUTCFullYear(), m: start.getUTCMonth(), d: start.getUTCDate() };
-    const todayOnly = { y: now.getUTCFullYear(), m: now.getUTCMonth(), d: now.getUTCDate() };
+    const todayOnly = { y: todayParsed.getUTCFullYear(), m: todayParsed.getUTCMonth(), d: todayParsed.getUTCDate() };
     const startMs = Date.UTC(startOnly.y, startOnly.m, startOnly.d);
     const todayMs = Date.UTC(todayOnly.y, todayOnly.m, todayOnly.d);
     const diffDays = Math.floor((todayMs - startMs) / (24 * 60 * 60 * 1000));

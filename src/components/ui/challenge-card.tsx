@@ -57,7 +57,7 @@ export function ChallengeCard({ challenge, onJoin, userId, showFavoriteButton = 
 
   return (
     <Card
-      className="group overflow-hidden hover:shadow-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer pt-0 pb-4"
+      className="group overflow-hidden hover:shadow-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer pt-0 pb-4 h-full flex flex-col"
       onClick={() => router.push(detailHref)}
       role="link"
       tabIndex={0}
@@ -68,7 +68,7 @@ export function ChallengeCard({ challenge, onJoin, userId, showFavoriteButton = 
         }
       }}
     >
-      <div className="relative h-48 w-full">
+      <div className="relative h-48 w-full shrink-0">
         <Image
           src={
             challenge.cover_image_url ||
@@ -98,7 +98,7 @@ export function ChallengeCard({ challenge, onJoin, userId, showFavoriteButton = 
         )}
       </div>
 
-      <CardHeader>
+      <CardHeader className="shrink-0">
         <div className="flex items-start justify-between gap-2">
           <h3 className="font-semibold text-lg line-clamp-2 flex-1 group-hover:text-primary transition-colors">
             {challenge.title}
@@ -111,7 +111,7 @@ export function ChallengeCard({ challenge, onJoin, userId, showFavoriteButton = 
         )}
       </CardHeader>
 
-      <CardContent className="space-y-3">
+      <CardContent className="space-y-3 flex-1 flex flex-col min-h-0 pt-0">
         {/* Información del profesional */}
         {challenge.professional_first_name && (
           <div className="flex items-center gap-2 text-sm">

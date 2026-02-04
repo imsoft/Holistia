@@ -3,16 +3,11 @@
 import React, { useState, useEffect } from "react";
 import { useUserId } from "@/stores/user-store";
 import { useUserStoreInit } from "@/hooks/use-user-store-init";
-import { Calendar, MapPin, Users, Brain, Sparkles, Activity, Apple } from "lucide-react";
-import Link from "next/link";
+import { Calendar, Users, Brain, Sparkles, Activity, Apple } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { EventWorkshop } from "@/types/event";
-import { formatEventDate, formatEventTime } from "@/utils/date-utils";
-import { formatPrice } from "@/lib/price-utils";
-import Image from "next/image";
-import { FavoriteButton } from "@/components/ui/favorite-button";
+import { EventCard, mapApiEventToCardEvent } from "@/components/ui/event-card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PageSkeleton } from "@/components/ui/layout-skeleton";
 
@@ -48,17 +43,6 @@ const categories = [
     description: "Nutriólogos y especialistas en alimentación",
   },
 ];
-
-const getCategoryLabel = (category: string) => {
-  const categories: Record<string, string> = {
-    espiritualidad: "Espiritualidad",
-    salud_mental: "Salud Mental",
-    salud_fisica: "Salud Física",
-    alimentacion: "Alimentación",
-    social: "Social"
-  };
-  return categories[category] || category;
-};
 
 const generateEventSlug = (eventName: string, eventId: string) => {
   const slug = eventName
@@ -255,84 +239,14 @@ export default function EventsPage() {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {filteredEvents.map((event) => (
-                  <Link
+                  <EventCard
                     key={event.id}
+                    event={mapApiEventToCardEvent(event)}
                     href={`/patient/${userId}/explore/event/${generateEventSlug(event.name, event.id!)}`}
-                  >
-                      <Card className="group hover:shadow-lg hover:-translate-y-2 transition-all duration-300 overflow-hidden cursor-pointer h-[480px] flex flex-col">
-                        <div className="relative w-full h-48 shrink-0">
-                          <div className="absolute inset-0 overflow-hidden">
-                            <Image
-                              src={(event.gallery_images && event.gallery_images.length > 0 && event.gallery_images[0]) || event.image_url || ""}
-                              alt={event.name}
-                              fill
-                              className="object-cover"
-                              unoptimized={((event.gallery_images && event.gallery_images.length > 0 && event.gallery_images[0]) || event.image_url || "").includes('supabase.co') || ((event.gallery_images && event.gallery_images.length > 0 && event.gallery_images[0]) || event.image_url || "").includes('supabase.in')}
-                              onError={(e) => {
-                                const target = e.target as HTMLImageElement;
-                                target.src = "/logos/holistia-black.png";
-                              }}
-                              style={{
-                                objectPosition: event.image_position || "center center"
-                              }}
-                            />
-                          </div>
-                          <div 
-                            className="absolute top-3 right-3 pointer-events-auto" 
-                            style={{ zIndex: 9999, position: 'absolute', top: '12px', right: '12px' }}
-                          >
-                            <FavoriteButton
-                              itemId={event.id!}
-                              favoriteType="event"
-                              variant="floating"
-                            />
-                          </div>
-                        </div>
-                        <CardHeader className="pb-3 shrink-0">
-                          <CardTitle className="text-lg mb-1.5 group-hover:text-primary transition-colors">{event.name}</CardTitle>
-                          <div className="flex flex-wrap gap-2 mb-2">
-                            <Badge variant="secondary">
-                              {getCategoryLabel(event.category)}
-                            </Badge>
-                            <Badge variant={event.is_free ? "default" : "outline"}>
-                              {event.is_free ? "Gratuito" : formatPrice(event.price, "MXN")}
-                            </Badge>
-                          </div>
-                        </CardHeader>
-                        <CardContent className="space-y-2 flex-1 pb-4 min-h-0">
-                          <div className="flex items-start gap-2 text-sm text-muted-foreground">
-                            <Calendar className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                            <div className="flex-1">
-                              <div className="font-medium text-foreground">
-                                {event.end_date && event.event_date !== event.end_date
-                                  ? `${formatEventDate(event.event_date)} - ${formatEventDate(event.end_date)}`
-                                  : formatEventDate(event.event_date)
-                                }
-                              </div>
-                              <div className="text-xs">
-                                {formatEventTime(event.event_time)}
-                                {event.end_time && ` - ${formatEventTime(event.end_time)}`}
-                              </div>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                            <MapPin className="w-4 h-4 flex-shrink-0" />
-                            <span className="truncate">{event.location}</span>
-                          </div>
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                            <Users className="w-4 h-4 flex-shrink-0" />
-                            <span>Cupo: {event.max_capacity} personas</span>
-                          </div>
-                          {event.description && (
-                            <div 
-                              className="text-sm text-muted-foreground line-clamp-2 prose prose-sm max-w-none"
-                              dangerouslySetInnerHTML={{ __html: event.description }}
-                            />
-                          )}
-                        </CardContent>
-                      </Card>
-                    </Link>
-                  ))}
+                    showFavoriteButton
+                    className="w-full block"
+                  />
+                ))}
               </div>
             )}
         </div>

@@ -25,6 +25,12 @@ import { VerifiedBadge } from "@/components/ui/verified-badge";
 import { FavoriteButton } from "@/components/ui/favorite-button";
 import { ProfessionalCard } from "@/components/ui/professional-card";
 import { ChallengeCard } from "@/components/ui/challenge-card";
+import { DigitalProductList } from "@/components/ui/digital-product-list";
+import { mapApiProductToCardProduct } from "@/components/ui/digital-product-card";
+import { EventCard, mapApiEventToCardEvent } from "@/components/ui/event-card";
+import { ShopCard, mapApiShopToCardShop } from "@/components/ui/shop-card";
+import { HolisticCenterCard, mapApiCenterToCardCenter } from "@/components/ui/holistic-center-card";
+import { RestaurantCard, mapApiRestaurantToCardRestaurant } from "@/components/ui/restaurant-card";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface Professional {
@@ -87,9 +93,14 @@ interface DigitalProduct {
   price: number;
   currency: string;
   cover_image_url: string | null;
+  duration_minutes?: number;
+  pages_count?: number;
+  sales_count: number;
   professional_applications?: {
     first_name: string;
     last_name: string;
+    profile_photo?: string;
+    is_verified?: boolean;
   };
 }
 
@@ -410,9 +421,14 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
             price,
             currency,
             cover_image_url,
+            duration_minutes,
+            pages_count,
+            sales_count,
             professional_applications(
               first_name,
-              last_name
+              last_name,
+              profile_photo,
+              is_verified
             )
           `)
           .eq('is_active', true)
@@ -425,20 +441,30 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
         if (digitalProductsData && digitalProductsData.length > 0) {
           console.log("✅ Digital products loaded:", digitalProductsData.length);
           // Transformar datos para asegurar el formato correcto
-          const transformedProducts = digitalProductsData.map((product: any) => ({
-            id: product.id,
-            slug: product.slug,
-            title: product.title,
-            description: product.description,
-            category: product.category,
-            price: product.price,
-            currency: product.currency,
-            cover_image_url: product.cover_image_url,
-            professional_applications: product.professional_applications ? {
-              first_name: product.professional_applications.first_name,
-              last_name: product.professional_applications.last_name,
-            } : undefined,
-          }));
+          const transformedProducts = digitalProductsData.map((product: any) => {
+            const pa = Array.isArray(product.professional_applications)
+              ? product.professional_applications[0]
+              : product.professional_applications;
+            return {
+              id: product.id,
+              slug: product.slug,
+              title: product.title,
+              description: product.description,
+              category: product.category,
+              price: product.price,
+              currency: product.currency,
+              cover_image_url: product.cover_image_url,
+              duration_minutes: product.duration_minutes,
+              pages_count: product.pages_count,
+              sales_count: product.sales_count ?? 0,
+              professional_applications: pa ? {
+                first_name: pa.first_name,
+                last_name: pa.last_name,
+                profile_photo: pa.profile_photo,
+                is_verified: pa.is_verified,
+              } : undefined,
+            };
+          });
           setDigitalProducts(transformedProducts);
         } else {
           console.log("⚠️ No digital products found or array is empty");
@@ -586,28 +612,6 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
               </Link>
             </div>
             <div className="relative">
-              {!loading && digitalProducts.length > 0 && (
-                <>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={() => scroll(digitalProductsRef, 'left')}
-                    className="absolute left-0 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full bg-background/90 backdrop-blur-sm shadow-md hover:bg-background border"
-                    aria-label="Scroll left"
-                  >
-                    <ChevronLeft className="w-5 h-5" />
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={() => scroll(digitalProductsRef, 'right')}
-                    className="absolute right-0 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full bg-background/90 backdrop-blur-sm shadow-md hover:bg-background border"
-                    aria-label="Scroll right"
-                  >
-                    <ChevronRight className="w-5 h-5" />
-                  </Button>
-                </>
-              )}
               {loading ? (
                 <div
                   ref={digitalProductsRef}
@@ -622,85 +626,13 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
                     <CardSkeleton key={`program-skeleton-${i}`} />
                   ))}
                 </div>
-              ) : digitalProducts.length > 0 ? (
-                <div
-                  ref={digitalProductsRef}
-                  className="flex gap-6 overflow-x-auto pb-4 px-12"
-                  style={{
-                    scrollbarWidth: 'none',
-                    msOverflowStyle: 'none',
-                    WebkitOverflowScrolling: 'touch'
-                  }}
-                >
-                {digitalProducts.map((product) => {
-                  const cleanDescription = product.description ? stripHtml(product.description) : null;
-                  return (
-                    <Link
-                      key={product.id}
-                      href={`/explore/program/${product.slug || product.id}`}
-                      className="shrink-0 w-[280px] sm:w-[320px]"
-                    >
-                      <Card className="group relative h-[480px] flex flex-col pt-0 pb-4 hover:shadow-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer overflow-hidden">
-                        <div className="relative w-full h-48 bg-gray-100 shrink-0 rounded-t-xl overflow-hidden">
-                          <div className="absolute inset-0 overflow-hidden">
-                            {product.cover_image_url ? (
-                              <Image
-                                src={product.cover_image_url}
-                                alt={product.title}
-                                fill
-                                className="object-cover"
-                                unoptimized
-                              />
-                            ) : (
-                              <div className="w-full h-full bg-linear-to-br from-primary/20 to-primary/10 flex items-center justify-center">
-                                <Sparkles className="h-16 w-16 text-primary/40" />
-                              </div>
-                            )}
-                          </div>
-                          {showFavorites && (
-                            <div 
-                              className="absolute top-3 right-3 pointer-events-auto" 
-                              style={{ zIndex: 9999, position: 'absolute', top: '12px', right: '12px' }}
-                            >
-                              <FavoriteButton
-                                itemId={product.id}
-                                favoriteType="digital_product"
-                                variant="floating"
-                              />
-                            </div>
-                          )}
-                        </div>
-                        <CardHeader className="pb-1.5 px-4 pt-3">
-                          <CardTitle className="text-lg line-clamp-2 group-hover:text-primary transition-colors">{product.title}</CardTitle>
-                          <div className="flex flex-wrap gap-1.5 mt-1">
-                            <Badge variant="secondary" className="text-xs">{product.category}</Badge>
-                            {product.professional_applications && (
-                              <div className="text-xs text-muted-foreground">
-                                Por {product.professional_applications.first_name} {product.professional_applications.last_name}
-                              </div>
-                            )}
-                          </div>
-                        </CardHeader>
-                        <CardContent className="px-4 pt-0 pb-3 flex flex-col grow">
-                          <div className="grow">
-                            {cleanDescription && (
-                              <p className="text-sm text-muted-foreground line-clamp-2 mb-2">
-                                {cleanDescription}
-                              </p>
-                            )}
-                          </div>
-                          <div className="flex items-center justify-between mb-2">
-                            <span className="text-lg font-bold text-primary">
-                              {formatPrice(product.price, product.currency || "MXN")}
-                            </span>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </Link>
-                  );
-                })}
-              </div>
-            ) : null}
+              ) : (
+                <DigitalProductList
+                  products={digitalProducts.map(mapApiProductToCardProduct)}
+                  layout="carousel"
+                  showProfessional={true}
+                />
+              )}
             </div>
           </div>
         ) : null}
@@ -764,72 +696,13 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
                     WebkitOverflowScrolling: 'touch'
                   }}
                 >
-                {events.map((event) => {
-                  return (
-                    <Link
-                      key={event.id}
-                      href={`/explore/event/${event.slug || event.id}`}
-                      className="shrink-0 w-[280px] sm:w-[320px]"
-                    >
-                      <Card className="group relative min-h-[400px] flex flex-col pt-0 pb-4 hover:shadow-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer overflow-hidden">
-                        <div className="relative w-full h-48 bg-gray-100 shrink-0 rounded-t-xl overflow-hidden">
-                          <div className="absolute inset-0 overflow-hidden">
-                            {event.image_url ? (
-                              <Image
-                                src={event.image_url}
-                                alt={event.name}
-                                fill
-                                className="object-cover"
-                                unoptimized
-                              />
-                            ) : (
-                              <div className="w-full h-full bg-linear-to-br from-primary/20 to-primary/10 flex items-center justify-center">
-                                <Calendar className="h-16 w-16 text-primary/40" />
-                              </div>
-                            )}
-                          </div>
-                          {showFavorites && (
-                            <div 
-                              className="absolute top-3 right-3 pointer-events-auto" 
-                              style={{ zIndex: 9999, position: 'absolute', top: '12px', right: '12px' }}
-                            >
-                              <FavoriteButton
-                                itemId={event.id}
-                                favoriteType="event"
-                                variant="floating"
-                              />
-                            </div>
-                          )}
-                        </div>
-                        <CardHeader className="pb-1.5 px-4 pt-3">
-                          <CardTitle className="text-lg line-clamp-2 group-hover:text-primary transition-colors">{event.name}</CardTitle>
-                          <div className="flex flex-wrap gap-1.5 mt-1">
-                            {event.category && (
-                              <Badge variant="secondary" className="text-xs">{getCategoryLabel(event.category)}</Badge>
-                            )}
-                            {event.price !== null && (
-                              <Badge variant="outline" className="text-xs">
-                                {event.price === 0 ? 'Gratis' : formatPrice(event.price, "MXN")}
-                              </Badge>
-                            )}
-                          </div>
-                        </CardHeader>
-                        <CardContent className="px-4 pt-0 pb-4 flex flex-col">
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1.5">
-                            <Calendar className="w-4 h-4 shrink-0" />
-                            <span className="line-clamp-1">{formatDate(event.event_date)}</span>
-                          </div>
-                          {event.location && (
-                            <div className="flex items-start gap-2 text-sm text-muted-foreground">
-                              <MapPin className="w-4 h-4 shrink-0 mt-0.5" />
-                              <span className="line-clamp-2">{event.location}</span>
-                            </div>
-                          )}
-                        </CardContent>
-                      </Card>
-                    </Link>
-                  );
-                })}
+                {events.map((event) => (
+                  <EventCard
+                    key={event.id}
+                    event={mapApiEventToCardEvent({ ...event, is_free: event.price === 0 })}
+                    showFavoriteButton={showFavorites}
+                  />
+                ))}
               </div>
             ) : null}
             </div>
@@ -896,7 +769,7 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
                   }}
                 >
                 {challenges.map((challenge) => (
-                  <div key={challenge.id} className="shrink-0 w-[280px] sm:w-[320px]">
+                  <div key={challenge.id} className="shrink-0 w-[280px] sm:w-[320px] h-[420px]">
                     <ChallengeCard challenge={challenge as any} userId={currentUserId} showFavoriteButton={false} />
                   </div>
                 ))}
@@ -1057,93 +930,13 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
                     WebkitOverflowScrolling: 'touch'
                   }}
                 >
-                {shops.map((shop) => {
-                  // Obtener la imagen principal: primero image_url, luego gallery[0], luego null
-                  // Verificar si gallery es un array o string
-                  let galleryArray: string[] = [];
-                  if (Array.isArray(shop.gallery)) {
-                    galleryArray = shop.gallery;
-                  } else if (typeof shop.gallery === 'string') {
-                    try {
-                      galleryArray = JSON.parse(shop.gallery);
-                    } catch (e) {
-                      // Si no es JSON válido, tratar como string único
-                      galleryArray = shop.gallery ? [shop.gallery] : [];
-                    }
-                  }
-                  
-                  const mainImage = shop.image_url || (galleryArray && galleryArray.length > 0 ? galleryArray[0] : null);
-                  
-                  // Limpiar HTML de la descripción
-                  const cleanDescription = shop.description ? stripHtml(shop.description) : null;
-                  
-                  return (
-                    <Link
-                      key={shop.id}
-                      href={`/explore/shop/${shop.slug || shop.id}`}
-                      className="shrink-0 w-[280px] sm:w-[320px]"
-                    >
-                      <Card className="group relative min-h-[400px] flex flex-col pt-0 pb-4 hover:shadow-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer overflow-hidden">
-                        <div className="relative w-full h-48 bg-muted shrink-0 rounded-t-xl overflow-hidden">
-                          <div className="absolute inset-0">
-                            {mainImage ? (
-                              <Image
-                                src={mainImage}
-                                alt={shop.name}
-                                fill
-                                className="object-cover object-center"
-                                unoptimized
-                              />
-                            ) : (
-                              <div className="w-full h-full bg-linear-to-br from-primary/20 to-primary/10 flex items-center justify-center">
-                                <Store className="h-16 w-16 text-primary/40" />
-                              </div>
-                            )}
-                          </div>
-                          {showFavorites && (
-                            <div 
-                              className="absolute top-3 right-3 pointer-events-auto" 
-                              style={{ zIndex: 9999, position: 'absolute', top: '12px', right: '12px' }}
-                            >
-                              <FavoriteButton
-                                itemId={shop.id}
-                                favoriteType="shop"
-                                variant="floating"
-                              />
-                            </div>
-                          )}
-                        </div>
-                        <CardHeader className="pb-1.5 px-4 pt-3">
-                          <CardTitle className="text-lg line-clamp-2 group-hover:text-primary transition-colors">{shop.name}</CardTitle>
-                          <div className="flex flex-wrap gap-1.5 mt-1">
-                            {shop.category && (
-                              <Badge variant="secondary" className="text-xs">{shop.category}</Badge>
-                            )}
-                            {shop.city && (
-                              <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                                <MapPin className="w-3 h-3 shrink-0" />
-                                <span>{shop.city}</span>
-                              </div>
-                            )}
-                          </div>
-                        </CardHeader>
-                        <CardContent className="px-4 pt-0 pb-4 flex flex-col">
-                          {cleanDescription && (
-                            <p className="text-sm text-muted-foreground line-clamp-2 mb-2">
-                              {cleanDescription}
-                            </p>
-                          )}
-                          {shop.address && (
-                            <div className="flex items-start gap-1 text-xs text-muted-foreground">
-                              <MapPin className="w-3 h-3 shrink-0 mt-0.5" />
-                              <span className="line-clamp-1">{shop.address}</span>
-                            </div>
-                          )}
-                        </CardContent>
-                      </Card>
-                    </Link>
-                  );
-                })}
+                {shops.map((shop) => (
+                  <ShopCard
+                    key={shop.id}
+                    shop={mapApiShopToCardShop(shop)}
+                    showFavoriteButton={showFavorites}
+                  />
+                ))}
               </div>
             ) : null}
             </div>
@@ -1209,73 +1002,13 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
                     WebkitOverflowScrolling: 'touch'
                   }}
                 >
-                {holisticCenters.map((center) => {
-                  const cleanDescription = center.description ? stripHtml(center.description) : null;
-                  
-                  return (
-                    <Link
-                      key={center.id}
-                      href={`/explore/holistic-center/${center.slug || center.id}`}
-                      className="shrink-0 w-[280px] sm:w-[320px]"
-                    >
-                      <Card className="group relative flex flex-col pt-0 pb-4 hover:shadow-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer overflow-hidden">
-                        <div className="relative w-full h-48 bg-gray-100 shrink-0 rounded-t-xl overflow-hidden">
-                          <div className="absolute inset-0 overflow-hidden">
-                            {center.image_url ? (
-                              <Image
-                                src={center.image_url}
-                                alt={center.name}
-                                fill
-                                className="object-cover"
-                                unoptimized
-                              />
-                            ) : (
-                              <div className="w-full h-full bg-linear-to-br from-primary/20 to-primary/10 flex items-center justify-center">
-                                <Building2 className="h-16 w-16 text-primary/40" />
-                              </div>
-                            )}
-                          </div>
-                          {showFavorites && (
-                            <div 
-                              className="absolute top-3 right-3 pointer-events-auto" 
-                              style={{ zIndex: 9999, position: 'absolute', top: '12px', right: '12px' }}
-                            >
-                              <FavoriteButton
-                                itemId={center.id}
-                                favoriteType="holistic_center"
-                                variant="floating"
-                              />
-                            </div>
-                          )}
-                        </div>
-                        <CardHeader className="pb-1.5 px-4 pt-3">
-                          <CardTitle className="text-lg line-clamp-2 group-hover:text-primary transition-colors">{center.name}</CardTitle>
-                          <div className="flex flex-wrap gap-1.5 mt-1">
-                            {center.city && (
-                              <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                                <MapPin className="w-3 h-3 shrink-0" />
-                                <span>{center.city}</span>
-                              </div>
-                            )}
-                          </div>
-                        </CardHeader>
-                        <CardContent className="px-4 pt-0 pb-3">
-                          {cleanDescription && (
-                            <p className="text-sm text-muted-foreground line-clamp-2 mb-2">
-                              {cleanDescription}
-                            </p>
-                          )}
-                          {center.address && (
-                            <div className="flex items-start gap-1 text-xs text-muted-foreground mb-0">
-                              <MapPin className="w-3 h-3 shrink-0 mt-0.5" />
-                              <span className="line-clamp-1">{center.address}</span>
-                            </div>
-                          )}
-                        </CardContent>
-                      </Card>
-                    </Link>
-                  );
-                })}
+                {holisticCenters.map((center) => (
+                  <HolisticCenterCard
+                    key={center.id}
+                    center={mapApiCenterToCardCenter(center)}
+                    showFavoriteButton={showFavorites}
+                  />
+                ))}
               </div>
             ) : null}
             </div>
@@ -1342,61 +1075,11 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
                   }}
                 >
                 {restaurants.map((restaurant) => (
-                  <Link
+                  <RestaurantCard
                     key={restaurant.id}
-                    href={`/explore/restaurant/${restaurant.slug || restaurant.id}`}
-                    className="shrink-0 w-[280px] sm:w-[320px]"
-                  >
-                    <Card className="group relative flex flex-col pt-0 pb-4 hover:shadow-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer overflow-hidden">
-                      <div className="relative w-full h-48 bg-gray-100 shrink-0 rounded-t-xl overflow-hidden">
-                        <div className="absolute inset-0 overflow-hidden">
-                          {restaurant.image_url ? (
-                            <Image
-                              src={restaurant.image_url}
-                              alt={restaurant.name}
-                              fill
-                              className="object-cover"
-                              unoptimized
-                            />
-                          ) : (
-                            <div className="w-full h-full bg-linear-to-br from-primary/20 to-primary/10 flex items-center justify-center">
-                              <UtensilsCrossed className="h-16 w-16 text-primary/40" />
-                            </div>
-                          )}
-                        </div>
-                        {showFavorites && (
-                          <div 
-                            className="absolute top-3 right-3 pointer-events-auto" 
-                            style={{ zIndex: 9999, position: 'absolute', top: '12px', right: '12px' }}
-                          >
-                            <FavoriteButton
-                              itemId={restaurant.id}
-                              favoriteType="restaurant"
-                              variant="floating"
-                            />
-                          </div>
-                        )}
-                      </div>
-                      <CardHeader className="pb-1.5 px-4 pt-3">
-                        <CardTitle className="text-lg line-clamp-2 group-hover:text-primary transition-colors">{restaurant.name}</CardTitle>
-                        <div className="flex flex-wrap gap-1.5 mt-1">
-                          {restaurant.cuisine_type && (
-                            <Badge variant="secondary" className="text-xs">{restaurant.cuisine_type}</Badge>
-                          )}
-                          {restaurant.price_range && (
-                            <Badge variant="outline" className="text-xs">{restaurant.price_range}</Badge>
-                          )}
-                        </div>
-                      </CardHeader>
-                      <CardContent className="px-4 pt-0 pb-4 flex flex-col">
-                        {restaurant.address && (
-                          <p className="text-sm text-muted-foreground line-clamp-2">
-                            {restaurant.address}
-                          </p>
-                        )}
-                      </CardContent>
-                    </Card>
-                  </Link>
+                    restaurant={mapApiRestaurantToCardRestaurant(restaurant)}
+                    showFavoriteButton={showFavorites}
+                  />
                 ))}
               </div>
             ) : null}

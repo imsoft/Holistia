@@ -3,16 +3,12 @@
 import { useState, useEffect } from "react";
 import { useUserId } from "@/stores/user-store";
 import { useUserStoreInit } from "@/hooks/use-user-store-init";
-import Link from "next/link";
-import Image from "next/image";
-import { Building2, MapPin, Brain, Sparkles, Activity, Apple, Users } from "lucide-react";
+import { Building2, Brain, Sparkles, Activity, Apple, Users } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { HolisticCenterCard, mapApiCenterToCardCenter } from "@/components/ui/holistic-center-card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PageSkeleton } from "@/components/ui/layout-skeleton";
-import { FavoriteButton } from "@/components/ui/favorite-button";
-
 interface HolisticCenter {
   id: string;
   slug?: string;
@@ -245,64 +241,12 @@ export default function HolisticCentersPage() {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {filteredCenters.map((center) => (
-                  <Link
+                  <HolisticCenterCard
                     key={center.id}
-                    href={`/explore/holistic-center/${center.slug || center.id}`}
-                  >
-                    <Card className="group hover:shadow-lg hover:-translate-y-2 transition-all duration-300 overflow-hidden cursor-pointer h-[480px] flex flex-col">
-                      <div className="relative w-full h-48 bg-linear-to-br from-primary/20 to-primary/10 shrink-0">
-                        {center.image_url && center.image_url.trim() !== "" ? (
-                          <Image
-                            src={center.image_url}
-                            alt={center.name}
-                            fill
-                            className="object-cover"
-                            unoptimized={center.image_url.includes('supabase.co') || center.image_url.includes('supabase.in')}
-                            onError={(e) => {
-                              const target = e.target as HTMLImageElement;
-                              target.src = "/logos/holistia-black.png";
-                            }}
-                          />
-                        ) : (
-                          <div className="absolute inset-0 flex items-center justify-center">
-                            <Building2 className="h-16 w-16 text-primary/40" />
-                          </div>
-                        )}
-                        <div 
-                          className="absolute top-3 right-3 pointer-events-auto" 
-                          style={{ zIndex: 9999, position: 'absolute', top: '12px', right: '12px' }}
-                        >
-                          <FavoriteButton
-                            itemId={center.id}
-                            favoriteType="holistic_center"
-                            variant="floating"
-                          />
-                        </div>
-                      </div>
-                      <CardHeader className="shrink-0">
-                        <CardTitle className="line-clamp-2 group-hover:text-primary transition-colors">{center.name}</CardTitle>
-                        {center.city && (
-                          <div className="flex items-center gap-1 text-xs text-muted-foreground mt-2">
-                            <MapPin className="w-3 h-3 shrink-0" />
-                            <span>{center.city}</span>
-                          </div>
-                        )}
-                      </CardHeader>
-                      <CardContent className="flex-1 pb-6 min-h-0">
-                        {center.description && (
-                          <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
-                            {center.description.replace(/<[^>]*>/g, '')}
-                          </p>
-                        )}
-                        {center.address && (
-                          <div className="flex items-start gap-2 mt-3 text-sm text-muted-foreground">
-                            <MapPin className="h-4 w-4 mt-0.5 shrink-0" />
-                            <span className="line-clamp-2">{center.address}</span>
-                          </div>
-                        )}
-                      </CardContent>
-                    </Card>
-                  </Link>
+                    center={mapApiCenterToCardCenter(center)}
+                    showFavoriteButton
+                    className="w-full block"
+                  />
                 ))}
               </div>
             )}

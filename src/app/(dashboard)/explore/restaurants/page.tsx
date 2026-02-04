@@ -3,14 +3,12 @@
 import React, { useState, useEffect } from "react";
 import { useUserId } from "@/stores/user-store";
 import { useUserStoreInit } from "@/hooks/use-user-store-init";
-import Link from "next/link";
-import { UtensilsCrossed, MapPin, Brain, Sparkles, Activity, Apple, Users } from "lucide-react";
+import { UtensilsCrossed, Brain, Sparkles, Activity, Apple, Users } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { RestaurantCard, mapApiRestaurantToCardRestaurant } from "@/components/ui/restaurant-card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PageSkeleton } from "@/components/ui/layout-skeleton";
-import Image from "next/image";
 
 interface Restaurant {
   id: string;
@@ -248,57 +246,12 @@ export default function RestaurantsPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {filteredRestaurants.map((restaurant) => (
-              <Link
+              <RestaurantCard
                 key={restaurant.id}
-                href={`/explore/restaurant/${restaurant.slug || restaurant.id}`}
-              >
-                <Card className="group hover:shadow-lg hover:-translate-y-2 transition-all duration-300 overflow-hidden cursor-pointer h-[480px] flex flex-col">
-                  <div className="relative w-full h-48 shrink-0">
-                    {restaurant.image_url ? (
-                      <Image
-                        src={restaurant.image_url}
-                        alt={restaurant.name}
-                        fill
-                        className="object-cover"
-                        unoptimized={restaurant.image_url.includes('supabase.co') || restaurant.image_url.includes('supabase.in')}
-                        onError={(e) => {
-                          const target = e.target as HTMLImageElement;
-                          target.src = "/logos/holistia-black.png";
-                        }}
-                      />
-                    ) : (
-                      <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center">
-                        <UtensilsCrossed className="h-16 w-16 text-primary/40" />
-                      </div>
-                    )}
-                  </div>
-                  <CardHeader className="shrink-0">
-                    <CardTitle className="line-clamp-2 group-hover:text-primary transition-colors">{restaurant.name}</CardTitle>
-                    <div className="flex gap-2 mt-2">
-                      {restaurant.cuisine_type && (
-                        <Badge variant="secondary">{restaurant.cuisine_type}</Badge>
-                      )}
-                      {restaurant.price_range && (
-                        <Badge variant="outline">{restaurant.price_range}</Badge>
-                      )}
-                    </div>
-                  </CardHeader>
-                  <CardContent className="flex-1 pb-6 min-h-0">
-                    {restaurant.description && (
-                      <div 
-                        className="text-sm text-muted-foreground line-clamp-3 prose prose-sm max-w-none"
-                        dangerouslySetInnerHTML={{ __html: restaurant.description }}
-                      />
-                    )}
-                    {restaurant.address && (
-                      <div className="flex items-start gap-2 mt-3 text-sm text-muted-foreground">
-                        <MapPin className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                        <span className="line-clamp-2">{restaurant.address}</span>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              </Link>
+                restaurant={mapApiRestaurantToCardRestaurant(restaurant)}
+                showFavoriteButton
+                className="w-full block"
+              />
             ))}
           </div>
         )}

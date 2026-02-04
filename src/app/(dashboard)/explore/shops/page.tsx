@@ -3,12 +3,10 @@
 import { useState, useEffect } from "react";
 import { useUserId } from "@/stores/user-store";
 import { useUserStoreInit } from "@/hooks/use-user-store-init";
-import Link from "next/link";
-import Image from "next/image";
-import { Store, MapPin, Brain, Sparkles, Activity, Apple, Users } from "lucide-react";
+import { Store, Brain, Sparkles, Activity, Apple, Users } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { ShopCard, mapApiShopToCardShop } from "@/components/ui/shop-card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PageSkeleton } from "@/components/ui/layout-skeleton";
 
@@ -248,56 +246,12 @@ export default function ShopsPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {filteredShops.map((shop) => (
-              <Link
+              <ShopCard
                 key={shop.id}
-                href={`/explore/shop/${shop.slug || shop.id}`}
-              >
-                <Card className="group hover:shadow-lg hover:-translate-y-2 transition-all duration-300 overflow-hidden cursor-pointer h-[480px] flex flex-col">
-                  <div className="relative w-full h-48 bg-muted shrink-0 overflow-hidden">
-                    {shop.image_url && shop.image_url.trim() !== "" ? (
-                      <Image
-                        src={shop.image_url}
-                        alt={shop.name}
-                        fill
-                        className="object-cover object-center"
-                        unoptimized={shop.image_url.includes('supabase.co') || shop.image_url.includes('supabase.in')}
-                        onError={(e) => {
-                          const target = e.target as HTMLImageElement;
-                          target.src = "/logos/holistia-black.png";
-                        }}
-                      />
-                    ) : (
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <Store className="h-16 w-16 text-primary/40" />
-                      </div>
-                    )}
-                  </div>
-                  <CardHeader className="shrink-0">
-                    <CardTitle className="line-clamp-2 group-hover:text-primary transition-colors">{shop.name}</CardTitle>
-                    {shop.category && (
-                      <Badge variant="secondary" className="w-fit mt-2">
-                        {shop.category}
-                      </Badge>
-                    )}
-                  </CardHeader>
-                  <CardContent className="flex-1 pb-6 min-h-0">
-                    {shop.description && (
-                      <div 
-                        className="text-sm text-muted-foreground line-clamp-3 prose prose-sm max-w-none"
-                        dangerouslySetInnerHTML={{ __html: shop.description }}
-                      />
-                    )}
-                    {(shop.address || shop.city) && (
-                      <div className="flex items-start gap-2 mt-3 text-sm text-muted-foreground">
-                        <MapPin className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                        <span className="line-clamp-2">
-                          {shop.address && shop.city ? `${shop.address}, ${shop.city}` : shop.address || shop.city}
-                        </span>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              </Link>
+                shop={mapApiShopToCardShop(shop)}
+                showFavoriteButton
+                className="w-full block"
+              />
             ))}
           </div>
         )}

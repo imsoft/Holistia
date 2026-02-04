@@ -45,6 +45,8 @@ interface Professional {
   average_rating?: number;
   total_reviews?: number;
   admin_rating?: number;
+  is_verified?: boolean;
+  verified?: boolean;
 }
 
 const categories = [
@@ -426,6 +428,8 @@ export default function ProfessionalsPage() {
                           imagePosition: professional.imagePosition || "center center",
                           average_rating: professional.average_rating,
                           total_reviews: professional.total_reviews,
+                          is_verified: professional.is_verified,
+                          verified: professional.verified,
                         }}
                       />
                   </div>

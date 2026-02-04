@@ -141,7 +141,7 @@ export const ProfessionalCard = ({ professional, userId, showFavoriteButton = tr
         )}
       </div>
 
-      <CardContent className="px-4 pt-3 pb-4 flex flex-col grow min-h-0">
+      <CardContent className="px-4 pt-2 pb-4 flex flex-col grow min-h-0">
         <div className="space-y-2 flex flex-col grow">
           {/* Header - Especialidad arriba, Nombre y Rating en la misma línea */}
           <div>
@@ -149,12 +149,14 @@ export const ProfessionalCard = ({ professional, userId, showFavoriteButton = tr
               {professional.profession}
             </h3>
             <div className="flex items-center justify-between gap-2 mt-1">
-              <div className="flex items-center gap-1.5 truncate">
+              <div className="flex items-center gap-1.5 min-w-0 flex-1">
                 <p className="text-sm text-muted-foreground truncate">
                   {professional.name || `${professional.first_name || ''} ${professional.last_name || ''}`.trim()}
                 </p>
                 {(professional.is_verified || professional.verified) && (
-                  <VerifiedBadge size={14} />
+                  <span className="flex-shrink-0" title="Verificado">
+                    <VerifiedBadge size={14} />
+                  </span>
                 )}
               </div>
               {/* Rating */}

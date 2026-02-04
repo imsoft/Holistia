@@ -12,10 +12,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { EventWorkshop } from "@/types/event";
 import { formatEventDate, formatEventTime } from "@/utils/date-utils";
+import { EventCard, mapApiEventToCardEvent } from "@/components/ui/event-card";
+import { ShopCard, mapApiShopToCardShop } from "@/components/ui/shop-card";
+import { HolisticCenterCard, mapApiCenterToCardCenter } from "@/components/ui/holistic-center-card";
+import { RestaurantCard, mapApiRestaurantToCardRestaurant } from "@/components/ui/restaurant-card";
 import { formatPrice } from "@/lib/price-utils";
 import { determineProfessionalModality, transformServicesFromDB } from "@/utils/professional-utils";
 import { sortProfessionalsByRanking } from "@/utils/professional-ranking";
 import { FavoriteButton } from "@/components/ui/favorite-button";
+import { DigitalProductList } from "@/components/ui/digital-product-list";
+import { mapApiProductToCardProduct } from "@/components/ui/digital-product-card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useUserId } from "@/stores/user-store";
 import { useUserStoreInit } from "@/hooks/use-user-store-init";
@@ -83,6 +89,8 @@ interface Professional {
   average_rating?: number;
   total_reviews?: number;
   admin_rating?: number;
+  is_verified?: boolean;
+  verified?: boolean;
 }
 
 interface Restaurant {
@@ -134,6 +142,7 @@ interface DigitalProduct {
   pages_count?: number;
   is_active: boolean;
   created_at: string;
+  sales_count?: number;
   wellness_areas?: string[];
   professional_applications?: {
     first_name: string;
@@ -269,7 +278,6 @@ const HomeUserPage = () => {
   const challengesScrollRef = useRef<HTMLDivElement>(null);
   const restaurantsScrollRef = useRef<HTMLDivElement>(null);
   const shopsScrollRef = useRef<HTMLDivElement>(null);
-  const digitalProductsScrollRef = useRef<HTMLDivElement>(null);
   const holisticCentersScrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -847,11 +855,6 @@ const HomeUserPage = () => {
     }
     setFilteredDigitalProducts(filteredProds);
 
-    // Reiniciar scroll del carrusel de programas al inicio
-    if (digitalProductsScrollRef.current) {
-      digitalProductsScrollRef.current.scrollTo({ left: 0, behavior: 'smooth' });
-    }
-
     // Filtrar retos (públicos) por wellness_areas
     let filteredChals = [...challenges];
     if (categoryIds.length > 0) {
@@ -970,18 +973,6 @@ const HomeUserPage = () => {
   const scrollShopsRight = () => {
     if (shopsScrollRef.current) {
       shopsScrollRef.current.scrollBy({ left: 416, behavior: 'smooth' });
-    }
-  };
-
-  const scrollDigitalProductsLeft = () => {
-    if (digitalProductsScrollRef.current) {
-      digitalProductsScrollRef.current.scrollBy({ left: -416, behavior: 'smooth' });
-    }
-  };
-
-  const scrollDigitalProductsRight = () => {
-    if (digitalProductsScrollRef.current) {
-      digitalProductsScrollRef.current.scrollBy({ left: 416, behavior: 'smooth' });
     }
   };
 
@@ -1145,91 +1136,11 @@ const HomeUserPage = () => {
                 </Link>
               </div>
 
-              <div className="relative">
-                <button
-                  onClick={scrollDigitalProductsLeft}
-                  className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-background/80 backdrop-blur-sm rounded-full p-2 shadow-lg hover:bg-background transition-colors"
-                  aria-label="Scroll left"
-                >
-                  <ChevronLeft className="h-6 w-6" />
-                </button>
-                <button
-                  onClick={scrollDigitalProductsRight}
-                  className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-background/80 backdrop-blur-sm rounded-full p-2 shadow-lg hover:bg-background transition-colors"
-                  aria-label="Scroll right"
-                >
-                  <ChevronRight className="h-6 w-6" />
-                </button>
-
-                <div
-                  ref={digitalProductsScrollRef}
-                  className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar px-12"
-                  style={{ scrollPaddingLeft: '1rem', scrollPaddingRight: '1rem' }}
-                >
-                  {filteredDigitalProducts.map((product) => {
-                    return (
-                      <Link
-                        key={product.id}
-                        href={`/explore/program/${product.slug || product.id}`}
-                        className="shrink-0 w-96"
-                      >
-                        <Card className="group overflow-hidden hover:shadow-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer h-[480px] flex flex-col pt-0 pb-4">
-                          <div className="relative h-64 w-full shrink-0 rounded-t-xl overflow-hidden">
-                            <div className="absolute inset-0 overflow-hidden">
-                              {product.cover_image_url ? (
-                                <Image
-                                  src={product.cover_image_url}
-                                  alt={product.title}
-                                  fill
-                                  className="object-cover"
-                                  unoptimized={product.cover_image_url.includes('supabase.co') || product.cover_image_url.includes('supabase.in')}
-                                  onError={(e) => {
-                                    const target = e.target as HTMLImageElement;
-                                    target.src = "/logos/holistia-black.png";
-                                  }}
-                                />
-                              ) : (
-                                <div className="w-full h-full bg-linear-to-br from-primary/20 to-primary/10 flex items-center justify-center">
-                                  <Store className="h-12 w-12 text-primary/40" />
-                                </div>
-                              )}
-                            </div>
-                            <div 
-                              className="absolute top-3 right-3 pointer-events-auto" 
-                              style={{ zIndex: 9999, position: 'absolute', top: '12px', right: '12px' }}
-                            >
-                              <FavoriteButton
-                                itemId={product.id}
-                                favoriteType="digital_product"
-                                variant="floating"
-                              />
-                            </div>
-                          </div>
-                          <CardHeader className="pb-3 shrink-0">
-                            <CardTitle className="line-clamp-2 group-hover:text-primary transition-colors">{product.title}</CardTitle>
-                            {product.professional_applications && (
-                              <div className="flex items-center gap-2 mt-2 text-sm text-muted-foreground">
-                                <span>Por {product.professional_applications.first_name} {product.professional_applications.last_name}</span>
-                              </div>
-                            )}
-                          </CardHeader>
-                          <CardContent className="flex-1 pb-4 min-h-0">
-                            <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
-                              {product.description}
-                            </p>
-                            <div className="flex items-center justify-between">
-                              <Badge variant="secondary">{product.category}</Badge>
-                              <span className="text-lg font-bold text-primary">
-                                {formatPrice(product.price, product.currency || "MXN")}
-                              </span>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      </Link>
-                    );
-                  })}
-                </div>
-              </div>
+              <DigitalProductList
+                products={filteredDigitalProducts.map(mapApiProductToCardProduct)}
+                layout="carousel"
+                showProfessional={true}
+              />
             </div>
           )}
 
@@ -1267,7 +1178,7 @@ const HomeUserPage = () => {
                   style={{ scrollPaddingLeft: '1rem', scrollPaddingRight: '1rem' }}
                 >
                   {filteredChallenges.map((challenge) => (
-                    <div key={challenge.id} className="shrink-0 w-96">
+                    <div key={challenge.id} className="shrink-0 w-96 h-[420px]">
                       <ChallengeCard challenge={challenge as any} userId={userId || undefined} />
                     </div>
                   ))}
@@ -1322,78 +1233,13 @@ const HomeUserPage = () => {
                   className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar px-12"
                   style={{ scrollPaddingLeft: '1rem', scrollPaddingRight: '1rem' }}
                 >
-                  {filteredEvents.map((event) => {
-                    return (
-                      <Link
-                        key={event.id}
-                        href={`/explore/event/${event.slug || event.id}`}
-                        className="shrink-0 w-96"
-                      >
-                        <Card className="group hover:shadow-lg hover:-translate-y-2 transition-all duration-300 overflow-hidden cursor-pointer h-[480px] flex flex-col pt-0 pb-4">
-                          <div className="relative w-full h-64 bg-gray-100 shrink-0 rounded-t-xl overflow-hidden">
-                            <div className="absolute inset-0 overflow-hidden">
-                              <Image
-                                src={(event.gallery_images && event.gallery_images.length > 0 && event.gallery_images[0]) || event.image_url || "/logos/holistia-black.png"}
-                                alt={event.name}
-                                fill
-                                className="object-cover"
-                                style={{ objectPosition: event.image_position || "center center" }}
-                                unoptimized
-                              />
-                            </div>
-                            <div 
-                              className="absolute top-3 right-3 pointer-events-auto" 
-                              style={{ zIndex: 9999, position: 'absolute', top: '12px', right: '12px' }}
-                            >
-                              <FavoriteButton
-                                itemId={event.id!}
-                                favoriteType="event"
-                                variant="floating"
-                              />
-                            </div>
-                          </div>
-                          <CardHeader className="pb-3 shrink-0">
-                            <CardTitle className="text-lg mb-1.5 group-hover:text-primary transition-colors">{event.name}</CardTitle>
-                            <div className="flex flex-wrap gap-2 mb-2">
-                              <Badge variant="secondary">
-                                {getCategoryLabel(event.category)}
-                              </Badge>
-                              <Badge variant={event.is_free ? "default" : "outline"}>
-                                {event.is_free ? "Gratuito" : formatPrice(event.price, "MXN")}
-                              </Badge>
-                            </div>
-                          </CardHeader>
-                          <CardContent className="space-y-2 flex-1 pb-4 min-h-0">
-                            <div className="flex items-start gap-2 text-sm text-muted-foreground">
-                              <Calendar className="w-4 h-4 mt-0.5 shrink-0" />
-                              <div className="flex-1">
-                                <div className="font-medium text-foreground">
-                                  {event.end_date && event.event_date !== event.end_date
-                                    ? `${formatEventDate(event.event_date)} - ${formatEventDate(event.end_date)}`
-                                    : formatEventDate(event.event_date)
-                                  }
-                                </div>
-                                <div className="text-xs">
-                                  {formatEventTime(event.event_time)}
-                                  {event.end_time && ` - ${formatEventTime(event.end_time)}`}
-                                </div>
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                              <MapPin className="w-4 h-4 shrink-0" />
-                              <span className="truncate">{event.location}</span>
-                            </div>
-                            {event.description && (
-                              <div
-                                className="text-sm text-muted-foreground line-clamp-2 prose prose-sm max-w-none"
-                                dangerouslySetInnerHTML={{ __html: event.description }}
-                              />
-                            )}
-                          </CardContent>
-                        </Card>
-                      </Link>
-                    );
-                  })}
+                  {filteredEvents.map((event) => (
+                    <EventCard
+                      key={event.id}
+                      event={mapApiEventToCardEvent(event)}
+                      showFavoriteButton
+                    />
+                  ))}
                 </div>
               </div>
             )}
@@ -1516,6 +1362,8 @@ const HomeUserPage = () => {
                           imagePosition: professional.imagePosition || "center center",
                           average_rating: professional.average_rating,
                           total_reviews: professional.total_reviews,
+                          is_verified: professional.is_verified,
+                          verified: professional.verified,
                         }}
                       />
                     </div>
@@ -1572,68 +1420,11 @@ const HomeUserPage = () => {
                   className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar px-12"
                 >
                   {filteredRestaurants.map((restaurant) => (
-                    <Link
+                    <RestaurantCard
                       key={restaurant.id}
-                      href={`/explore/restaurant/${restaurant.slug || restaurant.id}`}
-                      className="shrink-0 w-96"
-                      onClick={() => {
-                      }}
-                    >
-                      <Card className="group hover:shadow-lg hover:-translate-y-2 transition-all duration-300 overflow-hidden cursor-pointer h-[480px] flex flex-col pt-0 pb-4">
-                        <div className="relative w-full h-64 bg-gray-100 shrink-0 rounded-t-xl overflow-hidden">
-                          <div className="absolute inset-0 overflow-hidden">
-                            {restaurant.image_url ? (
-                              <Image
-                                src={restaurant.image_url}
-                                alt={restaurant.name}
-                                fill
-                                className="object-cover"
-                                unoptimized
-                              />
-                            ) : (
-                              <div className="w-full h-full bg-linear-to-br from-primary/20 to-primary/10 flex items-center justify-center">
-                                <UtensilsCrossed className="h-16 w-16 text-primary/40" />
-                              </div>
-                            )}
-                          </div>
-                          <div 
-                            className="absolute top-3 right-3 pointer-events-auto" 
-                            style={{ zIndex: 9999, position: 'absolute', top: '12px', right: '12px' }}
-                          >
-                            <FavoriteButton
-                              itemId={restaurant.id}
-                              favoriteType="restaurant"
-                              variant="floating"
-                            />
-                          </div>
-                        </div>
-                        <CardHeader className="pb-3 shrink-0">
-                          <CardTitle className="line-clamp-2 group-hover:text-primary transition-colors">{restaurant.name}</CardTitle>
-                          <div className="flex gap-2 mt-1.5">
-                            {restaurant.cuisine_type && (
-                              <Badge variant="secondary">{restaurant.cuisine_type}</Badge>
-                            )}
-                            {restaurant.price_range && (
-                              <Badge variant="outline">{restaurant.price_range}</Badge>
-                            )}
-                          </div>
-                        </CardHeader>
-                        <CardContent className="flex-1 pb-4 min-h-0">
-                          {restaurant.description && (
-                            <div
-                              className="text-sm text-muted-foreground line-clamp-3 prose prose-sm max-w-none"
-                              dangerouslySetInnerHTML={{ __html: restaurant.description }}
-                            />
-                          )}
-                          {restaurant.address && (
-                            <div className="flex items-start gap-2 mt-3 text-sm text-muted-foreground">
-                              <MapPin className="h-4 w-4 mt-0.5 shrink-0" />
-                              <span className="line-clamp-2">{restaurant.address}</span>
-                            </div>
-                          )}
-                        </CardContent>
-                      </Card>
-                    </Link>
+                      restaurant={mapApiRestaurantToCardRestaurant(restaurant)}
+                      showFavoriteButton
+                    />
                   ))}
                 </div>
               </div>
@@ -1687,70 +1478,11 @@ const HomeUserPage = () => {
                   className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar px-12"
                 >
                   {filteredShops.map((shop) => (
-                    <Link
+                    <ShopCard
                       key={shop.id}
-                      href={`/explore/shop/${shop.slug || shop.id}`}
-                      className="shrink-0 w-96"
-                      onClick={() => {
-                      }}
-                    >
-                      <Card className="group hover:shadow-lg hover:-translate-y-2 transition-all duration-300 overflow-hidden cursor-pointer h-[480px] flex flex-col py-4">
-                        <div className="relative w-full h-64 bg-muted shrink-0 overflow-hidden">
-                          <div className="absolute inset-0">
-                            {shop.image_url ? (
-                              <Image
-                                src={shop.image_url}
-                                alt={shop.name}
-                                fill
-                                className="object-cover object-center"
-                                sizes="384px"
-                                unoptimized={shop.image_url.includes('supabase.co') || shop.image_url.includes('supabase.in')}
-                                onError={(e) => {
-                                  const target = e.target as HTMLImageElement;
-                                  target.src = "/logos/holistia-black.png";
-                                }}
-                              />
-                            ) : (
-                              <div className="w-full h-full bg-linear-to-br from-primary/20 to-primary/10 flex items-center justify-center">
-                                <Store className="h-16 w-16 text-primary/40" />
-                              </div>
-                            )}
-                          </div>
-                          <div 
-                            className="absolute top-3 right-3 pointer-events-auto" 
-                            style={{ zIndex: 9999, position: 'absolute', top: '12px', right: '12px' }}
-                          >
-                            <FavoriteButton
-                              itemId={shop.id}
-                              favoriteType="shop"
-                              variant="floating"
-                            />
-                          </div>
-                        </div>
-                        <CardHeader className="pb-3 shrink-0">
-                          <CardTitle className="line-clamp-2 group-hover:text-primary transition-colors">{shop.name}</CardTitle>
-                          {shop.category && (
-                            <Badge variant="secondary" className="w-fit mt-1.5">{shop.category}</Badge>
-                          )}
-                        </CardHeader>
-                        <CardContent className="flex-1 pb-4 min-h-0">
-                          {shop.description && (
-                            <div
-                              className="text-sm text-muted-foreground line-clamp-3 prose prose-sm max-w-none"
-                              dangerouslySetInnerHTML={{ __html: shop.description }}
-                            />
-                          )}
-                          {(shop.address || shop.city) && (
-                            <div className="flex items-start gap-2 mt-3 text-sm text-muted-foreground">
-                              <MapPin className="h-4 w-4 mt-0.5 shrink-0" />
-                              <span className="line-clamp-2">
-                                {shop.address && shop.city ? `${shop.address}, ${shop.city}` : shop.address || shop.city}
-                              </span>
-                            </div>
-                          )}
-                        </CardContent>
-                      </Card>
-                    </Link>
+                      shop={mapApiShopToCardShop(shop)}
+                      showFavoriteButton
+                    />
                   ))}
                 </div>
               </div>
@@ -1813,71 +1545,11 @@ const HomeUserPage = () => {
                   style={{ scrollPaddingLeft: '1rem', scrollPaddingRight: '1rem' }}
                 >
                   {filteredHolisticCenters.map((center) => (
-                    <Link
+                    <HolisticCenterCard
                       key={center.id}
-                      href={`/explore/holistic-center/${center.slug || center.id}`}
-                      className="shrink-0 w-96"
-                      onClick={() => {
-                      }}
-                    >
-                      <Card className="group hover:shadow-lg hover:-translate-y-2 transition-all duration-300 overflow-hidden cursor-pointer h-[480px] flex flex-col pt-0 pb-4">
-                        <div className="relative w-full h-64 bg-gray-100 shrink-0 rounded-t-xl overflow-hidden">
-                          <div className="absolute inset-0 overflow-hidden">
-                            {center.image_url ? (
-                              <Image
-                                src={center.image_url}
-                                alt={center.name}
-                                fill
-                                className="object-cover"
-                                unoptimized={center.image_url.includes('supabase.co') || center.image_url.includes('supabase.in')}
-                                onError={(e) => {
-                                  const target = e.target as HTMLImageElement;
-                                  target.src = "/logos/holistia-black.png";
-                                }}
-                              />
-                            ) : (
-                              <div className="w-full h-full bg-linear-to-br from-primary/20 to-primary/10 flex items-center justify-center">
-                                <Building2 className="h-16 w-16 text-primary/40" />
-                              </div>
-                            )}
-                          </div>
-                          <div 
-                            className="absolute top-3 right-3 pointer-events-auto" 
-                            style={{ zIndex: 9999, position: 'absolute', top: '12px', right: '12px' }}
-                          >
-                            <FavoriteButton
-                              itemId={center.id}
-                              favoriteType="holistic_center"
-                              variant="floating"
-                            />
-                          </div>
-                        </div>
-                        <CardHeader className="pb-3 shrink-0">
-                          <CardTitle className="line-clamp-2 group-hover:text-primary transition-colors">{center.name}</CardTitle>
-                          <div className="flex gap-2 mt-1.5">
-                            {center.city && (
-                              <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                                <MapPin className="w-3 h-3 shrink-0" />
-                                <span>{center.city}</span>
-                              </div>
-                            )}
-                          </div>
-                        </CardHeader>
-                        <CardContent className="space-y-2 flex-1 pb-4 min-h-0">
-                          {center.description && (
-                            <p className="text-sm text-muted-foreground line-clamp-2">
-                              {center.description.replace(/<[^>]*>/g, '')}
-                            </p>
-                          )}
-                          {center.address && (
-                            <div className="flex items-start gap-2 text-sm text-muted-foreground">
-                              <MapPin className="w-4 h-4 shrink-0 mt-0.5" />
-                              <span className="line-clamp-2">{center.address}</span>
-                            </div>
-                          )}
-                        </CardContent>
-                      </Card>
-                    </Link>
+                      center={mapApiCenterToCardCenter(center)}
+                      showFavoriteButton
+                    />
                   ))}
                 </div>
               </div>

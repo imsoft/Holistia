@@ -20,26 +20,74 @@ import { Button } from "@/components/ui/button";
 import { FavoriteButton } from "@/components/ui/favorite-button";
 import { formatPrice } from "@/lib/price-utils";
 
+/** Forma canónica del producto para la card; exportada para reutilizar en listas */
+export interface DigitalProductCardProduct {
+  id: string;
+  slug?: string;
+  title: string;
+  description: string;
+  category: string;
+  price: number;
+  currency: string;
+  cover_image_url?: string;
+  duration_minutes?: number;
+  pages_count?: number;
+  sales_count: number;
+  professional_first_name?: string;
+  professional_last_name?: string;
+  professional_photo?: string;
+  professional_is_verified?: boolean;
+}
+
 interface DigitalProductCardProps {
-  product: {
-    id: string;
-    slug?: string;
-    title: string;
-    description: string;
-    category: string;
-    price: number;
-    currency: string;
-    cover_image_url?: string;
-    duration_minutes?: number;
-    pages_count?: number;
-    sales_count: number;
-    professional_first_name?: string;
-    professional_last_name?: string;
-    professional_photo?: string;
-    professional_is_verified?: boolean;
-  };
+  product: DigitalProductCardProduct;
   showProfessional?: boolean;
   onPurchaseComplete?: () => void;
+}
+
+/**
+ * Normaliza un producto que viene del API (Supabase/digital_products) a la forma de la card.
+ * professional_applications puede ser objeto o array según el select.
+ */
+export function mapApiProductToCardProduct(apiProduct: {
+  id: string;
+  slug?: string;
+  title: string;
+  description: string;
+  category: string;
+  price: number;
+  currency: string;
+  cover_image_url?: string | null;
+  duration_minutes?: number;
+  pages_count?: number;
+  sales_count?: number;
+  professional_applications?: {
+    first_name?: string;
+    last_name?: string;
+    profile_photo?: string;
+    is_verified?: boolean;
+  } | Array<{ first_name?: string; last_name?: string; profile_photo?: string; is_verified?: boolean }>;
+}): DigitalProductCardProduct {
+  const pa = Array.isArray(apiProduct.professional_applications)
+    ? apiProduct.professional_applications[0]
+    : apiProduct.professional_applications;
+  return {
+    id: apiProduct.id,
+    slug: apiProduct.slug,
+    title: apiProduct.title,
+    description: apiProduct.description,
+    category: apiProduct.category,
+    price: apiProduct.price,
+    currency: apiProduct.currency,
+    cover_image_url: apiProduct.cover_image_url ?? undefined,
+    duration_minutes: apiProduct.duration_minutes,
+    pages_count: apiProduct.pages_count,
+    sales_count: apiProduct.sales_count ?? 0,
+    professional_first_name: pa?.first_name,
+    professional_last_name: pa?.last_name,
+    professional_photo: pa?.profile_photo,
+    professional_is_verified: pa?.is_verified,
+  };
 }
 
 const CATEGORY_ICONS: Record<string, any> = {
@@ -110,28 +158,27 @@ export function DigitalProductCard({
               variant="floating"
             />
           </div>
-          <div className="absolute top-3 left-3 right-3 flex flex-wrap justify-between items-start gap-1">
-            <Badge variant="default" className="bg-primary/90 backdrop-blur-sm">
-              <CategoryIcon className="h-3 w-3 mr-1" />
-              {CATEGORY_LABELS[product.category] || product.category}
-            </Badge>
-            <div className="flex gap-1">
-              {product.sales_count >= 10 && (
-                <Badge className="bg-amber-500/90 text-white border-0 backdrop-blur-sm text-xs">
-                  Más vendido
-                </Badge>
-              )}
-              {product.sales_count > 0 && (
-                <Badge variant="secondary" className="bg-background/90 backdrop-blur-sm">
-                  <Star className="h-3 w-3 mr-1 fill-yellow-400 text-yellow-400" />
-                  {product.sales_count} ventas
-                </Badge>
-              )}
-            </div>
+          <Badge variant="default" className="absolute top-3 left-3 bg-primary/90 backdrop-blur-sm">
+            <CategoryIcon className="h-3 w-3 mr-1" />
+            {CATEGORY_LABELS[product.category] || product.category}
+          </Badge>
+          {/* Leyenda de ventas en esquina inferior izquierda de la imagen */}
+          <div className="absolute bottom-3 left-3 flex flex-wrap gap-1">
+            {product.sales_count >= 10 && (
+              <Badge className="bg-amber-500/90 text-white border-0 backdrop-blur-sm text-xs">
+                Más vendido
+              </Badge>
+            )}
+            {product.sales_count > 0 && (
+              <Badge variant="secondary" className="bg-background/90 backdrop-blur-sm">
+                <Star className="h-3 w-3 mr-1 fill-yellow-400 text-yellow-400" />
+                {product.sales_count} ventas
+              </Badge>
+            )}
           </div>
         </div>
 
-        <CardHeader className="px-4 sm:px-6 pt-4 sm:pt-6 pb-2 sm:pb-3 shrink-0">
+        <CardHeader className="px-4 sm:px-6 pt-2 sm:pt-3 pb-2 sm:pb-3 shrink-0">
           <CardTitle className="text-lg sm:text-xl line-clamp-2 group-hover:text-primary transition-colors">
             {product.title}
           </CardTitle>

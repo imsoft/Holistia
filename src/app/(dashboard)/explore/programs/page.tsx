@@ -7,7 +7,8 @@ import { ShoppingBag, Brain, Sparkles, Activity, Apple, Users } from "lucide-rea
 import { createClient } from "@/utils/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { DigitalProductCard } from "@/components/ui/digital-product-card";
+import { DigitalProductList } from "@/components/ui/digital-product-list";
+import { mapApiProductToCardProduct } from "@/components/ui/digital-product-card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PageSkeleton } from "@/components/ui/layout-skeleton";
 
@@ -277,30 +278,11 @@ export default function ProgramsPage() {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
-            {filteredProducts.map((product) => (
-              <DigitalProductCard
-                key={product.id}
-                product={{
-                  id: product.id,
-                  title: product.title,
-                  description: product.description,
-                  category: product.category,
-                  price: product.price,
-                  currency: product.currency,
-                  cover_image_url: product.cover_image_url,
-                  duration_minutes: product.duration_minutes,
-                  pages_count: product.pages_count,
-                  sales_count: product.sales_count,
-                  professional_first_name: product.professional_applications?.first_name,
-                  professional_last_name: product.professional_applications?.last_name,
-                  professional_photo: product.professional_applications?.profile_photo,
-                  professional_is_verified: product.professional_applications?.is_verified,
-                }}
-                showProfessional={true}
-              />
-            ))}
-          </div>
+          <DigitalProductList
+            products={filteredProducts.map(mapApiProductToCardProduct)}
+            layout="grid"
+            showProfessional={true}
+          />
         )}
         </div>
       </main>

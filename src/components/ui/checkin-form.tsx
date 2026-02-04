@@ -20,7 +20,7 @@ interface CheckinFormProps {
   challengePurchaseId: string;
   dayNumber: number;
   challengeDurationDays?: number;
-  onCheckinComplete?: () => void;
+  onCheckinComplete?: (data?: { completed: true; challenge_purchase_id: string }) => void;
 }
 
 export function CheckinForm({
@@ -211,7 +211,11 @@ export function CheckinForm({
       setIsPublic(false);
 
       if (onCheckinComplete) {
-        onCheckinComplete();
+        if (data.completed && data.challenge_purchase_id) {
+          onCheckinComplete({ completed: true, challenge_purchase_id: data.challenge_purchase_id });
+        } else {
+          onCheckinComplete();
+        }
       }
 
     } catch (error) {

@@ -1233,3 +1233,58 @@ export async function sendAppointmentNoShowNotification(data: AppointmentNoShowN
     return { success: false, error };
   }
 }
+
+// ============================================================================
+// CHALLENGE COMPLETED EMAIL
+// ============================================================================
+
+interface ChallengeCompletedEmailData {
+  participant_name: string;
+  participant_email: string;
+  challenge_title: string;
+  duration_days: number;
+  total_points: number;
+  my_challenges_url: string;
+}
+
+export async function sendChallengeCompletedEmail(data: ChallengeCompletedEmailData) {
+  try {
+    const fs = await import('fs');
+    const path = await import('path');
+
+    const templatePath = path.join(process.cwd(), 'database/email-templates/challenge-completed.html');
+    let emailTemplate: string;
+
+    try {
+      emailTemplate = fs.readFileSync(templatePath, 'utf8');
+    } catch (error) {
+      console.error('Error reading challenge completed email template:', error);
+      return { success: false, error: 'Template not found' };
+    }
+
+    const emailContent = emailTemplate
+      .replace(/\{\{participant_name\}\}/g, data.participant_name)
+      .replace(/\{\{challenge_title\}\}/g, data.challenge_title)
+      .replace(/\{\{duration_days\}\}/g, String(data.duration_days))
+      .replace(/\{\{total_points\}\}/g, String(data.total_points))
+      .replace(/\{\{my_challenges_url\}\}/g, data.my_challenges_url);
+
+    const { data: emailData, error } = await resend.emails.send({
+      from: 'Holistia <noreply@holistia.io>',
+      to: [data.participant_email],
+      subject: `🎉 ¡Felicidades! Completaste el reto "${data.challenge_title}" | Holistia`,
+      html: emailContent,
+    });
+
+    if (error) {
+      console.error('Error sending challenge completed email:', error);
+      return { success: false, error: error.message };
+    }
+
+    console.log('Challenge completed email sent successfully:', emailData?.id);
+    return { success: true, message: 'Email sent successfully', id: emailData?.id };
+  } catch (error) {
+    console.error('Error in sendChallengeCompletedEmail:', error);
+    return { success: false, error: 'Failed to send email' };
+  }
+}

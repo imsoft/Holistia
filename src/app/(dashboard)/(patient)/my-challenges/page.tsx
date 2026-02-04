@@ -37,6 +37,12 @@ import {
 import { VerifiedBadge } from "@/components/ui/verified-badge";
 import { DeleteConfirmation } from "@/components/ui/confirmation-dialog";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface ChallengePurchase {
   id: string;
@@ -126,6 +132,7 @@ export default function MyChallengesPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [completionFilter, setCompletionFilter] = useState<string>("all");
   const [difficultyFilter, setDifficultyFilter] = useState<string>("all");
   const [participantsCount, setParticipantsCount] = useState<number>(0);
   const [participants, setParticipants] = useState<Array<{ id: string; first_name: string | null; last_name: string | null; avatar_url: string | null; type?: string | null }>>([]);
@@ -324,7 +331,7 @@ export default function MyChallengesPage() {
 
   useEffect(() => {
     applyFilters();
-  }, [searchTerm, typeFilter, statusFilter, difficultyFilter, allChallenges]);
+  }, [searchTerm, typeFilter, statusFilter, completionFilter, difficultyFilter, allChallenges]);
 
   const applyFilters = () => {
     let filtered = [...allChallenges];
@@ -349,7 +356,15 @@ export default function MyChallengesPage() {
         if (c.type === 'created') {
           return statusFilter === "active" ? c.is_active : !c.is_active;
         }
-        return true; // Para retos participados, no aplicar filtro de estado
+        return true;
+      });
+    }
+
+    // Filtrar por progreso: Activos (en progreso) vs Completados
+    if (completionFilter !== "all") {
+      filtered = filtered.filter((c) => {
+        const isCompleted = !!c.completed_at;
+        return completionFilter === "completed" ? isCompleted : !isCompleted;
       });
     }
 
@@ -696,13 +711,17 @@ export default function MyChallengesPage() {
   };
 
 
-  const handleCheckinComplete = async () => {
+  const handleCheckinComplete = async (data?: { completed: true; challenge_purchase_id: string }) => {
+    setIsCheckinDialogOpen(false);
+    if (data?.completed && data.challenge_purchase_id) {
+      // Redirigir a pantalla de celebración
+      router.push(`/my-challenges/completed?challenge=${data.challenge_purchase_id}`);
+      return;
+    }
     if (selectedChallenge) {
       await fetchCheckins(selectedChallenge.id);
-      // Refrescar progreso
       fetchChallenges();
     }
-    setIsCheckinDialogOpen(false);
   };
 
   const getDifficultyLabel = (level?: string) => {
@@ -728,6 +747,28 @@ export default function MyChallengesPage() {
   const handleDeleteClick = (challenge: CreatedChallenge) => {
     setChallengeToDelete(challenge);
     setDeleteDialogOpen(true);
+  };
+
+  const getShareUrl = (purchaseId: string) =>
+    typeof window !== "undefined"
+      ? `${window.location.origin}/my-challenges?challenge=${purchaseId}`
+      : `https://www.holistia.io/my-challenges?challenge=${purchaseId}`;
+
+  const getShareMessage = (title: string, purchaseId: string) =>
+    `¡Completé el reto "${title}" en Holistia! 🎉 ${getShareUrl(purchaseId)}`;
+
+  const handleShareAchievement = async (title: string, purchaseId: string, action: "whatsapp" | "copy") => {
+    const message = getShareMessage(title, purchaseId);
+    if (action === "whatsapp") {
+      window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, "_blank", "noopener,noreferrer");
+    } else {
+      try {
+        await navigator.clipboard.writeText(message);
+        toast.success("Enlace copiado al portapapeles");
+      } catch {
+        toast.error("No se pudo copiar el enlace");
+      }
+    }
   };
 
   const handleDeleteConfirm = async () => {
@@ -826,7 +867,7 @@ export default function MyChallengesPage() {
       </div>
 
       {/* Filtros */}
-      <div className="mb-6 grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="mb-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
@@ -854,6 +895,16 @@ export default function MyChallengesPage() {
             <SelectItem value="all">Todos los estados</SelectItem>
             <SelectItem value="active">Activos</SelectItem>
             <SelectItem value="inactive">Inactivos</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select value={completionFilter} onValueChange={setCompletionFilter}>
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Progreso" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos</SelectItem>
+            <SelectItem value="active">En progreso</SelectItem>
+            <SelectItem value="completed">Completados</SelectItem>
           </SelectContent>
         </Select>
         <Select value={difficultyFilter} onValueChange={setDifficultyFilter}>
@@ -928,6 +979,11 @@ export default function MyChallengesPage() {
                         <Badge variant="secondary">Inactivo</Badge>
                       </div>
                     )}
+                    {challenge.completed_at && (
+                      <div className="absolute top-2 right-2">
+                        <Badge className="bg-green-600 hover:bg-green-600">Completado</Badge>
+                      </div>
+                    )}
                     {challenge.type === 'created' && (
                       <div className="absolute top-2 left-2">
                         <Badge variant="default">Creado por ti</Badge>
@@ -952,7 +1008,7 @@ export default function MyChallengesPage() {
                     )}
                   </CardHeader>
                   <CardContent className="flex-1 pb-4">
-                    <div className="flex items-center gap-2 text-sm mb-4">
+                    <div className="flex flex-wrap items-center gap-2 text-sm mb-4">
                       {challenge.duration_days && (
                         <Badge variant="outline" className="text-xs">
                           <Calendar className="h-3 w-3 mr-1" />
@@ -962,6 +1018,12 @@ export default function MyChallengesPage() {
                       {challenge.difficulty_level && (
                         <Badge className={`text-xs ${getDifficultyColor(challenge.difficulty_level)}`}>
                           {getDifficultyLabel(challenge.difficulty_level)}
+                        </Badge>
+                      )}
+                      {challenge.completed_at && (
+                        <Badge variant="secondary" className="text-xs bg-green-100 text-green-800 border-green-200">
+                          <CheckCircle2 className="h-3 w-3 mr-1" />
+                          Completado el {new Date(challenge.completed_at).toLocaleDateString('es-ES')}
                         </Badge>
                       )}
                     </div>
@@ -997,6 +1059,32 @@ export default function MyChallengesPage() {
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
+                    ) : challenge.completed_at && challenge.purchaseId ? (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="w-full"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <Share2 className="h-4 w-4 mr-2" />
+                            Compartir logro
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+                          <DropdownMenuItem
+                            onClick={() => handleShareAchievement(challenge.title || "Reto", challenge.purchaseId, "whatsapp")}
+                          >
+                            Compartir en WhatsApp
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => handleShareAchievement(challenge.title || "Reto", challenge.purchaseId, "copy")}
+                          >
+                            Copiar enlace
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     ) : null}
                   </div>
                 </Card>
@@ -1041,9 +1129,31 @@ export default function MyChallengesPage() {
                 <TabsContent value="checkins" className="space-y-4">
                     <Card className="py-4">
                       <CardHeader>
-                        <div className="flex items-center justify-between">
+                        <div className="flex items-center justify-between flex-wrap gap-2">
                           <CardTitle>Check-ins Diarios</CardTitle>
-                          <div className="flex gap-2">
+                          <div className="flex gap-2 flex-wrap">
+                            {selectedChallenge.completed_at && (
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="outline" size="sm">
+                                    <Share2 className="h-4 w-4 mr-2" />
+                                    Compartir logro
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuItem
+                                    onClick={() => handleShareAchievement(selectedChallenge.challenge?.title || "Reto", selectedChallenge.id, "whatsapp")}
+                                  >
+                                    Compartir en WhatsApp
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    onClick={() => handleShareAchievement(selectedChallenge.challenge?.title || "Reto", selectedChallenge.id, "copy")}
+                                  >
+                                    Copiar enlace
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            )}
                             {participantsCount < 5 && (
                               <Button
                                 variant="outline"

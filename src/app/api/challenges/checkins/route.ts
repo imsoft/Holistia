@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
+import { sendChallengeCompletedEmail } from '@/lib/email-sender';
 
 // GET - Obtener check-ins de un reto
 export async function GET(request: NextRequest) {
@@ -203,9 +204,52 @@ export async function POST(request: NextRequest) {
       // Continuar aunque falle la verificación de badges
     }
 
+    // Verificar si el reto acaba de completarse (trigger ya actualizó challenge_progress)
+    let challengeCompleted = false;
+    const { data: progress } = await supabase
+      .from('challenge_progress')
+      .select('status, total_points')
+      .eq('challenge_purchase_id', challenge_purchase_id)
+      .maybeSingle();
+
+    if (progress?.status === 'completed') {
+      challengeCompleted = true;
+      // Enviar email de felicitación en segundo plano (no bloquear respuesta)
+      const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.holistia.io';
+      const myChallengesUrl = `${baseUrl}/my-challenges?challenge=${challenge_purchase_id}`;
+      const { data: purchaseRow } = await supabase
+        .from('challenge_purchases')
+        .select('participant_id, challenge_id')
+        .eq('id', challenge_purchase_id)
+        .single();
+      if (purchaseRow?.participant_id) {
+        const [{ data: profileRow }, { data: challengeRow }] = await Promise.all([
+          supabase.from('profiles').select('first_name, last_name, full_name, email').eq('id', purchaseRow.participant_id).single(),
+          supabase.from('challenges').select('title, duration_days').eq('id', purchaseRow.challenge_id).single(),
+        ]);
+        const participantName =
+          profileRow?.full_name?.trim() ||
+          [profileRow?.first_name, profileRow?.last_name].filter(Boolean).join(' ').trim() ||
+          'Participante';
+        const participantEmail = profileRow?.email;
+        if (participantEmail && challengeRow?.title) {
+          sendChallengeCompletedEmail({
+            participant_name: participantName,
+            participant_email: participantEmail,
+            challenge_title: challengeRow.title,
+            duration_days: challengeRow.duration_days || 0,
+            total_points: progress.total_points || 0,
+            my_challenges_url: myChallengesUrl,
+          }).catch((err) => console.error('Error sending challenge completed email:', err));
+        }
+      }
+    }
+
     return NextResponse.json({
       checkin,
       unlocked_badges: unlockedBadges || [],
+      completed: challengeCompleted,
+      challenge_purchase_id: challengeCompleted ? challenge_purchase_id : undefined,
     }, { status: 201 });
 
   } catch (error) {

@@ -512,7 +512,7 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
       const res = await fetch(`/api/challenges/${challenge.id}/resources`);
       const data = await res.json();
       if (!res.ok) throw new Error(data?.error || "Error al cargar recursos");
-      const list = (data.resources || []).map((r: { id: string; title: string; description?: string; resource_type: string; url: string; duration_minutes?: number }) => ({
+      const rawList = (data.resources || []).map((r: { id: string; title: string; description?: string; resource_type: string; url: string; duration_minutes?: number }) => ({
         id: r.id,
         title: r.title || "",
         description: r.description || "",
@@ -520,6 +520,19 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
         url: r.url || "",
         duration_minutes: r.duration_minutes != null ? String(r.duration_minutes) : "",
       }));
+      
+      // Filtrar duplicados: mantener solo el primero de cada id único
+      const seenIds = new Set<string>();
+      const list = rawList.filter((r: ResourceFormData) => {
+        if (r.id) {
+          if (seenIds.has(r.id)) {
+            return false; // Duplicado por id
+          }
+          seenIds.add(r.id);
+        }
+        return true;
+      });
+      
       setResources(list);
       initialResourceIdsRef.current = list.map((r: ResourceFormData) => r.id).filter((id: string | undefined): id is string => Boolean(id));
     } catch (error) {
@@ -1625,9 +1638,10 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
               const isEditing = editingResourceIndex === index;
               const showPages = resource.resource_type === 'ebook' || resource.resource_type === 'pdf';
               const showDuration = resource.resource_type === 'audio' || resource.resource_type === 'video';
+              const resourceKey = resource.id || `temp-${index}`;
 
               return (
-                <Card key={index} className="border-2">
+                <Card key={resourceKey} className="border-2">
                   <CardContent className="py-4 space-y-4">
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center gap-2">
@@ -1638,7 +1652,28 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
                         type="button"
                         variant="destructive"
                         size="icon"
-                        onClick={() => {
+                        onClick={async () => {
+                          // Si el recurso tiene id, eliminarlo inmediatamente de la base de datos
+                          if (resource.id && challenge?.id) {
+                            try {
+                              const deleteRes = await fetch(
+                                `/api/challenges/${challenge.id}/resources?resourceId=${encodeURIComponent(resource.id)}`,
+                                { method: "DELETE" }
+                              );
+                              if (!deleteRes.ok) {
+                                const errorData = await deleteRes.json();
+                                throw new Error(errorData?.error || "Error al eliminar recurso");
+                              }
+                              // Actualizar initialResourceIdsRef para reflejar la eliminación
+                              initialResourceIdsRef.current = initialResourceIdsRef.current.filter(id => id !== resource.id);
+                            } catch (error) {
+                              console.error("Error eliminando recurso:", error);
+                              toast.error("Error al eliminar el recurso. Intenta de nuevo.");
+                              return; // No eliminar del estado si falla la eliminación en BD
+                            }
+                          }
+                          
+                          // Eliminar del estado local
                           setResources(resources.filter((_, i) => i !== index));
                           if (editingResourceIndex === index) {
                             setEditingResourceIndex(null);

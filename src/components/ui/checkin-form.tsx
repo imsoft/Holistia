@@ -135,6 +135,12 @@ export function CheckinForm({
         if (msg.includes('policy') || msg.includes('403') || msg.includes('permission')) {
           throw new Error('No tienes permiso para subir a este reto. Verifica que seas participante.');
         }
+        if (msg.toLowerCase().includes('mime') || msg.toLowerCase().includes('file type') || msg.toLowerCase().includes('not allowed')) {
+          throw new Error('El bucket no permite vídeos. Contacta al administrador para habilitar MP4/WEBM/MOV.');
+        }
+        if (msg.toLowerCase().includes('file size') || msg.toLowerCase().includes('too large')) {
+          throw new Error(isVideo ? 'El vídeo supera 50MB. Comprime o acorta el vídeo.' : 'La imagen supera 10MB.');
+        }
         throw new Error(msg);
       }
 

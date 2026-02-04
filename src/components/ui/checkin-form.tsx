@@ -34,6 +34,7 @@ export function CheckinForm({
   const [evidenceUrl, setEvidenceUrl] = useState<string | null>(null);
   /** URL para mostrar el vídeo en la vista previa (signed; la pública puede fallar por CORS/cache). */
   const [evidenceVideoPreviewUrl, setEvidenceVideoPreviewUrl] = useState<string | null>(null);
+  const [blobFailed, setBlobFailed] = useState(false);
   const [evidenceType, setEvidenceType] = useState<'photo' | 'video' | null>(null);
   const [uploading, setUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -168,6 +169,7 @@ export function CheckinForm({
         if (blobUrlRef.current) {
           URL.revokeObjectURL(blobUrlRef.current);
         }
+        setBlobFailed(false);
         const blobUrl = URL.createObjectURL(fileToUpload);
         blobUrlRef.current = blobUrl;
         setEvidenceVideoPreviewUrl(blobUrl);
@@ -195,6 +197,7 @@ export function CheckinForm({
     }
     setEvidenceUrl(null);
     setEvidenceVideoPreviewUrl(null);
+    setBlobFailed(false);
     setEvidenceType(null);
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
@@ -253,6 +256,7 @@ export function CheckinForm({
       setNotes("");
       setEvidenceUrl(null);
       setEvidenceVideoPreviewUrl(null);
+      setBlobFailed(false);
       setEvidenceType(null);
       setIsPublic(false);
 
@@ -333,9 +337,15 @@ export function CheckinForm({
               <div className="relative h-48 w-full rounded-lg overflow-hidden border">
                 {evidenceType === 'video' ? (
                   <VideoPlayer
-                    url={evidenceVideoPreviewUrl ?? evidenceUrl ?? ''}
+                    url={blobFailed ? (evidenceUrl ?? '') : (evidenceVideoPreviewUrl ?? evidenceUrl ?? '')}
                     className="w-full h-48"
                     fill
+                    onError={() => {
+                      if (evidenceVideoPreviewUrl && !blobFailed) {
+                        console.warn("Blob URL falló, cambiando a URL pública de Supabase");
+                        setBlobFailed(true);
+                      }
+                    }}
                   />
                 ) : (
                   <Image

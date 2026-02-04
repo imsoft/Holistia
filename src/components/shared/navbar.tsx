@@ -308,7 +308,7 @@ export const Navbar = () => {
                 </div>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
-                  <Link href="https://www.holistia.io/" className="flex items-center gap-2">
+                  <Link href="/?home=true" className="flex items-center gap-2">
                     <Home className="h-4 w-4" />
                     <span>Página de inicio</span>
                   </Link>

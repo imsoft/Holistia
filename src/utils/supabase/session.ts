@@ -136,7 +136,8 @@ export async function updateSession(request: NextRequest) {
     }
 
     // Manejar la ruta raíz '/' de forma especial para usuarios autenticados
-    if (request.nextUrl.pathname === '/') {
+    // Si tiene ?home=true, permitir ver la landing page sin redirigir
+    if (request.nextUrl.pathname === '/' && !request.nextUrl.searchParams.has('home')) {
       try {
         const {
           data: { user },

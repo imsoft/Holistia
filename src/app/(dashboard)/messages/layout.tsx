@@ -59,7 +59,7 @@ const getPatientNavigation = (hasEvents: boolean = false) => {
 // Función para generar navegación de usuario
 const getUserNavigation = (isProfessional: boolean = false) => {
   const baseNavigation = [
-    { name: "Página de inicio", href: "https://www.holistia.io/", icon: Home },
+    { name: "Página de inicio", href: "/?home=true", icon: Home },
     { name: "Mi perfil", href: `/profile`, icon: User },
   ];
 

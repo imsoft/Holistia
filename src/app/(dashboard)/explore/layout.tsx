@@ -52,7 +52,7 @@ const getNavigation = (hasEvents: boolean = false) => {
 // Función para generar navegación dinámica basada en el estado del usuario (URLs limpias)
 const getUserNavigation = (isProfessional: boolean = false) => {
   const baseNavigation = [
-    { name: "Página de inicio", href: "https://www.holistia.io/", icon: Home },
+    { name: "Página de inicio", href: "/?home=true", icon: Home },
     { name: "Mi perfil", href: `/explore/profile`, icon: User },
   ];
 

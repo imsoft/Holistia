@@ -33,6 +33,7 @@ export function CheckinForm({
   const [evidenceUrl, setEvidenceUrl] = useState<string | null>(null);
   /** URL para mostrar el vídeo en la vista previa (signed; la pública puede fallar por CORS/cache). */
   const [evidenceVideoPreviewUrl, setEvidenceVideoPreviewUrl] = useState<string | null>(null);
+  const [videoPreviewError, setVideoPreviewError] = useState(false);
   const [evidenceType, setEvidenceType] = useState<'photo' | 'video' | null>(null);
   const [uploading, setUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -170,6 +171,7 @@ export function CheckinForm({
         const blobUrl = URL.createObjectURL(fileToUpload);
         blobUrlRef.current = blobUrl;
         setEvidenceVideoPreviewUrl(blobUrl);
+        setVideoPreviewError(false);
       } else {
         if (blobUrlRef.current) {
           URL.revokeObjectURL(blobUrlRef.current);
@@ -194,6 +196,7 @@ export function CheckinForm({
     }
     setEvidenceUrl(null);
     setEvidenceVideoPreviewUrl(null);
+    setVideoPreviewError(false);
     setEvidenceType(null);
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
@@ -252,6 +255,7 @@ export function CheckinForm({
       setNotes("");
       setEvidenceUrl(null);
       setEvidenceVideoPreviewUrl(null);
+      setVideoPreviewError(false);
       setEvidenceType(null);
       setIsPublic(false);
 
@@ -331,15 +335,22 @@ export function CheckinForm({
             <div className="relative">
               <div className="relative h-48 w-full rounded-lg overflow-hidden border">
                 {evidenceType === 'video' ? (
-                  <video
-                    key={evidenceVideoPreviewUrl ?? evidenceUrl}
-                    src={evidenceVideoPreviewUrl ?? evidenceUrl ?? ''}
-                    controls
-                    preload="metadata"
-                    playsInline
-                    className="w-full h-full object-cover"
-                    onError={() => toast.error("No se pudo reproducir la vista previa. El vídeo se subió correctamente y se guardará con el check-in.")}
-                  />
+                  <>
+                    <video
+                      key={evidenceVideoPreviewUrl ?? evidenceUrl}
+                      src={evidenceVideoPreviewUrl ?? evidenceUrl ?? ''}
+                      controls
+                      preload="metadata"
+                      playsInline
+                      className="w-full h-full object-cover"
+                      onError={() => setVideoPreviewError(true)}
+                    />
+                    {videoPreviewError && (
+                      <p className="absolute bottom-2 left-2 right-2 text-center text-xs text-muted-foreground bg-background/90 py-1.5 rounded">
+                        Vista previa no disponible en este navegador. El vídeo se subió correctamente y se guardará con el check-in.
+                      </p>
+                    )}
+                  </>
                 ) : (
                   <Image
                     src={evidenceUrl}

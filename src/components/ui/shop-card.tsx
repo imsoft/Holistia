@@ -87,11 +87,13 @@ export function ShopCard({
             </Badge>
           )}
         </CardHeader>
-        <CardContent className="flex-1 px-4 pt-0 pb-3 min-h-0 flex flex-col">
+        <CardContent className="flex-1 px-4 pt-0 pb-3 min-h-0 flex flex-col overflow-hidden">
           {cleanDescription && (
-            <p className="text-sm text-muted-foreground line-clamp-2 flex-1 min-h-0">
-              {cleanDescription}
-            </p>
+            <div className="overflow-hidden max-h-[2.8em] text-sm text-muted-foreground leading-tight">
+              <p className="line-clamp-2 break-words">
+                {cleanDescription}
+              </p>
+            </div>
           )}
           {(shop.address || shop.city) && (
             <div className="flex items-start gap-2 mt-2 text-sm text-muted-foreground flex-shrink-0">

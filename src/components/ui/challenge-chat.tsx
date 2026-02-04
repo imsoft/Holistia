@@ -48,7 +48,8 @@ export function ChallengeChat({ challengeId, currentUserId }: ChallengeChatProps
   useEffect(() => {
     if (conversationId) {
       loadMessages();
-      subscribeToMessages();
+      const unsubscribe = subscribeToMessages();
+      return unsubscribe;
     }
   }, [conversationId]);
 
@@ -225,7 +226,23 @@ export function ChallengeChat({ challengeId, currentUserId }: ChallengeChatProps
               : undefined,
           };
 
-          setMessages((prev) => [...prev, newMessage]);
+          setMessages((prev) => {
+            // Evitar duplicados (el mensaje ya puede existir por el optimistic update)
+            if (prev.some((m) => m.id === newMessage.id)) return prev;
+            // Si es un mensaje propio, ya fue añadido optimísticamente con ID temporal
+            // Reemplazar el temporal si existe
+            if (newMessage.sender_id === currentUserId) {
+              const hasTemp = prev.some((m) => m.id.startsWith("temp-") && m.content === newMessage.content);
+              if (hasTemp) {
+                return prev.map((m) =>
+                  m.id.startsWith("temp-") && m.content === newMessage.content
+                    ? newMessage
+                    : m
+                );
+              }
+            }
+            return [...prev, newMessage];
+          });
         }
       )
       .subscribe();
@@ -238,20 +255,50 @@ export function ChallengeChat({ challengeId, currentUserId }: ChallengeChatProps
   const handleSendMessage = async () => {
     if (!message.trim() || !conversationId || sending) return;
 
+    const content = message.trim();
+    const tempId = `temp-${Date.now()}`;
+
+    // Optimistic update: mostrar el mensaje inmediatamente
+    const optimisticMessage: ChallengeMessage = {
+      id: tempId,
+      sender_id: currentUserId,
+      content,
+      created_at: new Date().toISOString(),
+      sender: undefined, // El propio usuario no necesita ver su nombre
+    };
+    setMessages((prev) => [...prev, optimisticMessage]);
+    setMessage("");
+
     try {
       setSending(true);
-      const { error } = await supabase.from("challenge_messages").insert({
-        conversation_id: conversationId,
-        sender_id: currentUserId,
-        content: message.trim(),
-      });
+      const { data, error } = await supabase
+        .from("challenge_messages")
+        .insert({
+          conversation_id: conversationId,
+          sender_id: currentUserId,
+          content,
+        })
+        .select("id, sender_id, content, created_at")
+        .single();
 
       if (error) throw error;
 
-      setMessage("");
+      // Reemplazar mensaje temporal con el real (con ID de la BD)
+      if (data) {
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.id === tempId
+              ? { ...m, id: data.id, created_at: data.created_at }
+              : m
+          )
+        );
+      }
     } catch (error) {
       console.error("Error sending message:", error);
       toast.error("Error al enviar mensaje");
+      // Revertir mensaje optimista en caso de error
+      setMessages((prev) => prev.filter((m) => m.id !== tempId));
+      setMessage(content);
     } finally {
       setSending(false);
     }

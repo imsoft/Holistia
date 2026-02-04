@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>¡Hay cupo disponible! | Holistia</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f8f9fa; }
+        .container { background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); overflow: hidden; }
+        .header { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 30px 20px; text-align: center; }
+        .header h1 { margin: 0; font-size: 24px; font-weight: 600; }
+        .content { padding: 30px 20px; }
+        .highlight { background-color: #ecfdf5; border-left: 4px solid #10b981; padding: 16px; margin: 20px 0; border-radius: 0 8px 8px 0; }
+        .event-details { background-color: #f8fafc; border-radius: 8px; padding: 20px; margin: 20px 0; }
+        .event-details h3 { margin-top: 0; color: #1f2937; font-size: 18px; }
+        .detail-row { margin-bottom: 8px; }
+        .button { display: inline-block; background-color: #10b981; color: white !important; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: 600; margin: 20px 0; }
+        .footer { background-color: #f8f9fa; padding: 20px; text-align: center; color: #6b7280; font-size: 14px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>¡Hay cupo disponible!</h1>
+        </div>
+        <div class="content">
+            <p>Hola <strong>{{user_name}}</strong>,</p>
+            <p>Estabas en la lista de espera para un evento y <strong>se ha liberado un lugar</strong>. Si aún te interesa participar, inscríbete pronto antes de que alguien más tome el cupo.</p>
+            <div class="highlight">
+                <strong>Evento:</strong> {{event_name}}<br>
+                <strong>Fecha:</strong> {{event_date}} · <strong>Hora:</strong> {{event_time}}<br>
+                <strong>Lugar:</strong> {{event_location}}
+            </div>
+            <p style="text-align: center;">
+                <a href="{{event_url}}" class="button">Inscribirme al evento</a>
+            </p>
+            <p class="footer" style="margin-top: 24px; color: #6b7280; font-size: 14px;">
+                Si ya no te interesa, puedes ignorar este correo. El cupo quedará disponible para otras personas en la lista de espera.
+            </p>
+        </div>
+        <div class="footer">
+            Holistia · Bienestar integral
+        </div>
+    </div>
+</body>
+</html>

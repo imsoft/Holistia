@@ -46,6 +46,7 @@ const getPatientNavigation = (hasEvents: boolean = false) => {
     { name: "Citas", href: `/explore/appointments` },
     { name: "Mis Programas", href: `/my-products` },
     { name: "Mis Retos", href: `/my-challenges` },
+    { name: "Mis inscripciones", href: `/my-registrations` },
   ];
 
   if (hasEvents) {

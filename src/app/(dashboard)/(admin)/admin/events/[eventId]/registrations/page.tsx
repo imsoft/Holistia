@@ -23,6 +23,8 @@ import {
   Phone,
   FileText,
   CheckCircle2,
+  Star,
+  MessageSquare,
 } from "lucide-react";
 import Image from "next/image";
 import { formatEventDate, formatEventTime } from "@/utils/date-utils";
@@ -78,6 +80,13 @@ export default function EventRegistrationsDetailPage() {
 
   const [event, setEvent] = useState<EventDetails | null>(null);
   const [registrations, setRegistrations] = useState<Registration[]>([]);
+  const [feedbackList, setFeedbackList] = useState<Array<{
+    id: string;
+    participant_name: string;
+    rating: number;
+    comment: string | null;
+    created_at: string;
+  }>>([]);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState<string | null>(null);
 
@@ -154,6 +163,12 @@ export default function EventRegistrationsDetailPage() {
         });
 
         setRegistrations(transformedRegistrations);
+
+        const res = await fetch(`/api/events/${eventId}/feedback`);
+        if (res.ok) {
+          const { data: feedbackData } = await res.json();
+          setFeedbackList(feedbackData ?? []);
+        }
       } catch (error) {
         console.error('Error fetching data:', error);
         toast.error('Error al cargar los datos del evento');
@@ -187,6 +202,34 @@ export default function EventRegistrationsDetailPage() {
     } catch (error) {
       console.error('Error updating attendance:', error);
       toast.error('Error al actualizar la asistencia');
+    } finally {
+      setUpdating(null);
+    }
+  };
+
+  const handleCancelRegistration = async (registrationId: string) => {
+    if (!confirm('¿Cancelar esta inscripción? Se liberará un cupo y se notificará al primero de la lista de espera si existe.')) return;
+    try {
+      setUpdating(registrationId);
+      const res = await fetch(`/api/admin/event-registrations/${registrationId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'cancelled' }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        toast.error(data.error || 'Error al cancelar la inscripción');
+        return;
+      }
+      setRegistrations(prev =>
+        prev.map(reg =>
+          reg.id === registrationId ? { ...reg, status: 'cancelled' as const } : reg
+        )
+      );
+      toast.success(data.message || 'Inscripción cancelada');
+    } catch (error) {
+      console.error('Error cancelling registration:', error);
+      toast.error('Error al cancelar la inscripción');
     } finally {
       setUpdating(null);
     }
@@ -437,7 +480,7 @@ export default function EventRegistrationsDetailPage() {
 
                         {/* Botones de acción (solo si el registro no está cancelado) */}
                         {registration.status !== 'cancelled' && (
-                          <div className="flex flex-col sm:flex-row gap-2">
+                          <div className="flex flex-col sm:flex-row gap-2 flex-wrap">
                             <Button
                               variant={registration.attended === true ? "default" : "outline"}
                               size="sm"
@@ -466,12 +509,99 @@ export default function EventRegistrationsDetailPage() {
                               )}
                               No asistió
                             </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleCancelRegistration(registration.id)}
+                              disabled={updating === registration.id}
+                              className="flex items-center gap-2 text-amber-600 hover:text-amber-700 hover:bg-amber-50 dark:hover:bg-amber-950/30 border-amber-200 dark:border-amber-800"
+                            >
+                              {updating === registration.id ? (
+                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current"></div>
+                              ) : (
+                                <XCircle className="h-4 w-4 text-amber-600" />
+                              )}
+                              Cancelar inscripción
+                            </Button>
                           </div>
                         )}
                       </div>
                     </CardContent>
                   </Card>
                 ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Feedback del evento */}
+        <Card className="py-4">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <MessageSquare className="h-5 w-5" />
+              Feedback del evento
+            </CardTitle>
+            <CardDescription>
+              {feedbackList.length === 0
+                ? "Aún no hay valoraciones. Los participantes pueden dejar feedback desde Mis inscripciones después del evento."
+                : `${feedbackList.length} ${feedbackList.length === 1 ? "valoración" : "valoraciones"} recibidas`}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {feedbackList.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground text-sm">
+                No hay feedback todavía.
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b">
+                      <th className="text-left py-3 font-medium">Participante</th>
+                      <th className="text-left py-3 font-medium">Valoración</th>
+                      <th className="text-left py-3 font-medium">Comentario</th>
+                      <th className="text-left py-3 font-medium">Fecha</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {feedbackList.map((f) => (
+                      <tr key={f.id} className="border-b last:border-0">
+                        <td className="py-3">{f.participant_name}</td>
+                        <td className="py-3">
+                          <div className="flex items-center gap-0.5">
+                            {[1, 2, 3, 4, 5].map((star) => (
+                              <Star
+                                key={star}
+                                className={`h-4 w-4 ${
+                                  star <= f.rating
+                                    ? "fill-amber-400 text-amber-400"
+                                    : "fill-muted text-muted-foreground"
+                                }`}
+                              />
+                            ))}
+                            <span className="ml-1 text-muted-foreground">({f.rating}/5)</span>
+                          </div>
+                        </td>
+                        <td className="py-3 max-w-xs">
+                          {f.comment ? (
+                            <span className="line-clamp-2">{f.comment}</span>
+                          ) : (
+                            <span className="text-muted-foreground">—</span>
+                          )}
+                        </td>
+                        <td className="py-3 text-muted-foreground">
+                          {new Date(f.created_at).toLocaleDateString("es-ES", {
+                            year: "numeric",
+                            month: "short",
+                            day: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             )}
           </CardContent>

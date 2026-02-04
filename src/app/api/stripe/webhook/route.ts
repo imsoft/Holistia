@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe';
-import { createClient } from '@/utils/supabase/server';
+import { createClient, createServiceRoleClient } from '@/utils/supabase/server';
+import { notifyFirstWaitlistUser } from '@/lib/event-waitlist';
 import {
   sendEventConfirmationEmailSimple,
   sendAppointmentNotificationToProfessional,
@@ -842,20 +843,51 @@ export async function POST(request: NextRequest) {
 
       case 'charge.refunded': {
         const charge = event.data.object as Stripe.Charge;
-
+        const paymentIntentId = charge.payment_intent as string;
         console.log('Charge refunded:', charge.id);
 
-        // Update payment record to refunded
-        const { error: paymentUpdateError } = await supabase
+        // Use service role for payment/registration updates (webhook has no user session)
+        let serviceSupabase: ReturnType<typeof createServiceRoleClient> | null = null;
+        try {
+          serviceSupabase = createServiceRoleClient();
+        } catch (e) {
+          console.warn('Service role client not available for charge.refunded:', e);
+        }
+
+        const client = serviceSupabase ?? supabase;
+
+        const { error: paymentUpdateError } = await client
           .from('payments')
           .update({
             status: 'refunded',
             transfer_status: 'reversed',
           })
-          .eq('stripe_payment_intent_id', charge.payment_intent as string);
+          .eq('stripe_payment_intent_id', paymentIntentId);
 
         if (paymentUpdateError) {
           console.error('Error updating payment:', paymentUpdateError);
+        }
+
+        // If this payment was for an event registration, cancel it and notify waitlist
+        const { data: payment } = await client
+          .from('payments')
+          .select('id, event_registration_id')
+          .eq('stripe_payment_intent_id', paymentIntentId)
+          .maybeSingle();
+
+        if (payment?.event_registration_id && serviceSupabase) {
+          const { data: reg } = await serviceSupabase
+            .from('event_registrations')
+            .select('id, event_id')
+            .eq('id', payment.event_registration_id)
+            .single();
+          if (reg) {
+            await serviceSupabase
+              .from('event_registrations')
+              .update({ status: 'cancelled', updated_at: new Date().toISOString() })
+              .eq('id', payment.event_registration_id);
+            await notifyFirstWaitlistUser(serviceSupabase, reg.event_id);
+          }
         }
 
         break;

@@ -64,3 +64,19 @@ export function createAnonClient() {
     }
   );
 }
+
+/**
+ * Cliente con service role para operaciones que requieren bypass RLS.
+ * Solo usar en API routes (cron, webhooks) nunca exponer en cliente.
+ */
+export function createServiceRoleClient() {
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!key) {
+    throw new Error("SUPABASE_SERVICE_ROLE_KEY is required for createServiceRoleClient");
+  }
+  return createSupabaseClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    key,
+    { auth: { autoRefreshToken: false, persistSession: false } }
+  );
+}

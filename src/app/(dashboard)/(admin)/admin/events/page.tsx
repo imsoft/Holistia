@@ -151,12 +151,53 @@ const EventsAdminPage = () => {
 
   const handleToggleStatus = async (eventId: string, isActive: boolean) => {
     try {
+      const targetEvent = events.find((evt) => evt.id === eventId);
+
       const { error } = await supabase
         .from("events_workshops")
         .update({ is_active: !isActive })
         .eq("id", eventId);
 
       if (error) throw error;
+
+      if (isActive && targetEvent) {
+        try {
+          const { data: registrations, error: regError } = await supabase
+            .from("event_registrations")
+            .select("id, user_id")
+            .eq("event_id", eventId)
+            .eq("status", "confirmed");
+
+          if (regError) {
+            console.warn("Error fetching registrations for cancellation notification:", regError);
+          } else if (registrations && registrations.length > 0) {
+            const notificationsPayload = registrations
+              .filter((reg): reg is { id: string; user_id: string } => Boolean(reg.user_id))
+              .map((reg) => ({
+                user_id: reg.user_id,
+                type: "event_cancelled",
+                title: "Evento cancelado",
+                message: `El evento "${targetEvent.name}" ha sido cancelado.`,
+                action_url: `/my-registrations?event=${eventId}`,
+                metadata: {
+                  event_id: eventId,
+                  event_name: targetEvent.name,
+                  event_registration_id: reg.id,
+                  event_date: targetEvent.event_date,
+                  event_time: targetEvent.event_time,
+                  end_time: targetEvent.end_time,
+                },
+              }));
+
+            if (notificationsPayload.length > 0) {
+              await supabase.from("notifications").insert(notificationsPayload);
+            }
+          }
+        } catch (notifyError) {
+          console.warn("Error creating cancellation notifications:", notifyError);
+        }
+      }
+
       toast.success(`Evento ${!isActive ? "activado" : "desactivado"}`);
       fetchEvents();
     } catch (error) {

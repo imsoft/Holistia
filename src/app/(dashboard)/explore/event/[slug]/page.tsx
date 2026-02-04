@@ -17,16 +17,17 @@ import {
   User,
   Car,
   CheckCircle,
-  XCircle,
-  Share2
+  XCircle
 } from "lucide-react";
 
 import EventPaymentButton from "@/components/ui/event-payment-button";
 import { formatPrice } from "@/lib/price-utils";
 import { formatEventDate, formatEventTime } from "@/utils/date-utils";
 import { EventQuestionsSection } from "@/components/events/event-questions-section";
-import { CopyUrlButton } from "@/components/ui/copy-url-button";
+import { EventShareButton } from "@/components/events/event-share-button";
+import { AddToCalendarButton } from "@/components/events/add-to-calendar-button";
 import { EventFreeRegisterButton } from "@/components/events/event-free-register-button";
+import { EventWaitlistButton } from "@/components/events/event-waitlist-button";
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -153,50 +154,68 @@ export default async function EventDetailPage({
   const isAuthenticated = Boolean(currentUserId);
 
   let isRegistered = false;
+  let registrationStatus: string | null = null;
   let hasPayment = false;
   let isAdmin = false;
+  let isOnWaitlist = false;
+  let confirmedCount = 0;
   const isProfessional = Boolean(
     currentUserId && professional?.user_id && professional.user_id === currentUserId
   );
 
+  const [{ count: countValue }] = await Promise.all([
+    supabase
+      .from("event_registrations")
+      .select("id", { count: "exact", head: true })
+      .eq("event_id", event.id!)
+      .eq("status", "confirmed"),
+  ]);
+  if (countValue != null) confirmedCount = countValue;
+
   if (currentUserId) {
-    const [registrationResult, paymentResult, profileResult] = await Promise.allSettled([
-      supabase
-        .from("event_registrations")
-        .select("id, status")
-        .eq("event_id", event.id!)
-        .eq("user_id", currentUserId)
-        .maybeSingle(),
-      supabase
-        .from("payments")
-        .select("id, status")
-        .eq("event_id", event.id!)
-        .eq("patient_id", currentUserId)
-        .eq("status", "succeeded")
-        .maybeSingle(),
-      supabase
-        .from("profiles")
-        .select("type")
-        .eq("id", currentUserId)
-        .maybeSingle(),
-    ]);
-
-    if (registrationResult.status === "fulfilled" && registrationResult.value.data) {
+    const [registrationResult, paymentResult, profileResult, waitlistResult] =
+      await Promise.all([
+        supabase
+          .from("event_registrations")
+          .select("id, status")
+          .eq("event_id", event.id!)
+          .eq("user_id", currentUserId)
+          .maybeSingle(),
+        supabase
+          .from("payments")
+          .select("id, status")
+          .eq("event_id", event.id!)
+          .eq("patient_id", currentUserId)
+          .eq("status", "succeeded")
+          .maybeSingle(),
+        supabase.from("profiles").select("type").eq("id", currentUserId).maybeSingle(),
+        supabase
+          .from("event_waitlist")
+          .select("id")
+          .eq("event_id", event.id!)
+          .eq("user_id", currentUserId)
+          .maybeSingle(),
+      ]);
+    if (registrationResult.data) {
       isRegistered = true;
+      registrationStatus = registrationResult.data.status ?? null;
     }
-
-    if (paymentResult.status === "fulfilled" && paymentResult.value.data) {
-      hasPayment = true;
-    }
-
-    if (profileResult.status === "fulfilled") {
-      isAdmin = profileResult.value.data?.type === "admin";
-    }
+    if (paymentResult.data) hasPayment = true;
+    if (profileResult.data?.type === "admin") isAdmin = true;
+    if (waitlistResult.data) isOnWaitlist = true;
   }
+
+  // Para eventos gratuitos, registro confirmado = inscripción completada
+  const isFreeRegistrationConfirmed =
+    event.is_free && isRegistered && registrationStatus === "confirmed";
+
+  const isFull = confirmedCount >= (event.max_capacity ?? 0);
 
   // Preferimos compartir la URL canónica con slug si existe.
   const sharePath = `/explore/event/${event.slug || event.id}`;
   const redirectAfterAuth = encodeURIComponent(sharePath);
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.holistia.io";
+  const eventShareUrl = `${baseUrl}${sharePath}`;
 
   const pageInner = (
     <div className="min-h-screen bg-background">
@@ -239,16 +258,12 @@ export default async function EventDetailPage({
                     loading="eager"
                   />
                 )}
-                <div className="absolute top-4 right-4">
-                  <CopyUrlButton
-                    variant="secondary"
-                    size="sm"
-                    urlPath={sharePath}
-                    className="shadow-lg"
-                  >
-                    <Share2 className="w-4 h-4 mr-2" />
-                    Compartir
-                  </CopyUrlButton>
+                <div className="absolute top-4 right-4 flex flex-wrap gap-2 justify-end">
+                  <AddToCalendarButton eventId={event.id!} />
+                  <EventShareButton
+                    eventName={event.name}
+                    shareUrl={eventShareUrl}
+                  />
                 </div>
               </div>
             )}
@@ -449,11 +464,11 @@ export default async function EventDetailPage({
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
                   <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5" />
-                  {hasPayment ? "Registro confirmado" : "Registro al evento"}
+                  {(hasPayment || isFreeRegistrationConfirmed) ? "Registro confirmado" : "Registro al evento"}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3 sm:space-y-4">
-                {hasPayment ? (
+                {(hasPayment || isFreeRegistrationConfirmed) ? (
                   <div className="text-center space-y-3 sm:space-y-4">
                     <div className="flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 bg-green-100 dark:bg-green-900 rounded-full mx-auto">
                       <CheckCircle className="w-6 h-6 sm:w-8 sm:h-8 text-green-600" />
@@ -461,7 +476,9 @@ export default async function EventDetailPage({
                     <div>
                       <p className="text-base sm:text-lg font-semibold text-green-600">¡Registro confirmado!</p>
                       <p className="text-xs sm:text-sm text-muted-foreground px-2">
-                        Tu pago ha sido procesado exitosamente. Recibirás un email de confirmación con todos los detalles del evento.
+                        {hasPayment
+                          ? "Tu pago ha sido procesado exitosamente. Recibirás un email de confirmación con todos los detalles del evento."
+                          : "Tu inscripción está confirmada. Revisa tu email con el código de confirmación y los detalles del evento."}
                       </p>
                     </div>
                   </div>
@@ -500,7 +517,11 @@ export default async function EventDetailPage({
                         {event.is_free ? "Evento sin costo" : "Costo por persona"}
                       </p>
                     </div>
-
+                    {isFull && (
+                      <p className="text-sm font-medium text-amber-700 dark:text-amber-400 text-center">
+                        Evento lleno · Lista de espera disponible al iniciar sesión
+                      </p>
+                    )}
                     <div className="space-y-3">
                       <Link href={`/signup?redirect=${redirectAfterAuth}`}>
                         <Button className="w-full text-sm sm:text-base touch-manipulation" size="lg">
@@ -525,6 +546,33 @@ export default async function EventDetailPage({
                       }
                     </p>
                   </>
+                ) : isFull && isOnWaitlist ? (
+                  <div className="text-center space-y-3 sm:space-y-4">
+                    <div className="flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 bg-sky-100 dark:bg-sky-900 rounded-full mx-auto">
+                      <Users className="w-6 h-6 sm:w-8 sm:h-8 text-sky-600" />
+                    </div>
+                    <div>
+                      <p className="text-base sm:text-lg font-semibold text-sky-600">Estás en la lista de espera</p>
+                      <p className="text-xs sm:text-sm text-muted-foreground px-2 mt-1">
+                        Te avisaremos por email y en la app si se libera un cupo. Si el evento pasa sin plazas libres, también te lo diremos.
+                      </p>
+                    </div>
+                  </div>
+                ) : isFull ? (
+                  <>
+                    <div className="text-center">
+                      <p className="text-xl sm:text-2xl font-bold text-primary">
+                        {event.is_free ? "Gratuito" : formatPrice(event.price ?? 0, "MXN")}
+                      </p>
+                      <p className="text-xs sm:text-sm text-muted-foreground">
+                        Cupo completo · {confirmedCount} / {event.max_capacity} personas
+                      </p>
+                    </div>
+                    <p className="text-sm text-amber-700 dark:text-amber-400 text-center">
+                      Este evento está lleno. Apúntate a la lista de espera y te avisaremos si se libera un lugar.
+                    </p>
+                    <EventWaitlistButton eventId={event.id!} className="w-full" size="lg" />
+                  </>
                 ) : (
                   <>
                     <div className="text-center">
@@ -537,7 +585,7 @@ export default async function EventDetailPage({
                     </div>
 
                     {event.is_free ? (
-                      <EventFreeRegisterButton />
+                      <EventFreeRegisterButton eventId={event.id!} />
                     ) : (
                       <EventPaymentButton
                         eventId={event.id!}

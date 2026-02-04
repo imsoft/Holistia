@@ -279,6 +279,236 @@ export async function sendAppointmentConfirmationToPatient(data: AppointmentConf
   }
 }
 
+// ============================================================================
+// EVENT FREE REGISTRATION CONFIRMATION EMAIL
+// ============================================================================
+
+interface EventFreeRegistrationConfirmationData {
+  user_name: string;
+  user_email: string;
+  confirmation_code: string;
+  event_name: string;
+  event_date: string;
+  event_time: string;
+  event_location: string;
+  event_duration: number;
+  my_registrations_url: string;
+}
+
+export async function sendEventFreeRegistrationConfirmation(
+  data: EventFreeRegistrationConfirmationData
+) {
+  try {
+    const fs = await import('fs');
+    const path = await import('path');
+
+    const templatePath = path.join(
+      process.cwd(),
+      'database/email-templates/event-free-registration-confirmation.html'
+    );
+    let emailTemplate: string;
+
+    try {
+      emailTemplate = fs.readFileSync(templatePath, 'utf8');
+    } catch (error) {
+      console.error('Error reading event free registration template:', error);
+      return { success: false, error: 'Template not found' };
+    }
+
+    const emailContent = emailTemplate
+      .replace(/\{\{user_name\}\}/g, data.user_name)
+      .replace(/\{\{confirmation_code\}\}/g, data.confirmation_code)
+      .replace(/\{\{event_name\}\}/g, data.event_name)
+      .replace(/\{\{event_date\}\}/g, data.event_date)
+      .replace(/\{\{event_time\}\}/g, data.event_time)
+      .replace(/\{\{event_location\}\}/g, data.event_location)
+      .replace(/\{\{event_duration\}\}/g, data.event_duration.toString())
+      .replace(/\{\{my_registrations_url\}\}/g, data.my_registrations_url);
+
+    const { data: emailData, error } = await resend.emails.send({
+      from: 'Holistia <noreply@holistia.io>',
+      to: [data.user_email],
+      subject: `🎟️ Inscripción confirmada: ${data.event_name} | Holistia`,
+      html: emailContent,
+    });
+
+    if (error) {
+      console.error('Error sending event free registration confirmation:', error);
+      return { success: false, error: error.message };
+    }
+
+    console.log('Event free registration confirmation sent:', emailData?.id);
+    return { success: true, message: 'Email sent successfully', id: emailData?.id };
+  } catch (error) {
+    console.error('Error in sendEventFreeRegistrationConfirmation:', error);
+    return { success: false, error: 'Failed to send email' };
+  }
+}
+
+// ============================================================================
+// EVENT POST FOLLOW-UP EMAIL
+// ============================================================================
+
+interface EventPostFollowupEmailData {
+  participant_name: string;
+  participant_email: string;
+  event_name: string;
+  event_date: string;
+  event_time: string;
+  feedback_url: string;
+}
+
+export async function sendEventPostFollowupEmail(data: EventPostFollowupEmailData) {
+  try {
+    const fs = await import('fs');
+    const path = await import('path');
+
+    const templatePath = path.join(
+      process.cwd(),
+      'database/email-templates/event-post-followup.html'
+    );
+    let emailTemplate: string;
+
+    try {
+      emailTemplate = fs.readFileSync(templatePath, 'utf8');
+    } catch (error) {
+      console.error('Error reading event post follow-up template:', error);
+      return { success: false, error: 'Template not found' };
+    }
+
+    const emailContent = emailTemplate
+      .replace(/\{\{participant_name\}\}/g, data.participant_name)
+      .replace(/\{\{event_name\}\}/g, data.event_name)
+      .replace(/\{\{event_date\}\}/g, data.event_date)
+      .replace(/\{\{event_time\}\}/g, data.event_time)
+      .replace(/\{\{feedback_url\}\}/g, data.feedback_url);
+
+    const { data: emailData, error } = await resend.emails.send({
+      from: 'Holistia <noreply@holistia.io>',
+      to: [data.participant_email],
+      subject: `🙏 Gracias por asistir a ${data.event_name} | Holistia`,
+      html: emailContent,
+    });
+
+    if (error) {
+      console.error('Error sending event post follow-up email:', error);
+      return { success: false, error: error.message };
+    }
+
+    console.log('Event post follow-up email sent:', emailData?.id);
+    return { success: true, message: 'Email sent successfully', id: emailData?.id };
+  } catch (error) {
+    console.error('Error in sendEventPostFollowupEmail:', error);
+    return { success: false, error: 'Failed to send email' };
+  }
+}
+
+// ============================================================================
+// EVENT WAITLIST: CUPO LIBERADO
+// ============================================================================
+
+interface EventWaitlistSpotAvailableData {
+  user_name: string;
+  user_email: string;
+  event_name: string;
+  event_date: string;
+  event_time: string;
+  event_location: string;
+  event_url: string;
+}
+
+export async function sendEventWaitlistSpotAvailableEmail(
+  data: EventWaitlistSpotAvailableData
+) {
+  try {
+    const fs = await import('fs');
+    const path = await import('path');
+    const templatePath = path.join(
+      process.cwd(),
+      'database/email-templates/event-waitlist-spot-available.html'
+    );
+    let emailTemplate: string;
+    try {
+      emailTemplate = fs.readFileSync(templatePath, 'utf8');
+    } catch (error) {
+      console.error('Error reading event waitlist spot available template:', error);
+      return { success: false, error: 'Template not found' };
+    }
+    const emailContent = emailTemplate
+      .replace(/\{\{user_name\}\}/g, data.user_name)
+      .replace(/\{\{user_email\}\}/g, data.user_email)
+      .replace(/\{\{event_name\}\}/g, data.event_name)
+      .replace(/\{\{event_date\}\}/g, data.event_date)
+      .replace(/\{\{event_time\}\}/g, data.event_time)
+      .replace(/\{\{event_location\}\}/g, data.event_location)
+      .replace(/\{\{event_url\}\}/g, data.event_url);
+    const { data: emailData, error } = await resend.emails.send({
+      from: 'Holistia <noreply@holistia.io>',
+      to: [data.user_email],
+      subject: `¡Hay cupo disponible! ${data.event_name} | Holistia`,
+      html: emailContent,
+    });
+    if (error) {
+      console.error('Error sending event waitlist spot available email:', error);
+      return { success: false, error: error.message };
+    }
+    console.log('Event waitlist spot available email sent:', emailData?.id);
+    return { success: true, message: 'Email sent successfully', id: emailData?.id };
+  } catch (error) {
+    console.error('Error in sendEventWaitlistSpotAvailableEmail:', error);
+    return { success: false, error: 'Failed to send email' };
+  }
+}
+
+// ============================================================================
+// EVENT WAITLIST: NO HUBO CUPOS
+// ============================================================================
+
+interface EventWaitlistNoSpotData {
+  user_name: string;
+  user_email: string;
+  event_name: string;
+  explore_events_url: string;
+}
+
+export async function sendEventWaitlistNoSpotEmail(data: EventWaitlistNoSpotData) {
+  try {
+    const fs = await import('fs');
+    const path = await import('path');
+    const templatePath = path.join(
+      process.cwd(),
+      'database/email-templates/event-waitlist-no-spot.html'
+    );
+    let emailTemplate: string;
+    try {
+      emailTemplate = fs.readFileSync(templatePath, 'utf8');
+    } catch (error) {
+      console.error('Error reading event waitlist no spot template:', error);
+      return { success: false, error: 'Template not found' };
+    }
+    const emailContent = emailTemplate
+      .replace(/\{\{user_name\}\}/g, data.user_name)
+      .replace(/\{\{user_email\}\}/g, data.user_email)
+      .replace(/\{\{event_name\}\}/g, data.event_name)
+      .replace(/\{\{explore_events_url\}\}/g, data.explore_events_url);
+    const { data: emailData, error } = await resend.emails.send({
+      from: 'Holistia <noreply@holistia.io>',
+      to: [data.user_email],
+      subject: `Evento ${data.event_name} finalizó sin cupos liberados | Holistia`,
+      html: emailContent,
+    });
+    if (error) {
+      console.error('Error sending event waitlist no spot email:', error);
+      return { success: false, error: error.message };
+    }
+    console.log('Event waitlist no spot email sent:', emailData?.id);
+    return { success: true, message: 'Email sent successfully', id: emailData?.id };
+  } catch (error) {
+    console.error('Error in sendEventWaitlistNoSpotEmail:', error);
+    return { success: false, error: 'Failed to send email' };
+  }
+}
+
 // Send event payment confirmation with Resend
 export async function sendEventConfirmationEmailSimple(data: EventConfirmationEmailData) {
   try {

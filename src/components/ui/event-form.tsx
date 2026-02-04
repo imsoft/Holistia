@@ -452,6 +452,22 @@ export function EventForm({ event, professionals, onSuccess, onCancel }: EventFo
         created_by: (await supabase.auth.getUser()).data.user?.id,
       };
 
+      const dateChanged =
+        Boolean(event) &&
+        (
+          (event?.event_date ?? '') !== formData.event_date ||
+          (event?.event_time ?? '') !== formData.event_time ||
+          (event?.end_date ?? '') !== (formData.end_date || '') ||
+          (event?.end_time ?? '') !== (formData.end_time || '')
+        );
+
+      const previousSchedule = {
+        event_date: event?.event_date ?? null,
+        event_time: event?.event_time ?? null,
+        end_date: event?.end_date ?? null,
+        end_time: event?.end_time ?? null,
+      };
+
       if (event) {
         // Actualizar evento existente
         const { error } = await supabase
@@ -461,6 +477,49 @@ export function EventForm({ event, professionals, onSuccess, onCancel }: EventFo
 
         if (error) throw error;
         toast.success("Evento actualizado exitosamente");
+
+        if (dateChanged) {
+          try {
+            const { data: registrations, error: regError } = await supabase
+              .from("event_registrations")
+              .select("id, user_id")
+              .eq("event_id", event.id)
+              .eq("status", "confirmed");
+
+            if (regError) {
+              console.warn("Error fetching registrations for notification:", regError);
+            } else if (registrations && registrations.length > 0) {
+              const notificationsPayload = (registrations ?? [])
+                .filter((reg): reg is { id: string; user_id: string } => Boolean(reg.user_id))
+                .map((reg) => ({
+                  user_id: reg.user_id,
+                  type: "event_updated",
+                  title: "Evento reprogramado",
+                  message: `Actualizamos la fecha/horario de "${formData.name}".`,
+                  action_url: `/my-registrations?event=${event.id}`,
+                  metadata: {
+                    event_id: event.id,
+                    event_name: formData.name,
+                    event_registration_id: reg.id,
+                    old_event_date: previousSchedule.event_date,
+                    old_event_time: previousSchedule.event_time,
+                    old_end_date: previousSchedule.end_date,
+                    old_end_time: previousSchedule.end_time,
+                    new_event_date: formData.event_date,
+                    new_event_time: formData.event_time,
+                    new_end_date: formData.end_date,
+                    new_end_time: formData.end_time,
+                  },
+                }));
+
+              if (notificationsPayload.length > 0) {
+                await supabase.from("notifications").insert(notificationsPayload);
+              }
+            }
+          } catch (notifyError) {
+            console.warn("Error creating event update notifications:", notifyError);
+          }
+        }
       } else {
         // Crear nuevo evento
         const { data: newEvent, error } = await supabase

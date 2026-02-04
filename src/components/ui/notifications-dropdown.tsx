@@ -24,6 +24,10 @@ import {
   Flame,
   CheckCheck,
   Trash2,
+  CalendarClock,
+  CalendarCheck,
+  CalendarX,
+  CalendarPlus,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
@@ -52,6 +56,11 @@ const notificationIcons: Record<string, any> = {
   post_comment: MessageCircle,
   badge_earned: Trophy,
   direct_message: MessageCircle,
+  event_reminder: CalendarClock,
+  event_updated: CalendarCheck,
+  event_cancelled: CalendarX,
+  event_spot_available: CalendarPlus,
+  event_no_spot_available: CalendarX,
 };
 
 const notificationColors: Record<string, string> = {
@@ -62,6 +71,11 @@ const notificationColors: Record<string, string> = {
   post_comment: "text-blue-500 bg-blue-50",
   badge_earned: "text-yellow-500 bg-yellow-50",
   direct_message: "text-indigo-500 bg-indigo-50",
+  event_reminder: "text-sky-600 bg-sky-50",
+  event_updated: "text-amber-600 bg-amber-50",
+  event_cancelled: "text-red-600 bg-red-50",
+  event_spot_available: "text-green-600 bg-green-50",
+  event_no_spot_available: "text-slate-600 bg-slate-50",
 };
 
 export function NotificationsDropdown() {

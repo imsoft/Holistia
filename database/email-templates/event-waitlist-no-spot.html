@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Evento sin cupos liberados | Holistia</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f8f9fa; }
+        .container { background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); overflow: hidden; }
+        .header { background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%); color: white; padding: 30px 20px; text-align: center; }
+        .header h1 { margin: 0; font-size: 24px; font-weight: 600; }
+        .content { padding: 30px 20px; }
+        .info-box { background-color: #f3f4f6; border-radius: 8px; padding: 20px; margin: 20px 0; }
+        .footer { background-color: #f8f9fa; padding: 20px; text-align: center; color: #6b7280; font-size: 14px; }
+        .footer a { color: #667eea; text-decoration: none; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Evento finalizado sin cupos liberados</h1>
+        </div>
+        <div class="content">
+            <p>Hola <strong>{{user_name}}</strong>,</p>
+            <p>Estabas en la lista de espera para el evento <strong>{{event_name}}</strong>, que ya tuvo lugar.</p>
+            <p>Lamentablemente <strong>no se liberaron cupos</strong> antes del evento, así que no fue posible que participaras en esta ocasión.</p>
+            <div class="info-box">
+                <p style="margin: 0;">Te invitamos a seguir explorando otros eventos en Holistia; puede que encuentres algo que te interese.</p>
+            </div>
+            <p style="text-align: center;">
+                <a href="{{explore_events_url}}">Ver eventos disponibles</a>
+            </p>
+        </div>
+        <div class="footer">
+            Holistia · Bienestar integral
+        </div>
+    </div>
+</body>
+</html>

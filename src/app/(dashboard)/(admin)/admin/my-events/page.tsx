@@ -9,7 +9,7 @@ import { formatPrice } from "@/lib/price-utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Calendar, Users, DollarSign, MapPin, ArrowLeft } from "lucide-react";
+import { Loader2, Calendar, Users, DollarSign, MapPin } from "lucide-react";
 import { toast } from "sonner";
 import Image from "next/image";
 import { EventWorkshop } from "@/types/event";
@@ -92,15 +92,6 @@ export default function MyEventsPage() {
 
   return (
     <div className="container mx-auto py-8 px-4 max-w-7xl">
-      <Button
-        variant="ghost"
-        onClick={() => router.back()}
-        className="mb-6"
-      >
-        <ArrowLeft className="h-4 w-4 mr-2" />
-        Volver
-      </Button>
-
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2">Mis Eventos</h1>
         <p className="text-muted-foreground">

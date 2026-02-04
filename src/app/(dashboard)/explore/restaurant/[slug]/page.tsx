@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
+import Link from "next/link";
 import { useUserId } from "@/stores/user-store";
 import { useUserStoreInit } from "@/hooks/use-user-store-init";
 import {
@@ -11,7 +12,6 @@ import {
   Mail,
   Globe,
   Instagram,
-  ArrowLeft,
   ExternalLink,
   FileText,
   Share2
@@ -182,9 +182,8 @@ export default function RestaurantDetailPage() {
           <p className="text-muted-foreground mb-6">
             El restaurante que buscas no existe o no está disponible
           </p>
-          <Button onClick={() => router.back()}>
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Volver
+          <Button asChild>
+            <Link href="/explore/restaurants">Ver restaurantes</Link>
           </Button>
         </div>
       </div>
@@ -195,16 +194,6 @@ export default function RestaurantDetailPage() {
   const renderRestaurantContent = () => {
     return (
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-        {/* Botón de regresar */}
-        <Button
-          variant="ghost"
-          onClick={() => router.back()}
-          className="mb-6"
-        >
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Volver
-        </Button>
-
         {/* Imagen principal y título */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
           {/* Imagen */}

@@ -3,7 +3,6 @@ import { createAnonClient } from "@/utils/supabase/server";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
 import { ProfessionalCard } from "@/components/ui/professional-card";
 
 interface SpecialtyPageProps {
@@ -125,15 +124,6 @@ export default async function SpecialtyPage({ params }: SpecialtyPageProps) {
       {/* Hero Section */}
       <section className="bg-gradient-to-b from-primary/5 to-background py-16 px-4">
         <div className="max-w-7xl mx-auto">
-          {/* Botón de regresar */}
-          <Link
-            href="/"
-            className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-8"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Volver al inicio
-          </Link>
-
           <h1 className="text-4xl md:text-5xl font-bold mb-4">
             Profesionales de {profession}
           </h1>

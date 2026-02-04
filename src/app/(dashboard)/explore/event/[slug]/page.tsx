@@ -13,7 +13,6 @@ import {
   MapPin,
   Clock,
   Users,
-  ArrowLeft,
   User,
   Car,
   CheckCircle,
@@ -220,13 +219,6 @@ export default async function EventDetailPage({
   const pageInner = (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-8">
-        <Link href="/" className="inline-block mb-6">
-          <Button variant="ghost">
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Volver
-          </Button>
-        </Link>
-
         <div className="grid gap-6 sm:gap-8 lg:grid-cols-3">
           {/* Contenido principal */}
           <div className="lg:col-span-2 space-y-4 sm:space-y-6">

@@ -1,9 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SocialFeedPost } from "@/components/ui/social-feed-post";
 import { SkeletonPostList } from "@/components/ui/skeleton-post";
@@ -13,7 +12,6 @@ import { toast } from "sonner";
 export default function FeedPostPage() {
   useUserStoreInit();
   const params = useParams();
-  const router = useRouter();
   const postId = params.id as string;
 
   const [checkin, setCheckin] = useState<any | null>(null);
@@ -58,10 +56,6 @@ export default function FeedPostPage() {
     return (
       <div className="min-h-screen bg-background">
         <main className="max-w-2xl mx-auto px-4 py-8">
-          <Button variant="ghost" size="sm" onClick={() => router.back()} className="mb-6">
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Volver
-          </Button>
           <SkeletonPostList count={1} />
         </main>
       </div>
@@ -77,9 +71,6 @@ export default function FeedPostPage() {
             {error || "El post que buscas no existe o ya no está disponible."}
           </p>
           <div className="flex gap-4 justify-center">
-            <Button variant="outline" onClick={() => router.back()}>
-              Volver
-            </Button>
             <Button asChild>
               <Link href="/feed">Ir al Feed</Link>
             </Button>
@@ -92,12 +83,6 @@ export default function FeedPostPage() {
   return (
     <div className="min-h-screen bg-background">
       <main className="max-w-2xl mx-auto px-4 py-8">
-        <Button variant="ghost" size="sm" asChild className="mb-6">
-          <Link href="/feed">
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Volver al Feed
-          </Link>
-        </Button>
         <SocialFeedPost
           checkin={checkin}
           onLike={() => {

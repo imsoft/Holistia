@@ -6,7 +6,7 @@ import { createClient } from "@/utils/supabase/client";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, ArrowLeft, CreditCard } from "lucide-react";
+import { Loader2, CreditCard } from "lucide-react";
 import Image from "next/image";
 import { useUserId } from "@/stores/user-store";
 import { formatPrice } from "@/lib/price-utils";
@@ -163,15 +163,6 @@ export default function ChallengeCheckoutPage() {
   return (
     <div className="min-h-screen bg-background">
       <div className="container max-w-4xl mx-auto px-4 py-8">
-        <Button
-          variant="ghost"
-          onClick={() => router.push(`/explore/challenge/${challenge?.slug || slugParam}`)}
-          className="mb-6"
-        >
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Volver
-        </Button>
-
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Información del reto */}
           <div className="lg:col-span-2 space-y-6">

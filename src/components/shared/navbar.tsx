@@ -63,7 +63,15 @@ export const Navbar = () => {
     authCheckRef.current = true;
 
     const checkAuth = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      const isSessionNotFound =
+        authError?.message?.includes('session') && authError?.message?.includes('not exist') ||
+        (authError as { code?: string })?.code === 'session_not_found';
+      if (authError && isSessionNotFound) {
+        await supabase.auth.signOut({ scope: 'local' });
+        useUserStore.getState().clearUser();
+        useUserStore.getState().clearProfileCache();
+      }
       setIsAuthenticated(!!user);
     };
 

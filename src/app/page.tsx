@@ -35,8 +35,6 @@ export const metadata: Metadata = generateStaticMetadata({
 const structuredData = generateStructuredData('website', {});
 
 export default function HomePage() {
-  // La redirección de usuarios autenticados se maneja en el middleware (session.ts)
-  // No necesitamos lógica client-side aquí para evitar renderizar la página antes de redirigir
   return (
     <>
       <StructuredData data={structuredData} />

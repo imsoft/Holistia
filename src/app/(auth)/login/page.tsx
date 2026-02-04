@@ -60,7 +60,18 @@ function LoginFormWithMessage() {
     }
 
     if (error) {
-      toast.error(error, { duration: 8000 });
+      // No mostrar errores técnicos crudos (ej. session_not_found de Supabase)
+      const isTechnicalError =
+        error.startsWith('{') ||
+        error.includes('session_not_found') ||
+        error.includes('JWT') ||
+        error.includes('session_id');
+      toast.error(
+        isTechnicalError
+          ? 'Tu sesión ha expirado o no es válida. Inicia sesión de nuevo.'
+          : error,
+        { duration: 8000 }
+      );
     }
 
     if (deactivated === 'true') {

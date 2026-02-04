@@ -52,8 +52,23 @@ export function useProfile() {
 
       // Obtener usuario autenticado
       const { data: { user }, error: authError } = await supabase.auth.getUser();
-      
-      if (authError) throw authError;
+
+      // Sesión inválida o ya no existe (ej. tras cerrar sesión en otro dispositivo o JWT obsoleto)
+      if (authError) {
+        const isSessionNotFound =
+          authError.message?.includes('session') && authError.message?.includes('not exist') ||
+          (authError as { code?: string }).code === 'session_not_found';
+        if (isSessionNotFound) {
+          await supabase.auth.signOut({ scope: 'local' });
+          setProfile(null);
+          setLoading(false);
+          setError(null);
+          useUserStore.getState().clearUser();
+          useUserStore.getState().clearProfileCache();
+          return;
+        }
+        throw authError;
+      }
       if (!user) {
         setProfile(null);
         return;
@@ -242,7 +257,28 @@ export function useProfile() {
       // Evitar cargar si ya se está cargando
       if (loadingRef.current) return;
 
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      const isSessionNotFound =
+        authError?.message?.includes('session') && authError?.message?.includes('not exist') ||
+        (authError as { code?: string })?.code === 'session_not_found';
+      if (authError && isSessionNotFound) {
+        await supabase.auth.signOut({ scope: 'local' });
+        setProfile(null);
+        setLoading(false);
+        setError(null);
+        useUserStore.getState().clearUser();
+        useUserStore.getState().clearProfileCache();
+        return;
+      }
+      if (authError) {
+        setProfile(null);
+        setLoading(false);
+        const errMsg = typeof authError === 'object' && authError !== null && 'message' in authError
+          ? String((authError as { message?: string }).message)
+          : 'Failed to get user';
+        setError(new Error(errMsg || 'Failed to get user'));
+        return;
+      }
       if (!user) {
         // Si no hay usuario, limpiar perfil y no cargar
         setProfile(null);

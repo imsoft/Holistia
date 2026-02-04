@@ -337,6 +337,7 @@ export function CheckinForm({
               <div className="relative h-48 w-full rounded-lg overflow-hidden border">
                 {evidenceType === 'video' ? (
                   <VideoPlayer
+                    key={blobFailed ? `public-${evidenceUrl}` : `blob-${evidenceVideoPreviewUrl}`}
                     url={blobFailed ? (evidenceUrl ?? '') : (evidenceVideoPreviewUrl ?? evidenceUrl ?? '')}
                     className="w-full h-48"
                     fill

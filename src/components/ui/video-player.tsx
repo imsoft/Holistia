@@ -43,6 +43,7 @@ export function VideoPlayer({ url, className = "", fill = true, controls = true,
   const [triedSigned, setTriedSigned] = useState(false);
 
   useEffect(() => {
+    setError(false);
     if (!url) {
       setPlayUrl(null);
       setLoading(false);
@@ -58,6 +59,7 @@ export function VideoPlayer({ url, className = "", fill = true, controls = true,
     const path = getStoragePathFromPublicUrl(url);
     if (path) {
       setLoading(true);
+      setError(false);
       const supabase = createClient();
       supabase.storage
         .from("challenges")

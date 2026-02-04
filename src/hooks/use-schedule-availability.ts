@@ -256,25 +256,23 @@ export function useScheduleAvailability(professionalId: string) {
       const blockStartDate = parseLocalDate(block.start_date);
       const blockEndDate = block.end_date ? parseLocalDate(block.end_date) : blockStartDate;
       const currentDate = parseLocalDate(date);
-      
+
       // Normalizar fechas para comparación (solo fecha, sin hora)
       blockStartDate.setHours(0, 0, 0, 0);
       blockEndDate.setHours(0, 0, 0, 0);
       currentDate.setHours(0, 0, 0, 0);
-      
+
       // Verificar si la fecha actual está dentro del rango del bloqueo
       const isInDateRange = currentDate >= blockStartDate && currentDate <= blockEndDate;
       const dayOfWeekCurrent = normalizeDayOfWeek(currentDate.getDay());
       const dayOfWeekStart = normalizeDayOfWeek(blockStartDate.getDay());
       const dayOfWeekEnd = normalizeDayOfWeek(blockEndDate.getDay());
-      
+
       // Manejar diferentes tipos de bloqueos
       if (block.block_type === 'weekly_day') {
         // Bloqueo de día completo (puede ser recurrente o de una sola vez)
         // JavaScript getDay(): 0=Domingo, 1=Lunes, 2=Martes, etc.
         // Nuestro sistema: 1=Lunes, 2=Martes, 3=Miércoles, ..., 7=Domingo
-        const jsDay = currentDate.getDay();
-        const dayOfWeekCurrent = normalizeDayOfWeek(jsDay); // Convertir domingo de 0 a 7
         const matchesDayOfWeek = block.day_of_week === dayOfWeekCurrent;
 
         if (block.is_recurring) {
@@ -282,13 +280,19 @@ export function useScheduleAvailability(professionalId: string) {
           return matchesDayOfWeek;
         } else {
           // No recurrente: Solo aplica a la fecha específica en start_date
-          const dateString = date; // Ya es string YYYY-MM-DD
-          return matchesDayOfWeek && block.start_date === dateString;
+          return matchesDayOfWeek && block.start_date === date;
         }
       } else if (block.block_type === 'weekly_range') {
         // Bloqueo de rango de horas (puede ser recurrente o de una sola vez)
-        // Verificar si el día actual está en el rango de días de la semana (con soporte wrap-around)
-        const isInWeekRange = isDayOfWeekInRange(dayOfWeekCurrent, dayOfWeekStart, dayOfWeekEnd);
+        // Usar day_of_week del bloque si está disponible, sino derivar de las fechas
+        let isInWeekRange: boolean;
+        if (block.day_of_week != null) {
+          // Si el bloque tiene day_of_week explícito, usarlo directamente
+          isInWeekRange = dayOfWeekCurrent === block.day_of_week;
+        } else {
+          // Derivar el rango de días de la semana desde start_date/end_date
+          isInWeekRange = isDayOfWeekInRange(dayOfWeekCurrent, dayOfWeekStart, dayOfWeekEnd);
+        }
 
         if (block.is_recurring) {
           // Recurrente: Aplica a TODAS las ocurrencias dentro del rango de días, sin importar la fecha
@@ -315,7 +319,7 @@ export function useScheduleAvailability(professionalId: string) {
         // No recurrente (incluye Google Calendar): Solo aplica dentro del rango de fechas específicas
         return isInDateRange;
       }
-      
+
       return false;
     });
 
@@ -336,9 +340,10 @@ export function useScheduleAvailability(professionalId: string) {
       }))
     });
 
-    // Verificar si hay bloqueo de día completo
+    // Verificar si hay bloqueo de día completo (solo bloques sin rango de horas)
     const hasFullDayBlock = dayBlocks.some(block =>
-      block.block_type === 'full_day' || block.block_type === 'weekly_day'
+      (block.block_type === 'full_day' || block.block_type === 'weekly_day') &&
+      !block.start_time && !block.end_time
     );
 
     // Generar horarios de hora en hora
@@ -357,26 +362,16 @@ export function useScheduleAvailability(professionalId: string) {
       else if (appointmentTimes.has(timeString)) {
         status = 'occupied';
       }
-      // Verificar si está bloqueado por rango de horas (incluyendo eventos de Google Calendar)
+      // Verificar si está bloqueado por rango de horas (cualquier tipo con start_time/end_time)
       else if (dayBlocks.some(block => {
-        if (block.block_type === 'time_range' && block.start_time && block.end_time) {
+        if (block.start_time && block.end_time) {
           // Normalizar los tiempos a formato HH:MM para comparación consistente
           const blockStart = block.start_time.substring(0, 5);
           const blockEnd = block.end_time.substring(0, 5);
-          // Verificar si el horario está dentro del rango bloqueado
           // El bloqueo aplica si timeString >= start_time Y timeString < end_time
           const isBlocked = timeString >= blockStart && timeString < blockEnd;
           if (isBlocked) {
-            console.log('🚫 Slot bloqueado por time_range:', { timeString, blockStart, blockEnd, blockTitle: block.title });
-          }
-          return isBlocked;
-        } else if (block.block_type === 'weekly_range' && block.start_time && block.end_time) {
-          // Normalizar los tiempos a formato HH:MM para comparación consistente
-          const blockStart = block.start_time.substring(0, 5);
-          const blockEnd = block.end_time.substring(0, 5);
-          const isBlocked = timeString >= blockStart && timeString < blockEnd;
-          if (isBlocked) {
-            console.log('🚫 Slot bloqueado por weekly_range:', { timeString, blockStart, blockEnd, blockTitle: block.title });
+            console.log('🚫 Slot bloqueado por', block.block_type + ':', { timeString, blockStart, blockEnd, blockTitle: block.title });
           }
           return isBlocked;
         }

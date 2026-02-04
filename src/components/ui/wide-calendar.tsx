@@ -58,12 +58,12 @@ export function WideCalendar({
   
   const { loadWeekAvailability } = useScheduleAvailability(professionalId);
 
-  // Generar clave de caché para la semana
+  // Generar clave de caché para la semana (incluye professionalId para evitar datos cruzados)
   const getWeekKey = useCallback((date: Date) => {
     const startOfWeek = new Date(date);
     startOfWeek.setDate(date.getDate() - date.getDay());
-    return formatLocalDate(startOfWeek);
-  }, []);
+    return `${professionalId}:${formatLocalDate(startOfWeek)}`;
+  }, [professionalId]);
 
   // Función para forzar recarga sin caché
   const forceReload = useCallback(async () => {

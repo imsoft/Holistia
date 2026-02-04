@@ -36,7 +36,8 @@ interface BlocksState {
   // Cache de bloques por profesional
   blocksCache: Map<string, AvailabilityBlock[]>;
   cacheTimestamp: Map<string, number>;
-  isLoading: boolean;
+  // Promesas de carga en progreso por profesional (para deduplicación)
+  loadingPromises: Map<string, Promise<AvailabilityBlock[]>>;
 
   // Actions
   loadBlocks: (professionalId: string, forceRefresh?: boolean) => Promise<AvailabilityBlock[]>;
@@ -60,9 +61,12 @@ const CACHE_TTL = 2 * 60 * 1000;
 export const useBlocksStore = create<BlocksState>((set, get) => ({
   blocksCache: new Map(),
   cacheTimestamp: new Map(),
-  isLoading: false,
+  loadingPromises: new Map(),
 
   loadBlocks: async (professionalId, forceRefresh = false) => {
+    // Ignorar IDs vacíos
+    if (!professionalId) return [];
+
     const state = get();
 
     // Si no es forzado y el cache es válido, retornar desde cache
@@ -70,66 +74,77 @@ export const useBlocksStore = create<BlocksState>((set, get) => ({
       return state.blocksCache.get(professionalId) || [];
     }
 
-    // Evitar cargas duplicadas
-    if (state.isLoading) {
-      // Esperar un poco y reintentar desde cache
-      await new Promise(r => setTimeout(r, 100));
-      return state.blocksCache.get(professionalId) || [];
+    // Si ya hay una carga en progreso para este profesional, esperar esa misma promesa
+    const existingPromise = state.loadingPromises.get(professionalId);
+    if (existingPromise) {
+      return existingPromise;
     }
 
-    set({ isLoading: true });
+    // Crear nueva promesa de carga
+    const loadPromise = (async () => {
+      try {
+        const supabase = createClient();
+        const { data, error } = await supabase
+          .from('availability_blocks')
+          .select('*')
+          .eq('professional_id', professionalId)
+          .order('start_date', { ascending: true });
 
-    try {
-      const supabase = createClient();
-      const { data, error } = await supabase
-        .from('availability_blocks')
-        .select('*')
-        .eq('professional_id', professionalId)
-        .order('start_date', { ascending: true });
+        if (error) {
+          console.error('Error loading blocks:', error);
+          return [];
+        }
 
-      if (error) {
+        const blocks = (data || []) as AvailabilityBlock[];
+
+        console.log('📦 Blocks Store - Bloques cargados desde DB:', {
+          professionalId,
+          totalBlocks: blocks.length,
+          blocks: blocks.map(b => ({
+            id: b.id,
+            title: b.title,
+            block_type: b.block_type,
+            start_date: b.start_date,
+            end_date: b.end_date,
+            start_time: b.start_time,
+            end_time: b.end_time,
+            day_of_week: b.day_of_week,
+            is_recurring: b.is_recurring,
+            is_external_event: b.is_external_event
+          }))
+        });
+
+        // Actualizar cache
+        const currentState = get();
+        const newCache = new Map(currentState.blocksCache);
+        const newTimestamp = new Map(currentState.cacheTimestamp);
+        newCache.set(professionalId, blocks);
+        newTimestamp.set(professionalId, Date.now());
+
+        set({
+          blocksCache: newCache,
+          cacheTimestamp: newTimestamp,
+        });
+
+        return blocks;
+      } catch (error) {
         console.error('Error loading blocks:', error);
-        set({ isLoading: false });
         return [];
+      } finally {
+        // Limpiar la promesa de carga
+        const currentState = get();
+        const newPromises = new Map(currentState.loadingPromises);
+        newPromises.delete(professionalId);
+        set({ loadingPromises: newPromises });
       }
+    })();
 
-      const blocks = (data || []) as AvailabilityBlock[];
+    // Registrar la promesa de carga
+    const newPromises = new Map(state.loadingPromises);
+    newPromises.set(professionalId, loadPromise);
+    set({ loadingPromises: newPromises });
 
-      console.log('📦 Blocks Store - Bloques cargados desde DB:', {
-        professionalId,
-        totalBlocks: blocks.length,
-        blocks: blocks.map(b => ({
-          id: b.id,
-          title: b.title,
-          block_type: b.block_type,
-          start_date: b.start_date,
-          end_date: b.end_date,
-          start_time: b.start_time,
-          end_time: b.end_time,
-          day_of_week: b.day_of_week,
-          is_recurring: b.is_recurring,
-          is_external_event: b.is_external_event
-        }))
-      });
-
-      // Actualizar cache
-      const newCache = new Map(state.blocksCache);
-      const newTimestamp = new Map(state.cacheTimestamp);
-      newCache.set(professionalId, blocks);
-      newTimestamp.set(professionalId, Date.now());
-
-      set({
-        blocksCache: newCache,
-        cacheTimestamp: newTimestamp,
-        isLoading: false,
-      });
-
-      return blocks;
-    } catch (error) {
-      console.error('Error loading blocks:', error);
-      set({ isLoading: false });
-      return [];
-    }
+    return loadPromise;
   },
 
   invalidateCache: (professionalId) => {

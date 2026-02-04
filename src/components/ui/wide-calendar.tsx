@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
@@ -30,32 +30,32 @@ interface WideCalendarProps {
   className?: string;
 }
 
-export function WideCalendar({ 
-  professionalId, 
-  onTimeSelect, 
-  selectedDate, 
+export function WideCalendar({
+  professionalId,
+  onTimeSelect,
+  selectedDate,
   selectedTime,
-  className 
+  className
 }: WideCalendarProps) {
   // Inicializar desde el domingo de esta semana
   const [currentWeek, setCurrentWeek] = useState(() => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    // Calcular el domingo de esta semana (getDay() = 0 es domingo)
     const dayOfWeek = today.getDay();
     const startOfWeek = new Date(today);
     startOfWeek.setDate(today.getDate() - dayOfWeek);
-    console.log('📅 Inicializando calendario desde domingo:', {
-      today: formatLocalDate(today),
-      dayOfWeek,
-      startOfWeek: formatLocalDate(startOfWeek)
-    });
     return startOfWeek;
   });
   const [weekData, setWeekData] = useState<DayData[]>([]);
-  const [cache, setCache] = useState<Map<string, DayData[]>>(new Map());
   const [isLoading, setIsLoading] = useState(false);
-  
+
+  // Usar ref para caché para evitar que actualizaciones del caché
+  // disparen re-renders y re-fires del useEffect
+  const cacheRef = useRef<Map<string, DayData[]>>(new Map());
+
+  // Contador de versión para descartar resultados de cargas obsoletas
+  const loadVersionRef = useRef(0);
+
   const { loadWeekAvailability } = useScheduleAvailability(professionalId);
 
   // Generar clave de caché para la semana (incluye professionalId para evitar datos cruzados)
@@ -65,38 +65,43 @@ export function WideCalendar({
     return `${professionalId}:${formatLocalDate(startOfWeek)}`;
   }, [professionalId]);
 
-  // Función para forzar recarga sin caché
-  const forceReload = useCallback(async () => {
-    console.log('🔄 Forzando recarga del calendario sin caché');
-    setCache(new Map()); // Limpiar todo el caché
-    await loadWeekData(currentWeek, false);
-  }, [currentWeek]);
-
-  // Cargar datos de la semana con caché
+  // Cargar datos de la semana con caché y protección contra race conditions
   const loadWeekData = useCallback(async (weekDate: Date, useCache = true) => {
     const weekKey = getWeekKey(weekDate);
 
     // Verificar caché primero
-    if (useCache && cache.has(weekKey)) {
+    if (useCache && cacheRef.current.has(weekKey)) {
       console.log('📦 Usando datos del caché para:', weekKey);
-      setWeekData(cache.get(weekKey)!);
+      setWeekData(cacheRef.current.get(weekKey)!);
       return;
     }
 
-    console.log('🔍 Cargando datos frescos para:', weekKey);
+    // Incrementar versión para invalidar cargas anteriores en curso
+    const thisVersion = ++loadVersionRef.current;
+
+    console.log('🔍 Cargando datos frescos para:', weekKey, 'versión:', thisVersion);
     setIsLoading(true);
     try {
       const data = await loadWeekAvailability(weekDate);
-      setWeekData(data);
 
-      // Guardar en caché
-      setCache(prev => new Map(prev).set(weekKey, data));
+      // Solo aplicar si esta carga sigue siendo la más reciente
+      if (loadVersionRef.current !== thisVersion) {
+        console.log('⏭️ Descartando resultado obsoleto, versión:', thisVersion, 'actual:', loadVersionRef.current);
+        return;
+      }
+
+      setWeekData(data);
+      // Guardar en caché (ref, no dispara re-render)
+      cacheRef.current.set(weekKey, data);
     } catch (error) {
       console.error('Error loading week data:', error);
     } finally {
-      setIsLoading(false);
+      // Solo quitar loading si esta carga sigue siendo la más reciente
+      if (loadVersionRef.current === thisVersion) {
+        setIsLoading(false);
+      }
     }
-  }, [getWeekKey, cache, loadWeekAvailability]);
+  }, [getWeekKey, loadWeekAvailability]);
 
   // Precargar semanas adyacentes para mejorar la experiencia
   const preloadAdjacentWeeks = useCallback(async (weekDate: Date) => {
@@ -104,66 +109,61 @@ export function WideCalendar({
     prevWeek.setDate(weekDate.getDate() - 7);
     const nextWeek = new Date(weekDate);
     nextWeek.setDate(weekDate.getDate() + 7);
-    
-    // Precargar en paralelo sin mostrar loading
+
     const prevWeekKey = getWeekKey(prevWeek);
     const nextWeekKey = getWeekKey(nextWeek);
-    
-    if (!cache.has(prevWeekKey)) {
-      loadWeekAvailability(prevWeek).then(data => {
-        setCache(prev => new Map(prev).set(prevWeekKey, data));
-      }).catch(console.error);
-    }
-    
-    if (!cache.has(nextWeekKey)) {
-      loadWeekAvailability(nextWeek).then(data => {
-        setCache(prev => new Map(prev).set(nextWeekKey, data));
-      }).catch(console.error);
-    }
-  }, [getWeekKey, cache, loadWeekAvailability]);
 
-  // Cargar datos iniciales
+    if (!cacheRef.current.has(prevWeekKey)) {
+      loadWeekAvailability(prevWeek).then(data => {
+        cacheRef.current.set(prevWeekKey, data);
+      }).catch(console.error);
+    }
+
+    if (!cacheRef.current.has(nextWeekKey)) {
+      loadWeekAvailability(nextWeek).then(data => {
+        cacheRef.current.set(nextWeekKey, data);
+      }).catch(console.error);
+    }
+  }, [getWeekKey, loadWeekAvailability]);
+
+  // Cargar datos cuando cambia el profesional o la semana
   useEffect(() => {
     loadWeekData(currentWeek);
-    // Precargar semanas adyacentes después de cargar la actual
-    setTimeout(() => preloadAdjacentWeeks(currentWeek), 100);
+    // Precargar semanas adyacentes después de un breve delay
+    const timer = setTimeout(() => preloadAdjacentWeeks(currentWeek), 200);
+    return () => clearTimeout(timer);
   }, [professionalId, currentWeek, loadWeekData, preloadAdjacentWeeks]);
 
   // Listener para recargar cuando se actualicen bloqueos
   useEffect(() => {
     const handleReload = () => {
       console.log('🔄 Evento de recarga detectado, limpiando caché del calendario...');
-      forceReload();
+      cacheRef.current = new Map();
+      loadWeekData(currentWeek, false);
     };
 
     window.addEventListener('reload-calendar', handleReload);
     return () => window.removeEventListener('reload-calendar', handleReload);
-  }, [forceReload]);
+  }, [currentWeek, loadWeekData]);
 
-  // Navegación de semanas optimizada
+  // Navegación de semanas
   const goToPreviousWeek = useCallback(() => {
     const prevWeek = new Date(currentWeek);
     prevWeek.setDate(currentWeek.getDate() - 7);
     setCurrentWeek(prevWeek);
-    loadWeekData(prevWeek);
-    // Precargar la semana anterior a la que vamos
-    setTimeout(() => preloadAdjacentWeeks(prevWeek), 100);
-  }, [currentWeek, loadWeekData, preloadAdjacentWeeks]);
+  }, [currentWeek]);
 
   const goToNextWeek = useCallback(() => {
     const nextWeek = new Date(currentWeek);
     nextWeek.setDate(currentWeek.getDate() + 7);
     setCurrentWeek(nextWeek);
-    loadWeekData(nextWeek);
-    // Precargar la semana siguiente a la que vamos
-    setTimeout(() => preloadAdjacentWeeks(nextWeek), 100);
-  }, [currentWeek, loadWeekData, preloadAdjacentWeeks]);
+  }, [currentWeek]);
 
 
   // Obtener horarios dinámicamente basados en los horarios de trabajo del profesional
   const getTimeSlots = useCallback(() => {
     if (weekData.length === 0) return [];
-    
+
     // Obtener el rango de horarios de los datos de la semana
     const allSlots = new Set<string>();
     weekData.forEach(day => {
@@ -171,7 +171,7 @@ export function WideCalendar({
         allSlots.add(slot.time);
       });
     });
-    
+
     // Convertir a array y ordenar
     return Array.from(allSlots).sort();
   }, [weekData]);
@@ -206,12 +206,12 @@ export function WideCalendar({
           >
             <ChevronLeft className="w-4 h-4" />
           </Button>
-          
+
           <div className="flex items-center gap-2">
             <h3 className="text-lg font-semibold">
-              {currentWeek.toLocaleDateString('es-ES', { 
-                month: 'long', 
-                year: 'numeric' 
+              {currentWeek.toLocaleDateString('es-ES', {
+                month: 'long',
+                year: 'numeric'
               })}
             </h3>
             {isLoading && (
@@ -221,7 +221,7 @@ export function WideCalendar({
               </div>
             )}
           </div>
-          
+
           <div className="flex items-center gap-2">
             <Button
               variant="outline"
@@ -293,21 +293,21 @@ export function WideCalendar({
                               "hover:shadow-sm disabled:cursor-not-allowed",
                               {
                                 // Disponible
-                                "border-blue-500 bg-blue-500 text-white hover:bg-blue-600": 
+                                "border-blue-500 bg-blue-500 text-white hover:bg-blue-600":
                                   timeSlot.status === 'available' && isSelected,
-                                "border-blue-200 bg-blue-100 text-blue-700 hover:bg-blue-200": 
+                                "border-blue-200 bg-blue-100 text-blue-700 hover:bg-blue-200":
                                   timeSlot.status === 'available' && !isSelected,
-                                
+
                                 // Ocupado
-                                "border-gray-300 bg-gray-100 text-gray-500 line-through": 
+                                "border-gray-300 bg-gray-100 text-gray-500 line-through":
                                   timeSlot.status === 'occupied',
-                                
+
                                 // Bloqueado
-                                "border-orange-300 bg-orange-100 text-orange-500 line-through": 
+                                "border-orange-300 bg-orange-100 text-orange-500 line-through":
                                   timeSlot.status === 'blocked',
-                                
+
                                 // No ofrecido
-                                "border-gray-200 bg-gray-50 text-gray-400": 
+                                "border-gray-200 bg-gray-50 text-gray-400":
                                   timeSlot.status === 'not_offered',
                               }
                             )}

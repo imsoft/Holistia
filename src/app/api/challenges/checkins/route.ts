@@ -164,21 +164,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Verificar si ya existe un check-in para este día
-    const { data: existingCheckin } = await supabase
-      .from('challenge_checkins')
-      .select('id')
-      .eq('challenge_purchase_id', challenge_purchase_id)
-      .eq('day_number', day_number)
-      .maybeSingle();
-
-    if (existingCheckin) {
-      return NextResponse.json(
-        { error: 'Ya has hecho check-in para este día' },
-        { status: 400 }
-      );
-    }
-
+    // Permitir múltiples check-ins por día (varias publicaciones del mismo día)
     // checkin_date en formato DATE para la BD (YYYY-MM-DD)
     const checkinDateStr = checkinOnly.y + '-' + String(checkinOnly.m + 1).padStart(2, '0') + '-' + String(checkinOnly.day).padStart(2, '0');
 

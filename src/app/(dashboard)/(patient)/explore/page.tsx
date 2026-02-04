@@ -1695,14 +1695,15 @@ const HomeUserPage = () => {
                       }}
                     >
                       <Card className="group hover:shadow-lg hover:-translate-y-2 transition-all duration-300 overflow-hidden cursor-pointer h-[480px] flex flex-col py-4">
-                        <div className="relative w-full h-64 bg-gray-100 shrink-0">
-                          <div className="absolute inset-0 overflow-hidden">
+                        <div className="relative w-full h-64 bg-muted shrink-0 overflow-hidden">
+                          <div className="absolute inset-0">
                             {shop.image_url ? (
                               <Image
                                 src={shop.image_url}
                                 alt={shop.name}
                                 fill
-                                className="object-cover"
+                                className="object-cover object-center"
+                                sizes="384px"
                                 unoptimized={shop.image_url.includes('supabase.co') || shop.image_url.includes('supabase.in')}
                                 onError={(e) => {
                                   const target = e.target as HTMLImageElement;

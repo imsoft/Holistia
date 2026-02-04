@@ -377,7 +377,7 @@ export default function MyChallengesPage() {
     }
   };
 
-  // Calcular siguiente día por calendario: día 1 = inicio del reto; los días sin check-in cuentan como "tardíos"
+  // Calcular siguiente día por calendario (misma lógica que el API: fechas en UTC para coincidir con day_number del servidor)
   useEffect(() => {
     if (!selectedChallenge) return;
     const startRef = selectedChallenge.started_at || selectedChallenge.created_at;
@@ -386,13 +386,27 @@ export default function MyChallengesPage() {
       return;
     }
     const start = new Date(startRef);
-    const today = new Date();
-    start.setHours(0, 0, 0, 0);
-    today.setHours(0, 0, 0, 0);
-    const diffDays = Math.floor((today.getTime() - start.getTime()) / (24 * 60 * 60 * 1000));
+    const now = new Date();
+    const startOnly = { y: start.getUTCFullYear(), m: start.getUTCMonth(), d: start.getUTCDate() };
+    const todayOnly = { y: now.getUTCFullYear(), m: now.getUTCMonth(), d: now.getUTCDate() };
+    const startMs = Date.UTC(startOnly.y, startOnly.m, startOnly.d);
+    const todayMs = Date.UTC(todayOnly.y, todayOnly.m, todayOnly.d);
+    const diffDays = Math.floor((todayMs - startMs) / (24 * 60 * 60 * 1000));
     const day = diffDays + 1;
     const maxDay = selectedChallenge.challenge.duration_days ?? 999;
     setNextDayNumber(Math.min(Math.max(day, 1), maxDay));
+  }, [selectedChallenge]);
+
+  // Refrescar check-ins al volver a la pestaña para que el botón "Nuevo Check-in" refleje el estado real
+  useEffect(() => {
+    if (!selectedChallenge) return;
+    const onVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        fetchCheckins(selectedChallenge.id);
+      }
+    };
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    return () => document.removeEventListener("visibilitychange", onVisibilityChange);
   }, [selectedChallenge]);
 
   const handlePublishCheckin = async (checkinId: string, isPublic: boolean) => {
@@ -1042,15 +1056,7 @@ export default function MyChallengesPage() {
                             )}
                             <Button
                               onClick={() => setIsCheckinDialogOpen(true)}
-                              disabled={
-                                !selectedChallenge.access_granted ||
-                                checkins.some((c) => c.day_number === nextDayNumber)
-                              }
-                              title={
-                                checkins.some((c) => c.day_number === nextDayNumber)
-                                  ? "Ya completaste el check-in del día"
-                                  : undefined
-                              }
+                              disabled={!selectedChallenge.access_granted}
                             >
                               Nuevo Check-in
                             </Button>
@@ -1071,7 +1077,7 @@ export default function MyChallengesPage() {
                         ) : (
                           <div className="space-y-4">
                             {Array.from({ length: selectedChallenge.challenge.duration_days || 30 }, (_, i) => i + 1).map((day) => {
-                              const checkin = checkins.find(c => c.day_number === day);
+                              const dayCheckins = checkins.filter(c => c.day_number === day);
                               const startRef = selectedChallenge.started_at || selectedChallenge.created_at;
                               const startDate = startRef ? new Date(startRef) : new Date();
                               const dayDate = new Date(startDate);
@@ -1080,93 +1086,101 @@ export default function MyChallengesPage() {
                               const today = new Date();
                               today.setHours(0, 0, 0, 0);
                               const isPastDay = dayDate < today;
-                              const isLateDay = !checkin && isPastDay;
+                              const isLateDay = dayCheckins.length === 0 && isPastDay;
+                              const hasCheckins = dayCheckins.length > 0;
                               return (
                                 <div
                                   key={day}
-                                  className={`flex items-center gap-4 p-4 border rounded-lg ${
-                                    checkin ? 'bg-green-50 border-green-200' : isLateDay ? 'bg-amber-50/80 border-amber-200' : 'bg-muted/30'
+                                  className={`flex items-start gap-4 p-4 border rounded-lg ${
+                                    hasCheckins ? 'bg-green-50 border-green-200' : isLateDay ? 'bg-amber-50/80 border-amber-200' : 'bg-muted/30'
                                   }`}
                                 >
-                                  <div className="shrink-0">
-                                    {checkin ? (
+                                  <div className="shrink-0 pt-0.5">
+                                    {hasCheckins ? (
                                       <CheckCircle2 className="h-6 w-6 text-green-600" />
                                     ) : (
                                       <Circle className="h-6 w-6 text-muted-foreground" />
                                     )}
                                   </div>
-                                  <div className="flex-1">
-                                    <div className="flex items-center gap-2 mb-1">
+                                  <div className="flex-1 min-w-0 space-y-3">
+                                    <div className="flex items-center gap-2 flex-wrap">
                                       <span className="font-semibold">Día {day}</span>
                                       {isLateDay && (
                                         <Badge variant="outline" className="text-amber-700 border-amber-300 bg-amber-100/80 text-xs">
                                           Día de reto no cumplido
                                         </Badge>
                                       )}
-                                      {checkin && (
-                                        <>
-                                          <Badge variant="secondary" className="text-xs">
-                                            +{checkin.points_earned} pts
-                                          </Badge>
-                                          {checkin.verified_by_professional && (
-                                            <Badge variant="default" className="text-xs">
-                                              Verificado
-                                            </Badge>
-                                          )}
-                                        </>
-                                      )}
                                     </div>
-                                    {checkin && (
-                                      <div className="text-sm text-muted-foreground">
-                                        {checkin.notes && (
-                                          <p className="mb-1">{checkin.notes}</p>
-                                        )}
-                                        {checkin.evidence_url && (
-                                          <div className="mt-2">
-                                            {checkin.evidence_type === 'video' ? (
-                                              <video
-                                                key={checkin.evidence_url}
-                                                src={checkin.evidence_url}
-                                                controls
-                                                preload="metadata"
-                                                playsInline
-                                                className="rounded-lg w-full max-w-[200px] h-[120px] object-cover"
-                                              />
-                                            ) : checkin.evidence_type === 'photo' ? (
-                                              <Image
-                                                src={checkin.evidence_url}
-                                                alt="Evidencia"
-                                                width={100}
-                                                height={100}
-                                                className="rounded-lg object-cover"
-                                              />
-                                            ) : null}
+                                    {dayCheckins.length === 0 ? null : (
+                                      <div className="space-y-3">
+                                        {dayCheckins.map((checkin) => (
+                                          <div key={checkin.id} className="text-sm text-muted-foreground border-l-2 border-green-300 pl-3 py-1">
+                                            {checkin.notes && (
+                                              <p className="mb-1">{checkin.notes}</p>
+                                            )}
+                                            {checkin.evidence_url && (
+                                              <div className="mt-2">
+                                                {checkin.evidence_type === 'video' ? (
+                                                  <video
+                                                    key={checkin.evidence_url}
+                                                    src={checkin.evidence_url}
+                                                    controls
+                                                    preload="metadata"
+                                                    playsInline
+                                                    className="rounded-lg w-full max-w-[200px] h-[120px] object-cover"
+                                                  />
+                                                ) : checkin.evidence_type === 'photo' ? (
+                                                  <Image
+                                                    src={checkin.evidence_url}
+                                                    alt="Evidencia"
+                                                    width={100}
+                                                    height={100}
+                                                    className="rounded-lg object-cover"
+                                                  />
+                                                ) : null}
+                                              </div>
+                                            )}
+                                            <div className="flex items-center justify-between mt-2 gap-2 flex-wrap">
+                                              <div className="flex items-center gap-2">
+                                                <p className="text-xs">
+                                                  {(() => {
+                                                    const [y, m, d] = checkin.checkin_date.split('-').map(Number);
+                                                    return new Date(y, m - 1, d).toLocaleDateString('es-ES');
+                                                  })()}
+                                                </p>
+                                                <Badge variant="secondary" className="text-xs">
+                                                  +{checkin.points_earned} pts
+                                                </Badge>
+                                                {checkin.verified_by_professional && (
+                                                  <Badge variant="default" className="text-xs">
+                                                    Verificado
+                                                  </Badge>
+                                                )}
+                                              </div>
+                                              {isChallengeActive && (
+                                                checkin.is_public ? (
+                                                  <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    className="h-7 text-xs"
+                                                    onClick={() => handlePublishCheckin(checkin.id, true)}
+                                                  >
+                                                    Ocultar
+                                                  </Button>
+                                                ) : (
+                                                  <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    className="h-7 text-xs"
+                                                    onClick={() => handlePublishCheckin(checkin.id, false)}
+                                                  >
+                                                    Publicar
+                                                  </Button>
+                                                )
+                                              )}
+                                            </div>
                                           </div>
-                                        )}
-                                        <div className="flex items-center justify-between mt-2">
-                                          <p className="text-xs">
-                                            {(() => {
-                                              const [y, m, d] = checkin.checkin_date.split('-').map(Number);
-                                              return new Date(y, m - 1, d).toLocaleDateString('es-ES');
-                                            })()}
-                                          </p>
-                                          {isChallengeActive && (
-                                            checkin.is_public ? (
-                                              <Badge variant="default" className="text-xs">
-                                                Publicado
-                                              </Badge>
-                                            ) : (
-                                              <Button
-                                                variant="outline"
-                                                size="sm"
-                                                className="h-7 text-xs"
-                                                onClick={() => handlePublishCheckin(checkin.id, false)}
-                                              >
-                                                Publicar
-                                              </Button>
-                                            )
-                                          )}
-                                        </div>
+                                        ))}
                                       </div>
                                     )}
                                   </div>

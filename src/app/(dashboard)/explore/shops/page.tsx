@@ -253,13 +253,13 @@ export default function ShopsPage() {
                 href={`/explore/shop/${shop.slug || shop.id}`}
               >
                 <Card className="group hover:shadow-lg hover:-translate-y-2 transition-all duration-300 overflow-hidden cursor-pointer h-[480px] flex flex-col">
-                  <div className="relative w-full h-48 bg-linear-to-br from-primary/20 to-primary/10 shrink-0">
+                  <div className="relative w-full h-48 bg-muted shrink-0 overflow-hidden">
                     {shop.image_url && shop.image_url.trim() !== "" ? (
                       <Image
                         src={shop.image_url}
                         alt={shop.name}
                         fill
-                        className="object-cover"
+                        className="object-cover object-center"
                         unoptimized={shop.image_url.includes('supabase.co') || shop.image_url.includes('supabase.in')}
                         onError={(e) => {
                           const target = e.target as HTMLImageElement;

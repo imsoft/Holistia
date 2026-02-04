@@ -1084,14 +1084,14 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
                       className="shrink-0 w-[280px] sm:w-[320px]"
                     >
                       <Card className="group relative min-h-[400px] flex flex-col pt-0 pb-4 hover:shadow-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer overflow-hidden">
-                        <div className="relative w-full h-48 bg-gray-100 shrink-0 rounded-t-xl overflow-hidden">
-                          <div className="absolute inset-0 overflow-hidden">
+                        <div className="relative w-full h-48 bg-muted shrink-0 rounded-t-xl overflow-hidden">
+                          <div className="absolute inset-0">
                             {mainImage ? (
                               <Image
                                 src={mainImage}
                                 alt={shop.name}
                                 fill
-                                className="object-cover"
+                                className="object-cover object-center"
                                 unoptimized
                               />
                             ) : (

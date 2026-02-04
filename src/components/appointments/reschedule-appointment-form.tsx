@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -12,6 +12,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
 import { createClient } from "@/utils/supabase/client";
 import { formatPrice } from "@/lib/price-utils";
+import { useScheduleAvailability } from "@/hooks/use-schedule-availability";
 
 interface RescheduleAppointmentFormProps {
   appointmentId: string;
@@ -38,8 +39,12 @@ export function RescheduleAppointmentForm({
     patientName?: string;
     cost: number;
   } | null>(null);
+  const [professionalId, setProfessionalId] = useState<string | null>(null);
 
   const supabase = createClient();
+  const { getTimeSlotsForDate } = useScheduleAvailability(professionalId || "");
+  const [slots, setSlots] = useState<Array<{ time: string; display: string; status: string }>>([]);
+  const [slotsLoading, setSlotsLoading] = useState(false);
 
   useEffect(() => {
     fetchAppointmentDetails();
@@ -65,6 +70,7 @@ export function RescheduleAppointmentForm({
 
       setCurrentDate(appointment.appointment_date);
       setCurrentTime(appointment.appointment_time);
+      setProfessionalId(appointment.professional_id);
 
       // Obtener nombres del profesional y paciente
       const { data: patient } = await supabase
@@ -93,6 +99,32 @@ export function RescheduleAppointmentForm({
       setIsLoading(false);
     }
   };
+
+  // Cargar slots disponibles cuando cambia la fecha elegida
+  const loadSlotsForDate = useCallback(async (date: string) => {
+    if (!professionalId || !date) {
+      setSlots([]);
+      return;
+    }
+    setSlotsLoading(true);
+    setSlots([]);
+    setNewTime("");
+    try {
+      const timeSlots = await getTimeSlotsForDate(date, { excludeAppointmentId: appointmentId });
+      const available = timeSlots.filter((s) => s.status === "available");
+      setSlots(available.map((s) => ({ time: s.time, display: s.display, status: s.status })));
+    } catch (err) {
+      console.error("Error loading slots:", err);
+      toast.error("Error al cargar horarios disponibles");
+    } finally {
+      setSlotsLoading(false);
+    }
+  }, [professionalId, appointmentId, getTimeSlotsForDate]);
+
+  useEffect(() => {
+    if (newDate) loadSlotsForDate(newDate);
+    else setSlots([]);
+  }, [newDate, loadSlotsForDate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -166,10 +198,9 @@ export function RescheduleAppointmentForm({
     }
   };
 
-  // Obtener fecha mínima (mañana)
-  const tomorrow = new Date();
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  const minDate = tomorrow.toISOString().split("T")[0];
+  // Fecha mínima: hoy (para poder elegir slots de hoy si quedan)
+  const today = new Date();
+  const minDate = today.toISOString().split("T")[0];
 
   // Formatear fecha actual para mostrar
   const formatDate = (dateStr: string) => {
@@ -242,24 +273,41 @@ export function RescheduleAppointmentForm({
             />
           </div>
 
-          {/* Nueva hora */}
+          {/* Nueva hora: solo slots reales disponibles */}
           <div className="space-y-2">
-            <Label htmlFor="newTime" className="flex items-center gap-2">
+            <Label className="flex items-center gap-2">
               <Clock className="w-4 h-4" />
               Nueva Hora
             </Label>
-            <Input
-              id="newTime"
-              type="time"
-              value={newTime || ""}
-              onChange={(e) => setNewTime(e.target.value)}
-              disabled={isSubmitting}
-              className="w-full"
-              placeholder="--:--"
-            />
-            <p className="text-xs text-muted-foreground">
-              * Selecciona la hora de inicio de la cita
-            </p>
+            {!newDate ? (
+              <p className="text-sm text-muted-foreground">
+                Elige primero una fecha para ver los horarios disponibles.
+              </p>
+            ) : slotsLoading ? (
+              <div className="flex items-center gap-2 text-sm text-muted-foreground py-4">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Cargando horarios disponibles...
+              </div>
+            ) : slots.length === 0 ? (
+              <p className="text-sm text-muted-foreground py-2">
+                No hay horarios disponibles ese día. Elige otra fecha.
+              </p>
+            ) : (
+              <div className="flex flex-wrap gap-2">
+                {slots.map((slot) => (
+                  <Button
+                    key={slot.time}
+                    type="button"
+                    variant={newTime === slot.time ? "default" : "outline"}
+                    size="sm"
+                    disabled={isSubmitting}
+                    onClick={() => setNewTime(slot.time)}
+                  >
+                    {slot.display}
+                  </Button>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Razón de reprogramación (opcional) */}

@@ -311,8 +311,8 @@ export async function POST(request: NextRequest) {
         platform_fee: platformFee.toString(),
         transfer_amount: transferAmount.toString(),
       },
-      success_url: `${process.env.NEXT_PUBLIC_SITE_URL || request.nextUrl.origin}/patient/${user.id}/explore/appointments`,
-      cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL || request.nextUrl.origin}/patient/${user.id}/explore/appointments`,
+      success_url: `${process.env.NEXT_PUBLIC_SITE_URL || request.nextUrl.origin}/appointments/confirmation?appointment_id=${appointmentId}`,
+      cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL || request.nextUrl.origin}/explore/appointments`,
       customer_email: user.email,
     });
 

@@ -84,18 +84,29 @@ export default function MyProducts() {
     fetchPurchasedProducts();
   }, []);
 
-  // Recargar productos cuando la URL tiene parámetro de éxito
+  // Recargar productos cuando la URL tiene parámetro de éxito (legacy)
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('purchase') === 'success') {
-      // Recargar después de 500ms para asegurar que el servidor haya procesado
       setTimeout(() => {
         fetchPurchasedProducts();
-        // Limpiar el parámetro de la URL
         window.history.replaceState({}, '', '/my-products');
       }, 500);
     }
   }, []);
+
+  // Scroll al producto cuando la URL tiene ancla #purchase-xxx (p. ej. desde confirmación o email)
+  useEffect(() => {
+    if (typeof window === 'undefined' || !products.length) return;
+    const hash = window.location.hash;
+    if (hash.startsWith('#purchase-')) {
+      const id = hash.slice(1);
+      const el = document.getElementById(id);
+      if (el) {
+        setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'start' }), 300);
+      }
+    }
+  }, [products.length]);
 
   const fetchPurchasedProducts = async () => {
     try {
@@ -304,7 +315,11 @@ export default function MyProducts() {
               const CategoryIcon = CATEGORY_ICONS[product.category] || Tag;
 
               return (
-                <Card key={product.id} className="hover:shadow-lg transition-shadow overflow-hidden py-4">
+                <Card
+                  key={product.id}
+                  id={`purchase-${product.id}`}
+                  className="hover:shadow-lg transition-shadow overflow-hidden py-4 scroll-mt-4"
+                >
                   <div className="relative h-48 bg-gradient-to-br from-primary/10 to-primary/5">
                     {product.cover_image_url ? (
                       <Image

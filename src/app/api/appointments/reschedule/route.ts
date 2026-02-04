@@ -92,6 +92,27 @@ export async function POST(request: Request) {
       );
     }
 
+    // Verificar que el nuevo slot esté libre (no otra cita del mismo profesional a la misma hora)
+    const newTimeNormalized = newTime.substring(0, 5); // HH:MM
+    const { data: sameSlot } = await supabase
+      .from("appointments")
+      .select("id, appointment_time")
+      .eq("professional_id", appointment.professional_id)
+      .eq("appointment_date", newDate)
+      .in("status", ["pending", "confirmed", "paid"])
+      .neq("id", appointmentId);
+
+    const conflict = sameSlot?.some(
+      (a: { id: string; appointment_time: string }) =>
+        (a.appointment_time || "").substring(0, 5) === newTimeNormalized
+    );
+    if (conflict) {
+      return NextResponse.json(
+        { error: "Ese horario ya no está disponible. Elige otro slot." },
+        { status: 400 }
+      );
+    }
+
     // Guardar fecha y hora anterior
     const oldDate = appointment.appointment_date;
     const oldTime = appointment.appointment_time;

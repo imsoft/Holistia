@@ -82,7 +82,7 @@ export default function ProfessionalAppointments() {
   const userId = useUserId();
   const supabase = createClient();
 
-  const [view, setView] = useState<CalendarView>("month");
+  const [view, setView] = useState<CalendarView>("week");
   const [currentDate, setCurrentDate] = useState(new Date());
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [availabilityBlocks, setAvailabilityBlocks] = useState<AvailabilityBlock[]>([]);
@@ -92,6 +92,7 @@ export default function ProfessionalAppointments() {
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [professionalAppId, setProfessionalAppId] = useState<string>("");
   const [refreshKey, setRefreshKey] = useState(0);
+  const [markingCompleted, setMarkingCompleted] = useState(false);
 
   useEffect(() => {
     if (!userId) return;
@@ -578,6 +579,10 @@ export default function ProfessionalAppointments() {
         return "bg-red-100 text-red-800 border-red-200";
       case "completed":
         return "bg-blue-100 text-blue-800 border-blue-200";
+      case "patient_no_show":
+        return "bg-orange-100 text-orange-800 border-orange-200";
+      case "professional_no_show":
+        return "bg-amber-100 text-amber-800 border-amber-200";
       default:
         return "bg-gray-100 text-gray-800 border-gray-200";
     }
@@ -593,8 +598,46 @@ export default function ProfessionalAppointments() {
         return "Cancelada";
       case "completed":
         return "Completada";
+      case "patient_no_show":
+        return "Paciente no asistió";
+      case "professional_no_show":
+        return "Profesional no asistió";
       default:
         return status;
+    }
+  };
+
+  const handleMarkCompleted = async (appointmentId: string) => {
+    try {
+      setMarkingCompleted(true);
+      const response = await fetch("/api/appointments/mark-completed", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ appointmentId }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        toast.error(data.error || "Error al marcar la cita como realizada");
+        return;
+      }
+
+      toast.success("Cita marcada como realizada");
+      setAppointments((prev) =>
+        prev.map((apt) =>
+          apt.id === appointmentId ? { ...apt, status: "completed" as const } : apt
+        )
+      );
+      if (selectedAppointment?.id === appointmentId) {
+        setSelectedAppointment({ ...selectedAppointment, status: "completed" as const });
+      }
+      setIsViewDialogOpen(false);
+      setRefreshKey((k) => k + 1);
+    } catch {
+      toast.error("Error al marcar la cita como realizada");
+    } finally {
+      setMarkingCompleted(false);
     }
   };
 
@@ -1131,6 +1174,43 @@ export default function ProfessionalAppointments() {
         </div>
       </div>
 
+      {/* Resumen hoy */}
+      {(() => {
+        const todayAppointments = appointments.filter((apt) =>
+          isToday(parseISO(apt.date))
+        );
+        const activeToday = todayAppointments.filter(
+          (apt) =>
+            !["cancelled", "patient_no_show", "professional_no_show"].includes(
+              apt.status
+            )
+        );
+        if (activeToday.length === 0) return null;
+        return (
+          <div className="px-6 pt-4">
+            <div
+              className="flex items-center justify-between gap-3 rounded-lg border border-border bg-muted/40 px-4 py-3 text-sm"
+              role="region"
+              aria-label="Resumen del día"
+            >
+              <span className="font-medium text-foreground">
+                Hoy: {activeToday.length} cita{activeToday.length !== 1 ? "s" : ""}
+              </span>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setCurrentDate(new Date());
+                  setView("day");
+                }}
+              >
+                Ver día
+              </Button>
+            </div>
+          </div>
+        );
+      })()}
+
       {/* Calendar */}
       <div className="p-6" style={{ minHeight: 'calc(100vh - 8rem)' }}>
         <div className="h-full bg-card border border-border rounded-lg overflow-hidden" style={{ minHeight: '600px' }}>
@@ -1219,7 +1299,7 @@ export default function ProfessionalAppointments() {
                 </div>
 
                 {!isGoogleCalendarEvent && (
-                  <div className="flex gap-2 pt-4 border-t">
+                  <div className="flex flex-wrap gap-2 pt-4 border-t">
                     {selectedAppointment.status === "pending" && (
                       <Button
                         onClick={() => handleConfirmAppointment(selectedAppointment.id)}
@@ -1230,6 +1310,23 @@ export default function ProfessionalAppointments() {
                     )}
                     {selectedAppointment.status === "confirmed" && (
                       <>
+                        <Button
+                          onClick={() => handleMarkCompleted(selectedAppointment.id)}
+                          disabled={markingCompleted}
+                          className="flex-1"
+                        >
+                          {markingCompleted ? "..." : "Marcar realizada"}
+                        </Button>
+                        <Button
+                          variant="outline"
+                          onClick={() => {
+                            setIsViewDialogOpen(false);
+                            router.push(`/appointments/${selectedAppointment.id}/no-show`);
+                          }}
+                          className="flex-1"
+                        >
+                          Marcar no asistió
+                        </Button>
                         <Button
                           variant="outline"
                           onClick={() => openRescheduleDialog(selectedAppointment)}

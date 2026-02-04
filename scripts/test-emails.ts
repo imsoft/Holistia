@@ -37,6 +37,7 @@ async function testAppointmentEmail(email: string) {
     payment_method: "Tarjeta",
     transaction_id: "TEST_pi_12345",
     ticket_number: "TEST1234",
+    appointment_url: "https://app.holistia.com/explore/appointments",
   });
 
   if (result.success) {

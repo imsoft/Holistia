@@ -183,6 +183,7 @@ async function sendAppointmentEmails(appointmentId: string) {
 
       const paymentDate = new Date(payment.paid_at!).toLocaleDateString('es-ES');
 
+      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://app.holistia.com';
       const ticketData = {
         patient_name: `${patient.first_name} ${patient.last_name}`,
         patient_email: patient.email,
@@ -198,6 +199,8 @@ async function sendAppointmentEmails(appointmentId: string) {
         payment_method: payment.payment_method || 'Tarjeta',
         transaction_id: payment.stripe_payment_intent_id || payment.id,
         ticket_number: appointment.id.substring(0, 8).toUpperCase(),
+        appointment_url: `${baseUrl}/explore/appointments`,
+        meeting_link: appointment.meeting_link ?? null,
       };
 
       const patientResult = await sendAppointmentPaymentConfirmation(ticketData);

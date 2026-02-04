@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recordatorio de cita - Holistia</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f4f4f4;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f4f4f4; padding: 20px;">
+        <tr>
+            <td align="center">
+                <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                    <tr>
+                        <td style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 40px 30px; text-align: center;">
+                            <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: bold;">
+                                📅 Recordatorio de cita
+                            </h1>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 40px 30px;">
+                            <p style="color: #333333; font-size: 16px; line-height: 1.6; margin: 0 0 20px 0;">
+                                Hola <strong>{{recipient_name}}</strong>,
+                            </p>
+                            <p style="color: #333333; font-size: 16px; line-height: 1.6; margin: 0 0 20px 0;">
+                                {{intro_line}}
+                            </p>
+                            <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #ecfdf5; border-radius: 8px; border-left: 4px solid #10b981; margin: 30px 0;">
+                                <tr>
+                                    <td style="padding: 20px;">
+                                        <p style="color: #333333; font-size: 14px; margin: 0 0 8px 0;"><strong>Fecha:</strong> {{appointment_date}}</p>
+                                        <p style="color: #333333; font-size: 14px; margin: 0 0 8px 0;"><strong>Hora:</strong> {{appointment_time}}</p>
+                                        <p style="color: #333333; font-size: 14px; margin: 0 0 8px 0;"><strong>Duración:</strong> {{duration_minutes}} min</p>
+                                        <p style="color: #333333; font-size: 14px; margin: 0 0 8px 0;"><strong>Tipo:</strong> {{appointment_type}}</p>
+                                        <p style="color: #333333; font-size: 14px; margin: 0;"><strong>Lugar:</strong> {{location}}</p>
+                                    </td>
+                                </tr>
+                            </table>
+                            <p style="color: #333333; font-size: 16px; line-height: 1.6; margin: 0 0 20px 0;">
+                                Te recomendamos llegar o conectarte con unos minutos de anticipación.
+                            </p>
+                            <table width="100%" cellpadding="0" cellspacing="0" style="margin: 30px 0;">
+                                <tr>
+                                    <td align="center">
+                                        <a href="{{appointments_url}}" style="display: inline-block; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #ffffff; text-decoration: none; padding: 15px 40px; border-radius: 6px; font-size: 16px; font-weight: bold;">
+                                            Ver mis citas
+                                        </a>
+                                    </td>
+                                </tr>
+                            </table>
+                            <p style="color: #333333; font-size: 16px; line-height: 1.6; margin: 20px 0 0 0;">
+                                Gracias por ser parte de <strong>Holistia</strong> 💜
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="background-color: #f8f9fa; padding: 30px; text-align: center; border-top: 1px solid #e0e0e0;">
+                            <p style="color: #999999; font-size: 12px; margin: 0;">
+                                Este es un correo automático de recordatorio. No respondas directamente a este email.
+                            </p>
+                            <p style="margin: 15px 0 0 0;">
+                                <a href="https://www.holistia.io" style="color: #10b981; text-decoration: none; font-size: 12px;">www.holistia.io</a>
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>

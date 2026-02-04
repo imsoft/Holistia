@@ -31,6 +31,7 @@ import { formatPrice } from "@/lib/price-utils";
 import { VerifiedBadge } from "@/components/ui/verified-badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PageSkeleton } from "@/components/ui/layout-skeleton";
+import { ProgramReviewsSection } from "@/components/reviews/program-reviews-section";
 
 interface DigitalProduct {
   id: string;
@@ -90,9 +91,13 @@ export default function ProgramDetailPage() {
   const [product, setProduct] = useState<DigitalProduct | null>(null);
   const [loading, setLoading] = useState(true);
   const [hasPurchased, setHasPurchased] = useState(false);
+  const [userPurchaseId, setUserPurchaseId] = useState<string | null>(null);
   const [isPurchasing, setIsPurchasing] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const [reviewsRefresh, setReviewsRefresh] = useState(0);
   const supabase = createClient();
+
+  const POPULAR_THRESHOLD = 10;
 
   // Verificar si el usuario está autenticado
   useEffect(() => {
@@ -203,9 +208,11 @@ export default function ProgramDetailPage() {
           .eq("product_id", transformedProduct.id)
           .eq("buyer_id", user.id)
           .eq("payment_status", "succeeded")
+          .eq("access_granted", true)
           .maybeSingle();
 
         setHasPurchased(!!purchaseData);
+        setUserPurchaseId(purchaseData?.id ?? null);
       }
 
     } catch (error) {
@@ -463,14 +470,19 @@ export default function ProgramDetailPage() {
               {CATEGORY_LABELS[product.category] || product.category}
             </Badge>
           </div>
-          {product.sales_count > 0 && (
-            <div className="absolute top-4 right-4">
+          <div className="absolute top-4 right-4 flex flex-col gap-1 items-end">
+            {product.sales_count >= POPULAR_THRESHOLD && (
+              <Badge className="bg-amber-500/90 text-white border-0 backdrop-blur-sm">
+                Más vendido
+              </Badge>
+            )}
+            {product.sales_count > 0 && (
               <Badge variant="secondary" className="bg-background/90 backdrop-blur-sm">
                 <Star className="h-3 w-3 mr-1 fill-yellow-400 text-yellow-400" />
                 {product.sales_count} ventas
               </Badge>
-            </div>
-          )}
+            )}
+          </div>
         </div>
 
         {/* Description */}
@@ -517,6 +529,15 @@ export default function ProgramDetailPage() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Reseñas */}
+        <ProgramReviewsSection
+          productId={product.id}
+          productTitle={product.title}
+          salesCount={product.sales_count}
+          userPurchaseId={userPurchaseId}
+          refreshTrigger={reviewsRefresh}
+        />
       </div>
 
       {/* Right Column - Purchase Card */}

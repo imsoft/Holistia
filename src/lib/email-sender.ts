@@ -105,6 +105,8 @@ interface DigitalProductConfirmationEmailData {
   my_products_url: string;
   purchase_date: string;
   file_url?: string | null;
+  /** Si se pasa, el botón "Descargar" llevará a Mis programas con ancla a esta compra */
+  purchase_id?: string | null;
 }
 
 interface AppointmentPaymentConfirmationData {
@@ -122,6 +124,10 @@ interface AppointmentPaymentConfirmationData {
   payment_method: string;
   transaction_id: string;
   ticket_number: string;
+  /** Enlace a la lista de citas del paciente */
+  appointment_url: string;
+  /** Enlace de videollamada (solo si cita online); si no, no se muestra bloque */
+  meeting_link?: string | null;
 }
 
 interface AppointmentCreatedByProfessionalData {
@@ -275,6 +281,65 @@ export async function sendAppointmentConfirmationToPatient(data: AppointmentConf
 
   } catch (error) {
     console.error('Error in sendAppointmentConfirmationToPatient:', error);
+    return { success: false, error: 'Failed to send email' };
+  }
+}
+
+// ============================================================================
+// APPOINTMENT REMINDER EMAIL (24h y 1h antes, paciente y profesional)
+// ============================================================================
+
+interface AppointmentReminderEmailData {
+  recipient_name: string;
+  recipient_email: string;
+  intro_line: string;
+  appointment_date: string;
+  appointment_time: string;
+  duration_minutes: number;
+  appointment_type: string;
+  location: string;
+  appointments_url: string;
+  subject: string;
+}
+
+export async function sendAppointmentReminderEmail(data: AppointmentReminderEmailData) {
+  try {
+    const fs = await import('fs');
+    const path = await import('path');
+    const templatePath = path.join(
+      process.cwd(),
+      'database/email-templates/appointment-reminder.html'
+    );
+    let emailTemplate: string;
+    try {
+      emailTemplate = fs.readFileSync(templatePath, 'utf8');
+    } catch (error) {
+      console.error('Error reading appointment reminder template:', error);
+      return { success: false, error: 'Template not found' };
+    }
+    const emailContent = emailTemplate
+      .replace(/\{\{recipient_name\}\}/g, data.recipient_name)
+      .replace(/\{\{intro_line\}\}/g, data.intro_line)
+      .replace(/\{\{appointment_date\}\}/g, data.appointment_date)
+      .replace(/\{\{appointment_time\}\}/g, data.appointment_time)
+      .replace(/\{\{duration_minutes\}\}/g, data.duration_minutes.toString())
+      .replace(/\{\{appointment_type\}\}/g, data.appointment_type)
+      .replace(/\{\{location\}\}/g, data.location)
+      .replace(/\{\{appointments_url\}\}/g, data.appointments_url);
+    const { data: emailData, error } = await resend.emails.send({
+      from: 'Holistia <noreply@holistia.io>',
+      to: [data.recipient_email],
+      subject: data.subject,
+      html: emailContent,
+    });
+    if (error) {
+      console.error('Error sending appointment reminder email:', error);
+      return { success: false, error: error.message };
+    }
+    console.log('Appointment reminder email sent:', emailData?.id);
+    return { success: true, message: 'Email sent successfully', id: emailData?.id };
+  } catch (error) {
+    console.error('Error in sendAppointmentReminderEmail:', error);
     return { success: false, error: 'Failed to send email' };
   }
 }
@@ -581,7 +646,10 @@ export async function sendDigitalProductConfirmationEmail(data: DigitalProductCo
       return { success: false, error: 'Template not found' };
     }
     
-    // Replace placeholders
+    const myProductsDownloadUrl = data.purchase_id
+      ? `${data.my_products_url.replace(/#.*$/, '')}#purchase-${data.purchase_id}`
+      : data.my_products_url;
+
     let emailContent = emailTemplate
       .replace(/\{\{user_name\}\}/g, data.user_name)
       .replace(/\{\{product_title\}\}/g, data.product_title)
@@ -589,9 +657,10 @@ export async function sendDigitalProductConfirmationEmail(data: DigitalProductCo
       .replace(/\{\{professional_name\}\}/g, data.professional_name)
       .replace(/\{\{product_url\}\}/g, data.product_url)
       .replace(/\{\{my_products_url\}\}/g, data.my_products_url)
+      .replace(/\{\{my_products_download_url\}\}/g, myProductsDownloadUrl)
       .replace(/\{\{purchase_date\}\}/g, data.purchase_date);
-    
-    // Handle file_url - show button only if file_url exists
+
+    // Handle file_url - show direct download button only if file_url exists
     if (data.file_url) {
       emailContent = emailContent.replace(/\{\{file_url\}\}/g, data.file_url);
       // Remove the conditional wrapper comments and show the download button section
@@ -643,6 +712,15 @@ export async function sendAppointmentPaymentConfirmation(data: AppointmentPaymen
       return { success: false, error: 'Template not found' };
     }
     
+    const meetingLinkSection =
+      data.meeting_link && data.meeting_link.trim()
+        ? `<div class="meeting-link-box" style="background-color: #ecfdf5; border: 1px solid #10b981; border-radius: 8px; padding: 20px; margin: 20px 0;">
+        <h3 style="margin-top: 0; color: #065f46; font-size: 18px;">🔗 Enlace de videollamada</h3>
+        <p style="margin: 10px 0; color: #333;"><a href="${data.meeting_link.trim()}" style="color: #059669; word-break: break-all;">${data.meeting_link.trim()}</a></p>
+        <p style="margin: 0; font-size: 14px; color: #6b7280;">Usa este enlace el día de tu cita para unirte a la sesión en línea.</p>
+        </div>`
+        : "";
+
     // Replace placeholders
     const emailContent = emailTemplate
       .replace(/\{\{patient_name\}\}/g, data.patient_name)
@@ -657,7 +735,9 @@ export async function sendAppointmentPaymentConfirmation(data: AppointmentPaymen
       .replace(/\{\{payment_date\}\}/g, data.payment_date)
       .replace(/\{\{payment_method\}\}/g, data.payment_method)
       .replace(/\{\{transaction_id\}\}/g, data.transaction_id)
-      .replace(/\{\{ticket_number\}\}/g, data.ticket_number);
+      .replace(/\{\{ticket_number\}\}/g, data.ticket_number)
+      .replace(/\{\{appointment_url\}\}/g, data.appointment_url)
+      .replace(/\{\{meeting_link_section\}\}/g, meetingLinkSection);
 
     // Send email using Resend
     const { data: emailData, error } = await resend.emails.send({

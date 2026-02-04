@@ -171,6 +171,7 @@ export async function POST(request: NextRequest) {
             day: 'numeric' 
           }),
           file_url: product.file_url || null,
+          purchase_id: purchase.id,
         });
 
         if (emailResult.success) {
@@ -189,7 +190,7 @@ export async function POST(request: NextRequest) {
         message: 'Acceso otorgado',
         purchase_id: purchase.id,
         free: true,
-        redirect_url: `${process.env.NEXT_PUBLIC_SITE_URL || request.nextUrl.origin}/my-products?purchase=success`,
+        redirect_url: `${process.env.NEXT_PUBLIC_SITE_URL || request.nextUrl.origin}/my-products/confirmation?purchase_id=${purchase.id}`,
       });
     }
 
@@ -246,7 +247,7 @@ export async function POST(request: NextRequest) {
         platform_fee: platformFee.toString(),
         transfer_amount: transferAmount.toString(),
       },
-      success_url: `${process.env.NEXT_PUBLIC_SITE_URL || request.nextUrl.origin}/my-products?purchase=success`,
+      success_url: `${process.env.NEXT_PUBLIC_SITE_URL || request.nextUrl.origin}/my-products/confirmation?purchase_id=${purchase.id}`,
       cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL || request.nextUrl.origin}/explore/program/${product.slug || product.id}`,
       customer_email: user.email,
     });

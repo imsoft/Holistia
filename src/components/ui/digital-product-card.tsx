@@ -110,17 +110,24 @@ export function DigitalProductCard({
               variant="floating"
             />
           </div>
-          <div className="absolute top-3 left-3 flex justify-between items-start">
+          <div className="absolute top-3 left-3 right-3 flex flex-wrap justify-between items-start gap-1">
             <Badge variant="default" className="bg-primary/90 backdrop-blur-sm">
               <CategoryIcon className="h-3 w-3 mr-1" />
               {CATEGORY_LABELS[product.category] || product.category}
             </Badge>
-            {product.sales_count > 0 && (
-              <Badge variant="secondary" className="bg-background/90 backdrop-blur-sm">
-                <Star className="h-3 w-3 mr-1 fill-yellow-400 text-yellow-400" />
-                {product.sales_count} ventas
-              </Badge>
-            )}
+            <div className="flex gap-1">
+              {product.sales_count >= 10 && (
+                <Badge className="bg-amber-500/90 text-white border-0 backdrop-blur-sm text-xs">
+                  Más vendido
+                </Badge>
+              )}
+              {product.sales_count > 0 && (
+                <Badge variant="secondary" className="bg-background/90 backdrop-blur-sm">
+                  <Star className="h-3 w-3 mr-1 fill-yellow-400 text-yellow-400" />
+                  {product.sales_count} ventas
+                </Badge>
+              )}
+            </div>
           </div>
         </div>
 

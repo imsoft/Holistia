@@ -351,6 +351,9 @@ async function sendAppointmentTicketEmail(appointmentId: string) {
                          `${professionalApp.address}, ${professionalApp.city}, ${professionalApp.state}` || 
                          'Por definir';
 
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.holistia.io';
+    const appointmentUrl = `${baseUrl}/explore/appointments`;
+
     // Prepare ticket email data
     const ticketData = {
       patient_name: patientName,
@@ -367,6 +370,8 @@ async function sendAppointmentTicketEmail(appointmentId: string) {
       payment_method: payment.payment_method || 'Tarjeta',
       transaction_id: payment.stripe_payment_intent_id || payment.id,
       ticket_number: appointment.id.substring(0, 8).toUpperCase(),
+      appointment_url: appointmentUrl,
+      meeting_link: appointment.meeting_link ?? null,
     };
 
     // Send ticket email
@@ -572,6 +577,7 @@ export async function POST(request: NextRequest) {
                     day: 'numeric' 
                   }),
                   file_url: product.file_url || null,
+                  purchase_id: purchase_id,
                 });
 
                 console.log('✅ Confirmation email sent for digital product purchase');

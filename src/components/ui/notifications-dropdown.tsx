@@ -61,6 +61,7 @@ const notificationIcons: Record<string, any> = {
   event_cancelled: CalendarX,
   event_spot_available: CalendarPlus,
   event_no_spot_available: CalendarX,
+  appointment_reminder: CalendarClock,
 };
 
 const notificationColors: Record<string, string> = {
@@ -76,6 +77,7 @@ const notificationColors: Record<string, string> = {
   event_cancelled: "text-red-600 bg-red-50",
   event_spot_available: "text-green-600 bg-green-50",
   event_no_spot_available: "text-slate-600 bg-slate-50",
+  appointment_reminder: "text-sky-600 bg-sky-50",
 };
 
 export function NotificationsDropdown() {

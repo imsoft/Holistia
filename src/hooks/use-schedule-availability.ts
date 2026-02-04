@@ -19,6 +19,10 @@ interface DayData {
   timeSlots: TimeSlot[];
 }
 
+export interface LoadAvailabilityOptions {
+  excludeAppointmentId?: string;
+}
+
 interface ProfessionalWorkingHours {
   working_start_time: string;
   working_end_time: string;
@@ -109,13 +113,17 @@ export function useScheduleAvailability(professionalId: string) {
     }
   }, [getProfessionalWorkingHours]);
 
-  // Obtener citas existentes para un rango de fechas (con caché)
-  const appointmentCache = useRef<Map<string, Array<{appointment_date: string; appointment_time: string; status: string}>>>(new Map());
+  // Obtener citas existentes para un rango de fechas (con caché).
+  // excludeAppointmentId: al reprogramar, excluir esa cita para que su slot aparezca disponible.
+  const appointmentCache = useRef<Map<string, Array<{id?: string; appointment_date: string; appointment_time: string; status: string}>>>(new Map());
   
-  const getExistingAppointments = useCallback(async (startDate: string, endDate: string) => {
-    const cacheKey = `${startDate}-${endDate}`;
+  const getExistingAppointments = useCallback(async (
+    startDate: string,
+    endDate: string,
+    excludeAppointmentId?: string
+  ) => {
+    const cacheKey = `${startDate}-${endDate}-${excludeAppointmentId ?? ''}`;
     
-    // Verificar caché
     if (appointmentCache.current.has(cacheKey)) {
       return appointmentCache.current.get(cacheKey)!;
     }
@@ -123,30 +131,20 @@ export function useScheduleAvailability(professionalId: string) {
     try {
       const { data, error } = await supabase
         .from('appointments')
-        .select('appointment_date, appointment_time, status')
+        .select('id, appointment_date, appointment_time, status')
         .eq('professional_id', professionalId)
         .gte('appointment_date', startDate)
         .lte('appointment_date', endDate)
-        .in('status', ['pending', 'confirmed']);
+        .in('status', ['pending', 'confirmed', 'paid']);
 
       if (error) throw error;
 
-      const appointments = data || [];
+      let appointments = (data || []) as Array<{id?: string; appointment_date: string; appointment_time: string; status: string}>;
+      if (excludeAppointmentId) {
+        appointments = appointments.filter((a) => a.id !== excludeAppointmentId);
+      }
 
-      console.log('📅 getExistingAppointments - Citas cargadas:', {
-        startDate,
-        endDate,
-        totalAppointments: appointments.length,
-        appointments: appointments.map(a => ({
-          date: a.appointment_date,
-          time: a.appointment_time,
-          status: a.status
-        }))
-      });
-
-      // Guardar en caché
       appointmentCache.current.set(cacheKey, appointments);
-
       return appointments;
     } catch (error) {
       console.error('Error fetching existing appointments:', error);
@@ -220,7 +218,7 @@ export function useScheduleAvailability(professionalId: string) {
   const generateTimeSlots = useCallback(async (
     date: string,
     workingHours: ProfessionalWorkingHours,
-    existingAppointments: Array<{appointment_date: string; appointment_time: string; status: string}>,
+    existingAppointments: Array<{id?: string; appointment_date: string; appointment_time: string; status: string}>,
     availabilityBlocks: Array<{id?: string; title?: string; block_type: string; start_date: string; end_date?: string | null; start_time?: string | null; end_time?: string | null; day_of_week?: number | null; is_recurring?: boolean}>
   ): Promise<TimeSlot[]> => {
     const timeSlots: TimeSlot[] = [];
@@ -398,8 +396,12 @@ export function useScheduleAvailability(professionalId: string) {
     return timeSlots;
   }, [getCustomDaySchedules]);
 
-  // Cargar datos de disponibilidad para una semana
-  const loadWeekAvailability = useCallback(async (startDate: Date): Promise<DayData[]> => {
+  // Cargar datos de disponibilidad para una semana (options.excludeAppointmentId para reprogramar)
+  const loadWeekAvailability = useCallback(async (
+    startDate: Date,
+    options?: LoadAvailabilityOptions
+  ): Promise<DayData[]> => {
+    const excludeAppointmentId = options?.excludeAppointmentId;
     try {
       // Generar fechas de la semana
       const dates: DayData[] = [];
@@ -470,7 +472,7 @@ export function useScheduleAvailability(professionalId: string) {
       // Obtener datos necesarios
       const [workingHours, existingAppointments, availabilityBlocks] = await Promise.all([
         getProfessionalWorkingHours(),
-        getExistingAppointments(dates[0].date, dates[dates.length - 1].date),
+        getExistingAppointments(dates[0].date, dates[dates.length - 1].date, excludeAppointmentId),
         getAvailabilityBlocks(dates[0].date, dates[dates.length - 1].date)
       ]);
 
@@ -517,7 +519,28 @@ export function useScheduleAvailability(professionalId: string) {
     }
   }, [getProfessionalWorkingHours, getExistingAppointments, getAvailabilityBlocks, generateTimeSlots]);
 
+  // Slots para una sola fecha (útil para reprogramar: elegir día y ver solo horarios disponibles)
+  const getTimeSlotsForDate = useCallback(async (
+    date: string,
+    options?: { excludeAppointmentId?: string }
+  ): Promise<TimeSlot[]> => {
+    const [workingHours, existingAppointments, availabilityBlocks] = await Promise.all([
+      getProfessionalWorkingHours(),
+      getExistingAppointments(date, date, options?.excludeAppointmentId),
+      getAvailabilityBlocks(date, date)
+    ]);
+    if (!workingHours) return [];
+    const hours = {
+      ...workingHours,
+      working_days: workingHours.working_days?.length ? workingHours.working_days : [1, 2, 3, 4, 5],
+      working_start_time: workingHours.working_start_time || '09:00',
+      working_end_time: workingHours.working_end_time || '18:00'
+    };
+    return generateTimeSlots(date, hours, existingAppointments, availabilityBlocks);
+  }, [getProfessionalWorkingHours, getExistingAppointments, getAvailabilityBlocks, generateTimeSlots]);
+
   return {
-    loadWeekAvailability
+    loadWeekAvailability,
+    getTimeSlotsForDate
   };
 }

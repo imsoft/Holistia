@@ -22,6 +22,7 @@ interface Favorite {
 
 interface Professional {
   id: string;
+  slug?: string;
   user_id: string;
   first_name: string;
   last_name: string;
@@ -263,7 +264,7 @@ const FavoritesPage = () => {
                   showFavoriteButton={false}
                   professional={{
                     id: professional.id,
-                    slug: `${professional.first_name.toLowerCase()}-${professional.last_name.toLowerCase()}`,
+                    slug: professional.slug || `${professional.first_name.toLowerCase()}-${professional.last_name.toLowerCase()}`,
                     name: `${professional.first_name} ${professional.last_name}`,
                     email: professional.email,
                     whatsapp: professional.phone || '',

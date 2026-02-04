@@ -62,6 +62,7 @@ const categories = [
 
 interface Professional {
   id: string;
+  slug?: string;
   user_id: string;
   first_name: string;
   last_name: string;
@@ -1305,7 +1306,7 @@ const HomeUserPage = () => {
                         showFavoriteButton={!!userId}
                         professional={{
                           id: professional.id,
-                          slug: `${professional.first_name.toLowerCase()}-${professional.last_name.toLowerCase()}`,
+                          slug: professional.slug || `${professional.first_name.toLowerCase()}-${professional.last_name.toLowerCase()}`,
                           name: `${professional.first_name} ${professional.last_name}`,
                           email: professional.email,
                           whatsapp: professional.phone || "",

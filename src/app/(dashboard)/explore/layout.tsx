@@ -30,6 +30,7 @@ import { LayoutSkeleton } from "@/components/ui/layout-skeleton";
 // Función para generar navegación (URLs limpias sin IDs)
 const getNavigation = (hasEvents: boolean = false) => {
   const nav = [
+    { name: "Inicio", href: `/` },
     { name: "Explorar", href: `/explore` },
     { name: "Feed", href: `/feed` },
     { name: "Favoritos", href: `/explore/favorites` },

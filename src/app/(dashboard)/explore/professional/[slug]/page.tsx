@@ -67,6 +67,7 @@ import { ArrowLeft } from "lucide-react";
 
 interface Professional {
   id: string;
+  slug?: string;
   user_id: string;
   first_name: string;
   last_name: string;
@@ -763,9 +764,8 @@ export default function ProfessionalProfilePage() {
   const handleShare = async () => {
     if (!professional) return;
 
-    // Crear slug: nombre-apellido-id
-    const slug = `${professional.first_name.toLowerCase()}-${professional.last_name.toLowerCase()}-${professional.id}`;
-    const shareUrl = `${window.location.origin}/explore/professional/${slug}`;
+    const shareSlug = professional.slug || `${professional.first_name.toLowerCase()}-${professional.last_name.toLowerCase()}`;
+    const shareUrl = `${window.location.origin}/explore/professional/${shareSlug}`;
 
     try {
       await navigator.clipboard.writeText(shareUrl);

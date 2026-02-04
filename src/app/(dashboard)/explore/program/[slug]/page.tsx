@@ -385,7 +385,7 @@ export default function ProgramDetailPage() {
 
         {/* Professional Info */}
         {product.professional_applications && (
-          <Card className="hover:shadow-md transition-shadow">
+          <Card className="hover:shadow-md transition-shadow overflow-hidden">
             <CardContent className="p-6">
               <div className="space-y-4">
                 <div className="flex items-start gap-4">
@@ -430,9 +430,9 @@ export default function ProgramDetailPage() {
                     )}
                     {product.professional_applications.specializations && 
                      product.professional_applications.specializations.length > 0 && (
-                      <div className="flex flex-wrap gap-2 mt-3">
+                      <div className="flex flex-wrap gap-2 mt-3 max-w-full">
                         {product.professional_applications.specializations.slice(0, 3).map((spec, index) => (
-                          <Badge key={index} variant="secondary" className="text-xs">
+                          <Badge key={index} variant="secondary" className="text-xs max-w-full truncate">
                             {spec}
                           </Badge>
                         ))}

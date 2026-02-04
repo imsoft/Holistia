@@ -23,13 +23,24 @@ import { useProfile } from "@/hooks/use-profile";
 import { useProfileCache, useIsProfileCacheValid, useUserStore } from "@/stores/user-store";
 import { createClient } from "@/utils/supabase/client";
 
-const navigation = [
+const baseNavigation = [
   { name: "Inicio", href: "/" },
   { name: "Empresas", href: "/companies" },
   { name: "Blog", href: "/blog" },
   { name: "Historia", href: "/history" },
   { name: "Contacto", href: "/contact" },
 ];
+
+const getNavigation = (isAuthenticated: boolean) => {
+  if (isAuthenticated) {
+    return [
+      baseNavigation[0],
+      { name: "Explorar", href: "/explore" },
+      ...baseNavigation.slice(1),
+    ];
+  }
+  return baseNavigation;
+};
 
 export const Navbar = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -128,6 +139,8 @@ export const Navbar = () => {
 
   // Usar el estado de autenticación verificado directamente, no depender solo del perfil
   const shouldShowAuthUI = isAuthenticated && profile && !loading;
+
+  const navigation = getNavigation(isAuthenticated);
 
   return (
     <header className="w-full z-50">

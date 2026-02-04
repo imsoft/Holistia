@@ -335,7 +335,10 @@ export default async function ChallengePage({ params }: ChallengePageProps) {
                 <h2 className="text-2xl font-semibold mb-4">
                   Creado por
                 </h2>
-                <div className="flex items-center gap-4">
+                <Link
+                  href={`/explore/professional/${challenge.professional_applications.slug}`}
+                  className="flex items-center gap-4 hover:opacity-80 transition-opacity"
+                >
                   {challenge.professional_applications.profile_photo ? (
                     <div className="relative h-16 w-16 rounded-full overflow-hidden">
                       <Image
@@ -366,7 +369,7 @@ export default async function ChallengePage({ params }: ChallengePageProps) {
                       </p>
                     )}
                   </div>
-                </div>
+                </Link>
               </div>
             )}
           </div>

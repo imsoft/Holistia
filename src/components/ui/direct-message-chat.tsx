@@ -242,7 +242,7 @@ export function DirectMessageChat({
         // Intentar primero como professional_applications.id
         let { data: professionalData } = await supabase
           .from('professional_applications')
-          .select('id, first_name, last_name, user_id')
+          .select('id, slug, first_name, last_name, user_id')
           .eq('id', professionalId)
           .eq('status', 'approved')
           .maybeSingle();
@@ -251,19 +251,18 @@ export function DirectMessageChat({
         if (!professionalData) {
           const { data: userData } = await supabase
             .from('professional_applications')
-            .select('id, first_name, last_name, user_id')
+            .select('id, slug, first_name, last_name, user_id')
             .eq('user_id', professionalId)
             .eq('status', 'approved')
             .maybeSingle();
-          
+
           if (userData) {
             professionalData = userData;
           }
         }
 
         if (professionalData) {
-          // Construir slug: first_name-last_name-id
-          const slug = `${professionalData.first_name?.toLowerCase() || ''}-${professionalData.last_name?.toLowerCase() || ''}-${professionalData.id}`;
+          const slug = professionalData.slug || `${professionalData.first_name?.toLowerCase() || ''}-${professionalData.last_name?.toLowerCase() || ''}`;
           setProfessionalSlug(slug);
         }
       } catch (error) {

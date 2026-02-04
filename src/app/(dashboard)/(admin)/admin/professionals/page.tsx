@@ -25,6 +25,7 @@ import {
   AlertCircle,
   TrendingUp,
   TrendingDown,
+  Trash2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -53,6 +54,7 @@ import { AdminRatingForm } from "@/components/ui/admin-rating-form";
 import { getRegistrationFeeStatus } from "@/utils/registration-utils";
 import { VerifiedBadge } from "@/components/ui/verified-badge";
 import { formatPhone } from "@/utils/phone-utils";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 
 // Interfaces para los datos dinámicos
 interface Professional {
@@ -115,6 +117,8 @@ export default function AdminProfessionals() {
   const [adminRating, setAdminRating] = useState<{rating: number; improvement_comments?: string | null; id?: string} | null>(null);
   const [ratingRefreshKey, setRatingRefreshKey] = useState(0);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [professionalToDelete, setProfessionalToDelete] = useState<Professional | null>(null);
   const supabase = createClient();
 
   // Opciones de áreas de bienestar
@@ -764,6 +768,37 @@ export default function AdminProfessionals() {
     }
   };
 
+  // Función para eliminar profesional por completo
+  const handleDeleteProfessional = async () => {
+    if (!professionalToDelete) return;
+
+    try {
+      setActionLoading(`delete-${professionalToDelete.id}`);
+
+      const response = await fetch('/api/admin/delete-professional', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ professionalId: professionalToDelete.id }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        toast.error(data.error || 'Error al eliminar el profesional');
+        return;
+      }
+
+      setProfessionals(prev => prev.filter(p => p.id !== professionalToDelete.id));
+      toast.success(data.message || 'Profesional eliminado exitosamente');
+      setProfessionalToDelete(null);
+    } catch (error) {
+      console.error('Error al eliminar profesional:', error);
+      toast.error('Error al eliminar el profesional');
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
   const filteredProfessionals = professionals.filter((professional) => {
     const fullName = `${professional.first_name} ${professional.last_name}`;
     const matchesSearch = fullName
@@ -1171,6 +1206,18 @@ export default function AdminProfessionals() {
                       {actionLoading === professional.id ? 'Verificando...' : 'Verificar'}
                     </Button>
                   )}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                    onClick={() => {
+                      setProfessionalToDelete(professional);
+                      setDeleteConfirmOpen(true);
+                    }}
+                    disabled={actionLoading === `delete-${professional.id}`}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
                 </div>
               </CardContent>
             </Card>
@@ -1694,6 +1741,21 @@ export default function AdminProfessionals() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Diálogo de confirmación para eliminar profesional */}
+      <ConfirmDialog
+        open={deleteConfirmOpen}
+        onOpenChange={(open) => {
+          setDeleteConfirmOpen(open);
+          if (!open) setProfessionalToDelete(null);
+        }}
+        title="Eliminar profesional"
+        description={`¿Estás seguro de que quieres eliminar a ${professionalToDelete?.first_name} ${professionalToDelete?.last_name}? Esta acción es irreversible y eliminará su cuenta de usuario, citas, servicios, productos digitales, retos y todos los datos asociados.`}
+        confirmText="Eliminar"
+        cancelText="Cancelar"
+        onConfirm={handleDeleteProfessional}
+        variant="destructive"
+      />
     </div>
   );
 }

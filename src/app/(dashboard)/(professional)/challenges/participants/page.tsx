@@ -19,6 +19,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { VideoPlayer } from "@/components/ui/video-player";
 
 interface Participant {
   purchase_id: string;
@@ -521,11 +522,13 @@ export default function ChallengeParticipantsPage() {
                                     />
                                   )}
                                   {checkin.evidence_type === 'video' && (
-                                    <video
-                                      src={checkin.evidence_url}
-                                      controls
-                                      className="rounded-lg max-w-md"
-                                    />
+                                    <div className="rounded-lg overflow-hidden max-w-md aspect-video">
+                                      <VideoPlayer
+                                        url={checkin.evidence_url}
+                                        className="w-full h-full"
+                                        fill
+                                      />
+                                    </div>
                                   )}
                                   {checkin.evidence_type === 'audio' && (
                                     <audio

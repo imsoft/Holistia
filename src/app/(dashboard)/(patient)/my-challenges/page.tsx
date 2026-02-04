@@ -37,6 +37,7 @@ import {
 import { VerifiedBadge } from "@/components/ui/verified-badge";
 import { DeleteConfirmation } from "@/components/ui/confirmation-dialog";
 import { Skeleton } from "@/components/ui/skeleton";
+import { VideoPlayer } from "@/components/ui/video-player";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -1234,14 +1235,13 @@ export default function MyChallengesPage() {
                                             {checkin.evidence_url && (
                                               <div className="mt-2">
                                                 {checkin.evidence_type === 'video' ? (
-                                                  <video
-                                                    key={checkin.evidence_url}
-                                                    src={checkin.evidence_url}
-                                                    controls
-                                                    preload="metadata"
-                                                    playsInline
-                                                    className="rounded-lg w-full max-w-[200px] h-[120px] object-cover"
-                                                  />
+                                                  <div className="rounded-lg overflow-hidden w-full max-w-[200px] h-[120px]">
+                                                    <VideoPlayer
+                                                      url={checkin.evidence_url}
+                                                      className="w-full h-full"
+                                                      fill
+                                                    />
+                                                  </div>
                                                 ) : checkin.evidence_type === 'photo' ? (
                                                   <Image
                                                     src={checkin.evidence_url}

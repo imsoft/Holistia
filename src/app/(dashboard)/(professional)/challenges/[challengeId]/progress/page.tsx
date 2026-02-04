@@ -34,6 +34,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { VideoPlayer } from "@/components/ui/video-player";
 
 interface ParticipantProgress {
   purchase_id: string;
@@ -584,12 +585,14 @@ export default function ChallengeProgressPage() {
                                 >
                                   {checkin.evidence_type === 'video' ? (
                                     <div className="relative w-[120px] h-[120px] rounded-lg overflow-hidden border bg-muted flex items-center justify-center hover:opacity-90 transition-opacity">
-                                      <video
-                                        src={checkin.evidence_url}
-                                        className="w-full h-full object-cover"
+                                      <VideoPlayer
+                                        url={checkin.evidence_url}
+                                        className="w-full h-full"
+                                        fill
+                                        controls={false}
                                         muted
                                       />
-                                      <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                                      <div className="absolute inset-0 flex items-center justify-center bg-black/30 pointer-events-none">
                                         <div className="w-10 h-10 rounded-full bg-white/90 flex items-center justify-center">
                                           <div className="w-0 h-0 border-t-[8px] border-t-transparent border-l-[12px] border-l-primary border-b-[8px] border-b-transparent ml-1" />
                                         </div>
@@ -634,11 +637,10 @@ export default function ChallengeProgressPage() {
           {selectedImage && (
             <div className="relative w-full h-[60vh]">
               {selectedMediaType === 'video' ? (
-                <video
-                  src={selectedImage}
-                  controls
-                  autoPlay
-                  className="w-full h-full object-contain"
+                <VideoPlayer
+                  url={selectedImage}
+                  className="w-full h-full"
+                  fill
                 />
               ) : (
                 <Image

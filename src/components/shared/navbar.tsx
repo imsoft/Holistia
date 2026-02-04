@@ -149,7 +149,7 @@ export const Navbar = () => {
         className="flex items-center justify-between p-6 lg:px-8 bg-primary w-full"
       >
         <div className="flex lg:flex-1">
-          <Link href="/" className="-m-1.5 p-1.5">
+          <Link href="/?home=true" className="-m-1.5 p-1.5">
             <span className="sr-only">Holistia</span>
             <Image
               alt="Holistia Logo"
@@ -174,7 +174,7 @@ export const Navbar = () => {
             <SheetContent side="right" className="w-full sm:max-w-sm p-0 flex flex-col h-full max-h-screen overflow-hidden">
               <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
               <div className="flex items-center justify-between p-6 pb-4 shrink-0">
-                <Link href="/" className="-m-1.5 p-1.5">
+                <Link href="/?home=true" className="-m-1.5 p-1.5">
                   <span className="sr-only">Holistia</span>
                   <Image
                     alt="Holistia Logo"

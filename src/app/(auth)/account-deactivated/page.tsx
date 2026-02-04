@@ -37,7 +37,7 @@ export default function AccountDeactivatedPage() {
       <div className="w-full max-w-2xl">
         {/* Logo */}
         <div className="flex justify-center mb-8">
-          <Link href="/">
+          <Link href="/?home=true">
             <Image
               alt="Holistia"
               src="/logos/holistia-black.png"
@@ -161,7 +161,7 @@ export default function AccountDeactivatedPage() {
                 className="flex-1"
                 asChild
               >
-                <Link href="/">
+                <Link href="/?home=true">
                   <Home className="h-4 w-4 mr-2" />
                   Volver al Inicio
                 </Link>

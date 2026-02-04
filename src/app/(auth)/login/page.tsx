@@ -121,7 +121,7 @@ function LoginFormWithMessage() {
     <>
       <div className="flex min-h-[calc(100vh-200px)] flex-col justify-center py-4 sm:py-8 px-4 sm:px-6 lg:px-8">
         <div className="sm:mx-auto sm:w-full sm:max-w-md">
-          <Link href="/" className="block">
+          <Link href="/?home=true" className="block">
             <Image
               alt="Holistia"
               src="/logos/holistia-black.png"
@@ -231,7 +231,7 @@ function LoginFormWithMessage() {
 
           <p className="mt-3 sm:mt-4 text-center text-sm/6 text-muted-foreground">
             <Link
-              href="/"
+              href="/?home=true"
               className="font-medium text-muted-foreground hover:text-primary transition-colors"
             >
               Volver al inicio

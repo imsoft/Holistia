@@ -432,12 +432,16 @@ export default function ProgramDetailPage() {
                      product.professional_applications.specializations.length > 0 && (
                       <div className="flex flex-wrap gap-2 mt-3 max-w-full">
                         {product.professional_applications.specializations.slice(0, 3).map((spec, index) => (
-                          <Badge key={index} variant="secondary" className="text-xs max-w-full truncate">
+                          <Badge
+                            key={index}
+                            variant="secondary"
+                            className="text-xs max-w-full whitespace-normal break-words text-left py-1 px-2"
+                          >
                             {spec}
                           </Badge>
                         ))}
                         {product.professional_applications.specializations.length > 3 && (
-                          <Badge variant="outline" className="text-xs">
+                          <Badge variant="outline" className="text-xs shrink-0">
                             +{product.professional_applications.specializations.length - 3} más
                           </Badge>
                         )}

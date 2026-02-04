@@ -87,16 +87,16 @@ export function ShopCard({
             </Badge>
           )}
         </CardHeader>
-        <CardContent className="flex-1 px-4 pt-0 pb-3 min-h-0 flex flex-col overflow-hidden">
+        <CardContent className="flex-1 px-4 pt-0 pb-2 min-h-0 flex flex-col overflow-hidden">
           {cleanDescription && (
-            <div className="overflow-hidden max-h-[2.8em] text-sm text-muted-foreground leading-tight">
-              <p className="line-clamp-2 break-words">
+            <div className="overflow-hidden max-h-[4.2em] text-sm text-muted-foreground leading-tight my-2">
+              <p className="line-clamp-3 break-words">
                 {cleanDescription}
               </p>
             </div>
           )}
           {(shop.address || shop.city) && (
-            <div className="flex items-start gap-2 mt-2 text-sm text-muted-foreground flex-shrink-0">
+            <div className="flex items-start gap-2 mt-1.5 text-sm text-muted-foreground flex-shrink-0">
               <MapPin className="h-4 w-4 mt-0.5 flex-shrink-0" />
               <span className="line-clamp-2">
                 {shop.address && shop.city

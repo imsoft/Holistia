@@ -243,7 +243,7 @@ export default function EventsPage() {
                     key={event.id}
                     event={mapApiEventToCardEvent(event)}
                     href={`/patient/${userId}/explore/event/${generateEventSlug(event.name, event.id!)}`}
-                    showFavoriteButton
+                    showFavoriteButton={!!isAuthenticated}
                     className="w-full block"
                   />
                 ))}

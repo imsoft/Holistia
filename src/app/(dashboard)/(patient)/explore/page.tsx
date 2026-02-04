@@ -1140,6 +1140,7 @@ const HomeUserPage = () => {
                 products={filteredDigitalProducts.map(mapApiProductToCardProduct)}
                 layout="carousel"
                 showProfessional={true}
+                showFavoriteButton={!!userId}
               />
             </div>
           )}
@@ -1179,7 +1180,7 @@ const HomeUserPage = () => {
                 >
                   {filteredChallenges.map((challenge) => (
                     <div key={challenge.id} className="shrink-0 w-96 h-[420px]">
-                      <ChallengeCard challenge={challenge as any} userId={userId || undefined} />
+                      <ChallengeCard challenge={challenge as any} userId={userId || undefined} showFavoriteButton={!!userId} />
                     </div>
                   ))}
                 </div>
@@ -1237,7 +1238,7 @@ const HomeUserPage = () => {
                     <EventCard
                       key={event.id}
                       event={mapApiEventToCardEvent(event)}
-                      showFavoriteButton
+                      showFavoriteButton={!!userId}
                     />
                   ))}
                 </div>
@@ -1301,6 +1302,7 @@ const HomeUserPage = () => {
                     >
                       <ProfessionalCard
                         userId={userId || undefined}
+                        showFavoriteButton={!!userId}
                         professional={{
                           id: professional.id,
                           slug: `${professional.first_name.toLowerCase()}-${professional.last_name.toLowerCase()}`,
@@ -1423,7 +1425,7 @@ const HomeUserPage = () => {
                     <RestaurantCard
                       key={restaurant.id}
                       restaurant={mapApiRestaurantToCardRestaurant(restaurant)}
-                      showFavoriteButton
+                      showFavoriteButton={!!userId}
                     />
                   ))}
                 </div>
@@ -1481,7 +1483,7 @@ const HomeUserPage = () => {
                     <ShopCard
                       key={shop.id}
                       shop={mapApiShopToCardShop(shop)}
-                      showFavoriteButton
+                      showFavoriteButton={!!userId}
                     />
                   ))}
                 </div>
@@ -1548,7 +1550,7 @@ const HomeUserPage = () => {
                     <HolisticCenterCard
                       key={center.id}
                       center={mapApiCenterToCardCenter(center)}
-                      showFavoriteButton
+                      showFavoriteButton={!!userId}
                     />
                   ))}
                 </div>

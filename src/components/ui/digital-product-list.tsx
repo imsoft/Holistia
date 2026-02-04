@@ -10,6 +10,8 @@ export interface DigitalProductListProps {
   products: DigitalProductCardProduct[];
   layout: "carousel" | "grid";
   showProfessional?: boolean;
+  /** Mostrar botón de favoritos solo si el usuario tiene sesión iniciada. */
+  showFavoriteButton?: boolean;
   /** Clase extra para el contenedor (ej. para padding del carrusel) */
   className?: string;
 }
@@ -29,6 +31,7 @@ export function DigitalProductList({
   products,
   layout,
   showProfessional = true,
+  showFavoriteButton = false,
   className = "",
 }: DigitalProductListProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -45,6 +48,7 @@ export function DigitalProductList({
             key={product.id}
             product={product}
             showProfessional={showProfessional}
+            showFavoriteButton={showFavoriteButton}
           />
         ))}
       </div>
@@ -85,6 +89,7 @@ export function DigitalProductList({
             <DigitalProductCard
               product={product}
               showProfessional={showProfessional}
+              showFavoriteButton={showFavoriteButton}
             />
           </div>
         ))}

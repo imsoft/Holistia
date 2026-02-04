@@ -244,7 +244,7 @@ export default function HolisticCentersPage() {
                   <HolisticCenterCard
                     key={center.id}
                     center={mapApiCenterToCardCenter(center)}
-                    showFavoriteButton
+                    showFavoriteButton={!!isAuthenticated}
                     className="w-full block"
                   />
                 ))}

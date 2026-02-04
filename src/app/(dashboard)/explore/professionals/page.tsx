@@ -367,6 +367,7 @@ export default function ProfessionalsPage() {
                   <div key={professional.id} className="w-full max-w-md">
                     <ProfessionalCard
                       userId={userId || undefined}
+                      showFavoriteButton={!!isAuthenticated}
                       professional={{
                           id: professional.id,
                           slug: `${professional.first_name.toLowerCase()}-${professional.last_name.toLowerCase()}`,

@@ -282,6 +282,7 @@ export default function ProgramsPage() {
             products={filteredProducts.map(mapApiProductToCardProduct)}
             layout="grid"
             showProfessional={true}
+            showFavoriteButton={!!isAuthenticated}
           />
         )}
         </div>

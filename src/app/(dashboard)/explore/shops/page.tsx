@@ -249,7 +249,7 @@ export default function ShopsPage() {
               <ShopCard
                 key={shop.id}
                 shop={mapApiShopToCardShop(shop)}
-                showFavoriteButton
+                showFavoriteButton={!!isAuthenticated}
                 className="w-full block"
               />
             ))}

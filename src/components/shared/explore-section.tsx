@@ -32,6 +32,7 @@ import { ShopCard, mapApiShopToCardShop } from "@/components/ui/shop-card";
 import { HolisticCenterCard, mapApiCenterToCardCenter } from "@/components/ui/holistic-center-card";
 import { RestaurantCard, mapApiRestaurantToCardRestaurant } from "@/components/ui/restaurant-card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useUserId } from "@/stores/user-store";
 
 interface Professional {
   id: string;
@@ -139,6 +140,8 @@ interface Challenge {
 }
 
 export function ExploreSection({ hideHeader = false, userId, showFavorites = false }: ExploreSectionProps) {
+  const authUserId = useUserId();
+  const showFavoritesWhenLoggedIn = !!authUserId;
   const [professionals, setProfessionals] = useState<Professional[]>([]);
   const [shops, setShops] = useState<Shop[]>([]);
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
@@ -631,6 +634,7 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
                   products={digitalProducts.map(mapApiProductToCardProduct)}
                   layout="carousel"
                   showProfessional={true}
+                  showFavoriteButton={showFavoritesWhenLoggedIn}
                 />
               )}
             </div>
@@ -700,7 +704,7 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
                   <EventCard
                     key={event.id}
                     event={mapApiEventToCardEvent({ ...event, is_free: event.price === 0 })}
-                    showFavoriteButton={showFavorites}
+                    showFavoriteButton={showFavoritesWhenLoggedIn}
                   />
                 ))}
               </div>
@@ -770,7 +774,7 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
                 >
                 {challenges.map((challenge) => (
                   <div key={challenge.id} className="shrink-0 w-[280px] sm:w-[320px] h-[420px]">
-                    <ChallengeCard challenge={challenge as any} userId={currentUserId} showFavoriteButton={false} />
+                    <ChallengeCard challenge={challenge as any} userId={currentUserId} showFavoriteButton={showFavoritesWhenLoggedIn} />
                   </div>
                 ))}
               </div>
@@ -843,7 +847,7 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
                     <div key={prof.id} className="shrink-0 w-[280px] sm:w-[320px]">
                       <ProfessionalCard
                         userId={currentUserId}
-                        showFavoriteButton={showFavorites}
+                        showFavoriteButton={showFavoritesWhenLoggedIn}
                         professional={{
                           id: prof.id,
                           slug: prof.slug || prof.id,
@@ -934,7 +938,7 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
                   <ShopCard
                     key={shop.id}
                     shop={mapApiShopToCardShop(shop)}
-                    showFavoriteButton={showFavorites}
+                    showFavoriteButton={showFavoritesWhenLoggedIn}
                   />
                 ))}
               </div>
@@ -1006,7 +1010,7 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
                   <HolisticCenterCard
                     key={center.id}
                     center={mapApiCenterToCardCenter(center)}
-                    showFavoriteButton={showFavorites}
+                    showFavoriteButton={showFavoritesWhenLoggedIn}
                   />
                 ))}
               </div>
@@ -1078,7 +1082,7 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
                   <RestaurantCard
                     key={restaurant.id}
                     restaurant={mapApiRestaurantToCardRestaurant(restaurant)}
-                    showFavoriteButton={showFavorites}
+                    showFavoriteButton={showFavoritesWhenLoggedIn}
                   />
                 ))}
               </div>

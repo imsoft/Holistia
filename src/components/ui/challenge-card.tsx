@@ -57,7 +57,7 @@ export function ChallengeCard({ challenge, onJoin, userId, showFavoriteButton = 
 
   return (
     <Card
-      className="group overflow-hidden hover:shadow-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer pt-0 pb-4 h-full flex flex-col"
+      className="group overflow-hidden hover:shadow-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer pt-0 pb-2 h-full flex flex-col"
       onClick={() => router.push(detailHref)}
       role="link"
       tabIndex={0}
@@ -111,7 +111,7 @@ export function ChallengeCard({ challenge, onJoin, userId, showFavoriteButton = 
         )}
       </CardHeader>
 
-      <CardContent className="space-y-3 flex-1 flex flex-col min-h-0 pt-0">
+      <CardContent className="space-y-2 flex-1 flex flex-col min-h-0 pt-0 pb-2">
         {/* Información del profesional */}
         {challenge.professional_first_name && (
           <div className="flex items-center gap-2 text-sm">

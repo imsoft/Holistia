@@ -77,7 +77,7 @@ export function HolisticCenterCard({
             </div>
           )}
         </div>
-        <CardHeader className="pb-1.5 px-4 pt-3">
+        <CardHeader className="pb-1.5 px-4 pt-4">
           <CardTitle className="text-lg line-clamp-2 group-hover:text-primary transition-colors leading-snug pb-0.5">
             {center.name}
           </CardTitle>

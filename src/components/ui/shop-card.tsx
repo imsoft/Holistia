@@ -89,7 +89,7 @@ export function ShopCard({
         </CardHeader>
         <CardContent className="flex-1 px-4 pt-0 pb-3 min-h-0 flex flex-col">
           {cleanDescription && (
-            <p className="text-sm text-muted-foreground line-clamp-3 flex-1 min-h-0">
+            <p className="text-sm text-muted-foreground line-clamp-2 flex-1 min-h-0">
               {cleanDescription}
             </p>
           )}

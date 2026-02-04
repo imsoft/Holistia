@@ -41,7 +41,10 @@ export interface DigitalProductCardProduct {
 
 interface DigitalProductCardProps {
   product: DigitalProductCardProduct;
+  /** No se muestra bloque de profesional (foto, nombre, verificado). */
   showProfessional?: boolean;
+  /** Mostrar botón de favoritos solo si el usuario tiene sesión iniciada. */
+  showFavoriteButton?: boolean;
   onPurchaseComplete?: () => void;
 }
 
@@ -115,6 +118,7 @@ const CATEGORY_LABELS: Record<string, string> = {
 export function DigitalProductCard({
   product,
   showProfessional = false,
+  showFavoriteButton = false,
 }: DigitalProductCardProps) {
   const params = useParams();
   const router = useRouter();
@@ -148,16 +152,18 @@ export function DigitalProductCard({
               </div>
             )}
           </div>
-          <div 
-            className="absolute top-3 right-3 pointer-events-auto" 
-            style={{ zIndex: 9999, position: 'absolute', top: '12px', right: '12px' }}
-          >
-            <FavoriteButton
-              itemId={product.id}
-              favoriteType="digital_product"
-              variant="floating"
-            />
-          </div>
+          {showFavoriteButton && (
+            <div 
+              className="absolute top-3 right-3 pointer-events-auto" 
+              style={{ zIndex: 9999, position: 'absolute', top: '12px', right: '12px' }}
+            >
+              <FavoriteButton
+                itemId={product.id}
+                favoriteType="digital_product"
+                variant="floating"
+              />
+            </div>
+          )}
           <Badge variant="default" className="absolute top-3 left-3 bg-primary/90 backdrop-blur-sm">
             <CategoryIcon className="h-3 w-3 mr-1" />
             {CATEGORY_LABELS[product.category] || product.category}
@@ -205,33 +211,6 @@ export function DigitalProductCard({
             )}
           </div>
 
-
-          {/* Professional Info */}
-          {showProfessional && product.professional_first_name && (
-            <div className="flex items-center gap-2 pt-2 border-t">
-              {product.professional_photo ? (
-                <Image
-                  src={product.professional_photo}
-                  alt=""
-                  width={24}
-                  height={24}
-                  className="rounded-full"
-                />
-              ) : (
-                <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center">
-                  <span className="text-xs font-medium text-primary">
-                    {product.professional_first_name[0]}
-                  </span>
-                </div>
-              )}
-              <span className="text-xs text-muted-foreground">
-                {product.professional_first_name} {product.professional_last_name}
-              </span>
-              {product.professional_is_verified && (
-                <Badge variant="outline" className="text-xs">Verificado</Badge>
-              )}
-            </div>
-          )}
 
           {/* Price and CTA */}
           <div className="flex items-center justify-between pt-3 border-t mt-auto shrink-0">

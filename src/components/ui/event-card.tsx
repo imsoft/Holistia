@@ -30,6 +30,13 @@ function formatEventDate(dateString: string): string {
   });
 }
 
+const PARTICIPANT_LEVEL_LABELS: Record<string, string> = {
+  todos: "Todos",
+  principiante: "Principiante",
+  medio: "Intermedio",
+  avanzado: "Avanzado",
+};
+
 /** Datos normalizados para mostrar en la EventCard (mismo diseño en homepage, explore y eventos). */
 export interface EventCardEvent {
   id: string;
@@ -42,6 +49,7 @@ export interface EventCardEvent {
   is_free?: boolean;
   location: string | null;
   image_position?: string;
+  participant_level?: "todos" | "principiante" | "medio" | "avanzado";
 }
 
 export interface EventCardProps {
@@ -84,6 +92,11 @@ export function EventCard({
               unoptimized
             />
           </div>
+          {event.participant_level && (
+            <Badge variant="secondary" className="absolute top-3 left-3 bg-background/90 backdrop-blur-sm text-xs z-[1]">
+              {PARTICIPANT_LEVEL_LABELS[event.participant_level] ?? event.participant_level}
+            </Badge>
+          )}
           {showFavoriteButton && (
             <div
               className="absolute top-3 right-3 pointer-events-auto z-[1]"
@@ -149,6 +162,7 @@ export function mapApiEventToCardEvent(api: {
   price: number | null;
   is_free?: boolean;
   location?: string | null;
+  participant_level?: "todos" | "principiante" | "medio" | "avanzado";
 }): EventCardEvent {
   const image_url =
     (api.gallery_images && api.gallery_images[0]) || api.image_url || null;
@@ -163,5 +177,6 @@ export function mapApiEventToCardEvent(api: {
     is_free: api.is_free,
     location: api.location ?? null,
     image_position: api.image_position,
+    participant_level: api.participant_level,
   };
 }

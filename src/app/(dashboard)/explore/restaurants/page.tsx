@@ -249,7 +249,7 @@ export default function RestaurantsPage() {
               <RestaurantCard
                 key={restaurant.id}
                 restaurant={mapApiRestaurantToCardRestaurant(restaurant)}
-                showFavoriteButton
+                showFavoriteButton={!!isAuthenticated}
                 className="w-full block"
               />
             ))}

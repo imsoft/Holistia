@@ -15,7 +15,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Menu, User, LogOut, Briefcase } from "lucide-react";
+import { Menu, User, LogOut, Briefcase, Home } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { createClient } from "@/utils/supabase/client";
@@ -59,6 +59,7 @@ const getPatientNavigation = (hasEvents: boolean = false) => {
 // Función para generar navegación de usuario
 const getUserNavigation = (isProfessional: boolean = false) => {
   const baseNavigation = [
+    { name: "Página de inicio", href: "https://www.holistia.io/", icon: Home },
     { name: "Mi perfil", href: `/profile`, icon: User },
   ];
 

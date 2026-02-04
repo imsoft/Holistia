@@ -520,19 +520,40 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
         url: r.url || "",
         duration_minutes: r.duration_minutes != null ? String(r.duration_minutes) : "",
       }));
-      
-      // Filtrar duplicados: mantener solo el primero de cada id único
+
+      // 1) Filtrar duplicados por id (mismo registro dos veces)
       const seenIds = new Set<string>();
-      const list = rawList.filter((r: ResourceFormData) => {
-        if (r.id) {
-          if (seenIds.has(r.id)) {
-            return false; // Duplicado por id
-          }
-          seenIds.add(r.id);
-        }
+      const byId = rawList.filter((r: ResourceFormData) => {
+        if (r.id && seenIds.has(r.id)) return false;
+        if (r.id) seenIds.add(r.id);
         return true;
       });
-      
+
+      // 2) Detectar duplicados por contenido (mismo título + URL): mantener uno y eliminar el resto en BD
+      const contentKey = (r: ResourceFormData) => `${(r.title || "").trim()}|${(r.url || "").trim()}`;
+      const keptByContent = new Map<string, ResourceFormData>();
+      const duplicateIdsToDelete: string[] = [];
+      for (const r of byId) {
+        const key = contentKey(r);
+        if (keptByContent.has(key)) {
+          if (r.id) duplicateIdsToDelete.push(r.id);
+          continue;
+        }
+        keptByContent.set(key, r);
+      }
+      const list = Array.from(keptByContent.values());
+
+      for (const resourceId of duplicateIdsToDelete) {
+        try {
+          await fetch(
+            `/api/challenges/${challenge.id}/resources?resourceId=${encodeURIComponent(resourceId)}`,
+            { method: "DELETE" }
+          );
+        } catch (e) {
+          console.error("Error eliminando recurso duplicado:", e);
+        }
+      }
+
       setResources(list);
       initialResourceIdsRef.current = list.map((r: ResourceFormData) => r.id).filter((id: string | undefined): id is string => Boolean(id));
     } catch (error) {
@@ -1652,8 +1673,8 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
                         type="button"
                         variant="destructive"
                         size="icon"
+                        disabled={loadingResources}
                         onClick={async () => {
-                          // Si el recurso tiene id, eliminarlo inmediatamente de la base de datos
                           if (resource.id && challenge?.id) {
                             try {
                               const deleteRes = await fetch(
@@ -1661,19 +1682,20 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
                                 { method: "DELETE" }
                               );
                               if (!deleteRes.ok) {
-                                const errorData = await deleteRes.json();
+                                const errorData = await deleteRes.json().catch(() => ({}));
                                 throw new Error(errorData?.error || "Error al eliminar recurso");
                               }
-                              // Actualizar initialResourceIdsRef para reflejar la eliminación
+                              toast.success("Recurso eliminado");
                               initialResourceIdsRef.current = initialResourceIdsRef.current.filter(id => id !== resource.id);
+                              // Refrescar lista desde el servidor para evitar desincronización
+                              await fetchResources();
+                              return;
                             } catch (error) {
                               console.error("Error eliminando recurso:", error);
-                              toast.error("Error al eliminar el recurso. Intenta de nuevo.");
-                              return; // No eliminar del estado si falla la eliminación en BD
+                              toast.error(error instanceof Error ? error.message : "Error al eliminar el recurso. Intenta de nuevo.");
+                              return;
                             }
                           }
-                          
-                          // Eliminar del estado local
                           setResources(resources.filter((_, i) => i !== index));
                           if (editingResourceIndex === index) {
                             setEditingResourceIndex(null);
@@ -1805,8 +1827,8 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
       </Card>
       )}
 
-      {/* Sección de Reuniones - Solo mostrar cuando hay un challenge (edición) y showButtons es true */}
-      {challenge?.id && showButtons !== false && (
+      {/* Sección de Reuniones - No mostrar para admin (mejor subir enlaces como recurso) */}
+      {challenge?.id && showButtons !== false && !isAdmin && (
         <Card className="py-4">
           <CardHeader>
             <div className="flex items-center justify-between">

@@ -368,6 +368,12 @@ export function AdminSidebar() {
                 </div>
               </div>
               <div className="border-t border-border" />
+              <DropdownMenuItem asChild>
+                <Link href="https://www.holistia.io/" className="flex items-center gap-2">
+                  <Home className="h-4 w-4" />
+                  <span>Página de inicio</span>
+                </Link>
+              </DropdownMenuItem>
               <DropdownMenuItem 
                 className="flex items-center gap-2 text-red-600"
                 onClick={handleSignOut}

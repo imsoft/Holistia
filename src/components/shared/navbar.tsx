@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { Menu, LogOut, User, Settings } from "lucide-react";
+import { Menu, LogOut, User, Settings, Home } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -307,6 +307,12 @@ export const Navbar = () => {
                   </div>
                 </div>
                 <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link href="https://www.holistia.io/" className="flex items-center gap-2">
+                    <Home className="h-4 w-4" />
+                    <span>Página de inicio</span>
+                  </Link>
+                </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                   <Link href={getDashboardPath()} className="flex items-center gap-2">
                     <User className="h-4 w-4" />

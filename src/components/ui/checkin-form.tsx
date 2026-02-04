@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -39,6 +39,14 @@ export function CheckinForm({
   const [isPublic, setIsPublic] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const supabase = createClient();
+
+  useEffect(() => {
+    return () => {
+      if (evidenceVideoPreviewUrl?.startsWith("blob:")) {
+        URL.revokeObjectURL(evidenceVideoPreviewUrl);
+      }
+    };
+  }, [evidenceVideoPreviewUrl]);
 
   const getVideoDuration = (file: File): Promise<number> => {
     return new Promise((resolve, reject) => {
@@ -154,10 +162,7 @@ export function CheckinForm({
       setEvidenceUrl(publicUrl);
       setEvidenceType(fileType);
       if (isVideo) {
-        const { data: signedData } = await supabase.storage
-          .from('challenges')
-          .createSignedUrl(filePath, 3600);
-        setEvidenceVideoPreviewUrl(signedData?.signedUrl ?? publicUrl);
+        setEvidenceVideoPreviewUrl(URL.createObjectURL(fileToUpload));
       } else {
         setEvidenceVideoPreviewUrl(null);
       }
@@ -172,6 +177,9 @@ export function CheckinForm({
   };
 
   const handleRemoveEvidence = () => {
+    if (evidenceVideoPreviewUrl?.startsWith('blob:')) {
+      URL.revokeObjectURL(evidenceVideoPreviewUrl);
+    }
     setEvidenceUrl(null);
     setEvidenceVideoPreviewUrl(null);
     setEvidenceType(null);
@@ -225,7 +233,10 @@ export function CheckinForm({
 
       toast.success(`Check-in del día ${dayNumber} completado! +${data.checkin.points_earned} puntos`);
       
-      // Reset form
+      // Reset form (revocar blob URL si era vídeo para liberar memoria)
+      if (evidenceVideoPreviewUrl?.startsWith('blob:')) {
+        URL.revokeObjectURL(evidenceVideoPreviewUrl);
+      }
       setNotes("");
       setEvidenceUrl(null);
       setEvidenceVideoPreviewUrl(null);

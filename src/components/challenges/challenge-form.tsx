@@ -67,6 +67,7 @@ interface ChallengeFormData {
 }
 
 interface ResourceFormData {
+  id?: string;
   title: string;
   description: string;
   resource_type: 'ebook' | 'audio' | 'video' | 'pdf' | 'link' | 'other';
@@ -134,6 +135,8 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
   const [uploadingCover, setUploadingCover] = useState(false);
   const coverFileInputRef = React.useRef<HTMLInputElement>(null);
   const [resources, setResources] = useState<ResourceFormData[]>([]);
+  const [loadingResources, setLoadingResources] = useState(false);
+  const initialResourceIdsRef = React.useRef<string[]>([]);
   const [editingResourceIndex, setEditingResourceIndex] = useState<number | null>(null);
   const [patients, setPatients] = useState<any[]>([]);
   const [loadingPatients, setLoadingPatients] = useState(false);
@@ -219,6 +222,13 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
   useEffect(() => {
     if (challenge?.id) {
       fetchMeetings();
+    }
+  }, [challenge?.id]);
+
+  // Cargar recursos cuando hay un challenge (edición)
+  useEffect(() => {
+    if (challenge?.id) {
+      fetchResources();
     }
   }, [challenge?.id]);
 
@@ -470,21 +480,53 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
     if (!challenge?.id) return;
     try {
       setLoadingMeetings(true);
-      const { data, error } = await supabase
-        .from("challenge_meetings")
-        .select("*")
-        .eq("challenge_id", challenge.id)
-        .eq("is_active", true)
-        .order("scheduled_date", { ascending: true })
-        .order("scheduled_time", { ascending: true });
+      if (isAdmin) {
+        const res = await fetch(`/api/challenges/${challenge.id}/meetings`);
+        const data = await res.json();
+        if (!res.ok) throw new Error(data?.error || "Error al cargar reuniones");
+        setMeetings(data.meetings || []);
+      } else {
+        const { data, error } = await supabase
+          .from("challenge_meetings")
+          .select("*")
+          .eq("challenge_id", challenge.id)
+          .eq("is_active", true)
+          .order("scheduled_date", { ascending: true })
+          .order("scheduled_time", { ascending: true });
 
-      if (error) throw error;
-      setMeetings(data || []);
+        if (error) throw error;
+        setMeetings(data || []);
+      }
     } catch (error) {
       console.error("Error fetching meetings:", error);
       toast.error("Error al cargar las reuniones");
     } finally {
       setLoadingMeetings(false);
+    }
+  };
+
+  const fetchResources = async () => {
+    if (!challenge?.id) return;
+    try {
+      setLoadingResources(true);
+      const res = await fetch(`/api/challenges/${challenge.id}/resources`);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error || "Error al cargar recursos");
+      const list = (data.resources || []).map((r: { id: string; title: string; description?: string; resource_type: string; url: string; duration_minutes?: number }) => ({
+        id: r.id,
+        title: r.title || "",
+        description: r.description || "",
+        resource_type: r.resource_type as ResourceFormData["resource_type"],
+        url: r.url || "",
+        duration_minutes: r.duration_minutes != null ? String(r.duration_minutes) : "",
+      }));
+      setResources(list);
+      initialResourceIdsRef.current = list.map((r: ResourceFormData) => r.id).filter((id: string | undefined): id is string => Boolean(id));
+    } catch (error) {
+      console.error("Error fetching resources:", error);
+      toast.error("Error al cargar los recursos");
+    } finally {
+      setLoadingResources(false);
     }
   };
 
@@ -568,8 +610,7 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
 
     try {
       setSubmittingMeeting(true);
-      const meetingData = {
-        challenge_id: challenge.id,
+      const meetingPayload = {
         title: meetingFormData.title.trim(),
         description: meetingFormData.description?.trim() || null,
         platform: meetingFormData.platform,
@@ -585,22 +626,49 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
         recurrence_end_date: meetingFormData.is_recurring && meetingFormData.recurrence_end_date ? meetingFormData.recurrence_end_date : null,
         max_participants: meetingFormData.max_participants ? parseInt(meetingFormData.max_participants) : null,
         status: "scheduled",
-        is_active: true,
       };
 
-      if (editingMeetingId) {
-        const { error } = await supabase
-          .from("challenge_meetings")
-          .update(meetingData)
-          .eq("id", editingMeetingId);
-        if (error) throw error;
-        toast.success("Reunión actualizada correctamente");
+      if (isAdmin) {
+        const url = `/api/challenges/${challenge.id}/meetings`;
+        if (editingMeetingId) {
+          const res = await fetch(url, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ ...meetingPayload, meetingId: editingMeetingId }),
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data?.error || "Error al actualizar reunión");
+          toast.success("Reunión actualizada correctamente");
+        } else {
+          const res = await fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(meetingPayload),
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data?.error || "Error al agregar reunión");
+          toast.success("Reunión agregada correctamente");
+        }
       } else {
-        const { error } = await supabase
-          .from("challenge_meetings")
-          .insert([meetingData]);
-        if (error) throw error;
-        toast.success("Reunión agregada correctamente");
+        const meetingData = {
+          challenge_id: challenge.id,
+          ...meetingPayload,
+          is_active: true,
+        };
+        if (editingMeetingId) {
+          const { error } = await supabase
+            .from("challenge_meetings")
+            .update(meetingData)
+            .eq("id", editingMeetingId);
+          if (error) throw error;
+          toast.success("Reunión actualizada correctamente");
+        } else {
+          const { error } = await supabase
+            .from("challenge_meetings")
+            .insert([meetingData]);
+          if (error) throw error;
+          toast.success("Reunión agregada correctamente");
+        }
       }
 
       handleCancelMeeting();
@@ -619,13 +687,22 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
   };
 
   const handleDeleteMeetingConfirm = async () => {
-    if (!deletingMeetingId) return;
+    if (!deletingMeetingId || !challenge?.id) return;
     try {
-      const { error } = await supabase
-        .from("challenge_meetings")
-        .update({ is_active: false, status: "cancelled", updated_at: new Date().toISOString() })
-        .eq("id", deletingMeetingId);
-      if (error) throw error;
+      if (isAdmin) {
+        const res = await fetch(
+          `/api/challenges/${challenge.id}/meetings?meetingId=${encodeURIComponent(deletingMeetingId)}`,
+          { method: "DELETE" }
+        );
+        const data = await res.json();
+        if (!res.ok) throw new Error(data?.error || "Error al cancelar reunión");
+      } else {
+        const { error } = await supabase
+          .from("challenge_meetings")
+          .update({ is_active: false, status: "cancelled", updated_at: new Date().toISOString() })
+          .eq("id", deletingMeetingId);
+        if (error) throw error;
+      }
       toast.success("Reunión cancelada correctamente");
       setDeleteMeetingDialogOpen(false);
       setDeletingMeetingId(null);
@@ -838,6 +915,53 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
 
         createdChallengeId = challenge.id;
         toast.success("Reto actualizado exitosamente");
+
+        // Sincronizar recursos en edición: eliminar quitados, crear nuevos, actualizar existentes
+        const currentIds = new Set(resources.filter((r) => r.id).map((r) => r.id));
+        const deletedIds = initialResourceIdsRef.current.filter((id) => !currentIds.has(id));
+        for (const resourceId of deletedIds) {
+          try {
+            await fetch(`/api/challenges/${challenge.id}/resources?resourceId=${encodeURIComponent(resourceId)}`, { method: "DELETE" });
+          } catch (e) {
+            console.error("Error eliminando recurso:", e);
+          }
+        }
+        for (let i = 0; i < resources.length; i++) {
+          const resource = resources[i];
+          if (!resource.title?.trim() || !resource.url?.trim()) continue;
+          const duration = resource.duration_minutes ? parseInt(resource.duration_minutes, 10) : null;
+          if (resource.id) {
+            await fetch(`/api/challenges/${challenge.id}/resources`, {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                resourceId: resource.id,
+                title: resource.title.trim(),
+                description: resource.description?.trim() || null,
+                resource_type: resource.resource_type,
+                url: resource.url.trim(),
+                duration_minutes: duration,
+              }),
+            });
+          } else {
+            const res = await fetch(`/api/challenges/${challenge.id}/resources`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                title: resource.title.trim(),
+                description: resource.description?.trim() || null,
+                resource_type: resource.resource_type,
+                url: resource.url.trim(),
+                duration_minutes: duration,
+                display_order: i,
+              }),
+            });
+            const created = await res.json();
+            if (created?.resource?.id) {
+              initialResourceIdsRef.current.push(created.resource.id);
+            }
+          }
+        }
         
         // Actualizar el estado local con los datos actualizados del servidor
         if (data.challenge) {

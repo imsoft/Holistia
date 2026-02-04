@@ -54,8 +54,9 @@ export async function updateSession(request: NextRequest) {
       }
     );
 
-    // Rutas públicas que no requieren autenticación (sin incluir '/')
+    // Rutas públicas que no requieren autenticación (incluye '/' para acceso desde login)
     const publicPaths = [
+      '/',
       '/login',
       '/signup',
       '/forgot-password',

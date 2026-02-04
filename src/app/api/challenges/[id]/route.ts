@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/utils/supabase/server';
+import { createClient, createServiceRoleClient } from '@/utils/supabase/server';
 
 // GET - Obtener un reto específico
 export async function GET(
@@ -178,7 +178,8 @@ export async function PUT(
     if (is_active !== undefined) updateData.is_active = is_active;
     if (is_public !== undefined) updateData.is_public = is_public;
 
-    const { data: challenge, error: updateError } = await supabase
+    const updateClient = isAdmin ? createServiceRoleClient() : supabase;
+    const { data: challenge, error: updateError } = await updateClient
       .from('challenges')
       .update(updateData)
       .eq('id', challengeId)
@@ -279,8 +280,8 @@ export async function DELETE(
       );
     }
 
-    // Eliminar el reto (CASCADE eliminará los archivos y participaciones asociadas)
-    const { error: deleteError } = await supabase
+    const deleteClient = isAdmin ? createServiceRoleClient() : supabase;
+    const { error: deleteError } = await deleteClient
       .from('challenges')
       .delete()
       .eq('id', challengeId);

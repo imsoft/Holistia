@@ -1,5 +1,37 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/utils/supabase/server";
+import { createClient, createServiceRoleClient } from "@/utils/supabase/server";
+
+async function getSupabaseForChallenge(challengeId: string) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { supabase: null, user: null, allowed: false };
+
+  const { data: challenge, error: challengeError } = await supabase
+    .from("challenges")
+    .select("created_by_user_id")
+    .eq("id", challengeId)
+    .single();
+
+  if (challengeError || !challenge) return { supabase: null, user, allowed: false };
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("type, account_active")
+    .eq("id", user.id)
+    .single();
+
+  const isAdmin = profile?.type === "admin" && profile?.account_active === true;
+  const isCreator = challenge.created_by_user_id === user.id;
+
+  if (!isAdmin && !isCreator) return { supabase: null, user, allowed: false };
+
+  if (isAdmin) {
+    return { supabase: createServiceRoleClient(), user, allowed: true };
+  }
+  return { supabase, user, allowed: true };
+}
 
 export async function GET(
   request: NextRequest,
@@ -17,7 +49,10 @@ export async function GET(
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
 
-    const { data: resources, error } = await supabase
+    const { supabase: supabaseForQuery, allowed } = await getSupabaseForChallenge(challengeId);
+    const queryClient = allowed && supabaseForQuery ? supabaseForQuery : supabase;
+
+    const { data: resources, error } = await queryClient
       .from("challenge_resources")
       .select("*")
       .eq("challenge_id", challengeId)
@@ -58,20 +93,8 @@ export async function POST(
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
 
-    const { data: challenge, error: challengeError } = await supabase
-      .from("challenges")
-      .select("created_by_user_id, created_by_type")
-      .eq("id", challengeId)
-      .single();
-
-    if (challengeError || !challenge) {
-      return NextResponse.json(
-        { error: "Reto no encontrado" },
-        { status: 404 }
-      );
-    }
-
-    if (challenge.created_by_user_id !== user.id) {
+    const { supabase: supabaseForWrite, allowed } = await getSupabaseForChallenge(challengeId);
+    if (!allowed || !supabaseForWrite) {
       return NextResponse.json(
         { error: "No tienes permiso para agregar recursos a este reto" },
         { status: 403 }
@@ -96,7 +119,7 @@ export async function POST(
       );
     }
 
-    const { data: existingResources } = await supabase
+    const { data: existingResources } = await supabaseForWrite
       .from("challenge_resources")
       .select("display_order")
       .eq("challenge_id", challengeId)
@@ -110,7 +133,7 @@ export async function POST(
         ? existingResources[0].display_order + 1
         : 0);
 
-    const { data: resource, error } = await supabase
+    const { data: resource, error } = await supabaseForWrite
       .from("challenge_resources")
       .insert([
         {
@@ -154,28 +177,8 @@ export async function PUT(
     const supabase = await createClient();
     const { id: challengeId } = await params;
 
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      return NextResponse.json({ error: "No autorizado" }, { status: 401 });
-    }
-
-    const { data: challenge, error: challengeError } = await supabase
-      .from("challenges")
-      .select("created_by_user_id")
-      .eq("id", challengeId)
-      .single();
-
-    if (challengeError || !challenge) {
-      return NextResponse.json(
-        { error: "Reto no encontrado" },
-        { status: 404 }
-      );
-    }
-
-    if (challenge.created_by_user_id !== user.id) {
+    const { supabase: supabaseForWrite, allowed } = await getSupabaseForChallenge(challengeId);
+    if (!allowed || !supabaseForWrite) {
       return NextResponse.json(
         { error: "No tienes permiso para actualizar recursos de este reto" },
         { status: 403 }
@@ -207,7 +210,7 @@ export async function PUT(
       );
     }
 
-    const { data: resource, error } = await supabase
+    const { data: resource, error } = await supabaseForWrite
       .from("challenge_resources")
       .update({
         title: title.trim(),
@@ -246,31 +249,10 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const supabase = await createClient();
     const { id: challengeId } = await params;
 
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      return NextResponse.json({ error: "No autorizado" }, { status: 401 });
-    }
-
-    const { data: challenge, error: challengeError } = await supabase
-      .from("challenges")
-      .select("created_by_user_id")
-      .eq("id", challengeId)
-      .single();
-
-    if (challengeError || !challenge) {
-      return NextResponse.json(
-        { error: "Reto no encontrado" },
-        { status: 404 }
-      );
-    }
-
-    if (challenge.created_by_user_id !== user.id) {
+    const { supabase: supabaseForWrite, allowed } = await getSupabaseForChallenge(challengeId);
+    if (!allowed || !supabaseForWrite) {
       return NextResponse.json(
         { error: "No tienes permiso para eliminar recursos de este reto" },
         { status: 403 }
@@ -287,7 +269,7 @@ export async function DELETE(
       );
     }
 
-    const { error } = await supabase
+    const { error } = await supabaseForWrite
       .from("challenge_resources")
       .update({ is_active: false, updated_at: new Date().toISOString() })
       .eq("id", resourceId)

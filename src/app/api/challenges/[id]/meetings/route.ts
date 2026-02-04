@@ -1,5 +1,37 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/utils/supabase/server";
+import { createClient, createServiceRoleClient } from "@/utils/supabase/server";
+
+async function getSupabaseForChallenge(challengeId: string) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { supabase: null, user: null, allowed: false };
+
+  const { data: challenge, error: challengeError } = await supabase
+    .from("challenges")
+    .select("created_by_user_id")
+    .eq("id", challengeId)
+    .single();
+
+  if (challengeError || !challenge) return { supabase: null, user, allowed: false };
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("type, account_active")
+    .eq("id", user.id)
+    .single();
+
+  const isAdmin = profile?.type === "admin" && profile?.account_active === true;
+  const isCreator = challenge.created_by_user_id === user.id;
+
+  if (!isAdmin && !isCreator) return { supabase, user, allowed: false };
+
+  if (isAdmin) {
+    return { supabase: createServiceRoleClient(), user, allowed: true };
+  }
+  return { supabase, user, allowed: true };
+}
 
 export async function GET(
   request: NextRequest,
@@ -17,7 +49,10 @@ export async function GET(
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
 
-    const { data: meetings, error } = await supabase
+    const { supabase: supabaseForQuery, allowed } = await getSupabaseForChallenge(challengeId);
+    const queryClient = allowed && supabaseForQuery ? supabaseForQuery : supabase;
+
+    const { data: meetings, error } = await queryClient
       .from("challenge_meetings")
       .select("*")
       .eq("challenge_id", challengeId)
@@ -59,21 +94,8 @@ export async function POST(
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
 
-    // Verify user is the challenge creator
-    const { data: challenge, error: challengeError } = await supabase
-      .from("challenges")
-      .select("created_by_user_id")
-      .eq("id", challengeId)
-      .single();
-
-    if (challengeError || !challenge) {
-      return NextResponse.json(
-        { error: "Reto no encontrado" },
-        { status: 404 }
-      );
-    }
-
-    if (challenge.created_by_user_id !== user.id) {
+    const { supabase: supabaseForWrite, allowed } = await getSupabaseForChallenge(challengeId);
+    if (!allowed || !supabaseForWrite) {
       return NextResponse.json(
         { error: "No tienes permiso para agregar reuniones a este reto" },
         { status: 403 }
@@ -125,7 +147,7 @@ export async function POST(
       );
     }
 
-    const { data: meeting, error } = await supabase
+    const { data: meeting, error } = await supabaseForWrite
       .from("challenge_meetings")
       .insert([
         {
@@ -175,32 +197,10 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const supabase = await createClient();
     const { id: challengeId } = await params;
 
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      return NextResponse.json({ error: "No autorizado" }, { status: 401 });
-    }
-
-    // Verify user is the challenge creator
-    const { data: challenge, error: challengeError } = await supabase
-      .from("challenges")
-      .select("created_by_user_id")
-      .eq("id", challengeId)
-      .single();
-
-    if (challengeError || !challenge) {
-      return NextResponse.json(
-        { error: "Reto no encontrado" },
-        { status: 404 }
-      );
-    }
-
-    if (challenge.created_by_user_id !== user.id) {
+    const { supabase: supabaseForWrite, allowed } = await getSupabaseForChallenge(challengeId);
+    if (!allowed || !supabaseForWrite) {
       return NextResponse.json(
         { error: "No tienes permiso para actualizar reuniones de este reto" },
         { status: 403 }
@@ -275,7 +275,7 @@ export async function PUT(
       updateData.status = status;
     }
 
-    const { data: meeting, error } = await supabase
+    const { data: meeting, error } = await supabaseForWrite
       .from("challenge_meetings")
       .update(updateData)
       .eq("id", meetingId)
@@ -306,32 +306,10 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const supabase = await createClient();
     const { id: challengeId } = await params;
 
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      return NextResponse.json({ error: "No autorizado" }, { status: 401 });
-    }
-
-    // Verify user is the challenge creator
-    const { data: challenge, error: challengeError } = await supabase
-      .from("challenges")
-      .select("created_by_user_id")
-      .eq("id", challengeId)
-      .single();
-
-    if (challengeError || !challenge) {
-      return NextResponse.json(
-        { error: "Reto no encontrado" },
-        { status: 404 }
-      );
-    }
-
-    if (challenge.created_by_user_id !== user.id) {
+    const { supabase: supabaseForWrite, allowed } = await getSupabaseForChallenge(challengeId);
+    if (!allowed || !supabaseForWrite) {
       return NextResponse.json(
         { error: "No tienes permiso para eliminar reuniones de este reto" },
         { status: 403 }
@@ -349,7 +327,7 @@ export async function DELETE(
     }
 
     // Soft delete: set is_active to false and status to cancelled
-    const { error } = await supabase
+    const { error } = await supabaseForWrite
       .from("challenge_meetings")
       .update({
         is_active: false,

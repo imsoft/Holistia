@@ -190,6 +190,9 @@ export default function ExploreLayout({
   // Función para determinar si un item está activo
   const isActive = (href: string) => {
     if (!currentPathname) return false;
+    if (href === `/`) {
+      return currentPathname === `/`;
+    }
     if (href === `/explore`) {
       return currentPathname === `/explore`;
     }
@@ -255,7 +258,7 @@ export default function ExploreLayout({
             <div className="flex">
               <div className="flex shrink-0 items-center">
                 <Link
-                  href="/explore"
+                  href="/"
                   className="flex items-center space-x-2"
                 >
                   <Image
@@ -370,7 +373,7 @@ export default function ExploreLayout({
                   </SheetTitle>
                   <div className="flex items-center justify-between shrink-0">
                     <Link
-                      href="/explore"
+                      href="/"
                       className="flex items-center space-x-2"
                     >
                       <Image

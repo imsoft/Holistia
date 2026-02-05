@@ -458,6 +458,25 @@ export function DirectMessageChat({
     handleSendMessage(new Event('submit') as any, { challenge_id: challenge.id });
   };
 
+  const handleSendPaymentLinkToChat = useCallback(async (paymentUrl: string) => {
+    const content = `💳 Enlace de pago para tu cotización:\n\n${paymentUrl}\n\nPuedes completar el pago de forma segura con el enlace de arriba.`;
+    try {
+      const response = await fetch(`/api/messages/conversations/${conversationId}/messages`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Error al enviar mensaje");
+      setMessages((prev) => [...prev, data.message]);
+      toast.success("Enlace de pago enviado al chat");
+    } catch (error) {
+      console.error("Error sending payment link to chat:", error);
+      toast.error("Error al enviar el enlace al chat");
+      throw error;
+    }
+  }, [conversationId]);
+
   const handleSendLocation = () => {
     if (!professionalLocation) {
       toast.error("No se pudo cargar la ubicación");
@@ -790,6 +809,7 @@ export function DirectMessageChat({
                         professionalSlug={professionalSlug || undefined}
                         conversationId={conversationId}
                         isProfessional={isProfessional}
+                        onSendPaymentLinkToChat={isProfessional ? handleSendPaymentLinkToChat : undefined}
                         className={cn(
                           isOwnMessage ? "ml-auto" : "mr-auto"
                         )}

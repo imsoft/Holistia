@@ -20,6 +20,8 @@ interface ServiceMessageCardProps {
   conversationId?: string;
   isProfessional?: boolean;
   professionalSlug?: string; // Slug completo del profesional (first_name-last_name-id)
+  /** Si se proporciona, al generar un enlace de pago se envía ese enlace como mensaje en el chat para el paciente */
+  onSendPaymentLinkToChat?: (url: string) => Promise<void>;
 }
 
 export function ServiceMessageCard({
@@ -30,6 +32,7 @@ export function ServiceMessageCard({
   conversationId,
   isProfessional = false,
   professionalSlug,
+  onSendPaymentLinkToChat,
 }: ServiceMessageCardProps) {
   const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
   const getModalityIcon = (modality: string) => {
@@ -184,9 +187,14 @@ export function ServiceMessageCard({
           conversationId={conversationId}
           patientId={userId}
           professionalId={professionalId}
-          onPaymentLinkCreated={(url) => {
-            // Opcional: enviar el enlace como mensaje automáticamente
-            console.log("Payment link created:", url);
+          onPaymentLinkCreated={async (url) => {
+            if (onSendPaymentLinkToChat) {
+              try {
+                await onSendPaymentLinkToChat(url);
+              } catch (e) {
+                console.error("Error sending payment link to chat:", e);
+              }
+            }
           }}
         />
       )}

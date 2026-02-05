@@ -140,13 +140,20 @@ function MessagesPageContent() {
   // Abrir conversación desde parámetro de URL
   useEffect(() => {
     const conversationId = searchParams.get('conversation');
+    const paymentStatus = searchParams.get('payment');
     if (conversationId && conversations.length > 0) {
       const conversation = conversations.find(c => c.id === conversationId);
       if (conversation) {
         setSelectedConversation(conversation);
-        // Limpiar el parámetro de la URL después de abrir la conversación
+        if (paymentStatus === 'success') {
+          toast.success('Pago realizado correctamente');
+        } else if (paymentStatus === 'cancelled') {
+          toast.info('Pago cancelado');
+        }
+        // Limpiar parámetros de la URL después de abrir la conversación
         const newSearchParams = new URLSearchParams(searchParams.toString());
         newSearchParams.delete('conversation');
+        newSearchParams.delete('payment');
         const newUrl = newSearchParams.toString() 
           ? `${window.location.pathname}?${newSearchParams.toString()}`
           : window.location.pathname;

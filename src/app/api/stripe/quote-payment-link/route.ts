@@ -181,8 +181,8 @@ export async function POST(request: NextRequest) {
         platform_fee: platformFee.toString(),
         transfer_amount: transferAmount.toString(),
       },
-      success_url: `${process.env.NEXT_PUBLIC_SITE_URL || request.nextUrl.origin}/patient/${patient_id}/messages?conversation=${conversation_id}&payment=success`,
-      cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL || request.nextUrl.origin}/patient/${patient_id}/messages?conversation=${conversation_id}&payment=cancelled`,
+      success_url: `${process.env.NEXT_PUBLIC_SITE_URL || request.nextUrl.origin}/messages?conversation=${conversation_id}&payment=success`,
+      cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL || request.nextUrl.origin}/messages?conversation=${conversation_id}&payment=cancelled`,
       customer_email: patient.email || undefined,
     });
 

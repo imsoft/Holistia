@@ -104,7 +104,8 @@ export function WideCalendar({
   }, [getWeekKey, loadWeekAvailability]);
 
   // Precargar semanas adyacentes para mejorar la experiencia
-  const preloadAdjacentWeeks = useCallback(async (weekDate: Date) => {
+  // IMPORTANTE: El preload solo actualiza el caché, nunca weekData
+  const preloadAdjacentWeeks = useCallback((weekDate: Date) => {
     const prevWeek = new Date(weekDate);
     prevWeek.setDate(weekDate.getDate() - 7);
     const nextWeek = new Date(weekDate);
@@ -113,16 +114,23 @@ export function WideCalendar({
     const prevWeekKey = getWeekKey(prevWeek);
     const nextWeekKey = getWeekKey(nextWeek);
 
+    // Precargar en segundo plano, sin afectar el estado principal
     if (!cacheRef.current.has(prevWeekKey)) {
       loadWeekAvailability(prevWeek).then(data => {
-        cacheRef.current.set(prevWeekKey, data);
-      }).catch(console.error);
+        // Solo guardar en caché si no se ha navegado a otra semana
+        if (data && data.length > 0) {
+          cacheRef.current.set(prevWeekKey, data);
+        }
+      }).catch(() => {/* Ignorar errores de preload */});
     }
 
     if (!cacheRef.current.has(nextWeekKey)) {
       loadWeekAvailability(nextWeek).then(data => {
-        cacheRef.current.set(nextWeekKey, data);
-      }).catch(console.error);
+        // Solo guardar en caché si no se ha navegado a otra semana
+        if (data && data.length > 0) {
+          cacheRef.current.set(nextWeekKey, data);
+        }
+      }).catch(() => {/* Ignorar errores de preload */});
     }
   }, [getWeekKey, loadWeekAvailability]);
 

@@ -71,14 +71,23 @@ export const useBlocksStore = create<BlocksState>((set, get) => ({
 
     // Si no es forzado y el cache es válido, retornar desde cache
     if (!forceRefresh && state.isCacheValid(professionalId)) {
-      return state.blocksCache.get(professionalId) || [];
+      const cached = state.blocksCache.get(professionalId);
+      console.log('📦 Blocks Store - Retornando desde caché válido:', {
+        professionalId,
+        totalBlocks: cached?.length || 0
+      });
+      return cached || [];
     }
 
     // Si ya hay una carga en progreso para este profesional, esperar esa misma promesa
     const existingPromise = state.loadingPromises.get(professionalId);
     if (existingPromise) {
+      console.log('📦 Blocks Store - Esperando carga en progreso para:', professionalId);
       return existingPromise;
     }
+
+    // Obtener datos del caché expirado (para usar como fallback si hay error)
+    const staleCache = state.blocksCache.get(professionalId);
 
     // Crear nueva promesa de carga
     const loadPromise = (async () => {
@@ -92,7 +101,8 @@ export const useBlocksStore = create<BlocksState>((set, get) => ({
 
         if (error) {
           console.error('Error loading blocks:', error);
-          return [];
+          // Retornar caché expirado si hay error
+          return staleCache || [];
         }
 
         const blocks = (data || []) as AvailabilityBlock[];
@@ -129,7 +139,8 @@ export const useBlocksStore = create<BlocksState>((set, get) => ({
         return blocks;
       } catch (error) {
         console.error('Error loading blocks:', error);
-        return [];
+        // Retornar caché expirado si hay error
+        return staleCache || [];
       } finally {
         // Limpiar la promesa de carga
         const currentState = get();

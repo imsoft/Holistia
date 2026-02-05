@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useRef } from 'react';
+import { useCallback, useMemo, useRef } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import { parseLocalDate, formatLocalDate } from '@/lib/date-utils';
 import { useBlocksStore } from '@/stores/blocks-store';
@@ -30,7 +30,9 @@ interface ProfessionalWorkingHours {
 }
 
 export function useScheduleAvailability(professionalId: string) {
-  const supabase = createClient();
+  // Estabilizar la referencia del cliente Supabase para evitar cascadas de recreación de callbacks
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const supabase = useMemo(() => createClient(), []);
   const normalizeDayOfWeek = useCallback((jsDay: number) => (jsDay === 0 ? 7 : jsDay), []);
 
   // Rango de días de la semana (1=Lun ... 7=Dom). Soporta wrap-around (p.ej. 6-2).
@@ -86,7 +88,8 @@ export function useScheduleAvailability(professionalId: string) {
       console.error('Error fetching professional working hours:', error);
       return null;
     }
-  }, [professionalId, supabase, CACHE_TTL]);
+  // supabase es estable (useMemo), CACHE_TTL es constante
+  }, [professionalId, supabase]);
 
   // Obtener horarios personalizados por día (si existen)
   const getCustomDaySchedules = useCallback(async (): Promise<Map<number, {startTime: string, endTime: string}>> => {
@@ -153,12 +156,12 @@ export function useScheduleAvailability(professionalId: string) {
   }, [professionalId, supabase]);
 
   // Obtener bloqueos de disponibilidad usando el store centralizado (con cache y invalidación)
-  const loadBlocksFromStore = useBlocksStore((state) => state.loadBlocks);
-
+  // Usar getState() directamente para evitar que la referencia cambie entre renders
   const getAvailabilityBlocks = useCallback(async (startDate: string, endDate: string) => {
     try {
       // Usar el store centralizado que tiene cache con TTL e invalidación
-      const blocks = await loadBlocksFromStore(professionalId);
+      // Acceder directamente al store para evitar dependencias inestables
+      const blocks = await useBlocksStore.getState().loadBlocks(professionalId);
 
       // Filtrar bloqueos que se superponen con el rango de fechas
       const filteredBlocks = blocks.filter(block => {
@@ -212,7 +215,7 @@ export function useScheduleAvailability(professionalId: string) {
       console.error('Error fetching availability blocks:', error);
       return [];
     }
-  }, [professionalId, loadBlocksFromStore]);
+  }, [professionalId]);
 
   // Generar horarios para una fecha específica
   const generateTimeSlots = useCallback(async (

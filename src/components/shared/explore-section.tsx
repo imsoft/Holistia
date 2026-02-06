@@ -701,11 +701,13 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
                   }}
                 >
                 {events.map((event) => (
-                  <EventCard
-                    key={event.id}
-                    event={mapApiEventToCardEvent({ ...event, is_free: event.price === 0 })}
-                    showFavoriteButton={showFavoritesWhenLoggedIn}
-                  />
+                  <div key={event.id} className="shrink-0 w-[280px] sm:w-[320px]">
+                    <EventCard
+                      event={mapApiEventToCardEvent({ ...event, is_free: event.price === 0 })}
+                      showFavoriteButton={showFavoritesWhenLoggedIn}
+                      className="w-full block"
+                    />
+                  </div>
                 ))}
               </div>
             ) : null}
@@ -935,11 +937,13 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
                   }}
                 >
                 {shops.map((shop) => (
-                  <ShopCard
-                    key={shop.id}
-                    shop={mapApiShopToCardShop(shop)}
-                    showFavoriteButton={showFavoritesWhenLoggedIn}
-                  />
+                  <div key={shop.id} className="shrink-0 w-[280px] sm:w-[320px]">
+                    <ShopCard
+                      shop={mapApiShopToCardShop(shop)}
+                      showFavoriteButton={showFavoritesWhenLoggedIn}
+                      className="w-full block"
+                    />
+                  </div>
                 ))}
               </div>
             ) : null}
@@ -1007,11 +1011,13 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
                   }}
                 >
                 {holisticCenters.map((center) => (
-                  <HolisticCenterCard
-                    key={center.id}
-                    center={mapApiCenterToCardCenter(center)}
-                    showFavoriteButton={showFavoritesWhenLoggedIn}
-                  />
+                  <div key={center.id} className="shrink-0 w-[280px] sm:w-[320px]">
+                    <HolisticCenterCard
+                      center={mapApiCenterToCardCenter(center)}
+                      showFavoriteButton={showFavoritesWhenLoggedIn}
+                      className="w-full block"
+                    />
+                  </div>
                 ))}
               </div>
             ) : null}
@@ -1079,11 +1085,13 @@ export function ExploreSection({ hideHeader = false, userId, showFavorites = fal
                   }}
                 >
                 {restaurants.map((restaurant) => (
-                  <RestaurantCard
-                    key={restaurant.id}
-                    restaurant={mapApiRestaurantToCardRestaurant(restaurant)}
-                    showFavoriteButton={showFavoritesWhenLoggedIn}
-                  />
+                  <div key={restaurant.id} className="shrink-0 w-[280px] sm:w-[320px]">
+                    <RestaurantCard
+                      restaurant={mapApiRestaurantToCardRestaurant(restaurant)}
+                      showFavoriteButton={showFavoritesWhenLoggedIn}
+                      className="w-full block"
+                    />
+                  </div>
                 ))}
               </div>
             ) : null}

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo, useRef } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { Menu, LogOut, User, Settings, Home } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -31,11 +31,11 @@ const baseNavigation = [
   { name: "Contacto", href: "/contact" },
 ];
 
-const getNavigation = (isAuthenticated: boolean) => {
+const getNavigation = (isAuthenticated: boolean, pathname: string) => {
   if (isAuthenticated) {
+    const isHomePage = pathname === "/";
     return [
-      baseNavigation[0],
-      { name: "Explorar", href: "/explore" },
+      ...(isHomePage ? [] : [{ name: "Explorar", href: "/explore" }]),
       ...baseNavigation.slice(1),
     ];
   }
@@ -60,6 +60,7 @@ export const Navbar = () => {
   const loading = !hasValidCache && profileLoading;
 
   const router = useRouter();
+  const pathname = usePathname();
 
   // Memoizar cliente de Supabase para evitar re-renders
   const supabase = useMemo(() => createClient(), []);
@@ -137,7 +138,7 @@ export const Navbar = () => {
   // Usar el estado de autenticación verificado directamente, no depender solo del perfil
   const shouldShowAuthUI = isAuthenticated && profile && !loading;
 
-  const navigation = getNavigation(isAuthenticated);
+  const navigation = getNavigation(isAuthenticated, pathname);
 
   return (
     <header className="w-full z-50">

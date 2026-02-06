@@ -44,7 +44,7 @@ export function ShopCard({
 
   return (
     <Link href={detailHref} className={linkClass}>
-      <Card className="group hover:shadow-lg hover:-translate-y-2 transition-all duration-300 overflow-hidden cursor-pointer h-[480px] flex flex-col gap-0 pt-0 pb-0">
+      <Card className="group hover:shadow-lg hover:-translate-y-2 transition-all duration-300 overflow-hidden cursor-pointer flex flex-col gap-0 pt-0 pb-0">
         <div className="relative w-full h-48 bg-muted shrink-0 overflow-hidden rounded-t-xl">
           {imageUrl && imageUrl.trim() !== "" ? (
             <Image

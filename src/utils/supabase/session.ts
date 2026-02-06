@@ -54,20 +54,20 @@ export async function updateSession(request: NextRequest) {
       }
     );
 
-    // Rutas públicas que no requieren autenticación (incluye '/' para acceso desde login)
+    // Rutas públicas que no requieren autenticación
     const publicPaths = [
       '/',
       '/login',
       '/signup',
       '/forgot-password',
-      '/reset-password', // Página de reset de contraseña con token
+      '/reset-password',
       '/confirm-password',
       '/confirm-email',
       '/account-deactivated',
       '/error',
       '/auth',
-      '/explore', // Páginas de exploración (profesionales, comercios, restaurantes, programas, eventos)
-      '/specialties', // Páginas de especialidades (públicas)
+      '/explore',
+      '/specialties',
       '/_next',
       '/favicon.ico',
       '/api',
@@ -76,47 +76,44 @@ export async function updateSession(request: NextRequest) {
       '/terms',
       '/history',
       '/blog',
-      '/explore',
       '/become-professional',
-      '/companies', // Página pública para empresas
+      '/companies',
       '/robots.txt',
       '/sitemap.xml'
     ];
 
+    const pathname = request.nextUrl.pathname;
+
     const isPublicPath = publicPaths.some(path =>
-      request.nextUrl.pathname.startsWith(path)
+      pathname.startsWith(path)
     );
 
     // Redirigir URLs antiguas con IDs a nuevas URLs limpias (ANTES de verificaciones de autenticación)
-    const pathname = request.nextUrl.pathname;
-    
+
     // Redirigir /patient/[id]/* a rutas limpias
     if (pathname.match(/^\/patient\/[^/]+(.*)$/)) {
       const match = pathname.match(/^\/patient\/[^/]+(.*)$/);
       const newPath = match ? match[1] || '/explore' : '/explore';
       const url = request.nextUrl.clone();
       url.pathname = newPath;
-      console.log('🔄 Redirecting /patient/[id]/* to:', url.pathname);
       return NextResponse.redirect(url);
     }
-    
+
     // Redirigir /professional/[id]/* a rutas limpias
     if (pathname.match(/^\/professional\/[^/]+(.*)$/)) {
       const match = pathname.match(/^\/professional\/[^/]+(.*)$/);
       const newPath = match ? match[1] || '/dashboard' : '/dashboard';
       const url = request.nextUrl.clone();
       url.pathname = newPath;
-      console.log('🔄 Redirecting /professional/[id]/* to:', url.pathname);
       return NextResponse.redirect(url);
     }
-    
+
     // Redirigir /admin/[id]/* a rutas limpias (solo si no es una ruta válida sin ID)
     const adminIdMatch = pathname.match(/^\/admin\/([^/]+)(.*)$/);
     if (adminIdMatch) {
       const firstSegment = adminIdMatch[1];
       const restPath = adminIdMatch[2] || '';
-      
-      // Lista de rutas válidas que NO son IDs de usuario
+
       const validAdminRoutes = [
         'dashboard', 'professionals', 'events', 'challenges', 'blog', 'users',
         'applications', 'analytics', 'finances', 'tickets', 'companies', 'shops',
@@ -124,27 +121,27 @@ export async function updateSession(request: NextRequest) {
         'certifications', 'services-costs', 'holistic-services', 'my-events',
         'sync-tools', 'github-commits', 'ai-agent'
       ];
-      
-      // Solo redirigir si el primer segmento NO es una ruta válida (es decir, es un ID)
+
       if (!validAdminRoutes.includes(firstSegment)) {
         const newPath = `/admin${restPath || '/dashboard'}`;
         const url = request.nextUrl.clone();
         url.pathname = newPath;
-        console.log('🔄 Redirecting /admin/[id]/* to:', url.pathname);
         return NextResponse.redirect(url);
       }
     }
 
+    // IMPORTANTE: Llamar getUser() en TODAS las rutas para refrescar el JWT token.
+    // Sin esto, el token expira silenciosamente en rutas públicas y el usuario
+    // pierde la sesión al navegar a una ruta protegida.
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
     // Manejar la ruta raíz '/' de forma especial para usuarios autenticados
     // Si tiene ?home=true, permitir ver la landing page sin redirigir
-    if (request.nextUrl.pathname === '/' && !request.nextUrl.searchParams.has('home')) {
-      try {
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
-
-        // Si hay usuario autenticado, redirigir a su dashboard
-        if (user) {
+    if (pathname === '/' && !request.nextUrl.searchParams.has('home')) {
+      if (user) {
+        try {
           const { data: profile } = await supabase
             .from('profiles')
             .select('type')
@@ -154,11 +151,9 @@ export async function updateSession(request: NextRequest) {
           if (profile) {
             const url = request.nextUrl.clone();
 
-            // Redirigir según el tipo de usuario (URLs limpias sin IDs)
             if (profile.type === 'admin') {
               url.pathname = `/admin/dashboard`;
             } else if (profile.type === 'professional') {
-              // Verificar si el profesional tiene una aplicación aprobada
               const { data: professionalApp } = await supabase
                 .from('professional_applications')
                 .select('id, status')
@@ -168,106 +163,78 @@ export async function updateSession(request: NextRequest) {
               if (professionalApp) {
                 url.pathname = `/dashboard`;
               } else {
-                // Si no tiene aplicación, redirigir como paciente
                 url.pathname = `/explore`;
               }
             } else {
-              // Por defecto redirigir como paciente
               url.pathname = `/explore`;
             }
 
-            console.log('🔄 Redirecting authenticated user from / to:', url.pathname);
             return NextResponse.redirect(url);
           }
+        } catch (error) {
+          console.error('Error checking user on home page:', error);
         }
-      } catch (error) {
-        console.error('Error checking user on home page:', error);
-        // Si hay error, permitir que vea la página de inicio
       }
 
-      // Si no hay usuario o hubo error, permitir ver la página de inicio
       return supabaseResponse;
     }
 
-    // Si es una ruta pública, continuar sin verificar autenticación
+    // Si es una ruta pública, continuar (el token ya fue refrescado por getUser() arriba)
     if (isPublicPath) {
       return supabaseResponse;
     }
 
-    // Verificar autenticación solo para rutas protegidas
-    try {
-      const {
-        data: { user },
-        error
-      } = await supabase.auth.getUser();
+    // --- Rutas protegidas: verificar autenticación y permisos ---
 
-      if (error) {
-        console.error('Auth error:', error);
-        // Si hay error de autenticación, redirigir al login
+    if (!user) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/login";
+      return NextResponse.redirect(url);
+    }
+
+    // Verificar si el usuario está desactivado
+    if (!pathname.startsWith("/account-deactivated")) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('account_active')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      if (profile && profile.account_active === false) {
         const url = request.nextUrl.clone();
-        url.pathname = "/login";
+        url.pathname = "/account-deactivated";
         return NextResponse.redirect(url);
       }
+    }
 
-      // Si no hay usuario y no es ruta pública, redirigir al login
-      if (!user && !isPublicPath) {
+    // Verificar permisos según tipo de usuario
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('type')
+      .eq('id', user.id)
+      .maybeSingle();
+
+    // Proteger rutas de admin
+    if (pathname.startsWith('/admin/') && profile?.type !== 'admin') {
+      const url = request.nextUrl.clone();
+      url.pathname = '/explore';
+      return NextResponse.redirect(url);
+    }
+
+    // Proteger rutas de dashboard profesional
+    if (pathname.startsWith('/dashboard') && profile?.type !== 'professional') {
+      const { data: professionalApp } = await supabase
+        .from('professional_applications')
+        .select('id, status')
+        .eq('user_id', user.id)
+        .eq('status', 'approved')
+        .maybeSingle();
+
+      if (!professionalApp) {
         const url = request.nextUrl.clone();
-        url.pathname = "/login";
+        url.pathname = '/explore';
         return NextResponse.redirect(url);
       }
-
-      // Verificar si el usuario está desactivado
-      if (user && !request.nextUrl.pathname.startsWith("/account-deactivated")) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('account_active')
-          .eq('id', user.id)
-          .maybeSingle();
-
-        // Si la cuenta está desactivada, redirigir a página de cuenta desactivada
-        if (profile && profile.account_active === false) {
-          console.log('Account is deactivated, redirecting user:', user.id);
-          const url = request.nextUrl.clone();
-          url.pathname = "/account-deactivated";
-          return NextResponse.redirect(url);
-        }
-      }
-      
-      // Verificar permisos según tipo de usuario para rutas protegidas
-      if (user) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('type')
-          .eq('id', user.id)
-          .maybeSingle();
-        
-        // Proteger rutas de admin
-        if (pathname.startsWith('/admin/') && profile?.type !== 'admin') {
-          const url = request.nextUrl.clone();
-          url.pathname = '/explore';
-          return NextResponse.redirect(url);
-        }
-        
-        // Proteger rutas de dashboard profesional
-        if (pathname.startsWith('/dashboard') && profile?.type !== 'professional') {
-          const { data: professionalApp } = await supabase
-            .from('professional_applications')
-            .select('id, status')
-            .eq('user_id', user.id)
-            .eq('status', 'approved')
-            .maybeSingle();
-          
-          if (!professionalApp) {
-            const url = request.nextUrl.clone();
-            url.pathname = '/explore';
-            return NextResponse.redirect(url);
-          }
-        }
-      }
-
-    } catch (authError) {
-      console.error('Authentication check failed:', authError);
-      // En caso de error, permitir continuar para evitar bucles de redirección
     }
 
     return supabaseResponse;

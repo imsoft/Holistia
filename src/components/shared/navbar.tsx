@@ -75,11 +75,8 @@ export const Navbar = () => {
 
     const checkAuth = async () => {
       const { data: { user }, error: authError } = await supabase.auth.getUser();
-      const isSessionNotFound =
-        authError?.message?.includes('session') && authError?.message?.includes('not exist') ||
-        (authError as { code?: string })?.code === 'session_not_found';
-      if (authError && isSessionNotFound) {
-        await supabase.auth.signOut({ scope: 'local' });
+      if (authError) {
+        // Limpiar estado local sin destruir el refresh token
         useUserStore.getState().clearUser();
         useUserStore.getState().clearProfileCache();
       }

@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
     if (!appointmentId) {
       console.log('🔄 Creating new appointment...');
 
-      // Verificar que no exista una cita duplicada
+      // Verificar que no exista una cita duplicada (del mismo paciente)
       console.log('🔍 Checking for duplicate appointment...');
       const { data: existingAppointment } = await supabase
         .from('appointments')
@@ -74,6 +74,7 @@ export async function POST(request: NextRequest) {
         .eq('professional_id', professional_id)
         .eq('appointment_date', appointment_date)
         .eq('appointment_time', appointment_time)
+        .in('status', ['pending', 'confirmed', 'paid'])
         .maybeSingle();
 
       if (existingAppointment) {
@@ -84,7 +85,27 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      // Verificar que el horario no esté bloqueado (por ejemplo, por eventos de Google Calendar)
+      // Verificar que no exista otra cita en el mismo horario (de cualquier paciente)
+      console.log('🔍 Checking for slot availability...');
+      const { data: existingSlotAppointment } = await supabase
+        .from('appointments')
+        .select('id')
+        .eq('professional_id', professional_id)
+        .eq('appointment_date', appointment_date)
+        .eq('appointment_time', appointment_time)
+        .in('status', ['pending', 'confirmed', 'paid'])
+        .maybeSingle();
+
+      if (existingSlotAppointment) {
+        console.log('⚠️ Slot already taken by another patient:', existingSlotAppointment.id);
+        return NextResponse.json(
+          { error: 'Este horario ya no está disponible. Por favor elige otro horario.' },
+          { status: 400 }
+        );
+      }
+
+      // Verificar que el horario no esté bloqueado (bloques manuales, Google Calendar, etc.)
+      // Lógica alineada con useScheduleAvailability (client-side) para consistencia
       console.log('🔍 Checking for availability blocks...');
       const { data: blocks } = await supabase
         .from('availability_blocks')
@@ -92,44 +113,92 @@ export async function POST(request: NextRequest) {
         .eq('professional_id', professional_id);
 
       if (blocks && blocks.length > 0) {
-        // Parsear la fecha para obtener el día de la semana
+        // Parsear fecha de forma segura (evitar UTC con new Date(string))
         const [year, month, day] = appointment_date.split('-').map(Number);
         const appointmentDateObj = new Date(year, month - 1, day);
+        appointmentDateObj.setHours(0, 0, 0, 0);
         const dayOfWeek = appointmentDateObj.getDay() === 0 ? 7 : appointmentDateObj.getDay();
+
+        // Helper: normalizar día de la semana (JS 0=Dom → nuestro 7=Dom)
+        const normalizeDayOfWeek = (jsDay: number) => (jsDay === 0 ? 7 : jsDay);
+
+        // Helper: verificar si un día está en un rango semanal (soporta wrap-around, ej. Vie-Mar = 5-2)
+        const isDayOfWeekInRange = (d: number, start: number, end: number) => {
+          if (start <= end) return d >= start && d <= end;
+          return d >= start || d <= end;
+        };
+
+        // Helper: parsear fecha YYYY-MM-DD sin problemas de zona horaria
+        const parseDate = (dateStr: string) => {
+          const [y, m, d] = dateStr.split('-').map(Number);
+          return new Date(y, m - 1, d);
+        };
+
+        // Normalizar appointment_time a formato HH:MM
+        const appointmentTimeNorm = appointment_time.substring(0, 5);
 
         // Verificar si hay algún bloqueo que aplique a esta fecha/hora
         const isBlocked = blocks.some(block => {
-          const blockStartDate = new Date(block.start_date);
-          const blockEndDate = block.end_date ? new Date(block.end_date) : blockStartDate;
-          const currentDate = new Date(appointment_date);
-
-          // Normalizar fechas
+          const blockStartDate = parseDate(block.start_date);
+          const blockEndDate = block.end_date ? parseDate(block.end_date) : new Date(blockStartDate);
           blockStartDate.setHours(0, 0, 0, 0);
           blockEndDate.setHours(0, 0, 0, 0);
-          currentDate.setHours(0, 0, 0, 0);
 
-          // Verificar bloqueos de día completo
-          if (block.block_type === 'full_day' || block.block_type === 'weekly_day') {
-            if (block.is_recurring && block.day_of_week === dayOfWeek) {
-              return true; // Bloqueo recurrente de día completo
+          const isInDateRange = appointmentDateObj >= blockStartDate && appointmentDateObj <= blockEndDate;
+          const dayOfWeekStart = normalizeDayOfWeek(blockStartDate.getDay());
+          const dayOfWeekEnd = normalizeDayOfWeek(blockEndDate.getDay());
+
+          // --- Fase 1: Determinar si este bloque aplica a la fecha de la cita ---
+          let appliesToDate = false;
+
+          if (block.block_type === 'weekly_day') {
+            // Bloqueo semanal de día completo
+            const matchesDayOfWeek = block.day_of_week === dayOfWeek;
+            if (block.is_recurring) {
+              appliesToDate = matchesDayOfWeek;
+            } else {
+              // No recurrente: solo aplica a la fecha exacta de start_date
+              appliesToDate = matchesDayOfWeek && block.start_date === appointment_date;
             }
-            if (currentDate >= blockStartDate && currentDate <= blockEndDate) {
-              return true; // Bloqueo de día completo en este rango
+          } else if (block.block_type === 'weekly_range') {
+            // Bloqueo semanal de rango de horas
+            let isInWeekRange: boolean;
+            if (block.day_of_week != null) {
+              isInWeekRange = dayOfWeek === block.day_of_week;
+            } else {
+              isInWeekRange = isDayOfWeekInRange(dayOfWeek, dayOfWeekStart, dayOfWeekEnd);
+            }
+            appliesToDate = block.is_recurring ? isInWeekRange : (isInWeekRange && isInDateRange);
+          } else if (block.block_type === 'full_day') {
+            // Bloqueo de día completo (legacy)
+            if (block.is_recurring) {
+              appliesToDate = isDayOfWeekInRange(dayOfWeek, dayOfWeekStart, dayOfWeekEnd);
+            } else {
+              appliesToDate = isInDateRange;
+            }
+          } else if (block.block_type === 'time_range') {
+            // Bloqueo de rango de tiempo (legacy / Google Calendar)
+            if (block.is_recurring) {
+              appliesToDate = isDayOfWeekInRange(dayOfWeek, dayOfWeekStart, dayOfWeekEnd);
+            } else {
+              appliesToDate = isInDateRange;
             }
           }
 
-          // Verificar bloqueos de rango de horas
-          if ((block.block_type === 'time_range' || block.block_type === 'weekly_range') &&
-              block.start_time && block.end_time) {
-            // Verificar si la fecha está en el rango
-            const isInDateRange = currentDate >= blockStartDate && currentDate <= blockEndDate;
+          if (!appliesToDate) return false;
 
-            if (block.is_recurring || isInDateRange) {
-              // Verificar si la hora está en el rango bloqueado
-              if (appointment_time >= block.start_time && appointment_time < block.end_time) {
-                return true; // Horario bloqueado
-              }
-            }
+          // --- Fase 2: Determinar si cubre el horario de la cita ---
+          // Bloqueo de día completo (sin start_time/end_time)
+          if ((block.block_type === 'full_day' || block.block_type === 'weekly_day') &&
+              !block.start_time && !block.end_time) {
+            return true;
+          }
+
+          // Bloqueo con rango de horas
+          if (block.start_time && block.end_time) {
+            const blockStart = block.start_time.substring(0, 5);
+            const blockEnd = block.end_time.substring(0, 5);
+            return appointmentTimeNorm >= blockStart && appointmentTimeNorm < blockEnd;
           }
 
           return false;

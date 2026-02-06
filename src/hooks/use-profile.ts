@@ -53,21 +53,16 @@ export function useProfile() {
       // Obtener usuario autenticado
       const { data: { user }, error: authError } = await supabase.auth.getUser();
 
-      // Sesión inválida o ya no existe (ej. tras cerrar sesión en otro dispositivo o JWT obsoleto)
+      // Sesión inválida o ya no existe
       if (authError) {
-        const isSessionNotFound =
-          authError.message?.includes('session') && authError.message?.includes('not exist') ||
-          (authError as { code?: string }).code === 'session_not_found';
-        if (isSessionNotFound) {
-          await supabase.auth.signOut({ scope: 'local' });
-          setProfile(null);
-          setLoading(false);
-          setError(null);
-          useUserStore.getState().clearUser();
-          useUserStore.getState().clearProfileCache();
-          return;
-        }
-        throw authError;
+        // Limpiar estado local sin llamar signOut (que destruiría el refresh token).
+        // El proxy ya se encarga de redirigir al login si la sesión realmente expiró.
+        setProfile(null);
+        setLoading(false);
+        setError(null);
+        useUserStore.getState().clearUser();
+        useUserStore.getState().clearProfileCache();
+        return;
       }
       if (!user) {
         setProfile(null);
@@ -258,25 +253,13 @@ export function useProfile() {
       if (loadingRef.current) return;
 
       const { data: { user }, error: authError } = await supabase.auth.getUser();
-      const isSessionNotFound =
-        authError?.message?.includes('session') && authError?.message?.includes('not exist') ||
-        (authError as { code?: string })?.code === 'session_not_found';
-      if (authError && isSessionNotFound) {
-        await supabase.auth.signOut({ scope: 'local' });
+      if (authError) {
+        // Limpiar estado local sin destruir el refresh token
         setProfile(null);
         setLoading(false);
         setError(null);
         useUserStore.getState().clearUser();
         useUserStore.getState().clearProfileCache();
-        return;
-      }
-      if (authError) {
-        setProfile(null);
-        setLoading(false);
-        const errMsg = typeof authError === 'object' && authError !== null && 'message' in authError
-          ? String((authError as { message?: string }).message)
-          : 'Failed to get user';
-        setError(new Error(errMsg || 'Failed to get user'));
         return;
       }
       if (!user) {

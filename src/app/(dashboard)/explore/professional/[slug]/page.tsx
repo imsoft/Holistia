@@ -2168,8 +2168,8 @@ export default function ProfessionalProfilePage() {
         }}
         title={`Reservar cita con ${professional?.first_name} ${professional?.last_name}`}
       >
-        <div className="p-6">
-          <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+        <div className="p-6 min-h-full flex">
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 w-full min-h-0 xl:min-h-[70vh]">
             {/* Selección de fecha y hora */}
             <div className="space-y-6">
               <div>
@@ -2189,9 +2189,9 @@ export default function ProfessionalProfilePage() {
             </div>
 
             {/* Formulario de información */}
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-xl font-bold text-foreground mb-4">Información</h3>
+            <div className="flex flex-col min-h-0 space-y-6">
+              <div className="flex flex-col min-h-0 flex-1">
+                <h3 className="text-xl font-bold text-foreground mb-4 shrink-0">Información</h3>
                 
                 {/* Tipo de servicio */}
                 <div>
@@ -2246,9 +2246,8 @@ export default function ProfessionalProfilePage() {
                 </div>
 
                 {/* Campos del formulario */}
-                <div className="mt-2 space-y-4">
-                  
-                  <div className="grid grid-cols-1 gap-4">
+                <div className="mt-2 flex flex-col flex-1 min-h-0 gap-4">
+                  <div className="space-y-4 shrink-0">
                     <div>
                       <Label htmlFor="name" className="text-base font-semibold text-foreground">
                         Nombre
@@ -2288,20 +2287,19 @@ export default function ProfessionalProfilePage() {
                         placeholder="+52 55 1234 5678"
                       />
                     </div>
+                  </div>
 
-                    <div>
-                      <Label htmlFor="notes" className="text-base font-semibold text-foreground">
-                        Notas (opcional)
-                      </Label>
-                      <Textarea
-                        id="notes"
-                        value={appointmentForm.notes}
-                        onChange={(e) => setAppointmentForm(prev => ({ ...prev, notes: e.target.value }))}
-                        className="mt-2 text-base"
-                        placeholder="Cuéntanos sobre tu consulta..."
-                        rows={4}
-                      />
-                    </div>
+                  <div className="flex flex-col flex-1 min-h-[140px]">
+                    <Label htmlFor="notes" className="text-base font-semibold text-foreground shrink-0">
+                      Notas (opcional)
+                    </Label>
+                    <Textarea
+                      id="notes"
+                      value={appointmentForm.notes}
+                      onChange={(e) => setAppointmentForm(prev => ({ ...prev, notes: e.target.value }))}
+                      className="mt-2 text-base flex-1 min-h-[120px] resize-y w-full"
+                      placeholder="Cuéntanos sobre tu consulta..."
+                    />
                   </div>
                 </div>
 

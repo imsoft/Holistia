@@ -130,6 +130,7 @@ export function AdminSidebar() {
         { title: "Analíticas", url: `/admin/${userId}/analytics`, icon: BarChart3 },
         { title: "Finanzas", url: `/admin/${userId}/finances`, icon: DollarSign },
         { title: "Blog", url: `/admin/${userId}/blog`, icon: FileText },
+        { title: "Citas", url: `/admin/${userId}/appointments`, icon: CalendarCheck },
       ],
     },
     {

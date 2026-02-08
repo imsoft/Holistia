@@ -1,16 +1,21 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { sendAppointmentReminderEmail } from "@/lib/email-sender";
+import { wallClockToUtcMs } from "@/lib/availability";
 
 const MS_24H = 24 * 60 * 60 * 1000;
 const MS_1H = 60 * 60 * 1000;
 const WINDOW_MINUTES = 35; // ventana de ~35 min para que el cron horario no se pierda citas
 
-/** Convierte appointment_date (YYYY-MM-DD) y appointment_time (HH:MM:SS) a timestamp UTC */
+/**
+ * Convierte appointment_date (YYYY-MM-DD) y appointment_time (HH:MM:SS) a timestamp UTC.
+ * Las citas se almacenan como "wall clock" (hora local de la plataforma, America/Mexico_City).
+ * Usamos wallClockToUtcMs para interpretar correctamente en el servidor (que corre en UTC).
+ */
 function appointmentToMs(dateStr: string, timeStr: string): number {
   const date = String(dateStr).split("T")[0];
-  const time = String(timeStr).slice(0, 8) || "00:00:00";
-  return new Date(`${date}T${time}Z`).getTime();
+  const time = String(timeStr).slice(0, 5) || "00:00";
+  return wallClockToUtcMs(date, time);
 }
 
 /** Formato fecha para email (es-ES) */

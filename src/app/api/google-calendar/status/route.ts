@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select(
-        'google_calendar_connected, google_access_token, google_refresh_token, google_token_expires_at'
+        'google_calendar_connected, google_access_token, google_refresh_token, google_token_expires_at, google_calendar_last_synced_at'
       )
       .eq('id', user.id)
       .single();
@@ -69,6 +69,7 @@ export async function GET(request: NextRequest) {
       tokenExpired,
       hasAccess,
       expiresAt: profile.google_token_expires_at,
+      lastSyncedAt: profile.google_calendar_last_synced_at,
     });
   } catch (error: unknown) {
     console.error('Error checking Google Calendar status:', error);

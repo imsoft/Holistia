@@ -4,6 +4,7 @@ import { Resend } from "resend";
 import fs from "fs";
 import path from "path";
 import { updateAppointmentInGoogleCalendar } from "@/actions/google-calendar";
+import { isSlotBlocked, isWorkingDay, isWithinWorkingHours } from "@/lib/availability";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -111,6 +112,48 @@ export async function POST(request: Request) {
         { error: "Ese horario ya no está disponible. Elige otro slot." },
         { status: 400 }
       );
+    }
+
+    // Verificar que el día sea laboral y la hora esté dentro del horario del profesional
+    const { data: profWorkingHours } = await supabase
+      .from("professional_applications")
+      .select("working_start_time, working_end_time, working_days")
+      .eq("id", appointment.professional_id)
+      .single();
+
+    if (profWorkingHours) {
+      const workingDays = profWorkingHours.working_days?.length ? profWorkingHours.working_days : [1, 2, 3, 4, 5];
+      const wStart = profWorkingHours.working_start_time || "09:00";
+      const wEnd = profWorkingHours.working_end_time || "18:00";
+
+      if (!isWorkingDay(newDate, workingDays)) {
+        return NextResponse.json(
+          { error: "Este día no está dentro del horario laboral del profesional." },
+          { status: 400 }
+        );
+      }
+
+      if (!isWithinWorkingHours(newTimeNormalized, wStart, wEnd)) {
+        return NextResponse.json(
+          { error: "Este horario está fuera del horario laboral del profesional." },
+          { status: 400 }
+        );
+      }
+    }
+
+    // Verificar que el horario no esté bloqueado (bloques manuales, Google Calendar, etc.)
+    const { data: blocks } = await supabase
+      .from("availability_blocks")
+      .select("*")
+      .eq("professional_id", appointment.professional_id);
+
+    if (blocks && blocks.length > 0) {
+      if (isSlotBlocked(newDate, newTimeNormalized, blocks)) {
+        return NextResponse.json(
+          { error: "Este horario no está disponible. Puede estar bloqueado por un evento en el calendario." },
+          { status: 400 }
+        );
+      }
     }
 
     // Guardar fecha y hora anterior

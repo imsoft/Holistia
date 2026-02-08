@@ -10,6 +10,7 @@ import { User } from 'lucide-react';
 import { WorkingHoursManager } from '@/components/ui/working-hours-manager';
 import { ProfessionalToleranceSettings } from '@/components/professional-tolerance-settings';
 import AvailabilityBlockManager from '@/components/ui/availability-block-manager';
+import { AvailabilityPreview } from '@/components/ui/availability-preview';
 
 interface ProfessionalApplication {
   id: string;
@@ -194,21 +195,31 @@ export default function AvailabilityPage() {
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="container mx-auto p-4 sm:p-6 space-y-6">
-        <WorkingHoursManager
-          professionalId={professional.id}
-          userId={user.id}
-          currentStartTime={workingStartTime}
-          currentEndTime={workingEndTime}
-          currentWorkingDays={workingDays}
-        />
+      {/* Main Content — 2 columnas en desktop: settings + preview */}
+      <div className="container mx-auto p-4 sm:p-6">
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6">
+          {/* Columna izquierda: configuración */}
+          <div className="space-y-6">
+            <WorkingHoursManager
+              professionalId={professional.id}
+              userId={user.id}
+              currentStartTime={workingStartTime}
+              currentEndTime={workingEndTime}
+              currentWorkingDays={workingDays}
+            />
 
-        {/* Tiempo de Tolerancia */}
-        <ProfessionalToleranceSettings professionalId={professional.id} />
+            {/* Tiempo de Tolerancia */}
+            <ProfessionalToleranceSettings professionalId={professional.id} />
 
-        {/* Bloqueos de Disponibilidad */}
-        <AvailabilityBlockManager professionalId={professional.id} userId={user.id} />
+            {/* Bloqueos de Disponibilidad */}
+            <AvailabilityBlockManager professionalId={professional.id} userId={user.id} />
+          </div>
+
+          {/* Columna derecha: preview en vivo */}
+          <div className="lg:sticky lg:top-6 lg:self-start">
+            <AvailabilityPreview professionalId={professional.id} />
+          </div>
+        </div>
       </div>
     </div>
   );

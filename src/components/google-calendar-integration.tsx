@@ -26,6 +26,22 @@ interface GoogleCalendarStatus {
   tokenExpired?: boolean;
   hasAccess?: boolean;
   expiresAt?: string;
+  lastSyncedAt?: string;
+}
+
+function formatTimeAgo(dateStr: string): string {
+  const date = new Date(dateStr);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffMinutes = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMs / 3600000);
+  const diffDays = Math.floor(diffMs / 86400000);
+
+  if (diffMinutes < 1) return 'hace un momento';
+  if (diffMinutes < 60) return `hace ${diffMinutes} minuto${diffMinutes !== 1 ? 's' : ''}`;
+  if (diffHours < 24) return `hace ${diffHours} hora${diffHours !== 1 ? 's' : ''}`;
+  if (diffDays < 30) return `hace ${diffDays} día${diffDays !== 1 ? 's' : ''}`;
+  return date.toLocaleDateString('es-MX', { year: 'numeric', month: 'short', day: 'numeric' });
 }
 
 export function GoogleCalendarIntegration({ userId }: { userId: string }) {
@@ -169,6 +185,8 @@ export function GoogleCalendarIntegration({ userId }: { userId: string }) {
           toast.info('No hay eventos nuevos para sincronizar');
         }
       }
+      // Refrescar estado para actualizar timestamp
+      fetchStatus();
     } catch (error) {
       console.error('Error syncing:', error);
       const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
@@ -212,6 +230,8 @@ export function GoogleCalendarIntegration({ userId }: { userId: string }) {
           duration: 5000,
         });
       }
+      // Refrescar estado para actualizar timestamp
+      fetchStatus();
     } catch (error) {
       console.error('Error syncing from Google:', error);
       const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
@@ -272,16 +292,9 @@ export function GoogleCalendarIntegration({ userId }: { userId: string }) {
                 </>
               )}
             </div>
-            {status?.connected && status?.expiresAt && (
+            {status?.connected && status?.lastSyncedAt && (
               <p className="text-sm text-muted-foreground mt-1">
-                Token expira:{' '}
-                {new Date(status.expiresAt).toLocaleDateString('es-MX', {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric',
-                  hour: '2-digit',
-                  minute: '2-digit',
-                })}
+                Última sincronización: {formatTimeAgo(status.lastSyncedAt)}
               </p>
             )}
           </div>

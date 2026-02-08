@@ -48,6 +48,17 @@ export function WideCalendar({
   });
   const [weekData, setWeekData] = useState<DayData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedDayIndex, setSelectedDayIndex] = useState(0);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Detectar viewport mobile
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 768px)');
+    setIsMobile(mq.matches);
+    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
 
   // Usar ref para caché para evitar que actualizaciones del caché
   // disparen re-renders y re-fires del useEffect
@@ -159,12 +170,14 @@ export function WideCalendar({
     const prevWeek = new Date(currentWeek);
     prevWeek.setDate(currentWeek.getDate() - 7);
     setCurrentWeek(prevWeek);
+    setSelectedDayIndex(0);
   }, [currentWeek]);
 
   const goToNextWeek = useCallback(() => {
     const nextWeek = new Date(currentWeek);
     nextWeek.setDate(currentWeek.getDate() + 7);
     setCurrentWeek(nextWeek);
+    setSelectedDayIndex(0);
   }, [currentWeek]);
 
 
@@ -243,98 +256,175 @@ export function WideCalendar({
           </div>
         </div>
 
-        {/* Grid de horarios */}
-        <div className="overflow-x-auto">
-          <div className="min-w-[700px]">
-            {/* Header con días de la semana */}
-            <div className="grid grid-cols-7 gap-2 mb-4">
-              {weekData.map((day) => {
+        {/* Vista móvil: un día a la vez con tabs */}
+        {isMobile ? (
+          <div className="space-y-4">
+            {/* Tabs de días */}
+            <div className="flex gap-1 overflow-x-auto pb-2 -mx-1 px-1">
+              {weekData.map((day, index) => {
                 const today = formatLocalDate(new Date());
                 const isToday = day.date === today;
+                const hasAvailable = day.timeSlots.some(s => s.status === 'available');
 
                 return (
-                  <div
+                  <button
                     key={day.date}
+                    onClick={() => setSelectedDayIndex(index)}
                     className={cn(
-                      "text-center py-2 rounded-lg transition-colors",
-                      isToday && "bg-blue-50 border-2 border-blue-200"
+                      "flex-shrink-0 px-3 py-2 rounded-lg border-2 transition-all text-center min-w-[60px]",
+                      selectedDayIndex === index
+                        ? "border-primary bg-primary text-primary-foreground"
+                        : isToday
+                          ? "border-blue-200 bg-blue-50"
+                          : hasAvailable
+                            ? "border-border bg-background hover:bg-accent"
+                            : "border-muted bg-muted/50 opacity-60"
                     )}
                   >
-                    <div className={cn(
-                      "text-sm font-medium",
-                      isToday ? "text-blue-600" : "text-foreground"
-                    )}>
-                      {day.dayName}
-                    </div>
-                    <div className={cn(
-                      "text-xs",
-                      isToday ? "text-blue-500 font-medium" : "text-muted-foreground"
-                    )}>
-                      {day.display}
-                    </div>
-                  </div>
+                    <div className="text-xs font-medium">{day.dayName}</div>
+                    <div className="text-sm font-bold">{day.display.split(' ')[1]}</div>
+                  </button>
                 );
               })}
             </div>
 
-            {/* Grid de horarios */}
-            <div className="space-y-1">
-              {allTimeSlots.map((time) => (
-                <div key={time} className="grid grid-cols-7 gap-2">
-                  {/* Columnas de días */}
-                  {weekData.map((day) => {
-                    const timeSlot = day.timeSlots.find(slot => slot.time === time);
-                    const isSelected = selectedDate === day.date && selectedTime === time;
+            {/* Slots del día seleccionado */}
+            {weekData[selectedDayIndex] && (
+              <div>
+                <p className="text-sm font-medium text-center mb-3">
+                  {weekData[selectedDayIndex].display}
+                </p>
+                {weekData[selectedDayIndex].timeSlots.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-4">
+                    No hay horarios disponibles este día.
+                  </p>
+                ) : (
+                  <div className="grid grid-cols-3 gap-2">
+                    {weekData[selectedDayIndex].timeSlots.map((slot) => {
+                      const day = weekData[selectedDayIndex];
+                      const isSelected = selectedDate === day.date && selectedTime === slot.time;
 
-                    return (
-                      <div key={`${day.date}-${time}`} className="h-12">
-                        {timeSlot ? (
-                          <button
-                            onClick={() => {
-                              if (timeSlot.status === 'available') {
-                                onTimeSelect(day.date, time);
-                              }
-                            }}
-                            disabled={timeSlot.status !== 'available'}
-                            className={cn(
-                              "w-full h-full rounded-md border-2 transition-all text-sm font-medium",
-                              "hover:shadow-sm disabled:cursor-not-allowed",
-                              {
-                                // Disponible
-                                "border-blue-500 bg-blue-500 text-white hover:bg-blue-600":
-                                  timeSlot.status === 'available' && isSelected,
-                                "border-blue-200 bg-blue-100 text-blue-700 hover:bg-blue-200":
-                                  timeSlot.status === 'available' && !isSelected,
+                      return (
+                        <button
+                          key={slot.time}
+                          onClick={() => {
+                            if (slot.status === 'available') {
+                              onTimeSelect(day.date, slot.time);
+                            }
+                          }}
+                          disabled={slot.status !== 'available'}
+                          className={cn(
+                            "h-12 rounded-md border-2 transition-all text-sm font-medium",
+                            "disabled:cursor-not-allowed",
+                            {
+                              "border-blue-500 bg-blue-500 text-white":
+                                slot.status === 'available' && isSelected,
+                              "border-blue-200 bg-blue-100 text-blue-700 active:bg-blue-200":
+                                slot.status === 'available' && !isSelected,
+                              "border-gray-300 bg-gray-100 text-gray-500 line-through":
+                                slot.status === 'occupied',
+                              "border-orange-300 bg-orange-100 text-orange-500 line-through":
+                                slot.status === 'blocked',
+                              "border-gray-200 bg-gray-50 text-gray-400":
+                                slot.status === 'not_offered',
+                            }
+                          )}
+                        >
+                          {slot.status === 'available' ? slot.time : '-'}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        ) : (
+          /* Vista desktop: grid de 7 columnas */
+          <div className="overflow-x-auto">
+            <div className="min-w-[700px]">
+              {/* Header con días de la semana */}
+              <div className="grid grid-cols-7 gap-2 mb-4">
+                {weekData.map((day) => {
+                  const today = formatLocalDate(new Date());
+                  const isToday = day.date === today;
 
-                                // Ocupado
-                                "border-gray-300 bg-gray-100 text-gray-500 line-through":
-                                  timeSlot.status === 'occupied',
-
-                                // Bloqueado
-                                "border-orange-300 bg-orange-100 text-orange-500 line-through":
-                                  timeSlot.status === 'blocked',
-
-                                // No ofrecido
-                                "border-gray-200 bg-gray-50 text-gray-400":
-                                  timeSlot.status === 'not_offered',
-                              }
-                            )}
-                          >
-                            {timeSlot.status === 'available' ? time : '-'}
-                          </button>
-                        ) : (
-                          <div className="w-full h-full rounded-md border-2 border-gray-200 bg-gray-50 flex items-center justify-center">
-                            <span className="text-gray-400 text-xs">-</span>
-                          </div>
-                        )}
+                  return (
+                    <div
+                      key={day.date}
+                      className={cn(
+                        "text-center py-2 rounded-lg transition-colors",
+                        isToday && "bg-blue-50 border-2 border-blue-200"
+                      )}
+                    >
+                      <div className={cn(
+                        "text-sm font-medium",
+                        isToday ? "text-blue-600" : "text-foreground"
+                      )}>
+                        {day.dayName}
                       </div>
-                    );
-                  })}
-                </div>
-              ))}
+                      <div className={cn(
+                        "text-xs",
+                        isToday ? "text-blue-500 font-medium" : "text-muted-foreground"
+                      )}>
+                        {day.display}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Grid de horarios */}
+              <div className="space-y-1">
+                {allTimeSlots.map((time) => (
+                  <div key={time} className="grid grid-cols-7 gap-2">
+                    {weekData.map((day) => {
+                      const timeSlot = day.timeSlots.find(slot => slot.time === time);
+                      const isSelected = selectedDate === day.date && selectedTime === time;
+
+                      return (
+                        <div key={`${day.date}-${time}`} className="h-12">
+                          {timeSlot ? (
+                            <button
+                              onClick={() => {
+                                if (timeSlot.status === 'available') {
+                                  onTimeSelect(day.date, time);
+                                }
+                              }}
+                              disabled={timeSlot.status !== 'available'}
+                              className={cn(
+                                "w-full h-full rounded-md border-2 transition-all text-sm font-medium",
+                                "hover:shadow-sm disabled:cursor-not-allowed",
+                                {
+                                  "border-blue-500 bg-blue-500 text-white hover:bg-blue-600":
+                                    timeSlot.status === 'available' && isSelected,
+                                  "border-blue-200 bg-blue-100 text-blue-700 hover:bg-blue-200":
+                                    timeSlot.status === 'available' && !isSelected,
+                                  "border-gray-300 bg-gray-100 text-gray-500 line-through":
+                                    timeSlot.status === 'occupied',
+                                  "border-orange-300 bg-orange-100 text-orange-500 line-through":
+                                    timeSlot.status === 'blocked',
+                                  "border-gray-200 bg-gray-50 text-gray-400":
+                                    timeSlot.status === 'not_offered',
+                                }
+                              )}
+                            >
+                              {timeSlot.status === 'available' ? time : '-'}
+                            </button>
+                          ) : (
+                            <div className="w-full h-full rounded-md border-2 border-gray-200 bg-gray-50 flex items-center justify-center">
+                              <span className="text-gray-400 text-xs">-</span>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
         {/* Leyenda */}
         <div className="mt-6 flex flex-wrap gap-4 text-xs text-muted-foreground">

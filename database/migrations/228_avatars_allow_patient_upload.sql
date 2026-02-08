@@ -1,0 +1,34 @@
+-- ============================================================================
+-- MIGRACIÓN 228: Permitir que pacientes suban su propio avatar en bucket avatars
+-- ============================================================================
+-- Fecha: 2026-02-05
+-- Propósito: La app móvil usa folderId = professional_id ?? user.id (upload-avatar.ts).
+--            La migración 179 solo permite subir cuando la carpeta es un professional_application.id
+--            del usuario. Esta migración añade políticas para que usuarios autenticados puedan
+--            subir/actualizar/eliminar en la carpeta {auth.uid()}/ (avatar de paciente).
+-- IMPORTANTE: storage.objects pertenece a supabase_storage_admin.
+-- El SQL Editor de Supabase (postgres) NO puede crear políticas sobre esa tabla.
+-- Estas políticas se deben crear desde: Dashboard > Storage > avatars > Policies.
+-- Este archivo queda como documentación de las políticas aplicadas.
+-- ============================================================================
+
+-- ┌─────────────────────────────────────────────────────────┐
+-- │ CREAR MANUALMENTE en Dashboard > Storage > Policies:    │
+-- └─────────────────────────────────────────────────────────┘
+--
+-- 1) INSERT — "Patients can upload own avatar"
+--    Target roles: authenticated
+--    WITH CHECK:
+--      (storage.foldername(name))[1] = auth.uid()::text
+--
+-- 2) UPDATE — "Patients can update own avatar"
+--    Target roles: authenticated
+--    USING:
+--      (storage.foldername(name))[1] = auth.uid()::text
+--    WITH CHECK:
+--      (storage.foldername(name))[1] = auth.uid()::text
+--
+-- 3) DELETE — "Patients can delete own avatar"
+--    Target roles: authenticated
+--    USING:
+--      (storage.foldername(name))[1] = auth.uid()::text

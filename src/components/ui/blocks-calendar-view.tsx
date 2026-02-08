@@ -4,7 +4,7 @@ import { useRef, useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, Clock, Edit, Trash2, Plus, RefreshCw } from 'lucide-react';
+import { Calendar, CalendarDays, Clock, Edit, LayoutList, Trash2, Plus, RefreshCw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { createClient } from '@/utils/supabase/client';
 import { toast } from 'sonner';
@@ -12,6 +12,7 @@ import { formatDate } from '@/lib/date-utils';
 import type { AvailabilityBlock } from '@/types/availability';
 import { deleteBlockFromGoogleCalendar, syncAllBlocksToGoogleCalendar } from '@/actions/google-calendar';
 import { syncGoogleCalendarEvents } from '@/actions/google-calendar/sync';
+import { BlocksWeekCalendar } from '@/components/ui/blocks-week-calendar';
 
 interface BlocksCalendarViewProps {
   professionalId: string;
@@ -31,6 +32,8 @@ export function BlocksCalendarView({
   const [blocks, setBlocks] = useState<AvailabilityBlock[]>([]);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
+  const [viewMode, setViewMode] = useState<'list' | 'calendar'>('list');
+  const [workingHours, setWorkingHours] = useState({ startTime: '09:00', endTime: '18:00', days: [1, 2, 3, 4, 5] });
   const didAutoSyncRef = useRef(false);
 
   // Cargar bloqueos
@@ -56,6 +59,31 @@ export function BlocksCalendarView({
   useEffect(() => {
     fetchBlocks();
   }, [fetchBlocks]);
+
+  // Cargar horarios de trabajo del profesional para la vista calendario
+  useEffect(() => {
+    const fetchWorkingHours = async () => {
+      try {
+        const supabase = createClient();
+        const { data, error } = await supabase
+          .from('professional_applications')
+          .select('working_start_time, working_end_time, working_days')
+          .eq('id', professionalId)
+          .single();
+
+        if (!error && data) {
+          setWorkingHours({
+            startTime: data.working_start_time || '09:00',
+            endTime: data.working_end_time || '18:00',
+            days: data.working_days || [1, 2, 3, 4, 5],
+          });
+        }
+      } catch {
+        // Usar defaults
+      }
+    };
+    fetchWorkingHours();
+  }, [professionalId]);
 
   // Auto-import suave: traer eventos de Google al abrir /availability (una vez por montaje)
   useEffect(() => {
@@ -185,7 +213,27 @@ export function BlocksCalendarView({
       <Card>
         <CardHeader className="py-4">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <CardTitle>Todos los Bloqueos</CardTitle>
+            <div className="flex items-center gap-3">
+              <CardTitle>Todos los Bloqueos</CardTitle>
+              <div className="flex items-center border rounded-md overflow-hidden">
+                <Button
+                  variant={viewMode === 'list' ? 'default' : 'ghost'}
+                  size="icon-xs"
+                  onClick={() => setViewMode('list')}
+                  title="Vista lista"
+                >
+                  <LayoutList className="w-3.5 h-3.5" />
+                </Button>
+                <Button
+                  variant={viewMode === 'calendar' ? 'default' : 'ghost'}
+                  size="icon-xs"
+                  onClick={() => setViewMode('calendar')}
+                  title="Vista calendario"
+                >
+                  <CalendarDays className="w-3.5 h-3.5" />
+                </Button>
+              </div>
+            </div>
             <div className="flex flex-wrap items-center gap-2">
               {userId && (
                 <Button
@@ -217,6 +265,14 @@ export function BlocksCalendarView({
                 Crear Primer Bloqueo
               </Button>
             </div>
+          ) : viewMode === 'calendar' ? (
+            <BlocksWeekCalendar
+              blocks={blocks}
+              workingStartTime={workingHours.startTime}
+              workingEndTime={workingHours.endTime}
+              workingDays={workingHours.days}
+              onClickBlock={(block) => onEditBlock?.(block)}
+            />
           ) : (
             <div className="space-y-4">
               {blocks.map((block) => (

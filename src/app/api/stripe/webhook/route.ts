@@ -793,12 +793,205 @@ export async function POST(request: NextRequest) {
           .update({
             status: 'succeeded',
             paid_at: new Date().toISOString(),
+            payment_method: paymentIntent.payment_method_types?.[0] ?? null,
+            transfer_status: 'completed',
           })
           .eq('stripe_payment_intent_id', paymentIntent.id)
           .is('paid_at', null);
 
         if (paymentUpdateError) {
           console.error('Error updating payment:', paymentUpdateError);
+        }
+
+        // Manejar pagos desde app móvil (Payment Sheet)
+        const metadata = paymentIntent.metadata || {};
+        const source = metadata.source;
+        const paymentIdFromPi = metadata.payment_id;
+
+        // Actualizar registro de payment si existe (eventos y citas)
+        if (paymentIdFromPi) {
+          const { error: paymentUpdateError } = await supabase
+            .from('payments')
+            .update({
+              stripe_payment_intent_id: paymentIntent.id,
+              status: 'succeeded',
+              paid_at: new Date().toISOString(),
+              payment_method: paymentIntent.payment_method_types?.[0] ?? null,
+              transfer_status: 'completed',
+            })
+            .eq('id', paymentIdFromPi)
+            .is('paid_at', null);
+
+          if (paymentUpdateError) {
+            console.error('Error updating payment record:', paymentUpdateError);
+          }
+        }
+
+        // Citas
+        const appointmentIdFromPi = metadata.appointment_id;
+        if (appointmentIdFromPi) {
+          const { error: appointmentUpdateError } = await supabase
+            .from('appointments')
+            .update({ status: 'paid' })
+            .eq('id', appointmentIdFromPi);
+
+          if (appointmentUpdateError) {
+            console.error('Error updating appointment after payment_intent.succeeded:', appointmentUpdateError);
+          } else {
+            console.log('Appointment marked as paid after app payment:', appointmentIdFromPi);
+            const { data: appointment } = await supabase
+              .from('appointments')
+              .select('professional_id')
+              .eq('id', appointmentIdFromPi)
+              .single();
+
+            if (appointment) {
+              const { data: professionalApp } = await supabase
+                .from('professional_applications')
+                .select('user_id')
+                .eq('id', appointment.professional_id)
+                .single();
+
+              if (professionalApp) {
+                try {
+                  const googleCalendarResult = await createAppointmentInGoogleCalendar(
+                    appointmentIdFromPi,
+                    professionalApp.user_id
+                  );
+                  if (googleCalendarResult.success) {
+                    console.log('Appointment synced to Google Calendar:', googleCalendarResult.eventId);
+                  }
+                } catch (googleError) {
+                  console.error('Error syncing to Google Calendar:', googleError);
+                }
+              }
+            }
+
+            try {
+              await sendAppointmentNotificationEmail(appointmentIdFromPi);
+            } catch (emailError) {
+              console.error('Error sending appointment notification email:', emailError);
+            }
+            try {
+              await sendAppointmentTicketEmail(appointmentIdFromPi);
+            } catch (emailError) {
+              console.error('Error sending appointment ticket email:', emailError);
+            }
+          }
+        }
+
+        // Eventos
+        const eventRegistrationIdFromPi = metadata.event_registration_id;
+        if (eventRegistrationIdFromPi) {
+          const { error: regUpdateError } = await supabase
+            .from('event_registrations')
+            .update({ status: 'confirmed' })
+            .eq('id', eventRegistrationIdFromPi);
+
+          if (regUpdateError) {
+            console.error('Error updating event registration:', regUpdateError);
+          } else {
+            console.log('Event registration confirmed after app payment:', eventRegistrationIdFromPi);
+            try {
+              await sendEventConfirmationEmail(eventRegistrationIdFromPi);
+            } catch (emailError) {
+              console.error('Error sending event confirmation email:', emailError);
+            }
+          }
+        }
+
+        // Retos
+        const purchaseIdFromPi = metadata.purchase_id;
+        const paymentTypeFromPi = metadata.payment_type;
+        if (purchaseIdFromPi && paymentTypeFromPi === 'challenge') {
+          const { error: purchaseUpdateError } = await supabase
+            .from('challenge_purchases')
+            .update({
+              stripe_payment_intent_id: paymentIntent.id,
+              payment_status: 'completed',
+              access_granted: true,
+            })
+            .eq('id', purchaseIdFromPi);
+
+          if (purchaseUpdateError) {
+            console.error('Error updating challenge purchase:', purchaseUpdateError);
+          } else {
+            console.log('Challenge purchase confirmed and access granted:', purchaseIdFromPi);
+          }
+        }
+
+        // Programas (digital products)
+        if (purchaseIdFromPi && paymentTypeFromPi === 'digital_product') {
+          const { error: purchaseUpdateError } = await supabase
+            .from('digital_product_purchases')
+            .update({
+              stripe_payment_intent_id: paymentIntent.id,
+              payment_status: 'succeeded',
+              access_granted: true,
+            })
+            .eq('id', purchaseIdFromPi);
+
+          if (purchaseUpdateError) {
+            console.error('Error updating digital product purchase:', purchaseUpdateError);
+          } else {
+            console.log('Digital product purchase confirmed and access granted:', purchaseIdFromPi);
+            try {
+              const { sendDigitalProductConfirmationEmail } = await import('@/lib/email-sender');
+              const { data: purchaseData } = await supabase
+                .from('digital_product_purchases')
+                .select(`
+                  id,
+                  buyer_id,
+                  digital_products (
+                    id,
+                    title,
+                    description,
+                    slug,
+                    file_url,
+                    professional_applications (
+                      first_name,
+                      last_name
+                    )
+                  ),
+                  profiles!digital_product_purchases_buyer_id_fkey (
+                    first_name,
+                    last_name,
+                    email
+                  )
+                `)
+                .eq('id', purchaseIdFromPi)
+                .single();
+
+              if (purchaseData?.digital_products && purchaseData?.profiles) {
+                const product = purchaseData.digital_products as any;
+                const buyer = purchaseData.profiles as any;
+                const professional = product.professional_applications;
+                const buyerName = buyer.first_name
+                  ? `${buyer.first_name} ${buyer.last_name || ''}`.trim()
+                  : buyer.email?.split('@')[0] || 'Usuario';
+
+                await sendDigitalProductConfirmationEmail({
+                  user_email: buyer.email,
+                  user_name: buyerName,
+                  product_title: product.title,
+                  product_description: product.description,
+                  professional_name: `${professional.first_name} ${professional.last_name}`,
+                  product_url: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://holistia.io'}/explore/program/${product.slug || product.id}`,
+                  my_products_url: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://holistia.io'}/my-products`,
+                  purchase_date: new Date().toLocaleDateString('es-MX', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                  }),
+                  file_url: product.file_url || null,
+                  purchase_id: purchaseIdFromPi,
+                });
+                console.log('✅ Confirmation email sent for digital product purchase');
+              }
+            } catch (emailError) {
+              console.error('Error sending confirmation email for digital product:', emailError);
+            }
+          }
         }
 
         break;

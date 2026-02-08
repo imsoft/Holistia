@@ -10,6 +10,7 @@ import {
   refreshAccessToken,
   type GoogleCalendarEvent,
 } from '@/lib/google-calendar';
+import { formatForGoogleCalendar, PLATFORM_TIMEZONE } from '@/lib/availability';
 
 /**
  * Helper para obtener tokens de Google Calendar del usuario
@@ -135,10 +136,14 @@ export async function createAppointmentInGoogleCalendar(
       };
     }
 
-    // Construir el evento de Google Calendar
-    const startDate = new Date(`${appointment.appointment_date}T${appointment.appointment_time}`);
-    const endDate = new Date(
-      startDate.getTime() + appointment.duration_minutes * 60000
+    // Construir el evento de Google Calendar.
+    // Las citas se almacenan como "wall clock" (hora local de plataforma).
+    // Usamos formatForGoogleCalendar para generar dateTime SIN 'Z' (Google lo interpreta con timeZone).
+    const timeNorm = String(appointment.appointment_time).slice(0, 5);
+    const { startDateTime, endDateTime } = formatForGoogleCalendar(
+      appointment.appointment_date,
+      timeNorm,
+      appointment.duration_minutes
     );
 
     const event: GoogleCalendarEvent = {
@@ -149,12 +154,12 @@ export async function createAppointmentInGoogleCalendar(
         appointment.patient.last_name
       }\nEmail: ${appointment.patient.email}`,
       start: {
-        dateTime: startDate.toISOString(),
-        timeZone: 'America/Mexico_City',
+        dateTime: startDateTime,
+        timeZone: PLATFORM_TIMEZONE,
       },
       end: {
-        dateTime: endDate.toISOString(),
-        timeZone: 'America/Mexico_City',
+        dateTime: endDateTime,
+        timeZone: PLATFORM_TIMEZONE,
       },
       attendees: [
         {
@@ -279,10 +284,12 @@ export async function updateAppointmentInGoogleCalendar(
       };
     }
 
-    // Construir el evento actualizado
-    const startDate = new Date(`${appointment.appointment_date}T${appointment.appointment_time}`);
-    const endDate = new Date(
-      startDate.getTime() + appointment.duration_minutes * 60000
+    // Construir el evento actualizado — misma lógica timezone-safe que create
+    const updateTimeNorm = String(appointment.appointment_time).slice(0, 5);
+    const { startDateTime: updStartDT, endDateTime: updEndDT } = formatForGoogleCalendar(
+      appointment.appointment_date,
+      updateTimeNorm,
+      appointment.duration_minutes
     );
 
     const eventUpdate: Partial<GoogleCalendarEvent> = {
@@ -293,12 +300,12 @@ export async function updateAppointmentInGoogleCalendar(
         appointment.patient.last_name
       }\nEmail: ${appointment.patient.email}`,
       start: {
-        dateTime: startDate.toISOString(),
-        timeZone: 'America/Mexico_City',
+        dateTime: updStartDT,
+        timeZone: PLATFORM_TIMEZONE,
       },
       end: {
-        dateTime: endDate.toISOString(),
-        timeZone: 'America/Mexico_City',
+        dateTime: updEndDT,
+        timeZone: PLATFORM_TIMEZONE,
       },
     };
 
@@ -551,23 +558,24 @@ export async function createBlockInGoogleCalendar(
     let event: GoogleCalendarEvent;
 
     if (block.block_type === 'full_day' || block.block_type === 'weekly_day') {
-      // Bloqueo de día completo
-      const startDate = new Date(block.start_date);
-      const endDate = block.end_date ? new Date(block.end_date) : startDate;
-
+      // Bloqueo de día completo — usar fecha directa sin new Date() para evitar UTC shift
+      const blockStartDate = block.start_date; // ya es YYYY-MM-DD
       // Agregar un día a la fecha final porque Google Calendar usa fechas exclusivas
-      endDate.setDate(endDate.getDate() + 1);
+      const endDateStr = block.end_date || block.start_date;
+      const [ey, em, ed] = endDateStr.split('-').map(Number);
+      const endDateObj = new Date(ey, em - 1, ed + 1); // +1 día (exclusivo)
+      const blockEndDate = `${endDateObj.getFullYear()}-${String(endDateObj.getMonth() + 1).padStart(2, '0')}-${String(endDateObj.getDate()).padStart(2, '0')}`;
 
       event = {
         summary: block.title || 'Bloqueado',
         description: `Bloqueo de disponibilidad en Holistia${block.is_recurring ? ' (Recurrente)' : ''}`,
         start: {
-          date: startDate.toISOString().split('T')[0],
-          timeZone: 'America/Mexico_City',
+          date: blockStartDate,
+          timeZone: PLATFORM_TIMEZONE,
         },
         end: {
-          date: endDate.toISOString().split('T')[0],
-          timeZone: 'America/Mexico_City',
+          date: blockEndDate,
+          timeZone: PLATFORM_TIMEZONE,
         },
         transparency: 'opaque', // Marca como ocupado
         colorId: '11', // Color rojo para bloqueos
@@ -582,20 +590,22 @@ export async function createBlockInGoogleCalendar(
         ];
       }
     } else {
-      // Bloqueo de rango de horas
-      const startDateTime = new Date(`${block.start_date}T${block.start_time}`);
-      const endDateTime = new Date(`${block.start_date}T${block.end_time}`);
+      // Bloqueo de rango de horas — usar formatForGoogleCalendar para timezone-safe
+      const blockStartTime = String(block.start_time).slice(0, 5);
+      const blockEndTime = String(block.end_time).slice(0, 5);
+      const blockStartDT = `${block.start_date}T${blockStartTime}:00`;
+      const blockEndDT = `${block.start_date}T${blockEndTime}:00`;
 
       event = {
         summary: block.title || 'Bloqueado',
         description: `Bloqueo de disponibilidad en Holistia${block.is_recurring ? ' (Recurrente)' : ''}`,
         start: {
-          dateTime: startDateTime.toISOString(),
-          timeZone: 'America/Mexico_City',
+          dateTime: blockStartDT,
+          timeZone: PLATFORM_TIMEZONE,
         },
         end: {
-          dateTime: endDateTime.toISOString(),
-          timeZone: 'America/Mexico_City',
+          dateTime: blockEndDT,
+          timeZone: PLATFORM_TIMEZONE,
         },
         transparency: 'opaque',
         colorId: '11',
@@ -604,10 +614,12 @@ export async function createBlockInGoogleCalendar(
       // Para bloqueos recurrentes de rango de horas
       if (block.is_recurring && block.block_type === 'weekly_range') {
         const daysOfWeek = ['SU', 'MO', 'TU', 'WE', 'TH', 'FR', 'SA'];
-        const startDate = new Date(block.start_date);
-        const endDate = block.end_date ? new Date(block.end_date) : startDate;
-        const startDayIndex = startDate.getDay();
-        const endDayIndex = endDate.getDay();
+        // Parseo manual para evitar UTC shift
+        const [sy, sm, sd] = block.start_date.split('-').map(Number);
+        const startDayIndex = new Date(sy, sm - 1, sd).getDay();
+        const endBlockDate = block.end_date || block.start_date;
+        const [eey, eem, eed] = endBlockDate.split('-').map(Number);
+        const endDayIndex = new Date(eey, eem - 1, eed).getDay();
 
         // Si es el mismo día o rango de días
         const days = [];
@@ -800,23 +812,23 @@ export async function updateBlockInGoogleCalendar(
     let eventUpdate: Partial<GoogleCalendarEvent>;
 
     if (block.block_type === 'full_day' || block.block_type === 'weekly_day') {
-      // Bloqueo de día completo
-      const startDate = new Date(block.start_date);
-      const endDate = block.end_date ? new Date(block.end_date) : startDate;
-
-      // Agregar un día a la fecha final porque Google Calendar usa fechas exclusivas
-      endDate.setDate(endDate.getDate() + 1);
+      // Bloqueo de día completo — usar fecha directa sin new Date() para evitar UTC shift
+      const updBlockStartDate = block.start_date;
+      const updEndDateStr = block.end_date || block.start_date;
+      const [uey, uem, ued] = updEndDateStr.split('-').map(Number);
+      const updEndDateObj = new Date(uey, uem - 1, ued + 1); // +1 día (exclusivo)
+      const updBlockEndDate = `${updEndDateObj.getFullYear()}-${String(updEndDateObj.getMonth() + 1).padStart(2, '0')}-${String(updEndDateObj.getDate()).padStart(2, '0')}`;
 
       eventUpdate = {
         summary: block.title || 'Bloqueado',
         description: `Bloqueo de disponibilidad en Holistia${block.is_recurring ? ' (Recurrente)' : ''}`,
         start: {
-          date: startDate.toISOString().split('T')[0],
-          timeZone: 'America/Mexico_City',
+          date: updBlockStartDate,
+          timeZone: PLATFORM_TIMEZONE,
         },
         end: {
-          date: endDate.toISOString().split('T')[0],
-          timeZone: 'America/Mexico_City',
+          date: updBlockEndDate,
+          timeZone: PLATFORM_TIMEZONE,
         },
         transparency: 'opaque',
         colorId: '11',
@@ -830,23 +842,25 @@ export async function updateBlockInGoogleCalendar(
           `RRULE:FREQ=WEEKLY;BYDAY=${daysOfWeek[dayIndex]}`
         ];
       } else {
-        eventUpdate.recurrence = undefined; // Eliminar recurrencia si no es recurrente
+        eventUpdate.recurrence = undefined;
       }
     } else {
-      // Bloqueo de rango de horas
-      const startDateTime = new Date(`${block.start_date}T${block.start_time}`);
-      const endDateTime = new Date(`${block.start_date}T${block.end_time}`);
+      // Bloqueo de rango de horas — timezone-safe sin toISOString()
+      const updBlockStartTime = String(block.start_time).slice(0, 5);
+      const updBlockEndTime = String(block.end_time).slice(0, 5);
+      const updBlockStartDT = `${block.start_date}T${updBlockStartTime}:00`;
+      const updBlockEndDT = `${block.start_date}T${updBlockEndTime}:00`;
 
       eventUpdate = {
         summary: block.title || 'Bloqueado',
         description: `Bloqueo de disponibilidad en Holistia${block.is_recurring ? ' (Recurrente)' : ''}`,
         start: {
-          dateTime: startDateTime.toISOString(),
-          timeZone: 'America/Mexico_City',
+          dateTime: updBlockStartDT,
+          timeZone: PLATFORM_TIMEZONE,
         },
         end: {
-          dateTime: endDateTime.toISOString(),
-          timeZone: 'America/Mexico_City',
+          dateTime: updBlockEndDT,
+          timeZone: PLATFORM_TIMEZONE,
         },
         transparency: 'opaque',
         colorId: '11',
@@ -855,10 +869,11 @@ export async function updateBlockInGoogleCalendar(
       // Para bloqueos recurrentes de rango de horas
       if (block.is_recurring && block.block_type === 'weekly_range') {
         const daysOfWeek = ['SU', 'MO', 'TU', 'WE', 'TH', 'FR', 'SA'];
-        const startDate = new Date(block.start_date);
-        const endDate = block.end_date ? new Date(block.end_date) : startDate;
-        const startDayIndex = startDate.getDay();
-        const endDayIndex = endDate.getDay();
+        const [usy, usm, usd] = block.start_date.split('-').map(Number);
+        const startDayIndex = new Date(usy, usm - 1, usd).getDay();
+        const updEndBlockDate = block.end_date || block.start_date;
+        const [ueey, ueem, ueed] = updEndBlockDate.split('-').map(Number);
+        const endDayIndex = new Date(ueey, ueem - 1, ueed).getDay();
 
         const days = [];
         for (let i = startDayIndex; i <= endDayIndex; i++) {
@@ -869,7 +884,7 @@ export async function updateBlockInGoogleCalendar(
           `RRULE:FREQ=WEEKLY;BYDAY=${days.join(',')}`
         ];
       } else {
-        eventUpdate.recurrence = undefined; // Eliminar recurrencia si no es recurrente
+        eventUpdate.recurrence = undefined;
       }
     }
 
@@ -946,6 +961,14 @@ export async function syncAllBlocksToGoogleCalendar(userId: string) {
       (r) => r.status === 'fulfilled' && r.value.success
     ).length;
 
+    // Registrar timestamp de última sincronización exitosa
+    if (successful > 0) {
+      await supabase
+        .from('profiles')
+        .update({ google_calendar_last_synced_at: new Date().toISOString() })
+        .eq('id', userId);
+    }
+
     return {
       success: true,
       message: `Se sincronizaron ${successful} de ${blocks.length} bloqueos`,
@@ -987,7 +1010,7 @@ export async function syncAllAppointmentsToGoogleCalendar(userId: string) {
       .from('appointments')
       .select('id')
       .eq('professional_id', professional.id)
-      .gte('appointment_date', new Date().toISOString().split('T')[0])
+      .gte('appointment_date', (() => { const n = new Date(); return `${n.getFullYear()}-${String(n.getMonth() + 1).padStart(2, '0')}-${String(n.getDate()).padStart(2, '0')}`; })())
       .is('google_calendar_event_id', null)
       .in('status', ['confirmed', 'pending']);
 
@@ -1016,6 +1039,14 @@ export async function syncAllAppointmentsToGoogleCalendar(userId: string) {
     const successful = results.filter(
       (r) => r.status === 'fulfilled' && r.value.success
     ).length;
+
+    // Registrar timestamp de última sincronización exitosa
+    if (successful > 0) {
+      await supabase
+        .from('profiles')
+        .update({ google_calendar_last_synced_at: new Date().toISOString() })
+        .eq('id', userId);
+    }
 
     return {
       success: true,

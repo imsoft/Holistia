@@ -198,15 +198,18 @@ export function RescheduleAppointmentForm({
     }
   };
 
-  // Fecha mínima: hoy (para poder elegir slots de hoy si quedan)
+  // Fecha mínima: hoy - evitar toISOString() que convierte a UTC y puede desplazar la fecha
   const today = new Date();
-  const minDate = today.toISOString().split("T")[0];
+  const minDate = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
 
-  // Formatear fecha actual para mostrar
-  const formatDate = (dateStr: string) => {
+  // Formatear fecha actual para mostrar - parseo manual para evitar UTC shift
+  const formatDateLocal = (dateStr: string) => {
     if (!dateStr) return "No especificada";
     try {
-      const date = new Date(dateStr);
+      const parts = dateStr.split('-');
+      if (parts.length !== 3) return "Fecha inválida";
+      const [y, m, d] = parts.map(Number);
+      const date = new Date(y, m - 1, d);
       if (isNaN(date.getTime())) return "Fecha inválida";
       return date.toLocaleDateString("es-MX", {
         weekday: "long",
@@ -214,7 +217,7 @@ export function RescheduleAppointmentForm({
         month: "long",
         day: "numeric",
       });
-    } catch (error) {
+    } catch {
       return "Fecha inválida";
     }
   };
@@ -247,7 +250,7 @@ export function RescheduleAppointmentForm({
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div>
                 <p className="text-muted-foreground">Fecha:</p>
-                <p className="font-medium">{formatDate(currentDate)}</p>
+                <p className="font-medium">{formatDateLocal(currentDate)}</p>
               </div>
               <div>
                 <p className="text-muted-foreground">Hora:</p>

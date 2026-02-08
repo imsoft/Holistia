@@ -1,6 +1,7 @@
 import { createClient } from '@/utils/supabase/server';
 import { NextResponse } from 'next/server';
 import { sendAppointmentNoShowNotification } from '@/lib/email-sender';
+import { wallClockToUtcMs } from '@/lib/availability';
 
 export async function POST(request: Request) {
   try {
@@ -74,11 +75,16 @@ export async function POST(request: Request) {
       );
     }
 
-    // Verificar que la cita esté en el pasado
-    const appointmentDateTime = new Date(`${appointment.appointment_date}T${appointment.appointment_time}`);
+    // Verificar que la cita esté en el pasado.
+    // Las citas se almacenan como "wall clock" (hora local de plataforma, America/Mexico_City).
+    // En el servidor (UTC) usamos wallClockToUtcMs para convertir correctamente.
+    const appointmentMs = wallClockToUtcMs(
+      String(appointment.appointment_date).split('T')[0],
+      String(appointment.appointment_time).slice(0, 5)
+    );
     const now = new Date();
 
-    if (appointmentDateTime > now) {
+    if (appointmentMs > now.getTime()) {
       return NextResponse.json(
         { error: 'Solo puedes marcar inasistencias para citas pasadas' },
         { status: 400 }
@@ -120,8 +126,9 @@ export async function POST(request: Request) {
 
     const professionalName = `${professionalData.first_name} ${professionalData.last_name}`;
 
-    // Formatear fechas para el email
-    const appointmentDate = new Date(appointment.appointment_date).toLocaleDateString('es-MX', {
+    // Formatear fechas para el email — parseo manual para evitar UTC shift
+    const [fmtY, fmtM, fmtD] = String(appointment.appointment_date).split('T')[0].split('-').map(Number);
+    const appointmentDate = new Date(fmtY, fmtM - 1, fmtD).toLocaleDateString('es-MX', {
       weekday: 'long',
       year: 'numeric',
       month: 'long',

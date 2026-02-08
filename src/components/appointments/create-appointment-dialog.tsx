@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { useScheduleAvailability } from "@/hooks/use-schedule-availability";
 import {
   Dialog,
   DialogContent,
@@ -67,8 +68,31 @@ export function CreateAppointmentDialog({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [availableSlots, setAvailableSlots] = useState<Array<{ time: string; display: string; status: string }>>([]);
+  const [slotsLoading, setSlotsLoading] = useState(false);
 
   const supabase = createClient();
+  const { getTimeSlotsForDate } = useScheduleAvailability(professionalId);
+
+  // Cargar slots disponibles cuando cambia la fecha
+  const loadSlotsForDate = useCallback(async (date: string) => {
+    if (!date) {
+      setAvailableSlots([]);
+      return;
+    }
+    setSlotsLoading(true);
+    setAvailableSlots([]);
+    setAppointmentTime("");
+    try {
+      const timeSlots = await getTimeSlotsForDate(date);
+      const available = timeSlots.filter(s => s.status === "available");
+      setAvailableSlots(available);
+    } catch {
+      toast.error("Error al cargar horarios disponibles");
+    } finally {
+      setSlotsLoading(false);
+    }
+  }, [getTimeSlotsForDate]);
 
   // Cargar pacientes y servicios cuando se abre el diálogo
   useEffect(() => {
@@ -162,8 +186,10 @@ export function CreateAppointmentDialog({
       return;
     }
 
-    // Validar que la fecha no sea en el pasado
-    const selectedDateTime = new Date(`${appointmentDate}T${appointmentTime}`);
+    // Validar que la fecha no sea en el pasado — parseo manual para evitar UTC shift
+    const [selY, selM, selD] = appointmentDate.split('-').map(Number);
+    const [selH, selMin] = appointmentTime.split(':').map(Number);
+    const selectedDateTime = new Date(selY, selM - 1, selD, selH, selMin);
     const now = new Date();
 
     if (selectedDateTime <= now) {
@@ -181,74 +207,63 @@ export function CreateAppointmentDialog({
         throw new Error("Servicio no encontrado");
       }
 
-      // Verificar que no exista una cita duplicada
-      const { data: existingAppointment } = await supabase
+      // Verificar que no exista una cita en el mismo horario (de cualquier paciente)
+      const { data: existingSlotAppointment } = await supabase
         .from('appointments')
         .select('id')
-        .eq('patient_id', selectedPatientId)
         .eq('professional_id', professionalId)
         .eq('appointment_date', appointmentDate)
         .eq('appointment_time', appointmentTime)
+        .in('status', ['pending', 'confirmed', 'paid'])
         .maybeSingle();
 
-      if (existingAppointment) {
-        setError("Ya existe una cita para este paciente en esta fecha y hora");
+      if (existingSlotAppointment) {
+        setError("Ya existe una cita en esta fecha y hora. Por favor elige otro horario.");
         setIsSubmitting(false);
         return;
       }
 
-      // Verificar que el horario no esté bloqueado (por ejemplo, por eventos de Google Calendar)
+      // Verificar que el horario no esté bloqueado usando lógica compartida (lib/availability.ts)
       const { data: blocks } = await supabase
         .from('availability_blocks')
         .select('*')
         .eq('professional_id', professionalId);
 
       if (blocks && blocks.length > 0) {
-        // Parsear la fecha para obtener el día de la semana
-        const [year, month, day] = appointmentDate.split('-').map(Number);
-        const appointmentDateObj = new Date(year, month - 1, day);
-        const dayOfWeek = appointmentDateObj.getDay() === 0 ? 7 : appointmentDateObj.getDay();
+        // Usar la función compartida isSlotBlocked (misma lógica que hook y checkout)
+        const { isSlotBlocked } = await import('@/lib/availability');
+        const timeNorm = appointmentTime.substring(0, 5);
 
-        // Verificar si hay algún bloqueo que aplique a esta fecha/hora
-        const isBlocked = blocks.some(block => {
-          const blockStartDate = new Date(block.start_date);
-          const blockEndDate = block.end_date ? new Date(block.end_date) : blockStartDate;
-          const currentDate = new Date(appointmentDate);
-
-          // Normalizar fechas
-          blockStartDate.setHours(0, 0, 0, 0);
-          blockEndDate.setHours(0, 0, 0, 0);
-          currentDate.setHours(0, 0, 0, 0);
-
-          // Verificar bloqueos de día completo
-          if (block.block_type === 'full_day' || block.block_type === 'weekly_day') {
-            if (block.is_recurring && block.day_of_week === dayOfWeek) {
-              return true; // Bloqueo recurrente de día completo
-            }
-            if (currentDate >= blockStartDate && currentDate <= blockEndDate) {
-              return true; // Bloqueo de día completo en este rango
-            }
-          }
-
-          // Verificar bloqueos de rango de horas
-          if ((block.block_type === 'time_range' || block.block_type === 'weekly_range') &&
-              block.start_time && block.end_time) {
-            // Verificar si la fecha está en el rango
-            const isInDateRange = currentDate >= blockStartDate && currentDate <= blockEndDate;
-
-            if (block.is_recurring || isInDateRange) {
-              // Verificar si la hora está en el rango bloqueado
-              if (appointmentTime >= block.start_time && appointmentTime < block.end_time) {
-                return true; // Horario bloqueado
-              }
-            }
-          }
-
-          return false;
-        });
-
-        if (isBlocked) {
+        if (isSlotBlocked(appointmentDate, timeNorm, blocks)) {
           setError("Este horario no está disponible. Puede estar bloqueado por un evento en tu calendario.");
+          setIsSubmitting(false);
+          return;
+        }
+      }
+
+      // Verificar que el día sea laboral y la hora esté dentro del horario
+      const { data: profHours } = await supabase
+        .from('professional_applications')
+        .select('working_start_time, working_end_time, working_days')
+        .eq('id', professionalId)
+        .single();
+
+      if (profHours) {
+        const { isWorkingDay, isWithinWorkingHours } = await import('@/lib/availability');
+        const workingDays = profHours.working_days?.length ? profHours.working_days : [1, 2, 3, 4, 5];
+
+        if (!isWorkingDay(appointmentDate, workingDays)) {
+          setError("Este día no es un día laboral del profesional.");
+          setIsSubmitting(false);
+          return;
+        }
+
+        const startTime = profHours.working_start_time || '09:00';
+        const endTime = profHours.working_end_time || '18:00';
+        const timeNorm = appointmentTime.substring(0, 5);
+
+        if (!isWithinWorkingHours(timeNorm, startTime, endTime)) {
+          setError("Este horario está fuera del horario laboral del profesional.");
           setIsSubmitting(false);
           return;
         }
@@ -370,16 +385,17 @@ export function CreateAppointmentDialog({
       setSelectedServiceId("");
       setAppointmentDate("");
       setAppointmentTime("");
+      setAvailableSlots([]);
       setNotes("");
       setError(null);
       onClose();
     }
   };
 
-  // Obtener fecha mínima (mañana)
+  // Obtener fecha mínima (mañana) - evitar toISOString() que convierte a UTC
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
-  const minDate = tomorrow.toISOString().split("T")[0];
+  const minDate = `${tomorrow.getFullYear()}-${String(tomorrow.getMonth() + 1).padStart(2, '0')}-${String(tomorrow.getDate()).padStart(2, '0')}`;
 
   // Obtener información del servicio seleccionado
   const selectedService = services.find(s => s.id === selectedServiceId);
@@ -519,30 +535,53 @@ export function CreateAppointmentDialog({
                   id="date"
                   type="date"
                   value={appointmentDate}
-                  onChange={(e) => setAppointmentDate(e.target.value)}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setAppointmentDate(val);
+                    loadSlotsForDate(val);
+                  }}
                   min={minDate}
                   disabled={isSubmitting}
                   className="w-full"
                 />
               </div>
 
-              {/* Hora */}
+              {/* Hora — botones de slots disponibles */}
               <div className="space-y-2">
-                <Label htmlFor="time" className="flex items-center gap-2">
+                <Label className="flex items-center gap-2">
                   <Clock className="w-4 h-4" />
                   Hora *
                 </Label>
-                <Input
-                  id="time"
-                  type="time"
-                  value={appointmentTime}
-                  onChange={(e) => setAppointmentTime(e.target.value)}
-                  disabled={isSubmitting}
-                  className="w-full"
-                />
-                <p className="text-xs text-muted-foreground">
-                  Hora de inicio de la cita
-                </p>
+                {!appointmentDate ? (
+                  <p className="text-sm text-muted-foreground py-2">
+                    Selecciona primero una fecha para ver los horarios disponibles.
+                  </p>
+                ) : slotsLoading ? (
+                  <div className="flex items-center gap-2 py-3">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span className="text-sm text-muted-foreground">Cargando horarios disponibles...</span>
+                  </div>
+                ) : availableSlots.length === 0 ? (
+                  <p className="text-sm text-muted-foreground py-2">
+                    No hay horarios disponibles para esta fecha. Intenta con otra fecha.
+                  </p>
+                ) : (
+                  <div className="grid grid-cols-4 gap-2">
+                    {availableSlots.map((slot) => (
+                      <Button
+                        key={slot.time}
+                        type="button"
+                        variant={appointmentTime === slot.time ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setAppointmentTime(slot.time)}
+                        disabled={isSubmitting}
+                        className="text-sm"
+                      >
+                        {slot.display}
+                      </Button>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* Notas */}

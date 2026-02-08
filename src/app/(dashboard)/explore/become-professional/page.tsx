@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams } from "next/navigation";
 import { toast } from "sonner";
 import { useUserId } from "@/stores/user-store";
@@ -65,6 +65,53 @@ interface Service {
   duration: string;
 }
 
+const DRAFT_STORAGE_KEY = "holistia_become_professional_draft";
+const DRAFT_SAVE_DEBOUNCE_MS = 800;
+
+function loadDraft(userId: string): { formData: typeof initialFormData; currentStep: number } | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = localStorage.getItem(DRAFT_STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as { user_id?: string; formData?: unknown; currentStep?: number };
+    if (parsed?.user_id !== userId || !parsed?.formData) return null;
+    return {
+      formData: parsed.formData as typeof initialFormData,
+      currentStep: typeof parsed.currentStep === "number" ? parsed.currentStep : 1,
+    };
+  } catch {
+    return null;
+  }
+}
+
+function clearDraft() {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.removeItem(DRAFT_STORAGE_KEY);
+  } catch {}
+}
+
+const initialFormData = {
+  first_name: "",
+  last_name: "",
+  email: "",
+  phone: "",
+  profession: "",
+  specializations: [] as string[],
+  languages: ["Español"] as string[],
+  experience: "",
+  services: [{ name: "", description: "", price: "", duration: "" }] as Service[],
+  address: "",
+  city: "",
+  state: "",
+  country: "",
+  biography: "",
+  wellness_areas: [] as string[],
+  instagram: "",
+  terms_accepted: false,
+  privacy_accepted: false,
+};
+
 export default function BecomeProfessionalPage() {
   const { profile, loading: profileLoading } = useProfile();
   const [currentStep, setCurrentStep] = useState(1);
@@ -97,26 +144,7 @@ export default function BecomeProfessionalPage() {
     registration_fee_expires_at: string | null;
   } | null>(null);
 
-  const [formData, setFormData] = useState({
-    first_name: "",
-    last_name: "",
-    email: "",
-    phone: "",
-    profession: "",
-    specializations: [] as string[],
-    languages: ["Español"] as string[], // Idioma por defecto
-    experience: "",
-    services: [{ name: "", description: "", price: "", duration: "" }] as Service[],
-    address: "",
-    city: "",
-    state: "",
-    country: "",
-    biography: "",
-    wellness_areas: [] as string[],
-    instagram: "",
-    terms_accepted: false,
-    privacy_accepted: false,
-  });
+  const [formData, setFormData] = useState(initialFormData);
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [specializationInput, setSpecializationInput] = useState("");
@@ -165,6 +193,7 @@ export default function BecomeProfessionalPage() {
           console.error("❌ Error checking existing application:", appError);
         } else if (existingApp) {
           console.log("✅ Aplicación existente encontrada:", existingApp.id);
+          clearDraft();
           setExistingApplication(existingApp);
           setFormData({
             first_name: existingApp.first_name || "",
@@ -190,6 +219,11 @@ export default function BecomeProfessionalPage() {
           });
         } else {
           console.log("ℹ️ No se encontró aplicación existente");
+          const draft = loadDraft(profile.id);
+          if (draft?.formData) {
+            setFormData({ ...initialFormData, ...draft.formData });
+            setCurrentStep(Math.min(Math.max(1, draft.currentStep), 4));
+          }
         }
       } catch (err) {
         console.error("❌ Error en getUserData:", err);
@@ -201,6 +235,31 @@ export default function BecomeProfessionalPage() {
     getUserData();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profile, refreshKey]);
+
+  const draftSaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    if (!profile?.id || existingApplication) return;
+    draftSaveTimeoutRef.current = setTimeout(() => {
+      try {
+        localStorage.setItem(
+          DRAFT_STORAGE_KEY,
+          JSON.stringify({
+            user_id: profile.id,
+            formData,
+            currentStep,
+            savedAt: new Date().toISOString(),
+          })
+        );
+      } catch {}
+    }, DRAFT_SAVE_DEBOUNCE_MS);
+    return () => {
+      if (draftSaveTimeoutRef.current) {
+        clearTimeout(draftSaveTimeoutRef.current);
+        draftSaveTimeoutRef.current = null;
+      }
+    };
+  }, [formData, currentStep, profile?.id, existingApplication]);
 
   const handleInputChange = (field: string, value: string | boolean) => {
     // Para campos de texto, guardar el valor sin normalizar
@@ -370,22 +429,15 @@ export default function BecomeProfessionalPage() {
     setCurrentStep((prev) => prev - 1);
   };
 
+  // Máximo tiempo de espera si la red falla o el servidor no responde (no es el tiempo normal de envío)
+  const SUBMIT_TIMEOUT_MS = 15000;
+
   const handleSubmit = async () => {
     if (!validateStep(4) || !profile) return;
 
     setSubmitting(true);
     try {
-      // Verificar nuevamente si existe una aplicación antes de enviar
-      const { data: checkExisting } = await supabase
-        .from("professional_applications")
-        .select("*")
-        .eq("user_id", profile.id)
-        .maybeSingle();
-
-      // Obtener la foto de perfil del usuario actual
-      const userProfilePhoto = profile.avatar_url;
-
-      const applicationData = {
+      const applicationPayload = {
         user_id: profile.id,
         first_name: formData.first_name,
         last_name: formData.last_name,
@@ -403,63 +455,37 @@ export default function BecomeProfessionalPage() {
         biography: formData.biography,
         wellness_areas: formData.wellness_areas,
         instagram: formData.instagram,
-        profile_photo: userProfilePhoto, // Copiar foto de perfil del usuario
+        profile_photo: profile.avatar_url ?? null,
         terms_accepted: formData.terms_accepted,
         privacy_accepted: formData.privacy_accepted,
-        status: "pending",
       };
 
-      // Usar checkExisting en lugar de existingApplication para estar seguros
-      if (checkExisting || existingApplication) {
-        const appId = checkExisting?.id || existingApplication?.id;
-        console.log('🔵 Actualizando aplicación existente:', appId);
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), SUBMIT_TIMEOUT_MS);
 
-        const { error } = await supabase
-          .from("professional_applications")
-          .update(applicationData)
-          .eq("id", appId);
+      const response = await fetch("/api/professional-applications/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(applicationPayload),
+        signal: controller.signal,
+      });
 
-        if (error) {
-          console.error('❌ Error al actualizar:', error);
-          throw error;
-        }
-        toast.success("¡Solicitud actualizada exitosamente!");
-      } else {
-        console.log('🔵 Creando nueva aplicación');
+      clearTimeout(timeoutId);
 
-        const { error } = await supabase
-          .from("professional_applications")
-          .insert([applicationData]);
+      const data = await response.json().catch(() => ({}));
 
-        if (error) {
-          console.error('❌ Error al insertar:', error);
-          // Si falla por duplicado, intentar actualizar
-          if (error.code === '23505') {
-            console.log('⚠️ Detectado duplicado, intentando actualizar...');
-            const { data: existingByEmail } = await supabase
-              .from("professional_applications")
-              .select("*")
-              .eq("email", formData.email)
-              .maybeSingle();
-
-            if (existingByEmail) {
-              const { error: updateError } = await supabase
-                .from("professional_applications")
-                .update(applicationData)
-                .eq("id", existingByEmail.id);
-
-              if (updateError) throw updateError;
-              setExistingApplication(existingByEmail);
-              toast.success("¡Solicitud actualizada exitosamente!");
-              return;
-            }
-          }
-          throw error;
-        }
-        toast.success("¡Solicitud enviada exitosamente!");
+      if (!response.ok) {
+        const msg = data?.error || "Error al enviar la solicitud. Intenta de nuevo.";
+        toast.error(msg);
+        return;
       }
 
-      // Recargar los datos en lugar de recargar toda la página
+      toast.success(
+        data.updated ? "¡Solicitud actualizada exitosamente!" : "¡Solicitud enviada exitosamente!"
+      );
+
+      clearDraft();
+
       const { data: updatedApp } = await supabase
         .from("professional_applications")
         .select("*")
@@ -471,8 +497,17 @@ export default function BecomeProfessionalPage() {
       }
     } catch (error) {
       console.error("❌ Error submitting application:", error);
-      const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
-      toast.error(`Error al enviar la solicitud: ${errorMessage}`);
+      if (error instanceof Error) {
+        if (error.name === "AbortError") {
+          toast.error(
+            "La solicitud está tardando demasiado. Revisa tu conexión a internet e intenta de nuevo."
+          );
+          return;
+        }
+        toast.error(error.message || "Error al enviar la solicitud. Intenta de nuevo.");
+      } else {
+        toast.error("Error al enviar la solicitud. Intenta de nuevo.");
+      }
     } finally {
       setSubmitting(false);
     }
@@ -1682,6 +1717,11 @@ export default function BecomeProfessionalPage() {
                   {currentStep === 4 && "Biografía y Términos"}
                 </span>
               </CardTitle>
+              {!existingApplication && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  Tu progreso se guarda automáticamente. Si sales de la página podrás continuar después.
+                </p>
+              )}
             </CardHeader>
             <CardContent className="px-0">{renderStep()}</CardContent>
           </Card>

@@ -372,9 +372,10 @@ export async function syncGoogleCalendarEvents(userId: string) {
         // Debemos restar 1 día a la fecha de fin para obtener el último día real del evento
         let endDate = startDate; // Por defecto, mismo día
         if (event.end?.date) {
-          const endDateObj = new Date(event.end.date);
-          endDateObj.setDate(endDateObj.getDate() - 1); // Restar 1 día
-          endDate = endDateObj.toISOString().split('T')[0];
+          // Parseo manual para evitar UTC shift con new Date(string)
+          const [eY, eM, eD] = event.end.date.split('-').map(Number);
+          const endDateObj = new Date(eY, eM - 1, eD - 1); // -1 día (Google usa exclusivo)
+          endDate = `${endDateObj.getFullYear()}-${String(endDateObj.getMonth() + 1).padStart(2, '0')}-${String(endDateObj.getDate()).padStart(2, '0')}`;
         }
 
         blockData = {
@@ -516,6 +517,12 @@ export async function syncGoogleCalendarEvents(userId: string) {
         .eq('is_external_event', true)
         .in('id', blocksToDeleteIds);
     }
+
+    // Registrar timestamp de última sincronización exitosa
+    await supabase
+      .from('profiles')
+      .update({ google_calendar_last_synced_at: new Date().toISOString() })
+      .eq('id', userId);
 
     return {
       success: true,

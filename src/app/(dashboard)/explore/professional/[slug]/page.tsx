@@ -2289,16 +2289,17 @@ export default function ProfessionalProfilePage() {
                     </div>
                   </div>
 
-                  <div className="flex flex-col flex-1 min-h-[140px]">
-                    <Label htmlFor="notes" className="text-base font-semibold text-foreground shrink-0">
+                  <div>
+                    <Label htmlFor="notes" className="text-base font-semibold text-foreground">
                       Notas (opcional)
                     </Label>
                     <Textarea
                       id="notes"
                       value={appointmentForm.notes}
                       onChange={(e) => setAppointmentForm(prev => ({ ...prev, notes: e.target.value }))}
-                      className="mt-2 text-base flex-1 min-h-[120px] resize-y w-full"
+                      className="mt-2 text-base min-h-[80px] resize-y w-full"
                       placeholder="Cuéntanos sobre tu consulta..."
+                      rows={3}
                     />
                   </div>
                 </div>

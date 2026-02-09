@@ -108,7 +108,7 @@ export function ProgramReviewsSection({
   const showReviewForm = userPurchaseId && !userAlreadyReviewed;
 
   return (
-    <Card>
+    <Card className="py-4">
       <CardHeader className="flex flex-row items-center justify-between gap-2">
         <CardTitle className="flex items-center gap-2">
           <MessageSquare className="h-5 w-5" />

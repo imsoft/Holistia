@@ -5,11 +5,15 @@ import {
   createCalendarEvent,
   updateCalendarEvent,
   deleteCalendarEvent,
+  refreshAccessToken,
+  calculateTokenExpiry,
   type GoogleCalendarEvent,
 } from '@/lib/google-calendar';
+import { PLATFORM_TIMEZONE } from '@/lib/availability';
 
 /**
- * Helper para obtener tokens de Google Calendar del usuario
+ * Helper para obtener tokens de Google Calendar del usuario.
+ * Incluye refresh automático si el token está expirado.
  */
 async function getUserGoogleTokens(userId: string) {
   const supabase = await createClient();
@@ -17,7 +21,7 @@ async function getUserGoogleTokens(userId: string) {
   const { data: profile, error } = await supabase
     .from('profiles')
     .select(
-      'google_calendar_connected, google_access_token, google_refresh_token'
+      'google_calendar_connected, google_access_token, google_refresh_token, google_token_expires_at'
     )
     .eq('id', userId)
     .single();
@@ -34,8 +38,37 @@ async function getUserGoogleTokens(userId: string) {
     throw new Error('Tokens de Google Calendar no disponibles');
   }
 
+  // Verificar si el token está expirado y refrescarlo si es necesario
+  const tokenExpired = profile.google_token_expires_at
+    ? new Date(profile.google_token_expires_at) < new Date()
+    : true;
+
+  let accessToken = profile.google_access_token;
+
+  if (tokenExpired) {
+    const newCredentials = await refreshAccessToken(
+      profile.google_refresh_token
+    );
+
+    if (newCredentials.access_token) {
+      accessToken = newCredentials.access_token;
+
+      // Actualizar tokens en la base de datos
+      // expiry_date de Google es un timestamp absoluto (ms), NO una duración
+      const expiresAt = calculateTokenExpiry(newCredentials.expiry_date);
+
+      await supabase
+        .from('profiles')
+        .update({
+          google_access_token: accessToken,
+          google_token_expires_at: expiresAt.toISOString(),
+        })
+        .eq('id', userId);
+    }
+  }
+
   return {
-    accessToken: profile.google_access_token,
+    accessToken,
     refreshToken: profile.google_refresh_token,
   };
 }
@@ -123,11 +156,11 @@ export async function createEventWorkshopInGoogleCalendar(
       } personas\nPrecio: ${event.is_free ? 'Gratis' : `$${event.price} MXN`}`,
       start: {
         dateTime: startDateTime,
-        timeZone: 'America/Mexico_City',
+        timeZone: PLATFORM_TIMEZONE,
       },
       end: {
         dateTime: endDateTime,
-        timeZone: 'America/Mexico_City',
+        timeZone: PLATFORM_TIMEZONE,
       },
       location: event.location || undefined,
       reminders: {
@@ -260,11 +293,11 @@ export async function updateEventWorkshopInGoogleCalendar(
       } personas\nPrecio: ${event.is_free ? 'Gratis' : `$${event.price} MXN`}`,
       start: {
         dateTime: startDateTime,
-        timeZone: 'America/Mexico_City',
+        timeZone: PLATFORM_TIMEZONE,
       },
       end: {
         dateTime: endDateTime,
-        timeZone: 'America/Mexico_City',
+        timeZone: PLATFORM_TIMEZONE,
       },
       location: event.location || undefined,
     };

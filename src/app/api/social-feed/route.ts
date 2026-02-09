@@ -61,14 +61,13 @@ export async function GET(request: Request) {
       });
     }
 
-    // Obtener check-ins individuales
+    // Construir query con filtros, ordenamiento y paginación en la base de datos
     let feedQuery = supabase
       .from("social_feed_checkins")
-      .select("*");
+      .select("*", { count: "exact" });
 
     // Filtrar según el tipo
     if (filterType === "following") {
-      // Obtener IDs de usuarios que sigue
       const { data: followingData } = await supabase
         .from("user_follows")
         .select("following_id")
@@ -77,7 +76,6 @@ export async function GET(request: Request) {
       const followingIds = followingData?.map(f => f.following_id) || [];
 
       if (followingIds.length === 0) {
-        // Si no sigue a nadie, devolver array vacío
         return NextResponse.json({
           data: [],
           count: 0,
@@ -88,91 +86,73 @@ export async function GET(request: Request) {
       feedQuery = feedQuery.in("user_id", followingIds);
     }
 
-    // Ejecutar query
+    // Filtros avanzados en la base de datos
+    if (categoriesParam) {
+      const categories = categoriesParam.split(',');
+      feedQuery = feedQuery.in("challenge_category", categories);
+    }
+
+    if (difficultiesParam) {
+      const difficulties = difficultiesParam.split(',');
+      feedQuery = feedQuery.in("challenge_difficulty", difficulties);
+    }
+
+    if (searchQuery) {
+      feedQuery = feedQuery.or(
+        `challenge_title.ilike.%${searchQuery}%,notes.ilike.%${searchQuery}%,user_first_name.ilike.%${searchQuery}%,user_last_name.ilike.%${searchQuery}%`
+      );
+    }
+
+    // Ordenamiento en la base de datos
+    if (filterType === "recommended") {
+      feedQuery = feedQuery.order("likes_count", { ascending: false });
+    } else {
+      feedQuery = feedQuery.order("checkin_time", { ascending: false, nullsFirst: false });
+    }
+
+    // Paginación en la base de datos
+    feedQuery = feedQuery.range(offset, offset + limit - 1);
+
     const feedResult = await feedQuery;
 
     if (feedResult.error) {
       console.error("Error fetching feed:", feedResult.error);
     }
 
-    // Obtener check-ins
-    let allCheckins = feedResult.data || [];
+    const paginatedCheckins = feedResult.data || [];
+    const totalCount = feedResult.count ?? 0;
 
-    // Aplicar filtros avanzados
-    if (categoriesParam) {
-      const categories = categoriesParam.split(',');
-      allCheckins = allCheckins.filter((checkin: any) =>
-        categories.includes(checkin.challenge_category)
-      );
-    }
+    // Batch: obtener likes y reacciones del usuario en 2 queries totales (en vez de 2 por post)
+    const checkinIds = paginatedCheckins.map((c: any) => c.checkin_id);
 
-    if (difficultiesParam) {
-      const difficulties = difficultiesParam.split(',');
-      allCheckins = allCheckins.filter((checkin: any) =>
-        difficulties.includes(checkin.challenge_difficulty)
-      );
-    }
+    const [likesResult, reactionsResult] = await Promise.all([
+      supabase
+        .from("challenge_checkin_likes")
+        .select("checkin_id")
+        .in("checkin_id", checkinIds)
+        .eq("user_id", user.id),
+      supabase
+        .from("post_reactions")
+        .select("checkin_id, reaction_type")
+        .in("checkin_id", checkinIds)
+        .eq("user_id", user.id),
+    ]);
 
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      allCheckins = allCheckins.filter((checkin: any) =>
-        checkin.challenge_title?.toLowerCase().includes(query) ||
-        checkin.notes?.toLowerCase().includes(query) ||
-        checkin.user_first_name?.toLowerCase().includes(query) ||
-        checkin.user_last_name?.toLowerCase().includes(query)
-      );
-    }
-
-    // Ordenar por fecha (con validación para evitar errores de fecha inválida)
-    allCheckins.sort((a, b) => {
-      const dateA = a.checkin_time ? new Date(a.checkin_time) : new Date(0);
-      const dateB = b.checkin_time ? new Date(b.checkin_time) : new Date(0);
-      
-      // Si alguna fecha es inválida, usar timestamp 0
-      const timeA = isNaN(dateA.getTime()) ? 0 : dateA.getTime();
-      const timeB = isNaN(dateB.getTime()) ? 0 : dateB.getTime();
-      
-      return timeB - timeA;
-    });
-
-    // Aplicar filtro de populares si es necesario
-    if (filterType === "recommended") {
-      allCheckins.sort((a, b) => b.likes_count - a.likes_count);
-    }
-
-    // Aplicar paginación
-    const paginatedCheckins = allCheckins.slice(offset, offset + limit);
-
-    // Para cada check-in, verificar si el usuario actual le dio like o reacción
-    const dataWithLikeStatus = await Promise.all(
-      paginatedCheckins.map(async (checkin: any) => {
-        const [likeData, reactionData] = await Promise.all([
-          supabase
-            .from("challenge_checkin_likes")
-            .select("id")
-            .eq("checkin_id", checkin.checkin_id)
-            .eq("user_id", user.id)
-            .maybeSingle(),
-          supabase
-            .from("post_reactions")
-            .select("reaction_type")
-            .eq("checkin_id", checkin.checkin_id)
-            .eq("user_id", user.id)
-            .maybeSingle()
-        ]);
-
-        return {
-          ...checkin,
-          isLikedByCurrentUser: !!likeData.data,
-          userReaction: reactionData.data?.reaction_type || null,
-        };
-      })
+    const likedSet = new Set(likesResult.data?.map((l) => l.checkin_id) ?? []);
+    const reactionsMap = new Map(
+      reactionsResult.data?.map((r) => [r.checkin_id, r.reaction_type]) ?? []
     );
+
+    const dataWithLikeStatus = paginatedCheckins.map((checkin: any) => ({
+      ...checkin,
+      isLikedByCurrentUser: likedSet.has(checkin.checkin_id),
+      userReaction: reactionsMap.get(checkin.checkin_id) || null,
+    }));
 
     return NextResponse.json({
       data: dataWithLikeStatus,
-      count: allCheckins.length,
-      hasMore: offset + limit < allCheckins.length,
+      count: totalCount,
+      hasMore: offset + limit < totalCount,
     });
   } catch (error) {
     console.error("Error in social feed API:", error);

@@ -4,6 +4,7 @@ import { createClient } from '@/utils/supabase/server';
 import {
   listCalendarEvents,
   refreshAccessToken,
+  calculateTokenExpiry,
   getCalendarTimeZone,
   watchCalendar,
   stopWatchingCalendar,
@@ -52,9 +53,8 @@ async function getUserGoogleTokens(userId: string) {
       accessToken = newCredentials.access_token;
 
       // Actualizar tokens en la base de datos
-      const expiresAt = new Date(
-        Date.now() + (newCredentials.expiry_date || 3600 * 1000)
-      );
+      // expiry_date de Google es un timestamp absoluto (ms), NO una duración
+      const expiresAt = calculateTokenExpiry(newCredentials.expiry_date);
 
       await supabase
         .from('profiles')
@@ -125,10 +125,17 @@ export async function syncGoogleCalendarEvents(userId: string) {
       orderBy: 'startTime',
     });
 
-    if (!result.success || !result.events) {
+    if (!result.success) {
       return {
         success: false,
-        error: result.error || 'Error al obtener eventos de Google Calendar',
+        error: 'error' in result ? result.error : 'Error al obtener eventos de Google Calendar',
+      };
+    }
+
+    if (!result.events) {
+      return {
+        success: false,
+        error: 'Error al obtener eventos de Google Calendar',
       };
     }
 

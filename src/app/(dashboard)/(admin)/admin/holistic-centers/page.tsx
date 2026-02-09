@@ -31,7 +31,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { RichTextEditor } from "@/components/ui/rich-text-editor";
+import dynamic from "next/dynamic";
+const RichTextEditor = dynamic(
+  () => import("@/components/ui/rich-text-editor").then(mod => mod.RichTextEditor),
+  { ssr: false, loading: () => <div className="h-[200px] rounded-md border border-input bg-background animate-pulse" /> }
+);
 import {
   Dialog,
   DialogContent,

@@ -56,7 +56,9 @@ export function getCalendarClient(accessToken: string, refreshToken?: string) {
 }
 
 /**
- * Refresca el access token usando el refresh token
+ * Refresca el access token usando el refresh token.
+ * IMPORTANTE: expiry_date de Google es un TIMESTAMP ABSOLUTO (ms desde epoch),
+ * NO una duración.
  */
 export async function refreshAccessToken(refreshToken: string) {
   const oauth2Client = getOAuth2Client();
@@ -66,6 +68,99 @@ export async function refreshAccessToken(refreshToken: string) {
 
   const { credentials } = await oauth2Client.refreshAccessToken();
   return credentials;
+}
+
+/**
+ * Calcula correctamente la fecha de expiración del token.
+ * expiry_date de Google es un TIMESTAMP ABSOLUTO (ms desde epoch).
+ * Si no viene, asumimos 1 hora desde ahora.
+ */
+export function calculateTokenExpiry(expiryDate: number | null | undefined): Date {
+  if (expiryDate && expiryDate > Date.now() / 2) {
+    // Es un timestamp absoluto (ej: 1738000000000)
+    return new Date(expiryDate);
+  }
+  // Fallback: 55 minutos desde ahora (un poco antes de 1h para refrescar proactivamente)
+  return new Date(Date.now() + 55 * 60 * 1000);
+}
+
+/**
+ * Persiste el access token refrescado en la base de datos.
+ * Se usa desde las funciones CRUD cuando se refresca automáticamente.
+ */
+async function persistRefreshedToken(
+  accessToken: string,
+  refreshToken: string,
+  expiryDate: number | null | undefined
+) {
+  try {
+    // Importación dinámica para evitar ciclos (solo se usa server-side)
+    const { createClient } = await import('@/utils/supabase/server');
+    const supabase = await createClient();
+
+    // Buscar el usuario por refresh token
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('google_refresh_token', refreshToken)
+      .single();
+
+    if (profile?.id) {
+      const expiresAt = calculateTokenExpiry(expiryDate);
+      await supabase
+        .from('profiles')
+        .update({
+          google_access_token: accessToken,
+          google_token_expires_at: expiresAt.toISOString(),
+        })
+        .eq('id', profile.id);
+    }
+  } catch (err) {
+    // No fallar la operación principal si persistir falla
+    console.error('Error persisting refreshed token to DB:', err);
+  }
+}
+
+/**
+ * Helper que maneja el retry con refresh de token.
+ * - Máximo 1 reintento (evita recursión infinita)
+ * - Persiste el token refrescado en la BD
+ */
+async function withTokenRefresh<T>(
+  accessToken: string,
+  refreshToken: string,
+  operation: (token: string) => Promise<T>,
+  operationName: string
+): Promise<T> {
+  try {
+    return await operation(accessToken);
+  } catch (error: unknown) {
+    const isAuthError =
+      error instanceof Error &&
+      'code' in error &&
+      (error as { code?: number }).code === 401;
+
+    if (isAuthError && refreshToken) {
+      console.log(`🔄 Token expirado en ${operationName}, refrescando...`);
+      try {
+        const newCredentials = await refreshAccessToken(refreshToken);
+        if (newCredentials.access_token) {
+          // Persistir el nuevo token en la BD
+          await persistRefreshedToken(
+            newCredentials.access_token,
+            refreshToken,
+            newCredentials.expiry_date
+          );
+          // Reintentar UNA sola vez con el nuevo token (sin más recursión)
+          return await operation(newCredentials.access_token);
+        }
+      } catch (refreshError) {
+        console.error(`Error refrescando token en ${operationName}:`, refreshError);
+      }
+    }
+
+    throw error;
+  }
 }
 
 /**
@@ -111,6 +206,7 @@ export interface GoogleCalendarEvent {
 
 /**
  * CRUD Operations para Google Calendar
+ * Todas usan withTokenRefresh para manejar tokens expirados sin recursión infinita.
  */
 
 /**
@@ -123,37 +219,30 @@ export async function createCalendarEvent(
   calendarId: string = 'primary'
 ) {
   try {
-    const { calendar } = getCalendarClient(accessToken, refreshToken);
-
-    const response = await calendar.events.insert({
-      calendarId,
-      requestBody: event,
-      conferenceDataVersion: event.conferenceData ? 1 : undefined,
-    });
-
-    return {
-      success: true,
-      eventId: response.data.id,
-      htmlLink: response.data.htmlLink,
-      data: response.data,
-    };
+    const result = await withTokenRefresh(
+      accessToken,
+      refreshToken,
+      async (token) => {
+        const { calendar } = getCalendarClient(token, refreshToken);
+        const response = await calendar.events.insert({
+          calendarId,
+          requestBody: event,
+          conferenceDataVersion: event.conferenceData ? 1 : undefined,
+        });
+        return {
+          success: true as const,
+          eventId: response.data.id,
+          htmlLink: response.data.htmlLink,
+          data: response.data,
+        };
+      },
+      'createCalendarEvent'
+    );
+    return result;
   } catch (error: unknown) {
-    // Si el token expiró, intentar refrescarlo
-    if (error instanceof Error && "code" in error && (error as { code?: number }).code === 401) {
-      const newCredentials = await refreshAccessToken(refreshToken);
-      if (newCredentials.access_token) {
-        return createCalendarEvent(
-          newCredentials.access_token,
-          refreshToken,
-          event,
-          calendarId
-        );
-      }
-    }
-
     console.error('Error creating calendar event:', error);
     return {
-      success: false,
+      success: false as const,
       error: (error instanceof Error ? error.message : String(error)),
     };
   }
@@ -169,33 +258,24 @@ export async function getCalendarEvent(
   calendarId: string = 'primary'
 ) {
   try {
-    const { calendar } = getCalendarClient(accessToken, refreshToken);
-
-    const response = await calendar.events.get({
-      calendarId,
-      eventId,
-    });
-
-    return {
-      success: true,
-      data: response.data,
-    };
-  } catch (error: unknown) {
-    if (error instanceof Error && "code" in error && (error as { code?: number }).code === 401) {
-      const newCredentials = await refreshAccessToken(refreshToken);
-      if (newCredentials.access_token) {
-        return getCalendarEvent(
-          newCredentials.access_token,
-          refreshToken,
+    const result = await withTokenRefresh(
+      accessToken,
+      refreshToken,
+      async (token) => {
+        const { calendar } = getCalendarClient(token, refreshToken);
+        const response = await calendar.events.get({
+          calendarId,
           eventId,
-          calendarId
-        );
-      }
-    }
-
+        });
+        return { success: true as const, data: response.data };
+      },
+      'getCalendarEvent'
+    );
+    return result;
+  } catch (error: unknown) {
     console.error('Error getting calendar event:', error);
     return {
-      success: false,
+      success: false as const,
       error: (error instanceof Error ? error.message : String(error)),
     };
   }
@@ -217,37 +297,28 @@ export async function listCalendarEvents(
   calendarId: string = 'primary'
 ) {
   try {
-    const { calendar } = getCalendarClient(accessToken, refreshToken);
-
-    const response = await calendar.events.list({
-      calendarId,
-      timeMin: options.timeMin || new Date().toISOString(),
-      timeMax: options.timeMax,
-      maxResults: options.maxResults || 100,
-      singleEvents: options.singleEvents !== false,
-      orderBy: options.orderBy || 'startTime',
-    });
-
-    return {
-      success: true,
-      events: response.data.items || [],
-    };
+    const result = await withTokenRefresh(
+      accessToken,
+      refreshToken,
+      async (token) => {
+        const { calendar } = getCalendarClient(token, refreshToken);
+        const response = await calendar.events.list({
+          calendarId,
+          timeMin: options.timeMin || new Date().toISOString(),
+          timeMax: options.timeMax,
+          maxResults: options.maxResults || 100,
+          singleEvents: options.singleEvents !== false,
+          orderBy: options.orderBy || 'startTime',
+        });
+        return { success: true as const, events: response.data.items || [] };
+      },
+      'listCalendarEvents'
+    );
+    return result;
   } catch (error: unknown) {
-    if (error instanceof Error && "code" in error && (error as { code?: number }).code === 401) {
-      const newCredentials = await refreshAccessToken(refreshToken);
-      if (newCredentials.access_token) {
-        return listCalendarEvents(
-          newCredentials.access_token,
-          refreshToken,
-          options,
-          calendarId
-        );
-      }
-    }
-
     console.error('Error listing calendar events:', error);
     return {
-      success: false,
+      success: false as const,
       error: (error instanceof Error ? error.message : String(error)),
     };
   }
@@ -255,7 +326,6 @@ export async function listCalendarEvents(
 
 /**
  * Obtiene la zona horaria del calendario (p.ej. primary).
- * Esto es clave para interpretar eventos cuando el item no trae start.timeZone/end.timeZone.
  */
 export async function getCalendarTimeZone(
   accessToken: string,
@@ -263,24 +333,24 @@ export async function getCalendarTimeZone(
   calendarId: string = 'primary'
 ) {
   try {
-    const { calendar } = getCalendarClient(accessToken, refreshToken);
-    const response = await calendar.calendars.get({ calendarId });
-
-    return {
-      success: true,
-      timeZone: response.data.timeZone || 'America/Mexico_City',
-    };
+    const result = await withTokenRefresh(
+      accessToken,
+      refreshToken,
+      async (token) => {
+        const { calendar } = getCalendarClient(token, refreshToken);
+        const response = await calendar.calendars.get({ calendarId });
+        return {
+          success: true as const,
+          timeZone: response.data.timeZone || 'America/Mexico_City',
+        };
+      },
+      'getCalendarTimeZone'
+    );
+    return result;
   } catch (error: unknown) {
-    if (error instanceof Error && "code" in error && (error as { code?: number }).code === 401) {
-      const newCredentials = await refreshAccessToken(refreshToken);
-      if (newCredentials.access_token) {
-        return getCalendarTimeZone(newCredentials.access_token, refreshToken, calendarId);
-      }
-    }
-
     console.error('Error getting calendar timeZone:', error);
     return {
-      success: false,
+      success: false as const,
       timeZone: 'America/Mexico_City',
       error: (error instanceof Error ? error.message : String(error)),
     };
@@ -298,35 +368,25 @@ export async function updateCalendarEvent(
   calendarId: string = 'primary'
 ) {
   try {
-    const { calendar } = getCalendarClient(accessToken, refreshToken);
-
-    const response = await calendar.events.patch({
-      calendarId,
-      eventId,
-      requestBody: event,
-    });
-
-    return {
-      success: true,
-      data: response.data,
-    };
-  } catch (error: unknown) {
-    if (error instanceof Error && "code" in error && (error as { code?: number }).code === 401) {
-      const newCredentials = await refreshAccessToken(refreshToken);
-      if (newCredentials.access_token) {
-        return updateCalendarEvent(
-          newCredentials.access_token,
-          refreshToken,
+    const result = await withTokenRefresh(
+      accessToken,
+      refreshToken,
+      async (token) => {
+        const { calendar } = getCalendarClient(token, refreshToken);
+        const response = await calendar.events.patch({
+          calendarId,
           eventId,
-          event,
-          calendarId
-        );
-      }
-    }
-
+          requestBody: event,
+        });
+        return { success: true as const, data: response.data };
+      },
+      'updateCalendarEvent'
+    );
+    return result;
+  } catch (error: unknown) {
     console.error('Error updating calendar event:', error);
     return {
-      success: false,
+      success: false as const,
       error: (error instanceof Error ? error.message : String(error)),
     };
   }
@@ -342,32 +402,21 @@ export async function deleteCalendarEvent(
   calendarId: string = 'primary'
 ) {
   try {
-    const { calendar } = getCalendarClient(accessToken, refreshToken);
-
-    await calendar.events.delete({
-      calendarId,
-      eventId,
-    });
-
-    return {
-      success: true,
-    };
+    const result = await withTokenRefresh(
+      accessToken,
+      refreshToken,
+      async (token) => {
+        const { calendar } = getCalendarClient(token, refreshToken);
+        await calendar.events.delete({ calendarId, eventId });
+        return { success: true as const };
+      },
+      'deleteCalendarEvent'
+    );
+    return result;
   } catch (error: unknown) {
-    if (error instanceof Error && "code" in error && (error as { code?: number }).code === 401) {
-      const newCredentials = await refreshAccessToken(refreshToken);
-      if (newCredentials.access_token) {
-        return deleteCalendarEvent(
-          newCredentials.access_token,
-          refreshToken,
-          eventId,
-          calendarId
-        );
-      }
-    }
-
     console.error('Error deleting calendar event:', error);
     return {
-      success: false,
+      success: false as const,
       error: (error instanceof Error ? error.message : String(error)),
     };
   }
@@ -381,17 +430,24 @@ export async function verifyCalendarAccess(
   refreshToken: string
 ): Promise<boolean> {
   try {
-    const { calendar } = getCalendarClient(accessToken, refreshToken);
-    await calendar.calendarList.list();
+    await withTokenRefresh(
+      accessToken,
+      refreshToken,
+      async (token) => {
+        const { calendar } = getCalendarClient(token, refreshToken);
+        await calendar.calendarList.list();
+        return true;
+      },
+      'verifyCalendarAccess'
+    );
     return true;
-  } catch (error) {
+  } catch {
     return false;
   }
 }
 
 /**
  * Suscribirse a notificaciones de cambios en Google Calendar
- * Documentación: https://developers.google.com/calendar/api/guides/push
  */
 export async function watchCalendar(
   accessToken: string,
@@ -401,46 +457,38 @@ export async function watchCalendar(
   calendarId: string = 'primary'
 ) {
   try {
-    const { calendar } = getCalendarClient(accessToken, refreshToken);
-
     // La suscripción expira en máximo 7 días (604800 segundos)
     // Configuramos 6 días para renovar antes de que expire
     const expiration = Date.now() + (6 * 24 * 60 * 60 * 1000);
 
-    const response = await calendar.events.watch({
-      calendarId,
-      requestBody: {
-        id: channelId,
-        type: 'web_hook',
-        address: webhookUrl,
-        expiration: expiration.toString(),
+    const result = await withTokenRefresh(
+      accessToken,
+      refreshToken,
+      async (token) => {
+        const { calendar } = getCalendarClient(token, refreshToken);
+        const response = await calendar.events.watch({
+          calendarId,
+          requestBody: {
+            id: channelId,
+            type: 'web_hook',
+            address: webhookUrl,
+            expiration: expiration.toString(),
+          },
+        });
+        return {
+          success: true as const,
+          channelId: response.data.id,
+          resourceId: response.data.resourceId,
+          expiration: response.data.expiration,
+        };
       },
-    });
-
-    return {
-      success: true,
-      channelId: response.data.id,
-      resourceId: response.data.resourceId,
-      expiration: response.data.expiration,
-    };
+      'watchCalendar'
+    );
+    return result;
   } catch (error: unknown) {
-    // Si el token expiró, intentar refrescarlo
-    if (error instanceof Error && "code" in error && (error as { code?: number }).code === 401) {
-      const newCredentials = await refreshAccessToken(refreshToken);
-      if (newCredentials.access_token) {
-        return watchCalendar(
-          newCredentials.access_token,
-          refreshToken,
-          channelId,
-          webhookUrl,
-          calendarId
-        );
-      }
-    }
-
     console.error('Error watching calendar:', error);
     return {
-      success: false,
+      success: false as const,
       error: (error instanceof Error ? error.message : String(error)),
     };
   }
@@ -456,35 +504,23 @@ export async function stopWatchingCalendar(
   resourceId: string
 ) {
   try {
-    const { calendar } = getCalendarClient(accessToken, refreshToken);
-
-    await calendar.channels.stop({
-      requestBody: {
-        id: channelId,
-        resourceId: resourceId,
+    const result = await withTokenRefresh(
+      accessToken,
+      refreshToken,
+      async (token) => {
+        const { calendar } = getCalendarClient(token, refreshToken);
+        await calendar.channels.stop({
+          requestBody: { id: channelId, resourceId },
+        });
+        return { success: true as const };
       },
-    });
-
-    return {
-      success: true,
-    };
+      'stopWatchingCalendar'
+    );
+    return result;
   } catch (error: unknown) {
-    // Si el token expiró, intentar refrescarlo
-    if (error instanceof Error && "code" in error && (error as { code?: number }).code === 401) {
-      const newCredentials = await refreshAccessToken(refreshToken);
-      if (newCredentials.access_token) {
-        return stopWatchingCalendar(
-          newCredentials.access_token,
-          refreshToken,
-          channelId,
-          resourceId
-        );
-      }
-    }
-
     console.error('Error stopping calendar watch:', error);
     return {
-      success: false,
+      success: false as const,
       error: (error instanceof Error ? error.message : String(error)),
     };
   }

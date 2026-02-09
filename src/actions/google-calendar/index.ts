@@ -8,6 +8,7 @@ import {
   listCalendarEvents,
   getCalendarEvent,
   refreshAccessToken,
+  calculateTokenExpiry,
   type GoogleCalendarEvent,
 } from '@/lib/google-calendar';
 import { formatForGoogleCalendar, PLATFORM_TIMEZONE } from '@/lib/availability';
@@ -54,9 +55,8 @@ async function getUserGoogleTokens(userId: string) {
       accessToken = newCredentials.access_token;
 
       // Actualizar tokens en la base de datos
-      const expiresAt = new Date(
-        Date.now() + (newCredentials.expiry_date || 3600 * 1000)
-      );
+      // expiry_date de Google es un timestamp absoluto (ms), NO una duración
+      const expiresAt = calculateTokenExpiry(newCredentials.expiry_date);
 
       await supabase
         .from('profiles')
@@ -621,10 +621,16 @@ export async function createBlockInGoogleCalendar(
         const [eey, eem, eed] = endBlockDate.split('-').map(Number);
         const endDayIndex = new Date(eey, eem - 1, eed).getDay();
 
-        // Si es el mismo día o rango de días
+        // Si es el mismo día o rango de días (con wrap-around para semana)
         const days = [];
-        for (let i = startDayIndex; i <= endDayIndex; i++) {
-          days.push(daysOfWeek[i]);
+        if (startDayIndex <= endDayIndex) {
+          for (let i = startDayIndex; i <= endDayIndex; i++) {
+            days.push(daysOfWeek[i]);
+          }
+        } else {
+          // Wrap-around: ej. viernes(5) -> lunes(1)
+          for (let i = startDayIndex; i < 7; i++) days.push(daysOfWeek[i]);
+          for (let i = 0; i <= endDayIndex; i++) days.push(daysOfWeek[i]);
         }
 
         event.recurrence = [
@@ -876,8 +882,13 @@ export async function updateBlockInGoogleCalendar(
         const endDayIndex = new Date(ueey, ueem - 1, ueed).getDay();
 
         const days = [];
-        for (let i = startDayIndex; i <= endDayIndex; i++) {
-          days.push(daysOfWeek[i]);
+        if (startDayIndex <= endDayIndex) {
+          for (let i = startDayIndex; i <= endDayIndex; i++) {
+            days.push(daysOfWeek[i]);
+          }
+        } else {
+          for (let i = startDayIndex; i < 7; i++) days.push(daysOfWeek[i]);
+          for (let i = 0; i <= endDayIndex; i++) days.push(daysOfWeek[i]);
         }
 
         eventUpdate.recurrence = [
@@ -1010,7 +1021,15 @@ export async function syncAllAppointmentsToGoogleCalendar(userId: string) {
       .from('appointments')
       .select('id')
       .eq('professional_id', professional.id)
-      .gte('appointment_date', (() => { const n = new Date(); return `${n.getFullYear()}-${String(n.getMonth() + 1).padStart(2, '0')}-${String(n.getDate()).padStart(2, '0')}`; })())
+      .gte('appointment_date', (() => {
+        // Usar la fecha en la timezone de la plataforma (America/Mexico_City) para evitar
+        // desincronización cerca de medianoche UTC vs CST
+        const parts = new Intl.DateTimeFormat('en-CA', { timeZone: PLATFORM_TIMEZONE, year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date());
+        const y = parts.find(p => p.type === 'year')!.value;
+        const m = parts.find(p => p.type === 'month')!.value;
+        const d = parts.find(p => p.type === 'day')!.value;
+        return `${y}-${m}-${d}`;
+      })())
       .is('google_calendar_event_id', null)
       .in('status', ['confirmed', 'pending']);
 

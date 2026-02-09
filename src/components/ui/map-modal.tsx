@@ -8,7 +8,11 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { MapComponent } from '@/components/ui/map-component';
+import dynamic from 'next/dynamic';
+const MapComponent = dynamic(
+  () => import('@/components/ui/map-component').then(mod => mod.MapComponent),
+  { ssr: false, loading: () => <div className="h-full w-full rounded-lg bg-muted animate-pulse" /> }
+);
 import { X, MapPin } from 'lucide-react';
 
 interface MapModalProps {

@@ -13,7 +13,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Save, AlertCircle, CheckCircle } from "lucide-react";
 import Link from "next/link";
 import { BlogImageUploader } from "@/components/ui/blog-image-uploader";
-import { RichTextEditor } from "@/components/ui/rich-text-editor";
+import dynamic from "next/dynamic";
+const RichTextEditor = dynamic(
+  () => import("@/components/ui/rich-text-editor").then(mod => mod.RichTextEditor),
+  { ssr: false, loading: () => <div className="h-[200px] rounded-md border border-input bg-background animate-pulse" /> }
+);
 import { generateUniqueSlug, isValidSlug } from "@/lib/slug-utils";
 import { BlogAuthor } from "@/types/blog";
 import { PageSkeleton } from "@/components/ui/layout-skeleton";

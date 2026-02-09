@@ -11,7 +11,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { createClient } from "@/utils/supabase/client";
 import { WellnessAreasSelector } from "@/components/ui/wellness-areas-selector";
-import { RichTextEditor } from "@/components/ui/rich-text-editor";
+import dynamic from "next/dynamic";
+const RichTextEditor = dynamic(
+  () => import("@/components/ui/rich-text-editor").then(mod => mod.RichTextEditor),
+  { ssr: false, loading: () => <div className="h-[200px] rounded-md border border-input bg-background animate-pulse" /> }
+);
 import Image from "next/image";
 
 interface Professional {

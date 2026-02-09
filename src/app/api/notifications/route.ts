@@ -25,7 +25,18 @@ export async function GET(request: Request) {
 
     if (unreadOnly) baseQuery = baseQuery.eq("is_read", false);
 
-    const { data, error, count } = await baseQuery.range(offset, offset + limit - 1);
+    // Ejecutar notificaciones + conteo de no leídas en paralelo (son independientes)
+    const [notificationsResult, unreadResult] = await Promise.all([
+      baseQuery.range(offset, offset + limit - 1),
+      supabase
+        .from("notifications")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", user.id)
+        .eq("is_read", false),
+    ]);
+
+    const { data, error, count } = notificationsResult;
+    const { count: unreadCount, error: countError } = unreadResult;
 
     if (error) {
       console.error("❌ Error fetching notifications:", {
@@ -42,6 +53,10 @@ export async function GET(request: Request) {
         unreadCount: 0,
         hasMore: false,
       });
+    }
+
+    if (countError) {
+      console.error("❌ Error counting unread notifications:", countError);
     }
 
     const notifications = (data || []) as any[];
@@ -88,18 +103,6 @@ export async function GET(request: Request) {
         related_user_avatar: related?.avatar_url ?? null,
       };
     });
-
-    // Obtener conteo de no leídas
-    const { count: unreadCount, error: countError } = await supabase
-      .from("notifications")
-      .select("id", { count: "exact", head: true })
-      .eq("user_id", user.id)
-      .eq("is_read", false);
-    
-    if (countError) {
-      console.error("❌ Error counting unread notifications:", countError);
-      // No fallar si el count falla, solo loguear
-    }
 
     return NextResponse.json({
       data: transformedData || [],

@@ -119,9 +119,31 @@ export async function GET(request: NextRequest) {
 // Si se envía un userId en el body, sincroniza solo ese profesional
 export async function POST(request: NextRequest) {
   try {
+    // Verificar autenticación: o bien CRON_SECRET o bien el usuario autenticado
+    const authHeader = request.headers.get('authorization');
+    const cronSecret = process.env.CRON_SECRET;
+    let isAuthorizedByCron = false;
+
+    if (cronSecret && authHeader === `Bearer ${cronSecret}`) {
+      isAuthorizedByCron = true;
+    }
+
     const body = await request.json().catch(() => ({}));
     const { userId } = body;
-    
+
+    // Si no es cron, verificar que el usuario autenticado sea el mismo que pide el sync
+    if (!isAuthorizedByCron) {
+      const supabase = await createClient();
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      if (authError || !user) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      }
+      // Solo puede sincronizar su propio calendario
+      if (userId && userId !== user.id) {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+      }
+    }
+
     // Si se especifica un userId, sincronizar solo ese profesional
     if (userId) {
       console.log(`🔄 Syncing Google Calendar for specific user ${userId}`);
@@ -145,7 +167,10 @@ export async function POST(request: NextRequest) {
       }
     }
     
-    // Si no se especifica userId, usar la lógica del GET (sincronizar todos)
+    // Si no se especifica userId, usar la lógica del GET (sincronizar todos) - solo cron
+    if (!isAuthorizedByCron) {
+      return NextResponse.json({ error: 'Se requiere userId' }, { status: 400 });
+    }
     return GET(request);
   } catch (error) {
     console.error('Error in Google Calendar sync POST:', error);

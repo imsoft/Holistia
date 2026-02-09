@@ -73,44 +73,41 @@ export async function GET(request: NextRequest) {
         professional: conv.professional_applications || null,
       }));
     } else {
-      // Si es usuario (paciente), obtener conversaciones donde es el usuario
-      const { data, error } = await supabase
-        .from('direct_conversations')
-        .select(`
-          id,
-          user_id,
-          professional_id,
-          last_message_at,
-          last_message_preview,
-          user_unread_count,
-          professional_unread_count,
-          created_at,
-          professional_applications!direct_conversations_professional_id_fkey(
+      // Si es usuario (paciente), obtener conversaciones y perfil en paralelo
+      const [conversationsResult, profileResult] = await Promise.all([
+        supabase
+          .from('direct_conversations')
+          .select(`
             id,
-            first_name,
-            last_name,
-            profile_photo
-          )
-        `)
-        .eq('user_id', user.id)
-        .order('last_message_at', { ascending: false });
+            user_id,
+            professional_id,
+            last_message_at,
+            last_message_preview,
+            user_unread_count,
+            professional_unread_count,
+            created_at,
+            professional_applications!direct_conversations_professional_id_fkey(
+              id,
+              first_name,
+              last_name,
+              profile_photo
+            )
+          `)
+          .eq('user_id', user.id)
+          .order('last_message_at', { ascending: false }),
+        supabase
+          .from('profiles')
+          .select('id, first_name, last_name, avatar_url')
+          .eq('id', user.id)
+          .maybeSingle(),
+      ]);
 
-      if (error) throw error;
-      
-      // Obtener perfil del usuario actual por separado
-      let userProfile: any = null;
-      const { data: profileData } = await supabase
-        .from('profiles')
-        .select('id, first_name, last_name, avatar_url')
-        .eq('id', user.id)
-        .maybeSingle();
-      
-      if (profileData) {
-        userProfile = profileData;
-      }
-      
+      if (conversationsResult.error) throw conversationsResult.error;
+
+      const userProfile = profileResult.data || null;
+
       // Combinar datos
-      conversations = (data || []).map((conv: any) => ({
+      conversations = (conversationsResult.data || []).map((conv: any) => ({
         ...conv,
         user: userProfile,
         professional: conv.professional_applications || null,
@@ -150,46 +147,44 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Verificar que el profesional existe y está aprobado
-    const { data: professional, error: profError } = await supabase
-      .from('professional_applications')
-      .select('id, status')
-      .eq('id', professional_id)
-      .eq('status', 'approved')
-      .single();
+    // Verificar profesional, auto-mensaje y conversación existente en paralelo
+    const [profResult, selfCheckResult, existingConvResult] = await Promise.all([
+      supabase
+        .from('professional_applications')
+        .select('id, status')
+        .eq('id', professional_id)
+        .eq('status', 'approved')
+        .maybeSingle(),
+      supabase
+        .from('professional_applications')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('id', professional_id)
+        .maybeSingle(),
+      supabase
+        .from('direct_conversations')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('professional_id', professional_id)
+        .maybeSingle(),
+    ]);
 
-    if (profError || !professional) {
+    if (!profResult.data) {
       return NextResponse.json(
         { error: 'Profesional no encontrado o no aprobado' },
         { status: 404 }
       );
     }
 
-    // Verificar que el usuario no es el mismo profesional
-    const { data: userProfessional } = await supabase
-      .from('professional_applications')
-      .select('id')
-      .eq('user_id', user.id)
-      .eq('id', professional_id)
-      .maybeSingle();
-
-    if (userProfessional) {
+    if (selfCheckResult.data) {
       return NextResponse.json(
         { error: 'No puedes enviarte mensajes a ti mismo' },
         { status: 400 }
       );
     }
 
-    // Buscar conversación existente
-    const { data: existingConversation } = await supabase
-      .from('direct_conversations')
-      .select('*')
-      .eq('user_id', user.id)
-      .eq('professional_id', professional_id)
-      .maybeSingle();
-
-    if (existingConversation) {
-      return NextResponse.json({ conversation: existingConversation });
+    if (existingConvResult.data) {
+      return NextResponse.json({ conversation: existingConvResult.data });
     }
 
     // Crear nueva conversación

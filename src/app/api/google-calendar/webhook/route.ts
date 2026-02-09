@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { after } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 import { syncGoogleCalendarEvents } from '@/actions/google-calendar/sync';
 
@@ -13,11 +14,6 @@ import { syncGoogleCalendarEvents } from '@/actions/google-calendar/sync';
  * - 'exists': Hay cambios en el recurso (evento creado, modificado, etc.)
  * - 'not_exists': El recurso fue eliminado
  */
-
-// Rate limiting: Evitar sincronizaciones duplicadas
-// Map<userId, timestamp> - última sincronización por usuario
-const syncInProgress = new Map<string, number>();
-const SYNC_COOLDOWN_MS = 30000; // 30 segundos mínimo entre sincronizaciones
 
 export async function POST(request: NextRequest) {
   try {
@@ -44,17 +40,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Responder inmediatamente a Google (deben recibir 200 OK en <10 segundos)
-    // Procesaremos la sincronización de forma asíncrona
-    const response = NextResponse.json({ received: true }, { status: 200 });
-
-    // Procesar la notificación de forma asíncrona
-    // No esperamos a que termine para no bloquear la respuesta a Google
-    processWebhookNotification(channelId, resourceId, resourceState).catch(error => {
-      console.error('Error procesando notificación de webhook:', error);
+    // Usar after() de Next.js para procesar en background DESPUÉS de responder.
+    // Esto es seguro en serverless (Vercel mantiene el proceso vivo hasta que after() termina).
+    after(async () => {
+      await processWebhookNotification(channelId, resourceId, resourceState);
     });
 
-    return response;
+    // Responder inmediatamente a Google (deben recibir 200 OK en <10 segundos)
+    return NextResponse.json({ received: true }, { status: 200 });
   } catch (error) {
     console.error('Error en webhook de Google Calendar:', error);
     // Siempre devolver 200 OK a Google para evitar reintentos
@@ -63,7 +56,7 @@ export async function POST(request: NextRequest) {
 }
 
 /**
- * Procesar notificación de webhook de forma asíncrona
+ * Procesar notificación de webhook
  */
 async function processWebhookNotification(
   channelId: string,
@@ -102,19 +95,6 @@ async function processWebhookNotification(
       return;
     }
 
-    // Rate limiting: evitar sincronizaciones muy frecuentes
-    const now = Date.now();
-    const lastSync = syncInProgress.get(profile.id);
-
-    if (lastSync && (now - lastSync) < SYNC_COOLDOWN_MS) {
-      console.log('⏳ Sincronización en cooldown para usuario:', profile.id,
-        `(esperar ${Math.ceil((SYNC_COOLDOWN_MS - (now - lastSync)) / 1000)}s)`);
-      return;
-    }
-
-    // Marcar que estamos sincronizando
-    syncInProgress.set(profile.id, now);
-
     console.log('🔄 Iniciando sincronización de eventos para:', profile.id);
 
     // Sincronizar eventos de Google Calendar
@@ -124,8 +104,6 @@ async function processWebhookNotification(
       console.log('✅ Sincronización completada:', result.message);
     } else {
       console.error('❌ Error en sincronización:', result.error);
-      // Limpiar el rate limit si hubo error para permitir reintento
-      syncInProgress.delete(profile.id);
     }
   } catch (error) {
     console.error('Error procesando notificación:', error);

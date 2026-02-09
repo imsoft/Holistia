@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
-import { verifyCalendarAccess } from '@/lib/google-calendar';
+import { verifyCalendarAccess, refreshAccessToken, calculateTokenExpiry } from '@/lib/google-calendar';
 
 /**
  * GET /api/google-calendar/status
@@ -47,19 +47,38 @@ export async function GET(request: NextRequest) {
     }
 
     // Verificar si el token está expirado
-    const tokenExpired = profile.google_token_expires_at
+    let tokenExpired = profile.google_token_expires_at
       ? new Date(profile.google_token_expires_at) < new Date()
       : true;
 
-    // Verificar acceso real a la API (opcional, puede ser lento)
+    let currentAccessToken = profile.google_access_token;
+
+    // Si el token expiró, intentar refrescarlo automáticamente
+    if (tokenExpired && profile.google_refresh_token) {
+      try {
+        const newCredentials = await refreshAccessToken(profile.google_refresh_token);
+        if (newCredentials.access_token) {
+          currentAccessToken = newCredentials.access_token;
+          const expiresAt = calculateTokenExpiry(newCredentials.expiry_date);
+          await supabase
+            .from('profiles')
+            .update({
+              google_access_token: currentAccessToken,
+              google_token_expires_at: expiresAt.toISOString(),
+            })
+            .eq('id', user.id);
+          tokenExpired = false;
+        }
+      } catch (refreshError) {
+        console.error('Error refreshing token in status check:', refreshError);
+      }
+    }
+
+    // Verificar acceso real a la API
     let hasAccess = false;
-    if (
-      profile.google_access_token &&
-      profile.google_refresh_token &&
-      !tokenExpired
-    ) {
+    if (currentAccessToken && profile.google_refresh_token) {
       hasAccess = await verifyCalendarAccess(
-        profile.google_access_token,
+        currentAccessToken,
         profile.google_refresh_token
       );
     }

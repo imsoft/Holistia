@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getTokensFromCode } from '@/lib/google-calendar';
+import { getTokensFromCode, calculateTokenExpiry } from '@/lib/google-calendar';
 import { createClient } from '@/utils/supabase/server';
 
 /**
@@ -70,10 +70,9 @@ export async function GET(request: NextRequest) {
     // Guardar los tokens en Supabase
     const supabase = await createClient();
 
-    // Calcular la fecha de expiración del token
-    const expiresAt = new Date(
-      Date.now() + (tokens.expiry_date || 3600 * 1000)
-    );
+    // Calcular la fecha de expiración del token correctamente
+    // expiry_date de Google es un timestamp absoluto (ms), NO una duración
+    const expiresAt = calculateTokenExpiry(tokens.expiry_date);
 
     const { error: updateError } = await supabase
       .from('profiles')

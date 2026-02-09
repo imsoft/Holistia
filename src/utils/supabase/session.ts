@@ -193,27 +193,19 @@ export async function updateSession(request: NextRequest) {
       return NextResponse.redirect(url);
     }
 
-    // Verificar si el usuario está desactivado
-    if (!pathname.startsWith("/account-deactivated")) {
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('account_active')
-        .eq('id', user.id)
-        .maybeSingle();
-
-      if (profile && profile.account_active === false) {
-        const url = request.nextUrl.clone();
-        url.pathname = "/account-deactivated";
-        return NextResponse.redirect(url);
-      }
-    }
-
-    // Verificar permisos según tipo de usuario
+    // Obtener perfil del usuario (una sola query para account_active + type)
     const { data: profile } = await supabase
       .from('profiles')
-      .select('type')
+      .select('type, account_active')
       .eq('id', user.id)
       .maybeSingle();
+
+    // Verificar si el usuario está desactivado
+    if (!pathname.startsWith("/account-deactivated") && profile && profile.account_active === false) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/account-deactivated";
+      return NextResponse.redirect(url);
+    }
 
     // Proteger rutas de admin
     if (pathname.startsWith('/admin/') && profile?.type !== 'admin') {

@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
+import { stopWatchingCalendar } from '@/lib/google-calendar';
 
 /**
  * POST /api/google-calendar/disconnect
- * Desconecta la cuenta de Google Calendar del usuario
+ * Desconecta la cuenta de Google Calendar del usuario.
+ * Cancela la suscripción de webhook en Google antes de limpiar tokens.
  */
 export async function POST(request: NextRequest) {
   try {
@@ -20,6 +22,34 @@ export async function POST(request: NextRequest) {
         { error: 'No autorizado. Debes iniciar sesión.' },
         { status: 401 }
       );
+    }
+
+    // Obtener tokens y datos de webhook actuales antes de borrarlos
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('google_access_token, google_refresh_token, google_calendar_channel_id, google_calendar_resource_id')
+      .eq('id', user.id)
+      .single();
+
+    // Cancelar webhook subscription en Google si existe
+    if (
+      profile?.google_access_token &&
+      profile?.google_refresh_token &&
+      profile?.google_calendar_channel_id &&
+      profile?.google_calendar_resource_id
+    ) {
+      try {
+        await stopWatchingCalendar(
+          profile.google_access_token,
+          profile.google_refresh_token,
+          profile.google_calendar_channel_id,
+          profile.google_calendar_resource_id
+        );
+        console.log('✅ Webhook de Google Calendar cancelado para:', user.id);
+      } catch (webhookError) {
+        // No falla la desconexión si esto falla; Google dejará de enviar después de la expiración
+        console.warn('⚠️ No se pudo cancelar webhook de Google Calendar:', webhookError);
+      }
     }
 
     // Llamar a la función de base de datos para limpiar los tokens

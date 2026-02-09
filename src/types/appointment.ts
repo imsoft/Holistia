@@ -5,6 +5,8 @@ export interface Appointment {
     email: string;
     phone: string;
   };
+  /** ID del paciente (user_id). Para que el profesional vea "este paciente ya vino antes". */
+  patientId?: string;
   professional?: {
     name: string;
     profession: string;

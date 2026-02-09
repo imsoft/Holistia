@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useUserId } from "@/stores/user-store";
 import { useUserStoreInit } from "@/hooks/use-user-store-init";
 import Image from "next/image";
@@ -23,6 +23,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Textarea } from "@/components/ui/textarea";
 import { createClient } from "@/utils/supabase/client";
 import { formatPrice } from "@/lib/price-utils";
 
@@ -47,7 +48,7 @@ interface Appointment {
   appointment_time: string;
   duration_minutes: number;
   appointment_type: 'presencial' | 'online';
-  status: 'pending' | 'confirmed' | 'cancelled' | 'completed' | 'patient_no_show' | 'professional_no_show';
+  status: 'pending' | 'paid' | 'confirmed' | 'cancelled' | 'completed' | 'patient_no_show' | 'professional_no_show';
   cost: number;
   location?: string;
   notes?: string;
@@ -76,6 +77,11 @@ const statusConfig = {
     label: "Pendiente",
     color: "bg-yellow-100 text-yellow-800 border-yellow-200",
     icon: AlertCircle,
+  },
+  paid: {
+    label: "Pagada",
+    color: "bg-green-100 text-green-800 border-green-200",
+    icon: CheckCircle,
   },
   cancelled: {
     label: "Cancelada",
@@ -107,17 +113,33 @@ const typeConfig = {
   },
 };
 
+const FEEDBACK_RECENT_DAYS = 30;
+
 export default function AppointmentsPage() {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [feedbackSubmittedIds, setFeedbackSubmittedIds] = useState<Set<string>>(new Set());
+  const [feedbackSubmittingId, setFeedbackSubmittingId] = useState<string | null>(null);
+  const [feedbackDraft, setFeedbackDraft] = useState<Record<string, { rating: number; comment: string }>>({});
   useUserStoreInit();
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const supabase = createClient();
 
   const userId = useUserId();
+
+  // Mensaje al volver de Stripe tras cancelar el pago
+  useEffect(() => {
+    if (searchParams.get("cancelled") === "1") {
+      toast.info("Reserva cancelada. Puedes elegir otro horario cuando quieras.", {
+        duration: 5000,
+      });
+      router.replace("/explore/appointments", { scroll: false });
+    }
+  }, [searchParams, router]);
 
   // Obtener citas del usuario
   useEffect(() => {
@@ -241,6 +263,15 @@ export default function AppointmentsPage() {
 
         setAppointments(formattedAppointments);
 
+        // Cargar qué citas ya tienen feedback (para ocultar encuesta)
+        const { data: feedbackRows } = await supabase
+          .from("appointment_feedback")
+          .select("appointment_id")
+          .in("appointment_id", appointmentIds);
+        setFeedbackSubmittedIds(
+          new Set((feedbackRows || []).map((r: { appointment_id: string }) => r.appointment_id))
+        );
+
         // Verificar si hay una nueva cita (creada en los últimos 30 segundos) para mostrar mensaje de tolerancia
         const now = new Date();
         const recentAppointments = formattedAppointments.filter(apt => {
@@ -303,20 +334,67 @@ export default function AppointmentsPage() {
     });
   };
 
-  // Mostrar todas las citas próximas (confirmadas y pendientes)
+  const isAppointmentRecentForFeedback = (appointmentDate: string) => {
+    const [y, m, d] = appointmentDate.split("-").map(Number);
+    const aptDate = new Date(y, m - 1, d);
+    const now = new Date();
+    const diffDays = (now.getTime() - aptDate.getTime()) / (1000 * 60 * 60 * 24);
+    return diffDays >= 0 && diffDays <= FEEDBACK_RECENT_DAYS;
+  };
+
+  const submitAppointmentFeedback = async (appointmentId: string) => {
+    const draft = feedbackDraft[appointmentId];
+    if (!draft || draft.rating < 1 || draft.rating > 3) {
+      toast.error("Elige una opción: Todo bien, Más o menos o No");
+      return;
+    }
+    setFeedbackSubmittingId(appointmentId);
+    try {
+      const res = await fetch(`/api/appointments/${appointmentId}/feedback`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ rating: draft.rating, comment: draft.comment.trim() || undefined }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        toast.error(data?.error ?? "Error al enviar. Intenta de nuevo.");
+        return;
+      }
+      toast.success("Gracias por tu opinión. Nos ayuda a mejorar.");
+      setFeedbackSubmittedIds((prev) => new Set([...prev, appointmentId]));
+      setFeedbackDraft((prev) => {
+        const next = { ...prev };
+        delete next[appointmentId];
+        return next;
+      });
+    } catch (err) {
+      console.error(err);
+      toast.error("Error al enviar. Intenta de nuevo.");
+    } finally {
+      setFeedbackSubmittingId(null);
+    }
+  };
+
+  // Mostrar todas las citas próximas (confirmadas, pagadas y pendientes)
   const upcomingAppointments = appointments.filter(
     (appointment) => {
-      // Mostrar citas confirmadas y pendientes
-      return appointment.status === "confirmed" || appointment.status === "pending";
+      return appointment.status === "confirmed" || appointment.status === "paid" || appointment.status === "pending";
     }
   );
 
-  const pastAppointments = appointments.filter(
-    (appointment) => {
-      // Mostrar completadas y canceladas (que previamente fueron confirmadas con pago)
-      return appointment.status === "completed" || appointment.status === "cancelled";
-    }
-  );
+  const pastAppointments = appointments
+    .filter(
+      (appointment) =>
+        appointment.status === "completed" ||
+        appointment.status === "cancelled" ||
+        appointment.status === "patient_no_show" ||
+        appointment.status === "professional_no_show"
+    )
+    .sort((a, b) => {
+      const dateA = `${a.appointment_date}T${a.appointment_time}`;
+      const dateB = `${b.appointment_date}T${b.appointment_time}`;
+      return dateB.localeCompare(dateA);
+    });
 
   return (
     <div className="min-h-screen bg-background">
@@ -325,7 +403,7 @@ export default function AppointmentsPage() {
         <div className="mb-6 sm:mb-8">
           <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">Mis Citas</h1>
           <p className="text-sm sm:text-base text-muted-foreground">
-            Gestiona tus citas actuales y revisa el historial de consultas
+            Gestiona tus próximas citas y revisa tu historial: con quién fuiste y cuándo.
           </p>
         </div>
 
@@ -525,12 +603,15 @@ export default function AppointmentsPage() {
           </div>
         )}
 
-            {/* Citas anteriores */}
+            {/* Historial: citas pasadas (con quién y cuándo) */}
             {pastAppointments.length > 0 && (
               <div>
-                <h2 className="text-xl sm:text-2xl font-bold text-foreground mb-4 sm:mb-6">
-                  Historial de Citas ({pastAppointments.length})
+                <h2 className="text-xl sm:text-2xl font-bold text-foreground mb-2">
+                  Historial de citas
                 </h2>
+                <p className="text-sm text-muted-foreground mb-4 sm:mb-6">
+                  Tus consultas anteriores con cada profesional y la fecha.
+                </p>
                 <div className="grid gap-3 sm:gap-4">
                   {pastAppointments.map((appointment) => {
                     const TypeIcon = typeConfig[appointment.appointment_type as keyof typeof typeConfig].icon;
@@ -550,7 +631,7 @@ export default function AppointmentsPage() {
                               alt={appointment.professional.full_name}
                               width={60}
                               height={60}
-                              className="h-12 w-12 sm:h-15 sm:w-15 aspect-square rounded-full object-cover border-2 border-border flex-shrink-0"
+                              className="h-12 w-12 sm:h-14 sm:w-14 aspect-square rounded-full object-cover border-2 border-border flex-shrink-0"
                             />
                             <div className="flex-1">
                               <div className="flex flex-wrap items-center gap-2 mb-1">
@@ -595,6 +676,66 @@ export default function AppointmentsPage() {
                             </Button>
                           </div>
                         </div>
+
+                        {/* Encuesta corta post-cita: ¿Todo bien con tu reserva? */}
+                        {appointment.status === "completed" &&
+                          !feedbackSubmittedIds.has(appointment.id) &&
+                          isAppointmentRecentForFeedback(appointment.appointment_date) && (
+                          <div className="mt-4 pt-4 border-t border-border">
+                            <p className="text-sm font-medium text-foreground mb-2 sm:mb-3">
+                              ¿Todo bien con tu reserva?
+                            </p>
+                            <div className="flex flex-wrap gap-2 sm:gap-3 mb-3">
+                              {[
+                                { value: 1, label: "Sí, todo bien" },
+                                { value: 2, label: "Más o menos" },
+                                { value: 3, label: "No" },
+                              ].map(({ value, label }) => {
+                                const draft = feedbackDraft[appointment.id] ?? { rating: 0, comment: "" };
+                                const selected = draft.rating === value;
+                                return (
+                                  <Button
+                                    key={value}
+                                    type="button"
+                                    variant={selected ? "default" : "outline"}
+                                    size="sm"
+                                    onClick={() =>
+                                      setFeedbackDraft((prev) => ({
+                                        ...prev,
+                                        [appointment.id]: { ...(prev[appointment.id] ?? { rating: 0, comment: "" }), rating: value },
+                                      }))
+                                    }
+                                    className="min-w-0"
+                                  >
+                                    {label}
+                                  </Button>
+                                );
+                              })}
+                            </div>
+                            <Textarea
+                              placeholder="Comentario opcional"
+                              value={feedbackDraft[appointment.id]?.comment ?? ""}
+                              onChange={(e) =>
+                                setFeedbackDraft((prev) => ({
+                                  ...prev,
+                                  [appointment.id]: {
+                                    ...(prev[appointment.id] ?? { rating: 0, comment: "" }),
+                                    comment: e.target.value,
+                                  },
+                                }))
+                              }
+                              rows={2}
+                              className="resize-none mb-3 text-sm"
+                            />
+                            <Button
+                              size="sm"
+                              disabled={feedbackSubmittingId === appointment.id || !(feedbackDraft[appointment.id]?.rating)}
+                              onClick={() => submitAppointmentFeedback(appointment.id)}
+                            >
+                              {feedbackSubmittingId === appointment.id ? "Enviando…" : "Enviar"}
+                            </Button>
+                          </div>
+                        )}
                       </div>
                     );
                   })}

@@ -11,6 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import PaymentButton from "@/components/ui/payment-button";
+import { AppointmentPolicies } from "@/components/shared/appointment-policies";
 import { formatPrice } from "@/lib/price-utils";
 
 export default function PayAppointmentPage() {
@@ -232,6 +233,9 @@ export default function PayAppointmentPage() {
                 </div>
               )}
             </div>
+
+            {/* Políticas visibles antes de pagar */}
+            <AppointmentPolicies variant="patient" layout="compact" className="mt-4" />
 
             {/* Payment Section */}
             <div className="border-t pt-6">

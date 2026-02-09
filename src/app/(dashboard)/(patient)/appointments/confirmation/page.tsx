@@ -1,14 +1,15 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import { createClient } from "@/utils/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { CheckCircle, Calendar, Clock, MapPin, Monitor, ExternalLink, Video } from "lucide-react";
+import { CheckCircle, Calendar, Clock, MapPin, Monitor, ExternalLink, Video, Loader2 } from "lucide-react";
 import { formatPrice } from "@/lib/price-utils";
+import { BOOKING_MESSAGES } from "@/lib/error-messages";
 
 type AppointmentType = "presencial" | "online";
 
@@ -31,6 +32,8 @@ export default function AppointmentConfirmationPage() {
     };
     professional: { first_name: string; last_name: string; profession: string };
   } | null>(null);
+
+  const hasPolled = useRef(false);
 
   useEffect(() => {
     if (!appointmentId) {
@@ -58,7 +61,7 @@ export default function AppointmentConfirmationPage() {
         .single();
 
       if (aptError || !appointment) {
-        setError("No se encontró la cita o no tienes permiso para verla.");
+        setError(BOOKING_MESSAGES.APPOINTMENT_PROCESSING);
         setLoading(false);
         return;
       }
@@ -95,6 +98,28 @@ export default function AppointmentConfirmationPage() {
     fetchData();
   }, [appointmentId]);
 
+  // Si la cita está pendiente de pago, volver a consultar una vez tras 2.5s (webhook puede tardar)
+  useEffect(() => {
+    if (!data?.appointment || data.appointment.status !== "pending" || hasPolled.current) return;
+    const t = setTimeout(async () => {
+      hasPolled.current = true;
+      const supabase = createClient();
+      const { data: apt } = await supabase
+        .from("appointments")
+        .select("status")
+        .eq("id", data.appointment!.id)
+        .single();
+      if (apt?.status && apt.status !== "pending") {
+        setData((prev) =>
+          prev
+            ? { ...prev, appointment: { ...prev.appointment, status: apt.status } }
+            : null
+        );
+      }
+    }, 2500);
+    return () => clearTimeout(t);
+  }, [data?.appointment?.id, data?.appointment?.status]);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
@@ -111,11 +136,14 @@ export default function AppointmentConfirmationPage() {
   }
 
   if (error || !data) {
+    const isProcessing = error === BOOKING_MESSAGES.APPOINTMENT_PROCESSING;
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <Card className="w-full max-w-md">
           <CardContent className="pt-6 text-center">
-            <p className="text-destructive mb-4">{error ?? "Error al cargar la cita."}</p>
+            <p className={isProcessing ? "text-muted-foreground mb-4" : "text-destructive mb-4"}>
+              {error ?? "Error al cargar la cita."}
+            </p>
             <Button asChild>
               <Link href="/explore/appointments">Ver mis citas</Link>
             </Button>
@@ -134,16 +162,26 @@ export default function AppointmentConfirmationPage() {
   const timeFormatted = String(appointment.appointment_time).slice(0, 5);
   const isOnline = appointment.appointment_type === "online";
 
+  const isPaymentPending = appointment.status === "pending";
+
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <Card className="w-full max-w-lg">
         <CardHeader className="text-center pb-2">
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30 mb-2">
-            <CheckCircle className="h-8 w-8 text-green-600" />
+            {isPaymentPending ? (
+              <Loader2 className="h-8 w-8 text-green-600 animate-spin" />
+            ) : (
+              <CheckCircle className="h-8 w-8 text-green-600" />
+            )}
           </div>
-          <CardTitle className="text-2xl">Cita confirmada</CardTitle>
+          <CardTitle className="text-2xl">
+            {isPaymentPending ? "Reserva registrada" : "Cita confirmada"}
+          </CardTitle>
           <p className="text-muted-foreground text-sm">
-            Tu reserva y pago se han registrado correctamente. Recibirás un email con el ticket y los detalles.
+            {isPaymentPending
+              ? BOOKING_MESSAGES.PAYMENT_PROCESSING
+              : "Tu reserva y pago se han registrado correctamente. Recibirás un email con el ticket y los detalles."}
           </p>
         </CardHeader>
         <CardContent className="space-y-4">

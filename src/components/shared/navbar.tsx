@@ -28,6 +28,7 @@ const baseNavigation = [
   { name: "Empresas", href: "/companies" },
   { name: "Blog", href: "/blog" },
   { name: "Historia", href: "/history" },
+  { name: "Ayuda", href: "/help" },
   { name: "Contacto", href: "/contact" },
 ];
 

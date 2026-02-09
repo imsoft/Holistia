@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { CreditCard, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { getBookingErrorMessage, BOOKING_MESSAGES } from "@/lib/error-messages";
 
 interface PaymentButtonProps {
   appointmentId?: string;
@@ -73,23 +74,15 @@ export default function PaymentButton({
       }
     } catch (error) {
       console.error("Error processing payment:", error);
-      const errorMessage = error instanceof Error ? error.message : "Error al procesar el pago";
-      
-      // Hacer el mensaje más amigable
-      let friendlyMessage = errorMessage;
-      if (errorMessage.includes("configurado su cuenta de pagos")) {
-        friendlyMessage = "El profesional aún no ha configurado su cuenta para recibir pagos. Por favor, contacta al profesional o intenta con otro experto.";
-      } else if (errorMessage.includes("completamente configurada")) {
-        friendlyMessage = "La cuenta de pagos del profesional está en proceso de configuración. Por favor, intenta más tarde o contacta al profesional.";
-      } else if (errorMessage.includes("ya tiene un pago confirmado")) {
-        friendlyMessage = "Esta cita ya tiene un pago confirmado. No es necesario pagar nuevamente.";
-      } else if (errorMessage.includes("cita reservada en este horario")) {
-        friendlyMessage = "Ya tienes una cita reservada en este horario con este profesional. Por favor, selecciona otro horario disponible.";
-      }
-      
+      const rawMessage = error instanceof Error ? error.message : "Error al procesar el pago";
+      const friendlyMessage = getBookingErrorMessage(rawMessage);
+
       onError?.(friendlyMessage);
       toast.error(friendlyMessage, {
-        description: "Por favor, revisa la información e intenta nuevamente.",
+        description:
+          friendlyMessage === BOOKING_MESSAGES.PAYMENT_FAILED
+            ? "Si el cargo aparece en tu estado de cuenta, no vuelvas a pagar; contacta a soporte."
+            : "Revisa la información o elige otro horario e intenta de nuevo.",
         duration: 6000,
       });
     } finally {
@@ -108,8 +101,8 @@ export default function PaymentButton({
           <p className="text-xs text-muted-foreground text-center">
             Paga de forma segura con tarjeta de crédito o débito
           </p>
-          <p className="text-xs text-muted-foreground font-semibold text-center mt-2">
-            ⚠️ No hay reembolsos
+          <p className="text-xs text-muted-foreground text-center mt-2">
+            Cancelación con 24 h de anticipación. No hay reembolsos una vez confirmado el pago.
           </p>
         </div>
       </div>

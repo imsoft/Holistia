@@ -52,8 +52,9 @@ import { Appointment } from "@/types";
 import { createClient } from "@/utils/supabase/client";
 import { toast } from "sonner";
 import { listUserGoogleCalendarEvents, syncAllAppointmentsToGoogleCalendar } from "@/actions/google-calendar";
-import { RefreshCw } from "lucide-react";
+import { RefreshCw, UserCheck } from "lucide-react";
 import { GoogleCalendarIntegration } from "@/components/google-calendar-integration";
+import { AppointmentPolicies } from "@/components/shared/appointment-policies";
 
 type CalendarView = "day" | "week" | "month" | "year";
 
@@ -93,6 +94,7 @@ export default function ProfessionalAppointments() {
   const [professionalAppId, setProfessionalAppId] = useState<string>("");
   const [refreshKey, setRefreshKey] = useState(0);
   const [markingCompleted, setMarkingCompleted] = useState(false);
+  const [previousVisitsCount, setPreviousVisitsCount] = useState<number | null>(null);
 
   useEffect(() => {
     if (!userId) return;
@@ -184,6 +186,7 @@ export default function ProfessionalAppointments() {
               email: patient?.email || "No disponible",
               phone: patient?.phone || "No disponible",
             },
+            patientId: apt.patient_id,
             date: apt.appointment_date,
             time: apt.appointment_time.substring(0, 5),
             duration: apt.duration_minutes,
@@ -442,6 +445,36 @@ export default function ProfessionalAppointments() {
     setSelectedAppointment(appointment);
     setIsViewDialogOpen(true);
   };
+
+  useEffect(() => {
+    if (!isViewDialogOpen || !selectedAppointment || !professionalAppId) {
+      setPreviousVisitsCount(null);
+      return;
+    }
+    const patientId = selectedAppointment.patientId;
+    if (!patientId || selectedAppointment.id.startsWith("google-")) {
+      setPreviousVisitsCount(null);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      const { count, error } = await supabase
+        .from("appointments")
+        .select("id", { count: "exact", head: true })
+        .eq("professional_id", professionalAppId)
+        .eq("patient_id", patientId)
+        .eq("status", "completed")
+        .neq("id", selectedAppointment.id);
+      if (!cancelled && !error) {
+        setPreviousVisitsCount(count ?? 0);
+      } else if (!cancelled) {
+        setPreviousVisitsCount(null);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [isViewDialogOpen, selectedAppointment?.id, selectedAppointment?.patientId, professionalAppId, supabase]);
 
   const handleConfirmAppointment = async (appointmentId: string) => {
     try {
@@ -1211,6 +1244,11 @@ export default function ProfessionalAppointments() {
         );
       })()}
 
+      {/* Políticas de citas visibles para el profesional */}
+      <div className="px-4 sm:px-6 pt-2 pb-2">
+        <AppointmentPolicies variant="professional" layout="card" />
+      </div>
+
       {/* Calendar */}
       <div className="p-6" style={{ minHeight: 'calc(100vh - 8rem)' }}>
         <div className="h-full bg-card border border-border rounded-lg overflow-hidden" style={{ minHeight: '600px' }}>
@@ -1292,6 +1330,19 @@ export default function ProfessionalAppointments() {
                       <div className="px-3 py-2 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-md">
                         <p className="text-sm text-blue-800 dark:text-blue-200">
                           Este evento proviene de Google Calendar y no puede ser modificado desde aquí.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                  {/* Continuidad: este paciente ya vino antes */}
+                  {!isGoogleCalendarEvent && previousVisitsCount !== null && (
+                    <div className="col-span-2">
+                      <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/40 px-3 py-2.5">
+                        <UserCheck className="h-4 w-4 shrink-0 text-primary" aria-hidden />
+                        <p className="text-sm text-foreground">
+                          {previousVisitsCount === 0
+                            ? "Primera cita con este paciente."
+                            : `Este paciente ya ha tenido ${previousVisitsCount} cita${previousVisitsCount !== 1 ? "s" : ""} contigo (completadas).`}
                         </p>
                       </div>
                     </div>

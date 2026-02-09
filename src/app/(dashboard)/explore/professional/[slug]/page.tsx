@@ -48,6 +48,7 @@ import { Textarea } from "@/components/ui/textarea";
 import PaymentButton from "@/components/ui/payment-button";
 import { FriendlyErrorDialog } from "@/components/ui/friendly-error-dialog";
 import { WideCalendar } from "@/components/ui/wide-calendar";
+import { AppointmentPolicies } from "@/components/shared/appointment-policies";
 import {
   Select,
   SelectContent,
@@ -554,6 +555,23 @@ export default function ProfessionalProfilePage() {
 
     getData();
   }, [slugParam, patientId, supabase]);
+
+  // Registrar una vista al perfil (una vez por sesión) para métricas del profesional
+  useEffect(() => {
+    const id = professional?.id;
+    if (!id || typeof window === "undefined") return;
+    const key = `holistia_profile_view_${id}`;
+    if (sessionStorage.getItem(key)) return;
+    fetch("/api/professional/profile-view", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ professional_id: id }),
+    })
+      .then((res) => {
+        if (res.ok) sessionStorage.setItem(key, "1");
+      })
+      .catch(() => {});
+  }, [professional?.id]);
 
   // Sincronizar Google Calendar cuando se resuelve el profesional
   useEffect(() => {
@@ -2017,11 +2035,14 @@ export default function ProfessionalProfilePage() {
                 </div>
               </div>
               
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-                <p className="text-sm text-blue-800 text-center mb-2">
+              {/* Políticas de cancelación y reembolsos en el flujo de pago */}
+              <AppointmentPolicies variant="patient" layout="compact" className="mb-4" />
+
+              <div className="bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-4">
+                <p className="text-sm text-blue-800 dark:text-blue-200 text-center mb-2">
                   💳 <strong>Pago seguro:</strong> Completa tu pago para confirmar la cita
                 </p>
-                <p className="text-xs text-blue-700 text-center">
+                <p className="text-xs text-blue-700 dark:text-blue-300 text-center">
                   Tu información de pago está protegida con encriptación de nivel bancario.
                 </p>
               </div>
@@ -2061,6 +2082,9 @@ export default function ProfessionalProfilePage() {
                     errorType = 'warning';
                     title = 'Horario No Disponible';
                     description = 'Ya tienes una cita reservada en este horario con este profesional. Por favor, selecciona otro horario disponible.';
+                  } else {
+                    title = 'No se pudo reservar';
+                    description = 'Intenta de nuevo o elige otro horario. Si el problema continúa, contacta al profesional.';
                   }
                   
                   setFriendlyErrorData({
@@ -2303,6 +2327,9 @@ export default function ProfessionalProfilePage() {
                     />
                   </div>
                 </div>
+
+                {/* Políticas de citas visibles en el flujo */}
+                <AppointmentPolicies variant="patient" layout="inline" className="mt-4" />
 
                 {/* Resumen de la cita y botones */}
                 {(selectedDate || selectedTime || selectedService) && (

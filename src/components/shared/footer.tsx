@@ -133,6 +133,14 @@ export const Footer = () => {
                   Soporte
                 </h3>
                 <ul role="list" className="mt-6 space-y-4">
+                  <li>
+                    <Link
+                      href="/help"
+                      className="text-sm/6 text-muted-foreground hover:text-foreground"
+                    >
+                      Ayuda y soporte
+                    </Link>
+                  </li>
                   {navigation.support.map((item) => (
                     <li key={item.name}>
                       <Link

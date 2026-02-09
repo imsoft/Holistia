@@ -219,6 +219,53 @@ export function isSystemError(error: any): boolean {
 }
 
 /**
+ * Mensajes amigables para flujos de reserva y pago de citas.
+ * Usar en PaymentButton, modales de reserva y página de confirmación.
+ */
+export const BOOKING_MESSAGES = {
+  /** Error genérico al no poder reservar (horario, disponibilidad, etc.) */
+  RESERVE_FAILED:
+    "No se pudo reservar. Intenta de nuevo o elige otro horario.",
+  /** Error al no completar el pago (tarjeta, Stripe, etc.) */
+  PAYMENT_FAILED:
+    "No se pudo completar el pago. Revisa tus datos o intenta con otra tarjeta.",
+  /** Usuario canceló el pago en Stripe Checkout */
+  PAYMENT_CANCELLED:
+    "Reserva cancelada. Puedes elegir otro horario cuando quieras.",
+  /** Pago/reserva en proceso (evitar sensación de estado a medias) */
+  PAYMENT_PROCESSING:
+    "Estamos confirmando tu pago. En unos segundos tu cita quedará confirmada. Recibirás un email con el ticket.",
+  /** Cita no encontrada justo después del pago (procesando) */
+  APPOINTMENT_PROCESSING:
+    "Estamos procesando tu reserva. Revisa Mis citas en unos segundos.",
+} as const;
+
+/**
+ * Devuelve un mensaje amigable para errores de reserva/pago.
+ * Úsalo en onError de PaymentButton y en modales de error de reserva.
+ */
+export function getBookingErrorMessage(error: string): string {
+  const lower = error.toLowerCase();
+  if (
+    lower.includes("configurado su cuenta") ||
+    lower.includes("stripe_not_configured")
+  )
+    return "El profesional aún no ha configurado su cuenta para recibir pagos. Contacta al profesional o intenta con otro experto.";
+  if (
+    lower.includes("configuración") ||
+    lower.includes("stripe_incomplete")
+  )
+    return "La cuenta de pagos del profesional está en proceso de configuración. Intenta más tarde o contacta al profesional.";
+  if (lower.includes("ya tiene un pago confirmado"))
+    return "Esta cita ya tiene un pago confirmado. No es necesario pagar nuevamente.";
+  if (lower.includes("cita reservada en este horario") || lower.includes("horario"))
+    return "Ya tienes una cita reservada en este horario. Elige otro horario disponible.";
+  if (lower.includes("crear registro de pago") || lower.includes("sesión de pago"))
+    return BOOKING_MESSAGES.PAYMENT_FAILED;
+  return BOOKING_MESSAGES.RESERVE_FAILED;
+}
+
+/**
  * Obtiene un mensaje completo con contexto adicional
  */
 export function getFullErrorMessage(error: any, context?: string): string {

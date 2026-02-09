@@ -322,7 +322,7 @@ export async function POST(request: NextRequest) {
         transfer_amount: transferAmount.toString(),
       },
       success_url: `${process.env.NEXT_PUBLIC_SITE_URL || request.nextUrl.origin}/appointments/confirmation?appointment_id=${appointmentId}`,
-      cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL || request.nextUrl.origin}/explore/appointments`,
+      cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL || request.nextUrl.origin}/explore/appointments?cancelled=1`,
       customer_email: user.email,
     });
 

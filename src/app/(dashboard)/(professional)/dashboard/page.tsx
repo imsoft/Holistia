@@ -35,8 +35,7 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 import { DashboardStats, Appointment } from "@/types";
 import { createClient } from "@/utils/supabase/client";
 import { VerifiedBadge } from "@/components/ui/verified-badge";
-
-
+import { ProfessionalOnboardingChecklist } from "@/components/shared/professional-onboarding-checklist";
 
 export default function ProfessionalDashboard() {
   useUserStoreInit();
@@ -67,6 +66,11 @@ export default function ProfessionalDashboard() {
   } | null>(null);
   const [googleCalendarStatus, setGoogleCalendarStatus] = useState<{
     connected: boolean;
+  } | null>(null);
+  const [monthlyMetrics, setMonthlyMetrics] = useState<{
+    profileViews: number;
+    bookings: number;
+    income: number;
   } | null>(null);
 
   useEffect(() => {
@@ -310,7 +314,38 @@ export default function ProfessionalDashboard() {
             return sum + (amount * PROFESSIONAL_SHARE);
           }, 0);
 
-          // Estadísticas de servicios, retos, programas y eventos
+          // Métricas del mes: visitas al perfil, citas reservadas, ingresos
+          const startOfMonth = new Date(currentYear, currentMonth, 1);
+          const endOfMonth = new Date(currentYear, currentMonth + 1, 0, 23, 59, 59, 999);
+          const startOfMonthISO = startOfMonth.toISOString();
+          const endOfMonthISO = endOfMonth.toISOString();
+
+          let profileViewsCount = 0;
+          let bookingsCount = 0;
+          let incomeThisMonth = 0;
+          try {
+            const [profileViewsRes, bookingsRes, incomePaymentsRes] = await Promise.all([
+              supabase.from("professional_profile_views").select("id", { count: "exact", head: true }).eq("professional_id", professionalData.id).gte("viewed_at", startOfMonthISO).lte("viewed_at", endOfMonthISO),
+              supabase.from("appointments").select("id", { count: "exact", head: true }).eq("professional_id", professionalData.id).gte("created_at", startOfMonthISO).lte("created_at", endOfMonthISO),
+              supabase.from("payments").select("transfer_amount, amount").eq("professional_id", professionalData.id).eq("status", "succeeded").gte("created_at", startOfMonthISO).lte("created_at", endOfMonthISO),
+            ]);
+            profileViewsCount = profileViewsRes.count ?? 0;
+            bookingsCount = bookingsRes.count ?? 0;
+            const incomePayments = incomePaymentsRes.data || [];
+            incomeThisMonth = incomePayments.reduce((sum: number, p: { transfer_amount?: number | null; amount?: number | null }) => {
+              const transfer = Number(p.transfer_amount);
+              if (transfer > 0) return sum + transfer;
+              return sum + Number(p.amount || 0) * PROFESSIONAL_SHARE;
+            }, 0);
+          } catch (_) {
+            // Tabla professional_profile_views puede no existir aún; ingresos por paid_at puede fallar
+          }
+          setMonthlyMetrics({
+            profileViews: profileViewsCount,
+            bookings: bookingsCount,
+            income: incomeThisMonth,
+          });
+
           const [servicesRes, challengesRes, digitalRes, eventsRes] = await Promise.all([
             supabase.from("professional_services").select("id", { count: "exact", head: true }).eq("professional_id", professionalData.id),
             supabase.from("challenges").select("id", { count: "exact", head: true }).eq("created_by_user_id", professionalData.user_id).eq("created_by_type", "professional"),
@@ -467,6 +502,78 @@ export default function ProfessionalDashboard() {
 
       {/* Main Content */}
       <div className="p-4 sm:p-6 space-y-4 sm:space-y-6 w-full">
+        {/* Onboarding guiado para profesionales recién aprobados */}
+        <ProfessionalOnboardingChecklist />
+
+        {/* Métricas del mes: refuerzo de valor de la plataforma */}
+        <section className="space-y-3 sm:space-y-4 w-full">
+          <h2 className="text-base sm:text-lg font-semibold text-foreground">
+            Tu resumen del mes
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+            {loading && monthlyMetrics === null ? (
+              <>
+                {[1, 2, 3].map((i) => (
+                  <Card key={i} className="overflow-hidden">
+                    <CardContent className="p-4 sm:p-5">
+                      <div className="h-10 w-20 bg-muted rounded animate-pulse mb-2" />
+                      <div className="h-4 w-24 bg-muted rounded animate-pulse" />
+                    </CardContent>
+                  </Card>
+                ))}
+              </>
+            ) : (
+              <>
+                <Card className="border-primary/20 bg-card overflow-hidden">
+                  <CardContent className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center gap-3">
+                    <div className="flex h-10 w-10 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                      <Eye className="h-5 w-5 sm:h-6 sm:w-6" aria-hidden />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-2xl sm:text-3xl font-bold text-foreground tabular-nums">
+                        {monthlyMetrics?.profileViews ?? 0}
+                      </p>
+                      <p className="text-xs sm:text-sm text-muted-foreground">
+                        Visitas a tu perfil este mes
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card className="border-primary/20 bg-card overflow-hidden">
+                  <CardContent className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center gap-3">
+                    <div className="flex h-10 w-10 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-xl bg-green-500/10 text-green-600">
+                      <Calendar className="h-5 w-5 sm:h-6 sm:w-6" aria-hidden />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-2xl sm:text-3xl font-bold text-foreground tabular-nums">
+                        {monthlyMetrics?.bookings ?? 0}
+                      </p>
+                      <p className="text-xs sm:text-sm text-muted-foreground">
+                        Citas reservadas este mes
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card className="border-primary/20 bg-card overflow-hidden">
+                  <CardContent className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center gap-3">
+                    <div className="flex h-10 w-10 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-xl bg-purple-500/10 text-purple-600">
+                      <DollarSign className="h-5 w-5 sm:h-6 sm:w-6" aria-hidden />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-2xl sm:text-3xl font-bold text-foreground tabular-nums">
+                        ${(monthlyMetrics?.income ?? 0).toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </p>
+                      <p className="text-xs sm:text-sm text-muted-foreground">
+                        Ingresos del mes (neto)
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </>
+            )}
+          </div>
+        </section>
+
         {/* Stats Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 w-full">
           {stats.map((stat) => {

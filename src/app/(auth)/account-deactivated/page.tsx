@@ -109,6 +109,11 @@ export default function AccountDeactivatedPage() {
                 Si deseas volver a activar tu cuenta, contáctanos y te ayudaremos.
               </p>
               <div className="flex flex-col sm:flex-row gap-2">
+                <Button className="flex-1" asChild>
+                  <Link href="/help">
+                    Ir al centro de ayuda
+                  </Link>
+                </Button>
                 <Button
                   variant="outline"
                   className="flex-1"
@@ -116,7 +121,7 @@ export default function AccountDeactivatedPage() {
                 >
                   <a href="mailto:hola@holistia.io">
                     <Mail className="h-4 w-4 mr-2" />
-                    Contactar Soporte
+                    Email
                   </a>
                 </Button>
                 <Button
@@ -124,7 +129,7 @@ export default function AccountDeactivatedPage() {
                   className="flex-1"
                   asChild
                 >
-                  <a href="https://wa.me/521234567890" target="_blank" rel="noopener noreferrer">
+                  <a href="https://wa.me/523331733702" target="_blank" rel="noopener noreferrer">
                     WhatsApp
                   </a>
                 </Button>

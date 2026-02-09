@@ -72,6 +72,7 @@ export async function updateSession(request: NextRequest) {
       '/favicon.ico',
       '/api',
       '/contact',
+      '/help',
       '/privacy',
       '/terms',
       '/history',

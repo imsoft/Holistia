@@ -892,6 +892,12 @@ interface ProfessionalRejectionEmailData {
   review_notes?: string;
 }
 
+interface ProfessionalApplicationReceivedEmailData {
+  professional_name: string;
+  professional_email: string;
+  profession: string;
+}
+
 interface MeetingLinkNotificationData {
   patient_name: string;
   patient_email: string;
@@ -998,6 +1004,46 @@ export async function sendProfessionalRejectionEmail(data: ProfessionalRejection
 
   } catch (error) {
     console.error('Error in sendProfessionalRejectionEmail:', error);
+    return { success: false, error: 'Failed to send email' };
+  }
+}
+
+// Send "application received" confirmation to professional (solo en insert nuevo)
+export async function sendProfessionalApplicationReceivedEmail(data: ProfessionalApplicationReceivedEmailData) {
+  try {
+    const fs = await import('fs');
+    const path = await import('path');
+
+    const templatePath = path.join(process.cwd(), 'database/email-templates/professional-application-received.html');
+    let emailTemplate: string;
+
+    try {
+      emailTemplate = fs.readFileSync(templatePath, 'utf8');
+    } catch (error) {
+      console.error('Error reading professional-application-received template:', error);
+      return { success: false, error: 'Template not found' };
+    }
+
+    const emailContent = emailTemplate
+      .replace(/\{\{professional_name\}\}/g, data.professional_name)
+      .replace(/\{\{profession\}\}/g, data.profession);
+
+    const { data: emailData, error } = await resend.emails.send({
+      from: 'Holistia <noreply@holistia.io>',
+      to: [data.professional_email],
+      subject: 'Recibimos tu solicitud | Holistia',
+      html: emailContent,
+    });
+
+    if (error) {
+      console.error('Error sending professional application received email:', error);
+      return { success: false, error: error.message };
+    }
+
+    console.log('Professional application received email sent:', emailData?.id);
+    return { success: true, message: 'Email sent successfully', id: emailData?.id };
+  } catch (error) {
+    console.error('Error in sendProfessionalApplicationReceivedEmail:', error);
     return { success: false, error: 'Failed to send email' };
   }
 }

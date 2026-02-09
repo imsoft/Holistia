@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
+import { sendProfessionalApplicationReceivedEmail } from "@/lib/email-sender";
 
 /**
  * POST /api/professional-applications/submit
@@ -95,6 +96,17 @@ export async function POST(request: NextRequest) {
         { error: error.message || "Error al enviar la solicitud" },
         { status: 400 }
       );
+    }
+
+    // Envío de email "Recibimos tu solicitud" (solo en insert nuevo; si falla no afecta la respuesta)
+    const professionalName = [body.first_name, body.last_name].filter(Boolean).join(" ") || "Profesional";
+    const emailResult = await sendProfessionalApplicationReceivedEmail({
+      professional_name: professionalName,
+      professional_email: body.email,
+      profession: body.profession ?? "Profesional de bienestar",
+    });
+    if (!emailResult.success) {
+      console.error("⚠️ No se pudo enviar email de confirmación de solicitud:", emailResult.error);
     }
 
     return NextResponse.json({ ok: true });

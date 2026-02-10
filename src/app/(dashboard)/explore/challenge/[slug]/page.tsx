@@ -1,6 +1,7 @@
 import { Metadata } from "next";
 import { createClient } from "@/utils/supabase/server";
 import { notFound } from "next/navigation";
+import { generateChallengeMetadata } from "@/lib/seo";
 import Image from "next/image";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
@@ -208,14 +209,20 @@ export async function generateMetadata({
 
   if (!challenge) {
     return {
-      title: "Reto no encontrado",
+      title: "Reto no encontrado | Holistia",
     };
   }
 
-  return {
-    title: `${challenge.title} | Holistia`,
-    description: challenge.short_description || challenge.description,
-  };
+  return generateChallengeMetadata({
+    title: challenge.title,
+    description: challenge.short_description || challenge.description || "",
+    category: challenge.category || "Bienestar",
+    difficulty: challenge.difficulty_level || "beginner",
+    durationDays: challenge.duration_days || 30,
+    coverImage: challenge.cover_image_url || undefined,
+    slug: challenge.slug || slugParam,
+    creatorName: undefined,
+  });
 }
 
 export default async function ChallengePage({ params }: ChallengePageProps) {

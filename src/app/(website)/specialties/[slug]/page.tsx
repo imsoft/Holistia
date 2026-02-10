@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ProfessionalCard } from "@/components/ui/professional-card";
+import { BASE_URL } from "@/lib/seo";
 
 interface SpecialtyPageProps {
   params: Promise<{ slug: string }>;
@@ -46,9 +47,14 @@ export async function generateMetadata({
   const { slug } = await params;
   const profession = slugToProfession(slug);
 
+  const title = `${profession} en Holistia | Encuentra tu Experto`;
+  const description = `Encuentra los mejores profesionales de ${profession} en México. Consultas presenciales y en línea. Reserva tu cita hoy.`;
+  const url = `${BASE_URL}/specialties/${slug}`;
+  const imageUrl = `${BASE_URL}/logos/holistia-og.png`;
+
   return {
-    title: `${profession} en Holistia | Encuentra tu Experto`,
-    description: `Encuentra los mejores profesionales de ${profession} en México. Consultas presenciales y en línea. Reserva tu cita hoy.`,
+    title,
+    description,
     keywords: [
       profession,
       `${profession} México`,
@@ -56,12 +62,24 @@ export async function generateMetadata({
       `expertos en ${profession}`,
       "bienestar",
       "salud integral",
+      "consultas online",
+      "consultas presenciales",
     ],
     openGraph: {
-      title: `${profession} en Holistia`,
-      description: `Encuentra los mejores profesionales de ${profession} en México`,
+      title,
+      description,
       type: "website",
+      url,
+      siteName: "Holistia",
+      images: [{ url: imageUrl, width: 1200, height: 630, alt: title }],
     },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [imageUrl],
+    },
+    alternates: { canonical: url },
   };
 }
 
@@ -119,8 +137,26 @@ export default async function SpecialtyPage({ params }: SpecialtyPageProps) {
   // Obtener el nombre de la profesión desde el primer profesional encontrado
   const profession = professionals[0].profession;
 
+  const structuredData = JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    name: `Profesionales de ${profession}`,
+    description: `Encuentra los mejores profesionales de ${profession} en México. Consultas presenciales y en línea.`,
+    url: `${BASE_URL}/specialties/${slug}`,
+    numberOfItems: professionals.length,
+    provider: {
+      "@type": "Organization",
+      name: "Holistia",
+      url: BASE_URL,
+    },
+  });
+
   return (
     <main className="min-h-screen bg-background">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: structuredData }}
+      />
       {/* Hero Section */}
       <section className="bg-gradient-to-b from-primary/5 to-background py-16 px-4">
         <div className="max-w-7xl mx-auto">

@@ -102,8 +102,8 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
   const supabase = createClient();
   const isProfessional = userType === 'professional';
   const isAdmin = userType === 'admin';
-  // Los admins pueden agregar pacientes cuando crean retos para profesionales (cuando hay professionalId)
-  const canAddPatients = isProfessional || (isAdmin && !!professionalId);
+  // Cualquier usuario puede agregar personas a su reto
+  const canAddPatients = true;
   const [isDescriptionValid, setIsDescriptionValid] = useState(true);
 
   const isRichTextEffectivelyEmpty = (html: string) => {
@@ -1048,8 +1048,8 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
         }
       }
 
-      // Agregar pacientes seleccionados al reto (solo para profesionales)
-      if (isProfessional && selectedPatientIds.length > 0 && createdChallengeId) {
+      // Agregar personas seleccionadas al reto
+      if (selectedPatientIds.length > 0 && createdChallengeId) {
         try {
           const addPatientsResponse = await fetch(`/api/challenges/${createdChallengeId}/add-patients`, {
             method: 'POST',
@@ -1310,15 +1310,15 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
           {canAddPatients && (
             <>
               <div className="space-y-3">
-                <Label>Agregar Pacientes al Reto (Opcional)</Label>
+                <Label>Agregar Personas al Reto (Opcional)</Label>
                 <p className="text-xs text-muted-foreground">
-                  Selecciona los pacientes que deseas agregar automáticamente a este reto
+                  Busca y selecciona las personas que deseas agregar a este reto
                 </p>
 
                 {/* Campo de búsqueda */}
                 <div className="relative">
                   <Input
-                    placeholder="Buscar paciente por nombre o email..."
+                    placeholder="Buscar persona por nombre o email..."
                     value={patientSearchQuery}
                     onChange={(e) => setPatientSearchQuery(e.target.value)}
                     className="pr-10"
@@ -1393,7 +1393,7 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
                 {/* Mensaje cuando no hay resultados de búsqueda */}
                 {patientSearchQuery.length >= 2 && !searchingPatients && searchedPatients.length === 0 && patients.length === 0 && (
                   <p className="text-sm text-muted-foreground text-center py-2">
-                    No se encontraron pacientes con &quot;{patientSearchQuery}&quot;
+                    No se encontraron personas con &quot;{patientSearchQuery}&quot;
                   </p>
                 )}
 
@@ -1530,7 +1530,7 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
                   <div className="flex items-center gap-2 p-2 bg-primary/5 rounded-lg">
                     <UserPlus className="h-4 w-4 text-primary" />
                     <p className="text-sm font-medium text-primary">
-                      {selectedPatientIds.length} nuevo(s) paciente(s) a agregar
+                      {selectedPatientIds.length} nueva(s) persona(s) a agregar
                     </p>
                   </div>
                 )}

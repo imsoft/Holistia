@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Check, ChevronRight, Compass, X } from "lucide-react";
+import confetti from "canvas-confetti";
+import { Check, ChevronRight, Compass, PartyPopper, X } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -13,6 +14,61 @@ import {
 } from "@/components/ui/popover";
 import { usePatientOnboarding } from "@/hooks/use-patient-onboarding";
 import { cn } from "@/lib/utils";
+
+function fireOnboardingConfetti() {
+  confetti({
+    particleCount: 100,
+    spread: 70,
+    origin: { y: 0.7 },
+    colors: ["#22c55e", "#16a34a", "#fbbf24", "#8b5cf6", "#ec4899", "#06b6d4"],
+  });
+}
+
+/**
+ * Card de felicitaciones cuando el usuario completa todos los pasos.
+ */
+function OnboardingCelebrationCard({ onClose }: { onClose?: () => void }) {
+  return (
+    <Card className="border-primary/30 bg-gradient-to-br from-primary/5 to-primary/10 py-4">
+      <CardHeader className="pb-2 sm:pb-3">
+        <div className="flex items-start gap-2">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/20">
+            <PartyPopper className="h-4 w-4 text-primary" aria-hidden />
+          </div>
+          <div className="flex-1 min-w-0">
+            <CardTitle className="text-base sm:text-lg">
+              ¡Felicidades!
+            </CardTitle>
+            <p className="text-xs sm:text-sm text-muted-foreground font-normal mt-0.5">
+              Completaste todos los pasos. Ya conoces Holistia.
+            </p>
+          </div>
+          {onClose && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7 shrink-0 -mt-0.5 -mr-1"
+              onClick={onClose}
+            >
+              <X className="h-4 w-4" />
+              <span className="sr-only">Cerrar</span>
+            </Button>
+          )}
+        </div>
+      </CardHeader>
+      <CardContent className="pt-0">
+        <Button
+          onClick={fireOnboardingConfetti}
+          className="w-full gap-2"
+          variant="secondary"
+        >
+          <PartyPopper className="h-4 w-4" />
+          ¡Ver confeti!
+        </Button>
+      </CardContent>
+    </Card>
+  );
+}
 
 /**
  * Card interna con el checklist de onboarding.
@@ -26,7 +82,8 @@ function OnboardingCardContent({
   const { steps, completedCount, totalSteps, allComplete, loading } =
     usePatientOnboarding();
 
-  if (loading || allComplete) return null;
+  if (loading) return null;
+  if (allComplete) return <OnboardingCelebrationCard onClose={onClose} />;
 
   const progressPercent = totalSteps > 0 ? (completedCount / totalSteps) * 100 : 0;
 
@@ -115,7 +172,7 @@ export function PatientOnboardingButton() {
   const { completedCount, totalSteps, allComplete, loading } =
     usePatientOnboarding();
 
-  if (loading || allComplete) return null;
+  if (loading) return null;
 
   const remaining = totalSteps - completedCount;
 
@@ -126,10 +183,14 @@ export function PatientOnboardingButton() {
           variant="ghost"
           size="icon"
           className="relative h-9 w-9 rounded-full"
-          aria-label={`Onboarding: ${completedCount} de ${totalSteps} pasos completados`}
+          aria-label={
+            allComplete
+              ? "Onboarding completado. ¡Abre para celebrar!"
+              : `Onboarding: ${completedCount} de ${totalSteps} pasos completados`
+          }
         >
           <Compass className="h-5 w-5 text-primary" />
-          {remaining > 0 && (
+          {!allComplete && remaining > 0 && (
             <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
               {remaining}
             </span>
@@ -153,6 +214,6 @@ export function PatientOnboardingButton() {
  */
 export function PatientOnboardingChecklist() {
   const { allComplete, loading } = usePatientOnboarding();
-  if (loading || allComplete) return null;
+  if (loading) return null;
   return <OnboardingCardContent />;
 }

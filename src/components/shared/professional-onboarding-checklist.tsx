@@ -1,18 +1,60 @@
 "use client";
 
 import Link from "next/link";
-import { Check, ChevronRight, Sparkles } from "lucide-react";
+import confetti from "canvas-confetti";
+import { Check, ChevronRight, PartyPopper, Sparkles } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { useProfessionalOnboarding } from "@/hooks/use-professional-onboarding";
 import { cn } from "@/lib/utils";
 
+function fireOnboardingConfetti() {
+  confetti({
+    particleCount: 100,
+    spread: 70,
+    origin: { y: 0.7 },
+    colors: ["#22c55e", "#16a34a", "#fbbf24", "#8b5cf6", "#ec4899", "#06b6d4"],
+  });
+}
+
 export function ProfessionalOnboardingChecklist() {
   const { steps, completedCount, totalSteps, allComplete, loading } =
     useProfessionalOnboarding();
 
-  if (loading || allComplete) return null;
+  if (loading) return null;
+
+  if (allComplete) {
+    return (
+      <Card className="border-primary/30 bg-gradient-to-br from-primary/5 to-primary/10 py-4">
+        <CardHeader className="pb-2 sm:pb-3">
+          <div className="flex items-center gap-2">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/20">
+              <PartyPopper className="h-4 w-4 text-primary" aria-hidden />
+            </div>
+            <div>
+              <CardTitle className="text-base sm:text-lg">
+                ¡Felicidades!
+              </CardTitle>
+              <p className="text-xs sm:text-sm text-muted-foreground font-normal mt-0.5">
+                Completaste la configuración. Ya puedes recibir pacientes.
+              </p>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="pt-0">
+          <Button
+            onClick={fireOnboardingConfetti}
+            className="w-full gap-2"
+            variant="secondary"
+          >
+            <PartyPopper className="h-4 w-4" />
+            ¡Ver confeti!
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
 
   const progressPercent = totalSteps > 0 ? (completedCount / totalSteps) * 100 : 0;
 

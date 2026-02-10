@@ -94,6 +94,7 @@ export async function POST(request: NextRequest) {
       evidence_type = 'none',
       evidence_url,
       notes,
+      is_public = false,
     } = body;
 
     if (!challenge_purchase_id) {
@@ -179,6 +180,7 @@ export async function POST(request: NextRequest) {
         evidence_type: evidence_type || 'none',
         evidence_url: evidence_url || null,
         notes: notes || null,
+        is_public: !!is_public,
       })
       .select()
       .single();

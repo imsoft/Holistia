@@ -203,7 +203,7 @@ export function AppointmentPolicies({
 
   // professional + card (dashboard)
   return (
-    <Card className={cn("border-primary/20 bg-muted/30", className)}>
+    <Card className={cn("border-primary/20 bg-muted/30 py-4", className)}>
       <Accordion type="single" collapsible defaultValue="policies" className="w-full">
         <AccordionItem value="policies" className="border-0">
           <AccordionTrigger className="py-4 px-6 hover:no-underline [&[data-state=open]]:border-b [&[data-state=open]]:border-border [&[data-state=open]]:pb-2">

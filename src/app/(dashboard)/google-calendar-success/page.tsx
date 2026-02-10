@@ -56,7 +56,7 @@ function GoogleCalendarSuccessContent() {
     if (accountType === "admin") {
       router.push(`/admin/${userId}/dashboard`);
     } else {
-      router.push(`/professional/${userId}/settings`);
+      router.push(`/appointments`);
     }
   };
 
@@ -99,7 +99,7 @@ function GoogleCalendarSuccessContent() {
                 className="flex-1"
                 size="lg"
               >
-                Ir a Configuración
+                Ir a Mis Citas
               </Button>
             </div>
 

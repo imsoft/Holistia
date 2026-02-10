@@ -52,8 +52,10 @@ import { Appointment } from "@/types";
 import { createClient } from "@/utils/supabase/client";
 import { toast } from "sonner";
 import { listUserGoogleCalendarEvents, syncAllAppointmentsToGoogleCalendar } from "@/actions/google-calendar";
+import { syncAllEventsToGoogleCalendar } from "@/actions/google-calendar/events";
+import { syncGoogleCalendarEvents, subscribeToCalendarNotifications } from "@/actions/google-calendar/sync";
 import { RefreshCw, UserCheck } from "lucide-react";
-import { GoogleCalendarIntegration } from "@/components/google-calendar-integration";
+// Google Calendar sync se maneja inline con el botón "Sincronizar calendario" en el header
 import { AppointmentPolicies } from "@/components/shared/appointment-policies";
 
 type CalendarView = "day" | "week" | "month" | "year";
@@ -302,11 +304,11 @@ export default function ProfessionalAppointments() {
     setCurrentDate(new Date());
   };
 
-  // Función para sincronizar calendario
+  // Sincronización bidireccional completa con Google Calendar
   const handleSyncCalendar = async () => {
     setSyncing(true);
     try {
-      // Primero verificar si el profesional tiene Google Calendar conectado
+      // Verificar si el profesional tiene Google Calendar conectado
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('google_calendar_connected')
@@ -319,46 +321,87 @@ export default function ProfessionalAppointments() {
         return;
       }
 
-      // Si no tiene Google Calendar conectado, redirigir a configuración
+      // Si no tiene Google Calendar conectado, iniciar flujo de conexión
       if (!profile.google_calendar_connected) {
-        toast.error('Primero debes conectar tu cuenta de Google Calendar', {
-          description: 'Serás redirigido a la página de configuración',
-          duration: 3000,
-        });
-
-        setTimeout(() => {
-          window.location.href = `/settings`;
-        }, 2000);
-
+        try {
+          const response = await fetch('/api/google-calendar/auth');
+          const data = await response.json();
+          if (data.success && data.authUrl) {
+            toast.info('Redirigiendo a Google para conectar tu calendario...', { duration: 2000 });
+            window.location.href = data.authUrl;
+          } else {
+            toast.error('Error al generar URL de autorización');
+          }
+        } catch {
+          toast.error('Error al conectar con Google Calendar');
+        }
         setSyncing(false);
         return;
       }
 
-      // Si está conectado, proceder con la sincronización
       if (!userId) {
         toast.error("No se pudo obtener el ID del usuario");
+        setSyncing(false);
         return;
       }
-      const result = await syncAllAppointmentsToGoogleCalendar(userId);
-      if (result.success) {
-        toast.success(result.message || 'Calendario sincronizado correctamente');
-        // Refetch datos para actualizar las citas
-        setRefreshKey(prev => prev + 1);
-      } else {
-        // Si el error es por cuenta no conectada, redirigir
-        if (result.error?.includes('no está conectado') || result.error?.includes('Tokens') || result.error?.includes('Google Calendar')) {
-          toast.error('Tu cuenta de Google Calendar no está configurada correctamente', {
-            description: 'Serás redirigido a la página de configuración',
-            duration: 3000,
-          });
 
-          setTimeout(() => {
-            window.location.href = `/settings`;
-          }, 2000);
+      // Sincronización bidireccional completa:
+      // 1. Importar eventos de Google -> Holistia (bloques de disponibilidad)
+      // 2. Enviar citas de Holistia -> Google
+      // 3. Enviar eventos de Holistia -> Google
+      // 4. Suscribirse a notificaciones push de Google
+      const [importResult, appointmentsResult, eventsResult] = await Promise.allSettled([
+        syncGoogleCalendarEvents(userId),
+        syncAllAppointmentsToGoogleCalendar(userId),
+        syncAllEventsToGoogleCalendar(userId),
+      ]);
+
+      // Contar resultados
+      const imported = importResult.status === 'fulfilled' && importResult.value.success
+        ? (importResult.value.created || 0)
+        : 0;
+      const appointmentsSynced = appointmentsResult.status === 'fulfilled' && appointmentsResult.value.success
+        ? (appointmentsResult.value.syncedCount || 0)
+        : 0;
+      const eventsSynced = eventsResult.status === 'fulfilled' && eventsResult.value.success
+        ? (eventsResult.value.syncedCount || 0)
+        : 0;
+
+      const totalSynced = imported + appointmentsSynced + eventsSynced;
+
+      // Suscribirse a notificaciones push (en background, no falla el sync)
+      subscribeToCalendarNotifications(userId).catch(() => {});
+
+      if (totalSynced > 0) {
+        const parts: string[] = [];
+        if (appointmentsSynced > 0) parts.push(`${appointmentsSynced} cita(s)`);
+        if (eventsSynced > 0) parts.push(`${eventsSynced} evento(s)`);
+        if (imported > 0) parts.push(`${imported} bloqueo(s) importados`);
+        toast.success(`Sincronizado: ${parts.join(', ')}`, { duration: 4000 });
+      } else {
+        // Verificar si hubo errores
+        const hasError = [importResult, appointmentsResult, eventsResult].some(
+          r => r.status === 'rejected' || (r.status === 'fulfilled' && !r.value.success)
+        );
+        if (hasError) {
+          // Si el error es por tokens/conexión, sugerir reconectar
+          const errorMsg = appointmentsResult.status === 'fulfilled' && !appointmentsResult.value.success
+            ? ('error' in appointmentsResult.value ? appointmentsResult.value.error : '')
+            : '';
+          if (errorMsg?.includes('no está conectado') || errorMsg?.includes('Tokens')) {
+            toast.error('Tu cuenta de Google Calendar necesita reconectarse', {
+              description: 'Haz clic en Sincronizar de nuevo para reconectar',
+              duration: 4000,
+            });
+          } else {
+            toast.error('Error al sincronizar con Google Calendar');
+          }
         } else {
-          toast.error(result.error || 'Error al sincronizar el calendario');
+          toast.info('Todo está sincronizado, no hay cambios pendientes');
         }
       }
+
+      setRefreshKey(prev => prev + 1);
     } catch (error) {
       console.error('Error sincronizando calendario:', error);
       toast.error('Error al sincronizar el calendario');
@@ -1402,12 +1445,6 @@ export default function ProfessionalAppointments() {
         </DialogContent>
       </Dialog>
 
-      {/* Google Calendar Integration */}
-      {userId && (
-        <div className="p-6">
-          <GoogleCalendarIntegration userId={userId} />
-        </div>
-      )}
     </div>
   );
 }

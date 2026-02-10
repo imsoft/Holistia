@@ -215,8 +215,8 @@ export default function AvailabilityPage() {
             <AvailabilityBlockManager professionalId={professional.id} userId={user.id} />
           </div>
 
-          {/* Columna derecha: preview en vivo */}
-          <div className="lg:sticky lg:top-6 lg:self-start">
+          {/* Columna derecha: preview en vivo — sticky que sigue al scroll */}
+          <div className="lg:sticky lg:top-[calc(4rem+1.5rem)] lg:self-start lg:max-h-[calc(100vh-4rem-3rem)] lg:overflow-y-auto lg:scrollbar-thin">
             <AvailabilityPreview professionalId={professional.id} />
           </div>
         </div>

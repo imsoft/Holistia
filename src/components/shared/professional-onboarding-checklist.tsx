@@ -17,7 +17,7 @@ export function ProfessionalOnboardingChecklist() {
   const progressPercent = totalSteps > 0 ? (completedCount / totalSteps) * 100 : 0;
 
   return (
-    <Card className="border-primary/30 bg-gradient-to-br from-primary/5 to-primary/10">
+    <Card className="border-primary/30 bg-gradient-to-br from-primary/5 to-primary/10 py-4">
       <CardHeader className="pb-2 sm:pb-3">
         <div className="flex items-center gap-2">
           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/20">

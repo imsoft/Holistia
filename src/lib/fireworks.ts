@@ -21,22 +21,23 @@ function burst(x: number, y: number) {
     origin: { x, y },
     startVelocity: 28,
     colors: FIREWORKS_COLORS,
-    shapes: ["circle", "circle", "star"],
+    shapes: ["circle"],
     scalar: 1.1,
-    gravity: 0.8,
-    ticks: 200,
+    gravity: 0.7,
+    ticks: 280,
   });
 }
 
 /**
- * Dispara una secuencia de fuegos artificiales: varias explosiones
- * en posiciones horizontales distintas con un pequeño retraso entre ellas.
+ * Dispara una secuencia de fuegos artificiales (~3 s): varias explosiones
+ * en posiciones horizontales con retraso entre ellas; solo círculos.
  */
 export function fireFireworks() {
-  const positions = [0.25, 0.5, 0.75, 0.35, 0.65];
+  const positions = [0.25, 0.5, 0.75, 0.35, 0.65, 0.45];
   const y = 0.5;
+  const intervalMs = 480;
 
   positions.forEach((x, i) => {
-    setTimeout(() => burst(x, y), i * 180);
+    setTimeout(() => burst(x, y), i * intervalMs);
   });
 }

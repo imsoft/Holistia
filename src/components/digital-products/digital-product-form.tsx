@@ -27,6 +27,7 @@ import {
   Headphones,
   Video,
   Tag,
+  File,
 } from "lucide-react";
 import { toast } from "sonner";
 import { getFullErrorMessage } from "@/lib/error-messages";
@@ -69,9 +70,11 @@ export function DigitalProductForm({ professionalId, product, redirectPath, isAd
   const router = useRouter();
   const [saving, setSaving] = useState(false);
   const [uploadingCover, setUploadingCover] = useState(false);
-  /** ID del producto creado al subir imagen de portada (evita duplicado al hacer submit) */
+  const [uploadingFile, setUploadingFile] = useState(false);
+  /** ID del producto creado al subir imagen de portada o archivo (evita duplicado al hacer submit) */
   const [createdProductId, setCreatedProductId] = useState<string | null>(null);
   const coverFileInputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const supabase = createClient();
 
   const [formData, setFormData] = useState({
@@ -252,6 +255,145 @@ export function DigitalProductForm({ professionalId, product, redirectPath, isAd
     }
   };
 
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (!files || files.length === 0) return;
+
+    const file = files[0];
+
+    // Validar tamaño (máximo 50MB - límite del bucket)
+    if (file.size > 50 * 1024 * 1024) {
+      toast.error('El archivo debe ser menor a 50MB');
+      return;
+    }
+
+    // Validar tipos permitidos
+    const allowedTypes = [
+      'image/jpeg', 'image/png', 'image/webp', 'image/gif',
+      'application/pdf',
+      'audio/mpeg', 'audio/wav',
+      'video/mp4', 'video/quicktime',
+      'application/zip',
+    ];
+    if (!allowedTypes.includes(file.type)) {
+      toast.error('Tipo de archivo no permitido. Formatos aceptados: PDF, imágenes, audio (MP3, WAV), video (MP4, MOV), ZIP');
+      return;
+    }
+
+    setUploadingFile(true);
+
+    try {
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+      if (authError || !user) {
+        throw new Error('Debes estar autenticado para subir archivos');
+      }
+
+      let productId = product?.id ?? createdProductId;
+
+      if (!productId) {
+        if (!formData.title || !formData.description || !formData.price) {
+          toast.error('Por favor completa título, descripción y precio antes de subir el archivo');
+          setUploadingFile(false);
+          return;
+        }
+
+        const { data: professionalData } = await supabase
+          .from("professional_applications")
+          .select("id")
+          .eq(isAdminContext ? "id" : "user_id", professionalId)
+          .eq("status", "approved")
+          .single();
+
+        if (!professionalData) {
+          throw new Error('No se encontró tu perfil de profesional');
+        }
+
+        const { data: tempProduct, error: createError } = await supabase
+          .from("digital_products")
+          .insert({
+            title: formData.title,
+            description: formData.description,
+            category: formData.category,
+            price: parseFloat(formData.price),
+            currency: formData.currency,
+            professional_id: professionalData.id,
+            is_active: formData.is_active,
+            duration_minutes: formData.duration_minutes ? parseInt(formData.duration_minutes) : null,
+            pages_count: formData.pages_count ? parseInt(formData.pages_count) : null,
+            wellness_areas: formData.wellness_areas && formData.wellness_areas.length > 0 ? formData.wellness_areas : [],
+          })
+          .select()
+          .single();
+
+        if (createError) {
+          throw new Error(createError.message);
+        }
+
+        productId = tempProduct.id;
+        setCreatedProductId(tempProduct.id);
+      }
+
+      const fileExt = file.name.split('.').pop();
+      const fileName = `file-${Date.now()}.${fileExt}`;
+      const filePath = `${productId}/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('digital-products')
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: true,
+        });
+
+      if (uploadError) {
+        throw uploadError;
+      }
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('digital-products')
+        .getPublicUrl(filePath);
+
+      setFormData({ ...formData, file_url: publicUrl });
+      toast.success('Archivo subido exitosamente');
+
+    } catch (error) {
+      console.error('Error uploading file:', error);
+      const errorMsg = getFullErrorMessage(error, 'Error al subir el archivo');
+      toast.error(errorMsg, { duration: 6000 });
+    } finally {
+      setUploadingFile(false);
+      // Limpiar el input para permitir subir el mismo archivo de nuevo
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
+  const handleRemoveFile = async () => {
+    try {
+      const productId = product?.id ?? createdProductId;
+      if (formData.file_url && productId) {
+        const urlParts = formData.file_url.split('/');
+        const fileName = urlParts[urlParts.length - 1];
+        const filePath = `${productId}/${fileName}`;
+
+        const { error: deleteError } = await supabase.storage
+          .from('digital-products')
+          .remove([filePath]);
+
+        if (deleteError && !deleteError.message.includes('not found')) {
+          throw deleteError;
+        }
+      }
+
+      setFormData({ ...formData, file_url: '' });
+      toast.success('Archivo eliminado');
+    } catch (error) {
+      console.error('Error removing file:', error);
+      setFormData({ ...formData, file_url: '' });
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -322,21 +464,7 @@ export function DigitalProductForm({ professionalId, product, redirectPath, isAd
         return;
       }
 
-      // Validar URL del archivo si se proporciona
-      let fileUrl = formData.file_url?.trim() || null;
-      if (fileUrl) {
-        try {
-          // Intentar crear un objeto URL para validar el formato
-          // Si no tiene protocolo, intentar agregar https://
-          if (!fileUrl.match(/^https?:\/\//i)) {
-            fileUrl = `https://${fileUrl}`;
-          }
-          new URL(fileUrl);
-        } catch {
-          toast.error("La URL del archivo no es válida. Por favor, ingresa una URL completa que empiece con http:// o https://. Por ejemplo: https://ejemplo.com/archivo.pdf", { duration: 7000 });
-          return;
-        }
-      }
+      const fileUrl = formData.file_url?.trim() || null;
 
       const productData = {
         professional_id: professionalData.id,
@@ -523,23 +651,67 @@ export function DigitalProductForm({ professionalId, product, redirectPath, isAd
       </div>
 
       <div>
-        <Label htmlFor="file_url" className="mb-2 block">
-          URL del Archivo (producto final) <span className="text-muted-foreground font-normal">(opcional)</span>
+        <Label htmlFor="product_file" className="mb-2 block">
+          Archivo del Programa <span className="text-muted-foreground font-normal">(opcional)</span>
         </Label>
-        <Input
-          id="file_url"
-          type="url"
-          value={formData.file_url}
-          onChange={(e) => setFormData({ ...formData, file_url: e.target.value })}
-          placeholder="https://ejemplo.com/archivo.pdf"
-        />
-        <p className="text-xs text-muted-foreground mt-1">
-          Los compradores recibirán acceso a este archivo después del pago. Puedes dejar este campo vacío si no tienes un archivo para compartir.
-        </p>
-        {formData.file_url && formData.file_url.trim() && (
-          <p className="text-xs text-muted-foreground mt-1">
-            💡 Tip: Si no tienes https://, lo agregaremos automáticamente. Ejemplo: "ejemplo.com/archivo.pdf" se convertirá en "https://ejemplo.com/archivo.pdf"
-          </p>
+        {formData.file_url ? (
+          <div className="space-y-2">
+            <div className="flex items-center gap-3 p-4 border border-border rounded-lg bg-muted/30">
+              <File className="h-8 w-8 text-primary shrink-0" />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium truncate">Archivo subido</p>
+                <p className="text-xs text-muted-foreground truncate">{formData.file_url.split('/').pop()}</p>
+              </div>
+            </div>
+            <Button
+              type="button"
+              variant="destructive"
+              size="sm"
+              onClick={handleRemoveFile}
+              className="w-full"
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Eliminar Archivo
+            </Button>
+          </div>
+        ) : (
+          <div className="border-2 border-dashed border-border rounded-lg p-6">
+            <input
+              ref={fileInputRef}
+              type="file"
+              id="product_file"
+              accept=".pdf,.mp3,.wav,.mp4,.mov,.zip,.jpg,.jpeg,.png,.webp,.gif"
+              onChange={handleFileUpload}
+              className="hidden"
+            />
+            <div className="flex flex-col items-center justify-center text-center">
+              <File className="h-12 w-12 text-muted-foreground mb-2" />
+              <p className="text-sm text-muted-foreground mb-2">
+                Sube el archivo que recibirán los compradores
+              </p>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploadingFile}
+              >
+                {uploadingFile ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mr-2"></div>
+                    Subiendo...
+                  </>
+                ) : (
+                  <>
+                    <Upload className="h-4 w-4 mr-2" />
+                    Seleccionar Archivo
+                  </>
+                )}
+              </Button>
+              <p className="text-xs text-muted-foreground mt-2">
+                Máximo 50MB. Formatos: PDF, imágenes, audio (MP3, WAV), video (MP4, MOV), ZIP
+              </p>
+            </div>
+          </div>
         )}
       </div>
 

@@ -634,7 +634,7 @@ export function ExploreClient({
                   }}
                 >
                   {filteredChallenges.map((challenge) => (
-                    <div key={challenge.id} className="shrink-0 w-96 h-[420px]">
+                    <div key={challenge.id} className="shrink-0 w-[280px] sm:w-[320px] h-[420px]">
                       <ChallengeCard
                         challenge={challenge as any}
                         userId={userId || undefined}
@@ -761,7 +761,7 @@ export function ExploreClient({
                     {filteredProfessionals.map((professional) => (
                       <div
                         key={professional.id}
-                        className="shrink-0 w-96"
+                        className="shrink-0 w-[280px] sm:w-[320px]"
                         onClick={() => {}}
                       >
                         <ProfessionalCard

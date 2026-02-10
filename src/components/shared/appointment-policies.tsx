@@ -1,12 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FileText, Clock, UserX, Receipt } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -203,23 +197,19 @@ export function AppointmentPolicies({
 
   // professional + card (dashboard)
   return (
-    <Card className={cn("border-primary/20 bg-muted/30 py-4", className)}>
-      <Accordion type="single" collapsible defaultValue="policies" className="w-full">
-        <AccordionItem value="policies" className="border-0">
-          <AccordionTrigger className="py-4 px-6 hover:no-underline [&[data-state=open]]:border-b [&[data-state=open]]:border-border [&[data-state=open]]:pb-2">
-            <span className="flex items-center gap-2 text-left font-semibold text-foreground">
-              <FileText className="h-4 w-4 text-primary shrink-0" aria-hidden />
-              Políticas de citas (cancelación, no-show, reembolsos)
-            </span>
-          </AccordionTrigger>
-          <AccordionContent className="px-6 pb-4 pt-0">
-            <ProfessionalPolicyContent />
-            <p className="mt-4 pt-3 border-t border-border">
-              <TermsLink />
-            </p>
-          </AccordionContent>
-        </AccordionItem>
-      </Accordion>
+    <Card className={cn("border-primary/20 bg-muted/30", className)}>
+      <CardHeader className="pb-2">
+        <CardTitle className="text-base flex items-center gap-2">
+          <FileText className="h-4 w-4 text-primary shrink-0" aria-hidden />
+          Políticas de citas (cancelación, no-show, reembolsos)
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4 pt-0">
+        <ProfessionalPolicyContent />
+        <div className="pt-3 border-t border-border">
+          <TermsLink />
+        </div>
+      </CardContent>
     </Card>
   );
 }

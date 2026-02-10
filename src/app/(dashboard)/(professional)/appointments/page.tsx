@@ -1287,11 +1287,6 @@ export default function ProfessionalAppointments() {
         );
       })()}
 
-      {/* Políticas de citas visibles para el profesional */}
-      <div className="px-4 sm:px-6 pt-2 pb-2">
-        <AppointmentPolicies variant="professional" layout="card" />
-      </div>
-
       {/* Calendar */}
       <div className="p-6" style={{ minHeight: 'calc(100vh - 8rem)' }}>
         <div className="h-full bg-card border border-border rounded-lg overflow-hidden" style={{ minHeight: '600px' }}>
@@ -1300,6 +1295,11 @@ export default function ProfessionalAppointments() {
           {view === "month" && renderMonthView()}
           {view === "year" && renderYearView()}
         </div>
+      </div>
+
+      {/* Políticas de citas visibles para el profesional */}
+      <div className="px-4 sm:px-6 pb-6">
+        <AppointmentPolicies variant="professional" layout="card" />
       </div>
 
       {/* Dialogs */}

@@ -127,10 +127,24 @@ export function doesBlockApplyToDate(date: string, block: BlockData): boolean {
   }
 }
 
+/** Convierte "HH:MM" a minutos desde medianoche */
+function timeToMinutes(time: string): number {
+  const [h, m] = time.substring(0, 5).split(':').map(Number);
+  return h * 60 + m;
+}
+
 /**
  * Dado un bloque que aplica a una fecha, determina si cubre un horario específico.
+ *
+ * `slotDurationMinutes` (default 60) permite detectar solapamientos parciales:
+ * un evento de Google Calendar de 12:45-13:45 bloqueará el slot de las 12:00
+ * porque la cita de 12:00-13:00 se solapa con el bloque.
  */
-export function doesBlockCoverTime(time: string, block: BlockData): boolean {
+export function doesBlockCoverTime(
+  time: string,
+  block: BlockData,
+  slotDurationMinutes = 60,
+): boolean {
   // Bloqueo de día completo (sin start_time/end_time)
   if (
     (block.block_type === 'full_day' || block.block_type === 'weekly_day') &&
@@ -139,12 +153,14 @@ export function doesBlockCoverTime(time: string, block: BlockData): boolean {
     return true; // Bloquea todo el día
   }
 
-  // Bloqueo con rango de horas
+  // Bloqueo con rango de horas — detección de solapamiento
   if (block.start_time && block.end_time) {
-    const blockStart = block.start_time.substring(0, 5);
-    const blockEnd = block.end_time.substring(0, 5);
-    const timeNorm = time.substring(0, 5);
-    return timeNorm >= blockStart && timeNorm < blockEnd;
+    const blockStart = timeToMinutes(block.start_time);
+    const blockEnd = timeToMinutes(block.end_time);
+    const slotStart = timeToMinutes(time);
+    const slotEnd = slotStart + slotDurationMinutes;
+    // Dos rangos se solapan si uno empieza antes de que el otro termine
+    return slotStart < blockEnd && slotEnd > blockStart;
   }
 
   return false;
@@ -153,16 +169,16 @@ export function doesBlockCoverTime(time: string, block: BlockData): boolean {
 /**
  * Verifica si un slot específico (fecha + hora) está bloqueado por un bloque dado.
  */
-export function isSlotBlockedByBlock(date: string, time: string, block: BlockData): boolean {
+export function isSlotBlockedByBlock(date: string, time: string, block: BlockData, slotDurationMinutes?: number): boolean {
   if (!doesBlockApplyToDate(date, block)) return false;
-  return doesBlockCoverTime(time, block);
+  return doesBlockCoverTime(time, block, slotDurationMinutes);
 }
 
 /**
  * Verifica si un slot (fecha + hora) está bloqueado por ALGÚN bloque de la lista.
  */
-export function isSlotBlocked(date: string, time: string, blocks: BlockData[]): boolean {
-  return blocks.some(block => isSlotBlockedByBlock(date, time, block));
+export function isSlotBlocked(date: string, time: string, blocks: BlockData[], slotDurationMinutes?: number): boolean {
+  return blocks.some(block => isSlotBlockedByBlock(date, time, block, slotDurationMinutes));
 }
 
 /**
@@ -245,7 +261,8 @@ export function getSlotStatus(
   time: string,
   workingHours: WorkingHoursData,
   blocks: BlockData[],
-  occupiedTimes: Set<string>
+  occupiedTimes: Set<string>,
+  slotDurationMinutes?: number,
 ): SlotStatus {
   const dayOfWeek = getDayOfWeekFromDate(date);
 
@@ -269,7 +286,7 @@ export function getSlotStatus(
     return 'occupied';
   }
 
-  if (isSlotBlocked(date, time, blocks)) {
+  if (isSlotBlocked(date, time, blocks, slotDurationMinutes)) {
     return 'blocked';
   }
 

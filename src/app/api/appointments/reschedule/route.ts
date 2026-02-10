@@ -148,7 +148,7 @@ export async function POST(request: Request) {
       .eq("professional_id", appointment.professional_id);
 
     if (blocks && blocks.length > 0) {
-      if (isSlotBlocked(newDate, newTimeNormalized, blocks)) {
+      if (isSlotBlocked(newDate, newTimeNormalized, blocks, appointment.duration_minutes || 50)) {
         return NextResponse.json(
           { error: "Este horario no está disponible. Puede estar bloqueado por un evento en el calendario." },
           { status: 400 }

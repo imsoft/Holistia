@@ -164,7 +164,7 @@ export async function POST(request: NextRequest) {
       if (blocks && blocks.length > 0) {
         const appointmentTimeNorm = appointment_time.substring(0, 5);
 
-        if (isSlotBlocked(appointment_date, appointmentTimeNorm, blocks)) {
+        if (isSlotBlocked(appointment_date, appointmentTimeNorm, blocks, 50)) {
           console.log('⚠️ Time slot is blocked');
           return NextResponse.json(
             { error: 'Este horario no está disponible. Por favor elige otro horario.' },

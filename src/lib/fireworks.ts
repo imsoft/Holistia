@@ -30,14 +30,15 @@ function burst(x: number, y: number) {
 
 /**
  * Dispara una secuencia de fuegos artificiales (~3 s): varias explosiones
- * en posiciones horizontales con retraso entre ellas; solo círculos.
+ * en posiciones aleatorias con retraso entre ellas; solo círculos.
  */
 export function fireFireworks() {
-  const positions = [0.25, 0.5, 0.75, 0.35, 0.65, 0.45];
-  const y = 0.5;
+  const xPositions = [0.25, 0.5, 0.75, 0.35, 0.65, 0.45];
   const intervalMs = 480;
 
-  positions.forEach((x, i) => {
+  xPositions.forEach((x, i) => {
+    // Posición vertical aleatoria en la mitad superior (0.1 – 0.45)
+    const y = 0.1 + Math.random() * 0.35;
     setTimeout(() => burst(x, y), i * intervalMs);
   });
 }

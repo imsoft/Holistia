@@ -21,6 +21,7 @@ import Link from "next/link";
 import { createClient } from "@/utils/supabase/client";
 import { useProfile } from "@/hooks/use-profile";
 import { NotificationsDropdown } from "@/components/ui/notifications-dropdown";
+import { PatientOnboardingButton } from "@/components/shared/patient-onboarding-checklist";
 import { useUserId } from "@/stores/user-store";
 import { useLoadFavorites } from "@/stores/favorites-store";
 import { LayoutSkeleton } from "@/components/ui/layout-skeleton";
@@ -228,6 +229,9 @@ export default function UserLayout({
             </div>
 
             <div className="hidden sm:ml-6 sm:flex sm:items-center gap-2">
+              {/* Onboarding */}
+              <PatientOnboardingButton />
+
               {/* Notifications */}
               <NotificationsDropdown />
 
@@ -295,7 +299,8 @@ export default function UserLayout({
               </DropdownMenu>
             </div>
 
-            <div className="flex items-center sm:hidden">
+            <div className="flex items-center gap-1 sm:hidden">
+              <PatientOnboardingButton />
               <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen} modal={false}>
                 <SheetTrigger asChild>
                   <Button

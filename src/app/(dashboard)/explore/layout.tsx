@@ -21,6 +21,7 @@ import Link from "next/link";
 import { createClient } from "@/utils/supabase/client";
 import { useProfile } from "@/hooks/use-profile";
 import { NotificationsDropdown } from "@/components/ui/notifications-dropdown";
+import { PatientOnboardingButton } from "@/components/shared/patient-onboarding-checklist";
 import { Navbar } from "@/components/shared/navbar";
 import { Footer } from "@/components/shared/footer";
 import { useUserStore } from "@/stores/user-store";
@@ -30,7 +31,6 @@ import { LayoutSkeleton } from "@/components/ui/layout-skeleton";
 // Función para generar navegación (URLs limpias sin IDs)
 const getNavigation = (hasEvents: boolean = false) => {
   const nav = [
-    { name: "Inicio", href: `/` },
     { name: "Explorar", href: `/explore` },
     { name: "Feed", href: `/feed` },
     { name: "Favoritos", href: `/explore/favorites` },
@@ -289,6 +289,9 @@ export default function ExploreLayout({
             </div>
 
             <div className="hidden sm:ml-6 sm:flex sm:items-center gap-2">
+              {/* Onboarding */}
+              <PatientOnboardingButton />
+
               {/* Notifications */}
               <NotificationsDropdown />
 
@@ -356,7 +359,8 @@ export default function ExploreLayout({
               </DropdownMenu>
             </div>
 
-            <div className="flex items-center sm:hidden">
+            <div className="flex items-center gap-1 sm:hidden">
+              <PatientOnboardingButton />
               <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen} modal={false}>
                 <SheetTrigger asChild>
                   <Button

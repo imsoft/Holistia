@@ -1,14 +1,28 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
-import { Check, ChevronRight, Compass } from "lucide-react";
+import { Check, ChevronRight, Compass, X } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { usePatientOnboarding } from "@/hooks/use-patient-onboarding";
 import { cn } from "@/lib/utils";
 
-export function PatientOnboardingChecklist() {
+/**
+ * Card interna con el checklist de onboarding.
+ * Se usa tanto en el popover del botón como inline si se necesita.
+ */
+function OnboardingCardContent({
+  onClose,
+}: {
+  onClose?: () => void;
+}) {
   const { steps, completedCount, totalSteps, allComplete, loading } =
     usePatientOnboarding();
 
@@ -17,13 +31,13 @@ export function PatientOnboardingChecklist() {
   const progressPercent = totalSteps > 0 ? (completedCount / totalSteps) * 100 : 0;
 
   return (
-    <Card className="border-primary/30 bg-gradient-to-br from-primary/5 to-primary/10">
+    <Card className="border-primary/30 bg-gradient-to-br from-primary/5 to-primary/10 py-4">
       <CardHeader className="pb-2 sm:pb-3">
-        <div className="flex items-center gap-2">
+        <div className="flex items-start gap-2">
           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/20">
             <Compass className="h-4 w-4 text-primary" aria-hidden />
           </div>
-          <div>
+          <div className="flex-1 min-w-0">
             <CardTitle className="text-base sm:text-lg">
               Empieza tu camino en Holistia
             </CardTitle>
@@ -31,6 +45,17 @@ export function PatientOnboardingChecklist() {
               {completedCount} de {totalSteps} pasos completados
             </p>
           </div>
+          {onClose && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7 shrink-0 -mt-0.5 -mr-1"
+              onClick={onClose}
+            >
+              <X className="h-4 w-4" />
+              <span className="sr-only">Cerrar</span>
+            </Button>
+          )}
         </div>
         <Progress value={progressPercent} className="h-2 mt-3" />
       </CardHeader>
@@ -47,6 +72,7 @@ export function PatientOnboardingChecklist() {
                     : "text-foreground hover:bg-primary/10"
                 )}
                 asChild
+                onClick={onClose}
               >
                 <Link href={step.href}>
                   <span className="flex items-center gap-3 text-left">
@@ -77,4 +103,56 @@ export function PatientOnboardingChecklist() {
       </CardContent>
     </Card>
   );
+}
+
+/**
+ * Botón de onboarding para la barra de navegación.
+ * Muestra un icono de brújula con badge de progreso.
+ * Al hacer clic abre un popover con la card de onboarding.
+ */
+export function PatientOnboardingButton() {
+  const [open, setOpen] = useState(false);
+  const { completedCount, totalSteps, allComplete, loading } =
+    usePatientOnboarding();
+
+  if (loading || allComplete) return null;
+
+  const remaining = totalSteps - completedCount;
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="relative h-9 w-9 rounded-full"
+          aria-label={`Onboarding: ${completedCount} de ${totalSteps} pasos completados`}
+        >
+          <Compass className="h-5 w-5 text-primary" />
+          {remaining > 0 && (
+            <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
+              {remaining}
+            </span>
+          )}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent
+        align="end"
+        sideOffset={8}
+        className="w-[340px] sm:w-[380px] p-0 border-0 shadow-lg"
+      >
+        <OnboardingCardContent onClose={() => setOpen(false)} />
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+/**
+ * Card inline de onboarding (para la página de explorar).
+ * Se mantiene por compatibilidad, ahora es el botón el principal.
+ */
+export function PatientOnboardingChecklist() {
+  const { allComplete, loading } = usePatientOnboarding();
+  if (loading || allComplete) return null;
+  return <OnboardingCardContent />;
 }

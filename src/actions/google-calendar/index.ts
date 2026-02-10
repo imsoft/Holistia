@@ -423,6 +423,91 @@ export async function deleteAppointmentFromGoogleCalendar(
 }
 
 /**
+ * Actualizar el estado de una cita en Google Calendar (completada, no-show, etc.)
+ * Solo actualiza el título y color para reflejar el nuevo estado.
+ */
+export async function updateAppointmentStatusInGoogleCalendar(
+  appointmentId: string,
+  userId: string,
+  status: 'completed' | 'patient_no_show' | 'professional_no_show'
+) {
+  try {
+    const supabase = await createClient();
+
+    const { data: appointment, error: appointmentError } = await supabase
+      .from('appointments')
+      .select(
+        `google_calendar_event_id,
+        patient:patient_id(first_name, last_name),
+        professional:professional_id(user_id)`
+      )
+      .eq('id', appointmentId)
+      .single();
+
+    if (appointmentError || !appointment) {
+      return { success: false, error: 'No se pudo obtener la cita' };
+    }
+
+    const professional = Array.isArray(appointment.professional)
+      ? appointment.professional[0]
+      : appointment.professional;
+
+    if (professional?.user_id !== userId) {
+      return { success: false, error: 'No tienes permiso' };
+    }
+
+    if (!appointment.google_calendar_event_id) {
+      return { success: true, message: 'Sin evento de Google Calendar asociado' };
+    }
+
+    let accessToken: string;
+    let refreshToken: string;
+    try {
+      const tokens = await getUserGoogleTokens(userId);
+      accessToken = tokens.accessToken;
+      refreshToken = tokens.refreshToken;
+    } catch {
+      return { success: true, message: 'Google Calendar no conectado, se omite actualización' };
+    }
+
+    const patient = Array.isArray(appointment.patient)
+      ? appointment.patient[0]
+      : appointment.patient;
+    const patientName = patient
+      ? `${patient.first_name} ${patient.last_name}`
+      : 'Paciente';
+
+    const statusLabels: Record<string, { prefix: string; colorId: string }> = {
+      completed: { prefix: '✓ Completada', colorId: '10' }, // verde
+      patient_no_show: { prefix: '✗ Paciente no asistió', colorId: '11' }, // rojo
+      professional_no_show: { prefix: '✗ Profesional no asistió', colorId: '11' }, // rojo
+    };
+
+    const { prefix, colorId } = statusLabels[status];
+
+    const eventUpdate: Partial<GoogleCalendarEvent> = {
+      summary: `${prefix} - Cita con ${patientName}`,
+      colorId,
+    };
+
+    const result = await updateCalendarEvent(
+      accessToken,
+      refreshToken,
+      appointment.google_calendar_event_id,
+      eventUpdate
+    );
+
+    return result;
+  } catch (error: unknown) {
+    console.error('Error updating appointment status in Google Calendar:', error);
+    return {
+      success: false,
+      error: (error instanceof Error ? error.message : String(error)),
+    };
+  }
+}
+
+/**
  * Listar eventos del calendario del usuario
  */
 export async function listUserGoogleCalendarEvents(userId: string) {

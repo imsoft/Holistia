@@ -1,5 +1,6 @@
 import { createClient } from "@/utils/supabase/server";
 import { NextResponse } from "next/server";
+import { updateAppointmentStatusInGoogleCalendar } from "@/actions/google-calendar";
 
 /**
  * Marca una cita como realizada (completed).
@@ -75,6 +76,15 @@ export async function POST(request: Request) {
         { error: "Error al marcar la cita como realizada" },
         { status: 500 }
       );
+    }
+
+    // Actualizar estado en Google Calendar (non-blocking)
+    try {
+      if (professionalApp.user_id) {
+        await updateAppointmentStatusInGoogleCalendar(appointmentId, professionalApp.user_id, 'completed');
+      }
+    } catch (calendarError) {
+      console.error('Error updating Google Calendar event:', calendarError);
     }
 
     return NextResponse.json({

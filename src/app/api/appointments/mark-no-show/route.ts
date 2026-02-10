@@ -2,6 +2,7 @@ import { createClient } from '@/utils/supabase/server';
 import { NextResponse } from 'next/server';
 import { sendAppointmentNoShowNotification } from '@/lib/email-sender';
 import { wallClockToUtcMs } from '@/lib/availability';
+import { updateAppointmentStatusInGoogleCalendar } from '@/actions/google-calendar';
 
 export async function POST(request: Request) {
   try {
@@ -179,6 +180,15 @@ export async function POST(request: Request) {
       is_patient_no_show: markedBy === 'professional',
       dashboard_url: dashboardUrl
     });
+
+    // Actualizar estado en Google Calendar (non-blocking)
+    try {
+      if (professionalData.user_id) {
+        await updateAppointmentStatusInGoogleCalendar(appointmentId, professionalData.user_id, newStatus as 'patient_no_show' | 'professional_no_show');
+      }
+    } catch (calendarError) {
+      console.error('Error updating Google Calendar event:', calendarError);
+    }
 
     return NextResponse.json({
       success: true,

@@ -1,0 +1,42 @@
+/**
+ * Efecto de fuegos artificiales usando canvas-confetti.
+ * Varias explosiones desde diferentes posiciones con colores clásicos.
+ */
+
+import confetti from "canvas-confetti";
+
+const FIREWORKS_COLORS = [
+  "#fbbf24", // oro
+  "#f97316", // naranja
+  "#ef4444", // rojo
+  "#22c55e", // verde
+  "#ffffff", // blanco
+  "#8b5cf6", // violeta
+];
+
+function burst(x: number, y: number) {
+  confetti({
+    particleCount: 80,
+    spread: 360,
+    origin: { x, y },
+    startVelocity: 28,
+    colors: FIREWORKS_COLORS,
+    shapes: ["circle", "circle", "star"],
+    scalar: 1.1,
+    gravity: 0.8,
+    ticks: 200,
+  });
+}
+
+/**
+ * Dispara una secuencia de fuegos artificiales: varias explosiones
+ * en posiciones horizontales distintas con un pequeño retraso entre ellas.
+ */
+export function fireFireworks() {
+  const positions = [0.25, 0.5, 0.75, 0.35, 0.65];
+  const y = 0.5;
+
+  positions.forEach((x, i) => {
+    setTimeout(() => burst(x, y), i * 180);
+  });
+}

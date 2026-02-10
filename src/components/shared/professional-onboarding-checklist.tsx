@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import confetti from "canvas-confetti";
+import { fireFireworks } from "@/lib/fireworks";
 import { Check, ChevronRight, PartyPopper, Sparkles } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -10,12 +10,7 @@ import { useProfessionalOnboarding } from "@/hooks/use-professional-onboarding";
 import { cn } from "@/lib/utils";
 
 function fireOnboardingConfetti() {
-  confetti({
-    particleCount: 100,
-    spread: 70,
-    origin: { y: 0.7 },
-    colors: ["#22c55e", "#16a34a", "#fbbf24", "#8b5cf6", "#ec4899", "#06b6d4"],
-  });
+  fireFireworks();
 }
 
 export function ProfessionalOnboardingChecklist() {
@@ -45,8 +40,7 @@ export function ProfessionalOnboardingChecklist() {
         <CardContent className="pt-0">
           <Button
             onClick={fireOnboardingConfetti}
-            className="w-full gap-2"
-            variant="secondary"
+            className="w-full gap-2 bg-primary text-primary-foreground hover:bg-primary/90"
           >
             <PartyPopper className="h-4 w-4" />
             ¡Ver confeti!

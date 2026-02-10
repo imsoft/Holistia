@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { stripe, calculateCommission, calculateTransferAmount, formatAmountForStripe } from '@/lib/stripe';
 import { createClient } from '@/utils/supabase/server';
 import { isSlotBlocked, isWorkingDay, isWithinWorkingHours } from '@/lib/availability';
+import { slotsOverlap } from '@/lib/appointment-conflict';
 
 export async function POST(request: NextRequest) {
   try {
@@ -105,6 +106,24 @@ export async function POST(request: NextRequest) {
         );
       }
 
+      // Verificar que no haya solapamiento con otras citas (misma fecha, mismo profesional)
+      const { data: existingOnDate } = await supabase
+        .from('appointments')
+        .select('appointment_time, duration_minutes')
+        .eq('professional_id', professional_id)
+        .eq('appointment_date', appointment_date)
+        .not('status', 'eq', 'cancelled');
+
+      if (existingOnDate?.length && slotsOverlap(
+        { appointment_time: appointment_time, duration_minutes: 50 },
+        existingOnDate
+      )) {
+        return NextResponse.json(
+          { error: 'Este horario se solapa con otra cita. Por favor elige otro horario.' },
+          { status: 400 }
+        );
+      }
+
       // Verificar que el día sea laboral y la hora esté dentro del horario del profesional
       console.log('🔍 Checking working days/hours...');
       const { data: profWorkingHours } = await supabase
@@ -191,6 +210,13 @@ export async function POST(request: NextRequest) {
 
       if (createError || !newAppointment) {
         console.error('❌ Error creating appointment:', createError);
+        const code = createError?.code;
+        if (code === '23505') {
+          return NextResponse.json(
+            { error: 'Este horario ya no está disponible. Por favor elige otro horario.' },
+            { status: 400 }
+          );
+        }
         return NextResponse.json(
           { error: `Error al crear la cita: ${createError?.message || 'Unknown error'}` },
           { status: 500 }

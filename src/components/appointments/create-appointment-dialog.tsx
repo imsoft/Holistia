@@ -207,18 +207,29 @@ export function CreateAppointmentDialog({
         throw new Error("Servicio no encontrado");
       }
 
-      // Verificar que no exista una cita en el mismo horario (de cualquier paciente)
-      const { data: existingSlotAppointment } = await supabase
+      // Verificar que no exista una cita en el mismo horario ni solapamiento (de cualquier paciente)
+      const { data: existingOnDate } = await supabase
         .from('appointments')
-        .select('id')
+        .select('id, appointment_time, duration_minutes')
         .eq('professional_id', professionalId)
         .eq('appointment_date', appointmentDate)
-        .eq('appointment_time', appointmentTime)
-        .in('status', ['pending', 'confirmed', 'paid'])
-        .maybeSingle();
+        .not('status', 'eq', 'cancelled');
 
-      if (existingSlotAppointment) {
+      const exactMatch = existingOnDate?.find(
+        (a) => a.appointment_time === appointmentTime || String(a.appointment_time).slice(0, 5) === appointmentTime.slice(0, 5)
+      );
+      if (exactMatch) {
         setError("Ya existe una cita en esta fecha y hora. Por favor elige otro horario.");
+        setIsSubmitting(false);
+        return;
+      }
+
+      const { slotsOverlap } = await import('@/lib/appointment-conflict');
+      if (existingOnDate?.length && slotsOverlap(
+        { appointment_time: appointmentTime, duration_minutes: selectedService.duration },
+        existingOnDate.map((a) => ({ appointment_time: String(a.appointment_time), duration_minutes: a.duration_minutes ?? 50 }))
+      )) {
+        setError("Este horario se solapa con otra cita. Por favor elige otro horario.");
         setIsSubmitting(false);
         return;
       }
@@ -289,6 +300,11 @@ export function CreateAppointmentDialog({
 
       if (insertError) {
         console.error('Error creando cita:', insertError);
+        if (insertError.code === '23505') {
+          setError("Este horario ya no está disponible. Por favor elige otro horario.");
+          setIsSubmitting(false);
+          return;
+        }
         throw new Error(insertError.message);
       }
 

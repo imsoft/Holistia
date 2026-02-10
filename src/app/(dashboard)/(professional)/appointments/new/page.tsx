@@ -165,7 +165,7 @@ export default function NewAppointmentPage() {
         throw new Error("Servicio no encontrado");
       }
 
-      // Verificar que no exista una cita duplicada
+      // Verificar que no exista una cita duplicada (mismo paciente)
       const { data: existingAppointment } = await supabase
         .from('appointments')
         .select('id')
@@ -177,6 +177,33 @@ export default function NewAppointmentPage() {
 
       if (existingAppointment) {
         setError("Ya existe una cita para este paciente en esta fecha y hora");
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Verificar que no exista otra cita en el mismo horario ni solapamiento (cualquier paciente)
+      const { data: existingOnDate } = await supabase
+        .from('appointments')
+        .select('id, appointment_time, duration_minutes')
+        .eq('professional_id', professionalId)
+        .eq('appointment_date', appointmentDate)
+        .not('status', 'eq', 'cancelled');
+
+      const exactMatch = existingOnDate?.find(
+        (a) => String(a.appointment_time).slice(0, 5) === appointmentTime.slice(0, 5)
+      );
+      if (exactMatch) {
+        setError("Ya existe una cita en esta fecha y hora. Por favor elige otro horario.");
+        setIsSubmitting(false);
+        return;
+      }
+
+      const { slotsOverlap } = await import('@/lib/appointment-conflict');
+      if (existingOnDate?.length && slotsOverlap(
+        { appointment_time: appointmentTime, duration_minutes: selectedService.duration },
+        existingOnDate.map((a) => ({ appointment_time: String(a.appointment_time), duration_minutes: a.duration_minutes ?? 50 }))
+      )) {
+        setError("Este horario se solapa con otra cita. Por favor elige otro horario.");
         setIsSubmitting(false);
         return;
       }
@@ -251,6 +278,11 @@ export default function NewAppointmentPage() {
 
       if (insertError) {
         console.error('Error creando cita:', insertError);
+        if (insertError.code === '23505') {
+          setError("Este horario ya no está disponible. Por favor elige otro horario.");
+          setIsSubmitting(false);
+          return;
+        }
         throw new Error(insertError.message);
       }
 

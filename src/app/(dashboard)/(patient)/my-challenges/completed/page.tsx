@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { createClient } from "@/utils/supabase/client";
 import { toast } from "sonner";
 import { Trophy, ArrowRight, Loader2, Share2, Copy } from "lucide-react";
-import confetti from "canvas-confetti";
+import { fireFireworks } from "@/lib/fireworks";
 
 const getShareUrl = (purchaseId: string) =>
   typeof window !== "undefined"
@@ -82,38 +82,7 @@ export default function ChallengeCompletedPage() {
   useEffect(() => {
     if (loading || !data || confettiFired.current) return;
     confettiFired.current = true;
-
-    const duration = 4000;
-    const end = Date.now() + duration;
-
-    const frame = () => {
-      confetti({
-        particleCount: 4,
-        angle: 60,
-        spread: 55,
-        origin: { x: 0 },
-        colors: ["#22c55e", "#16a34a", "#fbbf24", "#8b5cf6", "#ec4899"],
-      });
-      confetti({
-        particleCount: 4,
-        angle: 120,
-        spread: 55,
-        origin: { x: 1 },
-        colors: ["#22c55e", "#16a34a", "#fbbf24", "#8b5cf6", "#ec4899"],
-      });
-      if (Date.now() < end) {
-        requestAnimationFrame(frame);
-      }
-    };
-    frame();
-
-    // Explosión inicial más intensa
-    confetti({
-      particleCount: 120,
-      spread: 100,
-      origin: { y: 0.6 },
-      colors: ["#22c55e", "#16a34a", "#fbbf24", "#8b5cf6", "#ec4899"],
-    });
+    fireFireworks();
   }, [loading, data]);
 
   const handleGoToChallenges = () => {

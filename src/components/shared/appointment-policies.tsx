@@ -197,7 +197,7 @@ export function AppointmentPolicies({
 
   // professional + card (dashboard)
   return (
-    <Card className={cn("border-primary/20 bg-muted/30", className)}>
+    <Card className={cn("border-primary/20 bg-muted/30 py-4", className)}>
       <CardHeader className="pb-2">
         <CardTitle className="text-base flex items-center gap-2">
           <FileText className="h-4 w-4 text-primary shrink-0" aria-hidden />

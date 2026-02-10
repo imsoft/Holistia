@@ -139,7 +139,7 @@ export function PatientOnboardingButton() {
       <PopoverContent
         align="end"
         sideOffset={8}
-        className="w-[340px] sm:w-[380px] p-0 border-0 shadow-lg"
+        className="w-[380px] sm:w-[440px] p-0 border-0 shadow-lg"
       >
         <OnboardingCardContent onClose={() => setOpen(false)} />
       </PopoverContent>

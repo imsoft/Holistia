@@ -1,5 +1,36 @@
+import { Metadata } from "next";
 import { createClient } from "@/utils/supabase/server";
+import { generateProfessionalMetadata } from "@/lib/seo";
 import { ProfessionalProfileClient } from "./professional-profile-client";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  const supabase = await createClient();
+
+  const { data } = await supabase
+    .from("professional_applications")
+    .select("first_name, last_name, profession, bio, slug, profile_photo, wellness_areas")
+    .or(`slug.eq.${slug},id.eq.${slug}`)
+    .eq("status", "approved")
+    .eq("is_active", true)
+    .maybeSingle();
+
+  if (!data) return { title: "Profesional no encontrado | Holistia" };
+
+  return generateProfessionalMetadata({
+    first_name: data.first_name,
+    last_name: data.last_name,
+    profession: data.profession,
+    bio: data.bio,
+    slug: data.slug || slug,
+    profile_photo: data.profile_photo,
+    wellness_areas: data.wellness_areas,
+  });
+}
 
 interface ProfessionalService {
   id: string;

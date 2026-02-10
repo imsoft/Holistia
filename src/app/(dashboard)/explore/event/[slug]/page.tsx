@@ -1,9 +1,39 @@
+import { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 
 import { createClient } from "@/utils/supabase/server";
+import { generateEventMetadata } from "@/lib/seo";
 import { EventWorkshop } from "@/types/event";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  const supabase = await createClient();
+
+  const { data } = await supabase
+    .from("events_workshops")
+    .select("title, description, slug, event_date, image_url, created_at, updated_at")
+    .or(`slug.eq.${slug},id.eq.${slug}`)
+    .eq("is_active", true)
+    .maybeSingle();
+
+  if (!data) return { title: "Evento no encontrado | Holistia" };
+
+  return generateEventMetadata({
+    title: data.title,
+    description: data.description,
+    slug: data.slug || slug,
+    event_date: data.event_date,
+    featured_image: data.image_url,
+    created_at: data.created_at,
+    updated_at: data.updated_at,
+  });
+}
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";

@@ -5,7 +5,6 @@ import { useParams, useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { ChallengeForm } from "@/components/challenges/challenge-form";
 import { ChallengeResourcesManager } from "@/components/challenges/challenge-resources-manager";
-import { ChallengeMeetingsManager } from "@/components/challenges/challenge-meetings-manager";
 import { createClient } from "@/utils/supabase/client";
 import { toast } from "sonner";
 import { useUserId } from "@/stores/user-store";
@@ -110,10 +109,8 @@ export default function EditChallengePage() {
           onFormSubmit={handleFormSubmit}
         />
 
-        {/* Cards de Recursos y Reuniones - DEBEN estar antes de los botones */}
+        {/* Card de Recursos - DEBE estar antes de los botones */}
         <ChallengeResourcesManager challengeId={challengeId} />
-
-        <ChallengeMeetingsManager challengeId={challengeId} />
 
         {/* Botones al final absoluto - DESPUÉS de todas las cards */}
         <div className="flex gap-3 justify-end pt-6 border-t">

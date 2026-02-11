@@ -261,9 +261,6 @@ export async function syncGoogleCalendarEvents(userId: string) {
       // Saltar eventos que no tienen fecha/hora de inicio o fin
       if (!event.start || !event.end) return false;
 
-      // Saltar eventos transparentes (disponibles en el calendario)
-      if (event.transparency === 'transparent') return false;
-
       // Crear key única para este evento específico (maneja recurrencias)
       const isAllDay = !!event.start?.date && !event.start?.dateTime;
       let eventKey: string;
@@ -337,7 +334,6 @@ export async function syncGoogleCalendarEvents(userId: string) {
 
         if (eventKey && existingBlockKeys.has(eventKey)) reasons.push('ya existe como bloque');
         if (!event.start || !event.end) reasons.push('sin fecha/hora');
-        if (event.transparency === 'transparent') reasons.push('evento transparente');
 
         console.log(`  Evento ${index + 1}: "${event.summary}" - Filtrado porque: ${reasons.join(', ')}`);
       });

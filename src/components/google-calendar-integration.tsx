@@ -52,6 +52,17 @@ export function GoogleCalendarIntegration({ userId }: { userId: string }) {
   const [syncing, setSyncing] = useState(false);
   const [syncingFromGoogle, setSyncingFromGoogle] = useState(false);
 
+  // Estados para selector de calendarios
+  const [calendarsAvailable, setCalendarsAvailable] = useState<Array<{
+    id: string;
+    summary: string;
+    backgroundColor?: string;
+    primary?: boolean;
+  }>>([]);
+  const [calendarsSelected, setCalendarsSelected] = useState<string[]>([]);
+  const [loadingCalendars, setLoadingCalendars] = useState(false);
+  const [savingCalendars, setSavingCalendars] = useState(false);
+
   // Cargar el estado inicial
   useEffect(() => {
     fetchStatus();
@@ -63,11 +74,71 @@ export function GoogleCalendarIntegration({ userId }: { userId: string }) {
       const response = await fetch('/api/google-calendar/status');
       const data = await response.json();
       setStatus(data);
+
+      // Si está conectado, cargar calendarios
+      if (data.connected) {
+        fetchCalendars();
+      }
     } catch (error) {
       console.error('Error fetching status:', error);
       toast.error('Error al verificar el estado de Google Calendar');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchCalendars = async () => {
+    setLoadingCalendars(true);
+    try {
+      const response = await fetch('/api/google-calendar/calendars');
+      const data = await response.json();
+
+      if (response.ok) {
+        setCalendarsAvailable(data.available || []);
+        setCalendarsSelected(data.selected?.map((c: any) => c.id) || ['primary']);
+      } else {
+        console.error('Error fetching calendars:', data.error);
+      }
+    } catch (error) {
+      console.error('Error fetching calendars:', error);
+    } finally {
+      setLoadingCalendars(false);
+    }
+  };
+
+  const handleSaveCalendarSelection = async () => {
+    if (calendarsSelected.length === 0) {
+      toast.error('Debes seleccionar al menos un calendario');
+      return;
+    }
+
+    setSavingCalendars(true);
+    try {
+      const selectedCalendarsData = calendarsAvailable
+        .filter(cal => calendarsSelected.includes(cal.id))
+        .map(cal => ({
+          id: cal.id,
+          summary: cal.summary,
+          backgroundColor: cal.backgroundColor,
+        }));
+
+      const response = await fetch('/api/google-calendar/calendars', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ calendars: selectedCalendarsData }),
+      });
+
+      if (response.ok) {
+        toast.success('Selección de calendarios guardada');
+      } else {
+        const error = await response.json();
+        toast.error(error.error || 'Error al guardar selección');
+      }
+    } catch (error) {
+      console.error('Error saving calendar selection:', error);
+      toast.error('Error al guardar selección de calendarios');
+    } finally {
+      setSavingCalendars(false);
     }
   };
 
@@ -319,12 +390,100 @@ export function GoogleCalendarIntegration({ userId }: { userId: string }) {
           </Alert>
         )}
 
+        {/* Selector de calendarios */}
+        {status?.connected && (
+          <div className="space-y-3 border-t pt-4">
+            <div className="flex items-center justify-between">
+              <h4 className="font-medium text-sm">Calendarios a sincronizar</h4>
+              <Button
+                onClick={fetchCalendars}
+                disabled={loadingCalendars}
+                variant="ghost"
+                size="sm"
+              >
+                {loadingCalendars ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <RefreshCw className="h-4 w-4" />
+                )}
+              </Button>
+            </div>
+
+            {loadingCalendars ? (
+              <div className="flex items-center justify-center py-4">
+                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+              </div>
+            ) : calendarsAvailable.length > 0 ? (
+              <>
+                <div className="space-y-2 max-h-60 overflow-y-auto border rounded-md p-3">
+                  {calendarsAvailable.map((calendar) => (
+                    <label
+                      key={calendar.id}
+                      className="flex items-center gap-3 p-2 hover:bg-muted rounded-md cursor-pointer"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={calendarsSelected.includes(calendar.id)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setCalendarsSelected([...calendarsSelected, calendar.id]);
+                          } else {
+                            setCalendarsSelected(
+                              calendarsSelected.filter((id) => id !== calendar.id)
+                            );
+                          }
+                        }}
+                        className="h-4 w-4 rounded border-gray-300"
+                      />
+                      <div className="flex items-center gap-2 flex-1">
+                        {calendar.backgroundColor && (
+                          <div
+                            className="w-3 h-3 rounded-full"
+                            style={{ backgroundColor: calendar.backgroundColor }}
+                          />
+                        )}
+                        <span className="text-sm">{calendar.summary}</span>
+                        {calendar.primary && (
+                          <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">
+                            Principal
+                          </span>
+                        )}
+                      </div>
+                    </label>
+                  ))}
+                </div>
+                <Button
+                  onClick={handleSaveCalendarSelection}
+                  disabled={savingCalendars || calendarsSelected.length === 0}
+                  variant="outline"
+                  size="sm"
+                  className="w-full"
+                >
+                  {savingCalendars ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Guardando...
+                    </>
+                  ) : (
+                    'Guardar selección'
+                  )}
+                </Button>
+              </>
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                No se encontraron calendarios
+              </p>
+            )}
+          </div>
+        )}
+
         {/* Información */}
         <div className="rounded-lg bg-muted p-4 space-y-2">
           <h4 className="font-medium text-sm">¿Qué se sincroniza?</h4>
           <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
             <li>Holistia → Google: Tus citas y eventos se crean en Google Calendar</li>
-            <li>Google → Holistia: Eventos externos se bloquean en tu disponibilidad</li>
+            <li>Google → Holistia: Eventos de calendarios seleccionados se bloquean en tu disponibilidad</li>
+            <li>Puedes seleccionar múltiples calendarios para sincronizar</li>
             <li>Actualizaciones automáticas cuando cambies una cita</li>
             <li>Eliminación cuando canceles una cita o evento</li>
           </ul>

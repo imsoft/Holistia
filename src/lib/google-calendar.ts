@@ -447,6 +447,59 @@ export async function verifyCalendarAccess(
 }
 
 /**
+ * Tipos para información de calendarios de Google
+ */
+export interface GoogleCalendarInfo {
+  id: string;
+  summary: string;
+  description?: string;
+  backgroundColor?: string;
+  primary?: boolean;
+  accessRole: 'owner' | 'writer' | 'reader';
+}
+
+/**
+ * Lista todos los calendarios disponibles del usuario
+ */
+export async function listCalendars(
+  accessToken: string,
+  refreshToken: string
+): Promise<
+  | { success: true; calendars: GoogleCalendarInfo[] }
+  | { success: false; error: string }
+> {
+  try {
+    const result = await withTokenRefresh(
+      accessToken,
+      refreshToken,
+      async (token) => {
+        const { calendar } = getCalendarClient(token, refreshToken);
+        const response = await calendar.calendarList.list();
+
+        const calendars: GoogleCalendarInfo[] = (response.data.items || []).map((item) => ({
+          id: item.id || '',
+          summary: item.summary || '',
+          description: item.description ?? undefined,
+          backgroundColor: item.backgroundColor ?? undefined,
+          primary: item.primary ?? undefined,
+          accessRole: (item.accessRole || 'reader') as 'owner' | 'writer' | 'reader',
+        }));
+
+        return { success: true as const, calendars };
+      },
+      'listCalendars'
+    );
+    return result;
+  } catch (error: unknown) {
+    console.error('Error listing calendars:', error);
+    return {
+      success: false as const,
+      error: error instanceof Error ? error.message : String(error),
+    };
+  }
+}
+
+/**
  * Suscribirse a notificaciones de cambios en Google Calendar
  */
 export async function watchCalendar(

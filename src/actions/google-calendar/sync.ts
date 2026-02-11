@@ -110,6 +110,28 @@ export async function syncGoogleCalendarEvents(userId: string) {
       };
     }
 
+    // Obtener calendarios seleccionados para sincronizar
+    const { data: profileData } = await supabase
+      .from('profiles')
+      .select('google_calendars_selected')
+      .eq('id', userId)
+      .single();
+
+    const selectedCalendars = (profileData?.google_calendars_selected || [
+      { id: 'primary', summary: 'Primary', backgroundColor: null },
+    ]) as Array<{ id: string; summary: string; backgroundColor?: string | null }>;
+
+    if (selectedCalendars.length === 0) {
+      return {
+        success: false,
+        error: 'No hay calendarios seleccionados para sincronizar',
+      };
+    }
+
+    console.log(`📅 Sincronizando ${selectedCalendars.length} calendario(s):`,
+      selectedCalendars.map(c => c.summary).join(', ')
+    );
+
     // Obtener eventos de Google Calendar de los próximos 90 días (3 meses)
     // Esto asegura que capturemos suficientes eventos para mostrar bloqueos
     const timeMin = new Date().toISOString();
@@ -117,31 +139,65 @@ export async function syncGoogleCalendarEvents(userId: string) {
       Date.now() + 90 * 24 * 60 * 60 * 1000
     ).toISOString();
 
-    const result = await listCalendarEvents(accessToken, refreshToken, {
-      timeMin,
-      timeMax,
-      maxResults: 250, // Aumentar límite para capturar más eventos
-      singleEvents: true,
-      orderBy: 'startTime',
-    });
+    // Variables para acumular resultados de todos los calendarios
+    const allEventsFromGoogle: Array<any> = [];
+    let totalEventsFromGoogle = 0;
 
-    if (!result.success) {
+    // Iterar sobre cada calendario seleccionado
+    for (const calendar of selectedCalendars) {
+      const calendarId = calendar.id;
+
+      console.log(`🔄 Procesando calendario: ${calendar.summary} (${calendarId})`);
+
+      // Obtener eventos de este calendario
+      const result = await listCalendarEvents(accessToken, refreshToken, {
+        timeMin,
+        timeMax,
+        maxResults: 250, // Aumentar límite para capturar más eventos
+        singleEvents: true,
+        orderBy: 'startTime',
+      }, calendarId); // IMPORTANTE: pasar calendarId específico
+
+      if (!result.success) {
+        console.error(`❌ Error al sincronizar calendario ${calendarId}:`,
+          'error' in result ? result.error : 'Unknown error'
+        );
+        // Continuar con el siguiente calendario en lugar de fallar toda la sincronización
+        continue;
+      }
+
+      if (!result.events) {
+        console.warn(`⚠️ No se obtuvieron eventos del calendario ${calendarId}`);
+        continue;
+      }
+
+      totalEventsFromGoogle += result.events.length;
+      console.log(`📊 Calendario ${calendar.summary}: ${result.events.length} eventos obtenidos`);
+
+      // Obtener timezone de este calendario específico
+      const tzResult = await getCalendarTimeZone(accessToken, refreshToken, calendarId);
+      const calendarTimeZone = tzResult.timeZone || 'America/Mexico_City';
+
+      // Marcar eventos con su calendar source y timezone para usarlo después
+      const eventsWithSource = result.events.map(event => ({
+        ...event,
+        _calendarSourceId: calendarId,
+        _calendarTimeZone: calendarTimeZone,
+      }));
+
+      allEventsFromGoogle.push(...eventsWithSource);
+    }
+
+    // Si todos los calendarios fallaron, retornar error
+    if (allEventsFromGoogle.length === 0 && selectedCalendars.length > 0) {
       return {
         success: false,
-        error: 'error' in result ? result.error : 'Error al obtener eventos de Google Calendar',
+        error: 'No se pudieron sincronizar eventos de ningún calendario',
       };
     }
 
-    if (!result.events) {
-      return {
-        success: false,
-        error: 'Error al obtener eventos de Google Calendar',
-      };
-    }
-
-    // Timezone real del calendario (fallback cuando el evento no trae timeZone)
-    const tzResult = await getCalendarTimeZone(accessToken, refreshToken, 'primary');
-    const primaryCalendarTimeZone = tzResult.timeZone || 'America/Mexico_City';
+    // Usar el primer calendario como fallback para timezone (para compatibilidad con código existente)
+    const primaryCalendarTimeZone = allEventsFromGoogle[0]?._calendarTimeZone || 'America/Mexico_City';
 
     // Helper: convertir Date a fecha/hora en la TZ del evento
     // IMPORTANTE: Debe estar definida ANTES de extractFromGoogleDateTime
@@ -237,21 +293,21 @@ export async function syncGoogleCalendarEvents(userId: string) {
     // Obtener bloques externos existentes para evitar duplicados
     const { data: existingBlocks } = await supabase
       .from('availability_blocks')
-      .select('id, google_calendar_event_id, start_date, start_time, end_time')
+      .select('id, google_calendar_event_id, calendar_source_id, start_date, start_time, end_time')
       .eq('professional_id', professional.id)
       .eq('is_external_event', true)
       .not('google_calendar_event_id', 'is', null);
 
-    // Crear un Set con la combinación única de event_id + fecha + hora
-    // Esto maneja eventos recurrentes donde cada instancia tiene el mismo ID
+    // Crear un Set con la combinación única de calendar_id + event_id + fecha + hora
+    // IMPORTANTE: Incluir calendar_source_id para distinguir el mismo evento en diferentes calendarios
     const existingBlockKeys = new Set(
       existingBlocks?.map(block =>
-        `${block.google_calendar_event_id}_${block.start_date}_${block.start_time || 'full_day'}_${block.end_time || 'full_day'}`
+        `${block.calendar_source_id || 'primary'}_${block.google_calendar_event_id}_${block.start_date}_${block.start_time || 'full_day'}_${block.end_time || 'full_day'}`
       ) || []
     );
 
     // Filtrar eventos que no son de Holistia y que no están ya creados como bloques
-    const externalEvents = result.events.filter(event => {
+    const externalEvents = allEventsFromGoogle.filter(event => {
       // Saltar eventos que no tienen ID
       if (!event.id) return false;
 
@@ -262,20 +318,22 @@ export async function syncGoogleCalendarEvents(userId: string) {
       if (!event.start || !event.end) return false;
 
       // Crear key única para este evento específico (maneja recurrencias)
+      // IMPORTANTE: Incluir calendar_source_id para distinguir el mismo evento en diferentes calendarios
       const isAllDay = !!event.start?.date && !event.start?.dateTime;
+      const calendarSourceId = event._calendarSourceId || 'primary';
+      const eventTimeZone = event._calendarTimeZone || primaryCalendarTimeZone;
       let eventKey: string;
 
       if (isAllDay) {
         const startDate = event.start!.date!;
-        eventKey = `${event.id}_${startDate}_full_day_full_day`;
+        eventKey = `${calendarSourceId}_${event.id}_${startDate}_full_day_full_day`;
       } else {
         // IMPORTANTE: la key debe usar la misma TZ que usamos al guardar el bloque,
         // si no, se desincroniza (especialmente en serverless/UTC).
-        const eventTimeZone = event.start!.timeZone || primaryCalendarTimeZone;
         const start = extractFromGoogleDateTime(event.start!.dateTime!, eventTimeZone);
         const end = extractFromGoogleDateTime(event.end!.dateTime!, eventTimeZone);
 
-        eventKey = `${event.id}_${start.date}_${start.time}_${end.time}`;
+        eventKey = `${calendarSourceId}_${event.id}_${start.date}_${start.time}_${end.time}`;
       }
 
       // Saltar eventos que ya están creados como bloques (por fecha y hora específica)
@@ -285,16 +343,17 @@ export async function syncGoogleCalendarEvents(userId: string) {
     });
 
     console.log('📋 Eventos de Google Calendar:', {
-      totalFromGoogle: result.events.length,
+      calendarsProcessed: selectedCalendars.length,
+      totalFromGoogle: totalEventsFromGoogle,
       holistiaEvents: holistiaEventIds.size,
       existingBlocks: existingBlockKeys.size,
       afterFiltering: externalEvents.length
     });
 
     // Log detallado de eventos filtrados para debugging
-    if (result.events.length > 0 && externalEvents.length === 0) {
+    if (allEventsFromGoogle.length > 0 && externalEvents.length === 0) {
       console.log('⚠️ Se obtuvieron eventos pero todos fueron filtrados. Analizando razones:');
-      result.events.forEach((event, index) => {
+      allEventsFromGoogle.forEach((event, index) => {
         const reasons = [];
         if (!event.id) reasons.push('sin ID');
         if (holistiaEventIds.has(event.id)) reasons.push('es cita de Holistia');
@@ -364,6 +423,7 @@ export async function syncGoogleCalendarEvents(userId: string) {
           htmlLink?: string;
         };
         google_calendar_event_id?: string;
+        calendar_source_id?: string;
       };
 
       if (isAllDay) {
@@ -399,6 +459,7 @@ export async function syncGoogleCalendarEvents(userId: string) {
             htmlLink: event.htmlLink || undefined,
           },
           google_calendar_event_id: event.id || undefined,
+          calendar_source_id: event._calendarSourceId || 'primary',
         };
       } else {
         // Evento con hora específica
@@ -439,6 +500,7 @@ export async function syncGoogleCalendarEvents(userId: string) {
             htmlLink: event.htmlLink || undefined,
           },
           google_calendar_event_id: event.id || undefined,
+          calendar_source_id: event._calendarSourceId || 'primary',
         };
       }
 
@@ -482,20 +544,22 @@ export async function syncGoogleCalendarEvents(userId: string) {
     }
 
     // Eliminar bloques externos que ya no existen en Google Calendar
-    // Crear un Set de keys actuales de eventos de Google
+    // Crear un Set de keys actuales de eventos de Google (de TODOS los calendarios)
     const currentGoogleEventKeys = new Set<string>();
-    result.events.forEach(event => {
+    allEventsFromGoogle.forEach(event => {
       if (!event.id || !event.start || !event.end) return;
 
       const isAllDay = !!event.start?.date && !event.start?.dateTime;
+      const calendarSourceId = event._calendarSourceId || 'primary';
+      const eventTimeZone = event._calendarTimeZone || primaryCalendarTimeZone;
+
       if (isAllDay) {
         const startDate = event.start.date!;
-        currentGoogleEventKeys.add(`${event.id}_${startDate}_full_day_full_day`);
+        currentGoogleEventKeys.add(`${calendarSourceId}_${event.id}_${startDate}_full_day_full_day`);
       } else {
-        const eventTimeZone = event.start.timeZone || primaryCalendarTimeZone;
         const start = extractFromGoogleDateTime(event.start.dateTime!, eventTimeZone);
         const end = extractFromGoogleDateTime(event.end.dateTime!, eventTimeZone);
-        currentGoogleEventKeys.add(`${event.id}_${start.date}_${start.time}_${end.time}`);
+        currentGoogleEventKeys.add(`${calendarSourceId}_${event.id}_${start.date}_${start.time}_${end.time}`);
       }
     });
 
@@ -503,7 +567,8 @@ export async function syncGoogleCalendarEvents(userId: string) {
     const blocksToDeleteIds: string[] = [];
     if (existingBlocks) {
       existingBlocks.forEach(block => {
-        const blockKey = `${block.google_calendar_event_id}_${block.start_date}_${block.start_time || 'full_day'}_${block.end_time || 'full_day'}`;
+        const calendarSourceId = block.calendar_source_id || 'primary';
+        const blockKey = `${calendarSourceId}_${block.google_calendar_event_id}_${block.start_date}_${block.start_time || 'full_day'}_${block.end_time || 'full_day'}`;
         if (!currentGoogleEventKeys.has(blockKey)) {
           // Importante: borrar por ID del bloque (no por google_calendar_event_id),
           // para no eliminar también bloques recién insertados en este mismo sync.
@@ -529,11 +594,12 @@ export async function syncGoogleCalendarEvents(userId: string) {
 
     return {
       success: true,
-      message: `Sincronización completada: ${blocksToCreate.length} eventos nuevos, ${blocksToDeleteIds.length} eventos eliminados`,
+      message: `Sincronización completada: ${blocksToCreate.length} eventos nuevos de ${selectedCalendars.length} calendario(s), ${blocksToDeleteIds.length} eventos eliminados`,
       created: blocksToCreate.length,
       deleted: blocksToDeleteIds.length,
       diagnostics: {
-        totalFromGoogle: result.events.length,
+        calendarsProcessed: selectedCalendars.length,
+        totalFromGoogle: totalEventsFromGoogle,
         holistiaEvents: holistiaEventIds.size,
         existingBlocks: existingBlockKeys.size,
         afterFiltering: externalEvents.length,

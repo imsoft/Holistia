@@ -91,20 +91,31 @@ export function useScheduleAvailability(professionalId: string) {
   // supabase es estable (useMemo), CACHE_TTL es constante
   }, [professionalId, supabase]);
 
-  // Obtener citas existentes para un rango de fechas (con caché).
+  // Obtener citas existentes para un rango de fechas (con caché corto de 30 segundos).
   // excludeAppointmentId: al reprogramar, excluir esa cita para que su slot aparezca disponible.
-  const appointmentCache = useRef<Map<string, Array<{id?: string; appointment_date: string; appointment_time: string; status: string}>>>(new Map());
-  
+  const appointmentCache = useRef<Map<string, { data: Array<{id?: string; appointment_date: string; appointment_time: string; status: string}>; timestamp: number }>>(new Map());
+  const APPOINTMENT_CACHE_TTL = 30 * 1000; // 30 segundos - cache corto para datos críticos
+
   const getExistingAppointments = useCallback(async (
     startDate: string,
     endDate: string,
     excludeAppointmentId?: string
   ) => {
     const cacheKey = `${startDate}-${endDate}-${excludeAppointmentId ?? ''}`;
-    
-    if (appointmentCache.current.has(cacheKey)) {
-      return appointmentCache.current.get(cacheKey)!;
+    const now = Date.now();
+
+    // Verificar si hay cache válido
+    const cached = appointmentCache.current.get(cacheKey);
+    if (cached && (now - cached.timestamp) < APPOINTMENT_CACHE_TTL) {
+      console.log('📦 Appointments - Usando caché válido:', {
+        cacheKey,
+        age: `${Math.floor((now - cached.timestamp) / 1000)}s`,
+        count: cached.data.length
+      });
+      return cached.data;
     }
+
+    console.log('🔍 Appointments - Cargando datos frescos:', { cacheKey });
 
     try {
       const { data, error } = await supabase
@@ -122,7 +133,15 @@ export function useScheduleAvailability(professionalId: string) {
         appointments = appointments.filter((a) => a.id !== excludeAppointmentId);
       }
 
-      appointmentCache.current.set(cacheKey, appointments);
+      // Guardar en caché con timestamp
+      appointmentCache.current.set(cacheKey, { data: appointments, timestamp: now });
+
+      console.log('✅ Appointments - Cargados y cacheados:', {
+        cacheKey,
+        count: appointments.length,
+        appointments: appointments.map(a => ({ date: a.appointment_date, time: a.appointment_time }))
+      });
+
       return appointments;
     } catch (error) {
       console.error('Error fetching existing appointments:', error);

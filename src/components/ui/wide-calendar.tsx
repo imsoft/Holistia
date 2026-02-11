@@ -145,6 +145,12 @@ export function WideCalendar({
     }
   }, [getWeekKey, loadWeekAvailability]);
 
+  // Limpiar caché al montar el componente (forzar datos frescos en cada visita)
+  useEffect(() => {
+    console.log('🔄 Wide Calendar montado - limpiando caché para garantizar datos frescos');
+    cacheRef.current = new Map();
+  }, []);
+
   // Cargar datos cuando cambia el profesional o la semana
   useEffect(() => {
     loadWeekData(currentWeek);

@@ -55,8 +55,8 @@ interface BlocksState {
   isCacheValid: (professionalId: string) => boolean;
 }
 
-// Cache válido por 2 minutos
-const CACHE_TTL = 2 * 60 * 1000;
+// Cache válido por 30 segundos (reducido de 2 min para evitar mostrar bloques/citas desactualizadas)
+const CACHE_TTL = 30 * 1000;
 
 export const useBlocksStore = create<BlocksState>((set, get) => ({
   blocksCache: new Map(),

@@ -25,6 +25,7 @@ import {
   Target,
   GitBranch as GitBranchIcon,
   Package,
+  Clock,
 } from "lucide-react";
 import {
   Sidebar,
@@ -167,6 +168,7 @@ export function AdminSidebar() {
         { title: "Tickets de Soporte", url: `/admin/${userId}/tickets`, icon: Ticket },
         { title: "Servicios y Costos", url: `/admin/${userId}/services-costs`, icon: Wrench },
         { title: "Sincronización Google Calendar", url: `/admin/${userId}/sync-tools`, icon: RefreshCw },
+        { title: "Logs de Cron Sync", url: `/admin/${userId}/cron-sync-logs`, icon: Clock },
         { title: "Agente IA (Alpha)", url: `/admin/${userId}/ai-agent`, icon: Sparkles },
         { title: "Commits de GitHub", url: `/admin/${userId}/github-commits`, icon: GitBranchIcon },
       ],

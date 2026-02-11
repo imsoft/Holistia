@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { WorkingHoursConfig } from '@/components/ui/working-hours-config';
 import AvailabilityBlockManager from '@/components/ui/availability-block-manager';
+import { GoogleCalendarIntegration } from '@/components/google-calendar-integration';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Clock, Calendar, AlertCircle } from 'lucide-react';
@@ -93,7 +94,7 @@ export default function SchedulePage() {
       {/* Tab Content */}
       <div className="space-y-6">
         {activeTab === 'working-hours' && (
-          <WorkingHoursConfig 
+          <WorkingHoursConfig
             professionalId={professionalAppId}
             onSave={() => {
               // Aquí podrías agregar lógica adicional después de guardar
@@ -106,6 +107,13 @@ export default function SchedulePage() {
           <AvailabilityBlockManager professionalId={professionalAppId} />
         )}
       </div>
+
+      {/* Google Calendar Integration */}
+      {userId && (
+        <div className="mt-8">
+          <GoogleCalendarIntegration userId={userId} />
+        </div>
+      )}
 
       {/* Información adicional */}
       <Card className="bg-amber-50 border-amber-200">

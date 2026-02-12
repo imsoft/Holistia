@@ -41,7 +41,7 @@ export interface AvailabilityBlock {
   id?: string;
   professional_id: string;
   user_id: string;
-  title: string;
+  title?: string;
   description?: string | null;
 
   /**
@@ -80,8 +80,19 @@ export interface AvailabilityBlock {
   /** Fuente del evento externo (ej: 'google_calendar') */
   external_event_source?: string | null;
 
+  /** Metadata del evento externo (Google Calendar, etc.) */
+  external_event_metadata?: {
+    summary?: string;
+    description?: string;
+    location?: string;
+    htmlLink?: string;
+  };
+
   /** ID del evento en Google Calendar (para sincronización bidireccional) */
   google_calendar_event_id?: string | null;
+
+  /** ID del calendario de Google del que proviene este bloque */
+  calendar_source_id?: string | null;
 
   created_at?: string;
   updated_at?: string;

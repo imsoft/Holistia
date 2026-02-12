@@ -10,7 +10,7 @@ export interface AvailabilityBlock {
   id: string;
   professional_id: string;
   user_id: string;
-  title: string;
+  title?: string;
   description?: string | null;
   block_type: 'full_day' | 'time_range' | 'weekly_day' | 'weekly_range';
   start_date: string;
@@ -21,7 +21,14 @@ export interface AvailabilityBlock {
   is_recurring: boolean;
   is_external_event?: boolean;
   external_event_source?: string | null;
+  external_event_metadata?: {
+    summary?: string;
+    description?: string;
+    location?: string;
+    htmlLink?: string;
+  };
   google_calendar_event_id?: string | null;
+  calendar_source_id?: string | null;
   created_at?: string;
   updated_at?: string;
 }

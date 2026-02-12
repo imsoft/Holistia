@@ -69,7 +69,7 @@ export function BlockCreatorTabs({
   useEffect(() => {
     if (editingBlock) {
       setFormData({
-        title: editingBlock.title,
+        title: editingBlock.title || '',
         description: editingBlock.description || '',
         block_type: editingBlock.block_type,
         start_date: editingBlock.start_date,

@@ -20,6 +20,7 @@ import {
   subscribeToCalendarNotifications,
   unsubscribeFromCalendarNotifications,
 } from '@/actions/google-calendar/sync';
+import { useBlocksStore } from '@/stores/blocks-store';
 
 interface GoogleCalendarStatus {
   connected: boolean;
@@ -279,6 +280,12 @@ export function GoogleCalendarIntegration({ userId }: { userId: string }) {
       if (result.success) {
         const created = result.created || 0;
         const deleted = result.deleted || 0;
+
+        // Invalidar cache de bloques para que se recarguen en todos los calendarios
+        useBlocksStore.getState().clearAllCache();
+
+        // Emitir evento para recargar calendarios activos
+        window.dispatchEvent(new Event('reload-calendar'));
 
         if (created > 0 || deleted > 0) {
           toast.success(

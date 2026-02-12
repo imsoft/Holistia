@@ -4,7 +4,12 @@ import { createClient } from '@/utils/supabase/client';
 /**
  * Store para manejar el cache de bloques de disponibilidad
  * con invalidación automática y validación de superposiciones
+ *
+ * VERSION: 2026-02-11-BLOCKS-DEBUG-v3
  */
+
+// Log de versión al cargar el módulo
+console.log('🚀🚀🚀 BLOCKS STORE CARGADO - VERSION: 2026-02-11-BLOCKS-DEBUG-v3 🚀🚀🚀');
 
 export interface AvailabilityBlock {
   id: string;
@@ -375,3 +380,37 @@ function getDayOfWeekFromDate(dateString: string): number {
 export const useLoadBlocks = () => useBlocksStore((state) => state.loadBlocks);
 export const useInvalidateBlocksCache = () => useBlocksStore((state) => state.invalidateCache);
 export const useValidateBlock = () => useBlocksStore((state) => state.validateBlock);
+
+// Debug helper - exponer función global para debugging en consola del navegador
+if (typeof window !== 'undefined') {
+  (window as any).debugBlocks = async (professionalId: string) => {
+    console.log('🔍 DEBUG BLOCKS - Iniciando carga forzada para:', professionalId);
+    const store = useBlocksStore.getState();
+
+    // Invalidar caché primero
+    store.invalidateCache(professionalId);
+    console.log('🔍 DEBUG BLOCKS - Caché invalidado');
+
+    // Cargar bloques con refresh forzado
+    const blocks = await store.loadBlocks(professionalId, true);
+
+    console.log('🔍 DEBUG BLOCKS - RESULTADO:', {
+      totalBlocks: blocks.length,
+      blocksExternos: blocks.filter(b => b.is_external_event).length,
+      blocksDetalle: blocks.map(b => ({
+        id: b.id,
+        title: b.title || b.external_event_metadata?.summary,
+        start_date: b.start_date,
+        start_time: b.start_time,
+        end_time: b.end_time,
+        block_type: b.block_type,
+        is_external_event: b.is_external_event,
+        calendar_source_id: b.calendar_source_id
+      }))
+    });
+
+    return blocks;
+  };
+
+  console.log('🔍 Debug helper cargado. Usa: debugBlocks("PROFESSIONAL_ID") en la consola');
+}

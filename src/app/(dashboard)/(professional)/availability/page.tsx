@@ -11,6 +11,7 @@ import { WorkingHoursManager } from '@/components/ui/working-hours-manager';
 import { ProfessionalToleranceSettings } from '@/components/professional-tolerance-settings';
 import AvailabilityBlockManager from '@/components/ui/availability-block-manager';
 import { AvailabilityPreview } from '@/components/ui/availability-preview';
+import { GoogleCalendarIntegration } from '@/components/google-calendar-integration';
 
 interface ProfessionalApplication {
   id: string;
@@ -213,6 +214,11 @@ export default function AvailabilityPage() {
 
             {/* Bloqueos de Disponibilidad */}
             <AvailabilityBlockManager professionalId={professional.id} userId={user.id} />
+
+            {/* Google Calendar Integration */}
+            {user?.id && (
+              <GoogleCalendarIntegration userId={user.id} />
+            )}
           </div>
 
           {/* Columna derecha: preview en vivo — sticky que sigue al scroll */}

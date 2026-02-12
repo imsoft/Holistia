@@ -86,6 +86,17 @@ export function doesBlockApplyToDate(date: string, block: BlockData): boolean {
   const dayOfWeekStart = normalizeDayOfWeek(blockStartDate.getDay());
   const dayOfWeekEnd = normalizeDayOfWeek(blockEndDate.getDay());
 
+  // Debug log para time_range blocks
+  if (block.block_type === 'time_range' && block.is_external_event) {
+    console.log('🔍 doesBlockApplyToDate para time_range externo:', {
+      date,
+      block_start_date: block.start_date,
+      block_end_date: block.end_date,
+      isInDateRange,
+      title: block.title || block.external_event_metadata?.summary
+    });
+  }
+
   switch (block.block_type) {
     case 'weekly_day': {
       const matchesDayOfWeek = block.day_of_week === dayOfWeek;
@@ -168,6 +179,23 @@ export function doesBlockCoverTime(
     const blockEnd = timeToMinutes(block.end_time);
     const slotStart = timeToMinutes(time);
     const slotEnd = slotStart + slotDurationMinutes;
+
+    // Debug log para bloques externos
+    if (block.is_external_event) {
+      const overlaps = slotStart < blockEnd && slotEnd > blockStart;
+      console.log('🔍 doesBlockCoverTime para bloque externo:', {
+        time,
+        slot: `${time} - ${Math.floor(slotEnd / 60)}:${String(slotEnd % 60).padStart(2, '0')}`,
+        block_range: `${block.start_time} - ${block.end_time}`,
+        blockStart,
+        blockEnd,
+        slotStart,
+        slotEnd,
+        overlaps,
+        title: block.title || block.external_event_metadata?.summary
+      });
+    }
+
     // Dos rangos se solapan si uno empieza antes de que el otro termine
     return slotStart < blockEnd && slotEnd > blockStart;
   }

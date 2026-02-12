@@ -476,6 +476,22 @@ export async function listCalendars(
         const { calendar } = getCalendarClient(token, refreshToken);
         const response = await calendar.calendarList.list();
 
+        // 🔍 DEBUG: Log detallado de la respuesta de Google Calendar API
+        console.log('📅 GOOGLE CALENDAR API - calendarList.list() RAW RESPONSE:', {
+          totalItems: response.data.items?.length || 0,
+          items: response.data.items?.map(item => ({
+            id: item.id,
+            summary: item.summary,
+            description: item.description,
+            backgroundColor: item.backgroundColor,
+            primary: item.primary,
+            accessRole: item.accessRole,
+            hidden: item.hidden,
+            deleted: item.deleted,
+            selected: item.selected,
+          })) || []
+        });
+
         const calendars: GoogleCalendarInfo[] = (response.data.items || []).map((item) => ({
           id: item.id || '',
           summary: item.summary || '',
@@ -484,6 +500,8 @@ export async function listCalendars(
           primary: item.primary ?? undefined,
           accessRole: (item.accessRole || 'reader') as 'owner' | 'writer' | 'reader',
         }));
+
+        console.log('📅 GOOGLE CALENDAR API - Calendarios parseados:', calendars);
 
         return { success: true as const, calendars };
       },

@@ -192,7 +192,9 @@ export function BlocksCalendarView({
                     </div>
 
                     <div>
-                      <h3 className="font-medium">{block.title}</h3>
+                      <h3 className="font-medium">
+                        {block.title || block.external_event_metadata?.summary || 'Sin título'}
+                      </h3>
                       <div className="flex items-center gap-4 text-sm text-muted-foreground">
                         {block.block_type === 'weekly_day' && block.day_of_week ? (
                           <span>
@@ -207,6 +209,11 @@ export function BlocksCalendarView({
                         )}
                         {(block.block_type === 'time_range' || block.block_type === 'weekly_range') && block.start_time && block.end_time && (
                           <span>{block.start_time} - {block.end_time}</span>
+                        )}
+                        {block.is_external_event && (
+                          <Badge variant="outline" className="text-xs">
+                            📅 Google Calendar
+                          </Badge>
                         )}
                         {block.is_recurring && (
                           <Badge variant="secondary" className="text-xs">

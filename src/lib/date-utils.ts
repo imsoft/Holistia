@@ -9,7 +9,9 @@
  * @returns Objeto Date en hora local
  */
 export function parseLocalDate(dateString: string): Date {
-  const [year, month, day] = dateString.split('-').map(Number);
+  // Soportar ISO datetime strings: extraer solo la parte de fecha
+  const datePart = dateString.split('T')[0];
+  const [year, month, day] = datePart.split('-').map(Number);
   return new Date(year, month - 1, day);
 }
 
@@ -34,8 +36,8 @@ export function formatLocalDate(date: Date): string {
  * @returns Fecha formateada
  */
 export function formatDate(
-  dateString: string, 
-  locale: string = 'es-MX', 
+  dateString: string,
+  locale: string = 'es-MX',
   options: Intl.DateTimeFormatOptions = {
     weekday: 'long',
     year: 'numeric',
@@ -43,10 +45,13 @@ export function formatDate(
     day: 'numeric',
   }
 ): string {
-  // Crear la fecha usando componentes individuales para evitar problemas de zona horaria
-  const [year, month, day] = dateString.split('-').map(Number);
+  if (!dateString) return '';
+  // Soportar ISO datetime strings: extraer solo la parte de fecha
+  const datePart = dateString.split('T')[0];
+  const [year, month, day] = datePart.split('-').map(Number);
+  if (isNaN(year) || isNaN(month) || isNaN(day)) return '';
   const date = new Date(year, month - 1, day); // month es 0-indexado
-  
+
   return date.toLocaleDateString(locale, options);
 }
 
@@ -58,8 +63,8 @@ export function formatDate(
  * @returns Fecha formateada
  */
 export function formatDateTime(
-  dateString: string, 
-  locale: string = 'es-MX', 
+  dateString: string,
+  locale: string = 'es-MX',
   options: Intl.DateTimeFormatOptions = {
     year: 'numeric',
     month: 'long',
@@ -68,6 +73,13 @@ export function formatDateTime(
     minute: '2-digit',
   }
 ): string {
+  if (!dateString) return '';
+  // Para fechas YYYY-MM-DD, parsear de forma segura (evitar UTC shift)
+  if (isDateOnly(dateString)) {
+    const [year, month, day] = dateString.split('-').map(Number);
+    return new Date(year, month - 1, day).toLocaleDateString(locale, options);
+  }
+  // Para timestamps completos (con T o Z), new Date() preserva la timezone
   return new Date(dateString).toLocaleDateString(locale, options);
 }
 

@@ -60,6 +60,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { VerifiedBadge } from "@/components/ui/verified-badge";
 import { formatPhone } from "@/utils/phone-utils";
+import { formatDate } from "@/lib/date-utils";
 
 interface Company {
   id: string;
@@ -2051,7 +2052,7 @@ export default function AdminCompanies() {
                       <div className="flex items-center gap-2">
                         <Calendar className="h-4 w-4 text-muted-foreground" />
                         <p className="text-sm">
-                          <strong>Fecha:</strong> {new Date(viewingLead.service_date).toLocaleDateString('es-MX', {
+                          <strong>Fecha:</strong> {formatDate(viewingLead.service_date, 'es-MX', {
                             year: 'numeric',
                             month: 'long',
                             day: 'numeric',

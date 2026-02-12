@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CheckCircle, Calendar, Clock, MapPin, Monitor, ExternalLink, Video, Loader2 } from "lucide-react";
 import { formatPrice } from "@/lib/price-utils";
+import { formatDate } from "@/lib/date-utils";
 import { BOOKING_MESSAGES } from "@/lib/error-messages";
 
 type AppointmentType = "presencial" | "online";
@@ -155,10 +156,9 @@ export default function AppointmentConfirmationPage() {
 
   const { appointment, professional } = data;
   const professionalName = `${professional.first_name} ${professional.last_name}`.trim();
-  const dateFormatted = new Date(appointment.appointment_date + "T12:00:00").toLocaleDateString(
-    "es-ES",
-    { weekday: "long", year: "numeric", month: "long", day: "numeric" }
-  );
+  const dateFormatted = formatDate(appointment.appointment_date, "es-ES", {
+    weekday: "long", year: "numeric", month: "long", day: "numeric"
+  });
   const timeFormatted = String(appointment.appointment_time).slice(0, 5);
   const isOnline = appointment.appointment_type === "online";
 

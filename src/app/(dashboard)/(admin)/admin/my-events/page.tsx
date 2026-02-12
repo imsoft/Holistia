@@ -15,6 +15,7 @@ import Image from "next/image";
 import { EventWorkshop } from "@/types/event";
 import { StripeConnectSetup } from "@/components/ui/stripe-connect-setup";
 import { EventRegistrationsList } from "@/components/ui/event-registrations-list";
+import { formatDate } from "@/lib/date-utils";
 
 export default function MyEventsPage() {
   useUserStoreInit();
@@ -169,7 +170,7 @@ export default function MyEventsPage() {
                     <div className="flex items-center gap-2 text-sm">
                       <Calendar className="h-4 w-4 text-muted-foreground" />
                       <span>
-                        {new Date(event.event_date).toLocaleDateString("es-MX", {
+                        {formatDate(event.event_date, "es-MX", {
                           year: "numeric",
                           month: "long",
                           day: "numeric",

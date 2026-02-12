@@ -1,4 +1,5 @@
 import { Metadata } from 'next';
+import { formatDate } from '@/lib/date-utils';
 
 // Tipos para SEO
 interface ProfessionalData {
@@ -296,7 +297,7 @@ export function generateProfessionalMetadata(professional: ProfessionalData): Me
 // Función para generar metadata de eventos
 export function generateEventMetadata(event: EventData): Metadata {
   const title = `${event.title} - Evento de Bienestar | Holistia`;
-  const description = `${event.description || `Únete a nuestro evento de bienestar: ${event.title}`}. Fecha: ${new Date(event.event_date).toLocaleDateString('es-MX')}. Reserva tu lugar ahora en Holistia.`;
+  const description = `${event.description || `Únete a nuestro evento de bienestar: ${event.title}`}. Fecha: ${formatDate(event.event_date, 'es-MX', { year: 'numeric', month: 'long', day: 'numeric' })}. Reserva tu lugar ahora en Holistia.`;
   
   const url = `${BASE_URL}/explore/event/${event.slug}`;
   const imageUrl = event.featured_image 

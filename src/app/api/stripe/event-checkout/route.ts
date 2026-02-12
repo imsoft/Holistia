@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { stripe, calculateCommission, calculateTransferAmount, formatAmountForStripe } from '@/lib/stripe';
 import { createClient } from '@/utils/supabase/server';
+import { formatDate } from '@/lib/date-utils';
 
 export async function POST(request: NextRequest) {
   try {
@@ -189,7 +190,7 @@ export async function POST(request: NextRequest) {
             currency: 'mxn',
             product_data: {
               name: `Registro al evento: ${event.name}`,
-              description: `Reserva para el evento del ${new Date(event.event_date).toLocaleDateString('es-ES')}`,
+              description: `Reserva para el evento del ${formatDate(event.event_date, 'es-ES', { year: 'numeric', month: 'long', day: 'numeric' })}`,
             },
             unit_amount: formatAmountForStripe(service_amount), // Charge full amount to customer
           },

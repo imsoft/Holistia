@@ -5,6 +5,7 @@ import {
   sendAppointmentCancelledByProfessional
 } from '@/lib/email-sender';
 import { deleteAppointmentFromGoogleCalendar } from '@/actions/google-calendar';
+import { formatDate } from '@/lib/date-utils';
 
 export async function POST(request: Request) {
   try {
@@ -137,7 +138,7 @@ export async function POST(request: Request) {
       : 'Paciente';
 
     // Formatear fechas para el email
-    const appointmentDate = new Date(appointment.appointment_date).toLocaleDateString('es-MX', {
+    const appointmentDate = formatDate(appointment.appointment_date, 'es-MX', {
       weekday: 'long',
       year: 'numeric',
       month: 'long',

@@ -11,6 +11,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
 import { createClient } from "@/utils/supabase/client";
 import { formatPrice } from "@/lib/price-utils";
+import { formatDate } from "@/lib/date-utils";
 
 interface AppointmentActionFormProps {
   appointmentId: string;
@@ -98,7 +99,7 @@ export function AppointmentActionForm({
           ? `${professionalData.first_name} ${professionalData.last_name}`
           : undefined,
         patientName: patientName,
-        date: new Date(appointment.appointment_date).toLocaleDateString('es-MX', {
+        date: formatDate(appointment.appointment_date, 'es-MX', {
           year: 'numeric',
           month: 'long',
           day: 'numeric'

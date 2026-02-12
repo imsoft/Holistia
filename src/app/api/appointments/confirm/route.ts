@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 import { sendAppointmentConfirmationToPatient } from '@/lib/email-sender';
 import { createAppointmentInGoogleCalendar } from '@/actions/google-calendar';
+import { formatDate } from '@/lib/date-utils';
 
 export async function POST(request: NextRequest) {
   try {
@@ -79,7 +80,7 @@ export async function POST(request: NextRequest) {
         console.error('Error fetching professional:', professionalError);
       } else {
         // Format appointment data
-        const appointmentDate = new Date(appointment.appointment_date).toLocaleDateString('es-ES', {
+        const appointmentDate = formatDate(appointment.appointment_date, 'es-ES', {
           year: 'numeric',
           month: 'long',
           day: 'numeric',

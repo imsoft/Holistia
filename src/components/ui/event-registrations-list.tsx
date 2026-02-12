@@ -8,6 +8,7 @@ import { Loader2, Users, DollarSign, Calendar, CheckCircle, XCircle, Clock } fro
 import { toast } from "sonner";
 import { formatPhone } from "@/utils/phone-utils";
 import { formatPrice } from "@/lib/price-utils";
+import { formatDate } from "@/lib/date-utils";
 
 interface EventRegistration {
   id: string;
@@ -249,7 +250,7 @@ export function EventRegistrationsList({ eventId }: EventRegistrationsListProps)
                       <Calendar className="h-3 w-3" />
                       <span>
                         Registrado:{" "}
-                        {new Date(reg.registration_date).toLocaleDateString("es-MX", {
+                        {formatDate(reg.registration_date, "es-MX", {
                           year: "numeric",
                           month: "long",
                           day: "numeric",

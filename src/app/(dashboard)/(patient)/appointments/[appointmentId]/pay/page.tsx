@@ -10,6 +10,7 @@ import { Loader2, Calendar, Clock, MapPin, CreditCard, AlertCircle } from "lucid
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { formatDate } from "@/lib/date-utils";
 import PaymentButton from "@/components/ui/payment-button";
 import { AppointmentPolicies } from "@/components/shared/appointment-policies";
 import { formatPrice } from "@/lib/price-utils";
@@ -135,7 +136,7 @@ export default function PayAppointmentPage() {
     );
   }
 
-  const appointmentDate = new Date(appointment.appointment_date).toLocaleDateString('es-MX', {
+  const appointmentDate = formatDate(appointment.appointment_date, 'es-MX', {
     weekday: 'long',
     year: 'numeric',
     month: 'long',

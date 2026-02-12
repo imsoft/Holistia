@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { formatPrice } from "@/lib/price-utils";
 import { formatEventDate, formatEventTime } from "@/utils/date-utils";
+import { formatDate } from "@/lib/date-utils";
 import {
   Calendar,
   MapPin,
@@ -309,7 +310,7 @@ export default function MyRegistrationsPage() {
                           )}
                           <span className="text-xs text-muted-foreground">
                             Inscrito:{" "}
-                            {new Date(reg.registration_date).toLocaleDateString("es-ES", {
+                            {formatDate(reg.registration_date, "es-ES", {
                               year: "numeric",
                               month: "short",
                               day: "numeric",

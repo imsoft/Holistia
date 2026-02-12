@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 import { sendAppointmentCreatedByProfessional } from '@/lib/email-sender';
+import { formatDate } from '@/lib/date-utils';
 
 export async function POST(request: NextRequest) {
   try {
@@ -65,7 +66,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Format appointment date and time
-    const appointmentDate = new Date(appointment.appointment_date).toLocaleDateString('es-MX', {
+    const appointmentDate = formatDate(appointment.appointment_date, 'es-MX', {
       weekday: 'long',
       year: 'numeric',
       month: 'long',

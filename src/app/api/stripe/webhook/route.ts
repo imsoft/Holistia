@@ -10,6 +10,7 @@ import {
 } from '@/lib/email-sender';
 import { createAppointmentInGoogleCalendar } from '@/actions/google-calendar';
 import Stripe from 'stripe';
+import { formatDate } from '@/lib/date-utils';
 
 async function sendEventConfirmationEmail(eventRegistrationId: string) {
   try {
@@ -60,7 +61,7 @@ async function sendEventConfirmationEmail(eventRegistrationId: string) {
 
     // Format event data
     const event = registration.events_workshops;
-    const eventDate = new Date(event.event_date).toLocaleDateString('es-ES', {
+    const eventDate = formatDate(event.event_date, 'es-ES', {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
@@ -182,7 +183,7 @@ async function sendAppointmentNotificationEmail(appointmentId: string) {
     }
 
     // Format appointment data
-    const appointmentDate = new Date(appointment.appointment_date).toLocaleDateString('es-ES', {
+    const appointmentDate = formatDate(appointment.appointment_date, 'es-ES', {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
@@ -318,7 +319,7 @@ async function sendAppointmentTicketEmail(appointmentId: string) {
     }
 
     // Format data
-    const appointmentDate = new Date(appointment.appointment_date).toLocaleDateString('es-ES', {
+    const appointmentDate = formatDate(appointment.appointment_date, 'es-ES', {
       year: 'numeric',
       month: 'long',
       day: 'numeric',

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useUserId } from "@/stores/user-store";
 import { useUserStoreInit } from "@/hooks/use-user-store-init";
 import {
@@ -44,12 +44,13 @@ import Image from "next/image";
 import { Patient } from "@/types";
 import { createClient } from "@/utils/supabase/client";
 import { formatPhone } from "@/utils/phone-utils";
+import { formatDate, formatLocalDate } from "@/lib/date-utils";
 
 
 export default function ProfessionalPatients() {
   useUserStoreInit();
   const userId = useUserId();
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
   
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -67,6 +68,8 @@ export default function ProfessionalPatients() {
   const [isScheduleDialogOpen, setIsScheduleDialogOpen] = useState(false);
 
   useEffect(() => {
+    if (!userId) return;
+
     const fetchPatients = async () => {
       try {
         // Obtener la aplicación profesional del usuario
@@ -133,7 +136,7 @@ export default function ProfessionalPatients() {
           const patientInfo = patientsInfoMap.get(patientId);
           
           // Calcular última y próxima sesión
-          const today = new Date().toISOString().split('T')[0];
+          const today = formatLocalDate(new Date());
           const pastSessions = patientAppointments.filter(apt => apt.appointment_date < today);
           const futureSessions = patientAppointments.filter(apt => apt.appointment_date >= today);
           
@@ -425,7 +428,7 @@ export default function ProfessionalPatients() {
                     </p>
                     {patient.joinDate && (
                       <p className="text-xs text-muted-foreground">
-                        Cliente desde {new Date(patient.joinDate).toLocaleDateString('es-MX', { month: 'short', year: 'numeric' })}
+                        Cliente desde {formatDate(patient.joinDate, 'es-MX', { month: 'short', year: 'numeric' })}
                       </p>
                     )}
                   </div>
@@ -449,9 +452,7 @@ export default function ProfessionalPatients() {
                       <Clock className="h-4 w-4" />
                       <span>
                         Próxima:{" "}
-                        {new Date(patient.nextSession).toLocaleDateString(
-                          "es-MX"
-                        )}
+                        {formatDate(patient.nextSession, "es-MX")}
                       </span>
                     </div>
                   )}
@@ -583,14 +584,14 @@ export default function ProfessionalPatients() {
                     <div className="flex items-center gap-2">
                       <Clock className="h-4 w-4 text-muted-foreground" />
                       <span className="font-medium">Última sesión:</span>
-                      <span>{new Date(selectedPatient.lastSession).toLocaleDateString('es-MX')}</span>
+                      <span>{formatDate(selectedPatient.lastSession, 'es-MX')}</span>
                     </div>
                   )}
                   {selectedPatient.nextSession && (
                     <div className="flex items-center gap-2">
                       <Calendar className="h-4 w-4 text-muted-foreground" />
                       <span className="font-medium">Próxima sesión:</span>
-                      <span>{new Date(selectedPatient.nextSession).toLocaleDateString('es-MX')}</span>
+                      <span>{formatDate(selectedPatient.nextSession, 'es-MX')}</span>
                     </div>
                   )}
                 </div>

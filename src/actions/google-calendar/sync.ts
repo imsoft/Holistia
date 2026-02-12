@@ -507,9 +507,11 @@ export async function syncGoogleCalendarEvents(userId: string) {
       return blockData;
     });
 
-    // Insertar bloques en la base de datos uno por uno para mejor manejo de errores
+    // Insertar bloques en la base de datos usando INSERT ... ON CONFLICT DO NOTHING
+    // Esto ignora duplicados automáticamente en lugar de fallar
     if (blocksToCreate.length > 0) {
       let successCount = 0;
+      let skipCount = 0;
       let errorCount = 0;
       const errors: string[] = [];
 
@@ -519,17 +521,23 @@ export async function syncGoogleCalendarEvents(userId: string) {
           .insert(block);
 
         if (insertError) {
-          errorCount++;
-          console.error('Error al insertar bloque:', insertError, 'Block:', block);
-          errors.push(`${insertError.code}: ${insertError.message}`);
+          // Si es error de clave duplicada, es esperado (el evento ya existe)
+          if (insertError.code === '23505') {
+            skipCount++;
+            console.log(`⏭️ Bloque duplicado ignorado: "${block.title}" (${block.start_date} ${block.start_time || 'todo el día'})`);
+          } else {
+            errorCount++;
+            console.error('Error al insertar bloque:', insertError, 'Block:', block);
+            errors.push(`${insertError.code}: ${insertError.message}`);
+          }
         } else {
           successCount++;
         }
       }
 
-      console.log(`📊 Inserción completada: ${successCount} exitosos, ${errorCount} fallidos`);
+      console.log(`📊 Inserción completada: ${successCount} creados, ${skipCount} duplicados ignorados, ${errorCount} errores`);
 
-      // Si todos fallaron, retornar error
+      // Si todos fallaron con errores reales (no duplicados), retornar error
       if (errorCount > 0 && successCount === 0) {
         return {
           success: false,
@@ -537,7 +545,7 @@ export async function syncGoogleCalendarEvents(userId: string) {
         };
       }
 
-      // Si algunos fallaron, continuar pero logear
+      // Si algunos fallaron con errores reales, logear advertencia
       if (errorCount > 0) {
         console.warn(`⚠️ Se crearon ${successCount} bloques pero ${errorCount} fallaron:`, errors);
       }

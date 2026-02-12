@@ -510,7 +510,7 @@ El equipo de Holistia`;
                             {professional.profession}
                           </Badge>
                           <Badge variant="outline" className="text-xs">
-                            {new Date(professional.created_at).toLocaleDateString('es-ES')}
+                            {new Date(professional.created_at).toLocaleDateString('es-MX')}
                           </Badge>
                           {professionalsWithEmail.has(professional.email) ? (
                             <Badge className="bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400 text-xs">
@@ -692,7 +692,7 @@ El equipo de Holistia`;
                           📧 {log.recipient_email}
                         </p>
                         <p className="text-xs text-muted-foreground mb-2">
-                          📅 Enviado el {new Date(log.sent_at).toLocaleDateString('es-ES', {
+                          📅 Enviado el {new Date(log.sent_at).toLocaleDateString('es-MX', {
                             year: 'numeric',
                             month: 'long',
                             day: 'numeric',

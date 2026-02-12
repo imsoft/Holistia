@@ -431,7 +431,7 @@ const ProfilePage = () => {
                 </dt>
                 <dd className="mt-1 sm:mt-0 sm:flex-auto">
                   <div className="text-foreground">
-                    {new Date(profile.created_at).toLocaleDateString('es-ES', {
+                    {new Date(profile.created_at).toLocaleDateString('es-MX', {
                       year: 'numeric',
                       month: 'long',
                       day: 'numeric'

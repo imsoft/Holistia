@@ -464,7 +464,7 @@ export function DashboardClient({
                       ❌ Inscripción Expirada
                     </h3>
                     <p className="text-xs sm:text-sm text-red-800">
-                      Tu inscripción anual expiró el <strong>{new Date(registrationFeeStatus.expires_at).toLocaleDateString("es-ES", { year: "numeric", month: "long", day: "numeric" })}</strong>.
+                      Tu inscripción anual expiró el <strong>{new Date(registrationFeeStatus.expires_at).toLocaleDateString("es-MX", { year: "numeric", month: "long", day: "numeric" })}</strong>.
                       Para seguir apareciendo en la plataforma y poder recibir citas, necesitas renovar tu pago de <strong>${registrationFeeStatus.amount.toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {registrationFeeStatus.currency.toUpperCase()}</strong>.
                     </p>
                     <Button
@@ -497,7 +497,7 @@ export function DashboardClient({
                         ⚠️ Renovación Próxima
                       </h3>
                       <p className="text-xs sm:text-sm text-yellow-800">
-                        Tu inscripción expira el <strong>{new Date(registrationFeeStatus.expires_at).toLocaleDateString("es-ES", { year: "numeric", month: "long", day: "numeric" })}</strong>.
+                        Tu inscripción expira el <strong>{new Date(registrationFeeStatus.expires_at).toLocaleDateString("es-MX", { year: "numeric", month: "long", day: "numeric" })}</strong>.
                         Renueva tu pago de <strong>${registrationFeeStatus.amount.toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {registrationFeeStatus.currency.toUpperCase()}</strong> para seguir apareciendo en la plataforma sin interrupciones.
                       </p>
                       <Button
@@ -532,7 +532,7 @@ export function DashboardClient({
                         ✅ Inscripción Activa
                       </h3>
                       <p className="text-xs sm:text-sm text-green-800 mt-1">
-                        Tu inscripción está vigente hasta el <strong>{new Date(registrationFeeStatus.expires_at).toLocaleDateString("es-ES", { year: "numeric", month: "long", day: "numeric" })}</strong>.
+                        Tu inscripción está vigente hasta el <strong>{new Date(registrationFeeStatus.expires_at).toLocaleDateString("es-MX", { year: "numeric", month: "long", day: "numeric" })}</strong>.
                         ¡Gracias por ser parte de Holistia!
                       </p>
                     </div>
@@ -648,7 +648,7 @@ export function DashboardClient({
                     <Calendar className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0 mt-0.5" />
                     <div className="flex flex-col sm:flex-row sm:gap-1">
                       <span className="font-medium">Fecha:</span>
-                      <span className="text-muted-foreground">{new Date(selectedAppointment.date).toLocaleDateString("es-ES", {
+                      <span className="text-muted-foreground">{new Date(selectedAppointment.date).toLocaleDateString("es-MX", {
                         weekday: "long",
                         year: "numeric",
                         month: "long",

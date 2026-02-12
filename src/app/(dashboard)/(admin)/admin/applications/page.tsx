@@ -156,7 +156,7 @@ export default function ApplicationsPage() {
     const [year, month, day] = dateString.split('-').map(Number);
     const date = new Date(year, month - 1, day); // month es 0-indexado
     
-    return date.toLocaleDateString('es-ES', {
+    return date.toLocaleDateString('es-MX', {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
@@ -350,8 +350,8 @@ export default function ApplicationsPage() {
         application.status === 'approved' ? 'Aprobado' : 
         application.status === 'pending' ? 'Pendiente' :
         application.status === 'under_review' ? 'En Revisión' : 'Rechazado',
-        new Date(application.submitted_at).toLocaleDateString('es-ES'),
-        application.reviewed_at ? new Date(application.reviewed_at).toLocaleDateString('es-ES') : 'No revisado',
+        new Date(application.submitted_at).toLocaleDateString('es-MX'),
+        application.reviewed_at ? new Date(application.reviewed_at).toLocaleDateString('es-MX') : 'No revisado',
         application.review_notes || 'Sin notas'
       ])
     ].map(row => row.join(',')).join('\n');

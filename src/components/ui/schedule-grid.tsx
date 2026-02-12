@@ -167,7 +167,7 @@ export function ScheduleGrid({
           
           <div className="flex items-center gap-2">
             <h3 className="text-lg font-semibold">
-              {currentWeek.toLocaleDateString('es-ES', { 
+              {currentWeek.toLocaleDateString('es-MX', { 
                 month: 'long', 
                 year: 'numeric' 
               })}

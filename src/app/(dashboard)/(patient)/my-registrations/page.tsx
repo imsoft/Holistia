@@ -310,7 +310,7 @@ export default function MyRegistrationsPage() {
                           )}
                           <span className="text-xs text-muted-foreground">
                             Inscrito:{" "}
-                            {formatDate(reg.registration_date, "es-ES", {
+                            {formatDate(reg.registration_date, "es-MX", {
                               year: "numeric",
                               month: "short",
                               day: "numeric",

@@ -42,11 +42,11 @@ function addDays(dateStr: string, days: number): string {
   return `${yy}-${mm}-${dd}`;
 }
 
-/** Formatear fecha para mostrar (es-ES) */
+/** Formatear fecha para mostrar (es-MX) */
 function formatEventDate(dateStr: string): string {
   const [y, m, d] = dateStr.split('-').map(Number);
   const date = new Date(y, m - 1, d);
-  return date.toLocaleDateString('es-ES', {
+  return date.toLocaleDateString('es-MX', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',

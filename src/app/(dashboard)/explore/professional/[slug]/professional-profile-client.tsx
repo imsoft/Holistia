@@ -465,7 +465,7 @@ export function ProfessionalProfileClient({
         dates.push({
           date: formatLocalDate(date),
           dayName,
-          display: `${dayName}, ${date.getDate()} de ${date.toLocaleDateString('es-ES', { month: 'long' })}`
+          display: `${dayName}, ${date.getDate()} de ${date.toLocaleDateString('es-MX', { month: 'long' })}`
         });
       }
     }
@@ -1614,7 +1614,7 @@ export function ProfessionalProfileClient({
                     Fecha:
                   </span>
                   <span className="text-foreground font-semibold">
-                    {new Date(paymentData.date).toLocaleDateString('es-ES', {
+                    {new Date(paymentData.date).toLocaleDateString('es-MX', {
                       weekday: 'long',
                       year: 'numeric',
                       month: 'long',
@@ -1958,7 +1958,7 @@ export function ProfessionalProfileClient({
                               // Parsear la fecha manualmente para evitar problemas de zona horaria
                               const [year, month, day] = selectedDate.split('-').map(Number);
                               const date = new Date(year, month - 1, day);
-                              return date.toLocaleDateString('es-ES', {
+                              return date.toLocaleDateString('es-MX', {
                                 weekday: 'long',
                                 year: 'numeric',
                                 month: 'long',

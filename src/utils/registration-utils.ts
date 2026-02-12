@@ -72,7 +72,7 @@ export function formatExpirationDate(expiresAt: string | undefined | null): stri
   }
 
   const date = new Date(expiresAt);
-  return date.toLocaleDateString('es-ES', {
+  return date.toLocaleDateString('es-MX', {
     year: 'numeric',
     month: 'long',
     day: 'numeric'

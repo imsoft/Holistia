@@ -80,7 +80,7 @@ export async function POST(request: NextRequest) {
         console.error('Error fetching professional:', professionalError);
       } else {
         // Format appointment data
-        const appointmentDate = formatDate(appointment.appointment_date, 'es-ES', {
+        const appointmentDate = formatDate(appointment.appointment_date, 'es-MX', {
           year: 'numeric',
           month: 'long',
           day: 'numeric',

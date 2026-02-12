@@ -149,7 +149,7 @@ ${message}
                 <h3>📋 Información de tu Perfil</h3>
                 <p><strong>Profesión:</strong> ${profession}</p>
                 <p><strong>Estado:</strong> Certificaciones verificadas ✅</p>
-                <p><strong>Fecha de confirmación:</strong> ${new Date().toLocaleDateString('es-ES', { 
+                <p><strong>Fecha de confirmación:</strong> ${new Date().toLocaleDateString('es-MX', { 
                     year: 'numeric', 
                     month: 'long', 
                     day: 'numeric' 

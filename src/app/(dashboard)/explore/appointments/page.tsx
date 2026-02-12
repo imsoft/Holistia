@@ -326,7 +326,7 @@ export default function AppointmentsPage() {
     const [year, month, day] = dateString.split('-').map(Number);
     const date = new Date(year, month - 1, day); // month es 0-indexado
     
-    return date.toLocaleDateString("es-ES", {
+    return date.toLocaleDateString("es-MX", {
       weekday: "long",
       year: "numeric",
       month: "long",

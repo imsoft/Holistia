@@ -302,7 +302,7 @@ export async function POST(
         : messageWithSender.content;
 
       // Formatear fecha del mensaje
-      const messageTime = new Date(messageWithSender.created_at).toLocaleString('es-ES', {
+      const messageTime = new Date(messageWithSender.created_at).toLocaleString('es-MX', {
         year: 'numeric',
         month: 'long',
         day: 'numeric',

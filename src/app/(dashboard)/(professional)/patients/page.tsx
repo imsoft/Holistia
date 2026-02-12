@@ -424,7 +424,7 @@ export default function ProfessionalPatients() {
                     </p>
                     {patient.joinDate && (
                       <p className="text-xs text-muted-foreground">
-                        Cliente desde {new Date(patient.joinDate).toLocaleDateString('es-ES', { month: 'short', year: 'numeric' })}
+                        Cliente desde {new Date(patient.joinDate).toLocaleDateString('es-MX', { month: 'short', year: 'numeric' })}
                       </p>
                     )}
                   </div>
@@ -449,7 +449,7 @@ export default function ProfessionalPatients() {
                       <span>
                         Próxima:{" "}
                         {new Date(patient.nextSession).toLocaleDateString(
-                          "es-ES"
+                          "es-MX"
                         )}
                       </span>
                     </div>
@@ -582,14 +582,14 @@ export default function ProfessionalPatients() {
                     <div className="flex items-center gap-2">
                       <Clock className="h-4 w-4 text-muted-foreground" />
                       <span className="font-medium">Última sesión:</span>
-                      <span>{new Date(selectedPatient.lastSession).toLocaleDateString('es-ES')}</span>
+                      <span>{new Date(selectedPatient.lastSession).toLocaleDateString('es-MX')}</span>
                     </div>
                   )}
                   {selectedPatient.nextSession && (
                     <div className="flex items-center gap-2">
                       <Calendar className="h-4 w-4 text-muted-foreground" />
                       <span className="font-medium">Próxima sesión:</span>
-                      <span>{new Date(selectedPatient.nextSession).toLocaleDateString('es-ES')}</span>
+                      <span>{new Date(selectedPatient.nextSession).toLocaleDateString('es-MX')}</span>
                     </div>
                   )}
                 </div>

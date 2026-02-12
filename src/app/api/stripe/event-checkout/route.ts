@@ -190,7 +190,7 @@ export async function POST(request: NextRequest) {
             currency: 'mxn',
             product_data: {
               name: `Registro al evento: ${event.name}`,
-              description: `Reserva para el evento del ${formatDate(event.event_date, 'es-ES', { year: 'numeric', month: 'long', day: 'numeric' })}`,
+              description: `Reserva para el evento del ${formatDate(event.event_date, 'es-MX', { year: 'numeric', month: 'long', day: 'numeric' })}`,
             },
             unit_amount: formatAmountForStripe(service_amount), // Charge full amount to customer
           },

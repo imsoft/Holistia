@@ -61,7 +61,7 @@ async function sendEventConfirmationEmail(eventRegistrationId: string) {
 
     // Format event data
     const event = registration.events_workshops;
-    const eventDate = formatDate(event.event_date, 'es-ES', {
+    const eventDate = formatDate(event.event_date, 'es-MX', {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
@@ -69,7 +69,7 @@ async function sendEventConfirmationEmail(eventRegistrationId: string) {
     });
 
     const eventTime = event.event_time.substring(0, 5);
-    const paymentDate = new Date(payment.paid_at!).toLocaleDateString('es-ES');
+    const paymentDate = new Date(payment.paid_at!).toLocaleDateString('es-MX');
 
     // Get category label
     const categoryLabels = {
@@ -183,7 +183,7 @@ async function sendAppointmentNotificationEmail(appointmentId: string) {
     }
 
     // Format appointment data
-    const appointmentDate = formatDate(appointment.appointment_date, 'es-ES', {
+    const appointmentDate = formatDate(appointment.appointment_date, 'es-MX', {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
@@ -319,7 +319,7 @@ async function sendAppointmentTicketEmail(appointmentId: string) {
     }
 
     // Format data
-    const appointmentDate = formatDate(appointment.appointment_date, 'es-ES', {
+    const appointmentDate = formatDate(appointment.appointment_date, 'es-MX', {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
@@ -327,7 +327,7 @@ async function sendAppointmentTicketEmail(appointmentId: string) {
     });
 
     const appointmentTime = appointment.appointment_time.substring(0, 5);
-    const paymentDate = new Date(payment.paid_at!).toLocaleDateString('es-ES');
+    const paymentDate = new Date(payment.paid_at!).toLocaleDateString('es-MX');
 
     const typeLabels = {
       presencial: "Presencial",
@@ -420,13 +420,13 @@ async function sendRegistrationReceiptEmail(professionalApplicationId: string) {
     }
 
     // Format data
-    const paymentDate = new Date(payment.paid_at!).toLocaleDateString('es-ES', {
+    const paymentDate = new Date(payment.paid_at!).toLocaleDateString('es-MX', {
       year: 'numeric',
       month: 'long',
       day: 'numeric'
     });
 
-    const expirationDate = new Date(professionalApp.registration_fee_expires_at!).toLocaleDateString('es-ES', {
+    const expirationDate = new Date(professionalApp.registration_fee_expires_at!).toLocaleDateString('es-MX', {
       year: 'numeric',
       month: 'long',
       day: 'numeric'

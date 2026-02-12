@@ -201,7 +201,7 @@ export async function POST() {
                       if (!updateError) {
                         result.registration_payment_synced = true;
                         result.payment_found_in_stripe = true;
-                        result.changes_made.push(`Pago encontrado en Stripe por email (session: ${session.id.substring(0, 20)}..., fecha: ${sessionDate.toLocaleDateString('es-ES')})`);
+                        result.changes_made.push(`Pago encontrado en Stripe por email (session: ${session.id.substring(0, 20)}..., fecha: ${sessionDate.toLocaleDateString('es-MX')})`);
                         totalPaymentsSynced++;
                         totalPaymentsFound++;
                         break; // Salir del loop una vez encontrado
@@ -248,7 +248,7 @@ export async function POST() {
                         if (!updateError) {
                           result.registration_payment_synced = true;
                           result.payment_found_in_stripe = true;
-                          result.changes_made.push(`Pago encontrado por PaymentIntent (${pi.id.substring(0, 20)}..., fecha: ${paymentDate.toLocaleDateString('es-ES')})`);
+                          result.changes_made.push(`Pago encontrado por PaymentIntent (${pi.id.substring(0, 20)}..., fecha: ${paymentDate.toLocaleDateString('es-MX')})`);
                           totalPaymentsSynced++;
                           totalPaymentsFound++;
                           break;
@@ -297,7 +297,7 @@ export async function POST() {
                         if (!updateError) {
                           result.registration_payment_synced = true;
                           result.payment_found_in_stripe = true;
-                          result.changes_made.push(`Pago encontrado por Charge (${charge.id.substring(0, 20)}..., fecha: ${chargeDate.toLocaleDateString('es-ES')})`);
+                          result.changes_made.push(`Pago encontrado por Charge (${charge.id.substring(0, 20)}..., fecha: ${chargeDate.toLocaleDateString('es-MX')})`);
                           totalPaymentsSynced++;
                           totalPaymentsFound++;
                           break;

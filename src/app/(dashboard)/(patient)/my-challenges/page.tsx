@@ -1027,7 +1027,7 @@ export default function MyChallengesPage() {
                       {challenge.completed_at && (
                         <Badge variant="secondary" className="text-xs bg-green-100 text-green-800 border-green-200">
                           <CheckCircle2 className="h-3 w-3 mr-1" />
-                          Completado el {new Date(challenge.completed_at).toLocaleDateString('es-ES')}
+                          Completado el {new Date(challenge.completed_at).toLocaleDateString('es-MX')}
                         </Badge>
                       )}
                     </div>
@@ -1258,7 +1258,7 @@ export default function MyChallengesPage() {
                                                 <p className="text-xs">
                                                   {(() => {
                                                     const [y, m, d] = checkin.checkin_date.split('-').map(Number);
-                                                    return new Date(y, m - 1, d).toLocaleDateString('es-ES');
+                                                    return new Date(y, m - 1, d).toLocaleDateString('es-MX');
                                                   })()}
                                                 </p>
                                                 <Badge variant="secondary" className="text-xs">

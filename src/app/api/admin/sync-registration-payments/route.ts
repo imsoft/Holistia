@@ -140,7 +140,7 @@ export async function POST(request: NextRequest) {
             payment_id: payment.id,
             session_id: payment.stripe_checkout_session_id,
             status: 'synced',
-            message: `Pago sincronizado. Expira el ${expiresAt.toLocaleDateString('es-ES')}`
+            message: `Pago sincronizado. Expira el ${expiresAt.toLocaleDateString('es-MX')}`
           });
         } else {
           console.log(`⏳ Sesión ${payment.stripe_checkout_session_id} no está pagada (${session.payment_status})`);

@@ -51,7 +51,7 @@ export function BlogPostClient({ post, relatedPosts }: BlogPostClientProps) {
   const [copied, setCopied] = useState(false);
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("es-ES", {
+    return new Date(dateString).toLocaleDateString("es-MX", {
       year: "numeric",
       month: "long",
       day: "numeric",

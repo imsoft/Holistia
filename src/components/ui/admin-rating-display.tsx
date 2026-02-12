@@ -146,7 +146,7 @@ export function AdminRatingDisplay({ professionalId }: AdminRatingDisplayProps) 
               </Badge>
             </div>
             <p className="text-sm text-muted-foreground">
-              Última actualización: {new Date(rating.updated_at).toLocaleDateString('es-ES', {
+              Última actualización: {new Date(rating.updated_at).toLocaleDateString('es-MX', {
                 year: 'numeric',
                 month: 'long',
                 day: 'numeric'

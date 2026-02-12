@@ -18,10 +18,10 @@ function appointmentToMs(dateStr: string, timeStr: string): number {
   return wallClockToUtcMs(date, time);
 }
 
-/** Formato fecha para email (es-ES) */
+/** Formato fecha para email (es-MX) */
 function formatAppointmentDate(dateStr: string): string {
   const [y, m, d] = String(dateStr).split("T")[0].split("-").map(Number);
-  return new Date(y, m - 1, d).toLocaleDateString("es-ES", {
+  return new Date(y, m - 1, d).toLocaleDateString("es-MX", {
     year: "numeric",
     month: "long",
     day: "numeric",

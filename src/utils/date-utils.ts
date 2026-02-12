@@ -6,13 +6,13 @@
  * Formatea una fecha de tipo DATE de la base de datos sin problemas de zona horaria
  * 
  * @param dateString - String de fecha en formato YYYY-MM-DD o ISO
- * @param locale - Locale para el formato (default: 'es-ES')
+ * @param locale - Locale para el formato (default: 'es-MX')
  * @returns Fecha formateada en texto largo
  * 
  * @example
  * formatEventDate("2025-10-17") // "17 de octubre de 2025"
  */
-export function formatEventDate(dateString: string, locale: string = 'es-ES'): string {
+export function formatEventDate(dateString: string, locale: string = 'es-MX'): string {
   if (!dateString) return '';
   
   // Extraer año, mes y día del string sin usar el constructor de Date
@@ -33,13 +33,13 @@ export function formatEventDate(dateString: string, locale: string = 'es-ES'): s
  * Formatea una fecha de tipo DATE en formato corto
  * 
  * @param dateString - String de fecha en formato YYYY-MM-DD o ISO
- * @param locale - Locale para el formato (default: 'es-ES')
+ * @param locale - Locale para el formato (default: 'es-MX')
  * @returns Fecha formateada en formato corto (DD/MM/YYYY)
  * 
  * @example
  * formatEventDateShort("2025-10-17") // "17/10/2025"
  */
-export function formatEventDateShort(dateString: string, locale: string = 'es-ES'): string {
+export function formatEventDateShort(dateString: string, locale: string = 'es-MX'): string {
   if (!dateString) return '';
   
   const [year, month, day] = dateString.split('T')[0].split('-').map(Number);
@@ -128,7 +128,7 @@ export function isEventDateToday(dateString: string): boolean {
  * 
  * @param dateString - String de fecha en formato YYYY-MM-DD
  * @param timeString - String de hora en formato HH:MM:SS o HH:MM
- * @param locale - Locale para el formato (default: 'es-ES')
+ * @param locale - Locale para el formato (default: 'es-MX')
  * @returns Fecha y hora formateadas
  * 
  * @example
@@ -137,7 +137,7 @@ export function isEventDateToday(dateString: string): boolean {
 export function formatEventDateTime(
   dateString: string, 
   timeString: string,
-  locale: string = 'es-ES'
+  locale: string = 'es-MX'
 ): string {
   const formattedDate = formatEventDate(dateString, locale);
   const formattedTime = formatEventTime(timeString);

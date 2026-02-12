@@ -243,7 +243,7 @@ export default function AIAgentPage() {
 
 
                       <p className="text-xs opacity-70 mt-2">
-                        {message.timestamp.toLocaleTimeString("es-ES", {
+                        {message.timestamp.toLocaleTimeString("es-MX", {
                           hour: "2-digit",
                           minute: "2-digit",
                         })}

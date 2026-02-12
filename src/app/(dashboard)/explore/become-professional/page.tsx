@@ -1259,7 +1259,7 @@ export default function BecomeProfessionalPage() {
         return 'Fecha no disponible';
       }
 
-      return date.toLocaleDateString('es-ES', {
+      return date.toLocaleDateString('es-MX', {
         year: 'numeric',
         month: 'long',
         day: 'numeric',

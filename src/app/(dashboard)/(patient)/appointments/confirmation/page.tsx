@@ -156,7 +156,7 @@ export default function AppointmentConfirmationPage() {
 
   const { appointment, professional } = data;
   const professionalName = `${professional.first_name} ${professional.last_name}`.trim();
-  const dateFormatted = formatDate(appointment.appointment_date, "es-ES", {
+  const dateFormatted = formatDate(appointment.appointment_date, "es-MX", {
     weekday: "long", year: "numeric", month: "long", day: "numeric"
   });
   const timeFormatted = String(appointment.appointment_time).slice(0, 5);

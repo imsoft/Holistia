@@ -209,7 +209,7 @@ export default function AdminBlogPage({ params }: { params: Promise<{ id: string
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("es-ES", {
+    return new Date(dateString).toLocaleDateString("es-MX", {
       year: "numeric",
       month: "long",
       day: "numeric",

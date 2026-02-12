@@ -590,7 +590,7 @@ export default function EventRegistrationsDetailPage() {
                           )}
                         </td>
                         <td className="py-3 text-muted-foreground">
-                          {new Date(f.created_at).toLocaleDateString("es-ES", {
+                          {new Date(f.created_at).toLocaleDateString("es-MX", {
                             year: "numeric",
                             month: "short",
                             day: "numeric",

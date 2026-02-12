@@ -301,8 +301,8 @@ export default function AdminUsers() {
         user.phone ? formatPhone(user.phone) : 'N/A',
         getTypeText(user.type),
         getStatusText(user.status),
-        new Date(user.joinDate).toLocaleDateString('es-ES'),
-        new Date(user.lastLogin).toLocaleDateString('es-ES'),
+        new Date(user.joinDate).toLocaleDateString('es-MX'),
+        new Date(user.lastLogin).toLocaleDateString('es-MX'),
         user.appointments.toString()
       ])
     ].map(row => row.join(',')).join('\n');
@@ -645,8 +645,8 @@ export default function AdminUsers() {
                 </div>
 
                 <div className="text-xs text-muted-foreground mb-4 space-y-1">
-                  <p className="truncate">Último acceso: {new Date(user.lastLogin).toLocaleDateString('es-ES')}</p>
-                  <p className="truncate">Registrado: {new Date(user.joinDate).toLocaleDateString('es-ES')}</p>
+                  <p className="truncate">Último acceso: {new Date(user.lastLogin).toLocaleDateString('es-MX')}</p>
+                  <p className="truncate">Registrado: {new Date(user.joinDate).toLocaleDateString('es-MX')}</p>
                 </div>
 
                 <div className="flex items-center gap-2 mt-auto">
@@ -783,14 +783,14 @@ export default function AdminUsers() {
                       <Calendar className="h-4 w-4" />
                       <span>Fecha de registro</span>
                     </div>
-                    <span className="text-base font-medium pl-6">{new Date(selectedUser.joinDate).toLocaleDateString('es-ES')}</span>
+                    <span className="text-base font-medium pl-6">{new Date(selectedUser.joinDate).toLocaleDateString('es-MX')}</span>
                   </div>
                   <div className="flex flex-col gap-1">
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <Calendar className="h-4 w-4" />
                       <span>Último acceso</span>
                     </div>
-                    <span className="text-base font-medium pl-6">{new Date(selectedUser.lastLogin).toLocaleDateString('es-ES')}</span>
+                    <span className="text-base font-medium pl-6">{new Date(selectedUser.lastLogin).toLocaleDateString('es-MX')}</span>
                   </div>
                 </div>
               </div>

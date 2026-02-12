@@ -1030,7 +1030,7 @@ export default function AdminPlatformTools() {
                   <div>
                     <p className="text-sm text-muted-foreground">Fecha de Creación</p>
                     <p className="text-sm">
-                      {new Date(viewingTool.created_at).toLocaleDateString("es-ES", {
+                      {new Date(viewingTool.created_at).toLocaleDateString("es-MX", {
                         year: "numeric",
                         month: "long",
                         day: "numeric",
@@ -1040,7 +1040,7 @@ export default function AdminPlatformTools() {
                   <div>
                     <p className="text-sm text-muted-foreground">Última Actualización</p>
                     <p className="text-sm">
-                      {new Date(viewingTool.updated_at).toLocaleDateString("es-ES", {
+                      {new Date(viewingTool.updated_at).toLocaleDateString("es-MX", {
                         year: "numeric",
                         month: "long",
                         day: "numeric",

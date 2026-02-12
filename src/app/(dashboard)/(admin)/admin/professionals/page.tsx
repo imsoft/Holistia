@@ -427,8 +427,8 @@ export default function AdminProfessionals() {
         professional.city,
         professional.state,
         professional.status === 'active' ? 'Activo' : professional.status === 'inactive' ? 'Inactivo' : 'Suspendido',
-        new Date(professional.submitted_at).toLocaleDateString('es-ES'),
-        professional.reviewed_at ? new Date(professional.reviewed_at).toLocaleDateString('es-ES') : 'No verificado',
+        new Date(professional.submitted_at).toLocaleDateString('es-MX'),
+        professional.reviewed_at ? new Date(professional.reviewed_at).toLocaleDateString('es-MX') : 'No verificado',
         (professional.patients || 0).toString()
       ])
     ].map(row => row.join(',')).join('\n');
@@ -544,9 +544,9 @@ export default function AdminProfessionals() {
       );
 
       if (data.stripe_payment_found) {
-        toast.success(`Pago confirmado y encontrado en Stripe. Expira: ${new Date(data.registration_fee_expires_at).toLocaleDateString('es-ES')}`);
+        toast.success(`Pago confirmado y encontrado en Stripe. Expira: ${new Date(data.registration_fee_expires_at).toLocaleDateString('es-MX')}`);
       } else {
-        toast.success(`Pago marcado como completado. Expira: ${new Date(data.registration_fee_expires_at).toLocaleDateString('es-ES')}`);
+        toast.success(`Pago marcado como completado. Expira: ${new Date(data.registration_fee_expires_at).toLocaleDateString('es-MX')}`);
       }
     } catch (error) {
       console.error('Error al marcar pago:', error);
@@ -1142,7 +1142,7 @@ export default function AdminProfessionals() {
                     )}
                     {professional.registration_fee_expires_at && (
                       <p className="text-xs text-muted-foreground mt-1">
-                        Expira: {new Date(professional.registration_fee_expires_at).toLocaleDateString('es-ES')}
+                        Expira: {new Date(professional.registration_fee_expires_at).toLocaleDateString('es-MX')}
                       </p>
                     )}
                   </div>
@@ -1415,7 +1415,7 @@ export default function AdminProfessionals() {
                     <div className="flex flex-col gap-1">
                       <span className="text-sm text-muted-foreground">Fecha de pago</span>
                       <span className="text-base font-medium">
-                        {new Date(selectedProfessional.registration_fee_paid_at).toLocaleDateString('es-ES')}
+                        {new Date(selectedProfessional.registration_fee_paid_at).toLocaleDateString('es-MX')}
                       </span>
                     </div>
                   )}
@@ -1429,7 +1429,7 @@ export default function AdminProfessionals() {
                             ? 'text-yellow-600 font-bold'
                             : ''
                       }`}>
-                        {new Date(selectedProfessional.registration_fee_expires_at).toLocaleDateString('es-ES')}
+                        {new Date(selectedProfessional.registration_fee_expires_at).toLocaleDateString('es-MX')}
                         {new Date(selectedProfessional.registration_fee_expires_at) <= new Date() && ' (EXPIRADO)'}
                         {new Date(selectedProfessional.registration_fee_expires_at) > new Date() && 
                          new Date(selectedProfessional.registration_fee_expires_at).getTime() - new Date().getTime() < 30 * 24 * 60 * 60 * 1000 && 
@@ -1468,14 +1468,14 @@ export default function AdminProfessionals() {
                       <Calendar className="h-4 w-4" />
                       <span>Fecha de registro</span>
                     </div>
-                    <span className="text-base font-medium pl-6">{new Date(selectedProfessional.submitted_at).toLocaleDateString('es-ES')}</span>
+                    <span className="text-base font-medium pl-6">{new Date(selectedProfessional.submitted_at).toLocaleDateString('es-MX')}</span>
                   </div>
                   <div className="flex flex-col gap-1">
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <Shield className="h-4 w-4" />
                       <span>Verificado</span>
                     </div>
-                    <span className="text-base font-medium pl-6">{selectedProfessional.reviewed_at ? new Date(selectedProfessional.reviewed_at).toLocaleDateString('es-ES') : 'No verificado'}</span>
+                    <span className="text-base font-medium pl-6">{selectedProfessional.reviewed_at ? new Date(selectedProfessional.reviewed_at).toLocaleDateString('es-MX') : 'No verificado'}</span>
                   </div>
                 </div>
               </div>

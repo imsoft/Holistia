@@ -283,7 +283,7 @@ export function useScheduleAvailability(professionalId: string) {
         startDate: startDate.toISOString(),
         normalizedStartDate: normalizedStartDate.toISOString(),
         today: today.toISOString(),
-        todayFormatted: today.toLocaleDateString('es-ES')
+        todayFormatted: today.toLocaleDateString('es-MX')
       });
       
       for (let i = 0; i < 7; i++) {
@@ -295,9 +295,9 @@ export function useScheduleAvailability(professionalId: string) {
         const isFutureOrToday = date >= today;
         console.log('📅 Evaluando fecha:', {
           date: date.toISOString(),
-          dateFormatted: date.toLocaleDateString('es-ES'),
+          dateFormatted: date.toLocaleDateString('es-MX'),
           today: today.toISOString(),
-          todayFormatted: today.toLocaleDateString('es-ES'),
+          todayFormatted: today.toLocaleDateString('es-MX'),
           isFutureOrToday,
           comparison: date.getTime() >= today.getTime()
         });
@@ -330,7 +330,7 @@ export function useScheduleAvailability(professionalId: string) {
             timeSlots: []
           });
         } else {
-          console.log('❌ Fecha pasada, omitiendo:', date.toLocaleDateString('es-ES'));
+          console.log('❌ Fecha pasada, omitiendo:', date.toLocaleDateString('es-MX'));
         }
       }
 

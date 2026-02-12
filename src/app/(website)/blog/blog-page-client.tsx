@@ -31,7 +31,7 @@ interface BlogPageClientProps {
 
 export function BlogPageClient({ posts, error }: BlogPageClientProps) {
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("es-ES", {
+    return new Date(dateString).toLocaleDateString("es-MX", {
       year: "numeric",
       month: "long",
       day: "numeric",

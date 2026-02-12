@@ -474,7 +474,10 @@ export async function listCalendars(
       refreshToken,
       async (token) => {
         const { calendar } = getCalendarClient(token, refreshToken);
-        const response = await calendar.calendarList.list();
+        const response = await calendar.calendarList.list({
+          showHidden: true,  // Incluir calendarios ocultos
+          showDeleted: false, // No incluir calendarios eliminados
+        });
 
         // 🔍 DEBUG: Log detallado de la respuesta de Google Calendar API
         console.log('📅 GOOGLE CALENDAR API - calendarList.list() RAW RESPONSE:', {

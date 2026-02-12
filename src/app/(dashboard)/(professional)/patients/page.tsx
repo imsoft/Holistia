@@ -209,7 +209,8 @@ export default function ProfessionalPatients() {
         const currentMonth = new Date().getMonth();
         const currentYear = new Date().getFullYear();
         const sessionsThisMonth = appointments.filter(apt => {
-          const aptDate = new Date(apt.appointment_date);
+          const [ay, am, ad] = String(apt.appointment_date).split('T')[0].split('-').map(Number);
+          const aptDate = new Date(ay, am - 1, ad);
           return aptDate.getMonth() === currentMonth && aptDate.getFullYear() === currentYear;
         }).length;
 

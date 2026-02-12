@@ -223,7 +223,8 @@ const EventsAdminPage = () => {
     // Date filter logic
     let matchesDate = true;
     if (dateFilter !== "all") {
-      const eventDate = new Date(event.event_date);
+      const [ey, em, ed] = String(event.event_date).split('T')[0].split('-').map(Number);
+      const eventDate = new Date(ey, em - 1, ed);
       const now = new Date();
       const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
       
@@ -252,15 +253,20 @@ const EventsAdminPage = () => {
     
     const totalEvents = events.length;
     const activeEvents = events.filter(e => e.is_active).length;
-    const upcomingEvents = events.filter(e => new Date(e.event_date) >= today).length;
-    
+    const upcomingEvents = events.filter(e => {
+      const [ey, em, ed] = String(e.event_date).split('T')[0].split('-').map(Number);
+      return new Date(ey, em - 1, ed) >= today;
+    }).length;
+
     const thisMonthEvents = events.filter(e => {
-      const eventDate = new Date(e.event_date);
+      const [ey, em, ed] = String(e.event_date).split('T')[0].split('-').map(Number);
+      const eventDate = new Date(ey, em - 1, ed);
       return eventDate >= thisMonthStart && eventDate <= now;
     }).length;
-    
+
     const lastMonthEvents = events.filter(e => {
-      const eventDate = new Date(e.event_date);
+      const [ey, em, ed] = String(e.event_date).split('T')[0].split('-').map(Number);
+      const eventDate = new Date(ey, em - 1, ed);
       return eventDate >= lastMonthStart && eventDate <= lastMonthEnd;
     }).length;
     

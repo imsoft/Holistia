@@ -221,8 +221,8 @@ export default function AvailabilityPage() {
             )}
           </div>
 
-          {/* Columna derecha: preview en vivo — sticky que sigue al scroll */}
-          <div className="lg:sticky lg:top-[calc(4rem+1.5rem)] lg:self-start lg:max-h-[calc(100vh-4rem-3rem)] lg:overflow-y-auto lg:scrollbar-thin">
+          {/* Columna derecha: preview en vivo */}
+          <div>
             <AvailabilityPreview professionalId={professional.id} />
           </div>
         </div>

@@ -648,12 +648,15 @@ export function DashboardClient({
                     <Calendar className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground flex-shrink-0 mt-0.5" />
                     <div className="flex flex-col sm:flex-row sm:gap-1">
                       <span className="font-medium">Fecha:</span>
-                      <span className="text-muted-foreground">{new Date(selectedAppointment.date).toLocaleDateString("es-MX", {
-                        weekday: "long",
-                        year: "numeric",
-                        month: "long",
-                        day: "numeric",
-                      })}</span>
+                      <span className="text-muted-foreground">{(() => {
+                        const [y, m, d] = String(selectedAppointment.date).split('T')[0].split('-').map(Number);
+                        return new Date(y, m - 1, d).toLocaleDateString("es-MX", {
+                          weekday: "long",
+                          year: "numeric",
+                          month: "long",
+                          day: "numeric",
+                        });
+                      })()}</span>
                     </div>
                   </div>
                   <div className="flex items-center gap-2 text-xs sm:text-sm">

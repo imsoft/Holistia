@@ -36,12 +36,15 @@ export async function POST(request: NextRequest) {
     const servicesList = servicesInfo.map(s => s.name).join(', ') || 'No especificados';
 
     // Formatear fecha y hora
-    const formattedDate = service_date 
-      ? new Date(service_date).toLocaleDateString('es-MX', {
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric',
-        })
+    const formattedDate = service_date
+      ? (() => {
+          const [y, m, d] = String(service_date).split('T')[0].split('-').map(Number);
+          return new Date(y, m - 1, d).toLocaleDateString('es-MX', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+          });
+        })()
       : 'No especificada';
 
     const formattedTime = service_time 

@@ -18,6 +18,7 @@ import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { formatPrice } from "@/lib/price-utils";
+import { formatDate } from "@/lib/date-utils";
 import Image from "next/image";
 import { createClient } from "@/utils/supabase/client";
 import { Service } from "@/types/service";
@@ -398,8 +399,8 @@ export function DirectMessageChat({
       const challenge = challenges?.find(c => c.id === customMetadata.challenge_id);
       contentToSend = `Te comparto mi reto: ${challenge?.title || 'Reto'}`;
     } else if (customMetadata?.availability_slot) {
-      const date = new Date(customMetadata.availability_slot.date);
-      contentToSend = `Cita disponible: ${date.toLocaleDateString('es-MX', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })} de ${customMetadata.availability_slot.start_time} a ${customMetadata.availability_slot.end_time}`;
+      const dateFormatted = formatDate(customMetadata.availability_slot.date, 'es-MX', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+      contentToSend = `Cita disponible: ${dateFormatted} de ${customMetadata.availability_slot.start_time} a ${customMetadata.availability_slot.end_time}`;
     } else if (customMetadata?.location) {
       contentToSend = `Mi ubicación: ${customMetadata.location.address}, ${customMetadata.location.city}, ${customMetadata.location.state}`;
     } else {
@@ -825,11 +826,11 @@ export function DirectMessageChat({
                             <div className="flex-1">
                               <p className="font-semibold">Cita Disponible</p>
                               <p className="text-sm text-muted-foreground">
-                                {new Date(msg.metadata.availability_slot.date).toLocaleDateString('es-MX', { 
-                                  weekday: 'long', 
-                                  year: 'numeric', 
-                                  month: 'long', 
-                                  day: 'numeric' 
+                                {formatDate(msg.metadata.availability_slot.date, 'es-MX', {
+                                  weekday: 'long',
+                                  year: 'numeric',
+                                  month: 'long',
+                                  day: 'numeric'
                                 })}
                               </p>
                               <p className="text-sm text-muted-foreground">
@@ -1290,11 +1291,11 @@ export function DirectMessageChat({
                             <Calendar className="h-5 w-5 text-primary" />
                             <div>
                               <p className="font-semibold">
-                                {new Date(slot.date).toLocaleDateString('es-MX', { 
-                                  weekday: 'long', 
-                                  year: 'numeric', 
-                                  month: 'long', 
-                                  day: 'numeric' 
+                                {formatDate(slot.date, 'es-MX', {
+                                  weekday: 'long',
+                                  year: 'numeric',
+                                  month: 'long',
+                                  day: 'numeric'
                                 })}
                               </p>
                               <p className="text-sm text-muted-foreground">

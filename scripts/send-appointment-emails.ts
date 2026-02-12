@@ -136,7 +136,8 @@ async function sendAppointmentEmails(appointmentId: string) {
     console.log('');
 
     // Format appointment data
-    const appointmentDate = new Date(appointment.appointment_date).toLocaleDateString('es-ES', {
+    const [y, m, d] = String(appointment.appointment_date).split('T')[0].split('-').map(Number);
+    const appointmentDate = new Date(y, m - 1, d).toLocaleDateString('es-MX', {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
@@ -181,7 +182,7 @@ async function sendAppointmentEmails(appointmentId: string) {
     if (payment) {
       console.log('2️⃣ Enviando ticket al paciente...');
 
-      const paymentDate = new Date(payment.paid_at!).toLocaleDateString('es-ES');
+      const paymentDate = new Date(payment.paid_at!).toLocaleDateString('es-MX');
 
       const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://app.holistia.com';
       const ticketData = {

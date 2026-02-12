@@ -1614,12 +1614,15 @@ export function ProfessionalProfileClient({
                     Fecha:
                   </span>
                   <span className="text-foreground font-semibold">
-                    {new Date(paymentData.date).toLocaleDateString('es-MX', {
-                      weekday: 'long',
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric'
-                    })}
+                    {(() => {
+                      const [y, m, d] = String(paymentData.date).split('T')[0].split('-').map(Number);
+                      return new Date(y, m - 1, d).toLocaleDateString('es-MX', {
+                        weekday: 'long',
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                      });
+                    })()}
                   </span>
                 </div>
                 

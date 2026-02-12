@@ -131,7 +131,8 @@ export async function POST(request: NextRequest) {
       doc.setFont('helvetica', 'normal');
 
       if (service_date) {
-        const formattedDate = new Date(service_date).toLocaleDateString('es-MX', {
+        const [y, m, d] = String(service_date).split('T')[0].split('-').map(Number);
+        const formattedDate = new Date(y, m - 1, d).toLocaleDateString('es-MX', {
           year: 'numeric',
           month: 'long',
           day: 'numeric',

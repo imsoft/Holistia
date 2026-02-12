@@ -22,6 +22,15 @@ export interface BlockData {
   end_time?: string | null;
   day_of_week?: number | null;
   is_recurring?: boolean;
+  // Campos opcionales para debugging y compatibilidad con AvailabilityBlock
+  title?: string;
+  is_external_event?: boolean;
+  external_event_metadata?: {
+    summary?: string;
+    description?: string;
+    location?: string;
+    htmlLink?: string;
+  };
 }
 
 export interface WorkingHoursData {

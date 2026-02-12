@@ -156,8 +156,13 @@ export function useScheduleAvailability(professionalId: string) {
       // Usar el store centralizado que tiene cache con TTL e invalidación
       const blocks = await useBlocksStore.getState().loadBlocks(professionalId);
 
+      console.log('📦 Total bloques cargados desde store:', blocks.length);
+      console.log('📦 Bloques externos (Google):', blocks.filter(b => b.is_external_event).length);
+
       // Usar función compartida para filtrar bloques relevantes al rango de fechas
       const filteredBlocks = filterBlocksForDateRange(blocks, startDate, endDate);
+
+      console.log('📦 Bloques filtrados para rango', startDate, '-', endDate, ':', filteredBlocks.length);
 
       return filteredBlocks;
     } catch (error) {
@@ -205,6 +210,17 @@ export function useScheduleAvailability(professionalId: string) {
     // Filtrar bloques que aplican a esta fecha (usando lógica compartida)
     const dayBlocks = availabilityBlocks.filter(block => doesBlockApplyToDate(date, block));
 
+    // Debug: Log bloques para esta fecha
+    if (dayBlocks.length > 0) {
+      console.log('🔍 Bloques aplicables para', date, ':', dayBlocks.map(b => ({
+        title: b.title,
+        block_type: b.block_type,
+        start_time: b.start_time,
+        end_time: b.end_time,
+        is_external_event: b.is_external_event
+      })));
+    }
+
     // Verificar si hay bloqueo de día completo
     const hasFullDayBlock = isFullDayBlocked(date, dayBlocks);
 
@@ -223,7 +239,18 @@ export function useScheduleAvailability(professionalId: string) {
         status = 'blocked';
       } else if (appointmentTimes.has(timeString)) {
         status = 'occupied';
-      } else if (dayBlocks.some(block => doesBlockCoverTime(timeString, block))) {
+      } else if (dayBlocks.some(block => {
+        const covers = doesBlockCoverTime(timeString, block, 60);
+        // Debug: Log cuando un bloque cubre un slot
+        if (covers) {
+          console.log('🚫 Slot', timeString, 'bloqueado por:', {
+            title: block.title,
+            start_time: block.start_time,
+            end_time: block.end_time
+          });
+        }
+        return covers;
+      })) {
         status = 'blocked';
       }
 

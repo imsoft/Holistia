@@ -37,6 +37,9 @@ interface ProfessionalWorkingHours {
 }
 
 export function useScheduleAvailability(professionalId: string) {
+  // Log de versión para verificar que se está usando el código actualizado
+  console.log('🚀 HOOK VERSION: 2026-02-11-DEBUG-v2 - Hook inicializado para:', professionalId);
+
   // Estabilizar la referencia del cliente Supabase para evitar cascadas de recreación de callbacks
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const supabase = useMemo(() => createClient(), []);

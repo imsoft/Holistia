@@ -148,6 +148,7 @@ export function WideCalendar({
   // Limpiar caché al montar el componente (forzar datos frescos en cada visita)
   useEffect(() => {
     console.log('🔄 Wide Calendar montado - limpiando caché para garantizar datos frescos');
+    console.log('🔄 VERSION: 2026-02-11-DEBUG-v2'); // Para verificar que el código nuevo se está ejecutando
     cacheRef.current = new Map();
   }, []);
 

@@ -18,9 +18,9 @@ export default function AdminLayout({
   return (
     <SidebarProvider>
       <AdminRedirect />
-      <div className="flex min-h-screen w-full">
+      <div className="flex min-h-dvh w-full">
         <AdminSidebar />
-        <main className="flex-1">
+        <main className="admin-dashboard-main flex-1">
           {children}
         </main>
       </div>

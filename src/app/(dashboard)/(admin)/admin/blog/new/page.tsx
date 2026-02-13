@@ -21,6 +21,7 @@ const RichTextEditor = dynamic(
 import { generateUniqueSlug, isValidSlug } from "@/lib/slug-utils";
 import { BlogAuthor } from "@/types/blog";
 import { PageSkeleton } from "@/components/ui/layout-skeleton";
+import { SidebarTrigger } from "@/components/ui/sidebar";
 
 export default function NewBlogPostPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -229,15 +230,22 @@ export default function NewBlogPostPage({ params }: { params: Promise<{ id: stri
   }
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-8 max-w-4xl">
-      <div className="mb-4 sm:mb-6">
-        
-        <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Crear Nuevo Post</h1>
-        <p className="text-sm sm:text-base text-muted-foreground mt-2">
-          Escribe un nuevo post para el blog de Holistia
-        </p>
+    <div className="admin-page-shell">
+      <div className="admin-page-header">
+        <div className="admin-page-header-inner admin-page-header-inner-row">
+          <div className="flex items-center gap-3 sm:gap-4">
+            <SidebarTrigger />
+            <div>
+              <h1 className="text-xl sm:text-2xl font-bold text-foreground">Crear Nuevo Post</h1>
+              <p className="text-xs sm:text-sm text-muted-foreground mt-1">
+                Escribe un nuevo post para el blog de Holistia
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
 
+      <div className="admin-page-content max-w-4xl">
       <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
         <Card className="p-3 sm:p-4">
           <CardHeader className="px-0">
@@ -411,6 +419,7 @@ export default function NewBlogPostPage({ params }: { params: Promise<{ id: stri
           </Button>
         </div>
       </form>
+      </div>
     </div>
   );
 }

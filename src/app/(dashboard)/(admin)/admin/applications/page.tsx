@@ -410,7 +410,7 @@ export default function ApplicationsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background p-6">
+      <div className="admin-page-shell p-4 sm:p-6">
         <div className="animate-pulse space-y-4 w-full">
             <div className="h-8 bg-muted rounded w-40" />
             <div className="h-64 bg-muted rounded-lg" />
@@ -420,10 +420,10 @@ export default function ApplicationsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="admin-page-shell">
       {/* Header */}
-      <div className="border-b border-border bg-card">
-        <div className="flex flex-col sm:flex-row sm:h-16 sm:items-center justify-between px-4 sm:px-6 py-4 sm:py-0 gap-4 sm:gap-0">
+      <div className="admin-page-header">
+        <div className="admin-page-header-inner admin-page-header-inner-row">
           <div className="flex items-center gap-3 sm:gap-4">
             <SidebarTrigger />
             <div>
@@ -676,7 +676,7 @@ export default function ApplicationsPage() {
                           Ver Detalles
                         </Button>
                       </DialogTrigger>
-                      <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
+                      <DialogContent className="max-w-5xl max-h-[90dvh] overflow-y-auto">
                           <DialogHeader className="pb-6">
                             <DialogTitle className="text-2xl font-bold">Detalles de la Solicitud</DialogTitle>
                             <div className="flex items-center space-x-3 pt-2">

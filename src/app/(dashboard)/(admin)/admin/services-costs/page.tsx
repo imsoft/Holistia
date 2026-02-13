@@ -373,7 +373,7 @@ export default function AdminPlatformTools() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background p-6">
+      <div className="admin-page-shell p-4 sm:p-6">
         <div className="animate-pulse space-y-4 w-full max-w-4xl mx-auto">
             <div className="h-8 bg-muted rounded w-40" />
             <div className="h-64 bg-muted rounded-lg" />
@@ -383,10 +383,10 @@ export default function AdminPlatformTools() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="admin-page-shell">
       {/* Header */}
-      <div className="border-b border-border bg-card">
-        <div className="flex flex-col sm:flex-row sm:h-16 sm:items-center justify-between px-4 sm:px-6 py-4 sm:py-0 gap-4 sm:gap-0">
+      <div className="admin-page-header">
+        <div className="admin-page-header-inner admin-page-header-inner-row">
           <div className="flex items-center gap-3 sm:gap-4">
             <SidebarTrigger />
             <div>
@@ -644,7 +644,7 @@ export default function AdminPlatformTools() {
 
       {/* Dialog para crear/editar */}
       <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-3xl max-h-[90dvh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
               {editingTool ? "Editar Herramienta" : "Nueva Herramienta"}
@@ -890,7 +890,7 @@ export default function AdminPlatformTools() {
 
       {/* Dialog para ver detalles */}
       <Dialog open={isViewOpen} onOpenChange={setIsViewOpen}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-3xl max-h-[90dvh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Detalles de la Herramienta</DialogTitle>
             <DialogDescription>Información completa de la herramienta</DialogDescription>

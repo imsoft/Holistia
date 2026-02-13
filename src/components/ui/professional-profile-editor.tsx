@@ -817,17 +817,19 @@ export default function ProfessionalProfileEditor({
 
         {/* Botones de edición - Aparecen al final cuando se está editando cualquier sección */}
         {editingField && (
-          <div className="flex gap-2 justify-end pt-6 border-t">
-            <Button variant="outline" onClick={cancelEditing} size="sm" disabled={saving}>
-              <X className="h-4 w-4 mr-2" />
-              Cancelar
-            </Button>
-            <Button onClick={handleSave} disabled={saving || !isContentValid} size="sm">
-              <Save className="h-4 w-4 mr-2" />
-              {saving ? 'Guardando...' : 'Guardar cambios'}
-            </Button>
+          <div className="space-y-2 pt-6 border-t">
+            <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+              <Button variant="outline" onClick={cancelEditing} size="sm" disabled={saving} className="w-full sm:w-auto">
+                <X className="h-4 w-4 mr-2" />
+                Cancelar
+              </Button>
+              <Button onClick={handleSave} disabled={saving || !isContentValid} size="sm" className="w-full sm:w-auto">
+                <Save className="h-4 w-4 mr-2" />
+                {saving ? 'Guardando...' : 'Guardar cambios'}
+              </Button>
+            </div>
             {!isContentValid && (
-              <p className="text-xs text-destructive mt-1">
+              <p className="text-xs text-destructive">
                 La biografía excede el límite de caracteres.
               </p>
             )}

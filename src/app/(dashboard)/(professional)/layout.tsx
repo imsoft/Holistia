@@ -43,9 +43,9 @@ export default function ProfessionalLayout({
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen bg-background flex w-full">
+      <div className="min-h-dvh bg-background flex w-full">
         <ProfessionalSidebar />
-        <main className="flex-1 w-full overflow-x-hidden">
+        <main className="min-w-0 flex-1 w-full overflow-x-hidden">
           {children}
         </main>
       </div>

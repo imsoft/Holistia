@@ -74,7 +74,7 @@ export default function EditEventPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="admin-page-shell flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
           <div className="h-4 w-32 bg-muted rounded animate-pulse mx-auto mt-2" />
@@ -85,7 +85,7 @@ export default function EditEventPage() {
 
   if (!event) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="admin-page-shell flex items-center justify-center">
         <div className="text-center">
           <p className="text-sm text-muted-foreground">Evento no encontrado</p>
         </div>
@@ -94,10 +94,10 @@ export default function EditEventPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="admin-page-shell">
       {/* Header */}
-      <div className="border-b border-border bg-card">
-        <div className="flex h-16 items-center gap-4 px-6">
+      <div className="admin-page-header">
+        <div className="admin-page-header-inner admin-page-header-inner-row">
           <Button
             variant="ghost"
             size="icon"

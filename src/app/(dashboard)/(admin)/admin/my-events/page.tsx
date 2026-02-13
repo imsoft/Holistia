@@ -16,6 +16,7 @@ import { EventWorkshop } from "@/types/event";
 import { StripeConnectSetup } from "@/components/ui/stripe-connect-setup";
 import { EventRegistrationsList } from "@/components/ui/event-registrations-list";
 import { formatDate } from "@/lib/date-utils";
+import { SidebarTrigger } from "@/components/ui/sidebar";
 
 export default function MyEventsPage() {
   useUserStoreInit();
@@ -85,128 +86,136 @@ export default function MyEventsPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="admin-page-shell flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto py-8 px-4 max-w-7xl">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Mis Eventos</h1>
-        <p className="text-muted-foreground">
-          Gestiona tus eventos y visualiza las registraciones
-        </p>
+    <div className="admin-page-shell">
+      <div className="admin-page-header">
+        <div className="admin-page-header-inner admin-page-header-inner-row">
+          <div className="flex items-center gap-3 sm:gap-4">
+            <SidebarTrigger />
+            <div>
+              <h1 className="text-xl sm:text-2xl font-bold text-foreground">Mis Eventos</h1>
+              <p className="text-xs sm:text-sm text-muted-foreground">
+                Gestiona tus eventos y visualiza las registraciones
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* Stripe Connect Setup */}
-      {!stripeConnected && (
-        <Card className="mb-6 border-primary">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <DollarSign className="h-5 w-5" />
-              Conecta tu cuenta de Stripe
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground mb-4">
-              Para recibir pagos de tus eventos, necesitas conectar tu cuenta de Stripe.
-            </p>
-            <StripeConnectSetup
-              userId={userId || ''}
-              userType="admin"
-              onConnected={handleStripeConnected}
-            />
-          </CardContent>
-        </Card>
-      )}
+      <div className="admin-page-content">
+        {/* Stripe Connect Setup */}
+        {!stripeConnected && (
+          <Card className="mb-6 border-primary">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <DollarSign className="h-5 w-5" />
+                Conecta tu cuenta de Stripe
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground mb-4">
+                Para recibir pagos de tus eventos, necesitas conectar tu cuenta de Stripe.
+              </p>
+              <StripeConnectSetup
+                userId={userId || ''}
+                userType="admin"
+                onConnected={handleStripeConnected}
+              />
+            </CardContent>
+          </Card>
+        )}
 
-      {/* Lista de eventos */}
-      {events.length === 0 ? (
-        <Card>
-          <CardContent className="py-12 text-center">
-            <Calendar className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold mb-2">No tienes eventos</h3>
-            <p className="text-muted-foreground">
-              Aún no tienes eventos asignados como dueño
-            </p>
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="grid gap-6">
-          {events.map((event) => (
-            <Card key={event.id} className="overflow-hidden">
-              <div className="md:flex">
-                {event.gallery_images && event.gallery_images.length > 0 && (
-                  <div className="md:w-1/3 h-48 md:h-auto relative">
-                    <Image
-                      src={event.gallery_images[0]}
-                      alt={event.name}
-                      fill
-                      className="object-cover"
-                      style={{
-                        objectPosition: event.image_position || "center center",
-                      }}
-                    />
-                  </div>
-                )}
-                <div className="flex-1 p-6">
-                  <div className="flex justify-between items-start mb-4">
-                    <div>
-                      <h3 className="text-xl font-bold mb-2">{event.name}</h3>
-                      <div className="flex flex-wrap gap-2 mb-3">
-                        <Badge variant={event.is_active ? "default" : "secondary"}>
-                          {event.is_active ? "Activo" : "Inactivo"}
-                        </Badge>
-                        <Badge variant="outline">
-                          {event.is_free ? "Gratis" : formatPrice(event.price, "MXN")}
-                        </Badge>
+        {/* Lista de eventos */}
+        {events.length === 0 ? (
+          <Card>
+            <CardContent className="py-12 text-center">
+              <Calendar className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+              <h3 className="text-lg font-semibold mb-2">No tienes eventos</h3>
+              <p className="text-muted-foreground">
+                Aún no tienes eventos asignados como dueño
+              </p>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="grid gap-6">
+            {events.map((event) => (
+              <Card key={event.id} className="overflow-hidden">
+                <div className="md:flex">
+                  {event.gallery_images && event.gallery_images.length > 0 && (
+                    <div className="md:w-1/3 h-48 md:h-auto relative">
+                      <Image
+                        src={event.gallery_images[0]}
+                        alt={event.name}
+                        fill
+                        className="object-cover"
+                        style={{
+                          objectPosition: event.image_position || "center center",
+                        }}
+                      />
+                    </div>
+                  )}
+                  <div className="flex-1 p-6">
+                    <div className="flex justify-between items-start mb-4">
+                      <div>
+                        <h3 className="text-xl font-bold mb-2">{event.name}</h3>
+                        <div className="flex flex-wrap gap-2 mb-3">
+                          <Badge variant={event.is_active ? "default" : "secondary"}>
+                            {event.is_active ? "Activo" : "Inactivo"}
+                          </Badge>
+                          <Badge variant="outline">
+                            {event.is_free ? "Gratis" : formatPrice(event.price, "MXN")}
+                          </Badge>
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                    <div className="flex items-center gap-2 text-sm">
-                      <Calendar className="h-4 w-4 text-muted-foreground" />
-                      <span>
-                        {formatDate(event.event_date, "es-MX", {
-                          year: "numeric",
-                          month: "long",
-                          day: "numeric",
-                        })}
-                      </span>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                      <div className="flex items-center gap-2 text-sm">
+                        <Calendar className="h-4 w-4 text-muted-foreground" />
+                        <span>
+                          {formatDate(event.event_date, "es-MX", {
+                            year: "numeric",
+                            month: "long",
+                            day: "numeric",
+                          })}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm">
+                        <Users className="h-4 w-4 text-muted-foreground" />
+                        <span>Cupo: {event.max_capacity} personas</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm">
+                        <MapPin className="h-4 w-4 text-muted-foreground" />
+                        <span>{event.location}</span>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2 text-sm">
-                      <Users className="h-4 w-4 text-muted-foreground" />
-                      <span>Cupo: {event.max_capacity} personas</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm">
-                      <MapPin className="h-4 w-4 text-muted-foreground" />
-                      <span>{event.location}</span>
-                    </div>
-                  </div>
 
-                  <div className="flex gap-2">
-                    <Button
-                      onClick={() => setSelectedEvent(selectedEvent?.id === event.id ? null : event)}
-                      variant={selectedEvent?.id === event.id ? "secondary" : "default"}
-                    >
-                      {selectedEvent?.id === event.id ? "Ocultar registraciones" : "Ver registraciones"}
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button
+                        onClick={() => setSelectedEvent(selectedEvent?.id === event.id ? null : event)}
+                        variant={selectedEvent?.id === event.id ? "secondary" : "default"}
+                      >
+                        {selectedEvent?.id === event.id ? "Ocultar registraciones" : "Ver registraciones"}
+                      </Button>
+                    </div>
                   </div>
                 </div>
-              </div>
-
-              {selectedEvent?.id === event.id && (
-                <div className="border-t p-6">
-                  <EventRegistrationsList eventId={event.id!} />
-                </div>
-              )}
-            </Card>
-          ))}
-        </div>
-      )}
+                {selectedEvent?.id === event.id && (
+                  <div className="border-t p-6">
+                    <EventRegistrationsList eventId={event.id!} />
+                  </div>
+                )}
+              </Card>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

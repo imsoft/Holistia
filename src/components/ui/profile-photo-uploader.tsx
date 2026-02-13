@@ -252,7 +252,7 @@ export default function ProfilePhotoUploader({
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Imagen actual */}
-        <div className="flex items-center gap-4">
+        <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center">
           <div className="relative">
             {currentPhoto ? (
               <Image
@@ -270,7 +270,7 @@ export default function ProfilePhotoUploader({
               </div>
             )}
           </div>
-          <div className="flex-1">
+          <div className="w-full sm:flex-1">
             <p className="text-sm font-medium">
               {currentPhoto ? 'Foto actual' : 'Sin foto de perfil'}
             </p>

@@ -847,36 +847,38 @@ export default function ProfessionalAppointments() {
     const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
     const hours = Array.from({ length: 24 }, (_, i) => i);
     const HOUR_HEIGHT = 60; // Altura de cada hora en píxeles
+    const WEEK_GRID_MIN_WIDTH = 700; // Ancho mínimo para que los 7 días no se compriman en móvil
 
     return (
-      <div className="flex flex-col h-full">
-        {/* Días de la semana */}
-        <div className="grid grid-cols-[auto_repeat(7,1fr)] gap-0 border-b border-border sticky top-0 bg-background z-10">
-          <div className="w-16" />
-          {weekDays.map((day, idx) => (
-            <div
-              key={idx}
-              className={`text-center py-3 border-l border-border ${
-                isToday(day) ? "bg-primary/5" : ""
-              }`}
-            >
-              <div className="text-xs text-muted-foreground uppercase">
-                {format(day, "EEE", { locale: es })}
-              </div>
+      <div className="flex flex-col h-full overflow-x-auto overscroll-x-contain">
+        <div className="flex flex-col h-full" style={{ minWidth: WEEK_GRID_MIN_WIDTH }}>
+          {/* Días de la semana */}
+          <div className="grid grid-cols-[4rem_repeat(7,minmax(0,1fr))] gap-0 border-b border-border sticky top-0 bg-background z-10 shrink-0">
+            <div className="w-16 shrink-0" aria-hidden />
+            {weekDays.map((day, idx) => (
               <div
-                className={`text-2xl font-semibold ${
-                  isToday(day) ? "text-primary" : ""
+                key={idx}
+                className={`min-w-0 text-center py-2 sm:py-3 border-l border-border ${
+                  isToday(day) ? "bg-primary/5" : ""
                 }`}
               >
-                {format(day, "d")}
+                <div className="text-[10px] sm:text-xs text-muted-foreground uppercase truncate">
+                  {format(day, "EEE", { locale: es })}
+                </div>
+                <div
+                  className={`text-lg sm:text-2xl font-semibold ${
+                    isToday(day) ? "text-primary" : ""
+                  }`}
+                >
+                  {format(day, "d")}
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
 
-        {/* Grid de horas */}
-        <div className="flex-1 overflow-auto">
-          <div className="grid grid-cols-[auto_repeat(7,1fr)] gap-0">
+          {/* Grid de horas */}
+          <div className="flex-1 overflow-auto min-h-0">
+            <div className="grid grid-cols-[4rem_repeat(7,minmax(80px,1fr))] gap-0">
             {hours.map((hour) => (
               <div key={hour} className="contents">
                 <div className="text-xs text-muted-foreground pr-2 py-2 text-right w-16 sticky left-0 bg-background border-r border-border" style={{ height: `${HOUR_HEIGHT}px` }}>
@@ -923,16 +925,17 @@ export default function ProfessionalAppointments() {
                             <button
                               key={apt.id}
                               onClick={() => handleViewAppointment(apt)}
-                              className={`absolute left-0.5 right-0.5 px-2 py-1 rounded text-xs border ${getStatusColor(apt.status)} hover:opacity-80 transition-opacity overflow-hidden z-10`}
+                              title={`${apt.patient.name} · ${apt.time} - ${getEndTime(apt.time, apt.duration)}`}
+                              className={`absolute left-0.5 right-0.5 px-2 py-1 rounded text-xs border ${getStatusColor(apt.status)} hover:opacity-80 transition-opacity overflow-hidden z-10 min-w-0`}
                               style={{
                                 top: `${topOffset}px`,
                                 height: `${Math.max(heightInPixels - 2, 30)}px`,
                               }}
                             >
-                              <div className="font-semibold truncate">
+                              <div className="font-semibold truncate" title={apt.patient.name}>
                                 {apt.patient.name}
                               </div>
-                              <div className="truncate">{apt.time} - {getEndTime(apt.time, apt.duration)}</div>
+                              <div className="truncate text-[10px] sm:text-xs">{apt.time} - {getEndTime(apt.time, apt.duration)}</div>
                             </button>
                           );
                         })}
@@ -975,6 +978,7 @@ export default function ProfessionalAppointments() {
             ))}
           </div>
         </div>
+        </div>
       </div>
     );
   };
@@ -992,7 +996,8 @@ export default function ProfessionalAppointments() {
     }
 
     return (
-      <div className="flex flex-col h-full">
+      <div className="flex h-full flex-col overflow-x-auto">
+        <div className="flex min-h-full min-w-[720px] flex-col">
         {/* Días de la semana */}
         <div className="grid grid-cols-7 gap-0 border-b border-border">
           {["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"].map((day, idx) => (
@@ -1071,6 +1076,7 @@ export default function ProfessionalAppointments() {
               })}
             </div>
           ))}
+        </div>
         </div>
       </div>
     );
@@ -1167,7 +1173,7 @@ export default function ProfessionalAppointments() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center min-h-dvh">
         <div className="animate-pulse space-y-4 w-full max-w-4xl">
           <div className="h-12 bg-muted rounded" />
           <div className="h-96 bg-muted rounded-lg" />
@@ -1177,20 +1183,20 @@ export default function ProfessionalAppointments() {
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-background">
+    <div className="professional-page-shell flex flex-col">
       {/* Header */}
-      <div className="border-b border-border bg-card sticky top-0 z-10">
-        <div className="flex h-16 items-center px-6">
+      <div className="professional-page-header sticky top-0 z-20">
+        <div className="mx-auto flex h-16 w-full max-w-screen-2xl items-center px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-4">
             <SidebarTrigger />
-            <h1 className="text-2xl font-bold">Calendario de Citas</h1>
+            <h1 className="text-xl sm:text-2xl font-bold">Calendario de Citas</h1>
           </div>
         </div>
       </div>
 
       {/* Toolbar */}
-      <div className="border-b border-border bg-card sticky top-16 z-10">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 px-4 sm:px-6 py-3 sm:py-4">
+      <div className="professional-page-header sticky top-16 z-20">
+        <div className="mx-auto flex w-full max-w-screen-2xl flex-col items-start justify-between gap-3 px-4 py-3 sm:flex-row sm:items-center sm:px-6 sm:py-4 lg:px-8">
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 w-full sm:w-auto">
             <div className="flex items-center gap-2">
               <Button variant="outline" size="sm" onClick={handlePrevious}>
@@ -1206,11 +1212,11 @@ export default function ProfessionalAppointments() {
             <h2 className="text-base sm:text-lg font-semibold capitalize">{getTitle()}</h2>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:justify-end">
             <Button
               size="sm"
               onClick={() => router.push(`/appointments/new`)}
-              className="w-full sm:w-auto"
+              className="flex-1 sm:flex-none"
             >
               + Nueva Cita
             </Button>
@@ -1219,14 +1225,14 @@ export default function ProfessionalAppointments() {
               size="sm"
               onClick={handleSyncCalendar}
               disabled={syncing}
-              className="w-full sm:w-auto"
+              className="flex-1 sm:flex-none"
             >
               <RefreshCw className={`h-4 w-4 mr-2 ${syncing ? 'animate-spin' : ''}`} />
               {syncing ? 'Sincronizando...' : 'Sincronizar calendario'}
             </Button>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="w-full sm:w-auto">
+                <Button variant="outline" size="sm" className="flex-1 sm:flex-none">
                   {viewLabels[view]}
                   <ChevronDown className="ml-2 h-4 w-4" />
                 </Button>
@@ -1263,7 +1269,7 @@ export default function ProfessionalAppointments() {
         );
         if (activeToday.length === 0) return null;
         return (
-          <div className="px-6 pt-4">
+          <div className="mx-auto w-full max-w-screen-2xl px-4 sm:px-6 lg:px-8 pt-4">
             <div
               className="flex items-center justify-between gap-3 rounded-lg border border-border bg-muted/40 px-4 py-3 text-sm"
               role="region"
@@ -1288,8 +1294,8 @@ export default function ProfessionalAppointments() {
       })()}
 
       {/* Calendar */}
-      <div className="p-6" style={{ minHeight: 'calc(100vh - 8rem)' }}>
-        <div className="h-full bg-card border border-border rounded-lg overflow-hidden" style={{ minHeight: '600px' }}>
+      <div className="mx-auto w-full max-w-screen-2xl px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+        <div className="h-full bg-card border border-border rounded-lg overflow-hidden min-h-[460px] sm:min-h-[620px]">
           {view === "day" && renderDayView()}
           {view === "week" && renderWeekView()}
           {view === "month" && renderMonthView()}
@@ -1298,13 +1304,13 @@ export default function ProfessionalAppointments() {
       </div>
 
       {/* Políticas de citas visibles para el profesional */}
-      <div className="px-4 sm:px-6 pb-6">
+      <div className="mx-auto w-full max-w-screen-2xl px-4 sm:px-6 lg:px-8 pb-4 sm:pb-6">
         <AppointmentPolicies variant="professional" layout="card" />
       </div>
 
       {/* Dialogs */}
       <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl max-h-[88vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Detalles de la Cita</DialogTitle>
             <DialogDescription>
@@ -1317,7 +1323,7 @@ export default function ProfessionalAppointments() {
 
             return (
               <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <div className="text-sm font-medium text-muted-foreground">
                       Paciente
@@ -1354,14 +1360,14 @@ export default function ProfessionalAppointments() {
                     <div className="text-sm font-medium text-muted-foreground">Tipo</div>
                     <div className="text-base">{selectedAppointment.type}</div>
                   </div>
-                  <div className="col-span-2">
+                  <div className="sm:col-span-2">
                     <div className="text-sm font-medium text-muted-foreground">
                       Ubicación
                     </div>
                     <div className="text-base">{selectedAppointment.location}</div>
                   </div>
                   {selectedAppointment.notes && (
-                    <div className="col-span-2">
+                    <div className="sm:col-span-2">
                       <div className="text-sm font-medium text-muted-foreground">
                         Notas
                       </div>
@@ -1369,7 +1375,7 @@ export default function ProfessionalAppointments() {
                     </div>
                   )}
                   {isGoogleCalendarEvent && (
-                    <div className="col-span-2">
+                    <div className="sm:col-span-2">
                       <div className="px-3 py-2 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-md">
                         <p className="text-sm text-blue-800 dark:text-blue-200">
                           Este evento proviene de Google Calendar y no puede ser modificado desde aquí.
@@ -1379,7 +1385,7 @@ export default function ProfessionalAppointments() {
                   )}
                   {/* Continuidad: este paciente ya vino antes */}
                   {!isGoogleCalendarEvent && previousVisitsCount !== null && (
-                    <div className="col-span-2">
+                    <div className="sm:col-span-2">
                       <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/40 px-3 py-2.5">
                         <UserCheck className="h-4 w-4 shrink-0 text-primary" aria-hidden />
                         <p className="text-sm text-foreground">
@@ -1397,7 +1403,7 @@ export default function ProfessionalAppointments() {
                     {selectedAppointment.status === "pending" && (
                       <Button
                         onClick={() => handleConfirmAppointment(selectedAppointment.id)}
-                        className="flex-1"
+                        className="w-full sm:flex-1"
                       >
                         Confirmar cita
                       </Button>
@@ -1407,7 +1413,7 @@ export default function ProfessionalAppointments() {
                         <Button
                           onClick={() => handleMarkCompleted(selectedAppointment.id)}
                           disabled={markingCompleted}
-                          className="flex-1"
+                          className="w-full sm:flex-1"
                         >
                           {markingCompleted ? "..." : "Marcar realizada"}
                         </Button>
@@ -1417,21 +1423,21 @@ export default function ProfessionalAppointments() {
                             setIsViewDialogOpen(false);
                             router.push(`/appointments/${selectedAppointment.id}/no-show`);
                           }}
-                          className="flex-1"
+                          className="w-full sm:flex-1"
                         >
                           Marcar no asistió
                         </Button>
                         <Button
                           variant="outline"
                           onClick={() => openRescheduleDialog(selectedAppointment)}
-                          className="flex-1"
+                          className="w-full sm:flex-1"
                         >
                           Reprogramar
                         </Button>
                         <Button
                           variant="destructive"
                           onClick={() => openCancelDialog(selectedAppointment)}
-                          className="flex-1"
+                          className="w-full sm:flex-1"
                         >
                           Cancelar cita
                         </Button>

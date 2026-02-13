@@ -201,17 +201,21 @@ export default function AdminAppointments() {
   };
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="admin-page-shell">
       {/* Header */}
-      <header className="flex items-center gap-4 border-b p-4">
-        <SidebarTrigger />
-        <div className="flex items-center gap-2">
-          <CalendarCheck className="h-5 w-5 text-primary" />
-          <h1 className="text-xl font-semibold">Citas</h1>
+      <div className="admin-page-header">
+        <div className="admin-page-header-inner admin-page-header-inner-row">
+          <div className="flex items-center gap-3 sm:gap-4">
+            <SidebarTrigger />
+            <div className="flex items-center gap-2">
+              <CalendarCheck className="h-5 w-5 text-primary" />
+              <h1 className="text-xl sm:text-2xl font-semibold">Citas</h1>
+            </div>
+          </div>
         </div>
-      </header>
+      </div>
 
-      <div className="flex-1 overflow-auto p-4 sm:p-6 space-y-6">
+      <div className="admin-page-content space-y-6">
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <Card>

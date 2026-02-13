@@ -17,7 +17,7 @@ function NewAdminDigitalProductPageContent() {
 
   if (!professionalId) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="admin-page-shell flex items-center justify-center">
         <div className="text-center">
           <p className="text-muted-foreground mb-4">Se requiere el ID del profesional</p>
           <Button onClick={() => router.push(`/admin/professionals`)}>
@@ -29,9 +29,9 @@ function NewAdminDigitalProductPageContent() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="border-b border-border bg-card">
-        <div className="flex h-16 items-center gap-4 px-6">
+    <div className="admin-page-shell">
+      <div className="admin-page-header">
+        <div className="admin-page-header-inner admin-page-header-inner-row">
           <Button
             variant="ghost"
             size="icon"
@@ -60,7 +60,7 @@ function NewAdminDigitalProductPageContent() {
 export default function NewAdminDigitalProductPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-background p-6">
+      <div className="admin-page-shell p-4 sm:p-6">
         <div className="animate-pulse space-y-4 w-full max-w-2xl mx-auto">
             <div className="h-10 bg-muted rounded" />
             <div className="h-10 bg-muted rounded" />

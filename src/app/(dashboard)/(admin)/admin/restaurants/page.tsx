@@ -481,10 +481,10 @@ export default function AdminRestaurants() {
     });
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="admin-page-shell">
       {/* Header */}
-      <div className="border-b border-border bg-card">
-        <div className="flex h-16 items-center justify-between px-6">
+      <div className="admin-page-header">
+        <div className="admin-page-header-inner admin-page-header-inner-row">
           <div className="flex items-center gap-4">
             <SidebarTrigger />
             <div>
@@ -763,7 +763,7 @@ export default function AdminRestaurants() {
 
       {/* Form Dialog */}
       <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl max-h-[90dvh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
               {editingRestaurant ? "Editar Restaurante" : "Nuevo Restaurante"}
@@ -995,7 +995,7 @@ export default function AdminRestaurants() {
 
       {/* View Dialog */}
       <Dialog open={isViewOpen} onOpenChange={setIsViewOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl max-h-[90dvh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{viewingRestaurant?.name}</DialogTitle>
             <DialogDescription>Detalles del restaurante</DialogDescription>

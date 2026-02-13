@@ -182,10 +182,10 @@ export default function SyncToolsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="admin-page-shell">
       {/* Header */}
-      <div className="border-b border-border bg-card">
-        <div className="flex h-16 flex-col gap-4 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="admin-page-header">
+        <div className="admin-page-header-inner admin-page-header-inner-row">
           <div className="flex items-center gap-4">
             <SidebarTrigger />
             <div>

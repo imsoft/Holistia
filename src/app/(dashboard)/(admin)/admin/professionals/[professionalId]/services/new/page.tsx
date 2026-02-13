@@ -43,7 +43,7 @@ export default function NewAdminServicePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background p-6">
+      <div className="admin-page-shell p-4 sm:p-6">
         <div className="animate-pulse space-y-4 w-full max-w-2xl mx-auto">
             <div className="h-10 bg-muted rounded" />
             <div className="h-10 bg-muted rounded" />
@@ -55,7 +55,7 @@ export default function NewAdminServicePage() {
 
   if (!userId) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="admin-page-shell flex items-center justify-center">
         <div className="text-center">
           <p className="text-muted-foreground mb-4">No se pudo obtener la información del profesional</p>
           <Button onClick={() => router.push(`/admin/professionals/${professionalId}`)}>
@@ -67,10 +67,10 @@ export default function NewAdminServicePage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="admin-page-shell">
       {/* Header */}
-      <div className="border-b border-border bg-card">
-        <div className="flex h-16 items-center gap-4 px-6">
+      <div className="admin-page-header">
+        <div className="admin-page-header-inner admin-page-header-inner-row">
           <Button
             variant="ghost"
             size="icon"

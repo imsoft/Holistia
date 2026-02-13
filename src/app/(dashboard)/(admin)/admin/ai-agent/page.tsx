@@ -127,20 +127,20 @@ export default function AIAgentPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="admin-page-shell">
       {/* Header */}
-      <div className="border-b border-border bg-card sticky top-0 z-10">
-        <div className="flex h-16 items-center justify-between px-6">
-          <div className="flex items-center gap-4">
+      <div className="admin-page-header sticky top-0 z-10">
+        <div className="admin-page-header-inner admin-page-header-inner-row">
+          <div className="flex items-center gap-3 sm:gap-4">
             <SidebarTrigger />
             <div>
-              <h1 className="text-2xl font-bold text-foreground">Asistente IA de Holistia</h1>
-              <p className="text-sm text-muted-foreground">
+              <h1 className="text-xl sm:text-2xl font-bold text-foreground">Asistente IA de Holistia</h1>
+              <p className="text-xs sm:text-sm text-muted-foreground">
                 Chat conversacional con acceso a datos en tiempo real
               </p>
             </div>
           </div>
-            <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap w-full sm:w-auto sm:justify-end">
             <Badge variant="outline" className="gap-1">
               <Bot className="w-3 h-3" />
               Chat general con contexto
@@ -156,10 +156,10 @@ export default function AIAgentPage() {
       </div>
 
       {/* Main Content */}
-      <div className="w-full px-4 sm:px-6 lg:px-8 py-6">
+      <div className="admin-page-content">
         <div className="flex flex-col lg:flex-row gap-6">
           {/* Chat Panel */}
-          <Card className="h-[calc(100vh-12rem)] py-4 flex flex-col flex-1 lg:flex-[2]">
+          <Card className="min-h-[28rem] py-4 flex flex-col flex-1 lg:flex-[2] lg:h-[calc(100dvh-12rem)]">
           <CardHeader className="border-b">
             <CardTitle className="flex items-center gap-2 text-lg">
               <Bot className="w-5 h-5" />
@@ -167,7 +167,7 @@ export default function AIAgentPage() {
             </CardTitle>
           </CardHeader>
 
-          <CardContent className="flex-1 overflow-y-auto p-6 space-y-4">
+          <CardContent className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
             {messages.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-center space-y-4">
                 <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
@@ -307,7 +307,7 @@ export default function AIAgentPage() {
         </Card>
 
         {/* Panel de Estadísticas */}
-        <div className="space-y-4 lg:h-[calc(100vh-12rem)] overflow-y-auto flex-1 lg:max-w-[320px]">
+        <div className="space-y-4 overflow-y-auto flex-1 lg:max-w-[320px] lg:h-[calc(100dvh-12rem)]">
           {/* Estadísticas de Tokens */}
           <Card className="py-4">
             <CardHeader>

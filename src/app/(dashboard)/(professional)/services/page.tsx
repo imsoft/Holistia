@@ -119,7 +119,7 @@ export default function ProfessionalServicesPage() {
 
   if (loading) {
     return (
-      <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-8">
+      <div className="professional-page-content">
         <div className="space-y-4 sm:space-y-6">
           <div className="h-6 sm:h-8 bg-muted animate-pulse rounded" />
           <div className="h-48 sm:h-64 bg-muted animate-pulse rounded" />
@@ -130,7 +130,7 @@ export default function ProfessionalServicesPage() {
 
   if (!currentUser) {
     return (
-      <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-8">
+      <div className="professional-page-content">
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12 px-4">
             <Package className="w-10 h-10 sm:w-12 sm:h-12 text-muted-foreground mb-4" />
@@ -150,7 +150,7 @@ export default function ProfessionalServicesPage() {
 
   if (!professional) {
     return (
-      <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-8">
+      <div className="professional-page-content">
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12 px-4">
             <Package className="w-10 h-10 sm:w-12 sm:h-12 text-muted-foreground mb-4" />
@@ -184,10 +184,10 @@ export default function ProfessionalServicesPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="professional-page-shell">
       {/* Header */}
-      <div className="border-b border-border bg-card">
-        <div className="flex flex-col sm:flex-row sm:h-16 sm:items-center justify-between px-4 sm:px-6 py-4 sm:py-0 gap-4 sm:gap-0">
+      <div className="professional-page-header">
+        <div className="professional-page-header-inner professional-page-header-inner-row">
           <div className="flex items-center gap-3 sm:gap-4">
             <SidebarTrigger />
             <div>
@@ -207,7 +207,7 @@ export default function ProfessionalServicesPage() {
       </div>
 
       {/* Main Content */}
-      <div className="w-full px-4 sm:px-6 py-6 sm:py-8">
+      <div className="professional-page-content w-full">
         <div className="space-y-6">
           {professional.status === "approved" && (
             <>

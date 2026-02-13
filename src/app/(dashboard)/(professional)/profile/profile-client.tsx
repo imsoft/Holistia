@@ -51,10 +51,10 @@ export function ProfessionalProfileClient({
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="professional-page-shell">
       {/* Header */}
-      <div className="border-b border-border bg-card">
-        <div className="flex h-16 items-center justify-between px-4 sm:px-6">
+      <div className="professional-page-header">
+        <div className="professional-page-header-inner professional-page-header-inner-row">
           <div className="flex items-center gap-3 sm:gap-4">
             <SidebarTrigger />
             <div>
@@ -64,7 +64,7 @@ export function ProfessionalProfileClient({
               </p>
             </div>
           </div>
-          <Button variant="outline" size="sm" onClick={handleShare}>
+          <Button variant="outline" size="sm" onClick={handleShare} className="w-full sm:w-auto">
             <Share2 className="w-4 h-4 sm:mr-2" />
             <span className="hidden sm:inline">Compartir</span>
           </Button>
@@ -72,7 +72,7 @@ export function ProfessionalProfileClient({
       </div>
 
       {/* Main Content */}
-      <div className="w-full py-6 sm:py-8 px-4 sm:px-6">
+      <div className="professional-page-content w-full">
         <div className="space-y-6 sm:space-y-8">
           {/* Foto de Perfil */}
           <div>

@@ -224,10 +224,10 @@ export default function ProfessionalChallenges() {
   };
 
   return (
-    <div className="min-h-screen bg-background w-full">
+    <div className="professional-page-shell w-full">
       {/* Header */}
-      <div className="border-b border-border bg-card w-full">
-        <div className="flex flex-col sm:flex-row sm:h-16 sm:items-center justify-between px-4 sm:px-6 py-4 sm:py-0 gap-4 sm:gap-0 w-full">
+      <div className="professional-page-header w-full">
+        <div className="professional-page-header-inner professional-page-header-inner-row w-full">
           <div className="flex items-center gap-3 sm:gap-4">
             <SidebarTrigger />
             <div>
@@ -240,13 +240,13 @@ export default function ProfessionalChallenges() {
               </p>
             </div>
           </div>
-          <div className="flex gap-2">
-            <Button variant="outline" asChild>
+          <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+            <Button variant="outline" asChild className="w-full sm:w-auto">
               <a href={`/challenges/participants`}>
                 Ver Participantes
               </a>
             </Button>
-            <Button onClick={() => router.push(`/challenges/new`)}>
+            <Button onClick={() => router.push(`/challenges/new`)} className="w-full sm:w-auto">
               <Plus className="h-4 w-4 mr-2" />
               Nuevo Reto
             </Button>
@@ -255,7 +255,7 @@ export default function ProfessionalChallenges() {
       </div>
 
       {/* Main Content */}
-      <div className="w-full px-4 sm:px-6 py-8">
+      <div className="professional-page-content w-full">
         {/* Cards de estadísticas (4 cards) */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6">
           <AdminStatCard
@@ -359,7 +359,7 @@ export default function ProfessionalChallenges() {
             </CardContent>
           </Card>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
             {filteredChallenges.map((challenge) => (
               <Card key={challenge.id} className="overflow-hidden py-4">
                 <div className="relative h-48">

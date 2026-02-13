@@ -17,9 +17,9 @@ function NewAdminChallengePageContent() {
   const professionalId = searchParams.get('professional_id');
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="border-b border-border bg-card">
-        <div className="flex h-16 items-center gap-4 px-6">
+    <div className="admin-page-shell">
+      <div className="admin-page-header">
+        <div className="admin-page-header-inner admin-page-header-inner-row">
           <Button
             variant="ghost"
             size="icon"

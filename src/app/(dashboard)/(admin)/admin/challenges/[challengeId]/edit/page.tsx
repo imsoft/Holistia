@@ -72,7 +72,7 @@ export default function EditAdminChallengePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="admin-page-shell flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
@@ -83,9 +83,9 @@ export default function EditAdminChallengePage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="border-b border-border bg-card">
-        <div className="flex h-16 items-center gap-4 px-6">
+    <div className="admin-page-shell">
+      <div className="admin-page-header">
+        <div className="admin-page-header-inner admin-page-header-inner-row">
           <Button
             variant="ghost"
             size="icon"

@@ -274,7 +274,7 @@ export function ServiceManager({
             <Card key={service.id} className={!service.isactive ? "opacity-60" : ""}>
               <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] gap-4">
                 {/* Imagen del servicio */}
-                <div className="relative h-48 md:h-full overflow-hidden rounded-l-lg">
+                <div className="relative h-48 md:h-full overflow-hidden rounded-t-lg md:rounded-l-lg md:rounded-t-none">
                   <Image
                     src={service.image_url || "/logos/holistia-black.png"}
                     alt={service.name}
@@ -286,7 +286,7 @@ export function ServiceManager({
                 {/* Contenido del servicio */}
                 <div>
                   <CardHeader className="pb-4 pt-6">
-                    <div className="flex justify-between items-start">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                       <div className="flex-1">
                         <CardTitle className="flex items-center gap-2">
                           {getTypeIcon(service.type)}
@@ -319,7 +319,7 @@ export function ServiceManager({
                           </div>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex w-full items-center justify-end gap-2 sm:w-auto">
                         <Switch
                           checked={service.isactive}
                           onCheckedChange={() =>
@@ -356,7 +356,7 @@ export function ServiceManager({
                         <span className="whitespace-nowrap">Costo: {formatPrice(typeof service.cost === 'number' ? service.cost : (service.cost?.presencial || service.cost?.online || 0), "MXN")}</span>
                       </div>
                       {service.address && (
-                        <div className="flex items-center justify-between">
+                        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                           <div className="flex items-center gap-1 text-sm text-muted-foreground">
                             <MapPin className="w-4 h-4" />
                             <span className="truncate flex-1">{service.address}</span>
@@ -365,7 +365,7 @@ export function ServiceManager({
                             variant="ghost"
                             size="sm"
                             onClick={() => handleOpenMap(service)}
-                            className="ml-2 h-6 px-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50"
+                            className="h-6 px-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 sm:ml-2"
                           >
                             <Navigation className="w-3 h-3 mr-1" />
                             Ver mapa

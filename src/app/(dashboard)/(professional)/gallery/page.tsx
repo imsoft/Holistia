@@ -188,8 +188,8 @@ export default function ProfessionalGalleryPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background p-6">
-        <div className="animate-pulse grid grid-cols-2 sm:grid-cols-3 gap-4 w-full w-full">
+      <div className="professional-page-shell professional-page-content">
+        <div className="animate-pulse grid grid-cols-2 sm:grid-cols-3 gap-4 w-full">
           {[1,2,3,4,5,6].map(i => <div key={i} className="h-32 bg-muted rounded-lg aspect-square" />)}
         </div>
       </div>
@@ -198,7 +198,7 @@ export default function ProfessionalGalleryPage() {
 
   if (error && !professional) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center px-4">
+      <div className="min-h-dvh bg-background flex items-center justify-center px-4">
         <div className="text-center max-w-md w-full">
           <h1 className="text-xl sm:text-2xl font-bold text-foreground mb-2">Error de Acceso</h1>
           <p className="text-sm sm:text-base text-muted-foreground mb-4">{error}</p>
@@ -239,7 +239,7 @@ export default function ProfessionalGalleryPage() {
 
   if (!professional) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center px-4">
+      <div className="min-h-dvh bg-background flex items-center justify-center px-4">
         <div className="text-center">
           <h1 className="text-xl sm:text-2xl font-bold text-foreground mb-2">Profesional no encontrado</h1>
           <p className="text-sm sm:text-base text-muted-foreground">El profesional que buscas no está disponible.</p>
@@ -249,10 +249,10 @@ export default function ProfessionalGalleryPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="professional-page-shell">
       {/* Header */}
-      <div className="border-b border-border bg-card">
-        <div className="flex flex-col sm:flex-row sm:h-16 sm:items-center justify-between px-4 sm:px-6 py-4 sm:py-0 gap-4 sm:gap-0">
+      <div className="professional-page-header">
+        <div className="professional-page-header-inner professional-page-header-inner-row">
           <div className="flex items-center gap-3 sm:gap-4">
             <SidebarTrigger />
             <div>
@@ -266,7 +266,7 @@ export default function ProfessionalGalleryPage() {
       </div>
 
       {/* Main Content */}
-      <div className="w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+      <div className="professional-page-content w-full">
 
         {/* Mensajes de estado */}
         {error && (

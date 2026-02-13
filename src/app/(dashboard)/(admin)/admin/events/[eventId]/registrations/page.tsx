@@ -284,7 +284,7 @@ export default function EventRegistrationsDetailPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="admin-page-shell flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
       </div>
     );
@@ -292,7 +292,7 @@ export default function EventRegistrationsDetailPage() {
 
   if (!event) {
     return (
-      <div className="min-h-screen bg-background p-6">
+      <div className="admin-page-shell p-4 sm:p-6">
         <Card>
           <CardContent className="pt-6">
             <p className="text-center text-muted-foreground">Evento no encontrado</p>
@@ -306,10 +306,10 @@ export default function EventRegistrationsDetailPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="admin-page-shell">
       {/* Header */}
-      <div className="border-b border-border bg-card">
-        <div className="flex flex-col sm:flex-row sm:h-16 sm:items-center justify-between px-4 sm:px-6 py-4 sm:py-0 gap-4 sm:gap-0">
+      <div className="admin-page-header">
+        <div className="admin-page-header-inner admin-page-header-inner-row">
           <div className="flex items-center gap-3 sm:gap-4">
             <SidebarTrigger />
             <div>

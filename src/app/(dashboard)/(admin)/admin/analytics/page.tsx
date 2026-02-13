@@ -353,31 +353,31 @@ export default function AnalyticsPage() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
+      <div className="admin-page-shell flex items-center justify-center">
         <div className="h-12 w-12 animate-spin rounded-full border-b-2 border-primary"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="border-b border-border bg-card">
-        <div className="flex flex-col gap-4 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:py-0 sm:gap-0 sm:h-16">
+    <div className="admin-page-shell">
+      <div className="admin-page-header">
+        <div className="admin-page-header-inner admin-page-header-inner-row">
           <div className="flex items-center gap-3 sm:gap-4">
             <SidebarTrigger />
             <div>
-              <h1 className="text-xl font-bold text-foreground sm:text-2xl">Analíticas</h1>
-              <p className="text-xs text-muted-foreground sm:text-sm">Estadísticas y métricas del sistema</p>
+              <h1 className="text-xl sm:text-2xl font-bold text-foreground">Analíticas</h1>
+              <p className="text-xs sm:text-sm text-muted-foreground">Estadísticas y métricas del sistema</p>
             </div>
           </div>
-          <Button onClick={handleSyncPayments} disabled={syncing} size="sm" className="w-full sm:w-auto sm:size-default">
+          <Button onClick={handleSyncPayments} disabled={syncing} size="sm" className="w-full sm:w-auto">
             <RefreshCw className={`mr-2 h-4 w-4 ${syncing ? "animate-spin" : ""}`} />
             {syncing ? "Sincronizando..." : "Sincronizar pagos"}
           </Button>
         </div>
       </div>
 
-      <div className="space-y-6 px-4 py-6 sm:px-6">
+      <div className="admin-page-content space-y-6">
         {syncMessage && (
           <div
             className={`rounded-lg p-3 text-sm ${

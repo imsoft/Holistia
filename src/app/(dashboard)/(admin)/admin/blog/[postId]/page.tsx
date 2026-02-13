@@ -23,6 +23,7 @@ const RichTextEditor = dynamic(
 import { generateUniqueSlug, isValidSlug } from "@/lib/slug-utils";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { PageSkeleton } from "@/components/ui/layout-skeleton";
+import { SidebarTrigger } from "@/components/ui/sidebar";
 
 export default function EditBlogPostPage({ 
   params 
@@ -315,14 +316,16 @@ export default function EditBlogPostPage({
 
   if (fetchLoading) {
     return (
-      <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-8 max-w-4xl">
-        <div className="animate-pulse space-y-4 sm:space-y-6">
-          <div className="h-6 sm:h-8 bg-muted rounded w-1/2 sm:w-1/3"></div>
-          <div className="h-3 sm:h-4 bg-muted rounded w-3/4 sm:w-1/2"></div>
-          <div className="space-y-3 sm:space-y-4">
-            <div className="h-10 bg-muted rounded"></div>
-            <div className="h-10 bg-muted rounded"></div>
-            <div className="h-32 bg-muted rounded"></div>
+      <div className="admin-page-shell">
+        <div className="admin-page-content max-w-4xl">
+          <div className="animate-pulse space-y-4 sm:space-y-6">
+            <div className="h-6 sm:h-8 bg-muted rounded w-1/2 sm:w-1/3"></div>
+            <div className="h-3 sm:h-4 bg-muted rounded w-3/4 sm:w-1/2"></div>
+            <div className="space-y-3 sm:space-y-4">
+              <div className="h-10 bg-muted rounded"></div>
+              <div className="h-10 bg-muted rounded"></div>
+              <div className="h-32 bg-muted rounded"></div>
+            </div>
           </div>
         </div>
       </div>
@@ -331,29 +334,33 @@ export default function EditBlogPostPage({
 
   if (!post) {
     return (
-      <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-8 max-w-4xl">
-        <div className="text-center">
-          <h1 className="text-xl sm:text-2xl font-bold mb-4">Post no encontrado</h1>
-          <Button asChild className="w-full sm:w-auto">
-            <Link href={`/admin/blog`}>
-              Volver al Blog
-            </Link>
-          </Button>
+      <div className="admin-page-shell">
+        <div className="admin-page-content max-w-4xl">
+          <div className="text-center">
+            <h1 className="text-xl sm:text-2xl font-bold mb-4">Post no encontrado</h1>
+            <Button asChild className="w-full sm:w-auto">
+              <Link href={`/admin/blog`}>
+                Volver al Blog
+              </Link>
+            </Button>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-8 max-w-4xl">
-      <div className="mb-4 sm:mb-6">
-        
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Editar Post</h1>
-            <p className="text-sm sm:text-base text-muted-foreground mt-2">
-              Modifica el contenido del post del blog
-            </p>
+    <div className="admin-page-shell">
+      <div className="admin-page-header">
+        <div className="admin-page-header-inner admin-page-header-inner-row">
+          <div className="flex items-center gap-3 sm:gap-4">
+            <SidebarTrigger />
+            <div>
+              <h1 className="text-xl sm:text-2xl font-bold text-foreground">Editar Post</h1>
+              <p className="text-xs sm:text-sm text-muted-foreground mt-1">
+                Modifica el contenido del post del blog
+              </p>
+            </div>
           </div>
           <Button
             variant="destructive"
@@ -367,6 +374,7 @@ export default function EditBlogPostPage({
         </div>
       </div>
 
+      <div className="admin-page-content max-w-4xl">
       <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
         <Card className="p-3 sm:p-4">
           <CardHeader className="px-0">
@@ -537,6 +545,7 @@ export default function EditBlogPostPage({
           </Button>
         </div>
       </form>
+      </div>
 
       {/* Dialog de confirmación para eliminar */}
       <ConfirmDialog

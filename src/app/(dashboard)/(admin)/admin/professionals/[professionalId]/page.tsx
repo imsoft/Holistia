@@ -192,7 +192,7 @@ export default function AdminProfessionalEdit() {
 
   if (loading) {
     return (
-      <div className="flex h-screen items-center justify-center">
+      <div className="admin-page-shell flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
       </div>
     );
@@ -200,7 +200,7 @@ export default function AdminProfessionalEdit() {
 
   if (!professional) {
     return (
-      <div className="flex h-screen flex-col items-center justify-center gap-4">
+      <div className="admin-page-shell flex flex-col items-center justify-center gap-4">
         <p className="text-muted-foreground">Profesional no encontrado</p>
         <Button onClick={() => router.back()}>
           <ArrowLeft className="mr-2 h-4 w-4" />
@@ -211,72 +211,76 @@ export default function AdminProfessionalEdit() {
   }
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden bg-background">
+    <div className="admin-page-shell flex flex-col">
       {/* Header */}
-      <div className="flex items-center justify-between border-b bg-background px-6 py-4">
-        <div className="flex items-center gap-4">
-          <SidebarTrigger />
-          <div>
-            <h1 className="text-2xl font-bold text-foreground">
-              {professional.first_name} {professional.last_name}
-            </h1>
-            <p className="text-sm text-muted-foreground">
-              {professional.profession} - {professional.city}, {professional.state}
-            </p>
+      <div className="admin-page-header">
+        <div className="admin-page-header-inner admin-page-header-inner-row">
+          <div className="flex items-center gap-3 sm:gap-4">
+            <SidebarTrigger />
+            <div>
+              <h1 className="text-xl sm:text-2xl font-bold text-foreground">
+                {professional.first_name} {professional.last_name}
+              </h1>
+              <p className="text-xs sm:text-sm text-muted-foreground">
+                {professional.profession} - {professional.city}, {professional.state}
+              </p>
+            </div>
           </div>
+          <Button onClick={handleSave} disabled={saving} className="w-full sm:w-auto">
+            {saving ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Guardando...
+              </>
+            ) : (
+              <>
+                <Save className="mr-2 h-4 w-4" />
+                Guardar Cambios
+              </>
+            )}
+          </Button>
         </div>
-        <Button onClick={handleSave} disabled={saving}>
-          {saving ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Guardando...
-            </>
-          ) : (
-            <>
-              <Save className="mr-2 h-4 w-4" />
-              Guardar Cambios
-            </>
-          )}
-        </Button>
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto p-6">
+      <div className="admin-page-content flex-1 overflow-y-auto">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-8 lg:w-auto">
-            <TabsTrigger value="basic" className="gap-2">
-              <User className="h-4 w-4" />
-              <span className="hidden sm:inline">Básico</span>
-            </TabsTrigger>
-            <TabsTrigger value="services" className="gap-2">
-              <Briefcase className="h-4 w-4" />
-              <span className="hidden sm:inline">Servicios</span>
-            </TabsTrigger>
-            <TabsTrigger value="availability" className="gap-2">
-              <Calendar className="h-4 w-4" />
-              <span className="hidden sm:inline">Disponibilidad</span>
-            </TabsTrigger>
-            <TabsTrigger value="products" className="gap-2">
-              <ShoppingBag className="h-4 w-4" />
-              <span className="hidden sm:inline">Programas</span>
-            </TabsTrigger>
-            <TabsTrigger value="challenges" className="gap-2">
-              <Trophy className="h-4 w-4" />
-              <span className="hidden sm:inline">Retos</span>
-            </TabsTrigger>
-            <TabsTrigger value="events" className="gap-2">
-              <CalendarDays className="h-4 w-4" />
-              <span className="hidden sm:inline">Eventos</span>
-            </TabsTrigger>
-            <TabsTrigger value="gallery" className="gap-2">
-              <ImageIcon className="h-4 w-4" />
-              <span className="hidden sm:inline">Galería</span>
-            </TabsTrigger>
-            <TabsTrigger value="settings" className="gap-2">
-              <Settings className="h-4 w-4" />
-              <span className="hidden sm:inline">Config</span>
-            </TabsTrigger>
-          </TabsList>
+          <div className="overflow-x-auto pb-1">
+            <TabsList className="inline-flex h-auto min-w-max gap-1">
+              <TabsTrigger value="basic" className="gap-2 whitespace-nowrap">
+                <User className="h-4 w-4" />
+                <span className="hidden sm:inline">Básico</span>
+              </TabsTrigger>
+              <TabsTrigger value="services" className="gap-2 whitespace-nowrap">
+                <Briefcase className="h-4 w-4" />
+                <span className="hidden sm:inline">Servicios</span>
+              </TabsTrigger>
+              <TabsTrigger value="availability" className="gap-2 whitespace-nowrap">
+                <Calendar className="h-4 w-4" />
+                <span className="hidden sm:inline">Disponibilidad</span>
+              </TabsTrigger>
+              <TabsTrigger value="products" className="gap-2 whitespace-nowrap">
+                <ShoppingBag className="h-4 w-4" />
+                <span className="hidden sm:inline">Programas</span>
+              </TabsTrigger>
+              <TabsTrigger value="challenges" className="gap-2 whitespace-nowrap">
+                <Trophy className="h-4 w-4" />
+                <span className="hidden sm:inline">Retos</span>
+              </TabsTrigger>
+              <TabsTrigger value="events" className="gap-2 whitespace-nowrap">
+                <CalendarDays className="h-4 w-4" />
+                <span className="hidden sm:inline">Eventos</span>
+              </TabsTrigger>
+              <TabsTrigger value="gallery" className="gap-2 whitespace-nowrap">
+                <ImageIcon className="h-4 w-4" />
+                <span className="hidden sm:inline">Galería</span>
+              </TabsTrigger>
+              <TabsTrigger value="settings" className="gap-2 whitespace-nowrap">
+                <Settings className="h-4 w-4" />
+                <span className="hidden sm:inline">Config</span>
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
           <TabsContent value="basic">
             <BasicInfoTab 

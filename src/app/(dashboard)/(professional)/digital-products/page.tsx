@@ -235,7 +235,7 @@ export default function ProfessionalDigitalProducts() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="professional-page-shell flex items-center justify-center px-4">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
           <div className="animate-pulse space-y-4 mt-4 w-full">
@@ -250,10 +250,10 @@ export default function ProfessionalDigitalProducts() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="professional-page-shell">
       {/* Header */}
-      <div className="border-b border-border bg-card">
-        <div className="flex h-16 items-center justify-between px-6">
+      <div className="professional-page-header">
+        <div className="professional-page-header-inner professional-page-header-inner-row">
           <div className="flex items-center gap-4">
             <SidebarTrigger />
             <div>
@@ -263,7 +263,7 @@ export default function ProfessionalDigitalProducts() {
               </p>
             </div>
           </div>
-          <Button onClick={() => router.push(`/digital-products/new`)}>
+          <Button onClick={() => router.push(`/digital-products/new`)} className="w-full sm:w-auto">
             <Plus className="h-4 w-4 mr-2" />
             Nuevo Programa
           </Button>
@@ -271,7 +271,7 @@ export default function ProfessionalDigitalProducts() {
       </div>
 
       {/* Main Content */}
-      <div className="p-6 space-y-6">
+      <div className="professional-page-content space-y-6">
         {/* Cards de estadísticas */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
           <AdminStatCard
@@ -380,7 +380,7 @@ export default function ProfessionalDigitalProducts() {
             </CardContent>
           </Card>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
             {filteredProducts.map((product) => {
               const CategoryIcon = getCategoryIcon(product.category);
               return (

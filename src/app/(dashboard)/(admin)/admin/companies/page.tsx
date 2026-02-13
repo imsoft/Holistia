@@ -1099,10 +1099,10 @@ export default function AdminCompanies() {
   }, [companies, searchTerm, statusFilter, industryFilter, sortBy]);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="admin-page-shell">
       {/* Header */}
-      <div className="border-b border-border bg-card">
-        <div className="flex h-16 items-center justify-between px-6">
+      <div className="admin-page-header">
+        <div className="admin-page-header-inner admin-page-header-inner-row">
           <div className="flex items-center gap-4">
             <SidebarTrigger />
             <div>
@@ -1120,7 +1120,7 @@ export default function AdminCompanies() {
       </div>
 
       {/* Main Content */}
-      <div className="container mx-auto px-6 py-8">
+      <div className="admin-page-content">
         <Tabs defaultValue="companies" className="w-full">
           <TabsList className="grid w-full grid-cols-2 mb-6">
             <TabsTrigger value="companies">
@@ -1504,7 +1504,7 @@ export default function AdminCompanies() {
 
       {/* Form Dialog */}
       <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto py-4">
+        <DialogContent className="max-w-2xl max-h-[90dvh] overflow-y-auto py-4">
           <DialogHeader>
             <DialogTitle>
               {editingCompany ? "Editar Empresa" : "Nueva Empresa"}
@@ -1796,7 +1796,7 @@ export default function AdminCompanies() {
 
       {/* Manage Professionals Dialog */}
       <Dialog open={isManageProfessionalsOpen} onOpenChange={setIsManageProfessionalsOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto py-4">
+        <DialogContent className="max-w-4xl max-h-[90dvh] overflow-y-auto py-4">
           <DialogHeader>
             <DialogTitle>Gestionar Profesionales - {managingCompany?.name}</DialogTitle>
             <DialogDescription>
@@ -1990,7 +1990,7 @@ export default function AdminCompanies() {
                       value={viewingLead.status}
                       onValueChange={(value) => updateLeadStatus(viewingLead.id, value as CompanyLead['status'])}
                     >
-                      <SelectTrigger className="w-[200px]">
+                      <SelectTrigger className="w-full sm:w-[200px]">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -2145,7 +2145,7 @@ export default function AdminCompanies() {
 
       {/* Quote Dialog */}
       <Dialog open={isQuoteOpen} onOpenChange={setIsQuoteOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto py-4">
+        <DialogContent className="max-w-4xl max-h-[90dvh] overflow-y-auto py-4">
           <DialogHeader>
             <DialogTitle>Crear Cotización - {quotingLead?.company_name}</DialogTitle>
             <DialogDescription>

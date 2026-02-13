@@ -50,7 +50,7 @@ export function AdminStatCard({
     >
       <CardContent className="p-6">
         <div className="flex items-start justify-between gap-2 mb-3">
-          <span className="text-sm font-medium text-muted-foreground">{title}</span>
+          <span className="text-sm font-medium text-muted-foreground break-words">{title}</span>
           {trend && (
             <span
               className={cn(
@@ -69,7 +69,7 @@ export function AdminStatCard({
             </span>
           )}
         </div>
-        <div className="text-2xl font-bold text-foreground tracking-tight">{value}</div>
+        <div className="text-2xl font-bold text-foreground tracking-tight break-words">{value}</div>
         {secondaryText && (
           <div className="flex items-center gap-1 mt-2">
             <TrendIcon
@@ -78,7 +78,7 @@ export function AdminStatCard({
                 isPositive ? "text-green-600" : "text-red-600"
               )}
             />
-            <span className="text-sm font-medium text-foreground">{secondaryText}</span>
+            <span className="text-sm font-medium text-foreground break-words">{secondaryText}</span>
           </div>
         )}
         {tertiaryText && (

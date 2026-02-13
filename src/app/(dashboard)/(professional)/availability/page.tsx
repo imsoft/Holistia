@@ -78,8 +78,8 @@ export default function AvailabilityPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background p-6">
-        <div className="animate-pulse space-y-4 w-full max-w-4xl mx-auto">
+      <div className="professional-page-shell professional-page-content">
+        <div className="animate-pulse space-y-4 w-full max-w-4xl">
           <div className="h-8 bg-muted rounded w-32" />
           <div className="h-64 bg-muted rounded-lg" />
         </div>
@@ -93,9 +93,9 @@ export default function AvailabilityPage() {
 
   if (!professional) {
     return (
-      <div className="min-h-screen bg-background">
-        <div className="border-b border-border bg-card">
-          <div className="flex flex-col sm:flex-row sm:h-16 sm:items-center justify-between px-4 sm:px-6 py-4 sm:py-0 gap-4 sm:gap-0">
+      <div className="professional-page-shell">
+        <div className="professional-page-header">
+          <div className="professional-page-header-inner professional-page-header-inner-row">
             <div className="flex items-center gap-3 sm:gap-4">
               <SidebarTrigger />
               <div>
@@ -107,7 +107,7 @@ export default function AvailabilityPage() {
             </div>
           </div>
         </div>
-        <div className="container mx-auto p-4 sm:p-6">
+        <div className="professional-page-content">
           <Card>
             <CardHeader className="px-4 sm:px-6">
               <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
@@ -138,9 +138,9 @@ export default function AvailabilityPage() {
 
   if (professional.status !== 'approved') {
     return (
-      <div className="min-h-screen bg-background">
-        <div className="border-b border-border bg-card">
-          <div className="flex flex-col sm:flex-row sm:h-16 sm:items-center justify-between px-4 sm:px-6 py-4 sm:py-0 gap-4 sm:gap-0">
+      <div className="professional-page-shell">
+        <div className="professional-page-header">
+          <div className="professional-page-header-inner professional-page-header-inner-row">
             <div className="flex items-center gap-3 sm:gap-4">
               <SidebarTrigger />
               <div>
@@ -152,7 +152,7 @@ export default function AvailabilityPage() {
             </div>
           </div>
         </div>
-        <div className="container mx-auto p-4 sm:p-6">
+        <div className="professional-page-content">
           <Card>
             <CardHeader className="px-4 sm:px-6">
               <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
@@ -180,10 +180,10 @@ export default function AvailabilityPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="professional-page-shell">
       {/* Header */}
-      <div className="border-b border-border bg-card">
-        <div className="flex flex-col sm:flex-row sm:h-16 sm:items-center justify-between px-4 sm:px-6 py-4 sm:py-0 gap-4 sm:gap-0">
+      <div className="professional-page-header">
+        <div className="professional-page-header-inner professional-page-header-inner-row">
           <div className="flex items-center gap-3 sm:gap-4">
             <SidebarTrigger />
             <div>
@@ -197,8 +197,8 @@ export default function AvailabilityPage() {
       </div>
 
       {/* Main Content — 2 columnas en desktop: settings + preview */}
-      <div className="container mx-auto p-4 sm:p-6">
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6">
+      <div className="professional-page-content">
+        <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_340px] gap-6">
           {/* Columna izquierda: configuración */}
           <div className="space-y-6">
             <WorkingHoursManager

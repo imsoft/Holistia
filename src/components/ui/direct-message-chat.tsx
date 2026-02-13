@@ -736,15 +736,15 @@ export function DirectMessageChat({
     <div className="flex flex-col h-full">
       {/* Header */}
       <div className="border-b p-4 shrink-0">
-        <div className="flex items-center gap-3">
+        <div className="flex min-w-0 items-center gap-3">
           <Avatar className="h-10 w-10">
             <AvatarImage src={otherUser.avatar_url || undefined} />
             <AvatarFallback>
               {otherUser.name.split(' ').map(n => n[0]).join('').toUpperCase()}
             </AvatarFallback>
           </Avatar>
-          <div className="flex items-center gap-2">
-            <h3 className="font-semibold">{otherUser.name}</h3>
+          <div className="min-w-0 flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-2">
+            <h3 className="truncate font-semibold">{otherUser.name}</h3>
             <Badge 
               variant={otherUser.isProfessional ? "default" : "secondary"}
               className="text-xs"
@@ -798,7 +798,7 @@ export function DirectMessageChat({
                     </div>
                   )}
                   <div className={cn(
-                    "flex flex-col max-w-[70%]",
+                    "flex flex-col max-w-[85%] sm:max-w-[70%]",
                     isOwnMessage ? "items-end" : "items-start"
                   )}>
                     {/* Mostrar componentes especiales según el tipo de metadata */}
@@ -884,7 +884,7 @@ export function DirectMessageChat({
                               ? "bg-primary text-primary-foreground"
                               : "bg-muted"
                           )}>
-                            <p className="text-sm whitespace-pre-wrap wrap-break-word">
+                            <p className="text-sm whitespace-pre-wrap break-words">
                               {msg.content}
                             </p>
                           </div>
@@ -941,7 +941,7 @@ export function DirectMessageChat({
                               ? "bg-primary text-primary-foreground"
                               : "bg-muted"
                           )}>
-                            <p className="text-sm whitespace-pre-wrap wrap-break-word">
+                            <p className="text-sm whitespace-pre-wrap break-words">
                               {msg.content}
                             </p>
                           </div>
@@ -979,7 +979,7 @@ export function DirectMessageChat({
                             : "bg-muted"
                         )}
                       >
-                        <p className="text-sm whitespace-pre-wrap wrap-break-word">
+                        <p className="text-sm whitespace-pre-wrap break-words">
                           {msg.content}
                         </p>
                       </div>
@@ -1018,7 +1018,7 @@ export function DirectMessageChat({
 
       {/* Input */}
       <form onSubmit={handleSendMessage} className="border-t p-4 shrink-0">
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2 sm:flex-nowrap">
           {isProfessional && professionalId && (
             <>
               <DropdownMenu open={isQuickOptionsOpen} onOpenChange={setIsQuickOptionsOpen}>
@@ -1121,10 +1121,10 @@ export function DirectMessageChat({
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             placeholder="Escribe un mensaje..."
-            className="flex-1"
+            className="min-w-[140px] flex-1"
             disabled={sending}
           />
-          <Button type="submit" disabled={sending || !message.trim()}>
+          <Button type="submit" disabled={sending || !message.trim()} className="shrink-0">
             {sending ? (
               <Loader2 className="h-4 w-4 animate-spin" />
             ) : (
@@ -1237,8 +1237,8 @@ export function DirectMessageChat({
                       <div className="space-y-3">
                         <Card>
                           <CardContent className="p-4">
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-3">
+                            <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between">
+                              <div className="flex items-start gap-3">
                                 <Calendar className="h-5 w-5 text-primary" />
                                 <div>
                                   <p className="font-semibold">Horario de Trabajo</p>
@@ -1286,8 +1286,8 @@ export function DirectMessageChat({
                       onClick={() => handleSendAvailability(slot)}
                     >
                       <CardContent className="p-4">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
+                        <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between">
+                          <div className="flex items-start gap-3">
                             <Calendar className="h-5 w-5 text-primary" />
                             <div>
                               <p className="font-semibold">

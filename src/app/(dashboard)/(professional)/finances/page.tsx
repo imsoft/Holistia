@@ -498,10 +498,10 @@ export default function ProfessionalFinancesPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background p-6">
-        <div className="animate-pulse space-y-4 w-full max-w-4xl mx-auto">
+      <div className="professional-page-shell professional-page-content">
+        <div className="animate-pulse space-y-4 w-full max-w-4xl">
           <div className="h-8 bg-muted rounded w-48" />
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {[1,2,3,4].map(i => <div key={i} className="h-24 bg-muted rounded-lg" />)}
           </div>
         </div>
@@ -510,10 +510,10 @@ export default function ProfessionalFinancesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="professional-page-shell">
       {/* Header */}
-      <div className="border-b border-border bg-card">
-        <div className="flex flex-col sm:flex-row sm:h-16 sm:items-center justify-between px-4 sm:px-6 py-4 sm:py-0 gap-4 sm:gap-0">
+      <div className="professional-page-header">
+        <div className="professional-page-header-inner professional-page-header-inner-row">
           <div className="flex items-center gap-3 sm:gap-4">
             <SidebarTrigger />
             <div>
@@ -523,9 +523,9 @@ export default function ProfessionalFinancesPage() {
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex w-full items-center gap-2 sm:w-auto">
             <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
-              <SelectTrigger className="w-[220px]">
+              <SelectTrigger className="w-full sm:w-[220px]">
                 <Calendar className="h-4 w-4 mr-2" />
                 <SelectValue />
               </SelectTrigger>
@@ -541,7 +541,7 @@ export default function ProfessionalFinancesPage() {
       </div>
 
       {/* Main Content */}
-      <div className="p-4 sm:p-6 space-y-6">
+      <div className="professional-page-content space-y-6">
         {/* Métricas Principales (diseño AdminStatCard) */}
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {metrics.map((metric, index) => {

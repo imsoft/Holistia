@@ -68,7 +68,7 @@ export default function EditAdminDigitalProductPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="admin-page-shell flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
@@ -76,7 +76,7 @@ export default function EditAdminDigitalProductPage() {
 
   if (!product) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="admin-page-shell flex items-center justify-center">
         <div className="text-center">
           <p className="text-muted-foreground mb-4">Programa no encontrado</p>
           <Button onClick={() => router.push(professionalId ? `/admin/professionals/${professionalId}` : `/admin/professionals`)}>
@@ -92,9 +92,9 @@ export default function EditAdminDigitalProductPage() {
     : (professionalId ? `/admin/professionals/${professionalId}` : `/admin/professionals`);
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="border-b border-border bg-card">
-        <div className="flex h-16 items-center gap-4 px-6">
+    <div className="admin-page-shell">
+      <div className="admin-page-header">
+        <div className="admin-page-header-inner admin-page-header-inner-row">
           <Button
             variant="ghost"
             size="icon"

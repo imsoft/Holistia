@@ -6,14 +6,14 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, MessageSquare, Users } from "lucide-react";
+import { ArrowLeft, Loader2, MessageSquare, Users } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 import { toast } from "sonner";
 import { DirectMessageChat } from "@/components/ui/direct-message-chat";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useUserId, useUserType, useProfessionalData } from "@/stores/user-store";
+import { useUserId, useProfessionalData } from "@/stores/user-store";
 import { useUserStoreInit } from "@/hooks/use-user-store-init";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 
@@ -127,12 +127,12 @@ function ConsultationsPageContent() {
 
   if (loading) {
     return (
-      <div className="w-full px-4 sm:px-6 py-8">
+      <div className="professional-page-content">
         <div className="mb-8">
           <Skeleton className="h-10 w-48 mb-2" />
           <Skeleton className="h-4 w-64" />
         </div>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[calc(100vh-200px)]">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6 min-h-[62dvh] lg:h-[calc(100dvh-18rem)]">
           <div className="lg:col-span-1">
             <Card className="h-full flex flex-col">
               <CardContent className="p-0 flex flex-col h-full">
@@ -167,10 +167,10 @@ function ConsultationsPageContent() {
   }
 
   return (
-    <div className="min-h-screen bg-background w-full">
+    <div className="professional-page-shell">
       {/* Header */}
-      <div className="border-b border-border bg-card w-full">
-        <div className="flex flex-col sm:flex-row sm:h-16 sm:items-center justify-between px-4 sm:px-6 py-4 sm:py-0 gap-4 sm:gap-0 w-full">
+      <div className="professional-page-header w-full">
+        <div className="professional-page-header-inner professional-page-header-inner-row w-full">
           <div className="flex items-center gap-3 sm:gap-4">
             <SidebarTrigger />
             <div>
@@ -187,9 +187,9 @@ function ConsultationsPageContent() {
       </div>
 
       {/* Main Content */}
-      <div className="w-full px-4 sm:px-6 py-8">
+      <div className="professional-page-content">
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[calc(100vh-200px)]">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6 min-h-[62dvh] lg:h-[calc(100dvh-18rem)]">
         <div className={`lg:col-span-1 ${selectedConversation ? 'hidden lg:block' : ''}`}>
           <Card className="h-full flex flex-col">
             <CardContent className="p-0 flex flex-col h-full">
@@ -260,6 +260,17 @@ function ConsultationsPageContent() {
         </div>
 
         <div className={`lg:col-span-2 ${selectedConversation ? '' : 'hidden lg:block'}`}>
+          {selectedConversation && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="mb-2 lg:hidden"
+              onClick={() => setSelectedConversation(null)}
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Volver a conversaciones
+            </Button>
+          )}
           {selectedConversation ? (
             <Card className="h-full flex flex-col">
               <CardContent className="p-0 flex flex-col h-full">
@@ -307,12 +318,12 @@ function ConsultationsPageContent() {
 export default function ConsultationsPage() {
   return (
     <Suspense fallback={
-      <div className="w-full px-4 sm:px-6 py-8">
+      <div className="professional-page-content">
         <div className="mb-8">
           <Skeleton className="h-10 w-48 mb-2" />
           <Skeleton className="h-4 w-64" />
         </div>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[calc(100vh-200px)]">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6 min-h-[62dvh] lg:h-[calc(100dvh-18rem)]">
           <div className="lg:col-span-1">
             <Card className="h-full flex flex-col">
               <CardContent className="p-0 flex flex-col h-full">

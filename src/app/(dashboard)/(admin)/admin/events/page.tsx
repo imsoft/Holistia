@@ -315,9 +315,9 @@ const EventsAdminPage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background">
-        <div className="border-b border-border bg-card">
-          <div className="flex flex-col sm:flex-row sm:h-16 sm:items-center justify-between px-4 sm:px-6 py-4 sm:py-0 gap-4 sm:gap-0">
+      <div className="admin-page-shell">
+        <div className="admin-page-header">
+          <div className="admin-page-header-inner admin-page-header-inner-row">
             <div className="flex items-center gap-3 sm:gap-4">
               <SidebarTrigger />
               <div>
@@ -329,7 +329,7 @@ const EventsAdminPage = () => {
             </div>
           </div>
         </div>
-        <div className="container mx-auto p-6">
+        <div className="admin-page-content">
           <div className="flex items-center justify-center py-12">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
           </div>
@@ -339,10 +339,10 @@ const EventsAdminPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="admin-page-shell">
       {/* Header */}
-      <div className="border-b border-border bg-card">
-        <div className="flex flex-col sm:flex-row sm:h-16 sm:items-center justify-between px-4 sm:px-6 py-4 sm:py-0 gap-4 sm:gap-0">
+      <div className="admin-page-header">
+        <div className="admin-page-header-inner admin-page-header-inner-row">
           <div className="flex items-center gap-3 sm:gap-4">
             <SidebarTrigger />
             <div>
@@ -364,7 +364,7 @@ const EventsAdminPage = () => {
       </div>
 
       {/* Main Content */}
-      <div className="container mx-auto p-6">
+      <div className="admin-page-content">
         {/* Stats Cards */}
         <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 mb-6">
           <AdminStatCard

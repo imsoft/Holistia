@@ -171,74 +171,80 @@ export function BlocksCalendarView({
               </Button>
             </div>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-3">
               {blocks.map((block) => (
                 <div
                   key={block.id}
-                  className="flex items-center justify-between p-4 py-4 border rounded-lg hover:bg-muted/50 transition-colors"
+                  className="p-3 sm:p-4 border rounded-lg hover:bg-muted/50 transition-colors"
                 >
-                  <div className="flex items-center gap-4">
-                    <div className={cn(
-                      "w-10 h-10 rounded-full flex items-center justify-center",
-                      (block.block_type === 'full_day' || block.block_type === 'weekly_day')
-                        ? "bg-red-100 text-red-600"
-                        : "bg-orange-100 text-orange-600"
-                    )}>
-                      {(block.block_type === 'full_day' || block.block_type === 'weekly_day') ? (
-                        <Calendar className="w-5 h-5" />
-                      ) : (
-                        <Clock className="w-5 h-5" />
-                      )}
-                    </div>
-
-                    <div>
-                      <h3 className="font-medium">
-                        {block.title || block.external_event_metadata?.summary || 'Sin título'}
-                      </h3>
-                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                        {block.block_type === 'weekly_day' && block.day_of_week ? (
-                          <span>
-                            {['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'][block.day_of_week - 1]}
-                          </span>
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-start gap-3 min-w-0">
+                      <div className={cn(
+                        "w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center shrink-0",
+                        (block.block_type === 'full_day' || block.block_type === 'weekly_day')
+                          ? "bg-red-100 text-red-600"
+                          : "bg-orange-100 text-orange-600"
+                      )}>
+                        {(block.block_type === 'full_day' || block.block_type === 'weekly_day') ? (
+                          <Calendar className="w-4 h-4 sm:w-5 sm:h-5" />
                         ) : (
-                          <span>
-                            {formatDate(block.start_date)}
-                            {block.end_date && block.end_date !== block.start_date &&
-                              ` - ${formatDate(block.end_date)}`}
-                          </span>
-                        )}
-                        {(block.block_type === 'time_range' || block.block_type === 'weekly_range') && block.start_time && block.end_time && (
-                          <span>{block.start_time} - {block.end_time}</span>
-                        )}
-                        {block.is_external_event && (
-                          <Badge variant="outline" className="text-xs">
-                            📅 Google Calendar
-                          </Badge>
-                        )}
-                        {block.is_recurring && (
-                          <Badge variant="secondary" className="text-xs">
-                            Recurrente
-                          </Badge>
+                          <Clock className="w-4 h-4 sm:w-5 sm:h-5" />
                         )}
                       </div>
-                    </div>
-                  </div>
 
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => onEditBlock?.(block)}
-                    >
-                      <Edit className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => handleDeleteBlock(block.id!)}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
+                      <div className="min-w-0">
+                        <h3 className="font-medium text-sm sm:text-base truncate">
+                          {block.title || block.external_event_metadata?.summary || 'Sin título'}
+                        </h3>
+                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs sm:text-sm text-muted-foreground mt-0.5">
+                          {block.block_type === 'weekly_day' && block.day_of_week ? (
+                            <span>
+                              {['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'][block.day_of_week - 1]}
+                            </span>
+                          ) : (
+                            <span>
+                              {formatDate(block.start_date)}
+                              {block.end_date && block.end_date !== block.start_date &&
+                                ` - ${formatDate(block.end_date)}`}
+                            </span>
+                          )}
+                          {(block.block_type === 'time_range' || block.block_type === 'weekly_range') && block.start_time && block.end_time && (
+                            <span>{block.start_time.substring(0, 5)} - {block.end_time.substring(0, 5)}</span>
+                          )}
+                        </div>
+                        <div className="flex flex-wrap items-center gap-1.5 mt-1">
+                          {block.is_external_event && (
+                            <Badge variant="outline" className="text-[10px] sm:text-xs px-1.5 py-0">
+                              Google Calendar
+                            </Badge>
+                          )}
+                          {block.is_recurring && (
+                            <Badge variant="secondary" className="text-[10px] sm:text-xs px-1.5 py-0">
+                              Recurrente
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={() => onEditBlock?.(block)}
+                      >
+                        <Edit className="w-3.5 h-3.5" />
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={() => handleDeleteBlock(block.id!)}
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </Button>
+                    </div>
                   </div>
                 </div>
               ))}

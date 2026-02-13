@@ -48,10 +48,10 @@ const FEATURES = [
 
 export default function MyEventsPage() {
   return (
-    <div className="min-h-screen bg-background w-full">
+    <div className="professional-page-shell w-full">
       {/* Header */}
-      <div className="border-b border-border bg-card w-full">
-        <div className="flex flex-col sm:flex-row sm:h-16 sm:items-center justify-between px-4 sm:px-6 py-4 sm:py-0 gap-4 sm:gap-0 w-full">
+      <div className="professional-page-header w-full">
+        <div className="professional-page-header-inner professional-page-header-inner-row w-full">
           <div className="flex items-center gap-3 sm:gap-4">
             <SidebarTrigger />
             <div>
@@ -68,7 +68,7 @@ export default function MyEventsPage() {
       </div>
 
       {/* Main Content */}
-      <div className="w-full py-8 px-4 sm:px-6 space-y-8 sm:space-y-12">
+      <div className="professional-page-content w-full space-y-8 sm:space-y-12">
         {/* CTA principal */}
         <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10">
           <CardContent className="py-8 sm:py-10 px-6 sm:px-8 text-center">

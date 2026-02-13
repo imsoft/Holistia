@@ -840,7 +840,7 @@ export default function AdminProfessionals() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background p-6">
+      <div className="admin-page-shell p-4 sm:p-6">
         <div className="animate-pulse space-y-6 max-w-7xl mx-auto">
           <div className="h-8 bg-muted rounded w-48" />
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -852,10 +852,10 @@ export default function AdminProfessionals() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="admin-page-shell">
       {/* Header */}
-      <div className="border-b border-border bg-card">
-        <div className="flex flex-col sm:flex-row sm:h-16 sm:items-center justify-between px-4 sm:px-6 py-4 sm:py-0 gap-4 sm:gap-0">
+      <div className="admin-page-header">
+        <div className="admin-page-header-inner admin-page-header-inner-row">
           <div className="flex items-center gap-3 sm:gap-4">
             <SidebarTrigger />
             <div>
@@ -1241,7 +1241,7 @@ export default function AdminProfessionals() {
 
       {/* Modal para ver perfil del profesional */}
       <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
-        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto w-[95vw]">
+        <DialogContent className="max-w-6xl max-h-[90dvh] overflow-y-auto w-[95vw]">
           <DialogHeader>
             <DialogTitle>Perfil del Profesional</DialogTitle>
             <DialogDescription>

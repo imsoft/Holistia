@@ -186,7 +186,7 @@ export function StripeConnectButton({ professionalId, initialStatus }: StripeCon
   return (
     <Card className="py-4">
       <CardHeader>
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-2">
             <CreditCard className="w-5 h-5" />
             <CardTitle>Configuración de Pagos</CardTitle>
@@ -235,7 +235,7 @@ export function StripeConnectButton({ professionalId, initialStatus }: StripeCon
           )}
         </div>
 
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           {!accountStatus?.stripe_account_id ? (
             <Button
               onClick={handleConnect}
@@ -252,7 +252,7 @@ export function StripeConnectButton({ professionalId, initialStatus }: StripeCon
                   onClick={handleConnect}
                   disabled={loading}
                   variant="default"
-                  className="flex-1"
+                  className="flex-1 min-w-[180px]"
                 >
                   {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Completar configuración'}
                 </Button>
@@ -261,7 +261,7 @@ export function StripeConnectButton({ professionalId, initialStatus }: StripeCon
                 onClick={handleOpenDashboard}
                 disabled={loading}
                 variant={isFullyConnected ? "default" : "outline"}
-                className={isFullyConnected ? "flex-1" : "flex-1"}
+                className="flex-1 min-w-[180px]"
               >
                 <ExternalLink className="w-4 h-4 mr-2" />
                 Dashboard de Stripe
@@ -270,9 +270,16 @@ export function StripeConnectButton({ professionalId, initialStatus }: StripeCon
                 onClick={checkAccountStatus}
                 disabled={checkingStatus}
                 variant="outline"
-                size="icon"
+                className="sm:w-auto"
               >
-                {checkingStatus ? '...' : '↻'}
+                {checkingStatus ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Actualizando...
+                  </>
+                ) : (
+                  'Actualizar estado'
+                )}
               </Button>
             </>
           )}
@@ -340,4 +347,3 @@ export function StripeConnectButton({ professionalId, initialStatus }: StripeCon
     </Card>
   );
 }
-

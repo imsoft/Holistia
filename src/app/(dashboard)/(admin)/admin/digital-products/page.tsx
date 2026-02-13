@@ -221,14 +221,14 @@ export default function AdminDigitalProductsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background">
-        <div className="border-b border-border bg-card">
-          <div className="flex h-16 items-center px-6">
+      <div className="admin-page-shell">
+        <div className="admin-page-header">
+          <div className="admin-page-header-inner admin-page-header-inner-row">
             <SidebarTrigger />
             <div className="h-6 w-48 animate-pulse rounded bg-muted ml-4" />
           </div>
         </div>
-        <div className="p-6">
+        <div className="admin-page-content">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
             {[1, 2, 3, 4].map((i) => (
               <Card key={i} className="border">
@@ -257,15 +257,15 @@ export default function AdminDigitalProductsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="admin-page-shell">
       {/* Header */}
-      <div className="border-b border-border bg-card">
-        <div className="flex h-16 flex-col gap-4 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-4">
+      <div className="admin-page-header">
+        <div className="admin-page-header-inner admin-page-header-inner-row">
+          <div className="flex items-center gap-3 sm:gap-4">
             <SidebarTrigger />
             <div>
-              <h1 className="text-2xl font-bold text-foreground">Programas</h1>
-              <p className="text-sm text-muted-foreground">
+              <h1 className="text-xl sm:text-2xl font-bold text-foreground">Programas</h1>
+              <p className="text-xs sm:text-sm text-muted-foreground">
                 Ver y editar todos los programas digitales
               </p>
             </div>
@@ -273,6 +273,7 @@ export default function AdminDigitalProductsPage() {
           <div className="flex gap-2">
             <Button
               onClick={() => router.push("/admin/professionals")}
+              className="w-full sm:w-auto"
             >
               <Plus className="h-4 w-4 mr-2" />
               Crear desde Profesional
@@ -282,7 +283,7 @@ export default function AdminDigitalProductsPage() {
       </div>
 
       {/* Main Content */}
-      <div className="p-6 space-y-6">
+      <div className="admin-page-content space-y-6">
         {/* Stats */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           <AdminStatCard

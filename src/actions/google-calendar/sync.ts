@@ -300,9 +300,13 @@ export async function syncGoogleCalendarEvents(userId: string) {
 
     // Crear un Set con la combinación única de calendar_id + event_id + fecha + hora
     // IMPORTANTE: Incluir calendar_source_id para distinguir el mismo evento en diferentes calendarios
+    // IMPORTANTE: Normalizar start_time/end_time a "HH:MM" (sin segundos) porque PostgreSQL
+    // devuelve TIME como "HH:MM:SS" pero extractFromGoogleDateTime retorna "HH:MM".
+    // Sin esta normalización, las keys no coinciden y los bloques se borran en cada sync.
+    const normalizeTime = (t: string | null) => t ? t.substring(0, 5) : 'full_day';
     const existingBlockKeys = new Set(
       existingBlocks?.map(block =>
-        `${block.calendar_source_id || 'primary'}_${block.google_calendar_event_id}_${block.start_date}_${block.start_time || 'full_day'}_${block.end_time || 'full_day'}`
+        `${block.calendar_source_id || 'primary'}_${block.google_calendar_event_id}_${block.start_date}_${normalizeTime(block.start_time)}_${normalizeTime(block.end_time)}`
       ) || []
     );
 
@@ -572,11 +576,12 @@ export async function syncGoogleCalendarEvents(userId: string) {
     });
 
     // Encontrar bloques que ya no existen en Google Calendar
+    // IMPORTANTE: Usar normalizeTime() para que las keys coincidan (DB devuelve "HH:MM:SS")
     const blocksToDeleteIds: string[] = [];
     if (existingBlocks) {
       existingBlocks.forEach(block => {
         const calendarSourceId = block.calendar_source_id || 'primary';
-        const blockKey = `${calendarSourceId}_${block.google_calendar_event_id}_${block.start_date}_${block.start_time || 'full_day'}_${block.end_time || 'full_day'}`;
+        const blockKey = `${calendarSourceId}_${block.google_calendar_event_id}_${block.start_date}_${normalizeTime(block.start_time)}_${normalizeTime(block.end_time)}`;
         if (!currentGoogleEventKeys.has(blockKey)) {
           // Importante: borrar por ID del bloque (no por google_calendar_event_id),
           // para no eliminar también bloques recién insertados en este mismo sync.

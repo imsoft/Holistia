@@ -1403,14 +1403,18 @@ export function DirectMessageChat({
                       }
                       onClick={async () => {
                         const amountValue = parseFloat(quoteAmount);
-                        if (!selectedQuoteService?.id || isNaN(amountValue) || amountValue <= 0) return;
+                        const serviceId = selectedQuoteService?.id?.trim?.() || selectedQuoteService?.id;
+                        if (!serviceId || isNaN(amountValue) || amountValue <= 0) {
+                          toast.error("Falta el servicio o el monto");
+                          return;
+                        }
                         setQuoteSending(true);
                         try {
                           const res = await fetch("/api/stripe/quote-payment-link", {
                             method: "POST",
                             headers: { "Content-Type": "application/json" },
                             body: JSON.stringify({
-                              service_id: selectedQuoteService.id,
+                              service_id: String(serviceId),
                               amount: amountValue,
                               conversation_id: conversationId,
                               patient_id: otherUser.id,

@@ -35,6 +35,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Asegurar que service_id sea string (por si viene como número u otro tipo)
+    const serviceIdStr = String(service_id).trim();
+    if (!serviceIdStr || serviceIdStr.length < 30) {
+      return NextResponse.json(
+        { error: 'ID de servicio inválido' },
+        { status: 400 }
+      );
+    }
+
     // Validar que el monto sea positivo
     const serviceAmount = parseFloat(amount);
     if (isNaN(serviceAmount) || serviceAmount <= 0) {
@@ -44,14 +53,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Obtener información del servicio
+    // Obtener el servicio (sin join para evitar fallos por RLS en la relación)
     const { data: service, error: serviceError } = await supabase
       .from('professional_services')
-      .select('*, professional_applications!inner(id, user_id, first_name, last_name, stripe_account_id, status)')
-      .eq('id', service_id)
+      .select('id, name, description, pricing_type, image_url, professional_id, user_id')
+      .eq('id', serviceIdStr)
       .single();
 
     if (serviceError || !service) {
+      console.error('Quote payment link: servicio no encontrado', { service_id, error: serviceError?.message, code: serviceError?.code });
       return NextResponse.json(
         { error: 'Servicio no encontrado' },
         { status: 404 }
@@ -66,12 +76,26 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Verificar que el usuario es el profesional dueño del servicio
-    const professional = service.professional_applications;
-    if (professional.user_id !== user.id) {
+    // Verificar que el usuario es el dueño (professional_services tiene user_id)
+    if (service.user_id !== user.id) {
       return NextResponse.json(
         { error: 'No tienes permiso para crear enlaces de pago para este servicio' },
         { status: 403 }
+      );
+    }
+
+    // Obtener datos del profesional para Stripe Connect
+    const { data: professional, error: professionalError } = await supabase
+      .from('professional_applications')
+      .select('id, user_id, first_name, last_name, stripe_account_id, status')
+      .eq('id', service.professional_id)
+      .single();
+
+    if (professionalError || !professional) {
+      console.error('Quote payment link: profesional no encontrado', { professional_id: service.professional_id, error: professionalError?.message });
+      return NextResponse.json(
+        { error: 'Datos del profesional no encontrados' },
+        { status: 404 }
       );
     }
 

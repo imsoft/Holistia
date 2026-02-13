@@ -138,6 +138,7 @@ export async function POST(request: NextRequest) {
     const paymentRow = {
       patient_id: patient_id,
       professional_id: professional.id,
+      professional_application_id: professional.id,
       amount: serviceAmount,
       service_amount: serviceAmount,
       currency: 'mxn',

@@ -134,40 +134,51 @@ export async function POST(request: NextRequest) {
     const transferAmount = calculateTransferAmount(serviceAmount, 15);
 
     // Crear registro de pago con service role (el profesional ya fue validado arriba)
-    // Así evitamos fallos por RLS si la política de quote_service no está aplicada
     const supabaseAdmin = createServiceRoleClient();
+    const paymentRow = {
+      patient_id: patient_id,
+      professional_id: professional.id,
+      amount: serviceAmount,
+      service_amount: serviceAmount,
+      currency: 'mxn',
+      status: 'pending',
+      payment_type: 'quote_service' as const,
+      commission_percentage: 15.00,
+      description: `Cotización: ${service.name}`,
+      appointment_id: null as string | null,
+      event_id: null as string | null,
+      metadata: {
+        service_id: serviceIdStr,
+        service_name: service.name,
+        conversation_id: conversation_id,
+        pricing_type: 'quote',
+        platform_fee: platformFee,
+        transfer_amount: transferAmount,
+      },
+    };
+
     const { data: payment, error: paymentError } = await supabaseAdmin
       .from('payments')
-      .insert({
-        patient_id: patient_id,
-        professional_id: professional.id,
-        amount: serviceAmount,
-        service_amount: serviceAmount,
-        currency: 'mxn',
-        status: 'pending',
-        payment_type: 'quote_service',
-        commission_percentage: 15.00,
-        description: `Cotización: ${service.name}`,
-        metadata: {
-          service_id: serviceIdStr,
-          service_name: service.name,
-          conversation_id: conversation_id,
-          pricing_type: 'quote',
-          platform_fee: platformFee,
-          transfer_amount: transferAmount,
-        },
-      })
+      .insert(paymentRow)
       .select()
       .single();
 
     if (paymentError || !payment) {
+      const errMessage = paymentError?.message ?? 'Unknown error';
+      const errCode = paymentError?.code ?? '';
+      const errDetails = paymentError?.details ?? '';
       console.error('Error creating quote payment record:', {
-        message: paymentError?.message,
-        code: paymentError?.code,
-        details: paymentError?.details,
+        message: errMessage,
+        code: errCode,
+        details: errDetails,
+        hint: paymentError?.hint,
       });
+      const isDev = process.env.NODE_ENV === 'development';
       return NextResponse.json(
-        { error: 'Error al crear el registro de pago' },
+        {
+          error: 'Error al crear el registro de pago',
+          ...(isDev && { debug: errMessage, code: errCode }),
+        },
         { status: 500 }
       );
     }

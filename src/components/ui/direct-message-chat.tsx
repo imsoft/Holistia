@@ -28,6 +28,18 @@ import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
+/** Detecta si el contenido es un mensaje de cotización con enlace de pago (formato enviado por el profesional). */
+function parseQuotePaymentContent(content: string): { optionalMessage?: string; priceLine: string; paymentUrl: string } | null {
+  const urlMatch = content.match(/Puedes pagar aquí:\s*(https?:\/\/[^\s\n]+)/i);
+  const cotizacionMatch = content.match(/💳\s*Cotización:\s*([^\n]+)/) ?? content.match(/Cotización:\s*([^\n]+)/);
+  if (!urlMatch?.[1] || !cotizacionMatch?.[1]) return null;
+  const paymentUrl = urlMatch[1].trim();
+  const priceLine = cotizacionMatch[1].trim();
+  const beforeCotizacion = content.split(/💳\s*Cotización:|Cotización:/i)[0]?.trim();
+  const optionalMessage = beforeCotizacion?.replace(/Puedes pagar aquí:[\s\S]*/i, "").trim();
+  return { optionalMessage: optionalMessage || undefined, priceLine, paymentUrl };
+}
+
 interface DirectMessage {
   id: string;
   conversation_id: string;
@@ -1030,6 +1042,34 @@ export function DirectMessageChat({
                               </p>
                             </div>
                           </div>
+                        </CardContent>
+                      </Card>
+                    ) : parseQuotePaymentContent(msg.content) ? (
+                      <Card className={cn(
+                        "w-full max-w-sm border-2 border-primary/20",
+                        isOwnMessage ? "ml-auto" : "mr-auto"
+                      )}>
+                        <CardContent className="p-4 space-y-3">
+                          <div className="flex items-center gap-2">
+                            <CreditCard className="h-5 w-5 text-primary shrink-0" />
+                            <span className="font-semibold text-sm">Cotización y pago</span>
+                          </div>
+                          {(() => {
+                            const parsed = parseQuotePaymentContent(msg.content)!;
+                            return (
+                              <>
+                                {parsed.optionalMessage && (
+                                  <p className="text-sm text-muted-foreground">{parsed.optionalMessage}</p>
+                                )}
+                                <p className="text-sm font-semibold text-primary">💳 {parsed.priceLine}</p>
+                                <Button asChild size="sm" className="w-full">
+                                  <a href={parsed.paymentUrl} target="_blank" rel="noopener noreferrer">
+                                    Pagar aquí
+                                  </a>
+                                </Button>
+                              </>
+                            );
+                          })()}
                         </CardContent>
                       </Card>
                     ) : (

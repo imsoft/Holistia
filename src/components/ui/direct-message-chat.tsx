@@ -1,18 +1,18 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Send, Loader2, Briefcase, Calendar, Package, Target, MapPin, MoreHorizontal } from "lucide-react";
+import { Send, Loader2, Briefcase, Calendar, Package, Target, MapPin, MoreHorizontal, FileText, CreditCard, DollarSign } from "lucide-react";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
@@ -25,6 +25,8 @@ import { Service } from "@/types/service";
 import { ServiceMessageCard } from "@/components/ui/service-message-card";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 
 interface DirectMessage {
   id: string;
@@ -111,9 +113,29 @@ export function DirectMessageChat({
   const [loadingPrograms, setLoadingPrograms] = useState(false);
   const [loadingChallenges, setLoadingChallenges] = useState(false);
   const [loadingLocation, setLoadingLocation] = useState(false);
+
+  // Cotización: diálogo para enviar precio + enlace de pago al paciente
+  const [isQuoteDialogOpen, setIsQuoteDialogOpen] = useState(false);
+  const [selectedQuoteService, setSelectedQuoteService] = useState<Service | null>(null);
+  const [quoteAmount, setQuoteAmount] = useState("");
+  const [quoteOptionalMessage, setQuoteOptionalMessage] = useState("");
+  const [quoteSending, setQuoteSending] = useState(false);
   
   const scrollRef = useRef<HTMLDivElement>(null);
   const supabase = createClient();
+
+  // Servicios de tipo cotización que el paciente ha mencionado en este chat (cotizaciones pendientes)
+  const pendingQuoteServices = useMemo(() => {
+    if (!isProfessional || !messages.length) return [];
+    const patientServiceIds = new Set(
+      messages
+        .filter((m) => m.sender_type === "user" && m.metadata?.service_id)
+        .map((m) => m.metadata!.service_id as string)
+    );
+    return services.filter(
+      (s) => s.id && patientServiceIds.has(s.id) && s.pricing_type === "quote"
+    );
+  }, [isProfessional, messages, services]);
 
   useEffect(() => {
     loadMessages();
@@ -477,6 +499,34 @@ export function DirectMessageChat({
       throw error;
     }
   }, [conversationId]);
+
+  /** Envía al chat un mensaje con el precio final de la cotización y el enlace de pago de Stripe. */
+  const handleSendQuoteWithLinkToChat = useCallback(
+    async (amount: number, paymentUrl: string, optionalMessage?: string) => {
+      const priceText = formatPrice(amount, "MXN");
+      const parts: string[] = [];
+      if (optionalMessage?.trim()) parts.push(optionalMessage.trim());
+      parts.push(`💳 Cotización: ${priceText}`);
+      parts.push(`Puedes pagar aquí: ${paymentUrl}`);
+      const content = parts.join("\n\n");
+      try {
+        const response = await fetch(`/api/messages/conversations/${conversationId}/messages`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ content }),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || "Error al enviar mensaje");
+        setMessages((prev) => [...prev, data.message]);
+        toast.success("Cotización y enlace de pago enviados al chat");
+      } catch (error) {
+        console.error("Error sending quote to chat:", error);
+        toast.error("Error al enviar la cotización al chat");
+        throw error;
+      }
+    },
+    [conversationId]
+  );
 
   const handleSendLocation = () => {
     if (!professionalLocation) {
@@ -1113,6 +1163,23 @@ export function DirectMessageChat({
                     <Briefcase className="h-4 w-4 mr-2" />
                     Servicios
                   </DropdownMenuItem>
+                  {pendingQuoteServices.length > 0 && (
+                    <DropdownMenuItem
+                      onClick={() => {
+                        setIsQuickOptionsOpen(false);
+                        setSelectedQuoteService(null);
+                        setQuoteAmount("");
+                        setQuoteOptionalMessage("");
+                        setIsQuoteDialogOpen(true);
+                      }}
+                    >
+                      <FileText className="h-4 w-4 mr-2" />
+                      Enviar cotización
+                      <Badge variant="secondary" className="ml-auto text-xs">
+                        {pendingQuoteServices.length}
+                      </Badge>
+                    </DropdownMenuItem>
+                  )}
                 </DropdownMenuContent>
               </DropdownMenu>
             </>
@@ -1204,6 +1271,172 @@ export function DirectMessageChat({
                     </Card>
                   ))}
                 </div>
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* Dialog Enviar cotización: precio final + enlace de pago Stripe */}
+      {isProfessional && professionalId && pendingQuoteServices.length > 0 && (
+        <Dialog
+          open={isQuoteDialogOpen}
+          onOpenChange={(open) => {
+            setIsQuoteDialogOpen(open);
+            if (!open) {
+              setSelectedQuoteService(null);
+              setQuoteAmount("");
+              setQuoteOptionalMessage("");
+            }
+          }}
+        >
+          <DialogContent className="sm:max-w-[500px]">
+            <DialogHeader>
+              <DialogTitle>
+                {selectedQuoteService ? "Enviar cotización al paciente" : "Seleccionar cotización pendiente"}
+              </DialogTitle>
+              <DialogDescription>
+                {selectedQuoteService
+                  ? `Precio final y enlace de pago para: ${selectedQuoteService.name}`
+                  : "Este paciente ha solicitado cotización. Elige el servicio y envía el precio con el enlace de pago."}
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              {!selectedQuoteService ? (
+                <div className="grid gap-2">
+                  {pendingQuoteServices.map((service) => (
+                    <Card
+                      key={service.id}
+                      className="cursor-pointer hover:shadow-md transition-shadow"
+                      onClick={() => setSelectedQuoteService(service)}
+                    >
+                      <CardContent className="p-4 flex items-center gap-3">
+                        <FileText className="h-5 w-5 text-primary shrink-0" />
+                        <div className="min-w-0">
+                          <p className="font-semibold">{service.name}</p>
+                          <p className="text-xs text-muted-foreground">Cotización solicitada</p>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              ) : (
+                <>
+                  <div className="rounded-lg border bg-muted/40 p-3 flex items-center gap-2">
+                    <FileText className="h-4 w-4 text-primary shrink-0" />
+                    <span className="text-sm font-medium">{selectedQuoteService.name}</span>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="ml-auto shrink-0"
+                      onClick={() => {
+                        setSelectedQuoteService(null);
+                        setQuoteAmount("");
+                        setQuoteOptionalMessage("");
+                      }}
+                    >
+                      Cambiar
+                    </Button>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="quote-amount">Precio final (MXN) *</Label>
+                    <div className="relative">
+                      <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        id="quote-amount"
+                        type="number"
+                        min="1"
+                        step="0.01"
+                        placeholder="0.00"
+                        value={quoteAmount}
+                        onChange={(e) => setQuoteAmount(e.target.value)}
+                        className="pl-9"
+                        disabled={quoteSending}
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="quote-message">Mensaje opcional para el paciente</Label>
+                    <Textarea
+                      id="quote-message"
+                      placeholder="Ej: Incluye materiales y seguimiento..."
+                      value={quoteOptionalMessage}
+                      onChange={(e) => setQuoteOptionalMessage(e.target.value)}
+                      rows={2}
+                      className="resize-none"
+                      disabled={quoteSending}
+                    />
+                  </div>
+                  <div className="flex gap-2 pt-2">
+                    <Button
+                      className="flex-1"
+                      disabled={
+                        quoteSending ||
+                        !quoteAmount.trim() ||
+                        isNaN(parseFloat(quoteAmount)) ||
+                        parseFloat(quoteAmount) <= 0
+                      }
+                      onClick={async () => {
+                        const amountValue = parseFloat(quoteAmount);
+                        if (!selectedQuoteService?.id || isNaN(amountValue) || amountValue <= 0) return;
+                        setQuoteSending(true);
+                        try {
+                          const res = await fetch("/api/stripe/quote-payment-link", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                              service_id: selectedQuoteService.id,
+                              amount: amountValue,
+                              conversation_id: conversationId,
+                              patient_id: otherUser.id,
+                            }),
+                          });
+                          const data = await res.json();
+                          if (!res.ok) throw new Error(data.error || "Error al generar enlace");
+                          await handleSendQuoteWithLinkToChat(
+                            amountValue,
+                            data.url,
+                            quoteOptionalMessage.trim() || undefined
+                          );
+                          setIsQuoteDialogOpen(false);
+                          setSelectedQuoteService(null);
+                          setQuoteAmount("");
+                          setQuoteOptionalMessage("");
+                        } catch (err) {
+                          console.error(err);
+                          toast.error(err instanceof Error ? err.message : "Error al generar enlace");
+                        } finally {
+                          setQuoteSending(false);
+                        }
+                      }}
+                    >
+                      {quoteSending ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Generando...
+                        </>
+                      ) : (
+                        <>
+                          <CreditCard className="h-4 w-4 mr-2" />
+                          Generar y enviar enlace
+                        </>
+                      )}
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => {
+                        setSelectedQuoteService(null);
+                        setQuoteAmount("");
+                        setQuoteOptionalMessage("");
+                      }}
+                      disabled={quoteSending}
+                    >
+                      Atrás
+                    </Button>
+                  </div>
+                </>
               )}
             </div>
           </DialogContent>

@@ -208,50 +208,17 @@ export default function NewAppointmentPage() {
         return;
       }
 
-      // Verificar bloqueos de disponibilidad
+      // Verificar bloqueos de disponibilidad (usando lógica compartida de lib/availability.ts)
       const { data: blocks } = await supabase
         .from('availability_blocks')
         .select('*')
         .eq('professional_id', professionalId);
 
       if (blocks && blocks.length > 0) {
-        const [year, month, day] = appointmentDate.split('-').map(Number);
-        const appointmentDateObj = new Date(year, month - 1, day);
-        const dayOfWeek = appointmentDateObj.getDay() === 0 ? 7 : appointmentDateObj.getDay();
+        const { isSlotBlocked } = await import('@/lib/availability');
+        const timeNorm = appointmentTime.substring(0, 5);
 
-        const isBlocked = blocks.some(block => {
-          const blockStartDate = new Date(block.start_date);
-          const blockEndDate = block.end_date ? new Date(block.end_date) : blockStartDate;
-          const currentDate = new Date(appointmentDate);
-
-          blockStartDate.setHours(0, 0, 0, 0);
-          blockEndDate.setHours(0, 0, 0, 0);
-          currentDate.setHours(0, 0, 0, 0);
-
-          if (block.block_type === 'full_day' || block.block_type === 'weekly_day') {
-            if (block.is_recurring && block.day_of_week === dayOfWeek) {
-              return true;
-            }
-            if (currentDate >= blockStartDate && currentDate <= blockEndDate) {
-              return true;
-            }
-          }
-
-          if ((block.block_type === 'time_range' || block.block_type === 'weekly_range') &&
-              block.start_time && block.end_time) {
-            const isInDateRange = currentDate >= blockStartDate && currentDate <= blockEndDate;
-
-            if (block.is_recurring || isInDateRange) {
-              if (appointmentTime >= block.start_time && appointmentTime < block.end_time) {
-                return true;
-              }
-            }
-          }
-
-          return false;
-        });
-
-        if (isBlocked) {
+        if (isSlotBlocked(appointmentDate, timeNorm, blocks, selectedService.duration)) {
           setError("Este horario no está disponible. Puede estar bloqueado por un evento en tu calendario.");
           setIsSubmitting(false);
           return;

@@ -245,7 +245,7 @@ export function CreateAppointmentDialog({
         const { isSlotBlocked } = await import('@/lib/availability');
         const timeNorm = appointmentTime.substring(0, 5);
 
-        if (isSlotBlocked(appointmentDate, timeNorm, blocks)) {
+        if (isSlotBlocked(appointmentDate, timeNorm, blocks, selectedService.duration)) {
           setError("Este horario no está disponible. Puede estar bloqueado por un evento en tu calendario.");
           setIsSubmitting(false);
           return;

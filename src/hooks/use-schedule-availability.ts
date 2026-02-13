@@ -197,18 +197,23 @@ export function useScheduleAvailability(professionalId: string) {
     const startTime = workingHours.working_start_time;
     const endTime = workingHours.working_end_time;
 
-    const [startHour] = startTime.split(':').map(Number);
-    const [endHour] = endTime.split(':').map(Number);
+    // Parsear horarios completos (horas y minutos)
+    const [startH, startM] = startTime.split(':').map(Number);
+    const [endH, endM] = endTime.split(':').map(Number);
+    const startMinutes = startH * 60 + (startM || 0);
+    const endMinutes = endH * 60 + (endM || 0);
+
+    // Duración de cita (50 min) — consistente con server-side (checkout, reschedule)
+    const APPOINTMENT_DURATION = 50;
 
     // Determinar si es hoy para filtrar horas pasadas
     const now = new Date();
     const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
     const isToday = date === todayStr;
-    const currentHour = now.getHours();
+    const currentMinutes = now.getHours() * 60 + now.getMinutes();
 
-    // Citas del día, normalizadas a HH:MM
+    // Citas del día con su duración para detectar solapamientos
     const dayAppointments = existingAppointments.filter(apt => apt.appointment_date === date);
-    const appointmentTimes = new Set(dayAppointments.map(apt => apt.appointment_time.substring(0, 5)));
 
     // Filtrar bloques que aplican a esta fecha (usando lógica compartida)
     const dayBlocks = availabilityBlocks.filter(block => doesBlockApplyToDate(date, block));
@@ -227,23 +232,34 @@ export function useScheduleAvailability(professionalId: string) {
     // Verificar si hay bloqueo de día completo
     const hasFullDayBlock = isFullDayBlocked(date, dayBlocks);
 
-    // Generar horarios de hora en hora
-    for (let hour = startHour; hour < endHour; hour++) {
-      // Si es hoy, omitir horas que ya pasaron
-      if (isToday && hour <= currentHour) continue;
+    // Generar horarios cada 30 minutos
+    for (let mins = startMinutes; mins < endMinutes; mins += 30) {
+      const hour = Math.floor(mins / 60);
+      const minute = mins % 60;
 
-      const timeString = `${hour.toString().padStart(2, '0')}:00`;
-      const display = `${hour.toString().padStart(2, '0')}:00`;
+      // Si es hoy, omitir slots que ya pasaron
+      if (isToday && mins <= currentMinutes) continue;
+
+      const timeString = `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
+      const display = timeString;
       const fullDateTime = `${date}T${timeString}`;
 
       let status: TimeSlot['status'] = 'available';
 
       if (hasFullDayBlock) {
         status = 'blocked';
-      } else if (appointmentTimes.has(timeString)) {
+      } else if (dayAppointments.some(apt => {
+        // Verificar solapamiento: cita existente vs slot nuevo (ambos de 50 min)
+        const aptTime = apt.appointment_time.substring(0, 5);
+        const [aH, aM] = aptTime.split(':').map(Number);
+        const aptStart = aH * 60 + aM;
+        const aptEnd = aptStart + APPOINTMENT_DURATION;
+        const slotEnd = mins + APPOINTMENT_DURATION;
+        return mins < aptEnd && slotEnd > aptStart;
+      })) {
         status = 'occupied';
       } else if (dayBlocks.some(block => {
-        const covers = doesBlockCoverTime(timeString, block, 60);
+        const covers = doesBlockCoverTime(timeString, block, APPOINTMENT_DURATION);
         // Debug: Log cuando un bloque cubre un slot
         if (covers) {
           console.log('🚫 Slot', timeString, 'bloqueado por:', {

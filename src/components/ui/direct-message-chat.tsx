@@ -137,6 +137,18 @@ export function DirectMessageChat({
     );
   }, [isProfessional, messages, services]);
 
+  // Todos los servicios de tipo cotización del profesional (para mostrar siempre la opción de enviar cotización)
+  const quoteServices = useMemo(
+    () => services.filter((s) => s.pricing_type === "quote"),
+    [services]
+  );
+
+  // Lista a mostrar en el diálogo: pendientes del chat o todos los de cotización
+  const quoteServicesToShow = useMemo(
+    () => (pendingQuoteServices.length > 0 ? pendingQuoteServices : quoteServices),
+    [pendingQuoteServices, quoteServices]
+  );
+
   useEffect(() => {
     loadMessages();
     // Polling para nuevos mensajes cada 3 segundos
@@ -1163,23 +1175,24 @@ export function DirectMessageChat({
                     <Briefcase className="h-4 w-4 mr-2" />
                     Servicios
                   </DropdownMenuItem>
-                  {pendingQuoteServices.length > 0 && (
-                    <DropdownMenuItem
-                      onClick={() => {
-                        setIsQuickOptionsOpen(false);
-                        setSelectedQuoteService(null);
-                        setQuoteAmount("");
-                        setQuoteOptionalMessage("");
-                        setIsQuoteDialogOpen(true);
-                      }}
-                    >
-                      <FileText className="h-4 w-4 mr-2" />
-                      Enviar cotización
+                  <DropdownMenuItem
+                    onClick={() => {
+                      setIsQuickOptionsOpen(false);
+                      setSelectedQuoteService(null);
+                      setQuoteAmount("");
+                      setQuoteOptionalMessage("");
+                      setIsQuoteDialogOpen(true);
+                    }}
+                    disabled={quoteServices.length === 0}
+                  >
+                    <FileText className="h-4 w-4 mr-2" />
+                    Enviar cotización
+                    {pendingQuoteServices.length > 0 && (
                       <Badge variant="secondary" className="ml-auto text-xs">
                         {pendingQuoteServices.length}
                       </Badge>
-                    </DropdownMenuItem>
-                  )}
+                    )}
+                  </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </>
@@ -1278,7 +1291,7 @@ export function DirectMessageChat({
       )}
 
       {/* Dialog Enviar cotización: precio final + enlace de pago Stripe */}
-      {isProfessional && professionalId && pendingQuoteServices.length > 0 && (
+      {isProfessional && professionalId && (
         <Dialog
           open={isQuoteDialogOpen}
           onOpenChange={(open) => {
@@ -1293,18 +1306,26 @@ export function DirectMessageChat({
           <DialogContent className="sm:max-w-[500px]">
             <DialogHeader>
               <DialogTitle>
-                {selectedQuoteService ? "Enviar cotización al paciente" : "Seleccionar cotización pendiente"}
+                {selectedQuoteService ? "Enviar cotización al paciente" : "Enviar cotización"}
               </DialogTitle>
               <DialogDescription>
                 {selectedQuoteService
                   ? `Precio final y enlace de pago para: ${selectedQuoteService.name}`
-                  : "Este paciente ha solicitado cotización. Elige el servicio y envía el precio con el enlace de pago."}
+                  : pendingQuoteServices.length > 0
+                    ? "Este paciente ha solicitado cotización. Elige el servicio y envía el precio con el enlace de pago."
+                    : "Elige un servicio de cotización y envía el precio final con el enlace de pago de Stripe al chat."}
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4">
               {!selectedQuoteService ? (
+                quoteServicesToShow.length === 0 ? (
+                  <div className="text-center py-6 text-muted-foreground text-sm">
+                    <p className="font-medium mb-1">No tienes servicios de tipo cotización</p>
+                    <p>Añade al menos un servicio con precio “Cotización” en Servicios para poder enviar el precio y el enlace de pago desde aquí.</p>
+                  </div>
+                ) : (
                 <div className="grid gap-2">
-                  {pendingQuoteServices.map((service) => (
+                  {quoteServicesToShow.map((service) => (
                     <Card
                       key={service.id}
                       className="cursor-pointer hover:shadow-md transition-shadow"
@@ -1314,12 +1335,15 @@ export function DirectMessageChat({
                         <FileText className="h-5 w-5 text-primary shrink-0" />
                         <div className="min-w-0">
                           <p className="font-semibold">{service.name}</p>
-                          <p className="text-xs text-muted-foreground">Cotización solicitada</p>
+                          <p className="text-xs text-muted-foreground">
+                          {pendingQuoteServices.some((s) => s.id === service.id) ? "Cotización solicitada" : "Servicio con cotización"}
+                        </p>
                         </div>
                       </CardContent>
                     </Card>
                   ))}
                 </div>
+                )
               ) : (
                 <>
                   <div className="rounded-lg border bg-muted/40 p-3 flex items-center gap-2">

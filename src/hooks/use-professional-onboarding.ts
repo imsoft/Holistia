@@ -75,9 +75,14 @@ export function useProfessionalOnboarding() {
   );
 
   const [biographyComplete, setBiographyComplete] = useState(false);
+  const [biographyLoading, setBiographyLoading] = useState(true);
   useEffect(() => {
-    if (!professional?.id) return;
+    if (!professional?.id) {
+      setBiographyLoading(false);
+      return;
+    }
     let cancelled = false;
+    setBiographyLoading(true);
     (async () => {
       const supabase = createClient();
       const { data } = await supabase
@@ -88,7 +93,9 @@ export function useProfessionalOnboarding() {
       if (!cancelled) {
         setBiographyComplete(!!(data?.biography && String(data.biography).trim().length > 0));
       }
-    })();
+    })().finally(() => {
+      if (!cancelled) setBiographyLoading(false);
+    });
     return () => {
       cancelled = true;
     };
@@ -127,6 +134,6 @@ export function useProfessionalOnboarding() {
     completedCount,
     totalSteps: STEPS.length,
     allComplete,
-    loading: professionalLoading || loading,
+    loading: professionalLoading || loading || biographyLoading,
   };
 }

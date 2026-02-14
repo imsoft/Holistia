@@ -1158,16 +1158,6 @@ export default function MyChallengesPage() {
                                 </DropdownMenuContent>
                               </DropdownMenu>
                             )}
-                            {participantsCount < 5 && (
-                              <Button
-                                variant="outline"
-                                onClick={() => setIsInviteDialogOpen(true)}
-                                disabled={!selectedChallenge.access_granted}
-                              >
-                                <UserPlus className="h-4 w-4 mr-2" />
-                                Invitar
-                              </Button>
-                            )}
                             <Button
                               onClick={() => setIsCheckinDialogOpen(true)}
                               disabled={!selectedChallenge.access_granted}

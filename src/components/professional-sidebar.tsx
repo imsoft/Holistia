@@ -63,6 +63,7 @@ const getNavCategories = (): { label: string; items: ProfessionalNavItem[] }[] =
       { title: "Servicios", url: `/services`, icon: Package },
       { title: "Horarios", url: `/availability`, icon: Clock },
       { title: "Citas", url: `/appointments`, icon: Calendar },
+      { title: "Cotizaciones", url: `/cotizaciones`, icon: FileText },
       { title: "Pacientes", url: `/patients`, icon: Users },
       { title: "Consultas", url: `/consultations`, icon: MessageSquare },
     ],

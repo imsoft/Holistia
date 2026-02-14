@@ -15,6 +15,7 @@ import {
   Clock,
   XCircle,
   CalendarDays,
+  FileText,
 } from "lucide-react";
 import { AdminStatCard } from "@/components/ui/admin-stat-card";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -61,6 +62,7 @@ interface FinancialSummary {
   total_transactions: number;
   appointments_income: number;
   events_income: number;
+  quotes_income: number;
 }
 
 export default function ProfessionalFinancesPage() {
@@ -330,6 +332,20 @@ export default function ProfessionalFinancesPage() {
             return sum + professionalAmount;
           }, 0) || 0;
 
+        const quotesIncome = currentPayments
+          ?.filter(p => p.payment_type === 'quote_service')
+          .reduce((sum, p) => {
+            let professionalAmount = Number(p.transfer_amount) || 0;
+
+            if (professionalAmount === 0 && p.service_amount) {
+              const serviceAmount = Number(p.service_amount) || 0;
+              const platformFee = Number(p.platform_fee) || 0;
+              professionalAmount = serviceAmount - platformFee;
+            }
+
+            return sum + professionalAmount;
+          }, 0) || 0;
+
         const financialSummary: FinancialSummary = {
           total_income: totalIncome,
           platform_fees: 0,
@@ -338,6 +354,7 @@ export default function ProfessionalFinancesPage() {
           total_transactions: currentPayments?.length || 0,
           appointments_income: appointmentsIncome,
           events_income: eventsIncome,
+          quotes_income: quotesIncome,
         };
 
         setSummary(financialSummary);
@@ -452,6 +469,8 @@ export default function ProfessionalFinancesPage() {
         return 'Pago de Cita';
       case 'event':
         return 'Pago de Evento';
+      case 'quote_service':
+        return 'Cotización';
       default:
         return 'Pago';
     }
@@ -463,6 +482,8 @@ export default function ProfessionalFinancesPage() {
         return 'bg-blue-100 text-blue-800';
       case 'event':
         return 'bg-purple-100 text-purple-800';
+      case 'quote_service':
+        return 'bg-amber-100 text-amber-800';
       default:
         return 'bg-gray-100 text-gray-800';
     }
@@ -614,6 +635,21 @@ export default function ProfessionalFinancesPage() {
                     ${summary?.events_income.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
                   </p>
                 </div>
+
+                <div className="flex items-center justify-between p-3 bg-amber-50 dark:bg-amber-950/20 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <div className="bg-amber-100 dark:bg-amber-900 p-2 rounded-lg">
+                      <FileText className="h-4 w-4 text-amber-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium">Cotizaciones</p>
+                      <p className="text-xs text-muted-foreground">Pagos de cotización desde el chat</p>
+                    </div>
+                  </div>
+                  <p className="text-sm font-bold text-amber-600">
+                    ${summary?.quotes_income.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
+                  </p>
+                </div>
               </div>
 
               <div className="pt-3 border-t border-border">
@@ -661,6 +697,16 @@ export default function ProfessionalFinancesPage() {
                   </div>
                   <p className="text-sm font-bold text-purple-600">
                     ${summary?.events_income.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
+                  </p>
+                </div>
+
+                <div className="flex items-center justify-between p-3 bg-amber-50 dark:bg-amber-950/20 rounded-lg">
+                  <div>
+                    <p className="text-sm font-medium">Por Cotizaciones</p>
+                    <p className="text-xs text-muted-foreground">Pagos de cotización desde el chat</p>
+                  </div>
+                  <p className="text-sm font-bold text-amber-600">
+                    ${summary?.quotes_income.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
                   </p>
                 </div>
               </div>

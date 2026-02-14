@@ -94,6 +94,22 @@ function MessagesPageContent() {
     const interval = setInterval(loadConversations, 5000);
     return () => clearInterval(interval);
   }, [userId]);
+
+  // Reintentar al volver a la pestaña (p. ej. tras abrir el portátil) o al recuperar conexión
+  useEffect(() => {
+    const onVisibleOrOnline = () => {
+      if (userId) loadConversations();
+    };
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") onVisibleOrOnline();
+    };
+    window.addEventListener("visibilitychange", onVisibility);
+    window.addEventListener("online", onVisibleOrOnline);
+    return () => {
+      window.removeEventListener("visibilitychange", onVisibility);
+      window.removeEventListener("online", onVisibleOrOnline);
+    };
+  }, [userId]);
   
   // No renderizar si no hay userId
   if (!userId) {

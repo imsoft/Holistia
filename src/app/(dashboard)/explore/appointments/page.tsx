@@ -19,6 +19,8 @@ import {
   AlertCircle,
   Ban,
   UserX,
+  FileText,
+  MessageSquare,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -60,6 +62,15 @@ interface Appointment {
   cancellation_reason?: string;
   no_show_marked_by?: 'patient' | 'professional';
   no_show_description?: string;
+}
+
+interface QuotePaymentItem {
+  id: string;
+  description: string;
+  amount: number;
+  paid_at: string | null;
+  metadata: { conversation_id?: string; service_name?: string } | null;
+  professional: { id: string; full_name: string; avatar_url?: string };
 }
 
 const statusConfig = {
@@ -123,6 +134,7 @@ export default function AppointmentsPage() {
   const [feedbackSubmittedIds, setFeedbackSubmittedIds] = useState<Set<string>>(new Set());
   const [feedbackSubmittingId, setFeedbackSubmittingId] = useState<string | null>(null);
   const [feedbackDraft, setFeedbackDraft] = useState<Record<string, { rating: number; comment: string }>>({});
+  const [quotePayments, setQuotePayments] = useState<QuotePaymentItem[]>([]);
   useUserStoreInit();
   const params = useParams();
   const router = useRouter();
@@ -262,6 +274,48 @@ export default function AppointmentsPage() {
         });
 
         setAppointments(formattedAppointments);
+
+        // Servicios cotizados pagados (quote_service)
+        const { data: quotePaymentsData } = await supabase
+          .from("payments")
+          .select("id, description, amount, paid_at, metadata, professional_id")
+          .eq("patient_id", user.id)
+          .eq("payment_type", "quote_service")
+          .eq("status", "succeeded")
+          .order("paid_at", { ascending: false });
+
+        if (quotePaymentsData && quotePaymentsData.length > 0) {
+          const profIds = [...new Set(quotePaymentsData.map((p) => p.professional_id).filter(Boolean))];
+          const { data: quoteProfs } = await supabase
+            .from("professional_applications")
+            .select("id, first_name, last_name, profile_photo, user_id")
+            .in("id", profIds);
+          const quoteProfUserIds = quoteProfs?.map((p) => p.user_id).filter(Boolean) ?? [];
+          const { data: quoteProfProfiles } = await supabase
+            .from("profiles")
+            .select("id, avatar_url")
+            .in("id", quoteProfUserIds);
+
+          const items: QuotePaymentItem[] = quotePaymentsData.map((p) => {
+            const prof = quoteProfs?.find((pr) => pr.id === p.professional_id);
+            const profile = quoteProfProfiles?.find((pr) => pr.id === prof?.user_id);
+            return {
+              id: p.id,
+              description: p.description ?? "",
+              amount: Number(p.amount),
+              paid_at: p.paid_at,
+              metadata: (p.metadata as QuotePaymentItem["metadata"]) ?? null,
+              professional: {
+                id: prof?.id ?? "",
+                full_name: prof ? `${prof.first_name} ${prof.last_name}` : "Profesional",
+                avatar_url: profile?.avatar_url ?? prof?.profile_photo ?? undefined,
+              },
+            };
+          });
+          setQuotePayments(items);
+        } else {
+          setQuotePayments([]);
+        }
 
         // Cargar qué citas ya tienen feedback (para ocultar encuesta)
         const { data: feedbackRows } = await supabase
@@ -467,6 +521,62 @@ export default function AppointmentsPage() {
           </div>
         ) : (
           <>
+            {/* Servicios cotizados pagados */}
+            {quotePayments.length > 0 && (
+              <div className="mb-8 sm:mb-12">
+                <h2 className="text-xl sm:text-2xl font-bold text-foreground mb-2 flex items-center gap-2">
+                  <FileText className="h-5 w-5 sm:h-6 sm:w-6 text-amber-600" />
+                  Servicios cotizados pagados
+                </h2>
+                <p className="text-sm text-muted-foreground mb-4 sm:mb-6">
+                  Servicios que cotizaste con un profesional y ya pagaste. Puedes escribirle desde el chat para coordinar.
+                </p>
+                <div className="grid gap-3 sm:gap-4">
+                  {quotePayments.map((q) => (
+                    <div
+                      key={q.id}
+                      className="p-3 sm:p-4 bg-card rounded-xl border border-border shadow-sm hover:shadow-md transition-shadow flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4"
+                    >
+                      <Link
+                        href={`/explore/professional/${q.professional.id}`}
+                        className="flex items-center gap-3 hover:opacity-80 transition-opacity flex-1 min-w-0"
+                      >
+                        <Image
+                          src={q.professional.avatar_url ?? `https://ui-avatars.com/api/?name=${encodeURIComponent(q.professional.full_name)}&background=random`}
+                          alt={q.professional.full_name}
+                          width={48}
+                          height={48}
+                          className="h-12 w-12 rounded-full object-cover border-2 border-border shrink-0"
+                        />
+                        <div className="min-w-0">
+                          <p className="font-medium text-foreground truncate">{q.professional.full_name}</p>
+                          <p className="text-sm text-muted-foreground truncate">
+                            {q.description || (q.metadata?.service_name ? `Cotización: ${q.metadata.service_name}` : "Servicio cotizado")}
+                          </p>
+                          <p className="text-xs text-muted-foreground mt-0.5">
+                            Pagado {q.paid_at ? new Date(q.paid_at).toLocaleDateString("es-MX", { day: "numeric", month: "short", year: "numeric" }) : ""}
+                          </p>
+                        </div>
+                      </Link>
+                      <div className="flex items-center gap-3 shrink-0">
+                        <span className="text-lg font-semibold text-green-600">
+                          {formatPrice(q.amount, "MXN")}
+                        </span>
+                        {q.metadata?.conversation_id && (
+                          <Button asChild size="sm" variant="outline">
+                            <Link href={`/messages?conversation=${q.metadata.conversation_id}`} className="flex items-center gap-1">
+                              <MessageSquare className="h-4 w-4" />
+                              Ver chat
+                            </Link>
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Citas próximas */}
             {upcomingAppointments.length > 0 && (
           <div className="mb-8 sm:mb-12">

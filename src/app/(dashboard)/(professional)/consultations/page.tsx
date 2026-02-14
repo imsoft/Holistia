@@ -89,6 +89,22 @@ function ConsultationsPageContent() {
     return () => clearInterval(interval);
   }, [userId, professionalId]);
 
+  // Reintentar al volver a la pestaña (p. ej. tras abrir el portátil) o al recuperar conexión
+  useEffect(() => {
+    const onVisibleOrOnline = () => {
+      if (userId && professionalId) loadConversations();
+    };
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") onVisibleOrOnline();
+    };
+    window.addEventListener("visibilitychange", onVisibility);
+    window.addEventListener("online", onVisibleOrOnline);
+    return () => {
+      window.removeEventListener("visibilitychange", onVisibility);
+      window.removeEventListener("online", onVisibleOrOnline);
+    };
+  }, [userId, professionalId]);
+
   useEffect(() => {
     const conversationId = searchParams.get('conversation');
     if (conversationId && conversations.length > 0) {

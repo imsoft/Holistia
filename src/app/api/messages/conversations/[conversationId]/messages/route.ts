@@ -111,11 +111,29 @@ export async function GET(
       }
     }
     
-    // Combinar datos
-    const messagesWithProfiles = (messages || []).map((msg: any) => ({
-      ...msg,
-      sender: profilesMap[msg.sender_id] || null,
-    }));
+    // Colectar quote_payment_id de mensajes para enriquecer estado de pago
+    const quotePaymentIds = (messages || [])
+      .map((m: any) => m.metadata?.quote_payment_id)
+      .filter((id: unknown): id is string => typeof id === 'string' && id.length > 0);
+    const paymentStatusMap: Record<string, string> = {};
+    if (quotePaymentIds.length > 0) {
+      const { data: paymentsRows } = await supabase
+        .from('payments')
+        .select('id, status')
+        .in('id', quotePaymentIds);
+      (paymentsRows || []).forEach((p: { id: string; status: string }) => {
+        paymentStatusMap[p.id] = p.status;
+      });
+    }
+
+    const messagesWithProfiles = (messages || []).map((msg: any) => {
+      const quotePaymentId = msg.metadata?.quote_payment_id;
+      return {
+        ...msg,
+        sender: profilesMap[msg.sender_id] || null,
+        ...(quotePaymentId ? { quote_payment_status: paymentStatusMap[quotePaymentId] || null } : {}),
+      };
+    });
 
     return NextResponse.json({ messages: messagesWithProfiles || [] });
   } catch (error) {

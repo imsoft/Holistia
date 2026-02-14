@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Un paciente pagó tu cotización | Holistia</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f8f9fa; }
+        .container { background-color: #fff; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); overflow: hidden; }
+        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 24px 20px; text-align: center; }
+        .header h1 { margin: 0; font-size: 22px; }
+        .content { padding: 24px 20px; }
+        .highlight { background-color: #ecfdf5; border: 1px solid #10b981; border-radius: 8px; padding: 16px; margin: 16px 0; }
+        .highlight strong { color: #065f46; }
+        .btn { display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white !important; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600; margin-top: 16px; }
+        .footer { text-align: center; font-size: 12px; color: #6b7280; padding: 16px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>¡Un paciente pagó tu cotización!</h1>
+        </div>
+        <div class="content">
+            <p>Hola <strong>{{professional_name}}</strong>,</p>
+            <p><strong>{{patient_name}}</strong> ha realizado el pago de la cotización.</p>
+            <div class="highlight">
+                <div><strong>Servicio:</strong> {{service_name}}</div>
+                <div><strong>Monto:</strong> {{amount}}</div>
+            </div>
+            <p>Coordina con el paciente los siguientes pasos (entrega, cita, etc.) desde el chat.</p>
+            <a href="{{chat_url}}" class="btn">Ver conversación</a>
+        </div>
+        <div class="footer">Holistia – Plataforma de salud integral y bienestar</div>
+    </div>
+</body>
+</html>

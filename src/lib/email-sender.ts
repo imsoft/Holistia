@@ -1644,3 +1644,103 @@ export async function sendChallengeCompletedEmail(data: ChallengeCompletedEmailD
     return { success: false, error: 'Failed to send email' };
   }
 }
+
+// ============================================================================
+// QUOTE PAYMENT - CONFIRMACIÓN AL PACIENTE
+// ============================================================================
+
+export interface QuotePaymentConfirmationPatientData {
+  patient_name: string;
+  patient_email: string;
+  professional_name: string;
+  service_name: string;
+  amount: string;
+  payment_date: string;
+  chat_url: string;
+}
+
+export async function sendQuotePaymentConfirmationToPatient(data: QuotePaymentConfirmationPatientData) {
+  try {
+    const fs = await import('fs');
+    const path = await import('path');
+    const templatePath = path.join(process.cwd(), 'database/email-templates/quote-payment-confirmation-patient.html');
+    let emailTemplate: string;
+    try {
+      emailTemplate = fs.readFileSync(templatePath, 'utf8');
+    } catch (error) {
+      console.error('Error reading quote payment confirmation template:', error);
+      return { success: false, error: 'Template not found' };
+    }
+    const emailContent = emailTemplate
+      .replace(/\{\{patient_name\}\}/g, data.patient_name)
+      .replace(/\{\{professional_name\}\}/g, data.professional_name)
+      .replace(/\{\{service_name\}\}/g, data.service_name)
+      .replace(/\{\{amount\}\}/g, data.amount)
+      .replace(/\{\{payment_date\}\}/g, data.payment_date)
+      .replace(/\{\{chat_url\}\}/g, data.chat_url);
+    const { data: emailData, error } = await resend.emails.send({
+      from: 'Holistia <noreply@holistia.io>',
+      to: [data.patient_email],
+      subject: `✅ Pago de cotización confirmado | Holistia`,
+      html: emailContent,
+    });
+    if (error) {
+      console.error('Error sending quote payment confirmation to patient:', error);
+      return { success: false, error: error.message };
+    }
+    console.log('Quote payment confirmation (patient) sent:', emailData?.id);
+    return { success: true, message: 'Email sent successfully', id: emailData?.id };
+  } catch (error) {
+    console.error('Error in sendQuotePaymentConfirmationToPatient:', error);
+    return { success: false, error: 'Failed to send email' };
+  }
+}
+
+// ============================================================================
+// QUOTE PAYMENT - NOTIFICACIÓN AL PROFESIONAL
+// ============================================================================
+
+export interface QuotePaymentNotificationProfessionalData {
+  professional_name: string;
+  professional_email: string;
+  patient_name: string;
+  service_name: string;
+  amount: string;
+  chat_url: string;
+}
+
+export async function sendQuotePaymentNotificationToProfessional(data: QuotePaymentNotificationProfessionalData) {
+  try {
+    const fs = await import('fs');
+    const path = await import('path');
+    const templatePath = path.join(process.cwd(), 'database/email-templates/quote-payment-notification-professional.html');
+    let emailTemplate: string;
+    try {
+      emailTemplate = fs.readFileSync(templatePath, 'utf8');
+    } catch (error) {
+      console.error('Error reading quote payment notification (professional) template:', error);
+      return { success: false, error: 'Template not found' };
+    }
+    const emailContent = emailTemplate
+      .replace(/\{\{professional_name\}\}/g, data.professional_name)
+      .replace(/\{\{patient_name\}\}/g, data.patient_name)
+      .replace(/\{\{service_name\}\}/g, data.service_name)
+      .replace(/\{\{amount\}\}/g, data.amount)
+      .replace(/\{\{chat_url\}\}/g, data.chat_url);
+    const { data: emailData, error } = await resend.emails.send({
+      from: 'Holistia <noreply@holistia.io>',
+      to: [data.professional_email],
+      subject: `💰 Un paciente pagó tu cotización | Holistia`,
+      html: emailContent,
+    });
+    if (error) {
+      console.error('Error sending quote payment notification to professional:', error);
+      return { success: false, error: error.message };
+    }
+    console.log('Quote payment notification (professional) sent:', emailData?.id);
+    return { success: true, message: 'Email sent successfully', id: emailData?.id };
+  } catch (error) {
+    console.error('Error in sendQuotePaymentNotificationToProfessional:', error);
+    return { success: false, error: 'Failed to send email' };
+  }
+}

@@ -12,7 +12,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Send, Loader2, Briefcase, Calendar, Package, Target, MapPin, MoreHorizontal, FileText, CreditCard, DollarSign } from "lucide-react";
+import { Send, Loader2, Briefcase, Calendar, Package, Target, MapPin, MoreHorizontal, FileText, CreditCard, DollarSign, CheckCircle } from "lucide-react";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
@@ -46,7 +46,9 @@ interface DirectMessage {
   sender_id: string;
   sender_type: 'user' | 'professional';
   content: string;
+  quote_payment_status?: string | null;
   metadata?: {
+    quote_payment_id?: string;
     service_id?: string;
     availability_slot?: {
       date: string;
@@ -418,6 +420,40 @@ export function DirectMessageChat({
     loadMessageDetails();
   }, [messages, professionalId, isProfessional, serviceDetails, programs, challenges, supabase]);
 
+  // Realtime: cuando Stripe confirma el pago de una cotización, actualizar el mensaje a "Pagado ✓"
+  const quotePaymentIds = useMemo(
+    () =>
+      messages
+        .map((m) => m.metadata?.quote_payment_id)
+        .filter((id): id is string => typeof id === "string" && id.length > 0),
+    [messages]
+  );
+  useEffect(() => {
+    if (quotePaymentIds.length === 0) return;
+    const channel = supabase
+      .channel("quote-payments")
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "payments" },
+        (payload: { new: { id: string; status: string } }) => {
+          if (payload.new?.status === "succeeded" && quotePaymentIds.includes(payload.new.id)) {
+            setMessages((prev) =>
+              prev.map((m) =>
+                m.metadata?.quote_payment_id === payload.new.id
+                  ? { ...m, quote_payment_status: "succeeded" as const }
+                  : m
+              )
+            );
+            toast.success("Cotización pagada");
+          }
+        }
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [quotePaymentIds, supabase]);
+
   const handleSendMessage = async (
     e: React.FormEvent, 
     customMetadata?: {
@@ -526,22 +562,25 @@ export function DirectMessageChat({
 
   /** Envía al chat un mensaje con el precio final de la cotización y el enlace de pago de Stripe. */
   const handleSendQuoteWithLinkToChat = useCallback(
-    async (amount: number, paymentUrl: string, optionalMessage?: string) => {
+    async (amount: number, paymentUrl: string, optionalMessage?: string, quotePaymentId?: string) => {
       const priceText = formatPrice(amount, "MXN");
       const parts: string[] = [];
       if (optionalMessage?.trim()) parts.push(optionalMessage.trim());
       parts.push(`💳 Cotización: ${priceText}`);
       parts.push(`Puedes pagar aquí: ${paymentUrl}`);
       const content = parts.join("\n\n");
+      const body: { content: string; metadata?: { quote_payment_id: string } } = { content };
+      if (quotePaymentId) body.metadata = { quote_payment_id: quotePaymentId };
       try {
         const response = await fetch(`/api/messages/conversations/${conversationId}/messages`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ content }),
+          body: JSON.stringify(body),
         });
         const data = await response.json();
         if (!response.ok) throw new Error(data.error || "Error al enviar mensaje");
-        setMessages((prev) => [...prev, data.message]);
+        const newMsg = { ...data.message, quote_payment_status: null } as DirectMessage;
+        setMessages((prev) => [...prev, newMsg]);
         toast.success("Cotización y enlace de pago enviados al chat");
       } catch (error) {
         console.error("Error sending quote to chat:", error);
@@ -798,6 +837,17 @@ export function DirectMessageChat({
     return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
   };
 
+  const quoteStats = useMemo(() => {
+    let paid = 0;
+    let pending = 0;
+    messages.forEach((m) => {
+      if (!parseQuotePaymentContent(m.content)) return;
+      if (m.quote_payment_status === "succeeded") paid++;
+      else pending++;
+    });
+    return { paid, pending };
+  }, [messages]);
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-full">
@@ -827,6 +877,22 @@ export function DirectMessageChat({
             </Badge>
           </div>
         </div>
+        {(quoteStats.paid > 0 || quoteStats.pending > 0) && (
+          <div className="flex flex-wrap items-center gap-2 mt-2 text-xs text-muted-foreground">
+            {quoteStats.paid > 0 && (
+              <span className="inline-flex items-center gap-1 text-green-600 dark:text-green-400">
+                <CheckCircle className="h-3.5 w-3.5" />
+                {quoteStats.paid} cotización{quoteStats.paid !== 1 ? "es" : ""} pagada{quoteStats.paid !== 1 ? "s" : ""}
+              </span>
+            )}
+            {quoteStats.pending > 0 && (
+              <span className="inline-flex items-center gap-1">
+                <CreditCard className="h-3.5 w-3.5" />
+                {quoteStats.pending} pendiente{quoteStats.pending !== 1 ? "s" : ""} de pago
+              </span>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Messages */}
@@ -1046,13 +1112,22 @@ export function DirectMessageChat({
                       </Card>
                     ) : parseQuotePaymentContent(msg.content) ? (
                       <Card className={cn(
-                        "w-full max-w-sm border-2 border-primary/20",
+                        "w-full max-w-sm border-2",
+                        msg.quote_payment_status === "succeeded"
+                          ? "border-green-200 bg-green-50/50 dark:bg-green-950/20"
+                          : "border-primary/20",
                         isOwnMessage ? "ml-auto" : "mr-auto"
                       )}>
                         <CardContent className="p-4 space-y-3">
                           <div className="flex items-center gap-2">
-                            <CreditCard className="h-5 w-5 text-primary shrink-0" />
-                            <span className="font-semibold text-sm">Cotización y pago</span>
+                            {msg.quote_payment_status === "succeeded" ? (
+                              <CheckCircle className="h-5 w-5 text-green-600 shrink-0" />
+                            ) : (
+                              <CreditCard className="h-5 w-5 text-primary shrink-0" />
+                            )}
+                            <span className="font-semibold text-sm">
+                              {msg.quote_payment_status === "succeeded" ? "Cotización pagada" : "Cotización y pago"}
+                            </span>
                           </div>
                           {(() => {
                             const parsed = parseQuotePaymentContent(msg.content)!;
@@ -1062,11 +1137,18 @@ export function DirectMessageChat({
                                   <p className="text-sm text-muted-foreground">{parsed.optionalMessage}</p>
                                 )}
                                 <p className="text-sm font-semibold text-primary">💳 {parsed.priceLine}</p>
-                                <Button asChild size="sm" className="w-full">
-                                  <a href={parsed.paymentUrl} target="_blank" rel="noopener noreferrer">
-                                    Pagar aquí
-                                  </a>
-                                </Button>
+                                {msg.quote_payment_status === "succeeded" ? (
+                                  <div className="flex items-center gap-2 rounded-md bg-green-100 dark:bg-green-900/30 px-3 py-2 text-sm font-medium text-green-800 dark:text-green-200">
+                                    <CheckCircle className="h-4 w-4 shrink-0" />
+                                    Pagado ✓
+                                  </div>
+                                ) : (
+                                  <Button asChild size="sm" className="w-full">
+                                    <a href={parsed.paymentUrl} target="_blank" rel="noopener noreferrer">
+                                      Pagar aquí
+                                    </a>
+                                  </Button>
+                                )}
                               </>
                             );
                           })()}
@@ -1465,7 +1547,8 @@ export function DirectMessageChat({
                           await handleSendQuoteWithLinkToChat(
                             amountValue,
                             data.url,
-                            quoteOptionalMessage.trim() || undefined
+                            quoteOptionalMessage.trim() || undefined,
+                            data.payment_id
                           );
                           setIsQuoteDialogOpen(false);
                           setSelectedQuoteService(null);

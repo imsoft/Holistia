@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pago de cotización recibido | Holistia</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f8f9fa; }
+        .container { background-color: #fff; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); overflow: hidden; }
+        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 24px 20px; text-align: center; }
+        .header h1 { margin: 0; font-size: 22px; }
+        .content { padding: 24px 20px; }
+        .success-icon { text-align: center; margin-bottom: 16px; }
+        .success-icon .icon { width: 56px; height: 56px; background-color: #10b981; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; color: white; font-size: 28px; }
+        .detail-box { background-color: #f8fafc; border-radius: 8px; padding: 16px; margin: 16px 0; }
+        .detail-row { margin-bottom: 8px; }
+        .detail-row:last-child { margin-bottom: 0; }
+        .btn { display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white !important; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600; margin-top: 16px; }
+        .footer { text-align: center; font-size: 12px; color: #6b7280; padding: 16px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Pago de cotización confirmado</h1>
+        </div>
+        <div class="content">
+            <div class="success-icon"><span class="icon">✓</span></div>
+            <p>Hola <strong>{{patient_name}}</strong>,</p>
+            <p>Tu pago por la cotización de <strong>{{professional_name}}</strong> se ha realizado correctamente.</p>
+            <div class="detail-box">
+                <div class="detail-row"><strong>Servicio:</strong> {{service_name}}</div>
+                <div class="detail-row"><strong>Monto:</strong> {{amount}}</div>
+                <div class="detail-row"><strong>Fecha:</strong> {{payment_date}}</div>
+            </div>
+            <p><strong>Próximos pasos:</strong></p>
+            <ul>
+                <li>El profesional puede contactarte por el chat para coordinar la entrega del servicio o agendar una cita.</li>
+                <li>Puedes ver esta cotización en <strong>Mis citas</strong> → Servicios cotizados pagados.</li>
+            </ul>
+            <a href="{{chat_url}}" class="btn">Abrir conversación con {{professional_name}}</a>
+        </div>
+        <div class="footer">Holistia – Plataforma de salud integral y bienestar</div>
+    </div>
+</body>
+</html>

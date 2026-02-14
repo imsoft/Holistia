@@ -6,7 +6,9 @@ import {
   sendEventConfirmationEmailSimple,
   sendAppointmentNotificationToProfessional,
   sendAppointmentPaymentConfirmation,
-  sendRegistrationPaymentConfirmation
+  sendRegistrationPaymentConfirmation,
+  sendQuotePaymentConfirmationToPatient,
+  sendQuotePaymentNotificationToProfessional,
 } from '@/lib/email-sender';
 import { createAppointmentInGoogleCalendar } from '@/actions/google-calendar';
 import Stripe from 'stripe';
@@ -612,8 +614,8 @@ export async function POST(request: NextRequest) {
 
         // Handle quote service payments
         if (payment_type === 'quote_service' && payment_id) {
-          // Update payment record
-          const { error: paymentUpdateError } = await supabase
+          const supabaseAdmin = createServiceRoleClient();
+          const { error: paymentUpdateError } = await supabaseAdmin
             .from('payments')
             .update({
               stripe_payment_intent_id: session.payment_intent as string,
@@ -627,7 +629,77 @@ export async function POST(request: NextRequest) {
             console.error('Error updating quote service payment:', paymentUpdateError);
           } else {
             console.log('✅ Quote service payment confirmed:', payment_id);
-            // Aquí podrías enviar notificaciones por email si es necesario
+            // Emails y notificación in-app (no bloquear el webhook)
+            (async () => {
+              try {
+                const { data: paymentRow } = await supabaseAdmin
+                  .from('payments')
+                  .select('id, amount, description, metadata, patient_id, professional_id')
+                  .eq('id', payment_id)
+                  .single();
+                if (!paymentRow?.metadata) return;
+                const meta = paymentRow.metadata as { conversation_id?: string; service_name?: string };
+                const conversationId = meta.conversation_id;
+                const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://www.holistia.io';
+                const chatUrl = conversationId ? `${baseUrl}/messages?conversation=${conversationId}` : `${baseUrl}/messages`;
+
+                const { data: patientProfile } = await supabaseAdmin
+                  .from('profiles')
+                  .select('id, first_name, last_name, email')
+                  .eq('id', paymentRow.patient_id)
+                  .single();
+                const { data: professionalApp } = await supabaseAdmin
+                  .from('professional_applications')
+                  .select('id, user_id, first_name, last_name')
+                  .eq('id', paymentRow.professional_id)
+                  .single();
+                if (!professionalApp?.user_id) return;
+                const { data: professionalProfile } = await supabaseAdmin
+                  .from('profiles')
+                  .select('email')
+                  .eq('id', professionalApp.user_id)
+                  .single();
+
+                const patientName = patientProfile ? [patientProfile.first_name, patientProfile.last_name].filter(Boolean).join(' ') || 'Paciente' : 'Paciente';
+                const professionalName = [professionalApp.first_name, professionalApp.last_name].filter(Boolean).join(' ') || 'Profesional';
+                const serviceName = meta.service_name || paymentRow.description || 'Cotización';
+                const amountStr = `$${Number(paymentRow.amount).toLocaleString('es-MX', { minimumFractionDigits: 2 })} MXN`;
+                const paymentDate = new Date().toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' });
+
+                if (patientProfile?.email) {
+                  await sendQuotePaymentConfirmationToPatient({
+                    patient_name: patientName,
+                    patient_email: patientProfile.email,
+                    professional_name: professionalName,
+                    service_name: serviceName,
+                    amount: amountStr,
+                    payment_date: paymentDate,
+                    chat_url: chatUrl,
+                  });
+                }
+                if (professionalProfile?.email) {
+                  await sendQuotePaymentNotificationToProfessional({
+                    professional_name: professionalName,
+                    professional_email: professionalProfile.email,
+                    patient_name: patientName,
+                    service_name: serviceName,
+                    amount: amountStr,
+                    chat_url: chatUrl,
+                  });
+                }
+                await supabaseAdmin.from('notifications').insert({
+                  user_id: professionalApp.user_id,
+                  type: 'quote_payment',
+                  title: 'Pago de cotización recibido',
+                  message: `${patientName} pagó tu cotización (${amountStr}). Coordina los siguientes pasos desde el chat.`,
+                  action_url: chatUrl,
+                  is_read: false,
+                  metadata: { payment_id: payment_id, conversation_id: conversationId },
+                });
+              } catch (err) {
+                console.error('Error sending quote payment emails/notification:', err);
+              }
+            })();
           }
           break; // Exit early for quote services
         }

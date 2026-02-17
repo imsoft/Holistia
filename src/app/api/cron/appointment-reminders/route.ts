@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { sendAppointmentReminderEmail } from "@/lib/email-sender";
+import { sendAppointmentReminderWhatsApp } from "@/lib/twilio-whatsapp";
 import { wallClockToUtcMs } from "@/lib/availability";
+import { formatDate } from "@/lib/date-utils";
 
 const MS_24H = 24 * 60 * 60 * 1000;
 const MS_1H = 60 * 60 * 1000;
@@ -101,7 +103,7 @@ export async function GET(request: Request) {
     const allUserIds = [...new Set([...patientIds, ...profUserIds])];
     const { data: profiles } = await supabase
       .from("profiles")
-      .select("id, email, first_name, last_name, full_name")
+      .select("id, email, phone, first_name, last_name, full_name")
       .in("id", allUserIds);
     const profileById = new Map((profiles || []).map((p) => [p.id, p]));
 
@@ -206,6 +208,25 @@ export async function GET(request: Request) {
             .update({ reminder_sent_24h_at: new Date().toISOString() })
             .eq("id", apt.id);
           sent24h++;
+          // WhatsApp recordatorio 24h al paciente (si tiene teléfono y Twilio configurado)
+          const patientPhone = patientProfile?.phone?.trim();
+          if (patientPhone && process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_WHATSAPP_NUMBER) {
+            try {
+              const dateShort = formatDate(apt.appointment_date, "es-MX", {
+                day: "numeric",
+                month: "short",
+                year: "numeric",
+              });
+              await sendAppointmentReminderWhatsApp(patientPhone, {
+                patientName,
+                date: dateShort,
+                time: appointmentTimeFormatted,
+                professionalName,
+              });
+            } catch (whatsappErr) {
+              console.warn("WhatsApp reminder skipped or failed:", whatsappErr);
+            }
+          }
         } else failed++;
       }
 

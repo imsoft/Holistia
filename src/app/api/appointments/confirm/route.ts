@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 import { sendAppointmentConfirmationToPatient } from '@/lib/email-sender';
+import { sendAppointmentConfirmationWithButtonsWhatsApp } from '@/lib/twilio-whatsapp';
 import { createAppointmentInGoogleCalendar } from '@/actions/google-calendar';
 import { formatDate } from '@/lib/date-utils';
 
@@ -96,10 +97,10 @@ export async function POST(request: NextRequest) {
         };
         const appointmentType = typeLabels[appointment.appointment_type as keyof typeof typeLabels] || appointment.appointment_type;
 
-        // Get patient and professional profiles for names
+        // Get patient and professional profiles for names and phone (WhatsApp)
         const { data: patientProfile } = await supabase
           .from('profiles')
-          .select('first_name, last_name')
+          .select('first_name, last_name, phone')
           .eq('id', patient.user.id)
           .single();
         
@@ -138,6 +139,20 @@ export async function POST(request: NextRequest) {
           }
         } catch (emailError) {
           console.error('Error sending confirmation email to patient:', emailError);
+        }
+
+        // WhatsApp confirmación con botones (si el paciente tiene teléfono y Twilio está configurado)
+        if (patientProfile?.phone?.trim() && process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_WHATSAPP_NUMBER) {
+          try {
+            await sendAppointmentConfirmationWithButtonsWhatsApp(patientProfile.phone.trim(), {
+              patientName,
+              date: appointmentDate,
+              time: appointmentTime,
+              professionalName,
+            });
+          } catch (whatsappError) {
+            console.warn('WhatsApp confirmation skipped or failed:', whatsappError);
+          }
         }
       }
     }

@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js';
 import { Resend } from 'resend';
 import * as fs from 'fs';
 import * as path from 'path';
+import { sendEventReminderWhatsApp } from '@/lib/twilio-whatsapp';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -129,7 +130,7 @@ export async function GET(request: Request) {
     const userIds = [...new Set(filteredRegs.map((r: any) => r.user_id).filter(Boolean))] as string[];
     const { data: profiles, error: profilesError } = await supabase
       .from('profiles')
-      .select('id, email, first_name, last_name, full_name')
+      .select('id, email, phone, first_name, last_name, full_name')
       .in('id', userIds);
 
     if (profilesError) {
@@ -258,6 +259,22 @@ export async function GET(request: Request) {
           });
         } catch (notificationErr) {
           console.warn('Event reminder notification insert failed:', notificationErr);
+        }
+
+        // WhatsApp recordatorio de evento (si tiene teléfono y Twilio está configurado)
+        const participantPhone = profile?.phone?.trim();
+        if (participantPhone && process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_WHATSAPP_NUMBER) {
+          try {
+            await sendEventReminderWhatsApp(participantPhone, {
+              participantName,
+              eventName: ev.name,
+              date: formattedDate,
+              time: formattedTime,
+              location: ev.location?.trim() || 'Por definir',
+            });
+          } catch (whatsappErr) {
+            console.warn('WhatsApp event reminder skipped or failed:', whatsappErr);
+          }
         }
       } catch (emailErr) {
         console.error(`Failed to send event reminder to ${email}:`, emailErr);

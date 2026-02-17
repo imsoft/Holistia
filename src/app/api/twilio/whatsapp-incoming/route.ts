@@ -4,6 +4,7 @@ import { createServiceRoleClient } from '@/utils/supabase/server';
 import { normalizePhoneForWhatsApp } from '@/lib/twilio-whatsapp';
 import { sendAppointmentCancelledByPatient } from '@/lib/email-sender';
 import { formatDate } from '@/lib/date-utils';
+import { PLATFORM_TIMEZONE } from '@/lib/availability';
 
 /** Textos de botones del template confirmacion_cita_botones_holistia (y sus IDs si Twilio los envía) */
 const CONFIRM_TEXTS = ['Confirmar', 'confirm'];
@@ -37,11 +38,13 @@ export async function POST(request: NextRequest) {
       return new NextResponse('Missing From or Body', { status: 400 });
     }
 
-    if (authToken && signature) {
-      const isValid = Twilio.validateRequest(authToken, signature, url, params);
-      if (!isValid) {
-        return new NextResponse('Unauthorized', { status: 403 });
-      }
+    // En producción la firma de Twilio es obligatoria para evitar peticiones falsas
+    if (!authToken) {
+      console.error('TWILIO_AUTH_TOKEN no está configurado — webhook rechazado');
+      return new NextResponse('Server misconfigured', { status: 500 });
+    }
+    if (!signature || !Twilio.validateRequest(authToken, signature, url, params)) {
+      return new NextResponse('Unauthorized', { status: 403 });
     }
 
     const action = getActionFromBody(body);
@@ -55,13 +58,24 @@ export async function POST(request: NextRequest) {
     }
 
     const supabase = createServiceRoleClient();
-    const { data: profiles } = await supabase.from('profiles').select('id, phone').not('phone', 'is', null);
-    const profile = (profiles || []).find((p) => normalizePhoneForWhatsApp(p.phone) === normalizedPhone);
+
+    // Buscar perfil por los últimos 10 dígitos del teléfono (evita cargar todos los perfiles)
+    const last10 = normalizedPhone.replace(/\D/g, '').slice(-10);
+    const { data: matchedProfiles } = await supabase
+      .from('profiles')
+      .select('id, phone')
+      .not('phone', 'is', null)
+      .like('phone', `%${last10}`);
+    const profile = (matchedProfiles || []).find(
+      (p) => normalizePhoneForWhatsApp(p.phone) === normalizedPhone
+    );
     if (!profile) {
       return new NextResponse(null, { status: 200 });
     }
 
-    const today = new Date().toISOString().slice(0, 10);
+    // Obtener fecha "hoy" en la zona horaria de la plataforma (no UTC)
+    const nowMx = new Date(new Date().toLocaleString('en-US', { timeZone: PLATFORM_TIMEZONE }));
+    const today = `${nowMx.getFullYear()}-${String(nowMx.getMonth() + 1).padStart(2, '0')}-${String(nowMx.getDate()).padStart(2, '0')}`;
     const { data: appointments } = await supabase
       .from('appointments')
       .select('id, patient_id, professional_id, status, appointment_date, appointment_time, cost, appointment_type, location')
@@ -110,14 +124,16 @@ export async function POST(request: NextRequest) {
         return new NextResponse(null, { status: 200 });
       }
 
-      await supabase.from('patient_credits').insert({
-        patient_id: appointment.patient_id,
-        professional_id: appointment.professional_id,
-        amount: appointment.cost,
-        original_appointment_id: appointment.id,
-        status: 'available',
-        expires_at: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
-      });
+      if (appointment.cost > 0) {
+        await supabase.from('patient_credits').insert({
+          patient_id: appointment.patient_id,
+          professional_id: appointment.professional_id,
+          amount: appointment.cost,
+          original_appointment_id: appointment.id,
+          status: 'available',
+          expires_at: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
+        });
+      }
 
       const { data: professionalData } = await supabase
         .from('professional_applications')

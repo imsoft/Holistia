@@ -1,11 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { createClient } from "@/utils/supabase/client";
 
 /** Extrae la ruta del objeto en el bucket a partir de la URL pública de Supabase. */
 function getStoragePathFromPublicUrl(publicUrl: string): string | null {
-  // Formato: https://xxx.supabase.co/storage/v1/object/public/challenges/path/to/file.mp4
   const match = publicUrl.match(/\/storage\/v1\/object\/public\/challenges\/(.+?)(?:\?|$)/);
   if (match) {
     try {
@@ -15,6 +14,14 @@ function getStoragePathFromPublicUrl(publicUrl: string): string | null {
     }
   }
   return null;
+}
+
+/** Infiere el MIME type a partir de la extensión del archivo en la URL. */
+function inferVideoMimeType(url: string): string {
+  const clean = url.split("?")[0].toLowerCase();
+  if (clean.endsWith(".webm")) return "video/webm";
+  if (clean.endsWith(".mov")) return "video/quicktime";
+  return "video/mp4";
 }
 
 export interface VideoPlayerProps {
@@ -34,111 +41,74 @@ export interface VideoPlayerProps {
 
 /**
  * Reproductor de vídeo compatible con URLs de Supabase Storage y blob.
- * Usa elemento <video> nativo para mejor compatibilidad con Supabase Storage.
+ *
+ * Estrategia:
+ * 1. URLs blob → se usan directamente (preview local).
+ * 2. URLs públicas de Supabase Storage → se usan directamente (el bucket es público).
+ * 3. Si la URL pública falla → se intenta con signed URL como fallback.
  */
 export function VideoPlayer({ url, className = "", fill = true, controls = true, muted = false, onError }: VideoPlayerProps) {
   const [error, setError] = useState(false);
   const [playUrl, setPlayUrl] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [triedSigned, setTriedSigned] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const triedSignedRef = useRef(false);
 
   useEffect(() => {
     setError(false);
+    triedSignedRef.current = false;
+
     if (!url) {
       setPlayUrl(null);
-      setLoading(false);
-      setTriedSigned(false);
       return;
     }
-    if (url.startsWith("blob:")) {
-      setPlayUrl(url);
-      setLoading(false);
-      setTriedSigned(false);
-      return;
-    }
-    const path = getStoragePathFromPublicUrl(url);
-    if (path) {
-      setLoading(true);
-      setError(false);
-      const supabase = createClient();
-      supabase.storage
-        .from("challenges")
-        .createSignedUrl(path, 3600)
-        .then(({ data, error: err }) => {
-          if (!err && data?.signedUrl) {
-            setPlayUrl(data.signedUrl);
-            setTriedSigned(true);
-          } else {
-            console.warn("No se pudo crear URL firmada, usando URL pública:", err?.message);
-            setPlayUrl(url);
-            setTriedSigned(false);
-          }
-        })
-        .catch((err) => {
-          console.warn("Error al crear URL firmada, usando URL pública:", err);
-          setPlayUrl(url);
-          setTriedSigned(false);
-        })
-        .finally(() => setLoading(false));
-    } else {
-      setPlayUrl(url);
-      setLoading(false);
-      setTriedSigned(false);
-    }
+
+    // Usar la URL directamente (blob o pública) — sin signed URL innecesaria
+    setPlayUrl(url);
   }, [url]);
 
-  const handleError = useCallback((e: React.SyntheticEvent<HTMLVideoElement, Event>) => {
-    const videoElement = e.currentTarget;
-    const errorCode = videoElement.error;
-    let errorMsg = "Error desconocido";
-    if (errorCode) {
-      switch (errorCode.code) {
-        case 1: errorMsg = "MEDIA_ERR_ABORTED - La carga fue abortada"; break;
-        case 2: errorMsg = "MEDIA_ERR_NETWORK - Error de red"; break;
-        case 3: errorMsg = "MEDIA_ERR_DECODE - Error al decodificar"; break;
-        case 4: errorMsg = "MEDIA_ERR_SRC_NOT_SUPPORTED - Formato no soportado"; break;
-      }
+  const handleError = useCallback(() => {
+    // Si ya intentamos signed URL, no hay más que hacer
+    if (triedSignedRef.current) {
+      setError(true);
+      setLoading(false);
+      onError?.();
+      return;
     }
-    console.error("Error al cargar vídeo:", {
-      error: errorMsg,
-      code: errorCode?.code,
-      url: playUrl || url,
-      triedSigned,
-      videoSrc: videoElement.src,
-    });
-    
-    if (!triedSigned && playUrl === url) {
-      const path = getStoragePathFromPublicUrl(url);
-      if (path) {
-        console.log("Intentando con URL firmada como fallback...");
-        const supabase = createClient();
-        supabase.storage
-          .from("challenges")
-          .createSignedUrl(path, 3600)
-          .then(({ data, error: err }) => {
-            if (!err && data?.signedUrl) {
-              setPlayUrl(data.signedUrl);
-              setTriedSigned(true);
-              setError(false);
-            } else {
-              setError(true);
-              onError?.();
-            }
-          })
-          .catch(() => {
-            setError(true);
-            onError?.();
-          });
-        return;
-      }
+
+    // Intentar con signed URL como fallback (por si la URL pública tiene problemas de cache/CORS)
+    const path = getStoragePathFromPublicUrl(url);
+    if (!path) {
+      setError(true);
+      onError?.();
+      return;
     }
-    
-    setError(true);
-    onError?.();
-  }, [onError, playUrl, url, triedSigned]);
+
+    triedSignedRef.current = true;
+    setLoading(true);
+    const supabase = createClient();
+    supabase.storage
+      .from("challenges")
+      .createSignedUrl(path, 3600)
+      .then(({ data, error: err }) => {
+        if (!err && data?.signedUrl) {
+          setPlayUrl(data.signedUrl);
+          setError(false);
+        } else {
+          console.warn("Signed URL fallback falló:", err?.message);
+          setError(true);
+          onError?.();
+        }
+      })
+      .catch(() => {
+        setError(true);
+        onError?.();
+      })
+      .finally(() => setLoading(false));
+  }, [url, onError]);
 
   const handleLoadedData = useCallback(() => {
     setError(false);
+    setLoading(false);
   }, []);
 
   if (!url) return null;
@@ -169,13 +139,12 @@ export function VideoPlayer({ url, className = "", fill = true, controls = true,
     );
   }
 
-  const src = playUrl;
+  const mimeType = inferVideoMimeType(url);
 
   return (
     <div className={`relative overflow-hidden rounded-lg bg-black ${fill ? "w-full h-full" : ""} ${className}`}>
       <video
-        key={src}
-        src={src}
+        key={playUrl}
         controls={controls}
         muted={muted}
         playsInline
@@ -183,7 +152,9 @@ export function VideoPlayer({ url, className = "", fill = true, controls = true,
         className="w-full h-full object-contain"
         onError={handleError}
         onLoadedData={handleLoadedData}
-      />
+      >
+        <source src={playUrl} type={mimeType} />
+      </video>
     </div>
   );
 }

@@ -333,11 +333,9 @@ function MessagesPageContent() {
                                 </Badge>
                               )}
                             </div>
-                            {conversation.last_message_preview && (
-                              <p className="text-xs text-muted-foreground truncate">
-                                {conversation.last_message_preview}
-                              </p>
-                            )}
+                            <p className="text-xs text-muted-foreground line-clamp-2 min-h-[2rem]">
+                              {conversation.last_message_preview?.trim() || 'Sin mensajes aún'}
+                            </p>
                             <p className="text-xs text-muted-foreground mt-1">
                               {formatDistanceToNow(new Date(conversation.last_message_at || conversation.created_at), {
                                 addSuffix: true,

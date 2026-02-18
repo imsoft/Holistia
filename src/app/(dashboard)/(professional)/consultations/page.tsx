@@ -219,9 +219,28 @@ function ConsultationsPageContent() {
                   </p>
                 </div>
               ) : (
-                <div className="overflow-y-auto flex-1">
+                <div className="overflow-y-auto flex-1 min-h-0">
                   {conversations.map((conversation) => {
-                    const patient = conversation.user;
+                    const isCurrentUserProfessional = Boolean(professionalId && conversation.professional_id === professionalId);
+                    const otherUser = isCurrentUserProfessional
+                      ? {
+                          id: conversation.user_id,
+                          name: conversation.user
+                            ? [conversation.user.first_name, conversation.user.last_name].filter(Boolean).join(" ").trim() || "Paciente"
+                            : "Paciente",
+                          avatar_url: conversation.user?.avatar_url ?? null,
+                          unreadCount: conversation.professional_unread_count,
+                          isProfessional: false,
+                        }
+                      : {
+                          id: conversation.professional_id,
+                          name: conversation.professional
+                            ? [conversation.professional.first_name, conversation.professional.last_name].filter(Boolean).join(" ").trim() || "Experto"
+                            : "Experto",
+                          avatar_url: conversation.professional?.profile_photo ?? null,
+                          unreadCount: conversation.user_unread_count,
+                          isProfessional: true,
+                        };
 
                     return (
                       <div
@@ -233,24 +252,27 @@ function ConsultationsPageContent() {
                       >
                         <div className="flex items-center gap-3">
                           <Avatar className="h-12 w-12 shrink-0">
-                            <AvatarImage src={patient?.avatar_url || undefined} />
+                            <AvatarImage src={otherUser.avatar_url || undefined} />
                             <AvatarFallback>
-                              {patient?.first_name?.[0] || ''}{patient?.last_name?.[0] || ''}
+                              {(otherUser.name || "?").split(/\s+/).map((n) => n[0]).filter(Boolean).join("").slice(0, 2).toUpperCase() || "?"}
                             </AvatarFallback>
                           </Avatar>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center justify-between mb-1">
                               <div className="flex items-center gap-2 min-w-0">
                                 <h3 className="font-semibold text-sm truncate">
-                                  {patient ? `${patient.first_name} ${patient.last_name}` : 'Paciente'}
+                                  {otherUser.name}
                                 </h3>
-                                <Badge variant="secondary" className="shrink-0 text-xs">
-                                  Paciente
+                                <Badge
+                                  variant={otherUser.isProfessional ? "default" : "secondary"}
+                                  className="shrink-0 text-xs"
+                                >
+                                  {otherUser.isProfessional ? "Experto" : "Paciente"}
                                 </Badge>
                               </div>
-                              {conversation.professional_unread_count > 0 && (
+                              {otherUser.unreadCount > 0 && (
                                 <Badge variant="default" className="ml-2 shrink-0">
-                                  {conversation.professional_unread_count}
+                                  {otherUser.unreadCount}
                                 </Badge>
                               )}
                             </div>
@@ -258,7 +280,7 @@ function ConsultationsPageContent() {
                               {conversation.last_message_preview?.trim() || 'Sin mensajes aún'}
                             </p>
                             <p className="text-xs text-muted-foreground mt-1">
-                              {formatDistanceToNow(new Date(conversation.last_message_at || conversation.created_at), {
+                              {formatDistanceToNow(new Date(conversation.last_message_at || conversation.created_at || 0), {
                                 addSuffix: true,
                                 locale: es,
                               })}
@@ -290,23 +312,35 @@ function ConsultationsPageContent() {
             <Card className="h-full min-h-0 flex flex-col flex-1">
               <CardContent className="p-0 flex flex-col h-full min-h-0 flex-1">
                 {(() => {
-                  const patient = selectedConversation.user;
-                  const otherUser = {
-                    id: selectedConversation.user_id,
-                    name: patient
-                      ? `${patient.first_name} ${patient.last_name}`
-                      : 'Paciente',
-                    avatar_url: patient?.avatar_url || null,
-                    isProfessional: false,
-                  };
+                  const isCurrentUserProfessional = Boolean(professionalId && selectedConversation.professional_id === professionalId);
+                  const otherUser = isCurrentUserProfessional
+                    ? {
+                        id: selectedConversation.user_id,
+                        name: selectedConversation.user
+                          ? [selectedConversation.user.first_name, selectedConversation.user.last_name].filter(Boolean).join(" ").trim() || "Paciente"
+                          : "Paciente",
+                        avatar_url: selectedConversation.user?.avatar_url ?? null,
+                        isProfessional: false,
+                      }
+                    : {
+                        id: selectedConversation.professional_id,
+                        name: selectedConversation.professional
+                          ? [selectedConversation.professional.first_name, selectedConversation.professional.last_name].filter(Boolean).join(" ").trim() || "Experto"
+                          : "Experto",
+                        avatar_url: selectedConversation.professional?.profile_photo ?? null,
+                        isProfessional: true,
+                      };
+                  const chatProfessionalId = isCurrentUserProfessional
+                    ? professionalId
+                    : selectedConversation.professional_id;
 
                   return (
                     <DirectMessageChat
                       conversationId={selectedConversation.id}
                       currentUserId={userId || ''}
                       otherUser={otherUser}
-                      professionalId={professionalId || undefined}
-                      isProfessional={true}
+                      professionalId={chatProfessionalId || undefined}
+                      isProfessional={isCurrentUserProfessional}
                     />
                   );
                 })()}

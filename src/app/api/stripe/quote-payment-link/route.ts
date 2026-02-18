@@ -115,15 +115,34 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Obtener información del usuario que pagará (paciente u otro tipo); usar service role para no depender de RLS
+    // Resolver el user_id de quien pagará: puede venir como profiles.id (user_id) o como professional_applications.id
     const supabaseAdmin = createServiceRoleClient();
-    const { data: payer, error: payerError } = await supabaseAdmin
+    let payerUserId = patient_id;
+    let payer = await supabaseAdmin
       .from('profiles')
       .select('id, first_name, last_name, email')
       .eq('id', patient_id)
-      .single();
+      .single()
+      .then(({ data }) => data);
 
-    if (payerError || !payer) {
+    if (!payer) {
+      const { data: proApp } = await supabaseAdmin
+        .from('professional_applications')
+        .select('user_id')
+        .eq('id', patient_id)
+        .single();
+      if (proApp?.user_id) {
+        payerUserId = proApp.user_id;
+        const { data: profile } = await supabaseAdmin
+          .from('profiles')
+          .select('id, first_name, last_name, email')
+          .eq('id', proApp.user_id)
+          .single();
+        payer = profile ?? null;
+      }
+    }
+
+    if (!payer) {
       return NextResponse.json(
         { error: 'Usuario no encontrado. No se pudo obtener el perfil de quien pagará.' },
         { status: 404 }
@@ -134,9 +153,9 @@ export async function POST(request: NextRequest) {
     const platformFee = calculateCommission(serviceAmount, 15);
     const transferAmount = calculateTransferAmount(serviceAmount, 15);
 
-    // Crear registro de pago con service role (supabaseAdmin ya creado arriba para buscar al pagador)
+    // Crear registro de pago (patient_id = user_id de quien paga, por si venía professional_id)
     const paymentRow = {
-      patient_id: patient_id,
+      patient_id: payerUserId,
       professional_id: professional.id,
       professional_application_id: professional.id,
       amount: serviceAmount,
@@ -216,7 +235,7 @@ export async function POST(request: NextRequest) {
         payment_id: payment.id,
         service_id: service_id,
         conversation_id: conversation_id,
-        patient_id: patient_id,
+        patient_id: payerUserId,
         professional_id: professional.id,
         payment_type: 'quote_service',
         platform_fee: platformFee.toString(),

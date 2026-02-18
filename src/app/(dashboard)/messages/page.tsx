@@ -198,8 +198,11 @@ function MessagesPageContent() {
     }
   };
 
-  const getUserInitials = (firstName: string, lastName: string) => {
-    return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
+  const getUserInitials = (firstName: string | null | undefined, lastName: string | null | undefined) => {
+    const a = (firstName ?? "").charAt(0);
+    const b = (lastName ?? "").charAt(0);
+    const initials = (a + b).trim() || "?";
+    return initials.toUpperCase();
   };
 
 
@@ -283,20 +286,20 @@ function MessagesPageContent() {
                       ? {
                           id: conversation.professional_id,
                           name: conversation.professional
-                            ? `${conversation.professional.first_name} ${conversation.professional.last_name}`
-                            : 'Experto',
-                          avatar_url: conversation.professional?.profile_photo || null,
+                            ? [conversation.professional.first_name, conversation.professional.last_name].filter(Boolean).join(" ").trim() || "Experto"
+                            : "Experto",
+                          avatar_url: conversation.professional?.profile_photo ?? null,
                           unreadCount: conversation.user_unread_count,
-                          isProfessional: true, // El otro usuario es profesional
+                          isProfessional: true,
                         }
                       : {
                           id: conversation.user_id,
                           name: conversation.user
-                            ? `${conversation.user.first_name} ${conversation.user.last_name}`
-                            : 'Usuario',
-                          avatar_url: conversation.user?.avatar_url || null,
+                            ? [conversation.user.first_name, conversation.user.last_name].filter(Boolean).join(" ").trim() || "Usuario"
+                            : "Usuario",
+                          avatar_url: conversation.user?.avatar_url ?? null,
                           unreadCount: conversation.professional_unread_count,
-                          isProfessional: false, // El otro usuario es paciente
+                          isProfessional: false,
                         };
 
                     return (
@@ -311,7 +314,7 @@ function MessagesPageContent() {
                           <Avatar className="h-12 w-12 shrink-0">
                             <AvatarImage src={otherUser.avatar_url || undefined} />
                             <AvatarFallback>
-                              {otherUser.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                              {(otherUser.name || "?").split(/\s+/).map((n) => n[0]).filter(Boolean).join("").slice(0, 2).toUpperCase() || "?"}
                             </AvatarFallback>
                           </Avatar>
                           <div className="flex-1 min-w-0">
@@ -337,7 +340,7 @@ function MessagesPageContent() {
                               {conversation.last_message_preview?.trim() || 'Sin mensajes aún'}
                             </p>
                             <p className="text-xs text-muted-foreground mt-1">
-                              {formatDistanceToNow(new Date(conversation.last_message_at || conversation.created_at), {
+                              {formatDistanceToNow(new Date(conversation.last_message_at || conversation.created_at || 0), {
                                 addSuffix: true,
                                 locale: es,
                               })}
@@ -363,18 +366,18 @@ function MessagesPageContent() {
                     ? {
                         id: selectedConversation.professional_id,
                         name: selectedConversation.professional
-                          ? `${selectedConversation.professional.first_name} ${selectedConversation.professional.last_name}`
-                          : 'Profesional',
-                        avatar_url: selectedConversation.professional?.profile_photo || null,
-                        isProfessional: true, // El otro usuario es profesional
+                          ? [selectedConversation.professional.first_name, selectedConversation.professional.last_name].filter(Boolean).join(" ").trim() || "Profesional"
+                          : "Profesional",
+                        avatar_url: selectedConversation.professional?.profile_photo ?? null,
+                        isProfessional: true,
                       }
                     : {
                         id: selectedConversation.user_id,
                         name: selectedConversation.user
-                          ? `${selectedConversation.user.first_name} ${selectedConversation.user.last_name}`
-                          : 'Usuario',
-                        avatar_url: selectedConversation.user?.avatar_url || null,
-                        isProfessional: false, // El otro usuario es paciente
+                          ? [selectedConversation.user.first_name, selectedConversation.user.last_name].filter(Boolean).join(" ").trim() || "Usuario"
+                          : "Usuario",
+                        avatar_url: selectedConversation.user?.avatar_url ?? null,
+                        isProfessional: false,
                       };
 
                   // Determinar professionalId: si el usuario actual es profesional, usar su professionalId

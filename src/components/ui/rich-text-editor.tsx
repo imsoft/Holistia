@@ -16,9 +16,11 @@ import {
   Redo,
   Heading1,
   Heading2,
-  Heading3
+  Heading3,
+  ClipboardPaste
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 import { useEffect, useState, useRef } from 'react';
 
 function escapeHtml(text: string): string {
@@ -177,19 +179,31 @@ export function RichTextEditor({
       handlePaste: (view, event) => {
         const ed = editorInstanceRef.current;
         if (!ed) return false;
-        const data = event.clipboardData;
-        if (!data) return false;
-        const html = data.getData('text/html');
-        const text = data.getData('text/plain');
         let toInsert = '';
-        if (html && html.trim()) {
-          toInsert = cleanPastedHtml(html);
-        } else if (text != null && String(text).trim()) {
-          toInsert = plainTextToHtml(String(text));
+        const data = event.clipboardData;
+        if (data) {
+          const html = data.getData('text/html');
+          const text = data.getData('text/plain');
+          if (html && html.trim()) toInsert = cleanPastedHtml(html);
+          else if (text != null && String(text).trim()) toInsert = plainTextToHtml(String(text));
         }
-        if (!toInsert) return false;
-        ed.commands.insertContent(toInsert);
+        if (toInsert) {
+          ed.commands.insertContent(toInsert);
+          event.preventDefault();
+          return true;
+        }
+        // Fallback: portapapeles universal (iPhone → Mac) a veces no llena clipboardData; reintentar tras 80 ms si viene vacío
         event.preventDefault();
+        if (typeof navigator?.clipboard?.readText === 'function') {
+          const tryInsert = (retry = false) => {
+            navigator.clipboard.readText().then((t) => {
+              const text = t?.trim();
+              if (text && editorInstanceRef.current) editorInstanceRef.current.commands.insertContent(plainTextToHtml(text));
+              else if (!retry) setTimeout(() => tryInsert(true), 80);
+            }).catch(() => {});
+          };
+          tryInsert(false);
+        }
         return true;
       },
       handleDrop: (view, event) => {
@@ -424,26 +438,59 @@ export function RichTextEditor({
     if (e.defaultPrevented) return;
     const ed = editorInstanceRef.current;
     if (!ed) return;
-    const data = e.clipboardData;
-    if (!data) return;
-    const html = data.getData('text/html');
-    const text = data.getData('text/plain');
     let toInsert = '';
-    if (html && html.trim()) {
-      toInsert = cleanPastedHtml(html);
-    } else if (text != null && String(text).trim()) {
-      toInsert = plainTextToHtml(String(text));
+    const data = e.clipboardData;
+    if (data) {
+      const html = data.getData('text/html');
+      const text = data.getData('text/plain');
+      if (html && html.trim()) toInsert = cleanPastedHtml(html);
+      else if (text != null && String(text).trim()) toInsert = plainTextToHtml(String(text));
     }
-    if (!toInsert) return;
+    if (toInsert) {
+      e.preventDefault();
+      e.stopPropagation();
+      ed.commands.insertContent(toInsert);
+      return;
+    }
+    // Fallback: portapapeles universal (p. ej. iPhone → Mac) a veces no llena clipboardData; reintentar tras 80 ms si viene vacío
     e.preventDefault();
     e.stopPropagation();
-    ed.commands.insertContent(toInsert);
+    if (typeof navigator?.clipboard?.readText === 'function') {
+      const tryInsert = (retry = false) => {
+        navigator.clipboard.readText().then((t) => {
+          const text = t?.trim();
+          if (text && editorInstanceRef.current) editorInstanceRef.current.commands.insertContent(plainTextToHtml(text));
+          else if (!retry) setTimeout(() => tryInsert(true), 80);
+        }).catch(() => {});
+      };
+      tryInsert(false);
+    }
+  };
+
+  const handlePasteButton = () => {
+    editor.chain().focus().run();
+    if (typeof navigator?.clipboard?.readText !== 'function') {
+      toast.error('Tu navegador no permite pegar desde el portapapeles');
+      return;
+    }
+    navigator.clipboard.readText().then((text) => {
+      const t = text?.trim();
+      if (t) editor.commands.insertContent(plainTextToHtml(t));
+      else toast.info('No hay nada que pegar en el portapapeles');
+    }).catch(() => toast.error('No se pudo acceder al portapapeles'));
   };
 
   return (
     <div ref={editorRef} className="border rounded-lg overflow-hidden" onPaste={handleContainerPaste}>
       {/* Toolbar */}
       <div className="flex items-center gap-1 p-2 border-b bg-muted/50 flex-wrap">
+        <ToolbarButton
+          onClick={(e) => { e.preventDefault(); handlePasteButton(); }}
+          title="Pegar desde el portapapeles"
+        >
+          <ClipboardPaste className="h-4 w-4" />
+        </ToolbarButton>
+        <div className="w-px h-6 bg-border mx-1" />
         <ToolbarButton
           onClick={(e) => {
             e.preventDefault();

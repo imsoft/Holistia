@@ -48,6 +48,20 @@ function cleanPastedHtml(html: string): string {
   return result || html;
 }
 
+/** Convierte texto plano con saltos de línea (ej. WhatsApp) a HTML con <p> y <br>. */
+function plainTextToHtml(text: string): string {
+  const t = text.trim();
+  if (!t) return '';
+  const paragraphs = t.split(/\n\n+/);
+  return paragraphs
+    .map((p) => {
+      const line = p.trim().split('\n').map((l) => escapeHtml(l)).join('<br>');
+      return line ? `<p>${line}</p>` : '';
+    })
+    .filter(Boolean)
+    .join('');
+}
+
 interface RichTextEditorProps {
   content: string;
   onChange: (content: string) => void;
@@ -171,7 +185,7 @@ export function RichTextEditor({
         if (html && html.trim()) {
           toInsert = cleanPastedHtml(html);
         } else if (text != null && String(text).trim()) {
-          toInsert = `<p>${escapeHtml(String(text).trim())}</p>`;
+          toInsert = plainTextToHtml(String(text));
         }
         if (!toInsert) return false;
         ed.commands.insertContent(toInsert);
@@ -406,8 +420,28 @@ export function RichTextEditor({
     </Button>
   );
 
+  const handleContainerPaste = (e: React.ClipboardEvent) => {
+    if (e.defaultPrevented) return;
+    const ed = editorInstanceRef.current;
+    if (!ed) return;
+    const data = e.clipboardData;
+    if (!data) return;
+    const html = data.getData('text/html');
+    const text = data.getData('text/plain');
+    let toInsert = '';
+    if (html && html.trim()) {
+      toInsert = cleanPastedHtml(html);
+    } else if (text != null && String(text).trim()) {
+      toInsert = plainTextToHtml(String(text));
+    }
+    if (!toInsert) return;
+    e.preventDefault();
+    e.stopPropagation();
+    ed.commands.insertContent(toInsert);
+  };
+
   return (
-    <div ref={editorRef} className="border rounded-lg overflow-hidden">
+    <div ref={editorRef} className="border rounded-lg overflow-hidden" onPaste={handleContainerPaste}>
       {/* Toolbar */}
       <div className="flex items-center gap-1 p-2 border-b bg-muted/50 flex-wrap">
         <ToolbarButton

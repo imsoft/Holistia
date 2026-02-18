@@ -50,12 +50,13 @@ export async function GET(
       );
     }
 
-    // Obtener mensajes
+    // Obtener todos los mensajes de la conversación (límite explícito alto para no depender del default 1000 de Supabase)
     const { data: messages, error: messagesError } = await supabase
       .from('direct_messages')
       .select('*')
       .eq('conversation_id', conversationId)
-      .order('created_at', { ascending: true });
+      .order('created_at', { ascending: true })
+      .limit(5000);
 
     if (messagesError) {
       console.error('Error fetching messages:', messagesError);

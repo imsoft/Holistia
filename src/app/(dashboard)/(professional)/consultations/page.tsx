@@ -274,12 +274,12 @@ function ConsultationsPageContent() {
           </Card>
         </div>
 
-        <div className={`lg:col-span-2 ${selectedConversation ? '' : 'hidden lg:block'}`}>
+        <div className={`lg:col-span-2 min-h-0 flex flex-col ${selectedConversation ? '' : 'hidden lg:block'}`}>
           {selectedConversation && (
             <Button
               variant="outline"
               size="sm"
-              className="mb-2 lg:hidden"
+              className="mb-2 lg:hidden shrink-0"
               onClick={() => setSelectedConversation(null)}
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
@@ -287,8 +287,8 @@ function ConsultationsPageContent() {
             </Button>
           )}
           {selectedConversation ? (
-            <Card className="h-full flex flex-col">
-              <CardContent className="p-0 flex flex-col h-full">
+            <Card className="h-full min-h-0 flex flex-col flex-1">
+              <CardContent className="p-0 flex flex-col h-full min-h-0 flex-1">
                 {(() => {
                   const patient = selectedConversation.user;
                   const otherUser = {

@@ -115,16 +115,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Obtener información del paciente
-    const { data: patient, error: patientError } = await supabase
+    // Obtener información del usuario que pagará (paciente u otro tipo); usar service role para no depender de RLS
+    const supabaseAdmin = createServiceRoleClient();
+    const { data: payer, error: payerError } = await supabaseAdmin
       .from('profiles')
       .select('id, first_name, last_name, email')
       .eq('id', patient_id)
       .single();
 
-    if (patientError || !patient) {
+    if (payerError || !payer) {
       return NextResponse.json(
-        { error: 'Paciente no encontrado' },
+        { error: 'Usuario no encontrado. No se pudo obtener el perfil de quien pagará.' },
         { status: 404 }
       );
     }
@@ -133,8 +134,7 @@ export async function POST(request: NextRequest) {
     const platformFee = calculateCommission(serviceAmount, 15);
     const transferAmount = calculateTransferAmount(serviceAmount, 15);
 
-    // Crear registro de pago con service role (el profesional ya fue validado arriba)
-    const supabaseAdmin = createServiceRoleClient();
+    // Crear registro de pago con service role (supabaseAdmin ya creado arriba para buscar al pagador)
     const paymentRow = {
       patient_id: patient_id,
       professional_id: professional.id,
@@ -224,7 +224,7 @@ export async function POST(request: NextRequest) {
       },
       success_url: `${process.env.NEXT_PUBLIC_SITE_URL || request.nextUrl.origin}/messages?conversation=${conversation_id}&payment=success`,
       cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL || request.nextUrl.origin}/messages?conversation=${conversation_id}&payment=cancelled`,
-      customer_email: patient.email || undefined,
+      customer_email: payer.email || undefined,
     });
 
     // Actualizar el registro de pago con el session_id (mismo cliente admin)

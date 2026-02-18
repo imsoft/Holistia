@@ -353,11 +353,11 @@ function MessagesPageContent() {
           </Card>
         </div>
 
-        {/* Chat */}
-        <div className={`lg:col-span-2 ${selectedConversation ? '' : 'hidden lg:block'}`}>
+        {/* Chat: min-h-0 para que la celda no crezca con el contenido y el scroll funcione dentro del card */}
+        <div className={`lg:col-span-2 min-h-0 flex flex-col ${selectedConversation ? '' : 'hidden lg:block'}`}>
           {selectedConversation ? (
-            <Card className="h-full flex flex-col">
-              <CardContent className="p-0 flex flex-col h-full">
+            <Card className="h-full min-h-0 flex flex-col">
+              <CardContent className="p-0 flex flex-col h-full min-h-0 flex-1">
                 {(() => {
                   const otherUser = selectedConversation.user_id === userId
                     ? {

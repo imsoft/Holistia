@@ -857,7 +857,7 @@ export function DirectMessageChat({
   }
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full min-h-0">
       {/* Header */}
       <div className="border-b p-4 shrink-0">
         <div className="flex min-w-0 items-center gap-3">

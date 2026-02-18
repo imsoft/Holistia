@@ -1,6 +1,6 @@
 "use client";
 
-import { useEditor, EditorContent } from '@tiptap/react';
+import { useEditor, EditorContent, type Editor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
 import { Heading } from '@tiptap/extension-heading';
@@ -29,6 +29,25 @@ function escapeHtml(text: string): string {
     .replace(/"/g, '&quot;');
 }
 
+/** Limpia HTML pegado (medios, estilos, data-*) y devuelve HTML seguro o párrafo con texto plano. */
+function cleanPastedHtml(html: string): string {
+  if (!html || !html.trim()) return html;
+  const tempDiv = document.createElement('div');
+  tempDiv.innerHTML = html;
+  tempDiv.querySelectorAll('img, svg, video, iframe, canvas, object, embed').forEach((el) => el.remove());
+  tempDiv.querySelectorAll('*').forEach((el) => {
+    Array.from(el.attributes).forEach((attr) => {
+      if (attr.name === 'style' || attr.name.startsWith('data-')) el.removeAttribute(attr.name);
+    });
+  });
+  let result = tempDiv.innerHTML.trim();
+  if (!result && tempDiv.textContent?.trim()) {
+    const text = tempDiv.textContent.trim();
+    result = text ? `<p>${escapeHtml(text)}</p>` : result;
+  }
+  return result || html;
+}
+
 interface RichTextEditorProps {
   content: string;
   onChange: (content: string) => void;
@@ -52,6 +71,7 @@ export function RichTextEditor({
   const lastContentRef = useRef<string>(content || '');
   const isFocusedRef = useRef(false);
   const editorRef = useRef<HTMLDivElement>(null);
+  const editorInstanceRef = useRef<Editor | null>(null);
 
   const editor = useEditor({
     extensions: [
@@ -139,32 +159,24 @@ export function RichTextEditor({
       // No definir handlePaste: en muchos navegadores llamar a clipboardData.getData() en un
       // handler consume el portapapeles y el pegado por defecto deja de funcionar. Dejamos que
       // ProseMirror/Tiptap gestione todo el pegado; transformPastedHTML limpia HTML e imágenes.
-      transformPastedHTML: (html) => {
-        if (!html || !html.trim()) return html;
-        const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = html;
-
-        // Remover medios embebidos que no soportamos (mantener el texto)
-        tempDiv.querySelectorAll('img, svg, video, iframe, canvas, object, embed').forEach((el) => {
-          el.remove();
-        });
-
-        // Quitar estilos y data-* que pueden romper el parser desde otras plataformas
-        tempDiv.querySelectorAll('*').forEach((el) => {
-          Array.from(el.attributes).forEach((attr) => {
-            if (attr.name === 'style' || attr.name.startsWith('data-')) {
-              el.removeAttribute(attr.name);
-            }
-          });
-        });
-
-        let result = tempDiv.innerHTML.trim();
-        // Si la limpieza dejó vacío pero había texto, usar un párrafo con el texto plano
-        if (!result && tempDiv.textContent?.trim()) {
-          const text = tempDiv.textContent.trim();
-          result = text ? `<p>${escapeHtml(text)}</p>` : result;
+      transformPastedHTML: (html) => cleanPastedHtml(html),
+      handlePaste: (view, event) => {
+        const ed = editorInstanceRef.current;
+        if (!ed) return false;
+        const data = event.clipboardData;
+        if (!data) return false;
+        const html = data.getData('text/html');
+        const text = data.getData('text/plain');
+        let toInsert = '';
+        if (html && html.trim()) {
+          toInsert = cleanPastedHtml(html);
+        } else if (text != null && String(text).trim()) {
+          toInsert = `<p>${escapeHtml(String(text).trim())}</p>`;
         }
-        return result || html;
+        if (!toInsert) return false;
+        ed.commands.insertContent(toInsert);
+        event.preventDefault();
+        return true;
       },
       handleDrop: (view, event) => {
         const dataTransfer = event.dataTransfer;
@@ -182,6 +194,10 @@ export function RichTextEditor({
     },
     immediatelyRender: false,
   });
+
+  useEffect(() => {
+    editorInstanceRef.current = editor;
+  }, [editor]);
 
   // Función para actualizar estilos de texto excedente usando CSS
   const updateExceededTextStyles = () => {

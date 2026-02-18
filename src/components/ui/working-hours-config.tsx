@@ -126,8 +126,12 @@ export function WorkingHoursConfig({ professionalId, onSave }: WorkingHoursConfi
     if (timeType === 'startTime') {
       const schedule = schedules.find(s => s.day === day);
       if (schedule && value >= schedule.endTime) {
-        const [hour] = value.split(':').map(Number);
-        const newEndTime = `${(hour + 1).toString().padStart(2, '0')}:00`;
+        const [h, m] = value.split(':').map(Number);
+        const startMins = h * 60 + (m || 0);
+        const endMins = startMins + 60;
+        const endH = Math.floor(endMins / 60) % 24;
+        const endMin = endMins % 60;
+        const newEndTime = `${String(endH).padStart(2, '0')}:${String(endMin).padStart(2, '0')}`;
         updateSchedule(day, 'endTime', newEndTime);
       }
     }
@@ -347,6 +351,7 @@ export function WorkingHoursConfig({ professionalId, onSave }: WorkingHoursConfi
                         onChange={(value) => handleTimeChange(schedule.day, 'startTime', value)}
                         startHour={6}
                         endHour={22}
+                        includeHalfHours
                         className="w-24"
                       />
                     </div>
@@ -360,6 +365,7 @@ export function WorkingHoursConfig({ professionalId, onSave }: WorkingHoursConfi
                         onChange={(value) => handleTimeChange(schedule.day, 'endTime', value)}
                         startHour={parseInt(schedule.startTime.split(':')[0]) + 1}
                         endHour={23}
+                        includeHalfHours
                         className="w-24"
                       />
                     </div>
@@ -401,6 +407,7 @@ export function WorkingHoursConfig({ professionalId, onSave }: WorkingHoursConfi
                   onChange={(value) => applyToAllWorkingDays('startTime', value)}
                   startHour={6}
                   endHour={22}
+                  includeHalfHours
                   className="w-24"
                 />
                 <span className="text-sm text-muted-foreground">a</span>
@@ -411,6 +418,7 @@ export function WorkingHoursConfig({ professionalId, onSave }: WorkingHoursConfi
                   onChange={(value) => applyToAllWorkingDays('endTime', value)}
                   startHour={7}
                   endHour={23}
+                  includeHalfHours
                   className="w-24"
                 />
               </div>

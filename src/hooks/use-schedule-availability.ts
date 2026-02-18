@@ -96,7 +96,8 @@ export function useScheduleAvailability(professionalId: string) {
 
   // Obtener citas existentes para un rango de fechas (con caché corto de 30 segundos).
   // excludeAppointmentId: al reprogramar, excluir esa cita para que su slot aparezca disponible.
-  const appointmentCache = useRef<Map<string, { data: Array<{id?: string; appointment_date: string; appointment_time: string; status: string}>; timestamp: number }>>(new Map());
+  type CachedAppointment = { id?: string; appointment_date: string; appointment_time: string; status: string; duration_minutes?: number };
+  const appointmentCache = useRef<Map<string, { data: CachedAppointment[]; timestamp: number }>>(new Map());
   const APPOINTMENT_CACHE_TTL = 30 * 1000; // 30 segundos - cache corto para datos críticos
 
   const getExistingAppointments = useCallback(async (
@@ -123,7 +124,7 @@ export function useScheduleAvailability(professionalId: string) {
     try {
       const { data, error } = await supabase
         .from('appointments')
-        .select('id, appointment_date, appointment_time, status')
+        .select('id, appointment_date, appointment_time, status, duration_minutes')
         .eq('professional_id', professionalId)
         .gte('appointment_date', startDate)
         .lte('appointment_date', endDate)
@@ -131,7 +132,7 @@ export function useScheduleAvailability(professionalId: string) {
 
       if (error) throw error;
 
-      let appointments = (data || []) as Array<{id?: string; appointment_date: string; appointment_time: string; status: string}>;
+      let appointments = (data || []) as CachedAppointment[];
       if (excludeAppointmentId) {
         appointments = appointments.filter((a) => a.id !== excludeAppointmentId);
       }
@@ -179,7 +180,7 @@ export function useScheduleAvailability(professionalId: string) {
   const generateTimeSlots = useCallback((
     date: string,
     workingHours: ProfessionalWorkingHours,
-    existingAppointments: Array<{id?: string; appointment_date: string; appointment_time: string; status: string}>,
+    existingAppointments: Array<{ id?: string; appointment_date: string; appointment_time: string; status: string; duration_minutes?: number }>,
     availabilityBlocks: BlockData[]
   ): TimeSlot[] => {
     const timeSlots: TimeSlot[] = [];
@@ -249,11 +250,12 @@ export function useScheduleAvailability(professionalId: string) {
       if (hasFullDayBlock) {
         status = 'blocked';
       } else if (dayAppointments.some(apt => {
-        // Verificar solapamiento: cita existente vs slot nuevo (ambos de 50 min)
+        // Verificar solapamiento: cita existente (duración real) vs slot nuevo (50 min)
         const aptTime = apt.appointment_time.substring(0, 5);
         const [aH, aM] = aptTime.split(':').map(Number);
-        const aptStart = aH * 60 + aM;
-        const aptEnd = aptStart + APPOINTMENT_DURATION;
+        const aptStart = aH * 60 + (aM || 0);
+        const aptDuration = apt.duration_minutes ?? APPOINTMENT_DURATION;
+        const aptEnd = aptStart + aptDuration;
         const slotEnd = mins + APPOINTMENT_DURATION;
         return mins < aptEnd && slotEnd > aptStart;
       })) {

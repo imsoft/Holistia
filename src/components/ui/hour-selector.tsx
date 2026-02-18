@@ -14,6 +14,8 @@ interface HourSelectorProps {
   placeholder?: string;
   startHour?: number;
   endHour?: number;
+  /** Si true, incluye opciones :00 y :30 (ej. 12:00, 12:30) para medias horas */
+  includeHalfHours?: boolean;
   className?: string;
 }
 
@@ -27,16 +29,30 @@ export function HourSelector({
   placeholder = "Selecciona una hora",
   startHour = 0,
   endHour = 23,
+  includeHalfHours = false,
   className
 }: HourSelectorProps) {
-  // Generar array de horas desde startHour hasta endHour
-  const hours = Array.from({ length: endHour - startHour + 1 }, (_, i) => {
-    const hour = startHour + i;
-    return {
-      value: hour.toString().padStart(2, '0') + ':00',
-      label: `${hour.toString().padStart(2, '0')}:00`
-    };
-  });
+  const options = includeHalfHours
+    ? (() => {
+        const list: { value: string; label: string }[] = [];
+        for (let h = startHour; h <= endHour; h++) {
+          list.push({ value: `${String(h).padStart(2, '0')}:00`, label: `${String(h).padStart(2, '0')}:00` });
+          if (h < 24) {
+            list.push({ value: `${String(h).padStart(2, '0')}:30`, label: `${String(h).padStart(2, '0')}:30` });
+          }
+        }
+        return list;
+      })()
+    : Array.from({ length: endHour - startHour + 1 }, (_, i) => {
+        const hour = startHour + i;
+        return {
+          value: hour.toString().padStart(2, '0') + ':00',
+          label: `${hour.toString().padStart(2, '0')}:00`,
+        };
+      });
+
+  const normalizedValue = value?.substring(0, 5);
+  const valueInOptions = options.some((o) => o.value === normalizedValue) ? normalizedValue : (options[0]?.value ?? value);
 
   return (
     <div className="space-y-2">
@@ -45,7 +61,7 @@ export function HourSelector({
         {required && <span className="text-red-500 ml-1">*</span>}
       </Label>
       <Select
-        value={value}
+        value={valueInOptions}
         onValueChange={onChange}
         disabled={disabled}
         required={required}
@@ -54,9 +70,9 @@ export function HourSelector({
           <SelectValue placeholder={placeholder} />
         </SelectTrigger>
         <SelectContent>
-          {hours.map((hour) => (
-            <SelectItem key={hour.value} value={hour.value}>
-              {hour.label}
+          {options.map((opt) => (
+            <SelectItem key={opt.value} value={opt.value}>
+              {opt.label}
             </SelectItem>
           ))}
         </SelectContent>

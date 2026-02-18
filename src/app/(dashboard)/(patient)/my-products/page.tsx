@@ -318,18 +318,20 @@ export default function MyProducts() {
                 <Card
                   key={product.id}
                   id={`purchase-${product.id}`}
-                  className="hover:shadow-lg transition-shadow overflow-hidden py-4 scroll-mt-4"
+                  className="hover:shadow-lg transition-shadow overflow-hidden py-4 scroll-mt-4 flex flex-col"
                 >
-                  <div className="relative h-48 bg-gradient-to-br from-primary/10 to-primary/5">
+                  {/* Zona de imagen: altura fija y relación de aspecto igual en todas las cards */}
+                  <div className="relative w-full aspect-[4/3] min-h-[192px] bg-gradient-to-br from-primary/10 to-primary/5 overflow-hidden shrink-0">
                     {product.cover_image_url ? (
                       <Image
                         src={product.cover_image_url}
                         alt={product.title}
                         fill
-                        className="object-cover"
+                        className="object-cover object-top"
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                       />
                     ) : (
-                      <div className="flex items-center justify-center h-full">
+                      <div className="absolute inset-0 flex items-center justify-center">
                         <CategoryIcon className="h-16 w-16 text-primary/40" />
                       </div>
                     )}

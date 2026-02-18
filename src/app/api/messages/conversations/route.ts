@@ -25,55 +25,88 @@ export async function GET(request: NextRequest) {
     let conversations;
 
     if (professionalApp) {
-      // Si es profesional, obtener conversaciones donde es el profesional
-      const { data, error } = await supabase
-        .from('direct_conversations')
-        .select(`
-          id,
-          user_id,
-          professional_id,
-          last_message_at,
-          last_message_preview,
-          user_unread_count,
-          professional_unread_count,
-          created_at,
-          professional_applications!direct_conversations_professional_id_fkey(
+      // Si es profesional, obtener AMBAS: donde es el profesional Y donde es el paciente (user_id)
+      const [asProfessionalRes, asUserRes] = await Promise.all([
+        supabase
+          .from('direct_conversations')
+          .select(`
             id,
-            first_name,
-            last_name,
-            profile_photo
-          )
-        `)
-        .eq('professional_id', professionalApp.id)
-        .order('last_message_at', { ascending: false });
+            user_id,
+            professional_id,
+            last_message_at,
+            last_message_preview,
+            user_unread_count,
+            professional_unread_count,
+            created_at,
+            professional_applications!direct_conversations_professional_id_fkey(
+              id,
+              first_name,
+              last_name,
+              profile_photo
+            )
+          `)
+          .eq('professional_id', professionalApp.id)
+          .order('last_message_at', { ascending: false }),
+        supabase
+          .from('direct_conversations')
+          .select(`
+            id,
+            user_id,
+            professional_id,
+            last_message_at,
+            last_message_preview,
+            user_unread_count,
+            professional_unread_count,
+            created_at,
+            professional_applications!direct_conversations_professional_id_fkey(
+              id,
+              first_name,
+              last_name,
+              profile_photo
+            )
+          `)
+          .eq('user_id', user.id)
+          .order('last_message_at', { ascending: false }),
+      ]);
 
-      if (error) throw error;
+      if (asProfessionalRes.error) throw asProfessionalRes.error;
+      if (asUserRes.error) throw asUserRes.error;
 
-      // Ordenar por última actividad (conversaciones nuevas sin mensajes usan created_at)
-      const sorted = (data || []).slice().sort((a: any, b: any) => {
+      const asProfessional = asProfessionalRes.data || [];
+      const asUser = asUserRes.data || [];
+      const seenIds = new Set<string>();
+      const merged: typeof asProfessional = [];
+      for (const c of asProfessional) {
+        if (c?.id && !seenIds.has(c.id)) {
+          seenIds.add(c.id);
+          merged.push(c);
+        }
+      }
+      for (const c of asUser) {
+        if (c?.id && !seenIds.has(c.id)) {
+          seenIds.add(c.id);
+          merged.push(c);
+        }
+      }
+
+      const sorted = merged.slice().sort((a: any, b: any) => {
         const ta = a.last_message_at || a.created_at;
         const tb = b.last_message_at || b.created_at;
         return new Date(tb).getTime() - new Date(ta).getTime();
       });
 
-      // Obtener perfiles de usuarios por separado
-      const userIds = sorted.map((conv: any) => conv.user_id);
+      const userIds = [...new Set(sorted.map((c: any) => c.user_id).filter(Boolean))];
       let profilesMap: Record<string, any> = {};
-
       if (userIds.length > 0) {
         const { data: profilesData } = await supabase
           .from('profiles')
           .select('id, first_name, last_name, avatar_url')
           .in('id', userIds);
-
         if (profilesData) {
-          profilesData.forEach((profile) => {
-            profilesMap[profile.id] = profile;
-          });
+          profilesData.forEach((p) => { profilesMap[p.id] = p; });
         }
       }
 
-      // Combinar datos
       conversations = sorted.map((conv: any) => ({
         ...conv,
         user: profilesMap[conv.user_id] || null,

@@ -21,6 +21,14 @@ import {
 import { cn } from '@/lib/utils';
 import { useEffect, useState, useRef } from 'react';
 
+function escapeHtml(text: string): string {
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
 interface RichTextEditorProps {
   content: string;
   onChange: (content: string) => void;
@@ -128,55 +136,35 @@ export function RichTextEditor({
         }
         return false;
       },
-      handlePaste: (view, event, slice) => {
-        const clipboardData = event.clipboardData;
-        
-        if (!clipboardData) {
-          return false;
-        }
-        
-        const items = Array.from(clipboardData.items);
-        const hasImage = items.some((item) => item.type.startsWith('image/'));
-
-        // Muchos editores/plataformas incluyen un item image/* aunque el usuario copie solo texto.
-        // NO debemos bloquear el pegado si también hay texto/HTML disponible.
-        const html = (clipboardData.getData('text/html') || '').trim();
-        const text = (clipboardData.getData('text/plain') || '').trim();
-        const hasAnyText = Boolean(html || text);
-
-        // Si es un pegado únicamente de imagen (sin texto/HTML), NO bloquear.
-        // Este editor no soporta imágenes como nodos; si el HTML trae <img>, se elimina en `transformPastedHTML`.
-        // Permitimos el evento para que "pegar lo que sea" no falle silenciosamente en diferentes plataformas.
-        if (hasImage && !hasAnyText) {
-          return false;
-        }
-
-        // Dejar que ProseMirror/Tiptap gestione el pegado.
-        // `transformPastedHTML` se encarga de limpiar estilos/atributos y remover imágenes embebidas.
-        return false;
-      },
+      // No definir handlePaste: en muchos navegadores llamar a clipboardData.getData() en un
+      // handler consume el portapapeles y el pegado por defecto deja de funcionar. Dejamos que
+      // ProseMirror/Tiptap gestione todo el pegado; transformPastedHTML limpia HTML e imágenes.
       transformPastedHTML: (html) => {
-        if (!html) return html;
-        
+        if (!html || !html.trim()) return html;
         const tempDiv = document.createElement('div');
         tempDiv.innerHTML = html;
 
-        // Remover contenido embebible/medios que suelen romper el pegado desde otras plataformas
-        // y/o que no soportamos en este editor.
+        // Remover medios embebidos que no soportamos (mantener el texto)
         tempDiv.querySelectorAll('img, svg, video, iframe, canvas, object, embed').forEach((el) => {
           el.remove();
         });
-        
-        const allElements = tempDiv.querySelectorAll('*');
-        allElements.forEach(el => {
-          Array.from(el.attributes).forEach(attr => {
+
+        // Quitar estilos y data-* que pueden romper el parser desde otras plataformas
+        tempDiv.querySelectorAll('*').forEach((el) => {
+          Array.from(el.attributes).forEach((attr) => {
             if (attr.name === 'style' || attr.name.startsWith('data-')) {
               el.removeAttribute(attr.name);
             }
           });
         });
-        
-        return tempDiv.innerHTML;
+
+        let result = tempDiv.innerHTML.trim();
+        // Si la limpieza dejó vacío pero había texto, usar un párrafo con el texto plano
+        if (!result && tempDiv.textContent?.trim()) {
+          const text = tempDiv.textContent.trim();
+          result = text ? `<p>${escapeHtml(text)}</p>` : result;
+        }
+        return result || html;
       },
       handleDrop: (view, event) => {
         const dataTransfer = event.dataTransfer;

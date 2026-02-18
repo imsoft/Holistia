@@ -48,26 +48,33 @@ export async function GET(request: NextRequest) {
         .order('last_message_at', { ascending: false });
 
       if (error) throw error;
-      
+
+      // Ordenar por última actividad (conversaciones nuevas sin mensajes usan created_at)
+      const sorted = (data || []).slice().sort((a: any, b: any) => {
+        const ta = a.last_message_at || a.created_at;
+        const tb = b.last_message_at || b.created_at;
+        return new Date(tb).getTime() - new Date(ta).getTime();
+      });
+
       // Obtener perfiles de usuarios por separado
-      const userIds = (data || []).map((conv: any) => conv.user_id);
+      const userIds = sorted.map((conv: any) => conv.user_id);
       let profilesMap: Record<string, any> = {};
-      
+
       if (userIds.length > 0) {
         const { data: profilesData } = await supabase
           .from('profiles')
           .select('id, first_name, last_name, avatar_url')
           .in('id', userIds);
-        
+
         if (profilesData) {
           profilesData.forEach((profile) => {
             profilesMap[profile.id] = profile;
           });
         }
       }
-      
+
       // Combinar datos
-      conversations = (data || []).map((conv: any) => ({
+      conversations = sorted.map((conv: any) => ({
         ...conv,
         user: profilesMap[conv.user_id] || null,
         professional: conv.professional_applications || null,
@@ -105,9 +112,17 @@ export async function GET(request: NextRequest) {
       if (conversationsResult.error) throw conversationsResult.error;
 
       const userProfile = profileResult.data || null;
+      const rawList = conversationsResult.data || [];
+
+      // Ordenar por última actividad (conversaciones nuevas sin mensajes usan created_at)
+      const sorted = rawList.slice().sort((a: any, b: any) => {
+        const ta = a.last_message_at || a.created_at;
+        const tb = b.last_message_at || b.created_at;
+        return new Date(tb).getTime() - new Date(ta).getTime();
+      });
 
       // Combinar datos
-      conversations = (conversationsResult.data || []).map((conv: any) => ({
+      conversations = sorted.map((conv: any) => ({
         ...conv,
         user: userProfile,
         professional: conv.professional_applications || null,

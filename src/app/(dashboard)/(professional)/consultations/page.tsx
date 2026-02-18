@@ -21,7 +21,7 @@ interface Conversation {
   id: string;
   user_id: string;
   professional_id: string;
-  last_message_at: string;
+  last_message_at: string | null;
   last_message_preview: string | null;
   user_unread_count: number;
   professional_unread_count: number;
@@ -82,17 +82,18 @@ function ConsultationsPageContent() {
     getProfessionalId();
   }, [userId, professionalData, supabase]);
 
+  // Cargar conversaciones en cuanto hay userId (la API determina si es profesional)
   useEffect(() => {
-    if (!userId || !professionalId) return;
+    if (!userId) return;
     loadConversations();
     const interval = setInterval(loadConversations, 5000);
     return () => clearInterval(interval);
-  }, [userId, professionalId]);
+  }, [userId]);
 
   // Reintentar al volver a la pestaña (p. ej. tras abrir el portátil) o al recuperar conexión
   useEffect(() => {
     const onVisibleOrOnline = () => {
-      if (userId && professionalId) loadConversations();
+      if (userId) loadConversations();
     };
     const onVisibility = () => {
       if (document.visibilityState === "visible") onVisibleOrOnline();
@@ -103,7 +104,7 @@ function ConsultationsPageContent() {
       window.removeEventListener("visibilitychange", onVisibility);
       window.removeEventListener("online", onVisibleOrOnline);
     };
-  }, [userId, professionalId]);
+  }, [userId]);
 
   useEffect(() => {
     const conversationId = searchParams.get('conversation');
@@ -259,7 +260,7 @@ function ConsultationsPageContent() {
                               </p>
                             )}
                             <p className="text-xs text-muted-foreground mt-1">
-                              {formatDistanceToNow(new Date(conversation.last_message_at), {
+                              {formatDistanceToNow(new Date(conversation.last_message_at || conversation.created_at), {
                                 addSuffix: true,
                                 locale: es,
                               })}

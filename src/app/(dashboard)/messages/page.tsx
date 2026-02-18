@@ -20,7 +20,7 @@ interface Conversation {
   id: string;
   user_id: string;
   professional_id: string;
-  last_message_at: string;
+  last_message_at: string | null;
   last_message_preview: string | null;
   user_unread_count: number;
   professional_unread_count: number;
@@ -339,7 +339,7 @@ function MessagesPageContent() {
                               </p>
                             )}
                             <p className="text-xs text-muted-foreground mt-1">
-                              {formatDistanceToNow(new Date(conversation.last_message_at), {
+                              {formatDistanceToNow(new Date(conversation.last_message_at || conversation.created_at), {
                                 addSuffix: true,
                                 locale: es,
                               })}

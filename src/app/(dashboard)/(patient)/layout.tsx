@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { usePathname, useParams, useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -15,7 +15,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Menu, User, LogOut, Briefcase, Home } from "lucide-react";
+import { Menu, User, LogOut, Briefcase } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { createClient } from "@/utils/supabase/client";
@@ -27,7 +27,7 @@ import { useLoadFavorites } from "@/stores/favorites-store";
 import { LayoutSkeleton } from "@/components/ui/layout-skeleton";
 
 // Función para generar navegación (URLs limpias sin IDs)
-const getNavigation = (hasEvents: boolean = false) => {
+const getNavigation = (isProfessional: boolean = false) => {
   const nav = [
     { name: "Explorar", href: `/explore` },
     { name: "Feed", href: `/feed` },
@@ -36,32 +36,25 @@ const getNavigation = (hasEvents: boolean = false) => {
     { name: "Citas", href: `/explore/appointments` },
     { name: "Mis Programas", href: `/my-products` },
     { name: "Mis Retos", href: `/my-challenges` },
-    { name: "Mis inscripciones", href: `/my-registrations` },
+    { name: "Mis eventos", href: `/my-registrations` },
   ];
 
-  // Agregar "Mis eventos" solo si el usuario tiene eventos asignados (como organizador)
-  if (hasEvents) {
-    nav.push({ name: "Mis eventos", href: `/my-events` });
+  if (isProfessional) {
+    nav.push({ name: "Dashboard Profesional", href: `/dashboard` });
   }
+
+  nav.push({ name: "Página de inicio", href: `/?home=true` });
 
   return nav;
 };
 
-// Función para generar navegación dinámica basada en el estado del usuario (URLs limpias)
+// Función para generar navegación del dropdown de usuario
 const getUserNavigation = (isProfessional: boolean = false) => {
   const baseNavigation = [
-    { name: "Página de inicio", href: "/?home=true", icon: Home },
     { name: "Mi perfil", href: `/explore/profile`, icon: User },
   ];
 
-  // Agregar enlace profesional basado en el estado
-  if (isProfessional) {
-    baseNavigation.push({
-      name: "Dashboard Profesional",
-      href: `/dashboard`,
-      icon: Briefcase,
-    });
-  } else {
+  if (!isProfessional) {
     baseNavigation.push({
       name: "Volverme profesional",
       href: `/explore/become-professional`,
@@ -70,7 +63,7 @@ const getUserNavigation = (isProfessional: boolean = false) => {
   }
 
   baseNavigation.push({ name: "Cerrar sesión", href: "#", icon: LogOut });
-  
+
   return baseNavigation;
 };
 
@@ -81,7 +74,6 @@ export default function UserLayout({
 }>) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [currentPathname, setCurrentPathname] = useState("");
-  const [hasEvents, setHasEvents] = useState(false);
   const [isProfessional, setIsProfessional] = useState(false);
   const { profile, loading } = useProfile();
   const userId = useUserId();
@@ -116,18 +108,6 @@ export default function UserLayout({
         .maybeSingle();
       
       setIsProfessional(!!professionalApp);
-
-      // Verificar si el usuario tiene eventos asignados
-      const { data: events, error: eventsError } = await supabase
-        .from('events_workshops')
-        .select('id')
-        .eq('owner_id', profile.id)
-        .eq('owner_type', 'patient')
-        .limit(1);
-
-      if (!eventsError && events && events.length > 0) {
-        setHasEvents(true);
-      }
     };
 
     checkProfessionalAndEvents();
@@ -150,7 +130,7 @@ export default function UserLayout({
   };
 
   // Generar navegación dinámica basada en el estado del usuario (URLs limpias)
-  const navigation = getNavigation(hasEvents);
+  const navigation = getNavigation(isProfessional);
   const userNavigation = profile ? getUserNavigation(isProfessional) : [];
 
   // Función para determinar si un item está activo

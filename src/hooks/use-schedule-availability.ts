@@ -9,6 +9,7 @@ import {
   doesBlockApplyToDate,
   doesBlockCoverTime,
   isFullDayBlocked,
+  getWorkingHoursForDay,
   type BlockData,
 } from '@/lib/availability';
 
@@ -34,6 +35,7 @@ interface ProfessionalWorkingHours {
   working_start_time: string;
   working_end_time: string;
   working_days: number[];
+  per_day_schedule?: Record<string, { start: string; end: string }> | null;
 }
 
 export function useScheduleAvailability(professionalId: string) {
@@ -67,7 +69,7 @@ export function useScheduleAvailability(professionalId: string) {
     try {
       const { data, error } = await supabase
         .from('professional_applications')
-        .select('working_start_time, working_end_time, working_days')
+        .select('working_start_time, working_end_time, working_days, per_day_schedule')
         .eq('id', professionalId)
         .single();
 
@@ -194,9 +196,10 @@ export function useScheduleAvailability(professionalId: string) {
       return timeSlots;
     }
 
-    // Usar directamente los horarios del parámetro (fuente única de verdad)
-    const startTime = workingHours.working_start_time;
-    const endTime = workingHours.working_end_time;
+    // Obtener horario específico del día (per_day_schedule tiene prioridad sobre el global)
+    const dayHours = getWorkingHoursForDay(dayOfWeek, workingHours);
+    const startTime = dayHours.start;
+    const endTime = dayHours.end;
 
     // Parsear horarios completos (horas y minutos)
     const [startH, startM] = startTime.split(':').map(Number);

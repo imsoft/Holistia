@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { stripe, calculateCommission, calculateTransferAmount, formatAmountForStripe } from '@/lib/stripe';
 import { createClient } from '@/utils/supabase/server';
-import { isSlotBlocked, isWorkingDay, isWithinWorkingHours } from '@/lib/availability';
+import { isSlotBlocked, isWorkingDay, isWithinWorkingHours, getWorkingHoursForDay, getDayOfWeekFromDate } from '@/lib/availability';
 import { slotsOverlap } from '@/lib/appointment-conflict';
 
 export async function POST(request: NextRequest) {
@@ -128,14 +128,12 @@ export async function POST(request: NextRequest) {
       console.log('🔍 Checking working days/hours...');
       const { data: profWorkingHours } = await supabase
         .from('professional_applications')
-        .select('working_start_time, working_end_time, working_days')
+        .select('working_start_time, working_end_time, working_days, per_day_schedule')
         .eq('id', professional_id)
         .single();
 
       if (profWorkingHours) {
         const workingDays = profWorkingHours.working_days?.length ? profWorkingHours.working_days : [1, 2, 3, 4, 5];
-        const startTime = profWorkingHours.working_start_time || '09:00';
-        const endTime = profWorkingHours.working_end_time || '18:00';
         const timeNorm = appointment_time.substring(0, 5);
 
         if (!isWorkingDay(appointment_date, workingDays)) {
@@ -144,6 +142,16 @@ export async function POST(request: NextRequest) {
             { status: 400 }
           );
         }
+
+        const dayOfWeek = getDayOfWeekFromDate(appointment_date);
+        const dayHours = getWorkingHoursForDay(dayOfWeek, {
+          working_start_time: profWorkingHours.working_start_time || '09:00',
+          working_end_time: profWorkingHours.working_end_time || '18:00',
+          working_days: workingDays,
+          per_day_schedule: profWorkingHours.per_day_schedule ?? null,
+        });
+        const startTime = dayHours.start;
+        const endTime = dayHours.end;
 
         if (!isWithinWorkingHours(timeNorm, startTime, endTime)) {
           return NextResponse.json(

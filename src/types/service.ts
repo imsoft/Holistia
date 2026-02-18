@@ -14,6 +14,7 @@ export interface Service {
   address?: string; // Dirección específica del servicio (opcional)
   image_url?: string; // URL de la imagen del servicio
   isactive: boolean; // Nombre del campo en la base de datos
+  sort_order?: number; // Orden de visualización (drag-and-drop)
   created_at?: string;
   updated_at?: string;
 }

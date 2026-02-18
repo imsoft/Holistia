@@ -64,6 +64,26 @@ function plainTextToHtml(text: string): string {
     .join('');
 }
 
+/** Cuenta caracteres de texto en HTML (sin etiquetas). */
+function textLengthFromHtml(html: string): number {
+  if (typeof document === 'undefined') return html.replace(/<[^>]+>/g, '').length;
+  const temp = document.createElement('div');
+  temp.innerHTML = html;
+  return (temp.textContent || '').length;
+}
+
+/** Recorta HTML para que, al insertarlo, el total no supere maxLength. Si ya no cabe nada, devuelve ''. */
+function truncateToFit(html: string, currentCount: number, maxLength: number): string {
+  const allowed = maxLength - currentCount;
+  if (allowed <= 0) return '';
+  const len = textLengthFromHtml(html);
+  if (len <= allowed) return html;
+  const temp = typeof document !== 'undefined' ? document.createElement('div') : null;
+  const text = temp ? ((temp.innerHTML = html), (temp.textContent || '').trim()) : html.replace(/<[^>]+>/g, '');
+  const truncated = Array.from(text).slice(0, allowed).join('');
+  return plainTextToHtml(truncated);
+}
+
 interface RichTextEditorProps {
   content: string;
   onChange: (content: string) => void;
@@ -188,7 +208,12 @@ export function RichTextEditor({
           else if (text != null && String(text).trim()) toInsert = plainTextToHtml(String(text));
         }
         if (toInsert) {
-          ed.commands.insertContent(toInsert);
+          const current = ed.storage.characterCount.characters();
+          const fitted = truncateToFit(toInsert, current, maxLength);
+          if (fitted) {
+            if (textLengthFromHtml(fitted) < textLengthFromHtml(toInsert)) toast.info(`Texto recortado al límite de ${maxLength} caracteres`);
+            ed.commands.insertContent(fitted);
+          }
           event.preventDefault();
           return true;
         }
@@ -198,8 +223,16 @@ export function RichTextEditor({
           const tryInsert = (retry = false) => {
             navigator.clipboard.readText().then((t) => {
               const text = t?.trim();
-              if (text && editorInstanceRef.current) editorInstanceRef.current.commands.insertContent(plainTextToHtml(text));
-              else if (!retry) setTimeout(() => tryInsert(true), 80);
+              if (text && editorInstanceRef.current) {
+                const ed2 = editorInstanceRef.current;
+                const html = plainTextToHtml(text);
+                const current = ed2.storage.characterCount.characters();
+                const fitted = truncateToFit(html, current, maxLength);
+                if (fitted) {
+                  if (textLengthFromHtml(fitted) < textLengthFromHtml(html)) toast.info(`Texto recortado al límite de ${maxLength} caracteres`);
+                  ed2.commands.insertContent(fitted);
+                }
+              } else if (!retry) setTimeout(() => tryInsert(true), 80);
             }).catch(() => {});
           };
           tryInsert(false);
@@ -449,7 +482,12 @@ export function RichTextEditor({
     if (toInsert) {
       e.preventDefault();
       e.stopPropagation();
-      ed.commands.insertContent(toInsert);
+      const current = ed.storage.characterCount.characters();
+      const fitted = truncateToFit(toInsert, current, maxLength);
+      if (fitted) {
+        if (textLengthFromHtml(fitted) < textLengthFromHtml(toInsert)) toast.info(`Texto recortado al límite de ${maxLength} caracteres`);
+        ed.commands.insertContent(fitted);
+      }
       return;
     }
     // Fallback: portapapeles universal (p. ej. iPhone → Mac) a veces no llena clipboardData; reintentar tras 80 ms si viene vacío
@@ -459,8 +497,16 @@ export function RichTextEditor({
       const tryInsert = (retry = false) => {
         navigator.clipboard.readText().then((t) => {
           const text = t?.trim();
-          if (text && editorInstanceRef.current) editorInstanceRef.current.commands.insertContent(plainTextToHtml(text));
-          else if (!retry) setTimeout(() => tryInsert(true), 80);
+          if (text && editorInstanceRef.current) {
+            const ed2 = editorInstanceRef.current;
+            const html = plainTextToHtml(text);
+            const current = ed2.storage.characterCount.characters();
+            const fitted = truncateToFit(html, current, maxLength);
+            if (fitted) {
+              if (textLengthFromHtml(fitted) < textLengthFromHtml(html)) toast.info(`Texto recortado al límite de ${maxLength} caracteres`);
+              ed2.commands.insertContent(fitted);
+            }
+          } else if (!retry) setTimeout(() => tryInsert(true), 80);
         }).catch(() => {});
       };
       tryInsert(false);
@@ -475,8 +521,17 @@ export function RichTextEditor({
     }
     navigator.clipboard.readText().then((text) => {
       const t = text?.trim();
-      if (t) editor.commands.insertContent(plainTextToHtml(t));
-      else toast.info('No hay nada que pegar en el portapapeles');
+      if (!t) {
+        toast.info('No hay nada que pegar en el portapapeles');
+        return;
+      }
+      const html = plainTextToHtml(t);
+      const current = editor.storage.characterCount.characters();
+      const fitted = truncateToFit(html, current, maxLength);
+      if (fitted) {
+        if (textLengthFromHtml(fitted) < textLengthFromHtml(html)) toast.info(`Texto recortado al límite de ${maxLength} caracteres`);
+        editor.commands.insertContent(fitted);
+      } else toast.info(`Ya has llegado al límite de ${maxLength} caracteres`);
     }).catch(() => toast.error('No se pudo acceder al portapapeles'));
   };
 

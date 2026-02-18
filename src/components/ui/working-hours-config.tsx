@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -61,24 +61,31 @@ export function WorkingHoursConfig({ professionalId, onSave }: WorkingHoursConfi
     try {
       const { data, error } = await supabase
         .from('professional_applications')
-        .select('working_days, working_start_time, working_end_time')
+        .select('working_days, working_start_time, working_end_time, per_day_schedule')
         .eq('id', professionalId)
         .single();
 
       if (error) throw error;
 
       if (data) {
-        const workingDays = data.working_days || [];
-        const startTime = data.working_start_time || '09:00';
-        const endTime = data.working_end_time || '18:00';
+        const workingDays: number[] = data.working_days || [];
+        const globalStart = data.working_start_time || '09:00';
+        const globalEnd = data.working_end_time || '18:00';
+        const perDay: Record<string, { start: string; end: string }> | null = data.per_day_schedule ?? null;
 
-        const loadedSchedules: DaySchedule[] = DAYS_OF_WEEK.map(day => ({
-          day: day.day,
-          dayName: day.name,
-          isWorking: workingDays.includes(day.day),
-          startTime: workingDays.includes(day.day) ? startTime : '09:00',
-          endTime: workingDays.includes(day.day) ? endTime : '18:00',
-        }));
+        const loadedSchedules: DaySchedule[] = DAYS_OF_WEEK.map(day => {
+          const isWorking = workingDays.includes(day.day);
+          const dayStr = String(day.day);
+          // Si hay horario específico para el día, usarlo; si no, usar el global
+          const dayConfig = perDay?.[dayStr];
+          return {
+            day: day.day,
+            dayName: day.name,
+            isWorking,
+            startTime: dayConfig?.start ?? globalStart,
+            endTime: dayConfig?.end ?? globalEnd,
+          };
+        });
 
         setSchedules(loadedSchedules);
         setOriginalSchedules([...loadedSchedules]);
@@ -153,47 +160,30 @@ export function WorkingHoursConfig({ professionalId, onSave }: WorkingHoursConfi
   const saveWorkingHours = async () => {
     setSaving(true);
     try {
-      const workingDays = schedules
-        .filter(s => s.isWorking)
-        .map(s => s.day)
-        .sort();
-
-      // Obtener horarios de los días laborales
       const workingSchedules = schedules.filter(s => s.isWorking);
-      const startTime = workingSchedules.length > 0 ? workingSchedules[0].startTime : '09:00';
-      const endTime = workingSchedules.length > 0 ? workingSchedules[0].endTime : '18:00';
+      const workingDays = workingSchedules.map(s => s.day).sort();
 
-      // Verificar si todos los días laborales tienen el mismo horario
-      const allSameHours = workingSchedules.every(s => 
-        s.startTime === startTime && s.endTime === endTime
-      );
+      // Horario global: usar el del primer día laboral como referencia para compatibilidad
+      const globalStart = workingSchedules.length > 0 ? workingSchedules[0].startTime : '09:00';
+      const globalEnd = workingSchedules.length > 0 ? workingSchedules[0].endTime : '18:00';
 
-      if (allSameHours) {
-        // Usar el formato original (working_days, working_start_time, working_end_time)
-        const { error } = await supabase
-          .from('professional_applications')
-          .update({
-            working_days: workingDays,
-            working_start_time: startTime,
-            working_end_time: endTime,
-          })
-          .eq('id', professionalId);
-
-        if (error) throw error;
-      } else {
-        // Si hay horarios diferentes por día, necesitamos una nueva estructura
-        // Por ahora, usar el horario más común o el primero
-        const { error } = await supabase
-          .from('professional_applications')
-          .update({
-            working_days: workingDays,
-            working_start_time: startTime,
-            working_end_time: endTime,
-          })
-          .eq('id', professionalId);
-
-        if (error) throw error;
+      // Construir per_day_schedule con el horario de cada día laboral
+      const perDaySchedule: Record<string, { start: string; end: string }> = {};
+      for (const s of workingSchedules) {
+        perDaySchedule[String(s.day)] = { start: s.startTime, end: s.endTime };
       }
+
+      const { error } = await supabase
+        .from('professional_applications')
+        .update({
+          working_days: workingDays,
+          working_start_time: globalStart,
+          working_end_time: globalEnd,
+          per_day_schedule: workingSchedules.length > 0 ? perDaySchedule : null,
+        })
+        .eq('id', professionalId);
+
+      if (error) throw error;
 
       setOriginalSchedules([...schedules]);
       setHasChanges(false);

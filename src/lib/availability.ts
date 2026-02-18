@@ -33,10 +33,38 @@ export interface BlockData {
   };
 }
 
+export interface DaySchedule {
+  start: string; // "HH:MM"
+  end: string;   // "HH:MM"
+}
+
 export interface WorkingHoursData {
   working_start_time: string;
   working_end_time: string;
   working_days: number[];
+  /** Horario específico por día (clave = "1"-"7"). Si está presente, tiene prioridad sobre working_start/end_time */
+  per_day_schedule?: Record<string, DaySchedule> | null;
+}
+
+/**
+ * Devuelve el horario (start/end) para un día específico de la semana.
+ * Prioriza per_day_schedule si está disponible, sino usa los horarios globales.
+ */
+export function getWorkingHoursForDay(
+  dayOfWeek: number,
+  workingHours: WorkingHoursData
+): DaySchedule {
+  if (workingHours.per_day_schedule) {
+    const dayStr = String(dayOfWeek);
+    const daySchedule = workingHours.per_day_schedule[dayStr];
+    if (daySchedule?.start && daySchedule?.end) {
+      return daySchedule;
+    }
+  }
+  return {
+    start: workingHours.working_start_time,
+    end: workingHours.working_end_time,
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -308,8 +336,9 @@ export function getSlotStatus(
   }
 
   const timeNorm = time.substring(0, 5);
-  const start = workingHours.working_start_time.substring(0, 5);
-  const end = workingHours.working_end_time.substring(0, 5);
+  const dayHours = getWorkingHoursForDay(dayOfWeek, workingHours);
+  const start = dayHours.start.substring(0, 5);
+  const end = dayHours.end.substring(0, 5);
   if (timeNorm < start || timeNorm >= end) {
     return 'outside_hours';
   }

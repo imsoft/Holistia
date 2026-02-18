@@ -4,7 +4,7 @@ import { Resend } from "resend";
 import fs from "fs";
 import path from "path";
 import { updateAppointmentInGoogleCalendar } from "@/actions/google-calendar";
-import { isSlotBlocked, isWorkingDay, isWithinWorkingHours } from "@/lib/availability";
+import { isSlotBlocked, isWorkingDay, isWithinWorkingHours, getWorkingHoursForDay, getDayOfWeekFromDate } from "@/lib/availability";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -117,14 +117,12 @@ export async function POST(request: Request) {
     // Verificar que el día sea laboral y la hora esté dentro del horario del profesional
     const { data: profWorkingHours } = await supabase
       .from("professional_applications")
-      .select("working_start_time, working_end_time, working_days")
+      .select("working_start_time, working_end_time, working_days, per_day_schedule")
       .eq("id", appointment.professional_id)
       .single();
 
     if (profWorkingHours) {
       const workingDays = profWorkingHours.working_days?.length ? profWorkingHours.working_days : [1, 2, 3, 4, 5];
-      const wStart = profWorkingHours.working_start_time || "09:00";
-      const wEnd = profWorkingHours.working_end_time || "18:00";
 
       if (!isWorkingDay(newDate, workingDays)) {
         return NextResponse.json(
@@ -132,6 +130,16 @@ export async function POST(request: Request) {
           { status: 400 }
         );
       }
+
+      const dayOfWeek = getDayOfWeekFromDate(newDate);
+      const dayHours = getWorkingHoursForDay(dayOfWeek, {
+        working_start_time: profWorkingHours.working_start_time || "09:00",
+        working_end_time: profWorkingHours.working_end_time || "18:00",
+        working_days: workingDays,
+        per_day_schedule: profWorkingHours.per_day_schedule ?? null,
+      });
+      const wStart = dayHours.start;
+      const wEnd = dayHours.end;
 
       if (!isWithinWorkingHours(newTimeNormalized, wStart, wEnd)) {
         return NextResponse.json(

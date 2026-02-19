@@ -49,6 +49,7 @@ export default function EditChallengePage() {
           currency,
           is_active,
           is_public,
+          suggested_schedule_days,
           created_at
         `)
         .eq('id', challengeId)

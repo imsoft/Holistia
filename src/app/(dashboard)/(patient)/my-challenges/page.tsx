@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/select";
 import { createClient } from "@/utils/supabase/client";
 import { toast } from "sonner";
-import { Calendar, Target, Loader2, CheckCircle2, Circle, Users, Plus, Edit, Trash2, Link as LinkIcon, Book, Headphones, Video, FileText, ExternalLink, Search, Filter, Share2, UserPlus, Trophy, MessageSquare, CalendarDays, Save } from "lucide-react";
+import { Calendar, Target, Loader2, CheckCircle2, Circle, Users, Plus, Edit, Trash2, Link as LinkIcon, Book, Headphones, Video, FileText, ExternalLink, Search, Filter, Share2, UserPlus, Trophy, MessageSquare } from "lucide-react";
 import { ORDERED_DAYS, DAY_LABELS, formatScheduleDays, formatNextScheduledDate, isScheduledToday } from "@/lib/challenge-schedule";
 import { cn } from "@/lib/utils";
 import { CheckinForm } from "@/components/ui/checkin-form";
@@ -142,7 +142,6 @@ export default function MyChallengesPage() {
   const [participants, setParticipants] = useState<Array<{ id: string; first_name: string | null; last_name: string | null; avatar_url: string | null; type?: string | null }>>([]);
   const [isInviteDialogOpen, setIsInviteDialogOpen] = useState(false);
   const [scheduleDays, setScheduleDays] = useState<number[]>([]);
-  const [savingSchedule, setSavingSchedule] = useState(false);
 
   useEffect(() => {
     fetchChallenges();
@@ -780,25 +779,6 @@ export default function MyChallengesPage() {
   const getShareMessage = (title: string, purchaseId: string) =>
     `¡Completé el reto "${title}" en Holistia! 🎉 ${getShareUrl(purchaseId)}`;
 
-  const handleSaveScheduleDays = async () => {
-    if (!selectedChallenge) return;
-    try {
-      setSavingSchedule(true);
-      const res = await fetch(`/api/challenges/${selectedChallenge.challenge_id}/purchase`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ schedule_days: scheduleDays }),
-      });
-      if (!res.ok) throw new Error();
-      // Actualizar el estado local
-      setSelectedChallenge((prev) => prev ? { ...prev, schedule_days: scheduleDays.length > 0 ? scheduleDays : null } : prev);
-      toast.success("Días de compromiso guardados");
-    } catch {
-      toast.error("Error al guardar los días de compromiso");
-    } finally {
-      setSavingSchedule(false);
-    }
-  };
 
   const handleShareAchievement = async (title: string, purchaseId: string, action: "whatsapp" | "copy") => {
     const message = getShareMessage(title, purchaseId);
@@ -1167,73 +1147,6 @@ export default function MyChallengesPage() {
                     challengePurchaseId={selectedChallenge.id}
                     challengeDurationDays={selectedChallenge.challenge.duration_days}
                   />
-                  {/* Selector de días de compromiso */}
-                  <Card className="py-4">
-                    <CardHeader className="pb-2">
-                      <div className="flex items-center gap-2">
-                        <CalendarDays className="h-4 w-4 text-primary shrink-0" />
-                        <CardTitle className="text-base">Mis días de compromiso</CardTitle>
-                      </div>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Selecciona los días de la semana en que planeas hacer tu check-in.
-                        La racha se calculará según estos días.
-                      </p>
-                    </CardHeader>
-                    <CardContent className="pt-0 space-y-3">
-                      {/* Días sugeridos por el creador */}
-                      {(selectedChallenge.challenge as any).suggested_schedule_days &&
-                        ((selectedChallenge.challenge as any).suggested_schedule_days as number[]).length > 0 && (
-                        <p className="text-xs text-muted-foreground">
-                          <span className="font-medium">Sugerido:</span>{" "}
-                          {formatScheduleDays((selectedChallenge.challenge as any).suggested_schedule_days)}
-                        </p>
-                      )}
-                      <div className="flex flex-wrap gap-2">
-                        {ORDERED_DAYS.map((day) => {
-                          const selected = scheduleDays.includes(day);
-                          return (
-                            <button
-                              key={day}
-                              type="button"
-                              onClick={() => {
-                                setScheduleDays((prev) =>
-                                  selected ? prev.filter((d) => d !== day) : [...prev, day]
-                                );
-                              }}
-                              className={cn(
-                                "h-9 w-12 rounded-md border text-sm font-medium transition-colors",
-                                selected
-                                  ? "bg-primary text-primary-foreground border-primary"
-                                  : "bg-background text-foreground border-input hover:bg-muted"
-                              )}
-                            >
-                              {DAY_LABELS[day]}
-                            </button>
-                          );
-                        })}
-                      </div>
-                      {scheduleDays.length > 0 && (
-                        <p className="text-xs text-muted-foreground">
-                          {isScheduledToday(scheduleDays)
-                            ? "¡Hoy es tu día programado!"
-                            : `Próximo día: ${formatNextScheduledDate(scheduleDays) ?? "—"}`}
-                        </p>
-                      )}
-                      <Button
-                        size="sm"
-                        onClick={handleSaveScheduleDays}
-                        disabled={savingSchedule}
-                        className="w-full sm:w-auto"
-                      >
-                        {savingSchedule ? (
-                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        ) : (
-                          <Save className="h-4 w-4 mr-2" />
-                        )}
-                        Guardar días
-                      </Button>
-                    </CardContent>
-                  </Card>
                 </TabsContent>
 
                 <TabsContent value="checkins" className="space-y-4">

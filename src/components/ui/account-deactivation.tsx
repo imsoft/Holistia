@@ -66,8 +66,8 @@ export function AccountDeactivation({ userId, userEmail, accountType }: AccountD
       // Cerrar sesión solo localmente para evitar rate limit
       await supabase.auth.signOut({ scope: 'local' });
 
-      // Redirigir al login
-      router.push('/login?deactivated=true');
+      // Redirigir al inicio
+      router.push('/?deactivated=true');
 
     } catch (error) {
       console.error('Error deactivating account:', error);
@@ -163,4 +163,3 @@ export function AccountDeactivation({ userId, userEmail, accountType }: AccountD
     </>
   );
 }
-

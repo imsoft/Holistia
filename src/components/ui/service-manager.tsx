@@ -294,7 +294,6 @@ export function ServiceManager({
         .from("professional_services")
         .select("*")
         .eq("professional_id", professionalId)
-        .order("sort_order", { ascending: true, nullsFirst: false })
         .order("created_at", { ascending: false });
 
       if (error) {
@@ -302,8 +301,14 @@ export function ServiceManager({
         throw error;
       }
 
-      console.log("✅ ServiceManager: Servicios encontrados:", data?.length || 0);
-      setServices(data || []);
+      // Ordenar por sort_order en memoria (funciona aunque la columna no exista aún)
+      const sorted = (data || []).sort((a, b) => {
+        if (a.sort_order != null && b.sort_order != null) return a.sort_order - b.sort_order;
+        return 0;
+      });
+
+      console.log("✅ ServiceManager: Servicios encontrados:", sorted.length);
+      setServices(sorted);
     } catch {
       toast.error("Error al cargar los servicios");
     } finally {

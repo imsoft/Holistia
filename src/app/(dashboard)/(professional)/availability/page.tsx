@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { User } from 'lucide-react';
-import { WorkingHoursManager } from '@/components/ui/working-hours-manager';
+import { WorkingHoursConfig } from '@/components/ui/working-hours-config';
 import { ProfessionalToleranceSettings } from '@/components/professional-tolerance-settings';
 import AvailabilityBlockManager from '@/components/ui/availability-block-manager';
 import { AvailabilityPreview } from '@/components/ui/availability-preview';
@@ -27,9 +27,6 @@ export default function AvailabilityPage() {
   const [user, setUser] = useState<{ id: string } | null>(null);
   const [professional, setProfessional] = useState<ProfessionalApplication | null>(null);
   const [loading, setLoading] = useState(true);
-  const [workingStartTime, setWorkingStartTime] = useState<string>("09:00");
-  const [workingEndTime, setWorkingEndTime] = useState<string>("18:00");
-  const [workingDays, setWorkingDays] = useState<number[]>([1, 2, 3, 4, 5]);
 
   useEffect(() => {
     const getUser = async () => {
@@ -62,9 +59,6 @@ export default function AvailabilityPage() {
           }
         } else {
           setProfessional(professionalData);
-          setWorkingStartTime(professionalData.working_start_time || '09:00');
-          setWorkingEndTime(professionalData.working_end_time || '18:00');
-          setWorkingDays(professionalData.working_days || [1, 2, 3, 4, 5]);
         }
       } catch (error) {
         console.error('Error:', error);
@@ -201,12 +195,8 @@ export default function AvailabilityPage() {
         <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_340px] gap-6">
           {/* Columna izquierda: configuración */}
           <div className="space-y-6">
-            <WorkingHoursManager
+            <WorkingHoursConfig
               professionalId={professional.id}
-              userId={user.id}
-              currentStartTime={workingStartTime}
-              currentEndTime={workingEndTime}
-              currentWorkingDays={workingDays}
             />
 
             {/* Tiempo de Tolerancia */}

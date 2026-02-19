@@ -39,17 +39,10 @@ export const metadata = generateStaticMetadata({
 export default async function BlogPage() {
   const supabase = await createClient();
 
-  // Usuarios pacientes con sesión van al blog del área paciente (mismo contenido, layout de usuario)
+  // Usuarios con sesión van al blog del área paciente (navbar dashboard, mismo contenido)
   const { data: { user } } = await supabase.auth.getUser();
   if (user) {
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("type")
-      .eq("id", user.id)
-      .maybeSingle();
-    if (profile?.type === "patient") {
-      redirect("/patient/blog");
-    }
+    redirect("/patient/blog");
   }
 
   try {

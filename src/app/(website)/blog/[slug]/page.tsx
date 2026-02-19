@@ -81,17 +81,10 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
   const { slug } = await params;
   const supabase = await createClient();
 
-  // Pacientes con sesión ven el artículo en el área paciente (mismo contenido, layout de usuario)
+  // Usuarios con sesión ven el artículo en el área paciente (navbar dashboard, mismo contenido)
   const { data: { user } } = await supabase.auth.getUser();
   if (user) {
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("type")
-      .eq("id", user.id)
-      .maybeSingle();
-    if (profile?.type === "patient") {
-      redirect(`/patient/blog/${slug}`);
-    }
+    redirect(`/patient/blog/${slug}`);
   }
 
   try {

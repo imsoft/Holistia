@@ -16,12 +16,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { createClient } from "@/utils/supabase/client";
 import { toast } from "sonner";
 import {
@@ -30,15 +24,11 @@ import {
   Loader2,
   CheckCircle2,
   Plus,
-  Edit,
-  Trash2,
   Search,
-  Share2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { stripHtml } from "@/lib/text-utils";
 import { VerifiedBadge } from "@/components/ui/verified-badge";
-import { DeleteConfirmation } from "@/components/ui/confirmation-dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface CreatedChallenge {
@@ -78,9 +68,6 @@ export default function MyChallengesPage() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [completionFilter, setCompletionFilter] = useState<string>("all");
   const [difficultyFilter, setDifficultyFilter] = useState<string>("all");
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [challengeToDelete, setChallengeToDelete] = useState<CreatedChallenge | null>(null);
-  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     fetchChallenges();
@@ -333,55 +320,6 @@ export default function MyChallengesPage() {
     return colors[level || ""] || "bg-gray-100 text-gray-800";
   };
 
-  const handleDeleteClick = (challenge: CreatedChallenge) => {
-    setChallengeToDelete(challenge);
-    setDeleteDialogOpen(true);
-  };
-
-  const getShareUrl = (purchaseId: string) =>
-    typeof window !== "undefined"
-      ? `${window.location.origin}/my-challenges?challenge=${purchaseId}`
-      : `https://www.holistia.io/my-challenges?challenge=${purchaseId}`;
-
-  const getShareMessage = (title: string, purchaseId: string) =>
-    `¡Completé el reto "${title}" en Holistia! 🎉 ${getShareUrl(purchaseId)}`;
-
-  const handleShareAchievement = async (
-    title: string,
-    purchaseId: string,
-    action: "whatsapp" | "copy"
-  ) => {
-    const message = getShareMessage(title, purchaseId);
-    if (action === "whatsapp") {
-      window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, "_blank", "noopener,noreferrer");
-    } else {
-      try {
-        await navigator.clipboard.writeText(message);
-        toast.success("Enlace copiado al portapapeles");
-      } catch {
-        toast.error("No se pudo copiar el enlace");
-      }
-    }
-  };
-
-  const handleDeleteConfirm = async () => {
-    if (!challengeToDelete) return;
-    try {
-      setDeleting(true);
-      const res = await fetch(`/api/challenges/${challengeToDelete.id}`, { method: "DELETE" });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Error al eliminar el reto");
-      toast.success("Reto eliminado exitosamente");
-      fetchChallenges();
-      setDeleteDialogOpen(false);
-      setChallengeToDelete(null);
-    } catch (err) {
-      console.error("Error deleting challenge:", err);
-      toast.error(err instanceof Error ? err.message : "Error al eliminar el reto");
-    } finally {
-      setDeleting(false);
-    }
-  };
 
   // ── Loading skeleton ──────────────────────────────────────────────────────
   if (loading) {
@@ -612,77 +550,11 @@ export default function MyChallengesPage() {
                   </p>
                 )}
               </CardContent>
-              <div className="px-6 pb-4 mt-auto">
-                {challenge.type === "created" ? (
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="flex-1"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        router.push(`/my-challenges/${challenge.id}/edit`);
-                      }}
-                    >
-                      <Edit className="h-4 w-4 mr-2" />
-                      Editar
-                    </Button>
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDeleteClick(challenge);
-                      }}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                ) : challenge.completed_at && challenge.purchaseId ? (
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="w-full"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <Share2 className="h-4 w-4 mr-2" />
-                        Compartir logro
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
-                      <DropdownMenuItem
-                        onClick={() =>
-                          handleShareAchievement(challenge.title || "Reto", challenge.purchaseId, "whatsapp")
-                        }
-                      >
-                        Compartir en WhatsApp
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() =>
-                          handleShareAchievement(challenge.title || "Reto", challenge.purchaseId, "copy")
-                        }
-                      >
-                        Copiar enlace
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                ) : null}
-              </div>
             </Card>
           ))}
         </div>
       )}
 
-      {/* Delete confirmation */}
-      <DeleteConfirmation
-        open={deleteDialogOpen}
-        onOpenChange={setDeleteDialogOpen}
-        onConfirm={handleDeleteConfirm}
-        itemName={challengeToDelete?.title || "este reto"}
-        loading={deleting}
-      />
     </div>
   );
 }

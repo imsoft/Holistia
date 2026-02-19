@@ -41,8 +41,10 @@ import {
   MessageSquare,
   UserPlus,
   Edit,
+  Trash2,
   Share2,
 } from "lucide-react";
+import { DeleteConfirmation } from "@/components/ui/confirmation-dialog";
 import { cn } from "@/lib/utils";
 import { CheckinForm } from "@/components/ui/checkin-form";
 import { ChallengeProgress } from "@/components/ui/challenge-progress";
@@ -90,6 +92,8 @@ export default function ChallengePurchaseDetailPage() {
     Array<{ id: string; first_name: string | null; last_name: string | null; avatar_url: string | null; type?: string | null }>
   >([]);
   const [isInviteDialogOpen, setIsInviteDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   // ── Load everything on mount ──────────────────────────────────────────────
   useEffect(() => {
@@ -324,6 +328,23 @@ export default function ChallengePurchaseDetailPage() {
     loadPurchase();
   };
 
+  const handleDeleteChallenge = async () => {
+    if (!challenge) return;
+    try {
+      setDeleting(true);
+      const res = await fetch(`/api/challenges/${challenge.id}`, { method: "DELETE" });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Error al eliminar el reto");
+      toast.success("Reto eliminado exitosamente");
+      router.push("/my-challenges");
+    } catch (err) {
+      console.error("Error deleting challenge:", err);
+      toast.error(err instanceof Error ? err.message : "Error al eliminar el reto");
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   const getShareUrl = () =>
     typeof window !== "undefined"
       ? `${window.location.origin}/my-challenges?challenge=${purchaseId}`
@@ -438,14 +459,23 @@ export default function ChallengePurchaseDetailPage() {
             </div>
             <div className="flex gap-2 shrink-0">
               {isCreator && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => router.push(`/my-challenges/${challenge.id}/edit`)}
-                >
-                  <Edit className="h-4 w-4 mr-2" />
-                  Editar
-                </Button>
+                <>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => router.push(`/my-challenges/${challenge.id}/edit`)}
+                  >
+                    <Edit className="h-4 w-4 mr-2" />
+                    Editar
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => setDeleteDialogOpen(true)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </>
               )}
               {purchase.completed_at && (
                 <DropdownMenu>
@@ -530,7 +560,17 @@ export default function ChallengePurchaseDetailPage() {
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {Array.from({ length: challenge?.duration_days || 30 }, (_, i) => i + 1).map((day) => {
+                  {Array.from({ length: challenge?.duration_days || 30 }, (_, i) => i + 1)
+                    .filter((day) => {
+                      if (scheduleDays.length === 0) return true;
+                      const startRef = purchase.started_at || purchase.created_at;
+                      const startDate = startRef ? new Date(startRef) : new Date();
+                      const dayDate = new Date(startDate);
+                      dayDate.setHours(0, 0, 0, 0);
+                      dayDate.setDate(dayDate.getDate() + (day - 1));
+                      return scheduleDays.includes(dayDate.getDay());
+                    })
+                    .map((day) => {
                     const dayCheckins = checkins.filter((c) => c.day_number === day);
                     const startRef = purchase.started_at || purchase.created_at;
                     const startDate = startRef ? new Date(startRef) : new Date();
@@ -869,6 +909,14 @@ export default function ChallengePurchaseDetailPage() {
       </Tabs>
 
       {/* ── Dialogs ──────────────────────────────────────────────────────────── */}
+      <DeleteConfirmation
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        onConfirm={handleDeleteChallenge}
+        itemName={challenge?.title || "este reto"}
+        loading={deleting}
+      />
+
       <ChallengeInviteDialog
         open={isInviteDialogOpen}
         onOpenChange={setIsInviteDialogOpen}

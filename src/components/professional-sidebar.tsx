@@ -280,15 +280,15 @@ export function ProfessionalSidebar() {
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link href={`/settings`} className="flex items-center gap-2">
-                  <Settings className="h-4 w-4" />
-                  <span>Configuración</span>
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
                 <Link href={`/patient/${profile?.id}/explore`} className="flex items-center gap-2">
                   <User className="h-4 w-4" />
                   <span>Vista de usuario</span>
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href={`/settings`} className="flex items-center gap-2">
+                  <Settings className="h-4 w-4" />
+                  <span>Configuración</span>
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem
@@ -343,15 +343,15 @@ export function ProfessionalSidebar() {
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link href={`/settings`} className="flex items-center gap-2">
-                  <Settings className="h-4 w-4" />
-                  <span>Configuración</span>
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
                 <Link href={`/patient/${profile?.id}/explore`} className="flex items-center gap-2">
                   <User className="h-4 w-4" />
                   <span>Vista de usuario</span>
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href={`/settings`} className="flex items-center gap-2">
+                  <Settings className="h-4 w-4" />
+                  <span>Configuración</span>
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem

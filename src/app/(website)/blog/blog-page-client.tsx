@@ -27,9 +27,11 @@ interface BlogPageClientProps {
     };
   }[];
   error?: string;
+  /** Ruta base para enlaces a posts (ej. "/blog" o "/patient/blog") */
+  basePath?: string;
 }
 
-export function BlogPageClient({ posts, error }: BlogPageClientProps) {
+export function BlogPageClient({ posts, error, basePath = "/blog" }: BlogPageClientProps) {
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("es-MX", {
       year: "numeric",
@@ -83,7 +85,7 @@ export function BlogPageClient({ posts, error }: BlogPageClientProps) {
             {/* Posts Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
               {posts.map((post) => (
-                <Link key={post.id} href={`/blog/${post.slug}`}>
+                <Link key={post.id} href={`${basePath}/${post.slug}`}>
                   <Card className="py-3 sm:py-4 group hover:shadow-lg transition-all duration-300 hover:-translate-y-1 cursor-pointer flex flex-col">
                     <CardHeader className="pb-3 sm:pb-4 px-4 sm:px-6">
                       {post.featured_image && (

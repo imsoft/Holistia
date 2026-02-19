@@ -62,7 +62,7 @@ const getNavigation = (isProfessional: boolean = false) => {
     { name: "Programas", href: `/my-products` },
     { name: "Retos", href: `/my-challenges` },
     { name: "Eventos", href: `/my-registrations` },
-    { name: "Blogs", href: `/blog` },
+    { name: "Blogs", href: `/patient/blog` },
   ];
 
   if (isProfessional) {
@@ -185,6 +185,9 @@ export default function UserLayout({
     if (!currentPathname) return false;
     if (href === `/explore`) {
       return currentPathname === `/explore`;
+    }
+    if (href === `/patient/blog`) {
+      return currentPathname.startsWith(`/patient/blog`);
     }
     return currentPathname.startsWith(href);
   };

@@ -45,9 +45,11 @@ interface BlogPostClientProps {
       profession: string;
     };
   }[];
+  /** Ruta base para enlaces al listado y a otros posts (ej. "/blog" o "/patient/blog") */
+  basePath?: string;
 }
 
-export function BlogPostClient({ post, relatedPosts }: BlogPostClientProps) {
+export function BlogPostClient({ post, relatedPosts, basePath = "/blog" }: BlogPostClientProps) {
   const [copied, setCopied] = useState(false);
 
   const formatDate = (dateString: string) => {
@@ -93,7 +95,7 @@ export function BlogPostClient({ post, relatedPosts }: BlogPostClientProps) {
                 </li>
                 <li>/</li>
                 <li>
-                  <Link href="/blog" className="hover:text-foreground transition-colors">
+                  <Link href={basePath} className="hover:text-foreground transition-colors">
                     Blog
                   </Link>
                 </li>
@@ -262,7 +264,7 @@ export function BlogPostClient({ post, relatedPosts }: BlogPostClientProps) {
               
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
                 {relatedPosts.map((relatedPost) => (
-                  <Link key={relatedPost.id} href={`/blog/${relatedPost.slug}`}>
+                  <Link key={relatedPost.id} href={`${basePath}/${relatedPost.slug}`}>
                     <Card className="h-full group hover:shadow-lg transition-all duration-300 hover:-translate-y-1 cursor-pointer flex flex-col">
                       <CardContent className="p-4 sm:p-6">
                         {relatedPost.featured_image && (

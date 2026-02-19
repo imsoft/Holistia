@@ -113,6 +113,7 @@ export default function MyChallengesPage() {
             description,
             short_description,
             cover_image_url,
+            cover_image_position,
             duration_days,
             difficulty_level,
             category,
@@ -161,6 +162,7 @@ export default function MyChallengesPage() {
           description,
           short_description,
           cover_image_url,
+          cover_image_position,
           duration_days,
           difficulty_level,
           category,
@@ -482,6 +484,7 @@ export default function MyChallengesPage() {
                     alt={challenge.title}
                     fill
                     className="object-cover rounded-t-lg"
+                    style={{ objectPosition: challenge.cover_image_position || "50% 50%" }}
                     sizes="100vw"
                   />
                 ) : (

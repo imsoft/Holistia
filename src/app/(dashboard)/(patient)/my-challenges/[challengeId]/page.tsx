@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
@@ -43,6 +43,7 @@ import {
   Edit,
   Trash2,
   Share2,
+  Move,
 } from "lucide-react";
 import { DeleteConfirmation } from "@/components/ui/confirmation-dialog";
 import { cn } from "@/lib/utils";
@@ -95,6 +96,13 @@ export default function ChallengePurchaseDetailPage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
+  // ── Image reposition ──────────────────────────────────────────────────────
+  const imgContainerRef = useRef<HTMLDivElement>(null);
+  const dragState = useRef<{ startX: number; startY: number; startPosX: number; startPosY: number } | null>(null);
+  const [imagePosition, setImagePosition] = useState("50% 50%");
+  const [isRepositioning, setIsRepositioning] = useState(false);
+  const [savingPosition, setSavingPosition] = useState(false);
+
   // ── Load everything on mount ──────────────────────────────────────────────
   useEffect(() => {
     if (!purchaseId) return;
@@ -129,6 +137,7 @@ export default function ChallengePurchaseDetailPage() {
             linked_professional_id,
             is_active,
             is_public,
+            cover_image_position,
             professional_applications:challenges_linked_professional_id_fkey(
               first_name,
               last_name,
@@ -148,6 +157,7 @@ export default function ChallengePurchaseDetailPage() {
 
       const challenge = Array.isArray(data.challenges) ? data.challenges[0] : data.challenges;
       setPurchase({ ...data, challenge });
+      setImagePosition(challenge?.cover_image_position || "50% 50%");
 
       // Load rest in parallel
       await Promise.all([
@@ -328,6 +338,50 @@ export default function ChallengePurchaseDetailPage() {
     loadPurchase();
   };
 
+  // ── Image reposition handlers ─────────────────────────────────────────────
+  const parsePosition = (pos: string): [number, number] => {
+    const parts = (pos || "50% 50%").split(" ");
+    return [parseFloat(parts[0]) || 50, parseFloat(parts[1]) || 50];
+  };
+
+  const handlePointerDown = (e: React.PointerEvent) => {
+    if (!isRepositioning || !imgContainerRef.current) return;
+    e.preventDefault();
+    (e.target as HTMLElement).setPointerCapture(e.pointerId);
+    const [posX, posY] = parsePosition(imagePosition);
+    dragState.current = { startX: e.clientX, startY: e.clientY, startPosX: posX, startPosY: posY };
+  };
+
+  const handlePointerMove = (e: React.PointerEvent) => {
+    if (!isRepositioning || !dragState.current || !imgContainerRef.current) return;
+    const rect = imgContainerRef.current.getBoundingClientRect();
+    const dx = ((e.clientX - dragState.current.startX) / rect.width) * 100;
+    const dy = ((e.clientY - dragState.current.startY) / rect.height) * 100;
+    const newX = Math.max(0, Math.min(100, dragState.current.startPosX - dx));
+    const newY = Math.max(0, Math.min(100, dragState.current.startPosY - dy));
+    setImagePosition(`${newX.toFixed(1)}% ${newY.toFixed(1)}%`);
+  };
+
+  const handlePointerUp = () => { dragState.current = null; };
+
+  const handleSavePosition = async () => {
+    if (!challenge) return;
+    setSavingPosition(true);
+    try {
+      const { error } = await supabase
+        .from("challenges")
+        .update({ cover_image_position: imagePosition })
+        .eq("id", challenge.id);
+      if (error) throw error;
+      toast.success("Posición guardada");
+      setIsRepositioning(false);
+    } catch {
+      toast.error("Error al guardar la posición");
+    } finally {
+      setSavingPosition(false);
+    }
+  };
+
   const handleDeleteChallenge = async () => {
     if (!challenge) return;
     try {
@@ -423,27 +477,84 @@ export default function ChallengePurchaseDetailPage() {
 
       {/* Challenge header card */}
       <Card className="mb-6 overflow-hidden gap-0">
-        <div className="relative h-48">
+        <div
+          ref={imgContainerRef}
+          className="relative h-48 overflow-hidden"
+          style={{ cursor: isRepositioning ? "grab" : "default" }}
+          onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
+          onPointerUp={handlePointerUp}
+        >
           {challenge?.cover_image_url ? (
             <Image
               src={challenge.cover_image_url}
               alt={challenge.title}
               fill
               className="object-cover"
+              style={{ objectPosition: imagePosition }}
               sizes="100vw"
+              draggable={false}
             />
           ) : (
             <div className="w-full h-full bg-linear-to-br from-primary/20 to-primary/10 flex items-center justify-center">
               <Target className="h-16 w-16 text-primary/40" />
             </div>
           )}
+          {/* Badges — top left */}
           <div className="absolute top-3 left-3 flex gap-2 flex-wrap">
             {isCreator && <Badge variant="default">Creado por ti</Badge>}
             {purchase.completed_at && <Badge className="bg-green-600 hover:bg-green-600">Completado</Badge>}
             {!isChallengeActive && <Badge variant="secondary">Inactivo</Badge>}
           </div>
+          {/* Reposition button — top right, only for creator with image */}
+          {isCreator && challenge?.cover_image_url && (
+            <div className="absolute top-3 right-3 flex gap-2">
+              {isRepositioning ? (
+                <>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="bg-white/90 h-7 text-xs"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setIsRepositioning(false);
+                      setImagePosition(challenge.cover_image_position || "50% 50%");
+                    }}
+                  >
+                    Cancelar
+                  </Button>
+                  <Button
+                    size="sm"
+                    className="h-7 text-xs"
+                    onClick={(e) => { e.stopPropagation(); handleSavePosition(); }}
+                    disabled={savingPosition}
+                  >
+                    {savingPosition ? <Loader2 className="h-3 w-3 animate-spin" /> : "Guardar"}
+                  </Button>
+                </>
+              ) : (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="bg-white/90 h-7 text-xs"
+                  onClick={(e) => { e.stopPropagation(); setIsRepositioning(true); }}
+                >
+                  <Move className="h-3 w-3 mr-1" />
+                  Reposicionar
+                </Button>
+              )}
+            </div>
+          )}
+          {/* Drag hint overlay */}
+          {isRepositioning && (
+            <div className="absolute inset-0 flex items-end justify-center pb-3 pointer-events-none">
+              <span className="bg-black/50 text-white text-xs rounded px-2 py-1">
+                Arrastra para reposicionar
+              </span>
+            </div>
+          )}
         </div>
-        <CardHeader>
+        <CardHeader className="py-4">
           <div className="flex items-start justify-between gap-4 flex-wrap">
             <div className="flex-1 min-w-0">
               <CardTitle className="text-2xl mb-1">{challenge?.title}</CardTitle>

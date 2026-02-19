@@ -1,6 +1,6 @@
 import { Metadata } from 'next';
 import { createClient } from '@/utils/supabase/server';
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import { generateBlogMetadata, generateStructuredData } from '@/lib/seo';
 import { StructuredData } from '@/components/seo/structured-data';
 import { BlogPostClient } from './blog-post-client';
@@ -80,6 +80,19 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
 export default async function BlogPostPage({ params }: BlogPostPageProps) {
   const { slug } = await params;
   const supabase = await createClient();
+
+  // Pacientes con sesión ven el artículo en el área paciente (mismo contenido, layout de usuario)
+  const { data: { user } } = await supabase.auth.getUser();
+  if (user) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("type")
+      .eq("id", user.id)
+      .maybeSingle();
+    if (profile?.type === "patient") {
+      redirect(`/patient/blog/${slug}`);
+    }
+  }
 
   try {
     // Fetch the specific post without author join

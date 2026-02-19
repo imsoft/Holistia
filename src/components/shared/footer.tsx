@@ -1,13 +1,15 @@
 import Image from "next/image";
 import Link from "next/link";
 
+const getCompanyNav = (blogHref: string = "/blog") => [
+  { name: "Historia", href: "/history" },
+  { name: "Blog", href: blogHref },
+  { name: "Para Empresas", href: "/companies" },
+];
+
 const navigation = {
   support: [{ name: "hola@holistia.io", href: "mailto:hola@holistia.io" }],
-  company: [
-    { name: "Historia", href: "/history" },
-    { name: "Blog", href: "/blog" },
-    { name: "Para Empresas", href: "/companies" },
-  ],
+  company: getCompanyNav(),
   legal: [
     { name: "Términos y condiciones", href: "/terms" },
     { name: "Política de privacidad", href: "/privacy" },
@@ -82,7 +84,13 @@ const navigation = {
   ],
 };
 
-export const Footer = () => {
+interface FooterProps {
+  /** Enlace del Blog: /blog (público) o /patient/blog (área paciente) */
+  blogHref?: string;
+}
+
+export const Footer = ({ blogHref = "/blog" }: FooterProps) => {
+  const companyNav = getCompanyNav(blogHref);
   return (
     <footer className="bg-background">
       <div className="mx-auto max-w-7xl px-6 py-16 sm:py-24 lg:px-8 lg:py-32">
@@ -161,7 +169,7 @@ export const Footer = () => {
                   Empresa
                 </h3>
                 <ul role="list" className="mt-6 space-y-4">
-                  {navigation.company.map((item) => (
+                  {companyNav.map((item) => (
                     <li key={item.name}>
                       <Link
                         target="_blank"

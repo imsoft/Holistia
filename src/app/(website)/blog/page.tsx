@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation";
 import { createClient } from "@/utils/supabase/server";
 import { generateStaticMetadata } from "@/lib/seo";
 import { StructuredData } from "@/components/seo/structured-data";
@@ -37,6 +38,19 @@ export const metadata = generateStaticMetadata({
 
 export default async function BlogPage() {
   const supabase = await createClient();
+
+  // Usuarios pacientes con sesión van al blog del área paciente (mismo contenido, layout de usuario)
+  const { data: { user } } = await supabase.auth.getUser();
+  if (user) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("type")
+      .eq("id", user.id)
+      .maybeSingle();
+    if (profile?.type === "patient") {
+      redirect("/patient/blog");
+    }
+  }
 
   try {
     const { data, error } = await supabase

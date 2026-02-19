@@ -6,7 +6,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
-import { Save, RotateCcw, AlertCircle } from 'lucide-react';
+import { Save, RotateCcw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { createClient } from '@/utils/supabase/client';
 import { toast } from 'sonner';
@@ -318,23 +318,6 @@ export function WorkingHoursConfig({ professionalId, onSave }: WorkingHoursConfi
         ))}
       </div>
 
-      {/* Información adicional */}
-      <Card className="bg-blue-50 border-blue-200">
-        <CardContent className="p-4">
-          <div className="flex items-start gap-3">
-            <AlertCircle className="w-5 h-5 text-blue-600 mt-0.5" />
-            <div className="text-sm text-blue-800">
-              <p className="font-medium mb-1">Información importante:</p>
-              <ul className="space-y-1 text-blue-700">
-                <li>• Los horarios configurados se aplicarán a tu disponibilidad para citas</li>
-                <li>• Los pacientes solo podrán agendar en los días y horarios que configures</li>
-                <li>• Puedes cambiar estos horarios en cualquier momento</li>
-                <li>• Los bloqueos de disponibilidad tienen prioridad sobre estos horarios</li>
-              </ul>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 }

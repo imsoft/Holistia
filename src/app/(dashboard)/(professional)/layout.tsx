@@ -24,8 +24,8 @@ export default function ProfessionalLayout({
       if (!loading) {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user && !profile) {
-          // Si no hay usuario autenticado, redirigir al login
-          router.replace("/login");
+          // Si no hay usuario autenticado, redirigir al inicio
+          router.replace("/");
         }
       }
     };

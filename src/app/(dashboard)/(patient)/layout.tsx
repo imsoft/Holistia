@@ -221,9 +221,9 @@ export default function UserLayout({
     return <LayoutSkeleton />;
   }
 
-  // Sin perfil en página privada → redirigir al login
+  // Sin perfil en página privada → redirigir al inicio
   if (!profile && !isPublicPage) {
-    router.replace("/login");
+    router.replace("/");
     return null;
   }
 

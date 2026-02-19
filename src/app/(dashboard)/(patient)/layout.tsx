@@ -29,21 +29,20 @@ import { LayoutSkeleton } from "@/components/ui/layout-skeleton";
 // Función para generar navegación (URLs limpias sin IDs)
 const getNavigation = (isProfessional: boolean = false) => {
   const nav = [
+    { name: "Inicio", href: `/?home=true` },
     { name: "Explorar", href: `/explore` },
     { name: "Feed", href: `/feed` },
     { name: "Favoritos", href: `/explore/favorites` },
     { name: "Mensajes", href: `/messages` },
     { name: "Citas", href: `/explore/appointments` },
-    { name: "Mis Programas", href: `/my-products` },
-    { name: "Mis Retos", href: `/my-challenges` },
-    { name: "Mis eventos", href: `/my-registrations` },
+    { name: "Programas", href: `/my-products` },
+    { name: "Retos", href: `/my-challenges` },
+    { name: "Eventos", href: `/my-registrations` },
   ];
 
   if (isProfessional) {
-    nav.push({ name: "Dashboard Profesional", href: `/dashboard` });
+    nav.push({ name: "Dashboard", href: `/dashboard` });
   }
-
-  nav.push({ name: "Página de inicio", href: `/?home=true` });
 
   return nav;
 };

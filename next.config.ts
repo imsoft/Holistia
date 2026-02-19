@@ -108,6 +108,28 @@ const nextConfig: NextConfig = {
       }
     ];
   },
+  async rewrites() {
+    return [
+      // Alias público/canónico para rutas de paciente
+      {
+        source: "/patient",
+        destination: "/explore",
+      },
+      {
+        source: "/patient/:path*",
+        destination: "/:path*",
+      },
+      // Alias público/canónico para rutas de profesional
+      {
+        source: "/expert",
+        destination: "/dashboard",
+      },
+      {
+        source: "/expert/:path*",
+        destination: "/:path*",
+      },
+    ];
+  },
   serverExternalPackages: ['@supabase/ssr']
 };
 

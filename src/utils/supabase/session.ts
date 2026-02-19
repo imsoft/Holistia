@@ -17,6 +17,132 @@ function getCookieDomain(): string | undefined {
   }
 }
 
+type RolePrefix = "patient" | "expert" | "admin" | null;
+
+const VALID_ADMIN_ROUTES = [
+  "dashboard",
+  "professionals",
+  "events",
+  "challenges",
+  "blog",
+  "users",
+  "applications",
+  "analytics",
+  "finances",
+  "tickets",
+  "companies",
+  "shops",
+  "restaurants",
+  "holistic-centers",
+  "digital-products",
+  "certifications",
+  "services-costs",
+  "holistic-services",
+  "my-events",
+  "sync-tools",
+  "github-commits",
+  "ai-agent",
+  "cron-sync-logs",
+  "event-registrations",
+] as const;
+
+function startsWithSegment(pathname: string, segment: string): boolean {
+  return pathname === segment || pathname.startsWith(`${segment}/`);
+}
+
+function isUuid(value: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
+}
+
+function normalizeRolePath(pathname: string): { rolePrefix: RolePrefix; effectivePath: string } {
+  if (pathname === "/patient" || pathname.startsWith("/patient/")) {
+    const rest = pathname.slice("/patient".length);
+    const effectivePath = !rest || rest === "/" ? "/explore" : rest;
+    return { rolePrefix: "patient", effectivePath };
+  }
+
+  if (pathname === "/expert" || pathname.startsWith("/expert/")) {
+    const rest = pathname.slice("/expert".length);
+    const effectivePath = !rest || rest === "/" ? "/dashboard" : rest;
+    return { rolePrefix: "expert", effectivePath };
+  }
+
+  if (pathname === "/admin") {
+    return { rolePrefix: "admin", effectivePath: "/admin/dashboard" };
+  }
+
+  if (pathname.startsWith("/admin/")) {
+    return { rolePrefix: "admin", effectivePath: pathname };
+  }
+
+  return { rolePrefix: null, effectivePath: pathname };
+}
+
+function isPatientPath(pathname: string): boolean {
+  const patientPrefixes = [
+    "/explore",
+    "/feed",
+    "/messages",
+    "/my-challenges",
+    "/my-products",
+    "/my-registrations",
+    "/notifications",
+  ];
+
+  if (patientPrefixes.some((prefix) => startsWithSegment(pathname, prefix))) {
+    return true;
+  }
+
+  if (pathname.startsWith("/profile/")) {
+    return true;
+  }
+
+  if (pathname === "/appointments/confirmation") {
+    return true;
+  }
+
+  return /^\/appointments\/[^/]+\/(cancel|no-show|pay|reschedule)$/.test(pathname);
+}
+
+function isExpertPath(pathname: string): boolean {
+  const expertPrefixes = [
+    "/dashboard",
+    "/appointments",
+    "/availability",
+    "/challenges",
+    "/consultations",
+    "/cotizaciones",
+    "/digital-products",
+    "/finances",
+    "/gallery",
+    "/my-events",
+    "/patients",
+    "/profile",
+    "/schedule",
+    "/services",
+    "/settings",
+    "/professional",
+  ];
+
+  return expertPrefixes.some((prefix) => startsWithSegment(pathname, prefix));
+}
+
+function getCanonicalRolePrefix(pathname: string): RolePrefix {
+  if (startsWithSegment(pathname, "/admin")) {
+    return "admin";
+  }
+
+  if (isPatientPath(pathname)) {
+    return "patient";
+  }
+
+  if (isExpertPath(pathname)) {
+    return "expert";
+  }
+
+  return null;
+}
+
 export async function updateSession(request: NextRequest) {
   try {
     let supabaseResponse = NextResponse.next({
@@ -84,28 +210,42 @@ export async function updateSession(request: NextRequest) {
     ];
 
     const pathname = request.nextUrl.pathname;
+    const { rolePrefix, effectivePath } = normalizeRolePath(pathname);
+    const canonicalRole = getCanonicalRolePrefix(effectivePath);
+
+    if (pathname === "/patient" || pathname === "/patient/") {
+      const url = request.nextUrl.clone();
+      url.pathname = "/patient/explore";
+      return NextResponse.redirect(url);
+    }
+
+    if (pathname === "/expert" || pathname === "/expert/") {
+      const url = request.nextUrl.clone();
+      url.pathname = "/expert/dashboard";
+      return NextResponse.redirect(url);
+    }
 
     const isPublicPath = publicPaths.some(path =>
-      pathname.startsWith(path)
+      effectivePath.startsWith(path)
     );
 
     // Redirigir URLs antiguas con IDs a nuevas URLs limpias (ANTES de verificaciones de autenticación)
 
-    // Redirigir /patient/[id]/* a rutas limpias
-    if (pathname.match(/^\/patient\/[^/]+(.*)$/)) {
-      const match = pathname.match(/^\/patient\/[^/]+(.*)$/);
-      const newPath = match ? match[1] || '/explore' : '/explore';
+    // Redirigir /patient/[uuid]/* a nuevo formato /patient/*
+    const legacyPatientMatch = pathname.match(/^\/patient\/([^/]+)(.*)$/);
+    if (legacyPatientMatch && isUuid(legacyPatientMatch[1])) {
+      const restPath = legacyPatientMatch[2] || "";
       const url = request.nextUrl.clone();
-      url.pathname = newPath;
+      url.pathname = restPath ? `/patient${restPath}` : "/patient/explore";
       return NextResponse.redirect(url);
     }
 
-    // Redirigir /professional/[id]/* a rutas limpias
+    // Redirigir /professional/[id]/* a nuevo formato /expert/*
     if (pathname.match(/^\/professional\/[^/]+(.*)$/)) {
       const match = pathname.match(/^\/professional\/[^/]+(.*)$/);
       const newPath = match ? match[1] || '/dashboard' : '/dashboard';
       const url = request.nextUrl.clone();
-      url.pathname = newPath;
+      url.pathname = `/expert${newPath}`;
       return NextResponse.redirect(url);
     }
 
@@ -115,20 +255,38 @@ export async function updateSession(request: NextRequest) {
       const firstSegment = adminIdMatch[1];
       const restPath = adminIdMatch[2] || '';
 
-      const validAdminRoutes = [
-        'dashboard', 'professionals', 'events', 'challenges', 'blog', 'users',
-        'applications', 'analytics', 'finances', 'tickets', 'companies', 'shops',
-        'restaurants', 'holistic-centers', 'digital-products',
-        'certifications', 'services-costs', 'holistic-services', 'my-events',
-        'sync-tools', 'github-commits', 'ai-agent'
-      ];
-
-      if (!validAdminRoutes.includes(firstSegment)) {
+      if (!VALID_ADMIN_ROUTES.includes(firstSegment as (typeof VALID_ADMIN_ROUTES)[number])) {
         const newPath = `/admin${restPath || '/dashboard'}`;
         const url = request.nextUrl.clone();
         url.pathname = newPath;
         return NextResponse.redirect(url);
       }
+    }
+
+    // Canonicalizar prefijos de rutas para mantener formato:
+    // /patient/*, /expert/*, /admin/*
+    if (rolePrefix && !canonicalRole && rolePrefix !== "admin") {
+      const url = request.nextUrl.clone();
+      url.pathname = effectivePath;
+      return NextResponse.redirect(url);
+    }
+
+    if (canonicalRole === "patient" && rolePrefix !== "patient") {
+      const url = request.nextUrl.clone();
+      url.pathname = `/patient${effectivePath}`;
+      return NextResponse.redirect(url);
+    }
+
+    if (canonicalRole === "expert" && rolePrefix !== "expert") {
+      const url = request.nextUrl.clone();
+      url.pathname = `/expert${effectivePath}`;
+      return NextResponse.redirect(url);
+    }
+
+    if (canonicalRole === "admin" && pathname !== effectivePath) {
+      const url = request.nextUrl.clone();
+      url.pathname = effectivePath;
+      return NextResponse.redirect(url);
     }
 
     // IMPORTANTE: Llamar getUser() en TODAS las rutas para refrescar el JWT token.
@@ -140,7 +298,7 @@ export async function updateSession(request: NextRequest) {
 
     // Manejar la ruta raíz '/' de forma especial para usuarios autenticados
     // Si tiene ?home=true, permitir ver la landing page sin redirigir
-    if (pathname === '/' && !request.nextUrl.searchParams.has('home')) {
+    if (effectivePath === '/' && !request.nextUrl.searchParams.has('home')) {
       if (user) {
         try {
           const { data: profile } = await supabase
@@ -162,12 +320,12 @@ export async function updateSession(request: NextRequest) {
                 .maybeSingle();
 
               if (professionalApp) {
-                url.pathname = `/dashboard`;
+                url.pathname = `/expert/dashboard`;
               } else {
-                url.pathname = `/explore`;
+                url.pathname = `/patient/explore`;
               }
             } else {
-              url.pathname = `/explore`;
+              url.pathname = `/patient/explore`;
             }
 
             return NextResponse.redirect(url);
@@ -201,21 +359,21 @@ export async function updateSession(request: NextRequest) {
       .maybeSingle();
 
     // Verificar si el usuario está desactivado
-    if (!pathname.startsWith("/account-deactivated") && profile && profile.account_active === false) {
+    if (!effectivePath.startsWith("/account-deactivated") && profile && profile.account_active === false) {
       const url = request.nextUrl.clone();
       url.pathname = "/account-deactivated";
       return NextResponse.redirect(url);
     }
 
     // Proteger rutas de admin
-    if (pathname.startsWith('/admin/') && profile?.type !== 'admin') {
+    if (effectivePath.startsWith('/admin/') && profile?.type !== 'admin') {
       const url = request.nextUrl.clone();
-      url.pathname = '/explore';
+      url.pathname = '/patient/explore';
       return NextResponse.redirect(url);
     }
 
-    // Proteger rutas de dashboard profesional
-    if (pathname.startsWith('/dashboard') && profile?.type !== 'professional') {
+    // Proteger rutas de experto
+    if (canonicalRole === "expert" && profile?.type !== 'professional') {
       const { data: professionalApp } = await supabase
         .from('professional_applications')
         .select('id, status')
@@ -225,7 +383,7 @@ export async function updateSession(request: NextRequest) {
 
       if (!professionalApp) {
         const url = request.nextUrl.clone();
-        url.pathname = '/explore';
+        url.pathname = '/patient/explore';
         return NextResponse.redirect(url);
       }
     }

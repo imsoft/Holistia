@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Star, StarOff } from "lucide-react";
+import { Loader2, Star, StarOff, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -275,10 +275,16 @@ export function AdminRatingForm({
                 <Button
                   type="button"
                   variant="destructive"
+                  size="icon"
                   onClick={handleDelete}
                   disabled={isDeleting || isSubmitting}
+                  aria-label="Eliminar calificación"
                 >
-                  {isDeleting ? "Eliminando..." : "Eliminar Calificación"}
+                  {isDeleting ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Trash2 className="h-4 w-4" />
+                  )}
                 </Button>
               )}
             </div>

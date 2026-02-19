@@ -105,7 +105,7 @@ export function EventImageCropEditor({
                   onClick={() => setIsPreviewMode(!isPreviewMode)}
                 >
                   <Eye className="h-5 w-5 mr-2" />
-                  {isPreviewMode ? 'Editar' : 'Vista previa'}
+                  {isPreviewMode ? 'Ajustes' : 'Vista previa'}
                 </Button>
               </div>
             </CardHeader>

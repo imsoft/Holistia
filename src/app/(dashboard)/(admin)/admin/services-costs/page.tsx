@@ -1060,9 +1060,9 @@ export default function AdminPlatformTools() {
                 setIsViewOpen(false);
                 handleOpenForm(viewingTool || undefined);
               }}
+              aria-label="Editar herramienta"
             >
-              <Edit className="h-4 w-4 mr-2" />
-              Editar
+              <Edit className="h-4 w-4" />
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -1081,4 +1081,3 @@ export default function AdminPlatformTools() {
     </div>
   );
 }
-

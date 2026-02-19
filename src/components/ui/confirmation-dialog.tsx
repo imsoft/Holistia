@@ -10,7 +10,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { AlertTriangle, Info, Trash2, LogOut } from "lucide-react";
+import { AlertTriangle, Edit, Info, Trash2, LogOut } from "lucide-react";
 import { ReactNode } from "react";
 
 export type ConfirmationVariant = "danger" | "warning" | "info";
@@ -60,6 +60,9 @@ export function ConfirmationDialog({
 }: ConfirmationDialogProps) {
   const config = variantConfig[variant];
   const IconComponent = icon ? () => icon : config.icon;
+  const normalizedConfirmText = confirmText.trim().toLowerCase();
+  const isIconOnlyAction = !loading && (normalizedConfirmText === "eliminar" || normalizedConfirmText === "editar");
+  const ActionIcon = normalizedConfirmText === "editar" ? Edit : Trash2;
 
   const handleConfirm = async () => {
     await onConfirm();
@@ -85,9 +88,17 @@ export function ConfirmationDialog({
           <AlertDialogAction
             onClick={handleConfirm}
             disabled={loading}
-            className={config.confirmClass}
+            className={`${config.confirmClass} ${isIconOnlyAction ? "h-9 w-9 p-0" : ""}`.trim()}
+            aria-label={confirmText}
           >
-            {loading ? "Procesando..." : confirmText}
+            {loading ? "Procesando..." : isIconOnlyAction ? (
+              <>
+                <ActionIcon className="h-4 w-4" />
+                <span className="sr-only">{confirmText}</span>
+              </>
+            ) : (
+              confirmText
+            )}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

@@ -1572,7 +1572,7 @@ export default function BecomeProfessionalPage() {
                               }}
                               className="flex-1"
                             >
-                              Editar y Reenviar Solicitud
+                              Reenviar Solicitud
                             </Button>
                             <Button
                               onClick={async () => {

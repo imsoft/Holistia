@@ -157,14 +157,12 @@ export function PDFUploader({
               size="sm"
               onClick={handleRemovePdf}
               disabled={uploading}
+              aria-label="Eliminar PDF"
             >
               {uploading ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
-                <>
-                  <X className="h-4 w-4 mr-1" />
-                  Eliminar
-                </>
+                <X className="h-4 w-4" />
               )}
             </Button>
           </div>

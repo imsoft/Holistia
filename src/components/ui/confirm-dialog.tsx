@@ -10,6 +10,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Edit, Trash2 } from "lucide-react";
 
 interface ConfirmDialogProps {
   open: boolean;
@@ -32,6 +33,10 @@ export function ConfirmDialog({
   onConfirm,
   variant = "default",
 }: ConfirmDialogProps) {
+  const normalizedConfirmText = confirmText.trim().toLowerCase();
+  const isIconOnlyAction = normalizedConfirmText === "eliminar" || normalizedConfirmText === "editar";
+  const ActionIcon = normalizedConfirmText === "editar" ? Edit : Trash2;
+
   const handleConfirm = () => {
     onConfirm();
     onOpenChange(false);
@@ -50,15 +55,24 @@ export function ConfirmDialog({
             onClick={handleConfirm}
             className={
               variant === "destructive"
-                ? "bg-destructive text-white hover:bg-destructive/90"
-                : ""
+                ? `bg-destructive text-white hover:bg-destructive/90 ${isIconOnlyAction ? "h-9 w-9 p-0" : ""}`
+                : isIconOnlyAction
+                  ? "h-9 w-9 p-0"
+                  : ""
             }
+            aria-label={confirmText}
           >
-            {confirmText}
+            {isIconOnlyAction ? (
+              <>
+                <ActionIcon className="h-4 w-4" />
+                <span className="sr-only">{confirmText}</span>
+              </>
+            ) : (
+              confirmText
+            )}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
   );
 }
-

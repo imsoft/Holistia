@@ -406,9 +406,13 @@ export function SettingsTab({ professional, onUpdate }: SettingsTabProps) {
           <CardDescription>Acciones irreversibles o de alto impacto</CardDescription>
         </CardHeader>
         <CardContent>
-          <Button variant="destructive" className="w-full" disabled>
-            <Ban className="mr-2 h-4 w-4" />
-            Eliminar Cuenta Permanentemente
+          <Button
+            variant="destructive"
+            className="w-full"
+            disabled
+            aria-label="Eliminar cuenta permanentemente"
+          >
+            <Ban className="h-4 w-4" />
           </Button>
           <p className="text-xs text-muted-foreground mt-2 text-center">
             Esta funcionalidad requiere confirmación adicional

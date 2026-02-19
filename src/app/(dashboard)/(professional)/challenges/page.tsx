@@ -435,9 +435,9 @@ export default function ProfessionalChallenges() {
                         size="sm"
                         className="flex-1"
                         onClick={() => router.push(`/challenges/${challenge.id}/edit`)}
+                        aria-label="Editar reto"
                       >
-                        <Edit className="h-4 w-4 mr-2" />
-                        Editar
+                        <Edit className="h-4 w-4" />
                       </Button>
                       <Button
                         variant="destructive"
@@ -447,9 +447,9 @@ export default function ProfessionalChallenges() {
                           setDeletingChallenge(challenge);
                           setIsDeleteOpen(true);
                         }}
+                        aria-label="Eliminar reto"
                       >
-                        <Trash2 className="h-4 w-4 mr-2" />
-                        Eliminar
+                        <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
                   </div>

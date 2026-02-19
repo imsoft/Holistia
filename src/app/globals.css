@@ -159,6 +159,15 @@
 }
 
 @layer components {
+  [data-slot="card"] :is(img.object-cover, picture img.object-cover) {
+    transition: transform 300ms ease;
+    transform-origin: center center;
+  }
+
+  [data-slot="card"]:hover :is(img.object-cover, picture img.object-cover):not([style*="transform"]) {
+    transform: scale(1.04);
+  }
+
   .professional-page-shell {
     @apply min-h-dvh w-full bg-background overflow-x-hidden;
   }

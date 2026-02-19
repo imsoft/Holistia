@@ -506,9 +506,8 @@ export default function AdminBlogPage({ params }: { params: Promise<{ id: string
                         asChild
                         className="flex-1"
                       >
-                        <Link href={`/admin/blog/${post.id}`}>
-                          <Edit className="w-4 h-4 mr-1 sm:mr-2" />
-                          <span className="text-xs sm:text-sm">Editar</span>
+                        <Link href={`/admin/blog/${post.id}`} aria-label="Editar post">
+                          <Edit className="w-4 h-4" />
                         </Link>
                       </Button>
                       <Button

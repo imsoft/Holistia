@@ -442,9 +442,9 @@ export default function ProfessionalDigitalProducts() {
                         size="sm"
                         className="flex-1"
                         onClick={() => router.push(`/digital-products/${product.id}/edit`)}
+                        aria-label="Editar programa"
                       >
-                        <Edit className="h-4 w-4 mr-1" />
-                        Editar
+                        <Edit className="h-4 w-4" />
                       </Button>
                       <Button
                         variant="destructive"

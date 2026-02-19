@@ -367,9 +367,9 @@ export default function EditBlogPostPage({
             onClick={handleDelete}
             disabled={loading}
             className="w-full sm:w-auto"
+            aria-label="Eliminar post"
           >
-            <Trash2 className="w-4 h-4 mr-2" />
-            Eliminar
+            <Trash2 className="w-4 h-4" />
           </Button>
         </div>
       </div>

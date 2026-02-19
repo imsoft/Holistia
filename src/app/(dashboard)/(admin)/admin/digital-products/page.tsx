@@ -462,9 +462,9 @@ export default function AdminDigitalProductsPage() {
                             `/admin/digital-products/${product.id}/edit?professional_id=${product.professional_id}&from=list`
                           )
                         }
+                        aria-label="Editar programa"
                       >
-                        <Edit className="h-4 w-4 mr-1" />
-                        Editar
+                        <Edit className="h-4 w-4" />
                       </Button>
                       <Button
                         variant="destructive"

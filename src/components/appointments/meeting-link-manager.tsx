@@ -144,9 +144,9 @@ export function MeetingLinkManager({
                     variant="outline"
                     onClick={() => setIsEditDialogOpen(true)}
                     className="text-xs h-7"
+                    aria-label="Editar enlace de reunión"
                   >
-                    <Edit className="h-3 w-3 mr-1" />
-                    Editar
+                    <Edit className="h-3 w-3" />
                   </Button>
                 </div>
               </div>

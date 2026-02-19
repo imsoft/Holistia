@@ -820,9 +820,9 @@ export default function AdminChallengesPage() {
                       size="sm"
                       className="flex-1"
                       onClick={() => router.push(`/admin/challenges/${challenge.id}/edit`)}
+                      aria-label="Editar reto"
                     >
-                      <Edit className="h-4 w-4 mr-2" />
-                      Editar
+                      <Edit className="h-4 w-4" />
                     </Button>
                     <Link
                       href={`/admin/challenges/${challenge.id}`}

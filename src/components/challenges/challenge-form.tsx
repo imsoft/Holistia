@@ -2284,9 +2284,9 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
                                 variant="outline"
                                 size="sm"
                                 onClick={() => handleEditMeeting(meeting)}
+                                aria-label="Editar reunión"
                               >
-                                <Edit className="h-3 w-3 mr-2" />
-                                Editar
+                                <Edit className="h-3 w-3" />
                               </Button>
                               <Button
                                 variant="outline"

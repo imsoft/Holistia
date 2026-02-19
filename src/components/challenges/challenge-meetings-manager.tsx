@@ -696,9 +696,9 @@ export function ChallengeMeetingsManager({
                                 variant="outline"
                                 size="sm"
                                 onClick={() => handleEdit(meeting)}
+                                aria-label="Editar reunión"
                               >
-                                <Edit className="h-3 w-3 mr-2" />
-                                Editar
+                                <Edit className="h-3 w-3" />
                               </Button>
                               <Button
                                 variant="destructive"

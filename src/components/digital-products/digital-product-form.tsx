@@ -604,9 +604,9 @@ export function DigitalProductForm({ professionalId, product, redirectPath, isAd
               size="sm"
               onClick={handleRemoveCoverImage}
               className="w-full"
+              aria-label="Eliminar imagen"
             >
-              <Trash2 className="h-4 w-4 mr-2" />
-              Eliminar Imagen
+              <Trash2 className="h-4 w-4" />
             </Button>
           </div>
         ) : (
@@ -669,9 +669,9 @@ export function DigitalProductForm({ professionalId, product, redirectPath, isAd
               size="sm"
               onClick={handleRemoveFile}
               className="w-full"
+              aria-label="Eliminar archivo"
             >
-              <Trash2 className="h-4 w-4 mr-2" />
-              Eliminar Archivo
+              <Trash2 className="h-4 w-4" />
             </Button>
           </div>
         ) : (

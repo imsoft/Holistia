@@ -539,8 +539,7 @@ export default function ChallengePurchaseDetailPage() {
                   className="bg-white/90 h-7 text-xs"
                   onClick={(e) => { e.stopPropagation(); setIsRepositioning(true); }}
                 >
-                  <Move className="h-3 w-3 mr-1" />
-                  Reposicionar
+                  <Move className="h-3 w-3" />
                 </Button>
               )}
             </div>
@@ -576,8 +575,7 @@ export default function ChallengePurchaseDetailPage() {
                     size="sm"
                     onClick={() => router.push(`/my-challenges/${challenge.id}/edit`)}
                   >
-                    <Edit className="h-4 w-4 mr-2" />
-                    Editar
+                    <Edit className="h-4 w-4" />
                   </Button>
                   <Button
                     variant="destructive"

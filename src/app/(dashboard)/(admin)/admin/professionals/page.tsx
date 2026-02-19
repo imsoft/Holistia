@@ -1189,9 +1189,9 @@ export default function AdminProfessionals() {
                     size="sm"
                     className="flex-1"
                     onClick={() => router.push(`/admin/professionals/${professional.id}`)}
+                    aria-label="Editar profesional"
                   >
-                    <Edit3 className="h-4 w-4 mr-2" />
-                    Editar
+                    <Edit3 className="h-4 w-4" />
                   </Button>
                   {!professional.reviewed_at && (
                     <Button
@@ -1350,9 +1350,9 @@ export default function AdminProfessionals() {
                     variant="outline"
                     size="sm"
                     onClick={() => handleOpenEditWellnessAreas(selectedProfessional)}
+                    aria-label="Editar áreas de bienestar"
                   >
-                    <Edit3 className="h-4 w-4 mr-2" />
-                    Editar
+                    <Edit3 className="h-4 w-4" />
                   </Button>
                 </div>
                 <div className="flex flex-wrap gap-2">

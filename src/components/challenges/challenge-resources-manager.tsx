@@ -434,8 +434,13 @@ export function ChallengeResourcesManager({
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteConfirm} className="bg-destructive text-white hover:bg-destructive/90">
-              Eliminar
+            <AlertDialogAction
+              onClick={handleDeleteConfirm}
+              className="bg-destructive text-white hover:bg-destructive/90 h-9 w-9 p-0"
+              aria-label="Eliminar recurso"
+            >
+              <Trash2 className="h-4 w-4" />
+              <span className="sr-only">Eliminar</span>
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

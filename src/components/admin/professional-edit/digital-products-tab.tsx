@@ -158,9 +158,9 @@ export function DigitalProductsTab({ professionalId }: DigitalProductsTabProps) 
                         size="sm" 
                         className="flex-1"
                         onClick={() => router.push(`/admin/digital-products/${product.id}/edit?professional_id=${professionalId}`)}
+                        aria-label="Editar programa"
                       >
-                        <Edit className="h-4 w-4 mr-2" />
-                        Editar
+                        <Edit className="h-4 w-4" />
                       </Button>
                       <Button 
                         variant="destructive" 

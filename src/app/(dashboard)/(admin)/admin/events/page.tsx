@@ -552,10 +552,10 @@ const EventsAdminPage = () => {
                         variant="outline"
                         size="sm"
                         onClick={() => handleEditEvent(event)}
-                        className="flex items-center justify-center gap-1"
+                        className="flex items-center justify-center"
+                        aria-label="Editar evento"
                       >
                         <Edit className="w-4 h-4" />
-                        <span className="hidden sm:inline text-xs">Editar</span>
                       </Button>
                     </div>
                     <div className="grid grid-cols-2 gap-2">
@@ -573,10 +573,10 @@ const EventsAdminPage = () => {
                         variant="destructive"
                         size="sm"
                         onClick={() => handleDeleteEvent(event.id!)}
-                        className="flex items-center justify-center gap-1"
+                        className="flex items-center justify-center"
+                        aria-label="Eliminar evento"
                       >
                         <Trash2 className="w-4 h-4" />
-                        <span className="hidden sm:inline text-xs">Eliminar</span>
                       </Button>
                     </div>
                   </div>

@@ -147,7 +147,7 @@ export function ProfessionalSidebar() {
 
   const handleLogout = async () => {
     await supabase.auth.signOut({ scope: 'local' });
-    router.push('/login');
+    router.push('/');
   };
 
   const navCategories = getNavCategories();

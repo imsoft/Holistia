@@ -120,7 +120,7 @@ export const Navbar = () => {
     // Cerrar sesión solo localmente para evitar rate limit de Supabase
     await supabase.auth.signOut({ scope: 'local' });
     // Finalmente redirigir (usar replace para no agregar al historial)
-    router.replace("/login");
+    router.replace("/");
   };
 
   const getUserName = () => {

@@ -172,7 +172,7 @@ export default function UserLayout({
         console.error("Error signing out:", error);
         return;
       }
-      router.push("/login");
+      router.push("/");
     } catch (error) {
       console.error("Error signing out:", error);
     }

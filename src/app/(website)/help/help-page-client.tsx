@@ -163,7 +163,7 @@ export function HelpPageClient() {
   if (success) {
     return (
       <div className="mx-auto max-w-2xl px-4 sm:px-6 py-12 sm:py-16 lg:py-20">
-        <Card className="border-primary/20 bg-card">
+        <Card className="border-primary/20 bg-card py-4">
           <CardContent className="pt-8 pb-8 px-6 sm:px-8 text-center">
             <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-primary mb-6">
               <CheckCircle className="h-8 w-8" aria-hidden />
@@ -192,7 +192,7 @@ export function HelpPageClient() {
   return (
     <>
       {/* Hero */}
-      <div className="border-b border-border bg-card">
+      <div className="bg-card">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 py-8 sm:py-10 lg:py-12 lg:px-8">
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
             <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
@@ -212,7 +212,7 @@ export function HelpPageClient() {
       </div>
 
       {/* Preguntas frecuentes */}
-      <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-8 sm:pt-10 pb-14 sm:pb-20">
         <h2 className="text-xl sm:text-2xl font-bold text-foreground mb-2">
           Preguntas frecuentes
         </h2>
@@ -287,11 +287,11 @@ export function HelpPageClient() {
               <Card
                 key={topic.id}
                 className={cn(
-                  "cursor-pointer transition-all hover:shadow-md hover:border-primary/30 focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2",
+                  "cursor-pointer transition-all hover:shadow-md hover:border-primary/30 focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2 py-4",
                   selectedTopicId === topic.id && "ring-2 ring-primary border-primary/40"
                 )}
               >
-                <CardHeader className="pb-2">
+                <CardHeader className="pb-2 pt-0">
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
                       <Icon className="h-5 w-5" aria-hidden />
@@ -330,8 +330,8 @@ export function HelpPageClient() {
 
       {/* Form */}
       <div ref={formRef} className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pb-12 sm:pb-16">
-        <Card className="max-w-2xl">
-          <CardHeader>
+        <Card className="max-w-2xl py-4">
+          <CardHeader className="pt-6">
             <CardTitle className="text-xl sm:text-2xl flex items-center gap-2">
               <Send className="h-5 w-5 text-primary" aria-hidden />
               Enviar solicitud de soporte

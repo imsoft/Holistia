@@ -30,6 +30,7 @@ interface Challenge {
   currency?: string;
   is_active: boolean;
   is_public?: boolean;
+  suggested_schedule_days?: number[] | null;
 }
 
 export default function EditProfessionalChallengePage() {
@@ -69,6 +70,7 @@ export default function EditProfessionalChallengePage() {
           currency,
           is_active,
           is_public,
+          suggested_schedule_days,
           created_at,
           updated_at
         `)

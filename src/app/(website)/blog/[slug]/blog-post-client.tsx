@@ -263,15 +263,16 @@ export function BlogPostClient({ post, relatedPosts }: BlogPostClientProps) {
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
                 {relatedPosts.map((relatedPost) => (
                   <Link key={relatedPost.id} href={`/blog/${relatedPost.slug}`}>
-                    <Card className="h-full group hover:shadow-lg transition-all duration-300 hover:-translate-y-1 cursor-pointer">
+                    <Card className="h-full group hover:shadow-lg transition-all duration-300 hover:-translate-y-1 cursor-pointer flex flex-col">
                       <CardContent className="p-4 sm:p-6">
                         {relatedPost.featured_image && (
-                          <div className="relative w-full h-56 sm:h-48 mb-4 rounded-lg overflow-hidden">
+                          <div className="relative w-full aspect-[4/3] min-h-[192px] mb-4 rounded-lg overflow-hidden bg-gradient-to-br from-primary/10 to-primary/5 shrink-0">
                             <Image
                               src={relatedPost.featured_image}
                               alt={relatedPost.title}
                               fill
-                              className="object-cover group-hover:scale-105 transition-transform duration-300"
+                              className="object-cover object-top group-hover:scale-105 transition-transform duration-300"
+                              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                             />
                           </div>
                         )}

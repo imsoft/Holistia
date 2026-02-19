@@ -442,18 +442,19 @@ export default function AdminBlogPage({ params }: { params: Promise<{ id: string
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {filteredPosts.map((post) => (
-              <Card key={post.id} className="hover:shadow-lg transition-shadow overflow-hidden pt-0 pb-4">
+              <Card key={post.id} className="hover:shadow-lg transition-shadow overflow-hidden pt-0 pb-4 flex flex-col">
                 {post.featured_image && (
-                  <div className="relative w-full h-40 sm:h-48 overflow-hidden bg-muted">
+                  <div className="relative w-full aspect-[4/3] min-h-[192px] overflow-hidden bg-gradient-to-br from-primary/10 to-primary/5 shrink-0">
                     <Image
                       src={post.featured_image}
                       alt={post.title}
                       fill
-                      className="object-cover"
+                      className="object-cover object-top"
                       unoptimized={
                         post.featured_image.includes("supabase") ||
                         post.featured_image.includes("supabase.in")
                       }
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                     />
                     <div className="absolute top-3 right-3">
                       <Badge

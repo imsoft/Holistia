@@ -143,7 +143,7 @@ export const Navbar = () => {
   // Usar el estado de autenticación verificado directamente, no depender solo del perfil
   const shouldShowAuthUI = isAuthenticated && profile && !loading;
 
-  const navigation = getNavigation(isAuthenticated, pathname);
+  const navigation = getNavigation(isAuthenticated || !!profile, pathname);
 
   return (
     <header className="w-full z-50">

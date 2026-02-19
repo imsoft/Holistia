@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -70,10 +69,11 @@ export function ServicesTab({ professionalId }: ServicesTabProps) {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <ServiceManager 
-            professionalId={professionalId} 
-            userId={userId} 
+          <ServiceManager
+            professionalId={professionalId}
+            userId={userId}
             isAdminContext={true}
+            sortBy="custom"
           />
         </CardContent>
       </Card>

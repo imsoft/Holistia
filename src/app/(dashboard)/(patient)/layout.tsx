@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
@@ -22,9 +22,33 @@ import { createClient } from "@/utils/supabase/client";
 import { useProfile } from "@/hooks/use-profile";
 import { NotificationsDropdown } from "@/components/ui/notifications-dropdown";
 import { PatientOnboardingButton } from "@/components/shared/patient-onboarding-checklist";
-import { useUserId } from "@/stores/user-store";
+import { useUserId, useUserStore } from "@/stores/user-store";
 import { useLoadFavorites } from "@/stores/favorites-store";
 import { LayoutSkeleton } from "@/components/ui/layout-skeleton";
+import { Navbar } from "@/components/shared/navbar";
+import { Footer } from "@/components/shared/footer";
+import { EmailConfirmationBanner } from "@/components/ui/email-confirmation-banner";
+
+// Páginas de explore accesibles sin autenticación
+const publicDetailPages = [
+  '/explore/program/',
+  '/explore/event/',
+  '/explore/challenge/',
+  '/explore/professional/',
+  '/explore/holistic-center/',
+  '/explore/shop/',
+  '/explore/restaurant/',
+];
+
+const publicListingPages = [
+  '/explore/programs',
+  '/explore/events',
+  '/explore/professionals',
+  '/explore/holistic-centers',
+  '/explore/shops',
+  '/explore/restaurants',
+  '/explore/challenges',
+];
 
 // Función para generar navegación (URLs limpias sin IDs)
 const getNavigation = (isProfessional: boolean = false) => {
@@ -74,12 +98,15 @@ export default function UserLayout({
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [currentPathname, setCurrentPathname] = useState("");
   const [isProfessional, setIsProfessional] = useState(false);
+  const [authChecked, setAuthChecked] = useState(false);
   const { profile, loading } = useProfile();
   const userId = useUserId();
   const loadFavorites = useLoadFavorites();
   const pathname = usePathname();
   const router = useRouter();
-  const supabase = createClient();
+  const isAuthenticated = useUserStore((state) => state.isAuthenticated);
+  const supabase = useMemo(() => createClient(), []);
+  const professionalCheckRef = useRef<string | null>(null);
 
   // Cargar favoritos cuando el userId esté disponible
   useEffect(() => {
@@ -93,23 +120,47 @@ export default function UserLayout({
     setCurrentPathname(pathname);
   }, [pathname]);
 
-  // Verificar si es profesional y tiene eventos
+  // Verificar auth una sola vez al montar (persistir estado en el store)
+  useEffect(() => {
+    if (isAuthenticated) {
+      setAuthChecked(true);
+      return;
+    }
+    const checkAuth = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (data.session?.user) {
+        useUserStore.getState().setUser({
+          id: data.session.user.id,
+          email: data.session.user.email || '',
+          first_name: data.session.user.user_metadata?.first_name || null,
+          last_name: data.session.user.user_metadata?.last_name || null,
+          type: data.session.user.user_metadata?.type || 'patient',
+          avatar_url: data.session.user.user_metadata?.avatar_url || null,
+          account_active: true,
+        });
+      }
+      setAuthChecked(true);
+    };
+    checkAuth();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Verificar si es profesional (con ref para evitar múltiples checks)
   useEffect(() => {
     if (!profile) return;
+    if (professionalCheckRef.current === profile.id) return;
+    professionalCheckRef.current = profile.id;
 
-    const checkProfessionalAndEvents = async () => {
-      // Verificar si el usuario es profesional (tiene aplicación aprobada)
+    const checkProfessional = async () => {
       const { data: professionalApp } = await supabase
         .from('professional_applications')
         .select('status')
         .eq('user_id', profile.id)
         .eq('status', 'approved')
         .maybeSingle();
-      
       setIsProfessional(!!professionalApp);
     };
-
-    checkProfessionalAndEvents();
+    checkProfessional();
   }, [profile, supabase]);
 
   // Función para cerrar sesión
@@ -120,19 +171,15 @@ export default function UserLayout({
         console.error("Error signing out:", error);
         return;
       }
-      
-      // Redirigir al login después de cerrar sesión
       router.push("/login");
     } catch (error) {
       console.error("Error signing out:", error);
     }
   };
 
-  // Generar navegación dinámica basada en el estado del usuario (URLs limpias)
   const navigation = getNavigation(isProfessional);
   const userNavigation = profile ? getUserNavigation(isProfessional) : [];
 
-  // Función para determinar si un item está activo
   const isActive = (href: string) => {
     if (!currentPathname) return false;
     if (href === `/explore`) {
@@ -141,33 +188,44 @@ export default function UserLayout({
     return currentPathname.startsWith(href);
   };
 
-  // Verificar autenticación y redirigir si no hay usuario
-  useEffect(() => {
-    const checkAuth = async () => {
-      if (!loading) {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user && !profile) {
-          // Si no hay usuario autenticado, redirigir al login
-          router.replace("/login");
-        }
-      }
-    };
-    checkAuth();
-  }, [loading, profile, supabase, router]);
+  // Detectar si es una página pública de explore (accesible sin login)
+  const isPublicPage = pathname && (
+    publicDetailPages.some(page => pathname.startsWith(page)) ||
+    publicListingPages.some(page => pathname === page || pathname.startsWith(page + '/'))
+  );
 
-  // Mostrar skeleton mientras se cargan los datos
+  // Página pública sin autenticación → mostrar navbar público
+  if (isAuthenticated === false && isPublicPage) {
+    return (
+      <>
+        <Navbar />
+        <div className="min-h-screen bg-background">
+          {children}
+        </div>
+        <Footer />
+      </>
+    );
+  }
+
+  // Primera carga sin datos en caché
+  if (!authChecked && !isAuthenticated && loading) {
+    return <LayoutSkeleton />;
+  }
+
+  // Cargando perfil
   if (loading) {
     return <LayoutSkeleton />;
   }
 
-  // Si no hay perfil después de cargar, redirigir (no mostrar error para evitar parpadeo)
-  if (!profile) {
-    return null; // Retornar null mientras redirige
+  // Sin perfil en página privada → redirigir al login
+  if (!profile && !isPublicPage) {
+    router.replace("/login");
+    return null;
   }
 
-  const userName = profile.first_name && profile.last_name 
+  const userName = profile?.first_name && profile?.last_name
     ? `${profile.first_name} ${profile.last_name}`
-    : profile.email?.split('@')[0] || 'Usuario';
+    : profile?.email?.split('@')[0] || 'Usuario';
 
   return (
     <div className="min-h-screen bg-background">
@@ -224,7 +282,7 @@ export default function UserLayout({
                     <span className="sr-only">Abrir menú de usuario</span>
                     <div className="relative">
                       <Image
-                        src={profile.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=random`}
+                        src={profile?.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=random`}
                         alt=""
                         width={40}
                         height={40}
@@ -237,7 +295,7 @@ export default function UserLayout({
                   <div className="flex items-start gap-3 p-3">
                     <div className="relative flex-shrink-0">
                       <Image
-                        src={profile.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=random`}
+                        src={profile?.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=random`}
                         alt=""
                         width={40}
                         height={40}
@@ -249,7 +307,7 @@ export default function UserLayout({
                         {userName}
                       </p>
                       <p className="text-sm text-muted-foreground break-all">
-                        {profile.email}
+                        {profile?.email}
                       </p>
                     </div>
                   </div>
@@ -333,7 +391,7 @@ export default function UserLayout({
                   <div className="mt-8 border-t border-sidebar-border pt-8">
                     <div className="flex items-center space-x-4">
                       <Image
-                        src={profile.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=random`}
+                        src={profile?.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=random`}
                         alt=""
                         width={48}
                         height={48}
@@ -344,7 +402,7 @@ export default function UserLayout({
                           {userName}
                         </div>
                         <div className="text-sm text-sidebar-foreground/70">
-                          {profile.email}
+                          {profile?.email}
                         </div>
                       </div>
                     </div>
@@ -383,6 +441,9 @@ export default function UserLayout({
           </div>
         </div>
       </nav>
+
+      {/* Email confirmation banner */}
+      <EmailConfirmationBanner />
 
       {/* Main content */}
       <main className="flex-1">{children}</main>

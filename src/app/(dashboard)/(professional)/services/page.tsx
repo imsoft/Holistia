@@ -43,7 +43,7 @@ export default function ProfessionalServicesPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "inactive">("all");
   const [typeFilter, setTypeFilter] = useState<"all" | "session" | "program">("all");
-  const [sortBy, setSortBy] = useState<"recent" | "name">("recent");
+  const [sortBy, setSortBy] = useState<"recent" | "name" | "custom">("custom");
   const userId = useUserId();
   const router = useRouter();
   const supabase = createClient();
@@ -279,11 +279,12 @@ export default function ProfessionalServicesPage() {
                     <SelectItem value="program">Programa</SelectItem>
                   </SelectContent>
                 </Select>
-                <Select value={sortBy} onValueChange={(v) => setSortBy(v as "recent" | "name")}>
+                <Select value={sortBy} onValueChange={(v) => setSortBy(v as "recent" | "name" | "custom")}>
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Ordenar" />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="custom">Personalizado</SelectItem>
                     <SelectItem value="recent">Más recientes</SelectItem>
                     <SelectItem value="name">Por nombre</SelectItem>
                   </SelectContent>

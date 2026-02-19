@@ -11,7 +11,7 @@ export async function POST(
     const { id: challengeId } = await params;
     const body = await request.json();
 
-    const { patient_ids } = body;
+    const { patient_ids, schedule_days } = body;
 
     if (!patient_ids || !Array.isArray(patient_ids) || patient_ids.length === 0) {
       return NextResponse.json(
@@ -103,6 +103,7 @@ export async function POST(
       challenge_id: challengeId,
       participant_id: patientId,
       access_granted: true, // Los pacientes agregados por el profesional tienen acceso automático
+      schedule_days: Array.isArray(schedule_days) && schedule_days.length > 0 ? schedule_days : null,
     }));
 
     const { data: newPurchases, error: purchaseError } = await supabase

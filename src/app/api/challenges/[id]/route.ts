@@ -110,6 +110,7 @@ export async function PUT(
       currency,
       is_active,
       is_public,
+      suggested_schedule_days,
     } = body;
 
     // Si se vincula a un profesional, verificar que existe
@@ -177,6 +178,9 @@ export async function PUT(
     }
     if (is_active !== undefined) updateData.is_active = is_active;
     if (is_public !== undefined) updateData.is_public = is_public;
+    if (suggested_schedule_days !== undefined) {
+      updateData.suggested_schedule_days = Array.isArray(suggested_schedule_days) ? suggested_schedule_days : null;
+    }
 
     const updateClient = isAdmin ? createServiceRoleClient() : supabase;
     const { data: challenge, error: updateError } = await updateClient

@@ -26,6 +26,7 @@ import { Upload, X, Loader2, Plus, Trash2, BookOpen, Headphones, Video, FileText
 import { toast } from "sonner";
 import { createClient } from "@/utils/supabase/client";
 import { formatPrice } from "@/lib/price-utils";
+import { cn } from "@/lib/utils";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -44,6 +45,7 @@ import {
   RECURRENCE_OPTIONS,
   TIMEZONE_OPTIONS,
 } from "@/types/challenge";
+import { ORDERED_DAYS, DAY_LABELS } from "@/lib/challenge-schedule";
 
 interface ChallengeFormProps {
   userId: string;
@@ -68,6 +70,7 @@ interface ChallengeFormData {
   currency: string;
   is_active: boolean;
   is_public: boolean;
+  suggested_schedule_days: number[];
 }
 
 interface ResourceFormData {
@@ -131,6 +134,7 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
     // - Profesionales/admins: público (aparece en Exploración)
     // - Pacientes: privado
     is_public: isProfessional || isAdmin,
+    suggested_schedule_days: [],
   });
 
   const [professionals, setProfessionals] = useState<any[]>([]);
@@ -215,6 +219,7 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
         currency: challenge.currency || "MXN",
         is_active: challenge.is_active !== undefined ? challenge.is_active : true,
         is_public: challenge.is_public !== undefined ? challenge.is_public : false,
+        suggested_schedule_days: Array.isArray(challenge.suggested_schedule_days) ? challenge.suggested_schedule_days : [],
       };
       
       // Forzar actualización del estado con los valores exactos del challenge
@@ -938,6 +943,11 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
         challengeData.is_public = formData.is_public;
       }
 
+      // Días sugeridos para el reto
+      challengeData.suggested_schedule_days = formData.suggested_schedule_days.length > 0
+        ? formData.suggested_schedule_days
+        : null;
+
       let createdChallengeId: string;
 
       if (challenge && challenge.id) {
@@ -1016,6 +1026,7 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
             currency: data.challenge.currency || "MXN",
             is_active: data.challenge.is_active !== undefined ? data.challenge.is_active : true,
             is_public: data.challenge.is_public !== undefined ? data.challenge.is_public : false,
+            suggested_schedule_days: Array.isArray(data.challenge.suggested_schedule_days) ? data.challenge.suggested_schedule_days : [],
           };
           setFormData(updatedFormData);
         }
@@ -1261,6 +1272,43 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
                 </SelectContent>
               </Select>
               {formData.difficulty_level && null}
+            </div>
+          </div>
+
+          {/* Días sugeridos para el reto */}
+          <div className="space-y-2">
+            <Label>
+              Días sugeridos{" "}
+              <span className="text-muted-foreground font-normal text-xs">(opcional)</span>
+            </Label>
+            <p className="text-xs text-muted-foreground -mt-1">
+              Los participantes verán estos días como sugerencia y podrán ajustarlos a su horario.
+            </p>
+            <div className="flex flex-wrap gap-2 pt-1">
+              {ORDERED_DAYS.map((day) => {
+                const selected = formData.suggested_schedule_days.includes(day);
+                return (
+                  <button
+                    key={day}
+                    type="button"
+                    onClick={() => {
+                      const current = formData.suggested_schedule_days;
+                      const next = selected
+                        ? current.filter((d) => d !== day)
+                        : [...current, day];
+                      setFormData({ ...formData, suggested_schedule_days: next });
+                    }}
+                    className={cn(
+                      "h-9 w-12 rounded-md border text-sm font-medium transition-colors",
+                      selected
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "bg-background text-foreground border-input hover:bg-muted"
+                    )}
+                  >
+                    {DAY_LABELS[day]}
+                  </button>
+                );
+              })}
             </div>
           </div>
 

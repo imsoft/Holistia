@@ -15,6 +15,8 @@ import {
 import { usePatientOnboarding } from "@/hooks/use-patient-onboarding";
 import { cn } from "@/lib/utils";
 
+const DISMISSED_KEY = "holistia_patient_onboarding_dismissed";
+
 function fireOnboardingConfetti() {
   fireFireworks();
 }
@@ -22,7 +24,7 @@ function fireOnboardingConfetti() {
 /**
  * Card de felicitaciones cuando el usuario completa todos los pasos.
  */
-function OnboardingCelebrationCard({ onClose }: { onClose?: () => void }) {
+function OnboardingCelebrationCard({ onDismiss }: { onDismiss?: () => void }) {
   return (
     <Card className="border-primary/30 bg-gradient-to-br from-primary/5 to-primary/10 py-4">
       <CardHeader className="pb-2 sm:pb-3">
@@ -38,12 +40,12 @@ function OnboardingCelebrationCard({ onClose }: { onClose?: () => void }) {
               Completaste todos los pasos. Ya conoces Holistia.
             </p>
           </div>
-          {onClose && (
+          {onDismiss && (
             <Button
               variant="ghost"
               size="icon"
               className="h-7 w-7 shrink-0 -mt-0.5 -mr-1"
-              onClick={onClose}
+              onClick={onDismiss}
             >
               <X className="h-4 w-4" />
               <span className="sr-only">Cerrar</span>
@@ -66,18 +68,21 @@ function OnboardingCelebrationCard({ onClose }: { onClose?: () => void }) {
 
 /**
  * Card interna con el checklist de onboarding.
- * Se usa tanto en el popover del botón como inline si se necesita.
+ * onClose: cierra el popover al hacer clic en un paso (sin persistir)
+ * onDismiss: cierra permanentemente al hacer clic en X
  */
 function OnboardingCardContent({
   onClose,
+  onDismiss,
 }: {
   onClose?: () => void;
+  onDismiss?: () => void;
 }) {
   const { steps, completedCount, totalSteps, allComplete, loading } =
     usePatientOnboarding();
 
   if (loading) return null;
-  if (allComplete) return <OnboardingCelebrationCard onClose={onClose} />;
+  if (allComplete) return <OnboardingCelebrationCard onDismiss={onDismiss} />;
 
   const progressPercent = totalSteps > 0 ? (completedCount / totalSteps) * 100 : 0;
 
@@ -96,12 +101,12 @@ function OnboardingCardContent({
               {completedCount} de {totalSteps} pasos completados
             </p>
           </div>
-          {onClose && (
+          {onDismiss && (
             <Button
               variant="ghost"
               size="icon"
               className="h-7 w-7 shrink-0 -mt-0.5 -mr-1"
-              onClick={onClose}
+              onClick={onDismiss}
             >
               <X className="h-4 w-4" />
               <span className="sr-only">Cerrar</span>
@@ -163,10 +168,22 @@ function OnboardingCardContent({
  */
 export function PatientOnboardingButton() {
   const [open, setOpen] = useState(false);
+  const [dismissed, setDismissed] = useState(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem(DISMISSED_KEY) === "true";
+    }
+    return false;
+  });
   const { completedCount, totalSteps, allComplete, loading } =
     usePatientOnboarding();
 
-  if (loading) return null;
+  const handleDismiss = () => {
+    localStorage.setItem(DISMISSED_KEY, "true");
+    setDismissed(true);
+    setOpen(false);
+  };
+
+  if (loading || dismissed) return null;
 
   const remaining = totalSteps - completedCount;
 
@@ -196,7 +213,10 @@ export function PatientOnboardingButton() {
         sideOffset={8}
         className="w-[380px] sm:w-[440px] p-0 border-0 shadow-lg"
       >
-        <OnboardingCardContent onClose={() => setOpen(false)} />
+        <OnboardingCardContent
+          onClose={() => setOpen(false)}
+          onDismiss={handleDismiss}
+        />
       </PopoverContent>
     </Popover>
   );
@@ -207,7 +227,19 @@ export function PatientOnboardingButton() {
  * Se mantiene por compatibilidad, ahora es el botón el principal.
  */
 export function PatientOnboardingChecklist() {
-  const { allComplete, loading } = usePatientOnboarding();
-  if (loading) return null;
-  return <OnboardingCardContent />;
+  const [dismissed, setDismissed] = useState(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem(DISMISSED_KEY) === "true";
+    }
+    return false;
+  });
+  const { loading } = usePatientOnboarding();
+
+  const handleDismiss = () => {
+    localStorage.setItem(DISMISSED_KEY, "true");
+    setDismissed(true);
+  };
+
+  if (loading || dismissed) return null;
+  return <OnboardingCardContent onDismiss={handleDismiss} />;
 }

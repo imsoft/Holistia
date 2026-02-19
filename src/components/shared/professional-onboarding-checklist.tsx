@@ -1,13 +1,16 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { fireFireworks } from "@/lib/fireworks";
-import { Check, ChevronRight, PartyPopper, Sparkles } from "lucide-react";
+import { Check, ChevronRight, PartyPopper, Sparkles, X } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { useProfessionalOnboarding } from "@/hooks/use-professional-onboarding";
 import { cn } from "@/lib/utils";
+
+const DISMISSED_KEY = "holistia_professional_onboarding_dismissed";
 
 function fireOnboardingConfetti() {
   fireFireworks();
@@ -17,17 +20,29 @@ export function ProfessionalOnboardingChecklist() {
   const { steps, completedCount, totalSteps, allComplete, loading } =
     useProfessionalOnboarding();
 
-  if (loading) return null;
+  const [dismissed, setDismissed] = useState(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem(DISMISSED_KEY) === "true";
+    }
+    return false;
+  });
+
+  const handleDismiss = () => {
+    localStorage.setItem(DISMISSED_KEY, "true");
+    setDismissed(true);
+  };
+
+  if (loading || dismissed) return null;
 
   if (allComplete) {
     return (
       <Card className="border-primary/30 bg-gradient-to-br from-primary/5 to-primary/10 py-4">
         <CardHeader className="pb-2 sm:pb-3">
-          <div className="flex items-center gap-2">
+          <div className="flex items-start gap-2">
             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/20">
               <PartyPopper className="h-4 w-4 text-primary" aria-hidden />
             </div>
-            <div>
+            <div className="flex-1 min-w-0">
               <CardTitle className="text-base sm:text-lg">
                 ¡Felicidades!
               </CardTitle>
@@ -35,6 +50,15 @@ export function ProfessionalOnboardingChecklist() {
                 Completaste la configuración. Ya puedes recibir pacientes.
               </p>
             </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7 shrink-0 -mt-0.5 -mr-1"
+              onClick={handleDismiss}
+            >
+              <X className="h-4 w-4" />
+              <span className="sr-only">Cerrar</span>
+            </Button>
           </div>
         </CardHeader>
         <CardContent className="pt-0">
@@ -55,11 +79,11 @@ export function ProfessionalOnboardingChecklist() {
   return (
     <Card className="border-primary/30 bg-gradient-to-br from-primary/5 to-primary/10 py-4">
       <CardHeader className="pb-2 sm:pb-3">
-        <div className="flex items-center gap-2">
+        <div className="flex items-start gap-2">
           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/20">
             <Sparkles className="h-4 w-4 text-primary" aria-hidden />
           </div>
-          <div>
+          <div className="flex-1 min-w-0">
             <CardTitle className="text-base sm:text-lg">
               Configura tu cuenta para recibir pacientes
             </CardTitle>
@@ -67,6 +91,15 @@ export function ProfessionalOnboardingChecklist() {
               {completedCount} de {totalSteps} pasos completados
             </p>
           </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-7 w-7 shrink-0 -mt-0.5 -mr-1"
+            onClick={handleDismiss}
+          >
+            <X className="h-4 w-4" />
+            <span className="sr-only">Cerrar</span>
+          </Button>
         </div>
         <Progress value={progressPercent} className="h-2 mt-3" />
       </CardHeader>

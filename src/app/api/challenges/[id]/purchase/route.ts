@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
+import { calculateScheduleAwareStreak } from '@/lib/challenge-schedule';
 
 // GET - Buscar purchase existente para un reto y usuario
 export async function GET(
@@ -141,5 +142,83 @@ export async function POST(
       { error: 'Error interno del servidor' },
       { status: 500 }
     );
+  }
+}
+
+// PATCH - Actualizar schedule_days de la participación del usuario
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const supabase = await createClient();
+    const { id: challengeId } = await params;
+
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      return NextResponse.json({ error: 'No autenticado' }, { status: 401 });
+    }
+
+    const body = await request.json();
+    const { schedule_days } = body;
+
+    if (!Array.isArray(schedule_days)) {
+      return NextResponse.json({ error: 'schedule_days debe ser un array' }, { status: 400 });
+    }
+
+    // Verificar que el usuario es participante del reto
+    const { data: purchase, error: purchaseError } = await supabase
+      .from('challenge_purchases')
+      .select('id, participant_id, started_at, created_at')
+      .eq('challenge_id', challengeId)
+      .eq('participant_id', user.id)
+      .single();
+
+    if (purchaseError || !purchase) {
+      return NextResponse.json({ error: 'Participación no encontrada' }, { status: 404 });
+    }
+
+    const newScheduleDays = schedule_days.length > 0 ? schedule_days : null;
+
+    const { data: updatedPurchase, error: updateError } = await supabase
+      .from('challenge_purchases')
+      .update({ schedule_days: newScheduleDays })
+      .eq('id', purchase.id)
+      .select()
+      .single();
+
+    if (updateError || !updatedPurchase) {
+      console.error('Error updating schedule_days:', updateError);
+      return NextResponse.json({ error: 'Error al actualizar días programados' }, { status: 500 });
+    }
+
+    // Recalcular racha con el nuevo horario
+    if (newScheduleDays && newScheduleDays.length > 0) {
+      const startRef = purchase.started_at || purchase.created_at;
+      const { data: checkins } = await supabase
+        .from('challenge_checkins')
+        .select('checkin_date')
+        .eq('challenge_purchase_id', purchase.id);
+
+      if (checkins && checkins.length > 0 && startRef) {
+        const newStreak = calculateScheduleAwareStreak(newScheduleDays, startRef, checkins) ?? 0;
+        const { data: progressRow } = await supabase
+          .from('challenge_progress')
+          .select('longest_streak')
+          .eq('challenge_purchase_id', purchase.id)
+          .maybeSingle();
+
+        const newLongest = Math.max(newStreak, progressRow?.longest_streak ?? 0);
+        await supabase
+          .from('challenge_progress')
+          .update({ current_streak: newStreak, longest_streak: newLongest })
+          .eq('challenge_purchase_id', purchase.id);
+      }
+    }
+
+    return NextResponse.json({ purchase: updatedPurchase });
+  } catch (error) {
+    console.error('Error in PATCH /api/challenges/[id]/purchase:', error);
+    return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500 });
   }
 }

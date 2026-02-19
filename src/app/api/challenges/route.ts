@@ -102,6 +102,7 @@ export async function POST(request: NextRequest) {
       price,
       currency,
       is_public,
+      suggested_schedule_days,
     } = body;
 
     // Validar campos requeridos
@@ -208,6 +209,7 @@ export async function POST(request: NextRequest) {
       price: price !== null && price !== undefined && price !== '' && parseFloat(String(price)) > 0 ? parseFloat(String(price)) : null,
       currency: price !== null && price !== undefined && price !== '' && parseFloat(String(price)) > 0 ? (currency || 'MXN') : (currency || 'MXN'),
       is_active: true,
+      suggested_schedule_days: Array.isArray(suggested_schedule_days) ? suggested_schedule_days : null,
     };
 
     // Agregar is_public si está definido

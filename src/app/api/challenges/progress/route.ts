@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
+import { formatNextScheduledDate, isScheduledToday } from '@/lib/challenge-schedule';
 
 // GET - Obtener progreso de un reto
 export async function GET(request: NextRequest) {
@@ -24,7 +25,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Obtener progreso
+    // Obtener progreso junto con schedule_days de la compra
     const { data: progress, error: progressError } = await supabase
       .from('challenge_progress')
       .select('*')
@@ -39,15 +40,15 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    // Obtener schedule_days de la compra
+    const { data: purchase } = await supabase
+      .from('challenge_purchases')
+      .select('participant_id, schedule_days')
+      .eq('id', challenge_purchase_id)
+      .single();
+
     // Si no existe progreso, crear uno inicial
     if (!progress) {
-      // Verificar que el usuario es el dueño
-      const { data: purchase } = await supabase
-        .from('challenge_purchases')
-        .select('participant_id')
-        .eq('id', challenge_purchase_id)
-        .single();
-
       if (!purchase || purchase.participant_id !== user.id) {
         return NextResponse.json(
           { error: 'No autorizado' },
@@ -55,7 +56,6 @@ export async function GET(request: NextRequest) {
         );
       }
 
-      // Crear progreso inicial
       const { data: newProgress, error: createError } = await supabase
         .from('challenge_progress')
         .insert({
@@ -79,10 +79,20 @@ export async function GET(request: NextRequest) {
         );
       }
 
-      return NextResponse.json({ progress: newProgress });
+      return NextResponse.json({
+        progress: newProgress,
+        schedule_days: purchase?.schedule_days ?? null,
+        next_scheduled_date: formatNextScheduledDate(purchase?.schedule_days),
+        scheduled_today: isScheduledToday(purchase?.schedule_days),
+      });
     }
 
-    return NextResponse.json({ progress });
+    return NextResponse.json({
+      progress,
+      schedule_days: purchase?.schedule_days ?? null,
+      next_scheduled_date: formatNextScheduledDate(purchase?.schedule_days),
+      scheduled_today: isScheduledToday(purchase?.schedule_days),
+    });
 
   } catch (error) {
     console.error('Error in GET /api/challenges/progress:', error);

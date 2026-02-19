@@ -20,7 +20,9 @@ import {
 } from "@/components/ui/select";
 import { createClient } from "@/utils/supabase/client";
 import { toast } from "sonner";
-import { Calendar, Target, Loader2, CheckCircle2, Circle, Users, Plus, Edit, Trash2, Link as LinkIcon, Book, Headphones, Video, FileText, ExternalLink, Search, Filter, Share2, UserPlus, Trophy, MessageSquare } from "lucide-react";
+import { Calendar, Target, Loader2, CheckCircle2, Circle, Users, Plus, Edit, Trash2, Link as LinkIcon, Book, Headphones, Video, FileText, ExternalLink, Search, Filter, Share2, UserPlus, Trophy, MessageSquare, CalendarDays, Save } from "lucide-react";
+import { ORDERED_DAYS, DAY_LABELS, formatScheduleDays, formatNextScheduledDate, isScheduledToday } from "@/lib/challenge-schedule";
+import { cn } from "@/lib/utils";
 import { CheckinForm } from "@/components/ui/checkin-form";
 import { ChallengeProgress } from "@/components/ui/challenge-progress";
 import { ChallengeBadges } from "@/components/ui/challenge-badges";
@@ -73,6 +75,7 @@ interface ChallengePurchase {
   started_at?: string;
   completed_at?: string;
   created_at?: string;
+  schedule_days?: number[] | null;
 }
 
 interface Checkin {
@@ -138,6 +141,8 @@ export default function MyChallengesPage() {
   const [participantsCount, setParticipantsCount] = useState<number>(0);
   const [participants, setParticipants] = useState<Array<{ id: string; first_name: string | null; last_name: string | null; avatar_url: string | null; type?: string | null }>>([]);
   const [isInviteDialogOpen, setIsInviteDialogOpen] = useState(false);
+  const [scheduleDays, setScheduleDays] = useState<number[]>([]);
+  const [savingSchedule, setSavingSchedule] = useState(false);
 
   useEffect(() => {
     fetchChallenges();
@@ -184,6 +189,7 @@ export default function MyChallengesPage() {
           started_at,
           completed_at,
           created_at,
+          schedule_days,
           challenges(
             id,
             title,
@@ -224,6 +230,7 @@ export default function MyChallengesPage() {
           started_at: purchase.started_at,
           completed_at: purchase.completed_at,
           created_at: purchase.created_at,
+          schedule_days: (purchase as any).schedule_days ?? null,
           challenge: {
             ...challenge,
             is_active: challenge?.is_active ?? true,
@@ -288,6 +295,7 @@ export default function MyChallengesPage() {
         started_at: p.started_at,
         completed_at: p.completed_at,
         created_at: p.created_at,
+        schedule_days: p.schedule_days ?? null,
       }));
 
       // Marcar retos creados por el usuario
@@ -393,6 +401,15 @@ export default function MyChallengesPage() {
     }
   };
 
+  // Sincronizar scheduleDays con el reto seleccionado
+  useEffect(() => {
+    if (!selectedChallenge) {
+      setScheduleDays([]);
+      return;
+    }
+    setScheduleDays(selectedChallenge.schedule_days ?? []);
+  }, [selectedChallenge?.id]);
+
   // Calcular el día del reto que corresponde a "hoy" (fecha local del usuario) para que el título del diálogo coincida con el check-in que se guarda. Usamos la misma fecha que enviará el formulario (hoy en local) y la misma lógica que el API (comparar por día calendario) para que el número mostrado sea el que se guardará.
   useEffect(() => {
     if (!selectedChallenge) return;
@@ -478,6 +495,7 @@ export default function MyChallengesPage() {
         started_at: challenge.started_at,
         completed_at: challenge.completed_at,
         created_at: challenge.created_at,
+        schedule_days: challenge.schedule_days ?? null,
       };
       setSelectedChallenge(purchaseChallenge);
       await fetchCheckins(challenge.purchaseId);
@@ -531,6 +549,7 @@ export default function MyChallengesPage() {
           started_at: data.purchase?.started_at ?? undefined,
           completed_at: data.purchase?.completed_at ?? undefined,
           created_at: data.purchase?.created_at ?? undefined,
+          schedule_days: data.purchase?.schedule_days ?? null,
         };
         setSelectedChallenge(createdChallenge);
         await fetchCheckins(purchaseId);
@@ -760,6 +779,26 @@ export default function MyChallengesPage() {
 
   const getShareMessage = (title: string, purchaseId: string) =>
     `¡Completé el reto "${title}" en Holistia! 🎉 ${getShareUrl(purchaseId)}`;
+
+  const handleSaveScheduleDays = async () => {
+    if (!selectedChallenge) return;
+    try {
+      setSavingSchedule(true);
+      const res = await fetch(`/api/challenges/${selectedChallenge.challenge_id}/purchase`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ schedule_days: scheduleDays }),
+      });
+      if (!res.ok) throw new Error();
+      // Actualizar el estado local
+      setSelectedChallenge((prev) => prev ? { ...prev, schedule_days: scheduleDays.length > 0 ? scheduleDays : null } : prev);
+      toast.success("Días de compromiso guardados");
+    } catch {
+      toast.error("Error al guardar los días de compromiso");
+    } finally {
+      setSavingSchedule(false);
+    }
+  };
 
   const handleShareAchievement = async (title: string, purchaseId: string, action: "whatsapp" | "copy") => {
     const message = getShareMessage(title, purchaseId);
@@ -1128,6 +1167,73 @@ export default function MyChallengesPage() {
                     challengePurchaseId={selectedChallenge.id}
                     challengeDurationDays={selectedChallenge.challenge.duration_days}
                   />
+                  {/* Selector de días de compromiso */}
+                  <Card className="py-4">
+                    <CardHeader className="pb-2">
+                      <div className="flex items-center gap-2">
+                        <CalendarDays className="h-4 w-4 text-primary shrink-0" />
+                        <CardTitle className="text-base">Mis días de compromiso</CardTitle>
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Selecciona los días de la semana en que planeas hacer tu check-in.
+                        La racha se calculará según estos días.
+                      </p>
+                    </CardHeader>
+                    <CardContent className="pt-0 space-y-3">
+                      {/* Días sugeridos por el creador */}
+                      {(selectedChallenge.challenge as any).suggested_schedule_days &&
+                        ((selectedChallenge.challenge as any).suggested_schedule_days as number[]).length > 0 && (
+                        <p className="text-xs text-muted-foreground">
+                          <span className="font-medium">Sugerido:</span>{" "}
+                          {formatScheduleDays((selectedChallenge.challenge as any).suggested_schedule_days)}
+                        </p>
+                      )}
+                      <div className="flex flex-wrap gap-2">
+                        {ORDERED_DAYS.map((day) => {
+                          const selected = scheduleDays.includes(day);
+                          return (
+                            <button
+                              key={day}
+                              type="button"
+                              onClick={() => {
+                                setScheduleDays((prev) =>
+                                  selected ? prev.filter((d) => d !== day) : [...prev, day]
+                                );
+                              }}
+                              className={cn(
+                                "h-9 w-12 rounded-md border text-sm font-medium transition-colors",
+                                selected
+                                  ? "bg-primary text-primary-foreground border-primary"
+                                  : "bg-background text-foreground border-input hover:bg-muted"
+                              )}
+                            >
+                              {DAY_LABELS[day]}
+                            </button>
+                          );
+                        })}
+                      </div>
+                      {scheduleDays.length > 0 && (
+                        <p className="text-xs text-muted-foreground">
+                          {isScheduledToday(scheduleDays)
+                            ? "¡Hoy es tu día programado!"
+                            : `Próximo día: ${formatNextScheduledDate(scheduleDays) ?? "—"}`}
+                        </p>
+                      )}
+                      <Button
+                        size="sm"
+                        onClick={handleSaveScheduleDays}
+                        disabled={savingSchedule}
+                        className="w-full sm:w-auto"
+                      >
+                        {savingSchedule ? (
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        ) : (
+                          <Save className="h-4 w-4 mr-2" />
+                        )}
+                        Guardar días
+                      </Button>
+                    </CardContent>
+                  </Card>
                 </TabsContent>
 
                 <TabsContent value="checkins" className="space-y-4">
@@ -1190,28 +1296,49 @@ export default function MyChallengesPage() {
                               const today = new Date();
                               today.setHours(0, 0, 0, 0);
                               const isPastDay = dayDate < today;
-                              const isLateDay = dayCheckins.length === 0 && isPastDay;
                               const hasCheckins = dayCheckins.length > 0;
+
+                              // Determinar si este día de calendario era un día programado
+                              const activeSchedule = scheduleDays.length > 0 ? scheduleDays : null;
+                              const isScheduledDay = activeSchedule ? activeSchedule.includes(dayDate.getDay()) : false;
+                              const isMissedScheduled = isScheduledDay && !hasCheckins && isPastDay;
+                              // Día pasado sin check-in (sin schedule) = isLateDay legacy
+                              const isLateDay = !activeSchedule && dayCheckins.length === 0 && isPastDay;
+
+                              // Colores del contenedor
+                              const containerClass = hasCheckins
+                                ? isScheduledDay
+                                  ? 'bg-green-50 border-green-200'
+                                  : 'bg-green-50/60 border-green-100'
+                                : isMissedScheduled
+                                  ? 'bg-amber-50/80 border-amber-200'
+                                  : isLateDay
+                                    ? 'bg-amber-50/80 border-amber-200'
+                                    : 'bg-muted/30 border-border';
+
                               return (
                                 <div
                                   key={day}
-                                  className={`flex items-start gap-4 p-4 border rounded-lg ${
-                                    hasCheckins ? 'bg-green-50 border-green-200' : isLateDay ? 'bg-amber-50/80 border-amber-200' : 'bg-muted/30'
-                                  }`}
+                                  className={`flex items-start gap-4 p-4 border rounded-lg ${containerClass}`}
                                 >
                                   <div className="shrink-0 pt-0.5">
                                     {hasCheckins ? (
                                       <CheckCircle2 className="h-6 w-6 text-green-600" />
                                     ) : (
-                                      <Circle className="h-6 w-6 text-muted-foreground" />
+                                      <Circle className={cn("h-6 w-6", isMissedScheduled ? "text-amber-500" : "text-muted-foreground")} />
                                     )}
                                   </div>
                                   <div className="flex-1 min-w-0 space-y-3">
                                     <div className="flex items-center gap-2 flex-wrap">
                                       <span className="font-semibold">Día {day}</span>
-                                      {isLateDay && (
+                                      {isScheduledDay && (
+                                        <Badge variant="outline" className="text-primary border-primary/30 bg-primary/5 text-xs">
+                                          Programado
+                                        </Badge>
+                                      )}
+                                      {(isMissedScheduled || isLateDay) && (
                                         <Badge variant="outline" className="text-amber-700 border-amber-300 bg-amber-100/80 text-xs">
-                                          Día de reto no cumplido
+                                          {isMissedScheduled ? "Día programado no cumplido" : "Día de reto no cumplido"}
                                         </Badge>
                                       )}
                                     </div>
@@ -1526,6 +1653,7 @@ export default function MyChallengesPage() {
               challengePurchaseId={selectedChallenge.id}
               dayNumber={nextDayNumber}
               challengeDurationDays={selectedChallenge.challenge.duration_days}
+              scheduleDays={scheduleDays.length > 0 ? scheduleDays : null}
               onCheckinComplete={handleCheckinComplete}
             />
           )}

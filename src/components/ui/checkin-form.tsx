@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Image as ImageIcon, Loader2, X, Globe, Lock, Info } from "lucide-react";
+import { Image as ImageIcon, Loader2, X, Globe, Lock, Info, CalendarCheck, Calendar } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 import { toast } from "sonner";
 import Image from "next/image";
@@ -16,11 +16,13 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { VideoPlayer } from "@/components/ui/video-player";
+import { isScheduledToday, formatNextScheduledDate } from "@/lib/challenge-schedule";
 
 interface CheckinFormProps {
   challengePurchaseId: string;
   dayNumber: number;
   challengeDurationDays?: number;
+  scheduleDays?: number[] | null;
   onCheckinComplete?: (data?: { completed: true; challenge_purchase_id: string }) => void;
 }
 
@@ -28,6 +30,7 @@ export function CheckinForm({
   challengePurchaseId,
   dayNumber,
   challengeDurationDays,
+  scheduleDays,
   onCheckinComplete,
 }: CheckinFormProps) {
   const [notes, setNotes] = useState("");
@@ -276,8 +279,32 @@ export function CheckinForm({
     }
   };
 
+  const scheduledToday = isScheduledToday(scheduleDays);
+  const nextScheduled = !scheduledToday ? formatNextScheduledDate(scheduleDays) : null;
+
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      {/* Badge de día programado */}
+      {scheduleDays && scheduleDays.length > 0 && (
+        <div className={`flex items-center gap-2 rounded-md px-3 py-2 text-sm ${scheduledToday ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}>
+          {scheduledToday ? (
+            <>
+              <CalendarCheck className="h-4 w-4 shrink-0" />
+              <span className="font-medium">¡Hoy es tu día programado!</span>
+            </>
+          ) : (
+            <>
+              <Calendar className="h-4 w-4 shrink-0" />
+              <span>
+                {nextScheduled
+                  ? `Próximo día programado: ${nextScheduled}`
+                  : "Sin próximos días programados"}
+              </span>
+            </>
+          )}
+        </div>
+      )}
+
       {/* Descripción del check-in */}
       <div>
         <Label htmlFor="notes" className="mb-2 block">

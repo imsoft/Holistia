@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 import { sendChallengeCompletedEmail } from '@/lib/email-sender';
+import { calculateScheduleAwareStreak } from '@/lib/challenge-schedule';
 
 // GET - Obtener check-ins de un reto
 export async function GET(request: NextRequest) {
@@ -107,7 +108,7 @@ export async function POST(request: NextRequest) {
     // Verificar que el usuario es el dueño de la compra y tiene acceso; traer started_at para calcular día por calendario
     const { data: purchase, error: purchaseError } = await supabase
       .from('challenge_purchases')
-      .select('participant_id, access_granted, challenge_id, started_at, created_at, challenges(duration_days)')
+      .select('participant_id, access_granted, challenge_id, started_at, created_at, schedule_days, challenges(duration_days)')
       .eq('id', challenge_purchase_id)
       .single();
 
@@ -191,6 +192,31 @@ export async function POST(request: NextRequest) {
         { error: 'Error al crear el check-in' },
         { status: 500 }
       );
+    }
+
+    // Si el participante tiene días programados, recalcular racha basada en esos días
+    const purchaseScheduleDays = (purchase as any).schedule_days as number[] | null;
+    if (purchaseScheduleDays && purchaseScheduleDays.length > 0) {
+      const startRef = purchase.started_at || purchase.created_at;
+      const { data: allCheckins } = await supabase
+        .from('challenge_checkins')
+        .select('checkin_date')
+        .eq('challenge_purchase_id', challenge_purchase_id);
+
+      if (allCheckins && startRef) {
+        const newStreak = calculateScheduleAwareStreak(purchaseScheduleDays, startRef, allCheckins) ?? 0;
+        const { data: progressRow } = await supabase
+          .from('challenge_progress')
+          .select('longest_streak')
+          .eq('challenge_purchase_id', challenge_purchase_id)
+          .maybeSingle();
+
+        const newLongest = Math.max(newStreak, progressRow?.longest_streak ?? 0);
+        await supabase
+          .from('challenge_progress')
+          .update({ current_streak: newStreak, longest_streak: newLongest })
+          .eq('challenge_purchase_id', challenge_purchase_id);
+      }
     }
 
     // Verificar badges desbloqueados (la función se ejecuta automáticamente por trigger)

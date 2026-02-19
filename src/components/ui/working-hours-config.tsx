@@ -2,11 +2,11 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
-import { Clock, Calendar, Save, RotateCcw, CheckCircle, AlertCircle } from 'lucide-react';
+import { Save, RotateCcw, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { createClient } from '@/utils/supabase/client';
 import { toast } from 'sonner';
@@ -144,14 +144,6 @@ export function WorkingHoursConfig({ professionalId, onSave }: WorkingHoursConfi
     }
   };
 
-  const applyToAllWorkingDays = (field: 'startTime' | 'endTime', value: string) => {
-    setSchedules(prev => prev.map(schedule => 
-      schedule.isWorking 
-        ? { ...schedule, [field]: value }
-        : schedule
-    ));
-  };
-
   const resetToDefaults = () => {
     initializeSchedules();
     toast.success('Horarios restaurados a los valores por defecto');
@@ -197,25 +189,6 @@ export function WorkingHoursConfig({ professionalId, onSave }: WorkingHoursConfi
     }
   };
 
-  const getWorkingDaysCount = () => {
-    return schedules.filter(s => s.isWorking).length;
-  };
-
-  const getTotalWorkingHours = () => {
-    const workingSchedules = schedules.filter(s => s.isWorking);
-    if (workingSchedules.length === 0) return 0;
-
-    let totalMinutes = 0;
-    workingSchedules.forEach(schedule => {
-      const [startHour, startMin] = schedule.startTime.split(':').map(Number);
-      const [endHour, endMin] = schedule.endTime.split(':').map(Number);
-      const startMinutes = startHour * 60 + startMin;
-      const endMinutes = endHour * 60 + endMin;
-      totalMinutes += endMinutes - startMinutes;
-    });
-
-    return Math.round(totalMinutes / 60 * 10) / 10; // Redondear a 1 decimal
-  };
 
   if (loading) {
     return (
@@ -264,41 +237,6 @@ export function WorkingHoursConfig({ professionalId, onSave }: WorkingHoursConfi
           </Button>
         </div>
       </div>
-
-      {/* Resumen */}
-      <Card>
-        <CardContent className="p-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="flex items-center gap-2">
-              <Calendar className="w-5 h-5 text-blue-600" />
-              <div>
-                <p className="text-sm font-medium">Días Laborales</p>
-                <p className="text-lg font-bold">{getWorkingDaysCount()}/7 días</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <Clock className="w-5 h-5 text-green-600" />
-              <div>
-                <p className="text-sm font-medium">Horas Totales</p>
-                <p className="text-lg font-bold">{getTotalWorkingHours()}h/semana</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              {hasChanges ? (
-                <AlertCircle className="w-5 h-5 text-orange-600" />
-              ) : (
-                <CheckCircle className="w-5 h-5 text-green-600" />
-              )}
-              <div>
-                <p className="text-sm font-medium">Estado</p>
-                <p className="text-lg font-bold">
-                  {hasChanges ? 'Cambios pendientes' : 'Guardado'}
-                </p>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
 
       {/* Configuración por día */}
       <div className="space-y-4">
@@ -379,43 +317,6 @@ export function WorkingHoursConfig({ professionalId, onSave }: WorkingHoursConfi
           </Card>
         ))}
       </div>
-
-      {/* Acciones rápidas */}
-      {schedules.some(s => s.isWorking) && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Acciones Rápidas</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-wrap gap-4">
-              <div className="flex items-center gap-2">
-                <Label className="text-sm">Aplicar horario a todos los días laborales:</Label>
-                <HourSelector
-                  id="quick-start"
-                  label=""
-                  value="09:00"
-                  onChange={(value) => applyToAllWorkingDays('startTime', value)}
-                  startHour={6}
-                  endHour={22}
-                  includeHalfHours
-                  className="w-24"
-                />
-                <span className="text-sm text-muted-foreground">a</span>
-                <HourSelector
-                  id="quick-end"
-                  label=""
-                  value="18:00"
-                  onChange={(value) => applyToAllWorkingDays('endTime', value)}
-                  startHour={7}
-                  endHour={23}
-                  includeHalfHours
-                  className="w-24"
-                />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
 
       {/* Información adicional */}
       <Card className="bg-blue-50 border-blue-200">

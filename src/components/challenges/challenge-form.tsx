@@ -45,7 +45,7 @@ import {
   RECURRENCE_OPTIONS,
   TIMEZONE_OPTIONS,
 } from "@/types/challenge";
-import { ORDERED_DAYS, DAY_LABELS } from "@/lib/challenge-schedule";
+import { ORDERED_DAYS, DAY_LABELS_FULL } from "@/lib/challenge-schedule";
 
 interface ChallengeFormProps {
   userId: string;
@@ -1305,7 +1305,7 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
                         : "bg-background text-foreground border-input hover:bg-muted"
                     )}
                   >
-                    {DAY_LABELS[day]}
+                    {DAY_LABELS_FULL[day]}
                   </button>
                 );
               })}

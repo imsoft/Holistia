@@ -146,18 +146,18 @@ export function isScheduledToday(
 }
 
 /**
- * Formatea un array de días a texto legible.
- * Ej: [1, 3, 5] → "Lun, Mié, Vie"
+ * Formatea un array de días a texto legible (nombres completos).
+ * Ej: [1, 3, 5] → "Lunes, Miércoles, Viernes"
  */
 export function formatScheduleDays(scheduleDays: number[] | null | undefined): string {
   if (!scheduleDays || scheduleDays.length === 0) return "Sin días programados";
   return [...scheduleDays]
     .sort((a, b) => {
-      // Ordenar: Lun(1) primero, Dom(0) último
+      // Ordenar: Lunes(1) primero, Dom(0) último
       const order = [1, 2, 3, 4, 5, 6, 0];
       return order.indexOf(a) - order.indexOf(b);
     })
-    .map((d) => DAY_LABELS[d])
+    .map((d) => DAY_LABELS_FULL[d])
     .join(", ");
 }
 

@@ -35,10 +35,14 @@ const baseNavigation = [
 const getNavigation = (isAuthenticated: boolean, pathname: string) => {
   if (isAuthenticated) {
     const isHomePage = pathname === "/";
-    return [
+    const nav = [
       ...(isHomePage ? [] : [{ name: "Explorar", href: "/explore" }]),
       ...baseNavigation.slice(1),
     ];
+    // En sesión, Blog debe llevar al blog del área usuario (paciente)
+    return nav.map((item) =>
+      item.name === "Blog" ? { ...item, href: "/patient/blog" } : item
+    );
   }
   return baseNavigation;
 };

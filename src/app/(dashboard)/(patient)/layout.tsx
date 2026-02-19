@@ -62,6 +62,7 @@ const getNavigation = (isProfessional: boolean = false) => {
     { name: "Programas", href: `/my-products` },
     { name: "Retos", href: `/my-challenges` },
     { name: "Eventos", href: `/my-registrations` },
+    { name: "Blogs", href: `/blog` },
   ];
 
   if (isProfessional) {

@@ -49,17 +49,6 @@ const SUPPORT_TOPICS = [
     subjectForForm: "No me llegó el enlace de la cita/evento",
   },
   {
-    id: "refund",
-    title: "Quiero solicitar un reembolso",
-    shortDescription: "Necesito solicitar la devolución de un pago.",
-    icon: Receipt,
-    steps: [
-      "Según nuestros términos, las cancelaciones con más de 24 h de anticipación pueden evaluar excepciones con el profesional.",
-      "Indica en tu mensaje: cita o evento, fecha y motivo. Revisaremos tu caso y te responderemos en 24-48 h hábiles.",
-    ],
-    subjectForForm: "Solicitud de reembolso",
-  },
-  {
     id: "professional_no_show",
     title: "El profesional no se presentó",
     shortDescription: "Tuve la cita agendada pero el profesional no asistió.",
@@ -212,7 +201,7 @@ export function HelpPageClient() {
       </div>
 
       {/* Preguntas frecuentes */}
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-8 sm:pt-10 pb-14 sm:pb-20">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-8 sm:pt-10 pb-8 sm:pb-10">
         <h2 className="text-xl sm:text-2xl font-bold text-foreground mb-2">
           Preguntas frecuentes
         </h2>
@@ -276,6 +265,7 @@ export function HelpPageClient() {
       </div>
 
       {/* Topics */}
+      <div className="border-t border-border bg-muted/30">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
         <h2 className="text-lg font-semibold text-foreground mb-4 sm:mb-6">
           ¿En qué podemos ayudarte?
@@ -327,11 +317,12 @@ export function HelpPageClient() {
           })}
         </div>
       </div>
+      </div>
 
       {/* Form */}
       <div ref={formRef} className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pb-12 sm:pb-16">
         <Card className="max-w-2xl py-4">
-          <CardHeader className="pt-6">
+          <CardHeader className="">
             <CardTitle className="text-xl sm:text-2xl flex items-center gap-2">
               <Send className="h-5 w-5 text-primary" aria-hidden />
               Enviar solicitud de soporte

@@ -90,6 +90,8 @@ interface RichTextEditorProps {
   placeholder?: string;
   className?: string;
   maxLength?: number;
+  /** Si true, permite pegar más de maxLength (contador en rojo, validación en guardar) */
+  allowOverflow?: boolean;
   onValidationChange?: (isValid: boolean) => void;
 }
 
@@ -99,6 +101,7 @@ export function RichTextEditor({
   placeholder = "Escribe aquí el contenido de tu post...",
   className,
   maxLength = 500,
+  allowOverflow = false,
   onValidationChange
 }: RichTextEditorProps) {
   const [isMounted, setIsMounted] = useState(false);
@@ -121,7 +124,7 @@ export function RichTextEditor({
         placeholder,
       }),
       CharacterCount.configure({
-        limit: maxLength,
+        limit: allowOverflow ? 50000 : maxLength,
       }),
     ],
     enablePasteRules: true,
@@ -209,15 +212,14 @@ export function RichTextEditor({
         }
         if (toInsert) {
           const current = ed.storage.characterCount.characters();
-          const fitted = truncateToFit(toInsert, current, maxLength);
-          if (fitted) {
-            if (textLengthFromHtml(fitted) < textLengthFromHtml(toInsert)) toast.info(`Texto recortado al límite de ${maxLength} caracteres`);
-            ed.commands.insertContent(fitted);
+          const contentToInsert = allowOverflow ? toInsert : truncateToFit(toInsert, current, maxLength);
+          if (contentToInsert) {
+            if (!allowOverflow && textLengthFromHtml(contentToInsert) < textLengthFromHtml(toInsert)) toast.info(`Texto recortado al límite de ${maxLength} caracteres`);
+            ed.commands.insertContent(contentToInsert);
           }
           event.preventDefault();
           return true;
         }
-        // Fallback: portapapeles universal (iPhone → Mac) a veces no llena clipboardData; reintentar tras 80 ms si viene vacío
         event.preventDefault();
         if (typeof navigator?.clipboard?.readText === 'function') {
           const tryInsert = (retry = false) => {
@@ -227,10 +229,10 @@ export function RichTextEditor({
                 const ed2 = editorInstanceRef.current;
                 const html = plainTextToHtml(text);
                 const current = ed2.storage.characterCount.characters();
-                const fitted = truncateToFit(html, current, maxLength);
-                if (fitted) {
-                  if (textLengthFromHtml(fitted) < textLengthFromHtml(html)) toast.info(`Texto recortado al límite de ${maxLength} caracteres`);
-                  ed2.commands.insertContent(fitted);
+                const contentToInsert = allowOverflow ? html : truncateToFit(html, current, maxLength);
+                if (contentToInsert) {
+                  if (!allowOverflow && textLengthFromHtml(contentToInsert) < textLengthFromHtml(html)) toast.info(`Texto recortado al límite de ${maxLength} caracteres`);
+                  ed2.commands.insertContent(contentToInsert);
                 }
               } else if (!retry) setTimeout(() => tryInsert(true), 80);
             }).catch(() => {});
@@ -483,14 +485,13 @@ export function RichTextEditor({
       e.preventDefault();
       e.stopPropagation();
       const current = ed.storage.characterCount.characters();
-      const fitted = truncateToFit(toInsert, current, maxLength);
-      if (fitted) {
-        if (textLengthFromHtml(fitted) < textLengthFromHtml(toInsert)) toast.info(`Texto recortado al límite de ${maxLength} caracteres`);
-        ed.commands.insertContent(fitted);
+      const contentToInsert = allowOverflow ? toInsert : truncateToFit(toInsert, current, maxLength);
+      if (contentToInsert) {
+        if (!allowOverflow && textLengthFromHtml(contentToInsert) < textLengthFromHtml(toInsert)) toast.info(`Texto recortado al límite de ${maxLength} caracteres`);
+        ed.commands.insertContent(contentToInsert);
       }
       return;
     }
-    // Fallback: portapapeles universal (p. ej. iPhone → Mac) a veces no llena clipboardData; reintentar tras 80 ms si viene vacío
     e.preventDefault();
     e.stopPropagation();
     if (typeof navigator?.clipboard?.readText === 'function') {
@@ -501,10 +502,10 @@ export function RichTextEditor({
             const ed2 = editorInstanceRef.current;
             const html = plainTextToHtml(text);
             const current = ed2.storage.characterCount.characters();
-            const fitted = truncateToFit(html, current, maxLength);
-            if (fitted) {
-              if (textLengthFromHtml(fitted) < textLengthFromHtml(html)) toast.info(`Texto recortado al límite de ${maxLength} caracteres`);
-              ed2.commands.insertContent(fitted);
+            const contentToInsert = allowOverflow ? html : truncateToFit(html, current, maxLength);
+            if (contentToInsert) {
+              if (!allowOverflow && textLengthFromHtml(contentToInsert) < textLengthFromHtml(html)) toast.info(`Texto recortado al límite de ${maxLength} caracteres`);
+              ed2.commands.insertContent(contentToInsert);
             }
           } else if (!retry) setTimeout(() => tryInsert(true), 80);
         }).catch(() => {});
@@ -527,11 +528,11 @@ export function RichTextEditor({
       }
       const html = plainTextToHtml(t);
       const current = editor.storage.characterCount.characters();
-      const fitted = truncateToFit(html, current, maxLength);
-      if (fitted) {
-        if (textLengthFromHtml(fitted) < textLengthFromHtml(html)) toast.info(`Texto recortado al límite de ${maxLength} caracteres`);
-        editor.commands.insertContent(fitted);
-      } else toast.info(`Ya has llegado al límite de ${maxLength} caracteres`);
+      const contentToInsert = allowOverflow ? html : truncateToFit(html, current, maxLength);
+      if (contentToInsert) {
+        if (!allowOverflow && textLengthFromHtml(contentToInsert) < textLengthFromHtml(html)) toast.info(`Texto recortado al límite de ${maxLength} caracteres`);
+        editor.commands.insertContent(contentToInsert);
+      } else if (!allowOverflow) toast.info(`Ya has llegado al límite de ${maxLength} caracteres`);
     }).catch(() => toast.error('No se pudo acceder al portapapeles'));
   };
 

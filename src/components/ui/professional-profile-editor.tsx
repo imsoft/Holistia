@@ -68,6 +68,7 @@ export default function ProfessionalProfileEditor({
   const [professionalData, setProfessionalData] = useState<ProfessionalData | null>(null);
   const [editingField, setEditingField] = useState<string | null>(null);
   const [isContentValid, setIsContentValid] = useState(true);
+  const [biographyError, setBiographyError] = useState<string | null>(null);
   const supabase = createClient();
 
   // Estados para campos editables
@@ -147,9 +148,12 @@ export default function ProfessionalProfileEditor({
   const handleSave = async () => {
     if (!professionalData) return;
 
-    // Validar que el contenido no exceda el límite
+    setBiographyError(null);
+
+    // Validar que la biografía no exceda 500 caracteres
     if (!isContentValid) {
-      setError('La biografía excede el límite de caracteres. Por favor, reduce el texto.');
+      setBiographyError('La biografía no puede exceder 500 caracteres. Por favor, reduce el texto.');
+      setError('No se pudo guardar: la biografía excede el límite permitido.');
       return;
     }
 
@@ -708,13 +712,28 @@ export default function ProfessionalProfileEditor({
           <div className="space-y-2">
             <Label htmlFor="biography">Descripción profesional</Label>
             {editingField === 'biography' ? (
-              <RichTextEditor
-                content={formData.biography || ""}
-                onChange={(content) => setFormData(prev => ({ ...prev, biography: content }))}
-                placeholder="Cuéntanos sobre tu experiencia, enfoque terapéutico y cómo puedes ayudar a tus pacientes..."
-                maxLength={500}
-                onValidationChange={setIsContentValid}
-              />
+              <>
+                <RichTextEditor
+                  content={formData.biography || ""}
+                  onChange={(content) => {
+                    setFormData(prev => ({ ...prev, biography: content }));
+                    if (biographyError) setBiographyError(null);
+                  }}
+                  placeholder="Cuéntanos sobre tu experiencia, enfoque terapéutico y cómo puedes ayudar a tus pacientes..."
+                  maxLength={500}
+                  allowOverflow
+                  onValidationChange={(valid) => {
+                    setIsContentValid(valid);
+                    if (valid && biographyError) setBiographyError(null);
+                  }}
+                />
+                {biographyError && (
+                  <p className="text-sm text-destructive flex items-center gap-1">
+                    <AlertCircle className="h-4 w-4 shrink-0" />
+                    {biographyError}
+                  </p>
+                )}
+              </>
             ) : (
               <div 
                 className="p-3 border border-border rounded-md cursor-pointer hover:bg-muted/30 transition-colors min-h-[100px] prose prose-sm max-w-none"

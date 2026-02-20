@@ -1,4 +1,3 @@
-import { redirect } from "next/navigation";
 import { createClient } from "@/utils/supabase/server";
 import { generateStaticMetadata } from "@/lib/seo";
 import { StructuredData } from "@/components/seo/structured-data";
@@ -38,12 +37,6 @@ export const metadata = generateStaticMetadata({
 
 export default async function BlogPage() {
   const supabase = await createClient();
-
-  // Usuarios con sesión van al blog del área paciente (navbar dashboard, mismo contenido)
-  const { data: { user } } = await supabase.auth.getUser();
-  if (user) {
-    redirect("/patient/blog");
-  }
 
   try {
     const { data, error } = await supabase

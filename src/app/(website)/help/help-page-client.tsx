@@ -347,7 +347,7 @@ export function HelpPageClient() {
 
       {/* Form */}
       <div ref={formRef} className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pb-12 sm:pb-16">
-        <Card className="max-w-2xl py-4">
+        <Card className="py-4">
           <CardHeader className="">
             <CardTitle className="text-xl sm:text-2xl flex items-center gap-2">
               <Send className="h-5 w-5 text-primary" aria-hidden />
@@ -373,7 +373,6 @@ export function HelpPageClient() {
                     id="help-firstName"
                     value={firstName}
                     onChange={(e) => setFirstName(e.target.value)}
-                    placeholder="Tu nombre"
                     required
                     disabled={loading}
                     className="mt-1.5"
@@ -385,7 +384,6 @@ export function HelpPageClient() {
                     id="help-lastName"
                     value={lastName}
                     onChange={(e) => setLastName(e.target.value)}
-                    placeholder="Tu apellido"
                     required
                     disabled={loading}
                     className="mt-1.5"
@@ -399,7 +397,6 @@ export function HelpPageClient() {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="tu@email.com"
                   required
                   disabled={loading}
                   className="mt-1.5"
@@ -412,7 +409,6 @@ export function HelpPageClient() {
                   type="tel"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
-                  placeholder="+52 33 1234 5678"
                   disabled={loading}
                   className="mt-1.5"
                 />
@@ -423,7 +419,6 @@ export function HelpPageClient() {
                   id="help-message"
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
-                  placeholder="Describe tu situación o consulta con el mayor detalle posible (fecha de la cita, nombre del profesional, etc.)."
                   required
                   disabled={loading}
                   rows={4}

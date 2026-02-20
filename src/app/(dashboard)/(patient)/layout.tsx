@@ -375,7 +375,7 @@ export default function UserLayout({
                     </Link>
                   </div>
 
-                  <div className="mt-8 space-y-2 overflow-y-auto flex-1">
+                  <div className="mt-8 grid grid-cols-2 gap-2 overflow-y-auto flex-1">
                     {navigation.map((item) => (
                       <Link
                         key={item.name}

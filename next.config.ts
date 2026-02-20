@@ -109,26 +109,20 @@ const nextConfig: NextConfig = {
     ];
   },
   async rewrites() {
-    return [
-      // Alias público/canónico para rutas de paciente
-      {
-        source: "/patient",
-        destination: "/explore",
-      },
-      {
-        source: "/patient/:path*",
-        destination: "/:path*",
-      },
-      // Alias público/canónico para rutas de profesional
-      {
-        source: "/expert",
-        destination: "/dashboard",
-      },
-      {
-        source: "/expert/:path*",
-        destination: "/:path*",
-      },
-    ];
+    return {
+      beforeFiles: [],
+      // afterFiles: se aplican DESPUÉS de que el App Router resuelve sus páginas,
+      // así /patient/blog sirve el dashboard layout y no el website.
+      afterFiles: [
+        // Alias público/canónico para rutas de paciente
+        { source: "/patient", destination: "/explore" },
+        { source: "/patient/:path*", destination: "/:path*" },
+        // Alias público/canónico para rutas de profesional
+        { source: "/expert", destination: "/dashboard" },
+        { source: "/expert/:path*", destination: "/:path*" },
+      ],
+      fallback: [],
+    };
   },
   serverExternalPackages: ['@supabase/ssr']
 };

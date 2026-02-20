@@ -1299,7 +1299,7 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
                       setFormData({ ...formData, suggested_schedule_days: next });
                     }}
                     className={cn(
-                      "h-9 w-12 rounded-md border text-sm font-medium transition-colors",
+                      "h-9 px-3 rounded-md border text-sm font-medium transition-colors",
                       selected
                         ? "bg-primary text-primary-foreground border-primary"
                         : "bg-background text-foreground border-input hover:bg-muted"

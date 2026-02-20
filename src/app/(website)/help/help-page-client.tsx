@@ -17,6 +17,7 @@ import {
   ChevronRight,
   Stethoscope,
   Users,
+  Lock,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -49,6 +50,17 @@ const SUPPORT_TOPICS = [
     subjectForForm: "No me llegó el enlace de la cita/evento",
   },
   {
+    id: "refund",
+    title: "Quiero solicitar un reembolso",
+    shortDescription: "Necesito solicitar la devolución de un pago.",
+    icon: Receipt,
+    steps: [
+      "Según nuestros términos, las cancelaciones con más de 24 h de anticipación pueden evaluar excepciones con el profesional.",
+      "Indica en tu mensaje: cita o evento, fecha y motivo. Revisaremos tu caso y te responderemos en 24-48 h hábiles.",
+    ],
+    subjectForForm: "Solicitud de reembolso",
+  },
+  {
     id: "professional_no_show",
     title: "El profesional no se presentó",
     shortDescription: "Tuve la cita agendada pero el profesional no asistió.",
@@ -69,6 +81,18 @@ const SUPPORT_TOPICS = [
       "Si se realizó un cobro duplicado o no ves tu comprobante, envía tu solicitud con fecha aproximada y correo con el que pagaste. Revisaremos con el equipo de pagos.",
     ],
     subjectForForm: "Problema con mi pago",
+  },
+  {
+    id: "account_access",
+    title: "No puedo acceder a mi cuenta",
+    shortDescription: "Problemas para iniciar sesión, recuperar contraseña o verificar mi correo.",
+    icon: Lock,
+    steps: [
+      "Ve a la pantalla de inicio de sesión y usa «¿Olvidaste tu contraseña?» para recibir un enlace de recuperación por correo.",
+      "Revisa tu carpeta de spam si no recibes el correo de recuperación.",
+      "Si tu cuenta está bloqueada o tienes otro problema de acceso, envía una solicitud con tu correo registrado.",
+    ],
+    subjectForForm: "Problema de acceso a la cuenta",
   },
   {
     id: "other",
@@ -277,7 +301,7 @@ export function HelpPageClient() {
               <Card
                 key={topic.id}
                 className={cn(
-                  "cursor-pointer transition-all hover:shadow-md hover:border-primary/30 focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2 py-4",
+                  "cursor-pointer transition-all hover:shadow-md hover:border-primary/30 focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2 py-4 flex flex-col",
                   selectedTopicId === topic.id && "ring-2 ring-primary border-primary/40"
                 )}
               >
@@ -295,22 +319,24 @@ export function HelpPageClient() {
                     {topic.shortDescription}
                   </p>
                 </CardHeader>
-                <CardContent className="pt-0 space-y-4">
-                  <ul className="text-sm text-muted-foreground space-y-1.5 list-disc list-inside">
+                <CardContent className="pt-0 flex flex-col flex-1">
+                  <ul className="text-sm text-muted-foreground space-y-1.5 list-disc list-inside flex-1">
                     {topic.steps.map((step, i) => (
                       <li key={i}>{step}</li>
                     ))}
                   </ul>
-                  <Button
-                    type="button"
-                    variant="default"
-                    size="sm"
-                    className="w-full sm:w-auto"
-                    onClick={() => handleSelectTopic(topic.id)}
-                  >
-                    Enviar solicitud
-                    <ChevronRight className="ml-1 h-4 w-4" aria-hidden />
-                  </Button>
+                  <div className="mt-4">
+                    <Button
+                      type="button"
+                      variant="default"
+                      size="sm"
+                      className="w-full sm:w-auto"
+                      onClick={() => handleSelectTopic(topic.id)}
+                    >
+                      Enviar solicitud
+                      <ChevronRight className="ml-1 h-4 w-4" aria-hidden />
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
             );

@@ -26,6 +26,7 @@ import {
   GitBranch as GitBranchIcon,
   Package,
   Clock,
+  MessageSquare,
 } from "lucide-react";
 import {
   Sidebar,
@@ -171,6 +172,7 @@ export function AdminSidebar() {
         { title: "Logs de Cron Sync", url: `/admin/${userId}/cron-sync-logs`, icon: Clock },
         { title: "Agente IA (Alpha)", url: `/admin/${userId}/ai-agent`, icon: Sparkles },
         { title: "Commits de GitHub", url: `/admin/${userId}/github-commits`, icon: GitBranchIcon },
+        { title: "Prueba de WhatsApp", url: `/admin/${userId}/whatsapp-test`, icon: MessageSquare },
       ],
     },
   ];

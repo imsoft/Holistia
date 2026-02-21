@@ -52,7 +52,7 @@ export function ShopCard({
               alt={shop.name}
               fill
               className="object-cover object-center"
-              unoptimized
+              sizes="(max-width: 640px) 280px, 320px"
               onError={(e) => {
                 const target = e.target as HTMLImageElement;
                 target.src = "/logos/holistia-black.png";

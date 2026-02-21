@@ -407,7 +407,6 @@ export default function ProfessionalPatients() {
                       width={60}
                       height={60}
                       className="h-12 w-12 sm:h-15 sm:w-15 aspect-square rounded-full object-cover border-2 border-border"
-                      unoptimized={patient.avatar?.includes('supabase.co') || patient.avatar?.includes('supabase.in')}
                       onError={(e) => {
                         const target = e.target as HTMLImageElement;
                         target.src = "/logos/holistia-black.png";

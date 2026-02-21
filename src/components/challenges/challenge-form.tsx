@@ -1615,7 +1615,7 @@ export function ChallengeForm({ userId, challenge, redirectPath, userType = 'pat
                     alt="Portada"
                     fill
                     className="object-cover"
-                    unoptimized
+                    sizes="(max-width: 768px) 100vw, 50vw"
                     onError={(e) => {
                       // Error silencioso - la imagen no se cargará
                     }}

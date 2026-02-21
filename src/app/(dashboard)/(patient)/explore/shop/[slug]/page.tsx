@@ -282,7 +282,7 @@ export default function ShopDetailPage() {
                 alt={shop.name}
                 fill
                 className="object-cover"
-                unoptimized={shop.image_url.includes('supabase.co') || shop.image_url.includes('supabase.in')}
+                sizes="(max-width: 1024px) 100vw, 50vw"
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
                   target.src = "/logos/holistia-black.png";
@@ -294,7 +294,7 @@ export default function ShopDetailPage() {
                 alt={shop.name}
                 fill
                 className="object-cover"
-                unoptimized={shop.gallery[0].includes('supabase.co') || shop.gallery[0].includes('supabase.in')}
+                sizes="(max-width: 1024px) 100vw, 50vw"
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
                   target.src = "/logos/holistia-black.png";
@@ -443,7 +443,7 @@ export default function ShopDetailPage() {
                     alt={`Imagen ${index + 1} de ${shop.name}`}
                     fill
                     className="object-cover hover:scale-105 transition-transform duration-300 cursor-pointer"
-                    unoptimized={imageUrl.includes('supabase.co') || imageUrl.includes('supabase.in')}
+                    sizes="(max-width: 768px) 50vw, 25vw"
                     onError={(e) => {
                       const target = e.target as HTMLImageElement;
                       target.src = "/logos/holistia-black.png";
@@ -498,7 +498,7 @@ export default function ShopDetailPage() {
                         alt={product.name}
                         fill
                         className="object-cover"
-                        unoptimized={product.images[0].image_url.includes('supabase.co') || product.images[0].image_url.includes('supabase.in')}
+                        sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
                         onError={(e) => {
                           const target = e.target as HTMLImageElement;
                           target.src = "/logos/holistia-black.png";

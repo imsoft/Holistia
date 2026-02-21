@@ -405,10 +405,7 @@ export default function AdminDigitalProductsPage() {
                         alt={product.title}
                         fill
                         className="object-cover"
-                        unoptimized={
-                          product.cover_image_url.includes("supabase") ||
-                          product.cover_image_url.includes("supabase.in")
-                        }
+                        sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
                       />
                     ) : (
                       <div className="flex items-center justify-center h-full">

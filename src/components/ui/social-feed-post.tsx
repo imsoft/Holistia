@@ -377,7 +377,7 @@ export function SocialFeedPost({ checkin, onLike, onUnlike }: SocialFeedPostProp
                 alt="Evidencia del reto"
                 fill
                 className="object-cover"
-                unoptimized
+                sizes="(max-width: 640px) 100vw, 600px"
               />
             </div>
             <ImageViewerDialog

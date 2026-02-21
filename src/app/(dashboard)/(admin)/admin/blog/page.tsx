@@ -450,10 +450,6 @@ export default function AdminBlogPage({ params }: { params: Promise<{ id: string
                       alt={post.title}
                       fill
                       className="object-cover object-top"
-                      unoptimized={
-                        post.featured_image.includes("supabase") ||
-                        post.featured_image.includes("supabase.in")
-                      }
                       sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                     />
                     <div className="absolute top-3 right-3">

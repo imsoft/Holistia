@@ -118,8 +118,8 @@ export const ProfessionalCard = ({ professional, userId, showFavoriteButton = tr
             alt={professional.name || `${professional.first_name || ''} ${professional.last_name || ''}`.trim()}
             fill
             className="object-cover"
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
             style={{ objectPosition: professional.imagePosition || "center center" }}
-            unoptimized
             onError={(e) => {
               const target = e.target as HTMLImageElement;
               target.src = "/logos/holistia-black.png";

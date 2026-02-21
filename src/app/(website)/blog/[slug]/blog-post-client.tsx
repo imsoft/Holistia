@@ -168,6 +168,7 @@ export function BlogPostClient({ post, relatedPosts, basePath = "/blog" }: BlogP
                   alt={post.title}
                   fill
                   className="object-cover"
+                  sizes="100vw"
                   priority
                 />
               </div>
@@ -199,6 +200,7 @@ export function BlogPostClient({ post, relatedPosts, basePath = "/blog" }: BlogP
                           alt={post.author.name}
                           fill
                           className="object-cover"
+                          sizes="64px"
                         />
                       </div>
                     ) : (
@@ -216,6 +218,7 @@ export function BlogPostClient({ post, relatedPosts, basePath = "/blog" }: BlogP
                           alt={post.author.name}
                           fill
                           className="object-cover"
+                          sizes="64px"
                         />
                       </div>
                     ) : (

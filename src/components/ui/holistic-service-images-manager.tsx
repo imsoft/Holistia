@@ -217,7 +217,7 @@ export default function HolisticServiceImagesManager({
                   alt={`Imagen ${image.image_order + 1}`}
                   fill
                   className="object-cover rounded-lg"
-                  unoptimized
+                  sizes="(max-width: 640px) 50vw, 25vw"
                 />
                 <Button
                   variant="destructive"

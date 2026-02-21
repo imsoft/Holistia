@@ -77,6 +77,7 @@ export function ChallengeCard({ challenge, onJoin, userId, showFavoriteButton = 
           alt={challenge.title}
           fill
           className="object-cover"
+          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
         />
         {showFavoriteButton && (
           <div className="absolute top-2 right-2 z-10" onClick={(e) => e.stopPropagation()}>

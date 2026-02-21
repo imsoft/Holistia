@@ -53,7 +53,6 @@ const MarqueeImage = ({ src, index, imageIndex }: { src: string; index: number; 
             console.error(`Failed to load image: ${src}`);
             setImageError(true);
           }}
-          unoptimized={true}
         />
       ) : (
         <div className="w-full h-full bg-muted rounded-2xl flex items-center justify-center">

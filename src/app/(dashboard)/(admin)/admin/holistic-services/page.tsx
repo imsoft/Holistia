@@ -564,7 +564,7 @@ export default function AdminHolisticServices() {
                         alt={service.name}
                         fill
                         className="object-cover rounded-t-lg"
-                        unoptimized
+                        sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
                       />
                     </div>
                   )}
@@ -834,7 +834,7 @@ export default function AdminHolisticServices() {
                           alt={`Imagen ${image.image_order + 1}`}
                           fill
                           className="object-cover"
-                          unoptimized
+                          sizes="(max-width: 640px) 50vw, 25vw"
                         />
                       </div>
                     ))}

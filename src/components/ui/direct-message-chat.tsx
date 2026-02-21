@@ -995,6 +995,7 @@ export function DirectMessageChat({
                                   alt={program.title}
                                   fill
                                   className="object-cover rounded-t-lg"
+                                  sizes="384px"
                                 />
                               </div>
                             )}
@@ -1045,6 +1046,7 @@ export function DirectMessageChat({
                                   alt={challenge.title}
                                   fill
                                   className="object-cover rounded-t-lg"
+                                  sizes="384px"
                                 />
                               </div>
                             )}

@@ -51,7 +51,7 @@ export function HolisticCenterCard({
                 alt={center.name}
                 fill
                 className="object-cover"
-                unoptimized
+                sizes="(max-width: 640px) 280px, 320px"
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
                   target.src = "/logos/holistia-black.png";

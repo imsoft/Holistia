@@ -140,7 +140,7 @@ export function DigitalProductCard({
                 alt={product.title}
                 fill
                 className="object-cover group-hover:scale-105 transition-transform duration-300"
-                unoptimized={product.cover_image_url.includes('supabase.co') || product.cover_image_url.includes('supabase.in')}
+                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
                   target.src = "/logos/holistia-black.png";

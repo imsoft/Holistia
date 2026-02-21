@@ -1066,7 +1066,7 @@ export function ProfessionalProfileClient({
                             alt={service.name}
                             fill
                             className={`${service.image_url ? 'object-cover' : 'object-contain p-6 bg-muted'}`}
-                            unoptimized={service.image_url?.includes('supabase.co') || service.image_url?.includes('supabase.in')}
+                            sizes="(max-width: 640px) 100vw, 25vw"
                           />
                         </div>
                         
@@ -1777,6 +1777,7 @@ export function ProfessionalProfileClient({
               alt={`${professional.first_name} ${professional.last_name}`}
               fill
               className="object-contain rounded-lg"
+              sizes="(max-width: 640px) 100vw, 640px"
               priority
             />
           </div>

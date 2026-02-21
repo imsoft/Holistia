@@ -191,7 +191,7 @@ export default function HolisticCenterDetailPage() {
                 alt={center.name}
                 fill
                 className="object-cover"
-                unoptimized={center.image_url.includes('supabase.co') || center.image_url.includes('supabase.in')}
+                sizes="(max-width: 1024px) 100vw, 50vw"
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
                   target.src = "/logos/holistia-black.png";

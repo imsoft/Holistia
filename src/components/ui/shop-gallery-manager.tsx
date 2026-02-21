@@ -235,7 +235,7 @@ export function ShopGalleryManager({
                   alt={`Imagen ${index + 1} de la galería`}
                   fill
                   className="object-cover"
-                  unoptimized={imageUrl.includes('supabase.co') || imageUrl.includes('supabase.in')}
+                  sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
                     target.src = "/logos/holistia-black.png";

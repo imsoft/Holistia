@@ -204,7 +204,7 @@ export default function RestaurantDetailPage() {
                 alt={restaurant.name}
                 fill
                 className="object-cover"
-                unoptimized={restaurant.image_url.includes('supabase.co') || restaurant.image_url.includes('supabase.in')}
+                sizes="(max-width: 1024px) 100vw, 50vw"
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
                   target.src = "/logos/holistia-black.png";
@@ -320,7 +320,7 @@ export default function RestaurantDetailPage() {
                     alt={`Imagen ${index + 1} de ${restaurant.name}`}
                     fill
                     className="object-cover hover:scale-105 transition-transform duration-300 cursor-pointer"
-                    unoptimized={imageUrl.includes('supabase.co') || imageUrl.includes('supabase.in')}
+                    sizes="(max-width: 768px) 50vw, 25vw"
                     onError={(e) => {
                       const target = e.target as HTMLImageElement;
                       target.src = "/logos/holistia-black.png";
@@ -375,7 +375,7 @@ export default function RestaurantDetailPage() {
                         alt={menu.title}
                         fill
                         className="object-cover"
-                        unoptimized={menu.images[0].includes('supabase.co') || menu.images[0].includes('supabase.in')}
+                        sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
                         onError={(e) => {
                           const target = e.target as HTMLImageElement;
                           target.src = "/logos/holistia-black.png";

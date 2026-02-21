@@ -671,7 +671,7 @@ export default function AdminShops() {
                       alt={shop.name}
                       fill
                       className="object-cover"
-                      unoptimized={shop.image_url.includes('supabase.co') || shop.image_url.includes('supabase.in')}
+                      sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
                       onError={(e) => {
                         const target = e.target as HTMLImageElement;
                         target.src = "/logos/holistia-black.png";

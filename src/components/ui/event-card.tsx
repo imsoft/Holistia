@@ -86,10 +86,10 @@ export function EventCard({
               alt={event.name}
               fill
               className="object-cover"
+              sizes="(max-width: 640px) 280px, 320px"
               style={{
                 objectPosition: event.image_position || "center center",
               }}
-              unoptimized
             />
           </div>
           {event.participant_level && (

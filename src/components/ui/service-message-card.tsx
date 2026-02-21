@@ -111,7 +111,7 @@ export function ServiceMessageCard({
             alt={service.name}
             fill
             className="object-cover rounded-t-lg"
-            unoptimized={service.image_url.includes('supabase.co') || service.image_url.includes('supabase.in')}
+            sizes="384px"
             onError={(e) => {
               const target = e.target as HTMLImageElement;
               target.src = "/logos/holistia-black.png";

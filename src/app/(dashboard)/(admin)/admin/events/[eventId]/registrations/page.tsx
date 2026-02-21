@@ -338,7 +338,7 @@ export default function EventRegistrationsDetailPage() {
                     alt={event.name}
                     fill
                     className="object-contain"
-                    unoptimized={event.gallery_images[0].includes('supabase.co') || event.gallery_images[0].includes('supabase.in')}
+                    sizes="(max-width: 768px) 100vw, 50vw"
                   />
                 </div>
               )}

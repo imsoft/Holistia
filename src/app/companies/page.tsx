@@ -607,7 +607,6 @@ export default function CompaniesLandingPage() {
                           alt={service.name}
                           fill
                           className="object-cover"
-                          unoptimized
                           sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
                         />
                       </div>
@@ -655,7 +654,7 @@ export default function CompaniesLandingPage() {
                                         alt={`${service.name} - Imagen ${img.image_order}`}
                                         fill
                                         className="object-cover"
-                                        unoptimized
+                                        sizes="(max-width: 640px) 50vw, 25vw"
                                       />
                                     </div>
                                   ))}
@@ -896,7 +895,6 @@ export default function CompaniesLandingPage() {
                                   alt={service.name}
                                   fill
                                   className="object-cover"
-                                  unoptimized
                                   sizes="(max-width: 768px) 100vw, 50vw"
                                 />
                                 {selectedServices.includes(service.id) && (
@@ -963,7 +961,7 @@ export default function CompaniesLandingPage() {
                                                   alt={`${service.name} - Imagen ${img.image_order}`}
                                                   fill
                                                   className="object-cover"
-                                                  unoptimized
+                                                  sizes="(max-width: 640px) 50vw, 25vw"
                                                 />
                                               </div>
                                             ))}

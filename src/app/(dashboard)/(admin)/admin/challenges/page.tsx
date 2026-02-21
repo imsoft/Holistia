@@ -759,10 +759,7 @@ export default function AdminChallengesPage() {
                       alt={challenge.title}
                       fill
                       className="object-cover"
-                      unoptimized={
-                        challenge.cover_image_url.includes("supabase") ||
-                        challenge.cover_image_url.includes("supabase.in")
-                      }
+                      sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
                     />
                   ) : (
                     <div className="w-full h-full bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center">

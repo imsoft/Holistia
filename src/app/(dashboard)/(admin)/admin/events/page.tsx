@@ -475,7 +475,7 @@ const EventsAdminPage = () => {
                         objectFit: 'cover',
                         objectPosition: event.image_position || "center center"
                       }}
-                      unoptimized={event.gallery_images[0].includes('supabase.co') || event.gallery_images[0].includes('supabase.in')}
+                      sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
                       onError={(e) => {
                         const target = e.target as HTMLImageElement;
                         target.src = "/logos/holistia-black.png";

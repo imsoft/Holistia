@@ -30,7 +30,6 @@ export function ImageViewerDialog({
               width={1200}
               height={1200}
               className="max-w-full max-h-[90vh] w-auto h-auto object-contain rounded-lg"
-              unoptimized
               priority
             />
           </div>

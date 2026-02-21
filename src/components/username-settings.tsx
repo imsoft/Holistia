@@ -193,7 +193,7 @@ export function UsernameSettings({ userId, currentUsername }: UsernameSettingsPr
           )}
         </div>
 
-        <div className="flex gap-2">
+        <div className="flex flex-col sm:flex-row gap-2">
           <Button
             onClick={handleSave}
             disabled={!canSave}
@@ -214,6 +214,7 @@ export function UsernameSettings({ userId, currentUsername }: UsernameSettingsPr
               variant="outline"
               onClick={() => setUsername(currentUsername || "")}
               disabled={isSaving}
+              className="w-full sm:w-auto"
             >
               Cancelar
             </Button>

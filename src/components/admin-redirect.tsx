@@ -38,7 +38,8 @@ export function AdminRedirect() {
         idMatch[1] !== 'certifications' && idMatch[1] !== 'services-costs' &&
         idMatch[1] !== 'holistic-services' && idMatch[1] !== 'my-events' &&
         idMatch[1] !== 'sync-tools' &&
-        idMatch[1] !== 'github-commits' && idMatch[1] !== 'ai-agent') {
+        idMatch[1] !== 'github-commits' && idMatch[1] !== 'ai-agent' &&
+        idMatch[1] !== 'whatsapp-test') {
       // Es un ID de usuario, redirigir a la ruta limpia
       const newPath = `/admin${idMatch[2] || '/dashboard'}`;
       router.replace(newPath);

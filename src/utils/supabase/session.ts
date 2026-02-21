@@ -44,6 +44,7 @@ const VALID_ADMIN_ROUTES = [
   "ai-agent",
   "cron-sync-logs",
   "event-registrations",
+  "whatsapp-test",
 ] as const;
 
 function startsWithSegment(pathname: string, segment: string): boolean {

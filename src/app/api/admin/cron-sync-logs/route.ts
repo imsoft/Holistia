@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/utils/supabase/server';
+import { createClient, createServiceRoleClient } from '@/utils/supabase/server';
 
 /**
  * GET /api/admin/cron-sync-logs
@@ -58,8 +58,11 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    // Usar service role para leer logs (evita problemas de RLS; ya verificamos que es admin)
+    const supabaseAdmin = createServiceRoleClient();
+
     // Obtener logs con paginación
-    const { data: logs, error: logsError, count } = await supabase
+    const { data: logs, error: logsError, count } = await supabaseAdmin
       .from('cron_sync_logs')
       .select('*', { count: 'exact' })
       .order('started_at', { ascending: false })
@@ -68,7 +71,10 @@ export async function GET(request: NextRequest) {
     if (logsError) {
       console.error('Error al obtener logs de cron sync:', logsError);
       return NextResponse.json(
-        { error: 'Error al obtener logs de sincronización' },
+        {
+          error: 'Error al obtener logs de sincronización',
+          details: logsError.message,
+        },
         { status: 500 }
       );
     }

@@ -87,14 +87,16 @@ export default function CronSyncLogsPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.error || 'Error al cargar logs');
+        const msg = data.details || data.error || 'Error al cargar logs';
+        throw new Error(msg);
       }
 
       setLogs(data.logs || []);
       setTotal(data.total || 0);
     } catch (err) {
       console.error('Error fetching logs:', err);
-      toast.error('Error al cargar logs de sincronización');
+      const message = err instanceof Error ? err.message : 'Error al cargar logs de sincronización';
+      toast.error(message);
     } finally {
       setLoading(false);
     }

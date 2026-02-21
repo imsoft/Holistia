@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useUserId } from "@/stores/user-store";
 import { useUserStoreInit } from "@/hooks/use-user-store-init";
@@ -154,8 +154,11 @@ export default function BecomeProfessionalPage() {
   const [userProfilePhoto, setUserProfilePhoto] = useState<string | null>(null);
   const [openCountryCombo, setOpenCountryCombo] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [verifyingPayment, setVerifyingPayment] = useState(false);
   useUserStoreInit();
   const userId = useUserId();
+  const searchParams = useSearchParams();
+  const router = useRouter();
 
   const supabase = createClient();
 
@@ -260,6 +263,56 @@ export default function BecomeProfessionalPage() {
       }
     };
   }, [formData, currentStep, profile?.id, existingApplication]);
+
+  // Verificar pago al regresar de Stripe con ?payment=success
+  useEffect(() => {
+    if (searchParams.get('payment') !== 'success' || !profile?.id) return;
+
+    setVerifyingPayment(true);
+    let attempts = 0;
+    const maxAttempts = 15;
+
+    const interval = setInterval(async () => {
+      try {
+        const { data: app } = await supabase
+          .from('professional_applications')
+          .select('registration_fee_paid, status')
+          .eq('user_id', profile.id)
+          .maybeSingle();
+
+        attempts++;
+
+        if (app?.registration_fee_paid) {
+          clearInterval(interval);
+          setVerifyingPayment(false);
+          toast.success('¡Pago de inscripción completado exitosamente!');
+
+          if (app.status === 'approved') {
+            router.push(`/professional/${userId}/dashboard`);
+          } else {
+            router.replace(window.location.pathname);
+            setRefreshKey(prev => prev + 1);
+          }
+          return;
+        }
+
+        if (attempts >= maxAttempts) {
+          clearInterval(interval);
+          setVerifyingPayment(false);
+          toast.success('¡Pago recibido! Tu estado se actualizará en breve.');
+          router.replace(window.location.pathname);
+          setRefreshKey(prev => prev + 1);
+        }
+      } catch (error) {
+        console.error('❌ Error verificando pago:', error);
+        clearInterval(interval);
+        setVerifyingPayment(false);
+      }
+    }, 2000);
+
+    return () => clearInterval(interval);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams, profile?.id]);
 
   const handleInputChange = (field: string, value: string | boolean) => {
     // Para campos de texto, guardar el valor sin normalizar
@@ -1193,8 +1246,18 @@ export default function BecomeProfessionalPage() {
     }
   };
 
-  if (loading) {
-    return <PageSkeleton cards={3} />;
+  if (loading || verifyingPayment) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4">
+        <div className="h-10 w-10 rounded-full border-4 border-primary border-t-transparent animate-spin" />
+        {verifyingPayment && (
+          <div className="text-center">
+            <p className="text-base font-semibold text-foreground">Verificando tu pago...</p>
+            <p className="text-sm text-muted-foreground mt-1">Esto puede tardar unos segundos</p>
+          </div>
+        )}
+      </div>
+    );
   }
 
   // Mostrar estado de aplicación existente (excepto si está editando una rechazada)

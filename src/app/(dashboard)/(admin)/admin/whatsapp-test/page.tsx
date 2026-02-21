@@ -183,7 +183,7 @@ export default function WhatsAppTestPage() {
       </div>
 
       <div className="p-4 sm:p-6 w-full max-w-full space-y-6">
-        <Card className="w-full">
+        <Card className="w-full py-4">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <MessageCircle className="h-5 w-5 text-green-600" />

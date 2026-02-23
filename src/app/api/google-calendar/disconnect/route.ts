@@ -1,15 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/utils/supabase/server';
+import { createClientForRequest } from '@/utils/supabase/api-auth';
 import { stopWatchingCalendar } from '@/lib/google-calendar';
 
 /**
  * POST /api/google-calendar/disconnect
- * Desconecta la cuenta de Google Calendar del usuario.
+ * Desconecta la cuenta de Google Calendar del usuario (web y app móvil con Bearer).
  * Cancela la suscripción de webhook en Google antes de limpiar tokens.
  */
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await createClient();
+    const supabase = await createClientForRequest(request);
 
     // Verificar que el usuario está autenticado
     const {

@@ -1,13 +1,13 @@
-import { createClient } from "@/utils/supabase/server";
+import { createClientForRequest } from "@/utils/supabase/api-auth";
 import { NextRequest, NextResponse } from "next/server";
 
 /** GET: listar feedback del evento (organizador o admin) */
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ eventId: string }> }
 ) {
   try {
-    const supabase = await createClient();
+    const supabase = await createClientForRequest(request);
     const { eventId } = await params;
 
     const {
@@ -107,7 +107,7 @@ export async function POST(
   { params }: { params: Promise<{ eventId: string }> }
 ) {
   try {
-    const supabase = await createClient();
+    const supabase = await createClientForRequest(request);
     const { eventId } = await params;
 
     const {

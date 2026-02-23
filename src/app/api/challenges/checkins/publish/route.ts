@@ -1,9 +1,9 @@
-import { createClient } from '@/utils/supabase/server';
+import { createClientForRequest } from '@/utils/supabase/api-auth';
 import { NextResponse } from 'next/server';
 
 export async function PATCH(request: Request) {
   try {
-    const supabase = await createClient();
+    const supabase = await createClientForRequest(request);
     const body = await request.json();
 
     const { checkin_id, is_public } = body;

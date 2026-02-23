@@ -13,6 +13,15 @@ function GoogleCalendarErrorContent() {
   const [userId, setUserId] = useState<string | null>(null);
   const [accountType, setAccountType] = useState<"professional" | "admin">("professional");
   const errorMessage = searchParams.get("message") || "No se pudo conectar con Google Calendar";
+  const fromApp = searchParams.get("from") === "app";
+
+  useEffect(() => {
+    if (fromApp) {
+      const message = encodeURIComponent(errorMessage);
+      window.location.href = `holistia://google-calendar-error?message=${message}`;
+      return;
+    }
+  }, [fromApp, errorMessage]);
 
   useEffect(() => {
     async function getUserInfo() {

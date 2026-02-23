@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/utils/supabase/server';
+import { createClientForRequest } from '@/utils/supabase/api-auth';
 import { sendAppointmentConfirmationToPatient } from '@/lib/email-sender';
 import { sendAppointmentConfirmationWithButtonsWhatsApp } from '@/lib/twilio-whatsapp';
 import { createAppointmentInGoogleCalendar } from '@/actions/google-calendar';
@@ -7,7 +7,7 @@ import { formatDate } from '@/lib/date-utils';
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await createClient();
+    const supabase = await createClientForRequest(request);
 
     // Get the authenticated user
     const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -29,12 +29,27 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Get professional application id for the logged-in user
+    const { data: professionalApp, error: profError } = await supabase
+      .from('professional_applications')
+      .select('id')
+      .eq('user_id', user.id)
+      .eq('status', 'approved')
+      .single();
+
+    if (profError || !professionalApp) {
+      return NextResponse.json(
+        { error: 'Professional profile not found' },
+        { status: 404 }
+      );
+    }
+
     // Verify the appointment exists and belongs to the professional
     const { data: appointment, error: appointmentError } = await supabase
       .from('appointments')
       .select('*')
       .eq('id', appointmentId)
-      .eq('professional_id', user.id)
+      .eq('professional_id', professionalApp.id)
       .single();
 
     if (appointmentError || !appointment) {

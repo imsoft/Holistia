@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { stripe, calculateCommission, calculateTransferAmount, formatAmountForStripe } from '@/lib/stripe';
-import { createClient } from '@/utils/supabase/server';
+import { createClientForRequest, isMobileRequest } from '@/utils/supabase/api-auth';
+
+const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.holistia.io';
 
 export async function POST(request: NextRequest) {
   try {
     console.log('🚀 Starting digital product checkout session creation...');
-    const supabase = await createClient();
+    const supabase = await createClientForRequest(request);
 
     // Verify user is authenticated
     const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -60,8 +62,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const professional = Array.isArray(product.professional_applications)
+      ? product.professional_applications[0]
+      : product.professional_applications;
+
     // Verify professional is verified
-    if (!product.professional_applications.is_verified) {
+    if (!professional?.is_verified) {
       return NextResponse.json(
         { error: 'Este programa solo está disponible de profesionales verificados' },
         { status: 403 }
@@ -83,8 +89,6 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
-
-    const professional = product.professional_applications;
 
     // Create purchase record
     const { data: purchase, error: purchaseError } = await supabase
@@ -247,8 +251,12 @@ export async function POST(request: NextRequest) {
         platform_fee: platformFee.toString(),
         transfer_amount: transferAmount.toString(),
       },
-      success_url: `${process.env.NEXT_PUBLIC_SITE_URL || request.nextUrl.origin}/my-products/confirmation?purchase_id=${purchase.id}`,
-      cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL || request.nextUrl.origin}/explore/program/${product.slug || product.id}`,
+      success_url: isMobileRequest(request)
+        ? `${BASE_URL}/checkout/complete?result=success&type=product&purchase_id=${purchase.id}`
+        : `${BASE_URL}/my-products/confirmation?purchase_id=${purchase.id}`,
+      cancel_url: isMobileRequest(request)
+        ? `${BASE_URL}/checkout/complete?result=cancel`
+        : `${BASE_URL}/explore/program/${product.slug || product.id}`,
       customer_email: user.email,
     });
 

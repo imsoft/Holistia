@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { stripe, calculateCommission, calculateTransferAmount, formatAmountForStripe } from '@/lib/stripe';
-import { createClient } from '@/utils/supabase/server';
+import { createClientForRequest, isMobileRequest } from '@/utils/supabase/api-auth';
 import { isSlotBlocked, isWorkingDay, isWithinWorkingHours, getWorkingHoursForDay, getDayOfWeekFromDate } from '@/lib/availability';
 import { slotsOverlap } from '@/lib/appointment-conflict';
 
 export async function POST(request: NextRequest) {
   try {
     console.log('🚀 Starting checkout session creation...');
-    const supabase = await createClient();
+    const supabase = await createClientForRequest(request);
 
     // Verify user is authenticated
     const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -355,8 +355,12 @@ export async function POST(request: NextRequest) {
         platform_fee: platformFee.toString(),
         transfer_amount: transferAmount.toString(),
       },
-      success_url: `${process.env.NEXT_PUBLIC_SITE_URL || request.nextUrl.origin}/appointments/confirmation?appointment_id=${appointmentId}`,
-      cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL || request.nextUrl.origin}/explore/appointments?cancelled=1`,
+      success_url: isMobileRequest(request)
+        ? `${process.env.NEXT_PUBLIC_SITE_URL || request.nextUrl.origin}/checkout/complete?result=success&type=appointment&appointment_id=${appointmentId}`
+        : `${process.env.NEXT_PUBLIC_SITE_URL || request.nextUrl.origin}/appointments/confirmation?appointment_id=${appointmentId}`,
+      cancel_url: isMobileRequest(request)
+        ? `${process.env.NEXT_PUBLIC_SITE_URL || request.nextUrl.origin}/checkout/complete?result=cancel`
+        : `${process.env.NEXT_PUBLIC_SITE_URL || request.nextUrl.origin}/explore/appointments?cancelled=1`,
       customer_email: user.email,
     });
 

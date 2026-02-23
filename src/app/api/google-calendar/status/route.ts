@@ -1,14 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/utils/supabase/server';
+import { createClientForRequest } from '@/utils/supabase/api-auth';
 import { verifyCalendarAccess, refreshAccessToken, calculateTokenExpiry } from '@/lib/google-calendar';
 
 /**
  * GET /api/google-calendar/status
- * Verifica el estado de conexión con Google Calendar
+ * Verifica el estado de conexión con Google Calendar (web y app móvil con Bearer).
  */
 export async function GET(request: NextRequest) {
   try {
-    const supabase = await createClient();
+    const supabase = await createClientForRequest(request);
 
     // Verificar que el usuario está autenticado
     const {

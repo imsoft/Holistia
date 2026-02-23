@@ -13,58 +13,69 @@ export async function GET(request: NextRequest) {
     const state = searchParams.get('state');
     const error = searchParams.get('error');
 
+    // Decodificar state para fromApp (para redirigir a la app en errores)
+    let fromApp = false;
+    try {
+      if (state) {
+        const decoded = JSON.parse(Buffer.from(state, 'base64').toString('utf-8'));
+        fromApp = !!decoded.fromApp;
+      }
+    } catch {}
+
+    const appendFromApp = (url: URL) => {
+      if (fromApp) url.searchParams.set('from', 'app');
+      return url.toString();
+    };
+
     // Si el usuario rechazó el permiso
     if (error) {
-      return NextResponse.redirect(
-        new URL(
-          `/google-calendar-error?message=${encodeURIComponent('Permisos denegados. Por favor, autoriza el acceso a Google Calendar.')}`,
-          request.url
-        )
+      const url = new URL(
+        `/google-calendar-error?message=${encodeURIComponent('Permisos denegados. Por favor, autoriza el acceso a Google Calendar.')}`,
+        request.url
       );
+      return NextResponse.redirect(appendFromApp(url));
     }
 
     // Validar que tenemos el código
     if (!code) {
-      return NextResponse.redirect(
-        new URL(
-          `/google-calendar-error?message=${encodeURIComponent('Código de autorización no encontrado.')}`,
-          request.url
-        )
+      const url = new URL(
+        `/google-calendar-error?message=${encodeURIComponent('Código de autorización no encontrado.')}`,
+        request.url
       );
+      return NextResponse.redirect(appendFromApp(url));
     }
 
-    // Decodificar el state para obtener el userId
+    // Decodificar el state para obtener el userId (y fromApp si viene de móvil)
     let userId: string;
     try {
       const decodedState = JSON.parse(
         Buffer.from(state || '', 'base64').toString('utf-8')
       );
       userId = decodedState.userId;
+      fromApp = !!decodedState.fromApp;
 
       // Validar que el state no sea muy antiguo (más de 10 minutos)
       const timestamp = decodedState.timestamp;
       if (Date.now() - timestamp > 10 * 60 * 1000) {
         throw new Error('State expirado');
       }
-    } catch (error) {
-      return NextResponse.redirect(
-        new URL(
-          `/google-calendar-error?message=${encodeURIComponent('Sesión inválida o expirada. Por favor, intenta nuevamente.')}`,
-          request.url
-        )
+    } catch (err) {
+      const url = new URL(
+        `/google-calendar-error?message=${encodeURIComponent('Sesión inválida o expirada. Por favor, intenta nuevamente.')}`,
+        request.url
       );
+      return NextResponse.redirect(appendFromApp(url));
     }
 
     // Obtener los tokens de Google
     const tokens = await getTokensFromCode(code);
 
     if (!tokens.access_token || !tokens.refresh_token) {
-      return NextResponse.redirect(
-        new URL(
-          `/google-calendar-error?message=${encodeURIComponent('No se pudieron obtener los tokens de autorización.')}`,
-          request.url
-        )
+      const url = new URL(
+        `/google-calendar-error?message=${encodeURIComponent('No se pudieron obtener los tokens de autorización.')}`,
+        request.url
       );
+      return NextResponse.redirect(appendFromApp(url));
     }
 
     // Guardar los tokens en Supabase
@@ -87,29 +98,34 @@ export async function GET(request: NextRequest) {
 
     if (updateError) {
       console.error('Error saving Google tokens:', updateError);
-      return NextResponse.redirect(
-        new URL(
-          `/google-calendar-error?message=${encodeURIComponent('No se pudieron guardar los tokens. Por favor, intenta nuevamente.')}`,
-          request.url
-        )
+      const url = new URL(
+        `/google-calendar-error?message=${encodeURIComponent('No se pudieron guardar los tokens. Por favor, intenta nuevamente.')}`,
+        request.url
       );
+      return NextResponse.redirect(appendFromApp(url));
     }
 
-    // Redirigir a la página de éxito
-    return NextResponse.redirect(
-      new URL(
-        `/google-calendar-success`,
-        request.url
-      )
+    // Redirigir a la página de éxito (con from=app si vino de móvil)
+    const successBase = new URL(request.url).origin;
+    const successUrl = new URL('/google-calendar-success', successBase);
+    if (fromApp) successUrl.searchParams.set('from', 'app');
+    return NextResponse.redirect(successUrl.toString());
+  } catch (err: unknown) {
+    console.error('Error in Google Calendar callback:', err);
+    const errorMessage = err instanceof Error ? err.message : 'Error desconocido';
+    const url = new URL(
+      `/google-calendar-error?message=${encodeURIComponent(`Error en la conexión: ${errorMessage}`)}`,
+      request.url
     );
-  } catch (error: unknown) {
-    console.error('Error in Google Calendar callback:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
-    return NextResponse.redirect(
-      new URL(
-        `/google-calendar-error?message=${encodeURIComponent(`Error en la conexión: ${errorMessage}`)}`,
-        request.url
-      )
-    );
+    let fromAppCatch = false;
+    try {
+      const stateParam = request.nextUrl.searchParams.get('state');
+      if (stateParam) {
+        const decoded = JSON.parse(Buffer.from(stateParam, 'base64').toString('utf-8'));
+        fromAppCatch = !!decoded.fromApp;
+      }
+    } catch {}
+    if (fromAppCatch) url.searchParams.set('from', 'app');
+    return NextResponse.redirect(url.toString());
   }
 }

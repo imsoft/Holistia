@@ -1,16 +1,18 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
-import { createClient } from "@/utils/supabase/server";
+import { createClientForRequest, isMobileRequest } from "@/utils/supabase/api-auth";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2025-10-29.clover",
 });
 
+const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.holistia.io";
+
 export async function POST(request: Request) {
   try {
     console.log('🔵 [Registration Checkout] Iniciando proceso de pago');
 
-    const supabase = await createClient();
+    const supabase = await createClientForRequest(request);
 
     // Verificar autenticación
     const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -129,10 +131,13 @@ export async function POST(request: Request) {
     console.log('✅ [Registration Checkout] Pago creado:', payment.id);
     console.log('🔵 [Registration Checkout] Creando sesión de Stripe Checkout');
 
-    // Asegurar que la URL base tenga el esquema correcto
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://www.holistia.io';
-    const successUrl = `${baseUrl}/patient/${user.id}/explore/become-professional?payment=success`;
-    const cancelUrl = `${baseUrl}/patient/${user.id}/explore/become-professional?payment=cancelled`;
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || BASE_URL;
+    const successUrl = isMobileRequest(request)
+      ? `${baseUrl}/checkout/complete?result=success&type=registration`
+      : `${baseUrl}/patient/${user.id}/explore/become-professional?payment=success`;
+    const cancelUrl = isMobileRequest(request)
+      ? `${baseUrl}/checkout/complete?result=cancel&type=registration`
+      : `${baseUrl}/patient/${user.id}/explore/become-professional?payment=cancelled`;
 
     console.log('🔵 [Registration Checkout] URLs:', { successUrl, cancelUrl });
 

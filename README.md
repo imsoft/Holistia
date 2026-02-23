@@ -1,6 +1,8 @@
-# Holistia
+# Holistia - Web
 
-Plataforma integral de bienestar que conecta profesionales de la salud con personas que buscan mejorar su calidad de vida. Holistia facilita la gestión de citas, eventos y pagos para terapeutas, coaches y especialistas en bienestar.
+Aplicación web de **Holistia**, plataforma integral de bienestar que conecta profesionales de la salud con personas que buscan mejorar su calidad de vida. Holistia facilita la gestión de citas, eventos y pagos para terapeutas, coaches y especialistas en bienestar.
+
+> **Nota:** La app móvil (iOS y Android) está en el repositorio [Holistia-App](../Holistia-App). Ambas comparten la misma base de datos y lógica de negocio.
 
 ## Características Principales
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, Suspense } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CheckCircle, Calendar } from "lucide-react";
@@ -9,6 +9,8 @@ import { createClient } from "@/utils/supabase/client";
 
 function GoogleCalendarSuccessContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const fromApp = searchParams.get("from") === "app";
   const [userId, setUserId] = useState<string | null>(null);
   const [accountType, setAccountType] = useState<"professional" | "admin">("professional");
   const [countdown, setCountdown] = useState(5);
@@ -38,6 +40,10 @@ function GoogleCalendarSuccessContent() {
   }, []);
 
   useEffect(() => {
+    if (fromApp) {
+      window.location.href = "holistia://google-calendar-success";
+      return;
+    }
     if (countdown === 0 && userId) {
       handleRedirect();
       return;
@@ -48,7 +54,7 @@ function GoogleCalendarSuccessContent() {
     }, 1000);
 
     return () => clearTimeout(timer);
-  }, [countdown, userId]);
+  }, [countdown, userId, fromApp]);
 
   const handleRedirect = () => {
     if (!userId) return;

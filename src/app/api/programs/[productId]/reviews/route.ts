@@ -1,4 +1,4 @@
-import { createClient } from "@/utils/supabase/server";
+import { createClientForRequest } from "@/utils/supabase/api-auth";
 import { NextRequest, NextResponse } from "next/server";
 
 type RouteParams = { params: Promise<{ productId: string }> };
@@ -11,7 +11,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: "productId requerido" }, { status: 400 });
     }
 
-    const supabase = await createClient();
+    const supabase = await createClientForRequest(request);
 
     const [statsRes, reviewsRes] = await Promise.all([
       supabase
@@ -75,7 +75,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: "productId requerido" }, { status: 400 });
     }
 
-    const supabase = await createClient();
+    const supabase = await createClientForRequest(request);
     const {
       data: { user },
       error: authError,

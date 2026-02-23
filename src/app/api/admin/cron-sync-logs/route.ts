@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient, createServiceRoleClient } from '@/utils/supabase/server';
+import { createClientForRequest } from '@/utils/supabase/api-auth';
+import { createServiceRoleClient } from '@/utils/supabase/server';
 
 /**
  * GET /api/admin/cron-sync-logs
  *
  * Endpoint para obtener el historial de ejecuciones del cron de sincronización
  * de Google Calendar. Solo accesible para usuarios administradores.
+ * Soporta Bearer (app) y cookies (web).
  *
  * Query params:
  * - limit: número de registros a devolver (default: 20)
@@ -13,7 +15,7 @@ import { createClient, createServiceRoleClient } from '@/utils/supabase/server';
  */
 export async function GET(request: NextRequest) {
   try {
-    const supabase = await createClient();
+    const supabase = await createClientForRequest(request);
 
     // Verificar autenticación
     const { data: { user }, error: authError } = await supabase.auth.getUser();

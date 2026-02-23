@@ -1,4 +1,4 @@
-import { createClient } from '@/utils/supabase/server';
+import { createClientForRequest } from '@/utils/supabase/api-auth';
 import { NextResponse } from 'next/server';
 import {
   sendAppointmentCancelledByPatient,
@@ -9,7 +9,7 @@ import { formatDate } from '@/lib/date-utils';
 
 export async function POST(request: Request) {
   try {
-    const supabase = await createClient();
+    const supabase = await createClientForRequest(request);
     const body = await request.json();
 
     const {

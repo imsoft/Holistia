@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/utils/supabase/server';
+import { createClientForRequest } from '@/utils/supabase/api-auth';
 
 // POST - Subir evidencia multimedia para check-in
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await createClient();
+    const supabase = await createClientForRequest(request);
 
     // Verificar autenticación
     const { data: { user }, error: authError } = await supabase.auth.getUser();

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/utils/supabase/server';
+import { createClientForRequest } from '@/utils/supabase/api-auth';
 import { sendEventFreeRegistrationConfirmation } from '@/lib/email-sender';
 import { formatEventDate } from '@/utils/date-utils';
 
@@ -16,7 +16,7 @@ function generateConfirmationCode(): string {
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await createClient();
+    const supabase = await createClientForRequest(request);
     const { data: { user }, error: authError } = await supabase.auth.getUser();
 
     if (authError || !user) {

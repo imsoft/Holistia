@@ -1,15 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/utils/supabase/server";
+import { createClientForRequest } from "@/utils/supabase/api-auth";
 import { sendProfessionalApplicationReceivedEmail } from "@/lib/email-sender";
 
 /**
  * POST /api/professional-applications/submit
- * Envía o actualiza la solicitud de profesional (evita que el cliente se quede colgado).
+ * Envía o actualiza la solicitud de profesional (web y app móvil con Bearer).
  * Body: mismo payload que antes (applicationData).
  */
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await createClient();
+    const supabase = await createClientForRequest(request);
     const {
       data: { user },
       error: authError,

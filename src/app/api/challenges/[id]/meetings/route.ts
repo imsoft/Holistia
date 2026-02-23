@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient, createServiceRoleClient } from "@/utils/supabase/server";
+import { createClientForRequest } from "@/utils/supabase/api-auth";
+import { createServiceRoleClient } from "@/utils/supabase/server";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
-async function getSupabaseForChallenge(challengeId: string) {
-  const supabase = await createClient();
+async function getSupabaseForChallenge(supabase: SupabaseClient, challengeId: string) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -38,7 +39,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const supabase = await createClient();
+    const supabase = await createClientForRequest(request);
     const { id: challengeId } = await params;
 
     const {
@@ -49,7 +50,7 @@ export async function GET(
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
 
-    const { supabase: supabaseForQuery, allowed } = await getSupabaseForChallenge(challengeId);
+    const { supabase: supabaseForQuery, allowed } = await getSupabaseForChallenge(supabase, challengeId);
     const queryClient = allowed && supabaseForQuery ? supabaseForQuery : supabase;
 
     const { data: meetings, error } = await queryClient
@@ -83,7 +84,7 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const supabase = await createClient();
+    const supabase = await createClientForRequest(request);
     const { id: challengeId } = await params;
 
     const {
@@ -94,7 +95,7 @@ export async function POST(
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
 
-    const { supabase: supabaseForWrite, allowed } = await getSupabaseForChallenge(challengeId);
+    const { supabase: supabaseForWrite, allowed } = await getSupabaseForChallenge(supabase, challengeId);
     if (!allowed || !supabaseForWrite) {
       return NextResponse.json(
         { error: "No tienes permiso para agregar reuniones a este reto" },
@@ -197,9 +198,10 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const supabase = await createClientForRequest(request);
     const { id: challengeId } = await params;
 
-    const { supabase: supabaseForWrite, allowed } = await getSupabaseForChallenge(challengeId);
+    const { supabase: supabaseForWrite, allowed } = await getSupabaseForChallenge(supabase, challengeId);
     if (!allowed || !supabaseForWrite) {
       return NextResponse.json(
         { error: "No tienes permiso para actualizar reuniones de este reto" },
@@ -306,9 +308,10 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const supabase = await createClientForRequest(request);
     const { id: challengeId } = await params;
 
-    const { supabase: supabaseForWrite, allowed } = await getSupabaseForChallenge(challengeId);
+    const { supabase: supabaseForWrite, allowed } = await getSupabaseForChallenge(supabase, challengeId);
     if (!allowed || !supabaseForWrite) {
       return NextResponse.json(
         { error: "No tienes permiso para eliminar reuniones de este reto" },

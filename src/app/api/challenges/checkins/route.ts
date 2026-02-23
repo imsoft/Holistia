@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/utils/supabase/server';
+import { createClientForRequest } from '@/utils/supabase/api-auth';
 import { sendChallengeCompletedEmail } from '@/lib/email-sender';
 import { calculateScheduleAwareStreak } from '@/lib/challenge-schedule';
 
 // GET - Obtener check-ins de un reto
 export async function GET(request: NextRequest) {
   try {
-    const supabase = await createClient();
+    const supabase = await createClientForRequest(request);
     const { searchParams } = new URL(request.url);
     const challenge_purchase_id = searchParams.get('challenge_purchase_id');
 
@@ -76,7 +76,7 @@ export async function GET(request: NextRequest) {
 // POST - Crear un nuevo check-in
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await createClient();
+    const supabase = await createClientForRequest(request);
 
     // Verificar autenticación
     const { data: { user }, error: authError } = await supabase.auth.getUser();

@@ -1,4 +1,4 @@
-import { createClient } from "@/utils/supabase/server";
+import { createClientForRequest } from "@/utils/supabase/api-auth";
 import { NextRequest, NextResponse } from "next/server";
 
 /** POST: enviar feedback post-cita ("¿Todo bien con tu reserva?") */
@@ -7,7 +7,7 @@ export async function POST(
   { params }: { params: Promise<{ appointmentId: string }> }
 ) {
   try {
-    const supabase = await createClient();
+    const supabase = await createClientForRequest(request);
     const { appointmentId } = await params;
 
     const {

@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/utils/supabase/server';
+import { createClientForRequest, isMobileRequest } from '@/utils/supabase/api-auth';
 import { stripe, calculateCommission, calculateTransferAmount, formatAmountForStripe } from '@/lib/stripe';
+
+const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.holistia.io';
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await createClient();
+    const supabase = await createClientForRequest(request);
 
     // Verificar autenticación
     const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -92,9 +94,11 @@ export async function POST(request: NextRequest) {
     }
 
     // Si tiene precio, crear sesión de checkout con Stripe
-    const professional = challenge.professional_applications;
+    const professional = Array.isArray(challenge.professional_applications)
+      ? challenge.professional_applications[0]
+      : challenge.professional_applications;
 
-    if (!professional.stripe_account_id) {
+    if (!professional?.stripe_account_id) {
       return NextResponse.json(
         { error: 'El profesional no tiene configurado el método de pago' },
         { status: 400 }
@@ -190,8 +194,12 @@ export async function POST(request: NextRequest) {
         platform_fee: platformFee.toString(),
         transfer_amount: transferAmount.toString(),
       },
-      success_url: `${process.env.NEXT_PUBLIC_SITE_URL || request.nextUrl.origin}/patient/${user.id}/my-challenges?purchase=success`,
-      cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL || request.nextUrl.origin}/patient/${user.id}/explore/challenge/${challenge_id}`,
+      success_url: isMobileRequest(request)
+        ? `${BASE_URL}/checkout/complete?result=success`
+        : `${BASE_URL}/patient/${user.id}/my-challenges?purchase=success`,
+      cancel_url: isMobileRequest(request)
+        ? `${BASE_URL}/checkout/complete?result=cancel`
+        : `${BASE_URL}/patient/${user.id}/explore/challenge/${challenge_id}`,
       customer_email: user.email,
     });
 

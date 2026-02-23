@@ -1,12 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { stripe, calculateCommission, calculateTransferAmount, formatAmountForStripe } from '@/lib/stripe';
-import { createClient } from '@/utils/supabase/server';
+import { createClientForRequest, isMobileRequest } from '@/utils/supabase/api-auth';
 import { formatDate } from '@/lib/date-utils';
+
+const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.holistia.io';
 
 export async function POST(request: NextRequest) {
   try {
     console.log('🚀 Starting event checkout session creation...');
-    const supabase = await createClient();
+    const supabase = await createClientForRequest(request);
 
     // Verify user is authenticated
     const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -204,8 +206,12 @@ export async function POST(request: NextRequest) {
           destination: organizer.stripe_account_id, // Transfer rest to organizer
         },
       },
-      success_url: `${process.env.NEXT_PUBLIC_SITE_URL}/patient/${user.id}/explore/event/${event_id}`,
-      cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL}/patient/${user.id}/explore/event/${event_id}`,
+      success_url: isMobileRequest(request)
+        ? `${BASE_URL}/checkout/complete?result=success`
+        : `${BASE_URL}/patient/${user.id}/explore/event/${event_id}`,
+      cancel_url: isMobileRequest(request)
+        ? `${BASE_URL}/checkout/complete?result=cancel`
+        : `${BASE_URL}/patient/${user.id}/explore/event/${event_id}`,
       metadata: {
         payment_id: payment.id,
         event_id: event_id,

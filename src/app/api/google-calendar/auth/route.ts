@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuthUrl } from '@/lib/google-calendar';
-import { createClient } from '@/utils/supabase/server';
+import { createClientForRequest, isMobileRequest } from '@/utils/supabase/api-auth';
 
 /**
  * GET /api/google-calendar/auth
@@ -8,7 +8,7 @@ import { createClient } from '@/utils/supabase/server';
  */
 export async function GET(request: NextRequest) {
   try {
-    const supabase = await createClient();
+    const supabase = await createClientForRequest(request);
 
     // Verificar que el usuario está autenticado
     const {
@@ -23,11 +23,12 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Guardar el user_id en una cookie temporal para recuperarlo en el callback
+    // Guardar el user_id en state para recuperarlo en el callback (+ fromApp si viene de móvil)
     const state = Buffer.from(
       JSON.stringify({
         userId: user.id,
         timestamp: Date.now(),
+        fromApp: isMobileRequest(request),
       })
     ).toString('base64');
 

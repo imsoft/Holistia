@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient, createServiceRoleClient } from '@/utils/supabase/server';
+import { createClientForRequest } from '@/utils/supabase/api-auth';
+import { createServiceRoleClient } from '@/utils/supabase/server';
 import { stripe, formatAmountForStripe, calculateCommission, calculateTransferAmount } from '@/lib/stripe';
 
 /**
@@ -14,7 +15,7 @@ import { stripe, formatAmountForStripe, calculateCommission, calculateTransferAm
  */
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await createClient();
+    const supabase = await createClientForRequest(request);
     const { data: { user }, error: userError } = await supabase.auth.getUser();
 
     if (userError || !user) {

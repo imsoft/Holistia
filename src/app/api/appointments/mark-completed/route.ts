@@ -1,4 +1,4 @@
-import { createClient } from "@/utils/supabase/server";
+import { createClientForRequest } from "@/utils/supabase/api-auth";
 import { NextResponse } from "next/server";
 import { updateAppointmentStatusInGoogleCalendar } from "@/actions/google-calendar";
 
@@ -8,7 +8,7 @@ import { updateAppointmentStatusInGoogleCalendar } from "@/actions/google-calend
  */
 export async function POST(request: Request) {
   try {
-    const supabase = await createClient();
+    const supabase = await createClientForRequest(request);
     const body = await request.json();
     const { appointmentId } = body;
 

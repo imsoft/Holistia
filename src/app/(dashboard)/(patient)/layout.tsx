@@ -194,6 +194,7 @@ export default function UserLayout({
 
   // Detectar si es una página pública de explore (accesible sin login)
   const isPublicPage = pathname && (
+    pathname === '/explore' ||
     publicDetailPages.some(page => pathname.startsWith(page)) ||
     publicListingPages.some(page => pathname === page || pathname.startsWith(page + '/'))
   );

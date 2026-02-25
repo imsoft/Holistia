@@ -1,5 +1,4 @@
 import { createClient } from "@/utils/supabase/server";
-import { redirect } from "next/navigation";
 import {
   transformServicesFromDB,
   determineProfessionalModality,
@@ -10,15 +9,10 @@ import { ExploreClient } from "./explore-client";
 export default async function ExplorePage() {
   const supabase = await createClient();
 
-  // Verificar autenticación server-side
+  // Obtener usuario (puede ser null para visitantes sin sesión)
   const {
     data: { user },
-    error: authError,
   } = await supabase.auth.getUser();
-
-  if (authError || !user) {
-    redirect("/login");
-  }
 
   // ─── Fetch de datos en paralelo (server-side, ~5ms vs ~200ms desde el navegador) ───
 
@@ -330,7 +324,7 @@ export default async function ExplorePage() {
 
   return (
     <ExploreClient
-      userId={user.id}
+      userId={user?.id ?? null}
       professionals={professionals}
       events={events}
       challenges={challenges}

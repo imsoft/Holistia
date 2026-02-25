@@ -238,6 +238,9 @@ export function ExploreClient({
 }: ExploreClientProps) {
   useUserStoreInit();
 
+  const exploreHref = (path: string) =>
+    userId ? `/patient/${userId}/explore/${path}` : `/explore/${path}`;
+
   // ─── State ──────────────────────────────────────────────────────
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [filteredProfessionals, setFilteredProfessionals] =
@@ -575,7 +578,7 @@ export function ExploreClient({
             <div className="relative z-10">
               <div className="flex items-center justify-between mb-6">
                 <Link
-                  href={`/patient/${userId}/explore/programs`}
+                  href={exploreHref('programs')}
                   className="group flex items-center gap-2"
                 >
                   <h2 className="text-3xl sm:text-4xl font-bold text-foreground group-hover:text-primary transition-colors">
@@ -652,7 +655,7 @@ export function ExploreClient({
             <div className="relative z-0">
               <div className="flex items-center justify-between mb-6">
                 <Link
-                  href={`/patient/${userId}/explore/events`}
+                  href={exploreHref('events')}
                   className="group flex items-center gap-2"
                 >
                   <h2 className="text-3xl sm:text-4xl font-bold text-foreground group-hover:text-primary transition-colors">
@@ -714,7 +717,7 @@ export function ExploreClient({
             <div className="relative z-10">
               <div className="flex items-center justify-between mb-6">
                 <Link
-                  href={`/patient/${userId}/explore/professionals`}
+                  href={exploreHref('professionals')}
                   className="group flex items-center gap-2"
                 >
                   <h2 className="text-3xl sm:text-4xl font-bold text-foreground group-hover:text-primary transition-colors">
@@ -868,7 +871,7 @@ export function ExploreClient({
             <div>
               <div className="flex items-center justify-between mb-6">
                 <Link
-                  href={`/patient/${userId}/explore/restaurants`}
+                  href={exploreHref('restaurants')}
                   className="group flex items-center gap-2"
                 >
                   <h2 className="text-3xl sm:text-4xl font-bold text-foreground group-hover:text-primary transition-colors">
@@ -926,7 +929,7 @@ export function ExploreClient({
             <div>
               <div className="flex items-center justify-between mb-6">
                 <Link
-                  href={`/patient/${userId}/explore/shops`}
+                  href={exploreHref('shops')}
                   className="group flex items-center gap-2"
                 >
                   <h2 className="text-3xl sm:text-4xl font-bold text-foreground group-hover:text-primary transition-colors">
@@ -984,7 +987,7 @@ export function ExploreClient({
             <div>
               <div className="flex items-center justify-between mb-6">
                 <Link
-                  href={`/patient/${userId}/explore/holistic-centers`}
+                  href={exploreHref('holistic-centers')}
                   className="group flex items-center gap-2 hover:opacity-80 transition-opacity"
                 >
                   <h2 className="text-3xl sm:text-4xl font-bold text-foreground group-hover:text-primary transition-colors">

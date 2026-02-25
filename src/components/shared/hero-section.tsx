@@ -39,7 +39,7 @@ export const HeroSection = () => {
           }
           description="Explora expertos, programas, experiencias, restaurantes y espacios diseñados para acompañarte en tu bienestar físico, mental, emocional, espiritual y social. Aquí tu cambio sí toma forma."
           ctaText="Encuentra a tu experto"
-          ctaHref="/explore"
+          ctaHref="/explore/professionals"
           images={HERO_IMAGES}
         />
       </main>

@@ -223,7 +223,8 @@ export default function UserLayout({
   }
 
   // Sin perfil en página privada → redirigir al inicio
-  if (!profile && !isPublicPage) {
+  // authChecked garantiza que el pathname ya se estabilizó antes de redirigir
+  if (!profile && pathname && !isPublicPage && authChecked) {
     router.replace("/");
     return null;
   }

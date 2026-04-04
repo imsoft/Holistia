@@ -14,6 +14,21 @@ const nextConfig: NextConfig = {
     } : false,
   },
 
+  async redirects() {
+    return [
+      {
+        // Redirige todo excepto:
+        // 1. La raíz "/" (evita bucle infinito)
+        // 2. Archivos internos de Next (_next)
+        // 3. API routes
+        // 4. Archivos estáticos comunes (favicon, robots, etc)
+        source: '/((?!api|_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml|$).*)',
+        destination: '/',
+        permanent: false, // Mantén en false mientras pruebas
+      },
+    ];
+  },
+
   images: {
     remotePatterns: [
       {

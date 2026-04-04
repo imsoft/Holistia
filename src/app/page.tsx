@@ -36,16 +36,5 @@ export const metadata: Metadata = generateStaticMetadata({
 const structuredData = generateStructuredData('website', {});
 
 export default function HomePage() {
-  return (
-    <>
-      <StructuredData data={structuredData} />
-      <HeroSection />
-<ExploreSection />
-      <FeaturesSection />
-      <CompaniesCtaSection />
-      <LogoClouds />
-      <TestimonialsSection />
-      <Footer />
-    </>
-  );
+  return null;
 }
